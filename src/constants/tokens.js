@@ -1,0 +1,142 @@
+/* ── Palette — 4 primitives, everything else derived ───────────────── */
+
+// 1. NEUTRALS — slate ramp. Change these 9 values to re-theme the entire UI.
+export const C = {
+  TEXT:     "#1E293B",  // headings, primary labels (slate-800)
+  TEXT_2:   "#475569",  // secondary text (slate-600)
+  TEXT_3:   "#64748B",  // table headers, axis labels (slate-500)
+  TEXT_4:   "#94A3B8",  // muted, annotations, N/A (slate-400)
+  BORDER:   "#CBD5E1",  // primary borders, dividers (slate-300)
+  BORDER_L: "#E2E8F0",  // light row separators (slate-200)
+  BG:       "#F1F5F9",  // card/row alt backgrounds (slate-100)
+  BG_L:     "#F8FAFC",  // lightest background (slate-50)
+  WHITE:    "#FFFFFF",  // pure white — cards, row-even backgrounds
+  BG_ZONE:  "#EDF0F5",  // zone panel backgrounds (import page, report sections)
+};
+
+// 2. SIGNAL — red / amber / green severity hues.
+//    Each has 4 shades: text (dark), dot (vivid), bg (tint), border (light).
+export const SIGNAL = {
+  RED:   { text:"#991B1B", dot:"#EF4444", bg:"#FEF2F2", border:"#FECACA" },
+  AMBER: { text:"#713F12", dot:"#F97316", bg:"#FEFCE8", border:"#FEF08A" },
+  GREEN: { text:"#166534", dot:"#22C55E", bg:"#F0FDF4", border:"#BBF7D0" },
+};
+
+// 3. ACCENT — 5 functional hues for UI chrome, roles, badges, mechanisms.
+//    Each has 4 shades: color (vivid), text (dark readable), bg (tint), border (light).
+export const ACCENT = {
+  BLUE:    { color:"#3B82F6", text:"#2a4a6a", bg:"#EFF6FF", border:"#93C5FD" },
+  PURPLE:  { color:"#8B5CF6", text:"#6D28D9", bg:"#F5F3FF", border:"#C4B5FD" },
+  TEAL:    { color:"#14B8A6", text:"#0F766E", bg:"#CCFBF1", border:"#a0d8d8" },
+  GOLD:    { color:"#D97706", text:"#9a7010", bg:"#FFFBEB", border:"#e8c97a" },
+  PINK:    { color:"#EC4899", text:"#9D174D", bg:"#FDF2F8", border:"#FBCFE8" },
+};
+
+// 4. CHART — data-visualisation specifics.
+export const CHART = {
+  SERIES: ["#4878cf","#e47528","#60ac5d","#d53e4f","#b39bca",
+           "#a06838","#e884bb","#aaaa55","#56bfc0","#7faad8","#c3a07a"],
+  S_ORANGE:  "#E67E22",   // SERIES7 slot — distinct from ACCENT.GOLD
+  S_INDIGO:  "#6366F1",   // SERIES7 slot — distinct from ACCENT.PURPLE
+  EXP:       "#0D9488",   // expected / null — teal
+  GAP:       "#c05a5a",   // precision: missing decimal gap
+  REF:       "#4a7a4a",   // expected-range reference line
+};
+
+
+// 5. TYPOGRAPHY — font stacks, weights, sizes.
+//    Change these to re-font the entire app.
+export const FF = {
+  MONO:  "'SF Mono','Cascadia Code',Menlo,Consolas,monospace",  // data tables, code, stats, report grid
+  UI:    "system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif", // app UI, SVG charts, report body
+  PRINT: "Calibri,sans-serif",                                  // HTML report summary tables
+  SERIF: "Georgia,'Times New Roman',serif",                     // logo only
+};
+export const FW = {
+  BOLD:  700,   // headings, flagged values, emphasis, logo
+  SEMI:  600,   // sub-headings, labels, table headers
+  NORM:  400,   // body text, normal weight
+};
+// SVG chart font sizes — 6 levels (nothing below 9pt)
+export const CF = {
+  TICK: "10",      // axis tick numbers
+  AXIS: "11",      // axis title labels
+  LABEL: "10",     // group names, bar labels, legend text
+  VALUE: "10",     // data value annotations on bars/points
+  SMALL: "9",      // secondary annotations, reference line labels
+  TINY: "9",       // floor — nothing smaller than 9pt in any chart
+};
+// HTML card font sizes — 5 levels only
+export const TF = {
+  HERO: "22px",    // verdict headline
+  TITLE: "16px",   // modal/section titles
+  BODY: "13px",    // descriptions, body text, panel headings, buttons, test names
+  NOTE: "12px",    // method descriptions, tertiary annotations
+  DETAIL: "11px",  // stat numbers, table cells, footers, secondary text
+  SMALL: "9px",    // uppercase labels, badges, dense table headers
+};
+// Chart plot widths — heights stay per-component
+export const CP = {
+  W:    420,   // standard detail chart
+  W_MD: 360,   // compact summary
+  W_SM: 320,   // inline embedded
+  W_XS: 200,   // thumbnail
+  W_LG: 540,   // wide
+};
+// Chart visual style — standardised stroke, point, and reference line appearance.
+// Edit here to change line weights and point sizes for all charts at once.
+export const CS = {
+  GRID:    { w: "0.8" },                              // background gridlines
+  REF:     { w: "1.5", dash: "4,3", opacity: 0.7 },   // reference/threshold dashed lines
+  DATA:    { w: "1.2" },                               // data series lines
+  FIT:     { w: "2" },                                 // fitted/expected curves
+  PT:      { r: 3.5 },                                 // standard data point
+  PT_SM:   { r: 2 },                                   // dense/background points
+  PT_LG:   { r: 4 },                                   // emphasis/outlier points
+};
+// Border radii — 5 levels. Edit here to change rounding for all UI at once.
+export const CR = {
+  XS: "2px",   // cell highlights, mini swatches
+  SM: "3px",   // badges, inline tags, heatmap cells
+  MD: "5px",   // banners, buttons, inputs, panels
+  LG: "6px",   // major cards, report sections
+  XL: "8px",   // hero cards, modals, drop zones
+};
+
+/* ── Derived — assembled from the 4 primitives above ──────────────── */
+
+export const CC = { OBS:ACCENT.BLUE.color, EXP:CHART.EXP, EXP_SOFT:"#7BC8A4", THRESH:SIGNAL.RED.dot, WARN:SIGNAL.AMBER.dot };
+
+/* Mechanism category visual identity — keyed by mechanism slug */
+export const MECH_COLOR = { copied:"#4682B4", digits:"#4682B4", uneven:"#4682B4", noise:"#4682B4", perfect:"#4682B4" };
+export const MECH_ACCENT = { copied:"#CCFBF1", digits:"#DBEAFE", uneven:"#E0E7FF", noise:"#FCE7F3", perfect:"#FDF2F8" };
+export const SERIES7 = [CC.OBS, CHART.S_ORANGE, ACCENT.TEAL.color, ACCENT.PURPLE.color, ACCENT.PINK.color, CHART.S_INDIGO, SIGNAL.AMBER.dot];
+
+export const SEV_VERDICT = {
+  0: { color:SIGNAL.GREEN.dot, text:SIGNAL.GREEN.text||"#166534", bg:SIGNAL.GREEN.bg, border:SIGNAL.GREEN.border },
+  1: { color:"#84CC16", text:"#4D7C0F", bg:"#F7FEE7", border:"#BEF264" },
+  2: { color:"#F97316", text:"#C2410C", bg:"#FFF7ED", border:"#FDBA74" },
+  3: { color:SIGNAL.RED.dot, text:SIGNAL.RED.text||"#991B1B", bg:SIGNAL.RED.bg, border:SIGNAL.RED.border },
+};
+
+export const UI = {
+  WARN: { text:ACCENT.GOLD.text, bg:ACCENT.GOLD.bg, border:ACCENT.GOLD.border },
+  OK:   { text:ACCENT.TEAL.text, bg:ACCENT.TEAL.bg, border:ACCENT.TEAL.border },
+  INFO: { text:ACCENT.BLUE.text, bg:ACCENT.BLUE.bg, border:ACCENT.BLUE.border },
+};
+export const BADGE = {
+  PROMOTED: { text:ACCENT.GOLD.text, bg:ACCENT.GOLD.bg, border:ACCENT.GOLD.border },
+  VST_LOG:  { text:ACCENT.PURPLE.color, bg:ACCENT.PURPLE.bg, border:ACCENT.PURPLE.border },
+  VST_ANS:  { text:ACCENT.TEAL.text, bg:ACCENT.TEAL.bg, border:ACCENT.TEAL.border },
+  AUTO:     { text:ACCENT.TEAL.text, bg:ACCENT.TEAL.bg, border:ACCENT.TEAL.border },
+};
+
+export const M = { fontFamily: FF.MONO };
+
+// Heatmap tier colours — flat per-tier fills shared by all correlation/residual matrices.
+// Edit here to change heatmap colours globally. heatmapColors.js re-exports as TIER_COLOR.
+export const HEATMAP_TIER = {
+  LOW:  { color: "rgba(59,130,246,0.25)",  label: "Low" },
+  MID:  { color: "rgba(245,158,11,0.45)",  label: "Moderate" },
+  HIGH: { color: "rgba(239,68,68,0.55)",   label: "High" },
+};

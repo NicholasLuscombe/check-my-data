@@ -1,0 +1,80 @@
+import { MiniCardLayout } from "../shared/CardLayout.jsx";
+import { PlotLayout } from "../shared/PlotLayout.jsx";
+import { ChartLegend } from "../shared/ChartLegend.jsx";
+import { RowMeanTrendPlot } from "../plots/RowMeanTrendPlot.jsx";
+import { C, CC, TF, FW, FF } from "../../constants/tokens.js";
+import { fmtPBadge } from "../../constants/thresholds.js";
+import { makeRowMapper } from "../shared/coordinates.js";
+import { buildCondColorMap } from "../../constants/roles.js";
+import { SUB_HEAD } from "../shared/styles.js";
+
+
+// Match colours defined in RowMeanTrendPlot
+const CROSSING_COLOR = "#4A3D8F";
+const RUN_COLOR = "#A0A0CC";
+
+export function MiniCard_RowMean({ result, importConfig, rowMap }) {
+  const details = result.details || [];
+  const sub = result.subDetails || [];
+  const name = result.name;
+  const isAgg = result.groupsAssessed !== undefined;
+let headline;
+if (result.flag === "LOW") {
+  headline = "Row means follow a random pattern — no systematic trends detected.";
+} else if (result.bestWindowRows) {
+  headline = `Rows ${result.bestWindowRows} show a systematic pattern in row means — values trend in one direction rather than fluctuating randomly.`;
+} else {
+  headline = "Row means show a systematic pattern — successive rows trend together rather than fluctuating randomly.";
+}
+const desc = "Computes the average value for each row and tracks how often it crosses the dataset-wide mean. Too few crossings (a sign-change runs test, specifically Wald\u2013Wolfowitz) indicates trending rather than random fluctuation.";
+
+// Condition label for the best sequence
+const bestLabel = result.bestSequence?.replace(/^Cond:\s*/, "") || null;
+
+// Coordinate mapping for original file row numbers
+const { fileRow } = makeRowMapper(importConfig, rowMap);
+
+// Row means trend plot (preferred) or null if data not available
+const hasRowMeans = result.bestRowMeans?.length > 0 && result.bestGrandMean != null;
+const mainPlot = hasRowMeans ? (
+  <RowMeanTrendPlot
+    rowMeans={result.bestRowMeans}
+    simMeans={result.bestSimMeans}
+    rowIdxs={result.bestRowIdxs}
+    grandMean={result.bestGrandMean}
+    fileRow={fileRow}
+  />
+) : null;
+
+const legend = [
+  { color: CROSSING_COLOR, label: "Observed", swatchType: "line" },
+  { color: CC.EXP_SOFT, label: "Simulated (permuted)", swatchType: "line" },
+  { color: C.TEXT_4, label: "Grand mean", swatchType: "line", dashed: true, opacity: 0.70 },
+];
+
+// Condition colour for sub-heading
+const condColorMap = buildCondColorMap(importConfig?.condPerCol);
+const condColor = bestLabel ? condColorMap[bestLabel]?.text : null;
+
+return (
+
+  <MiniCardLayout result={result} headline={headline}
+    desc={desc}
+    footer={<>
+      {result.firstPairSigns?.length||"?"} rows · {(result.firstPairRuns||1) - 1} crossings (expected <span style={{color:CC.EXP_SOFT}}>{(result.firstPairExp||1) - 1}</span>)
+      {result.bestWindowRows && ` · anomaly: rows ${result.bestWindowRows}`}
+      {" · " + fmtPBadge(result.primaryP)}
+    </>}
+    lookFor="Long stretches where row means stay on the same side of the grand mean suggest sequential construction. Bold segments in the chart mark crossings — few crossings means the fabricator anchored each row's mean to the previous one. Compare the faint regions against the raw data: are the values suspiciously smooth or trending?"
+    implications="Row averages that trend in blocks rather than fluctuating randomly can result from time-dependent biological processes or batch effects within a condition. Too many alternations — averages switching direction more than expected — can indicate values arranged to appear random rather than recorded in natural order.">
+
+    {bestLabel && isAgg && <div style={{...SUB_HEAD, ...(condColor ? {color: condColor} : {})}}>{bestLabel}</div>}
+    {mainPlot && <PlotLayout>{mainPlot}</PlotLayout>}
+    {mainPlot && <ChartLegend items={legend} />}
+
+
+  </MiniCardLayout>
+
+);
+
+}

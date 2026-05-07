@@ -1,0 +1,49 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Editor and OS
+.DS_Store
+.idea
+.vscode/*
+!.vscode/extensions.json
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Dependencies and build
+node_modules
+dist
+dist-ssr
+
+# Local env
+.env
+.env.local
+.env.*.local
+
+# Local Claude Code permissions
+.claude/settings.local.json
+
+# Dev workflow files (dual-Claude internal collaboration)
+CLAUDE.md
+STATUS.md
+project-instructions.md
+
+# Session history and audit logs (internal dev record)
+docs/sessions/
+docs/AUDIT-*.md
+docs/archive/
+docs/shared/archive/
+docs/shared/project-instructions.md
+docs/shared/SESSION126-DESIGN-SPEC.md
+docs/shared/CHECK-MY-DATA-TEST-CHEATSHEET.md
+
+# Diagnostic output redirects (cleanup convenience)
+output.txt
