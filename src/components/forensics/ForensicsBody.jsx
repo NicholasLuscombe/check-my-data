@@ -50,13 +50,17 @@ import { Section } from "../shared/Section.jsx";
 import { MECHANISM_ORDER, TEST_MECHANISM } from "../../constants/mechanisms.js";
 import { CATEGORY_SHORT_DESCRIPTIONS } from "../../constants/descriptions.js";
 import { C, TF, FW, FF } from "../../constants/tokens.js";
-import { StickySurface, shouldRenderSticky } from "./StickySurface.jsx";
+import { StickySurface, STICKY_SURFACE_SELECTOR, shouldRenderSticky } from "./StickySurface.jsx";
 import { ForensicsCategoryBlock } from "./ForensicsCategoryBlock.jsx";
 import { MinimapStrip } from "./MinimapStrip.jsx";
 import { DeepLookModal } from "./DeepLookModal.jsx";
 import { usePulseTrigger } from "./pulseContext.jsx";
 
 const CLEAN_STATE_COPY = "All checks passed — no patterns to flag.";
+
+// Visual gap between the pinned sticky surface's bottom edge and the
+// scrolled-into-view card title (px). Used by `scrollToCard` below.
+const SCROLL_BREATHING_MARGIN = 8;
 
 export function ForensicsBody({
   findings, results, catSummaries,
@@ -94,11 +98,31 @@ export function ForensicsBody({
 
   // Scroll-to-card via the data-test-id attribute that ForensicsTestCard sets.
   // CSS.escape handles test-id strings that contain spaces / parens / quotes.
+  //
+  // S133f-fix2: replaces scrollIntoView({block:"center"}) with offset-aware
+  // top-alignment. block:"center" centred the card on the viewport, which
+  // for cards taller than the viewport (Missing Data Patterns: per-column
+  // missing-rate plot + spatial heatmap; Block Covariance Anomaly with
+  // expanded Σ-pass heatmap) pushed the card title above the viewport
+  // top and landed the user at "Implications" / "What to look for". The
+  // new arithmetic reads the sticky surface's measured offsetHeight at
+  // scroll-time and lands the card title just below the pinned sticky:
+  //   target = window.scrollY + el.top - stickyHeight - BREATHING_MARGIN
+  // offsetHeight is read live (no caching) so the height tracks the
+  // sticky's lane composition (pills / localised / fallback / minimap).
+  // When no sticky surface is mounted (severity 0 path), stickyHeight
+  // falls through to 0 and the card lands BREATHING_MARGIN below
+  // viewport top.
   const scrollToCard = useCallback((testId) => {
     if (typeof document === "undefined" || !testId) return;
     const sel = `[data-test-id="${(typeof CSS !== "undefined" && CSS.escape) ? CSS.escape(testId) : testId.replace(/"/g, '\\"')}"]`;
     const el = document.querySelector(sel);
-    if (el && el.scrollIntoView) el.scrollIntoView({ behavior: "smooth", block: "center" });
+    if (!el) return;
+    const stickyEl = document.querySelector(STICKY_SURFACE_SELECTOR);
+    const stickyHeight = stickyEl ? stickyEl.offsetHeight : 0;
+    const elTop = el.getBoundingClientRect().top;
+    const target = window.scrollY + elTop - stickyHeight - SCROLL_BREATHING_MARGIN;
+    window.scrollTo({ top: Math.max(0, target), behavior: "smooth" });
   }, []);
 
   // Sticky-surface activation. Receives the full finding so multi-test

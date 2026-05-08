@@ -28,6 +28,12 @@ import { FindingChip } from "./FindingChip.jsx";
 
 const STICKY_TOP = 0;
 
+// Stable DOM marker so chip-click scroll handlers can read the sticky
+// surface's measured height and offset their landing position. Writer is
+// the outer div below; reader is `scrollToCard` in ForensicsBody.jsx.
+// Exported as a selector so consumers don't repeat the magic string.
+export const STICKY_SURFACE_SELECTOR = '[data-sticky-surface="forensics"]';
+
 const SEVERITY_WORD = ["Clean", "Low", "Medium", "High"];
 
 // Lane label is a dimension-header peer (S126b add-7), not a section-
@@ -136,7 +142,7 @@ export function StickySurface({ findings, severity, onActivateTest, minimapSlot 
   // pills + chips. Sticky's DOM parent is unchanged — pin range still
   // extends past §3-§5 via the Fragment / ReportView outer wrapper.
   return (
-    <div style={{
+    <div data-sticky-surface="forensics" style={{
       position: "sticky",
       top: STICKY_TOP,
       zIndex: 20,
