@@ -27,7 +27,7 @@
    matching minimap region overlay. Scroll handling lives in ReportView
    via onActivate(firstTestId). */
 
-import { C, TF, FW, FF, CR, SEV_VERDICT } from "../../constants/tokens.js";
+import { C, TF, FW, FF, CR, SEV_VERDICT, MECH_COLOR } from "../../constants/tokens.js";
 import { MECHANISMS } from "../../constants/mechanisms.js";
 import { usePulseTrigger } from "./pulseContext.jsx";
 import { usePulseAnimation } from "./PulseStyle.jsx";
@@ -74,6 +74,16 @@ export function FindingChip({ finding, onActivate, showRegionNumber = false }) {
   const chipLabel = isSingleTest ? (tests[0]?.displayName || dimLabel) : dimLabel;
   const otherDims = isSingleTest ? 0 : Math.max(0, (finding.dimensions?.length || 0) - 1);
   const N = finding.regionNumber;
+  // S133f: 4px left-edge stripe in MECH_COLOR[dimKey] adds a second axis to the
+  // severity-coloured chrome — severity remains in bg + border + text, mechanism
+  // moves to the stripe. dimKey resolves through buildFindings (line 166: dim =
+  // TEST_MECHANISM[r.name]) so single-test chips read the test's mechanism and
+  // the rare multi-test chip reads the dominant dimension. If MECH_COLOR has no
+  // entry for the resolved key (defensive — every test in MECHANISM_ORDER is
+  // keyed today), the stripe is omitted and the chip falls through to its
+  // pre-S133f severity-only chrome.
+  const mechColor = MECH_COLOR[dimKey];
+  const stripeShadow = mechColor ? `inset 4px 0 0 ${mechColor}` : "none";
 
   const ref = usePulseAnimation(`chip:${N}`, sev.pulseColor);
   const trigger = usePulseTrigger();
@@ -96,10 +106,11 @@ export function FindingChip({ finding, onActivate, showRegionNumber = false }) {
       title={tooltip}
       style={{
         display: "inline-flex", alignItems: "center", gap: "4px",
-        padding: "3px 10px",
+        padding: mechColor ? "3px 10px 3px 14px" : "3px 10px",
         background: sev.bg,
         border: `1px solid ${sev.border}`,
         borderRadius: CR.MD,
+        boxShadow: stripeShadow,
         color: sev.text,
         fontSize: TF.DETAIL,
         fontFamily: FF.UI,

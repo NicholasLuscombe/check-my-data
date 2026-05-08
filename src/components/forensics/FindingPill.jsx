@@ -7,7 +7,8 @@
    pulse fires. Pulse from card-side click also lands here via the shared
    PulseProvider. */
 
-import { TF, FW, FF, CR, SEV_VERDICT } from "../../constants/tokens.js";
+import { TF, FW, FF, CR, SEV_VERDICT, MECH_COLOR } from "../../constants/tokens.js";
+import { TEST_MECHANISM } from "../../constants/mechanisms.js";
 import { usePulseTrigger } from "./pulseContext.jsx";
 import { usePulseAnimation } from "./PulseStyle.jsx";
 
@@ -34,6 +35,16 @@ export function FindingPill({ finding, onActivate }) {
   const sev = severityStyle(finding.severity);
   const ref = usePulseAnimation(`pill:${test.testId}`, sev.pulseColor);
   const trigger = usePulseTrigger();
+  // S133f: 4px left-edge stripe in MECH_COLOR keyed off the test's primary
+  // mechanism — same encoding as FindingChip. Pills are always single-test
+  // (HIGH/MOD globals only), so dimensions[0] from buildFindings carries the
+  // test's mechanism unambiguously. TEST_MECHANISM[testId] is the equivalent
+  // direct lookup; preferring it here keeps the pill self-contained against
+  // the finding's dimensions[] shape (which carries fallback logic in
+  // buildFindings). Stripe omitted when MECH_COLOR has no matching key.
+  const dimKey = TEST_MECHANISM[test.testId];
+  const mechColor = MECH_COLOR[dimKey];
+  const stripeShadow = mechColor ? `inset 4px 0 0 ${mechColor}` : "none";
 
   const handleClick = () => {
     // Pulse self + the test card. Scroll handling lives on the parent
@@ -52,10 +63,11 @@ export function FindingPill({ finding, onActivate }) {
       title={test.displayName}
       style={{
         display: "inline-flex", alignItems: "center",
-        padding: "3px 10px",
+        padding: mechColor ? "3px 10px 3px 14px" : "3px 10px",
         background: sev.bg,
         border: `1px solid ${sev.border}`,
         borderRadius: CR.MD,
+        boxShadow: stripeShadow,
         color: sev.text,
         fontSize: TF.DETAIL,
         fontFamily: FF.UI,

@@ -1,6 +1,6 @@
 /* ── MiniCard: Duplicate Detection ── */
 
-import { C, CC, TF, FW, FF, M, CP, CR, SIGNAL, MECH_COLOR, MECH_ACCENT } from "../../constants/tokens.js";
+import { C, CC, TF, FW, FF, M, CP, CR, SIGNAL, DUP_GROUP_PALETTE } from "../../constants/tokens.js";
 import { SUB_HEAD, TD_NUM_CELL, TD_ID_CELL } from "../shared/styles.js";
 import { FLAG_STYLES, fmtPBadge } from "../../constants/thresholds.js";
 import { MiniCardLayout } from "../shared/CardLayout.jsx";
@@ -303,14 +303,7 @@ return (
         return { origRow, filteredGroups: groups };
       }).filter(Boolean);
       if (allDupRows.length === 0) return null;
-      const groupColors = [
-        {text:MECH_COLOR.copied,bg:MECH_ACCENT.copied},
-        {text:MECH_COLOR.digits,bg:MECH_ACCENT.digits},
-        {text:MECH_COLOR.uneven,bg:MECH_ACCENT.uneven},
-        {text:SIGNAL.RED.dot,bg:FLAG_STYLES.HIGH.bg},
-        {text:MECH_COLOR.perfect,bg:MECH_ACCENT.perfect},
-        {text:MECH_COLOR.noise,bg:MECH_ACCENT.noise},
-      ];
+      const groupColors = DUP_GROUP_PALETTE;
       const cappedDupRows = allDupRows.slice(0, 30);
       const moreDupRows = allDupRows.length - cappedDupRows.length;
       // Compute visCols from all colorMap keys in capped rows

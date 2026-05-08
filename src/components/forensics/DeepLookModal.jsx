@@ -152,7 +152,7 @@ export function DeepLookModal({
     if (firstTestId) scrollToCardOutside?.(firstTestId);
   }, [findings, scrollToCardOutside]);
 
-  const { pills, chips } = pillsAndChips(findings || []);
+  const { pills, localisedChips, fallbackChips } = pillsAndChips(findings || []);
   const nVisRows = rawData?.length || 0;
 
   return (
@@ -213,7 +213,8 @@ export function DeepLookModal({
         {pills.length > 0 && (
           <div style={{
             display: "flex", alignItems: "center", gap: 10,
-            flexWrap: "wrap", marginBottom: chips.length > 0 ? 8 : 12,
+            flexWrap: "wrap",
+            marginBottom: (localisedChips.length > 0 || fallbackChips.length > 0) ? 8 : 12,
           }}>
             <span style={LANE_LABEL}>Dataset-wide patterns</span>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
@@ -228,14 +229,37 @@ export function DeepLookModal({
             FindingChip with `showRegionNumber=true` (spec §4.3 — the
             modal IS the surface where the [N] prefix has meaning since
             the modal-internal MinimapStrip carries the [N] anchors). */}
-        {chips.length > 0 && (
+        {localisedChips.length > 0 && (
+          <div style={{
+            display: "flex", alignItems: "center", gap: 10,
+            flexWrap: "wrap",
+            marginBottom: fallbackChips.length > 0 ? 8 : 14,
+          }}>
+            <span style={LANE_LABEL}>Localised patterns</span>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+              {localisedChips.map(f => (
+                <FindingChip
+                  key={f.id}
+                  finding={f}
+                  onActivate={onActivateInModal}
+                  showRegionNumber={true}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* S133f: fallback chip lane — mirrors §2 sticky's three-lane shape
+            so the modal stays consistent with the inline surface on scope
+            honesty. region-number prefix still rendered (modal context). */}
+        {fallbackChips.length > 0 && (
           <div style={{
             display: "flex", alignItems: "center", gap: 10,
             flexWrap: "wrap", marginBottom: 14,
           }}>
-            <span style={LANE_LABEL}>Localised patterns</span>
+            <span style={LANE_LABEL}>Patterns flagged broadly</span>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-              {chips.map(f => (
+              {fallbackChips.map(f => (
                 <FindingChip
                   key={f.id}
                   finding={f}
