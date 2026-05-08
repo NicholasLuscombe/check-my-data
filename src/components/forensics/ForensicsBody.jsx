@@ -63,6 +63,9 @@ export function ForensicsBody({
   expandedCats, toggleCat, ensureCatExpanded,
   expandedTestEvidence, setExpandedTestEvidence, ensureTestCardExpanded,
   importConfig, rowMap,
+  // Dataset severity (0/1/2/3 from computeSeverity). Threaded through to
+  // StickySurface for the §2 severity-echo top row.
+  severity,
   // S126c-b: full heatmap data bundle for the inline MinimapStrip (uses
   // convergence + rawData) and the DeepLookModal's ExcerptTable mount
   // (uses every field). Same shape ReportView builds for HotspotExcerptList
@@ -223,6 +226,7 @@ export function ForensicsBody({
             <Section number={2} title="WHAT WAS FOUND" flatBottom />
             <StickySurface
               findings={findings}
+              severity={severity}
               onActivateTest={onActivateTest}
               minimapSlot={minimapSlot}
             />

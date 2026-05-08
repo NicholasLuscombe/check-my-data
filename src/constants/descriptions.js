@@ -1,16 +1,15 @@
 /* ── Centralized user-facing description strings ── */
 
-// Category short descriptions shown in category header rows (after em-dash)
-// Single set used for all modes and flag statuses
+// Category short descriptions shown in category header rows (after em-dash).
+// Keyed by MECHANISM_ORDER (mechanisms.js): copied / digits / shapes /
+// replicate / group. Pre-S95 keys (perfect / noise / uneven) removed —
+// MECHANISM_ORDER has not used them since Track C.
 export const CATEGORY_SHORT_DESCRIPTIONS = {
-  digits: 'do the numbers themselves look odd?',
-  copied: 'are values repeated or too similar?',
-  shapes: 'do the value distributions look unusual?',
+  copied:    'are values repeated or too similar?',
+  digits:    'do the numbers themselves look odd?',
+  shapes:    'do the value distributions look unusual?',
   replicate: 'do the replicates look unusual?',
-  group: 'do the conditions look unusual?',
-  perfect: 'are values more consistent than expected?',
-  noise: 'does the noise have the wrong properties?',
-  uneven: 'does the noise have different properties in different places?',
+  group:     'do the conditions look unusual?',
 };
 
 // Long-format vs wide-format explainer — shared by LongFormatModal preamble

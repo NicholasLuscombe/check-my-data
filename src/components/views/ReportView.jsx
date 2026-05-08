@@ -1191,6 +1191,7 @@ export function ReportView({ results, narrative, importConfig, matrix, rowMap, o
               setExpandedTestEvidence={setExpandedTestEvidence}
               ensureTestCardExpanded={ensureTestCardExpanded}
               importConfig={importConfig} rowMap={rowMap}
+              severity={severity}
               heatmapProps={heatmapProps}
             />
 

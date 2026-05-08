@@ -14,11 +14,14 @@ export const MODE_ORDER = ["qc", "review", "full"];
 // ── Severity headlines per mode ──────────────────────────────────────
 
 export const SEVERITY_TEXT = {
+  // VerdictBanner reads the action one-liner from VERDICT_TEXT.sub (narrative.js)
+  // so the ladder stays mode-agnostic. Per-mode `sub` strings remain because
+  // excelExport.js consumes them as the Excel legend's severity description.
   qc: {
-    0: { headline: "All checks passed", action: "", sub: "" },
-    1: { headline: "A few minor patterns were noted", action: "Worth a quick check", sub: "" },
-    2: { headline: "Some patterns in your data need attention", action: "Check your data before proceeding", sub: "" },
-    3: { headline: "Several unusual patterns detected", action: "Investigate your data before proceeding", sub: "" },
+    0: { headline: "All checks passed", sub: "" },
+    1: { headline: "A few minor patterns were noted", sub: "" },
+    2: { headline: "Some patterns in your data need attention", sub: "" },
+    3: { headline: "Several unusual patterns detected", sub: "" },
   },
   review: {
     0: { headline: "All checks passed",                                        sub: "No unusual patterns found across any tests." },

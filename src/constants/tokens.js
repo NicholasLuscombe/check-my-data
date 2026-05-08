@@ -108,7 +108,20 @@ export const CR = {
 export const CC = { OBS:ACCENT.BLUE.color, EXP:CHART.EXP, EXP_SOFT:"#7BC8A4", THRESH:SIGNAL.RED.dot, WARN:SIGNAL.AMBER.dot };
 
 /* Mechanism category visual identity — keyed by mechanism slug */
-export const MECH_COLOR = { copied:"#4682B4", digits:"#4682B4", uneven:"#4682B4", noise:"#4682B4", perfect:"#4682B4" };
+// MECH_COLOR is keyed by MECHANISM_ORDER (mechanisms.js): five distinct hues
+// so the §1 mechanism-count strip and §2 chip/pill mechanism layer can encode
+// category alongside severity. Pre-S95 keys (uneven, noise, perfect) removed —
+// MECHANISM_ORDER has been copied/digits/shapes/replicate/group since Track C.
+// MECH_ACCENT below still carries the pre-S95 keys for the within-row
+// duplicate group palette in MiniCard_DuplicateDetection; the post-S95 keys
+// shapes/replicate/group are not yet present.
+export const MECH_COLOR = {
+  copied:    "#4A6FA5",  // slate blue
+  digits:    "#BE185D",  // magenta
+  shapes:    "#6B7C32",  // olive
+  replicate: "#6B46C1",  // violet
+  group:     "#9B4F76",  // dusty rose
+};
 export const MECH_ACCENT = { copied:"#CCFBF1", digits:"#DBEAFE", uneven:"#E0E7FF", noise:"#FCE7F3", perfect:"#FDF2F8" };
 export const SERIES7 = [CC.OBS, CHART.S_ORANGE, ACCENT.TEAL.color, ACCENT.PURPLE.color, ACCENT.PINK.color, CHART.S_INDIGO, SIGNAL.AMBER.dot];
 
