@@ -112,9 +112,6 @@ export const CC = { OBS:ACCENT.BLUE.color, EXP:CHART.EXP, EXP_SOFT:"#7BC8A4", TH
 // so the §1 mechanism-count strip and §2 chip/pill mechanism layer can encode
 // category alongside severity. Pre-S95 keys (uneven, noise, perfect) removed —
 // MECHANISM_ORDER has been copied/digits/shapes/replicate/group since Track C.
-// MECH_ACCENT below still carries the pre-S95 keys for the within-row
-// duplicate group palette in MiniCard_DuplicateDetection; the post-S95 keys
-// shapes/replicate/group are not yet present.
 export const MECH_COLOR = {
   copied:    "#4A6FA5",  // slate blue
   digits:    "#BE185D",  // magenta
@@ -122,7 +119,29 @@ export const MECH_COLOR = {
   replicate: "#6B46C1",  // violet
   group:     "#9B4F76",  // dusty rose
 };
-export const MECH_ACCENT = { copied:"#CCFBF1", digits:"#DBEAFE", uneven:"#E0E7FF", noise:"#FCE7F3", perfect:"#FDF2F8" };
+
+// DUP_GROUP_PALETTE — six-entry rotation for the within-row duplicate group
+// shading in MiniCard_DuplicateDetection (and the matching cell-bg rotation in
+// ReportView's Excel-export pass). Group rotation is NOT mechanism-keyed —
+// these are arbitrary slot identifiers — so the palette stays semantically
+// independent of MECH_COLOR. Hues chosen for visual distinctness from each
+// other AND from the five MECH_COLOR hues, so a within-row group shading on a
+// chip's neighbouring cell can't be confused for a mechanism stripe. Each
+// entry pairs `text` (saturated, used for cell text colour) with `bg` (pale
+// wash, used for cell background).
+//
+// Pre-S133f the rotation read from MECH_ACCENT (a pre-S95 5-key map) padded
+// with MECH_COLOR entries, leaving three of six slots resolving to undefined
+// after S133e-palette retired the pre-S95 MECH_COLOR keys. DUP_GROUP_PALETTE
+// supersedes both — MECH_ACCENT is retired with no remaining consumers.
+export const DUP_GROUP_PALETTE = [
+  { text: "#B91C1C", bg: "#FEE2E2" },  // red
+  { text: "#C2410C", bg: "#FFEDD5" },  // orange
+  { text: "#B45309", bg: "#FEF3C7" },  // amber
+  { text: "#0F766E", bg: "#CCFBF1" },  // teal
+  { text: "#155E75", bg: "#CFFAFE" },  // cyan
+  { text: "#78350F", bg: "#FDE68A" },  // brown
+];
 export const SERIES7 = [CC.OBS, CHART.S_ORANGE, ACCENT.TEAL.color, ACCENT.PURPLE.color, ACCENT.PINK.color, CHART.S_INDIGO, SIGNAL.AMBER.dot];
 
 export const SEV_VERDICT = {

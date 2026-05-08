@@ -10,7 +10,7 @@ import { HotspotExcerptList } from "./HotspotExcerptList.jsx";
 import { PulseProvider } from "../forensics/pulseContext.jsx";
 import { PulseStyle } from "../forensics/PulseStyle.jsx";
 import { ForensicsBody } from "../forensics/ForensicsBody.jsx";
-import { C, FF, FW, TF, CR, M, UI, BADGE, SIGNAL, ACCENT, SEV_VERDICT, MECH_ACCENT } from "../../constants/tokens.js";
+import { C, FF, FW, TF, CR, M, UI, BADGE, SIGNAL, ACCENT, SEV_VERDICT, DUP_GROUP_PALETTE } from "../../constants/tokens.js";
 import { FLAG_STYLES, ALPHA, fmtP } from "../../constants/thresholds.js";
 import { MECHANISMS, MECHANISM_ORDER, DISPLAY_NAMES, TEST_DESCRIPTIONS, TEST_MECHANISM, GLOBAL_TESTS } from "../../constants/mechanisms.js";
 import { ASSAYS, DATA_TYPES } from "../../constants/assays.js";
@@ -421,7 +421,7 @@ export function ReportView({ results, narrative, importConfig, matrix, rowMap, o
           }
         }
         // Within-row coincidences → colour-coded bg on specific cells (matches evidence table groups)
-        const groupColors = [MECH_ACCENT.copied,MECH_ACCENT.noise,MECH_ACCENT.uneven,FLAG_STYLES.HIGH.bg,MECH_ACCENT.perfect,MECH_ACCENT.digits];
+        const groupColors = DUP_GROUP_PALETTE.map(p => p.bg);
         if (r.withinRowLocs?.length) {
           for (const dup of r.withinRowLocs.slice(0, 200)) {
             const origR = toOrigRow((dup.row || 1) - 1);

@@ -66,44 +66,58 @@ const compareBy = (getKey) => (a, b) => {
   return getKey(a).localeCompare(getKey(b));
 };
 
+// S133f: a localised finding with `region.cells.length === 0` carries no per-
+// row evidence — it's the S126b add-8 fallback (test fired with severity > LOW
+// but produced no specific rows / cells, so MinimapStrip filters it out of the
+// region overlays). Pre-S133f these chips were rendered alongside true
+// localised chips in a single lane, claiming a localisation the minimap
+// couldn't confirm. S133f routes them into a separate "Patterns flagged
+// broadly" lane so the §2 surface tells the truth about scope.
+const isFallbackChip = (f) => (f.region?.cells?.length || 0) === 0;
+
 /**
- * Partition findings into pill (HIGH/MOD globals) and chip (localised
- * with regionNumber) lanes. Each lane sorted severity-descending then
- * alphabetically within a tier (S126b add-5).
+ * Partition findings into pill (HIGH/MOD globals), localised-chip, and
+ * fallback-chip ("flagged broadly") lanes. Each lane sorted severity-
+ * descending then alphabetically within a tier (S126b add-5).
  */
 export function pillsAndChips(findings = []) {
   const pills = [];
-  const chips = [];
+  const localisedChips = [];
+  const fallbackChips = [];
   for (const f of findings) {
     if (f.type === "global" && (f.severity === "HIGH" || f.severity === "MOD")) {
       pills.push(f);
     } else if (f.type === "localised" && f.regionNumber != null) {
-      chips.push(f);
+      if (isFallbackChip(f)) fallbackChips.push(f);
+      else localisedChips.push(f);
     }
   }
   pills.sort(compareBy(pillSortKey));
-  chips.sort(compareBy(chipSortKey));
-  return { pills, chips };
+  localisedChips.sort(compareBy(chipSortKey));
+  fallbackChips.sort(compareBy(chipSortKey));
+  return { pills, localisedChips, fallbackChips };
 }
 
 /**
  * Boolean predicate — true when sticky should render at all (i.e. there
- * is at least one pill or chip to display). Caller branches on this to
- * decide whether to mount StickySurface or fall back to a clean-state
- * §2 body.
+ * is at least one pill or chip to display, in any lane). Caller branches
+ * on this to decide whether to mount StickySurface or fall back to a
+ * clean-state §2 body.
  */
 export function shouldRenderSticky(findings = []) {
-  const { pills, chips } = pillsAndChips(findings);
-  return pills.length > 0 || chips.length > 0;
+  const { pills, localisedChips, fallbackChips } = pillsAndChips(findings);
+  return pills.length > 0 || localisedChips.length > 0 || fallbackChips.length > 0;
 }
 
 export function StickySurface({ findings, severity, onActivateTest, minimapSlot = null }) {
-  const { pills, chips } = pillsAndChips(findings);
-  if (!pills.length && !chips.length) return null;
-  // K = HIGH + MOD count across both lanes (LOW excluded — matches the chip-
-  // layer CLEAR-collapse rule from S126b). Severity echo gives the screenshot
-  // the dataset-level verdict tier without requiring the §1 banner above it.
-  const K = pills.length + chips.filter(f => f.severity === "HIGH" || f.severity === "MOD").length;
+  const { pills, localisedChips, fallbackChips } = pillsAndChips(findings);
+  if (!pills.length && !localisedChips.length && !fallbackChips.length) return null;
+  // K = HIGH + MOD count across all three lanes (LOW excluded — matches the
+  // chip-layer CLEAR-collapse rule from S126b). Severity echo gives the
+  // screenshot the dataset-level verdict tier without requiring the §1 banner
+  // above it.
+  const allChips = [...localisedChips, ...fallbackChips];
+  const K = pills.length + allChips.filter(f => f.severity === "HIGH" || f.severity === "MOD").length;
   const sevColor = (severity != null && SEV_VERDICT[severity]?.color) || C.TEXT;
   const sevWord = SEVERITY_WORD[severity] || "";
 
@@ -153,7 +167,7 @@ export function StickySurface({ findings, severity, onActivateTest, minimapSlot 
         <div style={{
           display: "flex", alignItems: "center", gap: "10px",
           flexWrap: "wrap",
-          marginBottom: chips.length > 0 ? "8px" : 0,
+          marginBottom: (localisedChips.length > 0 || fallbackChips.length > 0) ? "8px" : 0,
         }}>
           <span style={LANE_LABEL}>Dataset-wide patterns</span>
           <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
@@ -163,14 +177,33 @@ export function StickySurface({ findings, severity, onActivateTest, minimapSlot 
           </div>
         </div>
       )}
-      {chips.length > 0 && (
+      {localisedChips.length > 0 && (
+        <div style={{
+          display: "flex", alignItems: "center", gap: "10px",
+          flexWrap: "wrap",
+          marginBottom: fallbackChips.length > 0 ? "8px" : 0,
+        }}>
+          <span style={LANE_LABEL}>Localised patterns</span>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+            {localisedChips.map(f => (
+              <FindingChip key={f.id} finding={f} onActivate={onActivateTest} />
+            ))}
+          </div>
+        </div>
+      )}
+      {/* S133f: fallback chips (region.cells.length === 0) — tests that fired
+          severity > LOW but produced no specific rows. Routed out of the
+          Localised lane so the surface doesn't claim a localisation the
+          minimap can't show. The minimap continues to filter these out via
+          its own `region.cells.length > 0` predicate. */}
+      {fallbackChips.length > 0 && (
         <div style={{
           display: "flex", alignItems: "center", gap: "10px",
           flexWrap: "wrap",
         }}>
-          <span style={LANE_LABEL}>Localised patterns</span>
+          <span style={LANE_LABEL}>Patterns flagged broadly</span>
           <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
-            {chips.map(f => (
+            {fallbackChips.map(f => (
               <FindingChip key={f.id} finding={f} onActivate={onActivateTest} />
             ))}
           </div>

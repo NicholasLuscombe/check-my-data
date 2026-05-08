@@ -1,5 +1,5 @@
 /* ── Mechanism-based grouping for investigation display ── */
-// Visual tokens (MECH_COLOR, MECH_ACCENT) live in tokens.js — this file is text-only.
+// Visual tokens (MECH_COLOR, DUP_GROUP_PALETTE) live in tokens.js — this file is text-only.
 // Keys match METHODOLOGY-MAP v3 five dimensions (I–V). Display order = concreteness:
 // most tangible evidence first (I, II), most abstract last (IV).
 export const MECHANISMS = {
