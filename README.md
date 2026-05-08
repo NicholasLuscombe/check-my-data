@@ -109,11 +109,23 @@ npm run dev
 The dev server runs on `http://localhost:5173`. To produce a
 production build, run `npm run build`; the output is in `dist/`.
 
-## Promoting changes
+## Local development
 
 Code sessions land their work on a per-session branch under
-`.claude/worktrees/<worktree-name>/`. To merge that branch into
-`main`, push to GitHub, and clean the worktree up in one command:
+`.claude/worktrees/<worktree-name>/`. To start the Vite dev server
+inside one:
+
+```bash
+./scripts/dev.sh <worktree-name>
+```
+
+With no argument the script auto-resolves to the newest worktree under
+`.claude/worktrees/` and prints which one it selected before starting.
+
+## Promoting changes
+
+To merge a worktree branch into `main`, push to GitHub, and clean the
+worktree up in one command:
 
 ```bash
 ./scripts/promote.sh <worktree-name> "<commit-message>"
