@@ -1,9 +1,9 @@
 # Check My Data
 
 Statistical forensics for tabular research data. Browser-based, no
-account, no upload ¡X your data stays on your machine.
+account, no upload ï¿½X your data stays on your machine.
 
-**[Try it now ¡÷](https://[username].github.io/check-my-data/)**
+**[Try it now ï¿½ï¿½](https://[username].github.io/check-my-data/)**
 
 ---
 
@@ -11,7 +11,7 @@ account, no upload ¡X your data stays on your machine.
 
 Check My Data runs a battery of statistical tests for fabrication
 signatures on tabular research datasets. It detects patterns that are
-difficult or impossible to manufacture by hand ¡X terminal-digit
+difficult or impossible to manufacture by hand ï¿½X terminal-digit
 anomalies, value-frequency spikes, unusual variance structures, block
 copying, near-duplication across conditions, Carlisle-style
 over-balancing, and others.
@@ -46,17 +46,17 @@ system. Closing the tab clears all state.
 
 A report has three layers:
 
-- **Summary** ¡X overall severity tier (0¡V3), with the headline
+- **Summary** ï¿½X overall severity tier (0ï¿½V3), with the headline
   finding
-- **Forensics** ¡X the test battery, organised by what each test
+- **Forensics** ï¿½X the test battery, organised by what each test
   measures, with severity per test
-- **Investigation** ¡X per-test detail, with the underlying evidence
+- **Investigation** ï¿½X per-test detail, with the underlying evidence
   surfaced (excerpts of the data, what's anomalous, why)
 
 Severity tiers describe how strong the multi-channel evidence is.
 Severity 3 means convergent evidence across multiple independent
 test families; severity 0 means clean. The tool is explicit about
-its uncertainty ¡X every test reports its statistical evidence in
+its uncertainty ï¿½X every test reports its statistical evidence in
 plain language with the underlying p-values surfaced.
 
 ## What it doesn't do
@@ -70,7 +70,7 @@ signatures. Interpretation of findings requires domain expertise.
 
 The tool also does not analyse:
 
-- Image data (microscopy, gel images, etc.) ¡X different forensic
+- Image data (microscopy, gel images, etc.) ï¿½X different forensic
   domain, different tools
 - Free-text qualitative data
 - Data with fewer than ~30 rows per condition (statistical power
@@ -86,7 +86,7 @@ paper covering the methodology with case studies is in preparation.
 
 The tool runs entirely client-side. Specifically:
 
-- No fetch calls or network requests at runtime ¡X verified at
+- No fetch calls or network requests at runtime ï¿½X verified at
   source
 - No analytics, error reporting, or telemetry
 - No account system or identification
@@ -108,6 +108,16 @@ npm run dev
 
 The dev server runs on `http://localhost:5173`. To produce a
 production build, run `npm run build`; the output is in `dist/`.
+
+## Promoting changes
+
+Code sessions land their work on a per-session branch under
+`.claude/worktrees/<worktree-name>/`. To merge that branch into
+`main`, push to GitHub, and clean the worktree up in one command:
+
+```bash
+./scripts/promote.sh <worktree-name> "<commit-message>"
+```
 
 ## Status
 
