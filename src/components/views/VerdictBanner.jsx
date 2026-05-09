@@ -128,11 +128,13 @@ export function VerdictBanner({ severity, results, importConfig, nRows, nCols, n
       </div>
       {/* Data profile — neutral background body, two-column grid with
           a vertical hairline divider between columns. Both columns render
-          at body register (TF.BODY / C.TEXT for values; identity labels
-          recede to C.TEXT_3 to set off the colon). The two-column
-          structure + divider does the visual work — type register no
-          longer reinforces it (pre-FIX3: right column TF.DETAIL /
-          C.TEXT_4 was a separate footer-style register, retired here). */}
+          at one body register (TF.BODY / C.TEXT) — identity-label colour
+          differentiation retired in FIX4: the colon between label and
+          value carries the visual separation, no weight or colour split
+          needed. Per-row tokens (padding, fontSize, lineHeight, colour)
+          are byte-identical between columns so rows sit at the same
+          vertical positions and the divider reads as a clean rule
+          between two parallel content stacks. */}
       {dataProfile && dataProfile.identityRows && dataProfile.identityRows.length > 0 && (
         <div style={{
           padding:"10px 16px",
@@ -144,9 +146,8 @@ export function VerdictBanner({ severity, results, importConfig, nRows, nCols, n
         }}>
           <div style={{paddingRight:"12px",borderRight:`1px solid ${C.BORDER_L}`}}>
             {dataProfile.identityRows.map(([label, value], i) => (
-              <div key={i} style={{padding:"2px 0",fontSize:TF.BODY,lineHeight:"1.5"}}>
-                <span style={{color:C.TEXT_3}}>{label}: </span>
-                <span style={{color:C.TEXT}}>{value}</span>
+              <div key={i} style={{padding:"2px 0",fontSize:TF.BODY,color:C.TEXT,lineHeight:"1.5"}}>
+                {label}: {value}
               </div>
             ))}
           </div>
