@@ -650,25 +650,28 @@ export function ReportView({ results, narrative, importConfig, matrix, rowMap, o
 
   // Data profile — passed to VerdictBanner for rendering inside the card.
   //
-  // Shape (S133h): three identity rows surfaced prominently (Measurement
-  // type, Table size, Conditions) plus a settings footer one-liner that records
-  // configuration (column-axis, row order, transform, precision) at
-  // footer weight. Conditions row is conditional on the dataset having
-  // declared condition names — datasets without condition columns drop
-  // to a 2-row identity block.
+  // Shape (S133h FIX2): two parallel collections rendered side-by-side in
+  // a two-column body. `identityRows` carries dataset-defining facts
+  // (Measurement type, Table size, Conditions); `settings` carries
+  // configuration entries one per line (column-axis, row order, transform,
+  // precision). The pre-FIX2 single `footer` string (`· `-joined entries
+  // rendered below identity) collapsed into the right column; settings
+  // entries are now individual strings on their own lines.
+  //
+  // Conditions row is conditional on the dataset having declared
+  // condition names — datasets without condition columns drop to a
+  // 2-row identity block.
   //
   // Provenance tags `(user-set)` / `(auto)` reflect actual plumbing:
   // - Row semantics: `importConfig.rowSemanticsAuto` is set on the
   //   BatchView path (long-format / genomics / assay reasons) and left
   //   undefined on the standalone ImportView path; auto truthy → tag
-  //   "(auto)", otherwise tag "(user-set)". Reason text from the gate
-  //   surface is no longer expanded into the footer — the footer is a
-  //   record-of-decision line, not a re-explanation.
+  //   "(auto)", otherwise tag "(user-set)".
   // - Column axis + transform: the in-ImportView auto-set flags
   //   (`colRelAutoSet`, `vstAutoSet`) are NOT threaded through
   //   `importConfig`, so provenance is unknown at this surface. Per
   //   S133h spec we emit untagged rather than fabricate `(auto)` /
-  //   `(user-set)`. Plumbing gap for follow-up.
+  //   `(user-set)`. Plumbing gap parked #15.
   const dataProfile = (() => {
     const s = importConfig.summary;
     const precKeys = s ? Object.keys(s.prec).map(Number).sort((a,b)=>a-b) : [];
@@ -693,10 +696,9 @@ export function ReportView({ results, narrative, importConfig, matrix, rowMap, o
                          : tf && tf !== 'raw' ? "values Anscombe transformed"
                          : "values raw";
 
-    const footerParts = [colsDesc];
-    if (rowsDesc) footerParts.push(rowsDesc);
-    footerParts.push(transformDesc, precDesc);
-    const footer = footerParts.join(" · ");
+    const settings = [colsDesc];
+    if (rowsDesc) settings.push(rowsDesc);
+    settings.push(transformDesc, precDesc);
 
     const identityRows = [
       ["Measurement type", assayLabel],
@@ -706,7 +708,7 @@ export function ReportView({ results, narrative, importConfig, matrix, rowMap, o
       identityRows.push(["Conditions", s.cNames.join(", ")]);
     }
 
-    return { identityRows, footer };
+    return { identityRows, settings };
   })();
 
 

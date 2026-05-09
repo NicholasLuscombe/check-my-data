@@ -677,7 +677,7 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
                 <option key={dt.v} value={dt.v}>{dt.l}</option>
               ))}
             </select>
-            {locked&&<div style={{fontSize:FS.T3,color:C.TEXT_4,marginTop:"3px"}}>Set by assay type</div>}
+            {locked&&<div style={{fontSize:FS.T3,color:C.TEXT_4,marginTop:"3px"}}>Set by measurement type</div>}
             </>;})()}
           </div>
         </div>

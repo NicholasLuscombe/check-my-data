@@ -77,12 +77,12 @@ export function VerdictBanner({ severity, results, importConfig, nRows, nCols, n
 
         {/* Action one-liner — mode-agnostic ladder from VERDICT_TEXT.sub.
             Renders at all four severity levels (the screenshot of a clean
-            verdict is a valid Bik-grade artefact too). */}
-        {v.sub && (
-          <div style={{fontSize:TF.BODY,color:C.TEXT_2,marginTop:"8px",lineHeight:"1.5"}}>
-            {v.sub}
-          </div>
-        )}
+            verdict is a valid Bik-grade artefact too). Post-S133h FIX2 the
+            sub is always non-empty across tiers; conditional retained as
+            defensive only for hypothetical future tiers. */}
+        <div style={{fontSize:TF.BODY,color:C.TEXT_2,marginTop:"8px",lineHeight:"1.5"}}>
+          {v.sub}
+        </div>
 
         {/* Mechanism-count strip — one entry per flagged category, sorted
             worst-severity first. Each entry leads with a severity dot
@@ -126,36 +126,45 @@ export function VerdictBanner({ severity, results, importConfig, nRows, nCols, n
           </div>
         )}
       </div>
-      {/* Data profile — inside the verdict card, neutral background body.
-          Three identity rows (Measurement type / Table size / Conditions) at body
-          weight + a settings footer one-liner at footer weight (smaller
-          type, lighter colour). Identity rows carry dataset-defining facts;
-          footer carries configuration / decision provenance. */}
+      {/* Data profile — neutral background body, two-column grid.
+          Left column: identity rows (Measurement type / Table size /
+          Conditions) at body weight, `Label: value` colon format.
+          Right column: settings entries (column-axis, row order, transform,
+          precision) at footer weight, one entry per line.
+          (S133h FIX2 — pre-FIX2 carried identity left and settings as a
+          single `· `-joined footer string below; FIX2 splits settings
+          into the right column to balance the body horizontally.) */}
       {dataProfile && dataProfile.identityRows && dataProfile.identityRows.length > 0 && (
-        <div style={{padding:"8px 16px",borderTop:`1px solid ${C.BORDER_L}`,background:C.WHITE}}>
-          {dataProfile.identityRows.map(([label, value], i) => (
-            <div key={i} style={{display:"flex",gap:"12px",padding:"3px 0",fontSize:TF.BODY}}>
-              <span style={{color:C.TEXT_3,minWidth:"80px",flexShrink:0}}>{label}</span>
-              <span style={{color:C.TEXT}}>{value}</span>
-            </div>
-          ))}
-          {dataProfile.footer && (
-            <div style={{
-              marginTop:"6px",
-              paddingTop:"6px",
-              borderTop:`1px solid ${C.BORDER_L}`,
-              fontSize:TF.DETAIL,
-              color:C.TEXT_4,
-              lineHeight:"1.5",
-            }}>
-              {dataProfile.footer}
-            </div>
-          )}
+        <div style={{
+          padding:"10px 16px",
+          borderTop:`1px solid ${C.BORDER_L}`,
+          background:C.WHITE,
+          display:"grid",
+          gridTemplateColumns:"1fr 1fr",
+          gap:"4px 24px",
+        }}>
+          <div>
+            {dataProfile.identityRows.map(([label, value], i) => (
+              <div key={i} style={{padding:"2px 0",fontSize:TF.BODY,lineHeight:"1.5"}}>
+                <span style={{color:C.TEXT_3}}>{label}: </span>
+                <span style={{color:C.TEXT}}>{value}</span>
+              </div>
+            ))}
+          </div>
+          <div>
+            {(dataProfile.settings || []).map((entry, i) => (
+              <div key={i} style={{padding:"2px 0",fontSize:TF.DETAIL,color:C.TEXT_4,lineHeight:"1.5"}}>
+                {entry}
+              </div>
+            ))}
+          </div>
         </div>
       )}
-      {/* Coordinate reference note */}
-      <div style={{padding:"5px 16px",borderTop:`1px solid ${C.BORDER_L}`,background:C.WHITE}}>
-        <span style={{fontSize:TF.NOTE,color:C.TEXT_4}}>All row and column references match original file positions.</span>
+      {/* Reference-convention note — centred below the two-column body,
+          tier-invariant frame-setting statement for the whole report.
+          No divider line above (whitespace only) per FIX2. */}
+      <div style={{padding:"6px 16px 10px",background:C.WHITE,textAlign:"center"}}>
+        <span style={{fontSize:TF.NOTE,color:C.TEXT_4}}>Row numbers and column labels are displayed as in uploaded file</span>
       </div>
     </div>
   );
