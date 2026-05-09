@@ -639,7 +639,7 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
             </div>
           </div>
           <div ref={assayRef} style={{position:"relative",flex:"1 1 240px",minWidth:"240px"}}>
-            <div style={fieldLabel}>Assay Type</div>
+            <div style={fieldLabel}>Measurement type</div>
             <button onClick={()=>setAssayOpen(!assayOpen)} style={{width:"100%",textAlign:"left",height:"36px",boxSizing:"border-box",
               background:data&&assay==="general"?UI.WARN.bg:C.WHITE,
               border:`1px solid ${data&&assay==="general"?UI.WARN.border:C.BORDER}`,
@@ -677,12 +677,12 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
                 <option key={dt.v} value={dt.v}>{dt.l}</option>
               ))}
             </select>
-            {locked&&<div style={{fontSize:FS.T3,color:C.TEXT_4,marginTop:"3px"}}>Set by assay type</div>}
+            {locked&&<div style={{fontSize:FS.T3,color:C.TEXT_4,marginTop:"3px"}}>Set by measurement type</div>}
             </>;})()}
           </div>
         </div>
         {/* Assay hints — below the control row, not embedded in the assay column */}
-        {data&&assay==="general"&&<div style={{fontSize:FS.T3,color:UI.WARN.text,marginBottom:"4px"}}>Select an assay for instrument-specific noise flagging{assaySuggestion&&(()=>{
+        {data&&assay==="general"&&<div style={{fontSize:FS.T3,color:UI.WARN.text,marginBottom:"4px"}}>Select a measurement type for instrument-specific noise flagging{assaySuggestion&&(()=>{
           const sug=ASSAYS.find(a=>a.v===assaySuggestion);
           return sug?<span> · Suggested: <button onClick={()=>{setAssay(sug.v);setAssayAutoDetected(false);setAssaySuggestion(null);setAssayOpen(false);}}
             style={{background:"none",border:"none",color:CC.OBS,fontWeight:FW.SEMI,cursor:"pointer",textDecoration:"underline",fontSize:FS.T3,padding:0}}>{sug.l}</button></span>:null;

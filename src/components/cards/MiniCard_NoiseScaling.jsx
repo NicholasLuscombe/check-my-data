@@ -15,7 +15,7 @@ const obs=parseFloat(result.observedSlope)||0;
 const exp=result.expectedSlope!=null&&result.expectedSlope!=="—"?parseFloat(result.expectedSlope):null;
 const se=parseFloat(result.slopeSE)||0;
 // Plain-English headline — numbers live in the chart legend
-const assayLabel = result.assay === "general" ? "this data type" : (ASSAYS.find(a=>a.v===result.assay)?.l || result.assay).toLowerCase();
+const assayLabel = result.assay === "general" ? "this measurement type" : (ASSAYS.find(a=>a.v===result.assay)?.l || result.assay).toLowerCase();
 let headline;
 if(exp===null){
   headline=`Select an assay type to compare noise scaling against an expected pattern.`;

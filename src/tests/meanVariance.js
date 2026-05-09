@@ -124,7 +124,7 @@ export function testMeanVariance(matrix, assay) {
   const logPoints = points.map(p=>({lm:Math.log10(p.mean), lv:Math.log10(p.variance)}));
   const sample = logPoints.length>200 ? logPoints.filter((_,i)=>i%Math.ceil(logPoints.length/200)===0) : logPoints;
   return { name:"Noise Scaling With Measurement Size", category:"replicate",
-    description:"Real instruments produce a predictable relationship between measurement size and replicate spread — bigger values are noisier in characteristic ways. This card tests the log-log slope of variance vs mean against the expected value for the data type.",
+    description:"Real instruments produce a predictable relationship between measurement size and replicate spread — bigger values are noisier in characteristic ways. This card tests the log-log slope of variance vs mean against the expected value for the measurement type.",
     observedSlope:slope.toFixed(3), slopeSE:slopeSE<Infinity?slopeSE.toFixed(4):"∞",
     regressionSE:regressionSE<Infinity?regressionSE.toFixed(4):"∞",
     blockRobust,

@@ -34,8 +34,6 @@ const STICKY_TOP = 0;
 // Exported as a selector so consumers don't repeat the magic string.
 export const STICKY_SURFACE_SELECTOR = '[data-sticky-surface="forensics"]';
 
-const SEVERITY_WORD = ["Clean", "Low", "Medium", "High"];
-
 // Lane label is a dimension-header peer (S126b add-7), not a section-
 // header peer. Matches ForensicsCategoryBlock's dimension-header style:
 // FF.UI, FW.SEMI, TF.BODY, C.TEXT, no letter-spacing, no text-transform.
@@ -125,7 +123,6 @@ export function StickySurface({ findings, severity, onActivateTest, minimapSlot 
   const allChips = [...localisedChips, ...fallbackChips];
   const K = pills.length + allChips.filter(f => f.severity === "HIGH" || f.severity === "MOD").length;
   const sevColor = (severity != null && SEV_VERDICT[severity]?.color) || C.TEXT;
-  const sevWord = SEVERITY_WORD[severity] || "";
 
   // S126b add-7b: rendered as a flat-top continuation of the
   // <Section flatBottom> sibling above. Same BG_ZONE bg + matching radii
@@ -152,10 +149,11 @@ export function StickySurface({ findings, severity, onActivateTest, minimapSlot 
       marginBottom: "12px",
       boxShadow: "0 4px 6px -2px rgba(0,0,0,0.05)",
     }}>
-      {/* Severity echo — top row above the two lane rows. Gives the
-          sticky-pinned screenshot the dataset-level verdict tier without
-          requiring the §1 banner above it. Separator below matches the
-          existing inter-lane separator pattern (C.BORDER_L). */}
+      {/* Severity echo — top row above the two lane rows. Tier colour
+          (sevColor on the line) carries the dataset-level verdict signal;
+          the count carries scale. Pre-S133h FIX3 the line led with the
+          tier word ("High · K patterns flagged"); FIX3 retired the word
+          on parity with §1 dot row — colour alone IS the tier signal. */}
       {severity != null && (
         <div style={{
           fontFamily: FF.UI,
@@ -166,7 +164,7 @@ export function StickySurface({ findings, severity, onActivateTest, minimapSlot 
           borderBottom: `1px solid ${C.BORDER_L}`,
           marginBottom: "8px",
         }}>
-          Severity {severity} — {sevWord} · {K} {K === 1 ? "pattern" : "patterns"} flagged
+          {K} {K === 1 ? "pattern" : "patterns"} flagged
         </div>
       )}
       {pills.length > 0 && (
