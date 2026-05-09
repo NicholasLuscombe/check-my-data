@@ -650,8 +650,8 @@ export function ReportView({ results, narrative, importConfig, matrix, rowMap, o
 
   // Data profile — passed to VerdictBanner for rendering inside the card.
   //
-  // Shape (S133h): three identity rows surfaced prominently (Data type,
-  // Table size, Conditions) plus a settings footer one-liner that records
+  // Shape (S133h): three identity rows surfaced prominently (Measurement
+  // type, Table size, Conditions) plus a settings footer one-liner that records
   // configuration (column-axis, row order, transform, precision) at
   // footer weight. Conditions row is conditional on the dataset having
   // declared condition names — datasets without condition columns drop
@@ -699,7 +699,7 @@ export function ReportView({ results, narrative, importConfig, matrix, rowMap, o
     const footer = footerParts.join(" · ");
 
     const identityRows = [
-      ["Data type",  assayLabel],
+      ["Measurement type", assayLabel],
       ["Table size", `${nRows} rows × ${nCols} data columns`],
     ];
     if (s && s.cNames?.length > 0) {
@@ -947,7 +947,7 @@ export function ReportView({ results, narrative, importConfig, matrix, rowMap, o
           }
           if (r.name?.includes("Noise Scaling")) {
             const obs = parseFloat(r.observedSlope) || 0; const exp = r.expectedSlope !== "\u2014" ? parseFloat(r.expectedSlope) : null;
-            const aLbl = r.assay === "general" ? "this data type" : (ASSAYS.find(a=>a.v===r.assay)?.l || r.assay).toLowerCase();
+            const aLbl = r.assay === "general" ? "this measurement type" : (ASSAYS.find(a=>a.v===r.assay)?.l || r.assay).toLowerCase();
             sub = !exp ? "Select an assay type to compare noise scaling"
               : `${obs < 0 ? "Noise decreases with measurement size" : obs < 0.3 ? "Noise is nearly constant" : obs > 2.5 ? "Noise grows much faster than expected" : obs < exp ? "Noise grows more slowly than expected" : "Noise grows faster than expected"} \u2014 unusual for ${aLbl}`;
           }

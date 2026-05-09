@@ -127,7 +127,7 @@ export function VerdictBanner({ severity, results, importConfig, nRows, nCols, n
         )}
       </div>
       {/* Data profile — inside the verdict card, neutral background body.
-          Three identity rows (Data type / Table size / Conditions) at body
+          Three identity rows (Measurement type / Table size / Conditions) at body
           weight + a settings footer one-liner at footer weight (smaller
           type, lighter colour). Identity rows carry dataset-defining facts;
           footer carries configuration / decision provenance. */}
