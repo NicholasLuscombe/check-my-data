@@ -1,4 +1,4 @@
-import { C, TF, FW, CR, SEV_VERDICT, SEVERITY_WORD, MECH_COLOR } from "../../constants/tokens.js";
+import { C, TF, FW, CR, SEV_VERDICT, MECH_COLOR } from "../../constants/tokens.js";
 import { MECHANISMS, MECHANISM_ORDER } from "../../constants/mechanisms.js";
 import { VERDICT_TEXT } from "../../analysis/narrative.js";
 import { buildMechanismGroups } from "../../analysis/localization.js";
@@ -57,7 +57,10 @@ export function VerdictBanner({ severity, results, importConfig, nRows, nCols, n
           <div style={{flex:1}}>
             <div style={{fontSize:TF.HERO,fontWeight:FW.BOLD,color:v.color,lineHeight:"1.2"}}>{v.headline}</div>
           </div>
-          {/* Severity dots — active filled, inactive grey */}
+          {/* Severity dots — active filled, inactive grey. Dot fill pattern
+              + tier colour carry the severity signal; the tier word that
+              previously sat to the right retired in S133h FIX3 (redundant
+              with headline naming severity in plain English on every tier). */}
           <div style={{display:"flex",alignItems:"center",gap:"4px",flexShrink:0}}>
             {[0,1,2,3].map(s=>{
               const active = severity === s;
@@ -69,9 +72,6 @@ export function VerdictBanner({ severity, results, importConfig, nRows, nCols, n
                 flexShrink:0
               }}/>;
             })}
-            <span style={{fontSize:TF.DETAIL,fontWeight:FW.SEMI,color:SEV_VERDICT[severity].color,letterSpacing:"0.02em",whiteSpace:"nowrap",marginLeft:"2px"}}>
-              {SEVERITY_WORD[severity]}
-            </span>
           </div>
         </div>
 
@@ -126,14 +126,13 @@ export function VerdictBanner({ severity, results, importConfig, nRows, nCols, n
           </div>
         )}
       </div>
-      {/* Data profile — neutral background body, two-column grid.
-          Left column: identity rows (Measurement type / Table size /
-          Conditions) at body weight, `Label: value` colon format.
-          Right column: settings entries (column-axis, row order, transform,
-          precision) at footer weight, one entry per line.
-          (S133h FIX2 — pre-FIX2 carried identity left and settings as a
-          single `· `-joined footer string below; FIX2 splits settings
-          into the right column to balance the body horizontally.) */}
+      {/* Data profile — neutral background body, two-column grid with
+          a vertical hairline divider between columns. Both columns render
+          at body register (TF.BODY / C.TEXT for values; identity labels
+          recede to C.TEXT_3 to set off the colon). The two-column
+          structure + divider does the visual work — type register no
+          longer reinforces it (pre-FIX3: right column TF.DETAIL /
+          C.TEXT_4 was a separate footer-style register, retired here). */}
       {dataProfile && dataProfile.identityRows && dataProfile.identityRows.length > 0 && (
         <div style={{
           padding:"10px 16px",
@@ -141,9 +140,9 @@ export function VerdictBanner({ severity, results, importConfig, nRows, nCols, n
           background:C.WHITE,
           display:"grid",
           gridTemplateColumns:"1fr 1fr",
-          gap:"4px 24px",
+          gap:"4px 0",
         }}>
-          <div>
+          <div style={{paddingRight:"12px",borderRight:`1px solid ${C.BORDER_L}`}}>
             {dataProfile.identityRows.map(([label, value], i) => (
               <div key={i} style={{padding:"2px 0",fontSize:TF.BODY,lineHeight:"1.5"}}>
                 <span style={{color:C.TEXT_3}}>{label}: </span>
@@ -151,9 +150,9 @@ export function VerdictBanner({ severity, results, importConfig, nRows, nCols, n
               </div>
             ))}
           </div>
-          <div>
+          <div style={{paddingLeft:"12px"}}>
             {(dataProfile.settings || []).map((entry, i) => (
-              <div key={i} style={{padding:"2px 0",fontSize:TF.DETAIL,color:C.TEXT_4,lineHeight:"1.5"}}>
+              <div key={i} style={{padding:"2px 0",fontSize:TF.BODY,color:C.TEXT,lineHeight:"1.5"}}>
                 {entry}
               </div>
             ))}
@@ -162,9 +161,11 @@ export function VerdictBanner({ severity, results, importConfig, nRows, nCols, n
       )}
       {/* Reference-convention note — centred below the two-column body,
           tier-invariant frame-setting statement for the whole report.
-          No divider line above (whitespace only) per FIX2. */}
-      <div style={{padding:"6px 16px 10px",background:C.WHITE,textAlign:"center"}}>
-        <span style={{fontSize:TF.NOTE,color:C.TEXT_4}}>Row numbers and column labels are displayed as in uploaded file</span>
+          No divider line above (whitespace only). Body register matches
+          the columns above (FIX3) — pre-FIX3 rendered as TF.NOTE /
+          C.TEXT_4 fine-print, which undersold the claim. */}
+      <div style={{padding:"8px 16px 10px",background:C.WHITE,textAlign:"center"}}>
+        <span style={{fontSize:TF.BODY,color:C.TEXT}}>Row numbers and column labels are displayed as in uploaded file</span>
       </div>
     </div>
   );
