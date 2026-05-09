@@ -30,6 +30,7 @@ dist-ssr
 
 # Local Claude Code permissions
 .claude/settings.local.json
+.claude/
 
 # Dev workflow files (dual-Claude internal collaboration)
 CLAUDE.md
