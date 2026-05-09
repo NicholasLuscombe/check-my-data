@@ -36,11 +36,14 @@ CLAUDE.md
 STATUS.md
 project-instructions.md
 
-# Session history and audit logs (internal dev record)
-docs/sessions/
+# Session history and audit logs (internal dev record).
+# No trailing slash on directory entries: worktrees see these as symlinks
+# pointing into the main checkout (created by scripts/init-worktree-symlinks.sh),
+# and a trailing-slash pattern only matches real directories.
+docs/sessions
 docs/AUDIT-*.md
-docs/archive/
-docs/shared/archive/
+docs/archive
+docs/shared/archive
 docs/shared/project-instructions.md
 docs/shared/SESSION126-DESIGN-SPEC.md
 docs/shared/CHECK-MY-DATA-TEST-CHEATSHEET.md
