@@ -21,7 +21,7 @@
    chip lane; ForensicsBody mounts MinimapStrip there. The deeper
    table excerpt still defers to S126c-b modal. */
 
-import { C, TF, FW, FF, CR, SEV_VERDICT } from "../../constants/tokens.js";
+import { C, TF, FW, FF, CR, SEV_VERDICT, SEVERITY_WORD } from "../../constants/tokens.js";
 import { MECHANISMS } from "../../constants/mechanisms.js";
 import { FindingPill } from "./FindingPill.jsx";
 import { FindingChip } from "./FindingChip.jsx";
@@ -33,8 +33,6 @@ const STICKY_TOP = 0;
 // the outer div below; reader is `scrollToCard` in ForensicsBody.jsx.
 // Exported as a selector so consumers don't repeat the magic string.
 export const STICKY_SURFACE_SELECTOR = '[data-sticky-surface="forensics"]';
-
-const SEVERITY_WORD = ["Clean", "Low", "Medium", "High"];
 
 // Lane label is a dimension-header peer (S126b add-7), not a section-
 // header peer. Matches ForensicsCategoryBlock's dimension-header style:
@@ -166,7 +164,7 @@ export function StickySurface({ findings, severity, onActivateTest, minimapSlot 
           borderBottom: `1px solid ${C.BORDER_L}`,
           marginBottom: "8px",
         }}>
-          Severity {severity} — {sevWord} · {K} {K === 1 ? "pattern" : "patterns"} flagged
+          {sevWord} · {K} {K === 1 ? "pattern" : "patterns"} flagged
         </div>
       )}
       {pills.length > 0 && (

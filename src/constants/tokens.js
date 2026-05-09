@@ -151,6 +151,11 @@ export const SEV_VERDICT = {
   3: { color:SIGNAL.RED.dot, text:SIGNAL.RED.text||"#991B1B", bg:SIGNAL.RED.bg, border:SIGNAL.RED.border },
 };
 
+// Severity word ladder. Indexed by severity tier (0–3). Single source of truth
+// for verdict-banner severity-dot label, sticky-surface severity echo, and
+// Excel report header — keep in sync with SEV_VERDICT keys.
+export const SEVERITY_WORD = ["Clean", "Low", "Moderate", "High"];
+
 export const UI = {
   WARN: { text:ACCENT.GOLD.text, bg:ACCENT.GOLD.bg, border:ACCENT.GOLD.border },
   OK:   { text:ACCENT.TEAL.text, bg:ACCENT.TEAL.bg, border:ACCENT.TEAL.border },

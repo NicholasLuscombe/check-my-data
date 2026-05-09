@@ -1,4 +1,4 @@
-import { C, TF, FW, CR, SEV_VERDICT, MECH_COLOR } from "../../constants/tokens.js";
+import { C, TF, FW, CR, SEV_VERDICT, SEVERITY_WORD, MECH_COLOR } from "../../constants/tokens.js";
 import { MECHANISMS, MECHANISM_ORDER } from "../../constants/mechanisms.js";
 import { VERDICT_TEXT } from "../../analysis/narrative.js";
 import { buildMechanismGroups } from "../../analysis/localization.js";
@@ -16,8 +16,6 @@ const MECHANISM_STRIP_LABEL = {
   group:     "Cross-group pattern",
 };
 
-const SEVERITY_WORD = ["Clean", "Low", "Medium", "High"];
-
 export function VerdictBanner({ severity, results, importConfig, nRows, nCols, narrative, mode, dataProfile }) {
   const vFull = VERDICT_TEXT[severity] || VERDICT_TEXT[0];
   // Headline differentiates voice per mode (QC / Review). Forensics ('full')
@@ -32,10 +30,23 @@ export function VerdictBanner({ severity, results, importConfig, nRows, nCols, n
   const K = results.filter(r => r.flag === "HIGH" || r.flag === "MODERATE").length;
 
   // Mechanism-count strip entries — one per category with at least one
-  // HIGH or MOD finding, ordered by MECHANISM_ORDER.
+  // HIGH or MOD finding. Each entry carries the worst-severity tier within
+  // its category (3 = HIGH, 2 = MOD), used to colour the leading dot via
+  // SEV_VERDICT (canonical severity-dot palette, same as the §1 dot row).
+  // Sort: worst-first by tier, secondary by count descending within tier —
+  // a screenshot crop of the strip leads with the tier that most demands
+  // attention. (Pre-S133h: ordered by MECHANISM_ORDER, severity-silent.)
   const mechCounts = MECHANISM_ORDER
-    .map(mk => ({ mk, n: (groups[mk]?.highCount || 0) + (groups[mk]?.modCount || 0) }))
-    .filter(x => x.n > 0);
+    .map(mk => {
+      const g = groups[mk];
+      const highCount = g?.highCount || 0;
+      const modCount = g?.modCount || 0;
+      const n = highCount + modCount;
+      if (n === 0) return null;
+      return { mk, n, tier: highCount > 0 ? 3 : 2 };
+    })
+    .filter(Boolean)
+    .sort((a, b) => (b.tier - a.tier) || (b.n - a.n));
 
   return (
     <div style={{border:`2px solid ${v.color}`,borderRadius:CR.XL,overflow:"hidden"}}>
@@ -73,18 +84,32 @@ export function VerdictBanner({ severity, results, importConfig, nRows, nCols, n
           </div>
         )}
 
-        {/* Mechanism-count strip — one entry per flagged category, numerals
-            coloured by mechanism per MECH_COLOR. Renders only at severity ≥ 1. */}
+        {/* Mechanism-count strip — one entry per flagged category, sorted
+            worst-severity first. Each entry leads with a severity dot
+            (canonical SEV_VERDICT colours, same render as §1 dot row above)
+            coloured by the worst-severity finding within that category, so
+            the strip carries severity alongside count and label. The
+            numeral keeps MECH_COLOR (steel blue) — mechanism affordance is
+            preserved at a visual layer the dot doesn't compete for.
+            Renders only at severity ≥ 1. */}
         {severity >= 1 && mechCounts.length > 0 && (
-          <div style={{fontSize:TF.BODY,color:C.TEXT_2,marginTop:"8px",lineHeight:"1.5",display:"flex",flexWrap:"wrap",gap:"4px 6px",alignItems:"baseline"}}>
-            {mechCounts.map(({mk, n}, i) => (
-              <span key={mk} style={{whiteSpace:"nowrap"}}>
-                <span style={{color:MECH_COLOR[mk],fontWeight:FW.SEMI}}>{n}</span>
-                {" "}
-                <span>{MECHANISM_STRIP_LABEL[mk] || MECHANISMS[mk]?.label || mk}</span>
-                {i < mechCounts.length - 1 && <span style={{color:C.TEXT_4,marginLeft:"6px"}}>·</span>}
-              </span>
-            ))}
+          <div style={{fontSize:TF.BODY,color:C.TEXT_2,marginTop:"8px",lineHeight:"1.5",display:"flex",flexWrap:"wrap",gap:"4px 6px",alignItems:"center"}}>
+            {mechCounts.map(({mk, n, tier}, i) => {
+              const dotColor = SEV_VERDICT[tier].color;
+              return (
+                <span key={mk} style={{whiteSpace:"nowrap",display:"inline-flex",alignItems:"center",gap:"6px"}}>
+                  <span style={{
+                    display:"inline-block",width:10,height:10,borderRadius:"50%",
+                    background:dotColor,
+                    border:`1.5px solid ${dotColor}`,
+                    flexShrink:0,
+                  }}/>
+                  <span style={{color:MECH_COLOR[mk],fontWeight:FW.SEMI}}>{n}</span>
+                  <span>{MECHANISM_STRIP_LABEL[mk] || MECHANISMS[mk]?.label || mk}</span>
+                  {i < mechCounts.length - 1 && <span style={{color:C.TEXT_4,marginLeft:"4px"}}>·</span>}
+                </span>
+              );
+            })}
           </div>
         )}
 
@@ -101,15 +126,31 @@ export function VerdictBanner({ severity, results, importConfig, nRows, nCols, n
           </div>
         )}
       </div>
-      {/* Data profile — inside the verdict card, neutral background body */}
-      {dataProfile && dataProfile.length > 0 && (
+      {/* Data profile — inside the verdict card, neutral background body.
+          Three identity rows (Data type / Table size / Conditions) at body
+          weight + a settings footer one-liner at footer weight (smaller
+          type, lighter colour). Identity rows carry dataset-defining facts;
+          footer carries configuration / decision provenance. */}
+      {dataProfile && dataProfile.identityRows && dataProfile.identityRows.length > 0 && (
         <div style={{padding:"8px 16px",borderTop:`1px solid ${C.BORDER_L}`,background:C.WHITE}}>
-          {dataProfile.map(([label, value], i) => (
+          {dataProfile.identityRows.map(([label, value], i) => (
             <div key={i} style={{display:"flex",gap:"12px",padding:"3px 0",fontSize:TF.BODY}}>
               <span style={{color:C.TEXT_3,minWidth:"80px",flexShrink:0}}>{label}</span>
               <span style={{color:C.TEXT}}>{value}</span>
             </div>
           ))}
+          {dataProfile.footer && (
+            <div style={{
+              marginTop:"6px",
+              paddingTop:"6px",
+              borderTop:`1px solid ${C.BORDER_L}`,
+              fontSize:TF.DETAIL,
+              color:C.TEXT_4,
+              lineHeight:"1.5",
+            }}>
+              {dataProfile.footer}
+            </div>
+          )}
         </div>
       )}
       {/* Coordinate reference note */}

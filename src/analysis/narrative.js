@@ -48,10 +48,10 @@ export const MECHANISM_FINDINGS = {
 // Mode-agnostic across QC / Review / Forensics: the headline differentiates voice
 // per mode (via SEVERITY_TEXT in guidance.js); the action one-liner does not.
 export const VERDICT_TEXT = {
-  0: { headline: "All checks passed", sub: "No flags raised — proceed.", color: SEV_VERDICT[0].color, bg: SEV_VERDICT[0].bg, border: SEV_VERDICT[0].border },
-  1: { headline: "Minor flags detected", sub: "Worth a closer look.", color: SEV_VERDICT[1].color, bg: SEV_VERDICT[1].bg, border: SEV_VERDICT[1].border },
-  2: { headline: "Anomaly detected", sub: "Review carefully before relying on this data.", color: SEV_VERDICT[2].color, bg: SEV_VERDICT[2].bg, border: SEV_VERDICT[2].border },
-  3: { headline: "Multiple anomalies detected", sub: "Investigate before relying on this data.", color: SEV_VERDICT[3].color, bg: SEV_VERDICT[3].bg, border: SEV_VERDICT[3].border },
+  0: { headline: "All checks passed", sub: "No anomalies detected", color: SEV_VERDICT[0].color, bg: SEV_VERDICT[0].bg, border: SEV_VERDICT[0].border },
+  1: { headline: "Minor flags detected", sub: "Minor anomaly detected — review at your discretion", color: SEV_VERDICT[1].color, bg: SEV_VERDICT[1].bg, border: SEV_VERDICT[1].border },
+  2: { headline: "Anomaly detected", sub: "Anomaly detected — review carefully", color: SEV_VERDICT[2].color, bg: SEV_VERDICT[2].bg, border: SEV_VERDICT[2].border },
+  3: { headline: "Multiple anomalies detected", sub: "Significant anomalies detected — investigation required", color: SEV_VERDICT[3].color, bg: SEV_VERDICT[3].bg, border: SEV_VERDICT[3].border },
 };
 
 export function generateNarrativeFallback(results) {

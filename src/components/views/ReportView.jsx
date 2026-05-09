@@ -10,7 +10,7 @@ import { HotspotExcerptList } from "./HotspotExcerptList.jsx";
 import { PulseProvider } from "../forensics/pulseContext.jsx";
 import { PulseStyle } from "../forensics/PulseStyle.jsx";
 import { ForensicsBody } from "../forensics/ForensicsBody.jsx";
-import { C, FF, FW, TF, CR, M, UI, BADGE, SIGNAL, ACCENT, SEV_VERDICT, DUP_GROUP_PALETTE } from "../../constants/tokens.js";
+import { C, FF, FW, TF, CR, M, UI, BADGE, SIGNAL, ACCENT, SEV_VERDICT, SEVERITY_WORD, DUP_GROUP_PALETTE } from "../../constants/tokens.js";
 import { FLAG_STYLES, ALPHA, fmtP } from "../../constants/thresholds.js";
 import { MECHANISMS, MECHANISM_ORDER, DISPLAY_NAMES, TEST_DESCRIPTIONS, TEST_MECHANISM, GLOBAL_TESTS } from "../../constants/mechanisms.js";
 import { ASSAYS, DATA_TYPES } from "../../constants/assays.js";
@@ -532,7 +532,7 @@ export function ReportView({ results, narrative, importConfig, matrix, rowMap, o
     summHtml += '</table>';
 
     // Build styled HTML report and open in new tab
-    const sevLabel = ["Clean","Low","Medium","High"][severity] || "Unknown";
+    const sevLabel = SEVERITY_WORD[severity] || "Unknown";
     const sevBg = {0:FLAG_STYLES.LOW.bg,1:FLAG_STYLES.MODERATE.bg,2:FLAG_STYLES.MODERATE.bg,3:FLAG_STYLES.HIGH.bg}[severity]||C.WHITE;
     const sevFg = {0:FLAG_STYLES.LOW.text,1:FLAG_STYLES.MODERATE.text,2:FLAG_STYLES.MODERATE.text,3:FLAG_STYLES.HIGH.text}[severity]||C.TEXT;
     const html = `<!DOCTYPE html>
@@ -648,63 +648,65 @@ export function ReportView({ results, narrative, importConfig, matrix, rowMap, o
     setAiCopied(true); setTimeout(() => setAiCopied(false), 3000);
   };
 
-  // Data profile rows — passed to VerdictBanner for rendering inside the card
-  const dataProfileRows = (() => {
+  // Data profile — passed to VerdictBanner for rendering inside the card.
+  //
+  // Shape (S133h): three identity rows surfaced prominently (Data type,
+  // Table size, Conditions) plus a settings footer one-liner that records
+  // configuration (column-axis, row order, transform, precision) at
+  // footer weight. Conditions row is conditional on the dataset having
+  // declared condition names — datasets without condition columns drop
+  // to a 2-row identity block.
+  //
+  // Provenance tags `(user-set)` / `(auto)` reflect actual plumbing:
+  // - Row semantics: `importConfig.rowSemanticsAuto` is set on the
+  //   BatchView path (long-format / genomics / assay reasons) and left
+  //   undefined on the standalone ImportView path; auto truthy → tag
+  //   "(auto)", otherwise tag "(user-set)". Reason text from the gate
+  //   surface is no longer expanded into the footer — the footer is a
+  //   record-of-decision line, not a re-explanation.
+  // - Column axis + transform: the in-ImportView auto-set flags
+  //   (`colRelAutoSet`, `vstAutoSet`) are NOT threaded through
+  //   `importConfig`, so provenance is unknown at this surface. Per
+  //   S133h spec we emit untagged rather than fabricate `(auto)` /
+  //   `(user-set)`. Plumbing gap for follow-up.
+  const dataProfile = (() => {
     const s = importConfig.summary;
     const precKeys = s ? Object.keys(s.prec).map(Number).sort((a,b)=>a-b) : [];
-    const precStr = precKeys.length === 1 ? `${precKeys[0]} decimal places` : precKeys.length > 1 ? `Mixed (${precKeys[0]}–${precKeys[precKeys.length-1]} dp)` : "Integer";
-    const vstLabel = importConfig.vst && importConfig.vst.transform !== 'raw'
-      ? (importConfig.vst.transform === 'log' ? 'Log transform' : 'Anscombe VST')
-      : "None";
-    const colLabel = importConfig.colRelationship === 'conditions' ? 'Non-replicates' : 'Replicates';
-    const condNames = s && s.cNames?.length > 0 ? s.cNames.join(", ") : null;
-    const rows = [
-      ["Assay", assayLabel],
-      ["Size", `${nRows} rows × ${nCols} data columns`],
-      ["Precision", precStr],
-    ];
-    if (condNames) rows.push(["Conditions", condNames]);
-    rows.push(["Columns", colLabel]);
-    rows.push(["Transform", vstLabel]);
-    // S126c-a-fold: always surface the resolved rowSemantics value so a
-    // §1 SUMMARY reader can audit why §2.6b Blocked Mahalanobis (and
-    // other ordered-only sequential tests) ran. Pre-fix the conditional
-    // gated on `=== 'arbitrary'` (legacy implicit-default assumption,
-    // pre-S118 ordered-was-implicit) which hid the row whenever a
-    // general-assay fixture resolved to 'ordered' via the user-required
-    // gate (e.g. DS15). Post-Run-Analysis rowSemantics is always
-    // resolved to 'ordered' or 'arbitrary' (ImportView.jsx
-    // `effectiveRowSem = rowSemantics || 'ordered'`), so a truthy check
-    // surfaces every case.
-    //
-    // Suffix matrix matches the pre-fix arbitrary-only branch + extends
-    // to ordered:
-    //   arbitrary, auto='long-format' → "arbitrary (auto — long-format detected)"
-    //   arbitrary, auto='genomics'    → "arbitrary (auto — genomics assay)"
-    //   arbitrary, otherwise          → "arbitrary (user-set)"
-    //   ordered,   auto='assay'       → "ordered (auto — instrument assay)"
-    //   ordered,   otherwise          → "ordered (user-set)"
-    //
-    // Standalone ImportView doesn't currently write `rowSemanticsAuto`
-    // (per CLAUDE.md S120 threading note: only BatchView sets it; the
-    // standalone path leaves it undefined → falls through to "user-set"
-    // for all suffix branches). Anomaly surfaced in the suffix-logic
-    // landscape, fix-out-of-scope per S126c-a-fold prompt; tracked
-    // separately under display-restructuring (parked #6).
+    const precDesc = precKeys.length === 1
+      ? `${precKeys[0]} decimal places`
+      : precKeys.length > 1
+        ? `mixed (${precKeys[0]}–${precKeys[precKeys.length-1]} dp)`
+        : "integer";
+
+    const colsDesc = importConfig.colRelationship === 'conditions'
+      ? "conditions organised in columns"
+      : "replicates organised in columns";
+
+    let rowsDesc = "";
     if (importConfig.rowSemantics) {
-      const auto = importConfig.rowSemanticsAuto;
-      let text;
-      if (importConfig.rowSemantics === 'arbitrary') {
-        text = auto === 'long-format' ? 'arbitrary (auto — long-format detected)'
-             : auto === 'genomics'    ? 'arbitrary (auto — genomics assay)'
-             : 'arbitrary (user-set)';
-      } else {
-        text = auto === 'assay' ? 'ordered (auto — instrument assay)'
-             : 'ordered (user-set)';
-      }
-      rows.push(["Row semantics", text]);
+      const tag = importConfig.rowSemanticsAuto ? "(auto)" : "(user-set)";
+      rowsDesc = `rows ${importConfig.rowSemantics} ${tag}`;
     }
-    return rows;
+
+    const tf = importConfig.vst?.transform;
+    const transformDesc = tf === 'log'      ? "values log transformed"
+                         : tf && tf !== 'raw' ? "values Anscombe transformed"
+                         : "values raw";
+
+    const footerParts = [colsDesc];
+    if (rowsDesc) footerParts.push(rowsDesc);
+    footerParts.push(transformDesc, precDesc);
+    const footer = footerParts.join(" · ");
+
+    const identityRows = [
+      ["Data type",  assayLabel],
+      ["Table size", `${nRows} rows × ${nCols} data columns`],
+    ];
+    if (s && s.cNames?.length > 0) {
+      identityRows.push(["Conditions", s.cNames.join(", ")]);
+    }
+
+    return { identityRows, footer };
   })();
 
 
@@ -988,7 +990,7 @@ export function ReportView({ results, narrative, importConfig, matrix, rowMap, o
         if (mode === "qc") return (
           <>
             <Section number={1} title="SUMMARY">
-              <VerdictBanner severity={severity} results={results} importConfig={importConfig} nRows={nRows} nCols={nCols} narrative={narrative} mode={mode} dataProfile={dataProfileRows}/>
+              <VerdictBanner severity={severity} results={results} importConfig={importConfig} nRows={nRows} nCols={nCols} narrative={narrative} mode={mode} dataProfile={dataProfile}/>
             </Section>
 
             <Section number={2} title="WHAT WAS CHECKED">
@@ -1081,7 +1083,7 @@ export function ReportView({ results, narrative, importConfig, matrix, rowMap, o
           <>
             {/* ── 1. Summary ── */}
             <Section number={1} title="SUMMARY">
-              <VerdictBanner severity={severity} results={results} importConfig={importConfig} nRows={nRows} nCols={nCols} narrative={narrative} mode={mode} dataProfile={dataProfileRows}/>
+              <VerdictBanner severity={severity} results={results} importConfig={importConfig} nRows={nRows} nCols={nCols} narrative={narrative} mode={mode} dataProfile={dataProfile}/>
             </Section>
 
             {/* ── 2. What was found / What was checked ── */}
@@ -1176,7 +1178,7 @@ export function ReportView({ results, narrative, importConfig, matrix, rowMap, o
             <PulseStyle />
             {/* ── §1 SUMMARY ── */}
             <Section number={1} title="SUMMARY">
-              <VerdictBanner severity={severity} results={results} importConfig={importConfig} nRows={nRows} nCols={nCols} narrative={narrative} mode="full" dataProfile={dataProfileRows}/>
+              <VerdictBanner severity={severity} results={results} importConfig={importConfig} nRows={nRows} nCols={nCols} narrative={narrative} mode="full" dataProfile={dataProfile}/>
             </Section>
             {/* Excel forensics — below verdict card in Detailed mode */}
             {importConfig.excelMeta && <ExcelMetaCard meta={importConfig.excelMeta} />}
