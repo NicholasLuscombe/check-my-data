@@ -1,4 +1,4 @@
-import { C, TF, FW, CR, SEV_VERDICT, MECH_COLOR } from "../../constants/tokens.js";
+import { C, FS, FW, CR, SEV_VERDICT, MECH_COLOR } from "../../constants/tokens.js";
 import { MECHANISMS, MECHANISM_ORDER } from "../../constants/mechanisms.js";
 import { VERDICT_TEXT } from "../../analysis/narrative.js";
 import { buildMechanismGroups } from "../../analysis/localization.js";
@@ -16,7 +16,13 @@ const MECHANISM_STRIP_LABEL = {
   group:     "Cross-group pattern",
 };
 
-export function VerdictBanner({ severity, results, importConfig, nRows, nCols, narrative, mode, dataProfile }) {
+// Identity-row paired-fact register (typography system § Identity row pattern).
+// Both label and value spans share family / size / weight / line-height; the
+// colour split (C.TEXT_3 label, C.TEXT value) is the only differentiation.
+// Right-column settings entries reuse the same row register at the value tone.
+const IDENTITY_ROW = { padding:"2px 0", fontSize:FS.base, lineHeight:"1.5" };
+
+export function VerdictBanner({ severity, results, importConfig, nRows, nCols, mode, dataProfile }) {
   const vFull = VERDICT_TEXT[severity] || VERDICT_TEXT[0];
   // Headline differentiates voice per mode (QC / Review). Forensics ('full')
   // falls through to VERDICT_TEXT. The action one-liner (`vFull.sub`) is
@@ -50,12 +56,16 @@ export function VerdictBanner({ severity, results, importConfig, nRows, nCols, n
 
   return (
     <div style={{border:`2px solid ${v.color}`,borderRadius:CR.XL,overflow:"hidden"}}>
-      {/* Main verdict — coloured header */}
-      <div style={{background:v.bg,padding:"20px 16px"}}>
-        {/* Row: headline left, severity dots right */}
+      {/* Main verdict — coloured header. S138 (Phase C.2): body padding
+          unified to 22px (typography system § Phase C VerdictBanner
+          instructions). */}
+      <div style={{background:v.bg,padding:"22px"}}>
+        {/* Row: headline left, severity dots right.
+            S138: headline at FS.xl (32px) Bold tier — the typography system's
+            verdict-headline register. lineHeight 1.2 retained from S133h. */}
         <div style={{display:"flex",alignItems:"center",gap:"16px"}}>
           <div style={{flex:1}}>
-            <div style={{fontSize:TF.HERO,fontWeight:FW.BOLD,color:v.color,lineHeight:"1.2"}}>{v.headline}</div>
+            <div style={{fontSize:FS.xl,fontWeight:FW.BOLD,color:v.color,lineHeight:"1.2"}}>{v.headline}</div>
           </div>
           {/* Severity dots — active filled, inactive grey. Dot fill pattern
               + tier colour carry the severity signal; the tier word that
@@ -79,8 +89,10 @@ export function VerdictBanner({ severity, results, importConfig, nRows, nCols, n
             Renders at all four severity levels (the screenshot of a clean
             verdict is a valid Bik-grade artefact too). Post-S133h FIX2 the
             sub is always non-empty across tiers; conditional retained as
-            defensive only for hypothetical future tiers. */}
-        <div style={{fontSize:TF.BODY,color:C.TEXT_2,marginTop:"8px",lineHeight:"1.5"}}>
+            defensive only for hypothetical future tiers.
+            S138: register is `base Regular C.TEXT_2` — verdict-sub row of
+            the typography system register inventory. */}
+        <div style={{fontSize:FS.base,color:C.TEXT_2,marginTop:"8px",lineHeight:"1.5"}}>
           {v.sub}
         </div>
 
@@ -88,12 +100,15 @@ export function VerdictBanner({ severity, results, importConfig, nRows, nCols, n
             worst-severity first. Each entry leads with a severity dot
             (canonical SEV_VERDICT colours, same render as §1 dot row above)
             coloured by the worst-severity finding within that category, so
-            the strip carries severity alongside count and label. The
-            numeral keeps MECH_COLOR (steel blue) — mechanism affordance is
-            preserved at a visual layer the dot doesn't compete for.
+            the strip carries severity alongside count and label.
+            S138: outer + label at `base Regular C.TEXT_2`. Numeral keeps
+            MECH_COLOR + FW.SEMI — documented exception to the typography
+            system's "mechanism colours = chip stripes only" rule, since the
+            count-strip is chip-adjacent and the colour carries category
+            information that reads alongside the leading severity dot.
             Renders only at severity ≥ 1. */}
         {severity >= 1 && mechCounts.length > 0 && (
-          <div style={{fontSize:TF.BODY,color:C.TEXT_2,marginTop:"8px",lineHeight:"1.5",display:"flex",flexWrap:"wrap",gap:"4px 6px",alignItems:"center"}}>
+          <div style={{fontSize:FS.base,color:C.TEXT_2,marginTop:"8px",lineHeight:"1.5",display:"flex",flexWrap:"wrap",gap:"4px 6px",alignItems:"center"}}>
             {mechCounts.map(({mk, n, tier}, i) => {
               const dotColor = SEV_VERDICT[tier].color;
               return (
@@ -104,9 +119,10 @@ export function VerdictBanner({ severity, results, importConfig, nRows, nCols, n
                     border:`1.5px solid ${dotColor}`,
                     flexShrink:0,
                   }}/>
+                  {/* MECH_COLOR exception — see comment above. */}
                   <span style={{color:MECH_COLOR[mk],fontWeight:FW.SEMI}}>{n}</span>
                   <span>{MECHANISM_STRIP_LABEL[mk] || MECHANISMS[mk]?.label || mk}</span>
-                  {i < mechCounts.length - 1 && <span style={{color:C.TEXT_4,marginLeft:"4px"}}>·</span>}
+                  {i < mechCounts.length - 1 && <span style={{color:C.TEXT_3,marginLeft:"4px"}}>·</span>}
                 </span>
               );
             })}
@@ -117,9 +133,11 @@ export function VerdictBanner({ severity, results, importConfig, nRows, nCols, n
             expected-false-positives figure comes from {nApplicable} tests at
             ALPHA.FLAG = 0.01 (≈ 0.28-test expected at 28 applicable tests).
             Severity 0 needs no context (no flags); severity 3 supersedes
-            (the count itself rules out chance-only explanation). */}
+            (the count itself rules out chance-only explanation).
+            S138: promoted to footnote register `sm Regular C.TEXT_2` — the
+            9px / C.TEXT_3 register pre-S138 undersold the claim. */}
         {(severity === 1 || severity === 2) && (
-          <div style={{fontSize:TF.SMALL,color:C.TEXT_3,marginTop:"6px",lineHeight:"1.5"}}>
+          <div style={{fontSize:FS.sm,color:C.TEXT_2,marginTop:"6px",lineHeight:"1.5"}}>
             {severity === 1
               ? <>With {nApplicable} tests applied, 1–2 flags by chance would be expected even on clean data — this dataset showed {K}.</>
               : <>With {nApplicable} tests applied, 1–2 flags by chance would be expected even on clean data — this dataset showed {K}, suggesting genuine signal.</>}
@@ -127,14 +145,17 @@ export function VerdictBanner({ severity, results, importConfig, nRows, nCols, n
         )}
       </div>
       {/* Data profile — neutral background body, two-column grid with
-          a vertical hairline divider between columns. Both columns render
-          at one body register (TF.BODY / C.TEXT) — identity-label colour
-          differentiation retired in FIX4: the colon between label and
-          value carries the visual separation, no weight or colour split
-          needed. Per-row tokens (padding, fontSize, lineHeight, colour)
-          are byte-identical between columns so rows sit at the same
-          vertical positions and the divider reads as a clean rule
-          between two parallel content stacks. */}
+          a vertical hairline divider between columns.
+          S138: identity-row paired-fact register — base Regular sans, label
+          C.TEXT_3 + value C.TEXT colour split per typography system. The
+          colon between label and value sits inside the label span and
+          inherits the label colour. Right-column settings entries lack
+          explicit label/value structure, so they render at the value tone
+          only (single span at C.TEXT) — restructure parked for a future
+          dataProfile copy pass. Per-row tokens (padding, size,
+          line-height) are byte-identical between columns so rows sit at
+          the same vertical positions and the divider reads as a clean
+          rule between two parallel content stacks. */}
       {dataProfile && dataProfile.identityRows && dataProfile.identityRows.length > 0 && (
         <div style={{
           padding:"10px 16px",
@@ -146,15 +167,16 @@ export function VerdictBanner({ severity, results, importConfig, nRows, nCols, n
         }}>
           <div style={{paddingRight:"12px",borderRight:`1px solid ${C.BORDER_L}`}}>
             {dataProfile.identityRows.map(([label, value], i) => (
-              <div key={i} style={{padding:"2px 0",fontSize:TF.BODY,color:C.TEXT,lineHeight:"1.5"}}>
-                {label}: {value}
+              <div key={i} style={IDENTITY_ROW}>
+                <span style={{color:C.TEXT_3}}>{label}: </span>
+                <span style={{color:C.TEXT}}>{value}</span>
               </div>
             ))}
           </div>
           <div style={{paddingLeft:"12px"}}>
             {(dataProfile.settings || []).map((entry, i) => (
-              <div key={i} style={{padding:"2px 0",fontSize:TF.BODY,color:C.TEXT,lineHeight:"1.5"}}>
-                {entry}
+              <div key={i} style={IDENTITY_ROW}>
+                <span style={{color:C.TEXT}}>{entry}</span>
               </div>
             ))}
           </div>
@@ -162,11 +184,12 @@ export function VerdictBanner({ severity, results, importConfig, nRows, nCols, n
       )}
       {/* Reference-convention note — centred below the two-column body,
           tier-invariant frame-setting statement for the whole report.
-          No divider line above (whitespace only). Body register matches
-          the columns above (FIX3) — pre-FIX3 rendered as TF.NOTE /
-          C.TEXT_4 fine-print, which undersold the claim. */}
+          No divider line above (whitespace only).
+          S138: footnote register `sm Regular C.TEXT_2` — pre-S138 was at
+          the body register (TF.BODY / C.TEXT) which over-stated a quietly
+          tier-invariant convention statement. */}
       <div style={{padding:"8px 16px 10px",background:C.WHITE,textAlign:"center"}}>
-        <span style={{fontSize:TF.BODY,color:C.TEXT}}>Row numbers and column labels are displayed as in uploaded file</span>
+        <span style={{fontSize:FS.sm,fontWeight:FW.NORM,color:C.TEXT_2}}>Row numbers and column labels are displayed as in uploaded file</span>
       </div>
     </div>
   );

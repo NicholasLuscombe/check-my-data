@@ -30,7 +30,7 @@ const lazyExportToExcel = async (opts) => {
 
 const SEV_COLORS={3:SEV_VERDICT[3].color,2:SEV_VERDICT[2].color,1:SEV_VERDICT[1].color,0:SEV_VERDICT[0].color,"SKIP":ROLES.condition.color,"ERROR":SIGNAL.RED.dot};
 
-export function ReportView({ results, narrative, importConfig, matrix, rowMap, onBack, onChangeFile }) {
+export function ReportView({ results, importConfig, matrix, rowMap, onBack, onChangeFile }) {
   const { severity, high, mod, nFlaggedDimensions } = computeSeverity(results);
   const sevColor=SEV_COLORS[severity];
   const assayLabel=ASSAYS.find(a=>a.v===importConfig.assay)?.l||importConfig.assay;
@@ -1001,7 +1001,7 @@ export function ReportView({ results, narrative, importConfig, matrix, rowMap, o
         if (mode === "qc") return (
           <>
             <Section number={1} title="Summary">
-              <VerdictBanner severity={severity} results={results} importConfig={importConfig} nRows={nRows} nCols={nCols} narrative={narrative} mode={mode} dataProfile={dataProfile}/>
+              <VerdictBanner severity={severity} results={results} importConfig={importConfig} nRows={nRows} nCols={nCols} mode={mode} dataProfile={dataProfile}/>
             </Section>
 
             <Section number={2} title="What was checked">
@@ -1094,7 +1094,7 @@ export function ReportView({ results, narrative, importConfig, matrix, rowMap, o
           <>
             {/* ── 1. Summary ── */}
             <Section number={1} title="Summary">
-              <VerdictBanner severity={severity} results={results} importConfig={importConfig} nRows={nRows} nCols={nCols} narrative={narrative} mode={mode} dataProfile={dataProfile}/>
+              <VerdictBanner severity={severity} results={results} importConfig={importConfig} nRows={nRows} nCols={nCols} mode={mode} dataProfile={dataProfile}/>
             </Section>
 
             {/* ── 2. What was found / What was checked ── */}
@@ -1189,7 +1189,7 @@ export function ReportView({ results, narrative, importConfig, matrix, rowMap, o
             <PulseStyle />
             {/* ── §1 SUMMARY ── */}
             <Section number={1} title="Summary">
-              <VerdictBanner severity={severity} results={results} importConfig={importConfig} nRows={nRows} nCols={nCols} narrative={narrative} mode="full" dataProfile={dataProfile}/>
+              <VerdictBanner severity={severity} results={results} importConfig={importConfig} nRows={nRows} nCols={nCols} mode="full" dataProfile={dataProfile}/>
             </Section>
             {/* Excel forensics — below verdict card in Detailed mode */}
             {importConfig.excelMeta && <ExcelMetaCard meta={importConfig.excelMeta} />}

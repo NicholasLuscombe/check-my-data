@@ -6,7 +6,6 @@ import { ROLES } from "./constants/roles.js";
 
 /* ── Analysis engine ──────────────────────────────────────────────────── */
 import { extractAnalysisInputs, runFullAnalysis } from "./analysis/engine.js";
-import { generateNarrativeFallback } from "./analysis/narrative.js";
 import { detectVST } from "./stats/vst.js";
 
 /* ── View components ──────────────────────────────────────────────────── */
@@ -19,7 +18,6 @@ import { ReportView } from "./components/views/ReportView.jsx";
 export default function CheckMyData() {
   const [phase,setPhase]=useState("import"); // "import" | "running" | "report" | "batch"
   const [results,setResults]=useState(null);
-  const [narrative,setNarrative]=useState(null);
   const [analysisMatrix,setAnalysisMatrix]=useState(null);
   const [importConfig,setImportConfig]=useState(null);
   const [rowMap,setRowMap]=useState(null); // matrix row index → original data row index
@@ -55,9 +53,6 @@ export default function CheckMyData() {
       setResults(testResults);
       setPhase("report");
       window.scrollTo(0,0);
-
-      // Generate pattern narrative (template-driven, no API)
-      setNarrative(generateNarrativeFallback(testResults));
     } catch(e) {
       console.error("Analysis error:", e);
       setRunProgress("Error: "+e.message);
@@ -67,14 +62,14 @@ export default function CheckMyData() {
   },[]);
 
   const handleBack=useCallback(()=>{
-    setPhase("import");setResults(null);setNarrative(null);
+    setPhase("import");setResults(null);
     window.scrollTo(0,0);
   },[]);
 
   const handleChangeFile=useCallback(async(file)=>{
     try{await window.storage.delete("dfx-pinned-file");}catch(e){console.warn("storage op failed:",e)}
     setPendingFile(file||null);
-    setPhase("import");setResults(null);setNarrative(null);setImportConfig(null);
+    setPhase("import");setResults(null);setImportConfig(null);
     if(!file) setImportKey(k=>k+1); // force ImportView remount when clearing (logo click)
     window.scrollTo(0,0);
   },[]);
@@ -122,7 +117,6 @@ export default function CheckMyData() {
           <AnalysisErrorBoundary onReset={handleBack}>
             <ReportView
               results={results}
-              narrative={narrative}
               importConfig={importConfig}
               matrix={analysisMatrix}
               rowMap={rowMap}
