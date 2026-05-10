@@ -10,7 +10,7 @@ import { HotspotExcerptList } from "./HotspotExcerptList.jsx";
 import { PulseProvider } from "../forensics/pulseContext.jsx";
 import { PulseStyle } from "../forensics/PulseStyle.jsx";
 import { ForensicsBody } from "../forensics/ForensicsBody.jsx";
-import { C, FF, FW, TF, CR, M, UI, BADGE, SIGNAL, ACCENT, SEV_VERDICT, SEVERITY_WORD, DUP_GROUP_PALETTE } from "../../constants/tokens.js";
+import { C, FF, FW, TF, FS, CR, UI, BADGE, SIGNAL, ACCENT, SEV_VERDICT, SEVERITY_WORD, DUP_GROUP_PALETTE } from "../../constants/tokens.js";
 import { FLAG_STYLES, ALPHA, fmtP } from "../../constants/thresholds.js";
 import { MECHANISMS, MECHANISM_ORDER, DISPLAY_NAMES, TEST_DESCRIPTIONS, TEST_MECHANISM, GLOBAL_TESTS } from "../../constants/mechanisms.js";
 import { ASSAYS, DATA_TYPES } from "../../constants/assays.js";
@@ -716,43 +716,48 @@ export function ReportView({ results, narrative, importConfig, matrix, rowMap, o
     <div>
       {/* Unified file bar + mode tabs */}
       <div style={{background:C.WHITE,border:`1px solid ${C.BORDER}`,borderRadius:CR.MD,marginBottom:"12px"}}>
-        {/* Row 1: navigation + filename + change file */}
-        <div style={{display:"flex",alignItems:"center",gap:"10px",padding:"10px 16px",fontSize:TF.BODY}}>
-          <button onClick={onBack} style={{background:"none",border:"none",cursor:"pointer",color:C.TEXT_3,fontSize:TF.DETAIL,fontWeight:FW.SEMI,padding:0}}>← Back</button>
+        {/* Row 1: navigation + filename + change file. S137 (Phase C.1):
+            registers re-pointed to the typography system —
+            Button: base Medium C.TEXT; Filename: base Semibold C.TEXT. */}
+        <div style={{display:"flex",alignItems:"center",gap:"10px",padding:"10px 16px",fontSize:FS.base}}>
+          <button onClick={onBack} style={{background:"none",border:"none",cursor:"pointer",color:C.TEXT,fontSize:FS.base,fontWeight:FW.MED,padding:0}}>← Back</button>
           <span style={{color:C.BORDER}}>|</span>
-          <span style={{color:C.TEXT,fontWeight:FW.SEMI,fontSize:"14px"}}>{importConfig.fileName||"Uploaded file"}</span>
+          <span style={{color:C.TEXT,fontWeight:FW.SEMI,fontSize:FS.base}}>{importConfig.fileName||"Uploaded file"}</span>
           <span style={{flex:1}}/>
-          <label style={{cursor:"pointer",padding:"0 12px",height:"26px",background:C.BG,border:`1px solid ${C.BORDER}`,borderRadius:CR.SM,color:C.TEXT_2,fontSize:TF.DETAIL,fontWeight:FW.SEMI,display:"inline-flex",alignItems:"center",lineHeight:"normal",boxSizing:"border-box"}}>
+          <label style={{cursor:"pointer",padding:"0 12px",height:"30px",background:C.BG,border:`1px solid ${C.BORDER}`,borderRadius:CR.SM,color:C.TEXT,fontSize:FS.base,fontWeight:FW.MED,display:"inline-flex",alignItems:"center",lineHeight:"normal",boxSizing:"border-box"}}>
             Change file
             <input type="file" accept=".csv,.tsv,.txt,.xlsx,.xls" onChange={e=>{const f=e.target.files?.[0]; if(f) onChangeFile(f);}} style={{display:"none"}}/>
           </label>
         </div>
         <div style={{borderTop:`1px solid ${C.BORDER_L}`,margin:"0 16px"}}/>
-        {/* Row 2: mode tabs + ⋯ actions */}
+        {/* Row 2: mode tabs + ⋯ actions. S137 (Phase C.1): tabs onto
+            Tab (active) = base Semibold C.TEXT, Tab (inactive) = base
+            Medium C.TEXT_2; letter-spacing retired. Actions trigger and
+            menu items onto Button = base Medium C.TEXT. */}
         <div style={{display:"flex",alignItems:"center",padding:"8px 16px",gap:"6px"}}>
           {MODE_ORDER.map(mk=>{
             const m=MODES[mk];const active=mode===mk;
             return <button key={mk} onClick={()=>setMode(mk)} style={{
-              padding:"6px 14px",fontSize:TF.DETAIL,fontWeight:active?FW.SEMI:FW.NORM,
-              background:"none",color:active?C.TEXT:C.TEXT_3,
+              padding:"6px 14px",fontSize:FS.base,fontWeight:active?FW.SEMI:FW.MED,
+              background:"none",color:active?C.TEXT:C.TEXT_2,
               border:"none",borderBottom:active?`2px solid ${C.TEXT}`:"2px solid transparent",
-              cursor:"pointer",fontFamily:FF.UI,letterSpacing:"0.02em",whiteSpace:"nowrap",
+              cursor:"pointer",fontFamily:FF.UI,whiteSpace:"nowrap",
               transition:"all 0.15s"
             }}>{m.label}</button>;
           })}
           <span style={{flex:1}}/>
           {/* ⋯ actions menu */}
           <div style={{position:"relative"}}>
-            <button onClick={()=>setActionsOpen(v=>!v)} style={{padding:"0 12px",height:"26px",background:"none",border:`1px solid ${C.BORDER}`,borderRadius:CR.SM,color:C.TEXT_3,fontSize:TF.DETAIL,fontWeight:FW.SEMI,cursor:"pointer",lineHeight:"normal",display:"inline-flex",alignItems:"center",gap:"3px",boxSizing:"border-box"}}>
+            <button onClick={()=>setActionsOpen(v=>!v)} style={{padding:"0 12px",height:"30px",background:"none",border:`1px solid ${C.BORDER}`,borderRadius:CR.SM,color:C.TEXT,fontSize:FS.base,fontWeight:FW.MED,cursor:"pointer",lineHeight:"normal",display:"inline-flex",alignItems:"center",gap:"3px",boxSizing:"border-box"}}>
               ⋯ Actions
             </button>
             {actionsOpen && (
               <div style={{position:"absolute",top:"100%",right:0,marginTop:4,zIndex:50,background:C.WHITE,border:`1px solid ${C.BORDER}`,borderRadius:CR.LG,boxShadow:"0 8px 24px rgba(0,0,0,.1)",minWidth:200,padding:"4px 0"}}
                 onMouseLeave={()=>setActionsOpen(false)}>
-                <button onClick={()=>{window.print();setActionsOpen(false)}} style={{display:"block",width:"100%",padding:"8px 16px",background:"none",border:"none",textAlign:"left",color:C.TEXT_2,fontSize:TF.BODY,cursor:"pointer",fontFamily:FF.UI}}>🖨 Print</button>
-                <button onClick={()=>{handleCopySummary();setActionsOpen(false)}} style={{display:"block",width:"100%",padding:"8px 16px",background:"none",border:"none",textAlign:"left",color:C.TEXT_2,fontSize:TF.BODY,cursor:"pointer",fontFamily:FF.UI}}>{copied?"✓ Copied":"📋 Copy summary"}</button>
-                <button onClick={()=>{handleExportExcel();setActionsOpen(false)}} style={{display:"block",width:"100%",padding:"8px 16px",background:"none",border:"none",textAlign:"left",color:C.TEXT_2,fontSize:TF.BODY,cursor:"pointer",fontFamily:FF.UI}}>📊 Export report</button>
-                <button onClick={()=>{setActionsOpen(false);handleExcelDownload()}} disabled={exporting} style={{display:"block",width:"100%",padding:"8px 16px",background:"none",border:"none",textAlign:"left",color:exporting?C.TEXT_4:C.TEXT_2,fontSize:TF.BODY,cursor:exporting?"wait":"pointer",fontFamily:FF.UI}}>
+                <button onClick={()=>{window.print();setActionsOpen(false)}} style={{display:"block",width:"100%",padding:"8px 16px",background:"none",border:"none",textAlign:"left",color:C.TEXT,fontSize:FS.base,fontWeight:FW.MED,cursor:"pointer",fontFamily:FF.UI}}>🖨 Print</button>
+                <button onClick={()=>{handleCopySummary();setActionsOpen(false)}} style={{display:"block",width:"100%",padding:"8px 16px",background:"none",border:"none",textAlign:"left",color:C.TEXT,fontSize:FS.base,fontWeight:FW.MED,cursor:"pointer",fontFamily:FF.UI}}>{copied?"✓ Copied":"📋 Copy summary"}</button>
+                <button onClick={()=>{handleExportExcel();setActionsOpen(false)}} style={{display:"block",width:"100%",padding:"8px 16px",background:"none",border:"none",textAlign:"left",color:C.TEXT,fontSize:FS.base,fontWeight:FW.MED,cursor:"pointer",fontFamily:FF.UI}}>📊 Export report</button>
+                <button onClick={()=>{setActionsOpen(false);handleExcelDownload()}} disabled={exporting} style={{display:"block",width:"100%",padding:"8px 16px",background:"none",border:"none",textAlign:"left",color:exporting?C.TEXT_3:C.TEXT,fontSize:FS.base,fontWeight:FW.MED,cursor:exporting?"wait":"pointer",fontFamily:FF.UI}}>
                   {exporting?"⏳ Exporting…":"📥 Export to Excel"}
                 </button>
               </div>
@@ -764,16 +769,20 @@ export function ReportView({ results, narrative, importConfig, matrix, rowMap, o
       {/* Replicate-structure advisory: when many ungrouped columns are treated as replicates
           AND user has not explicitly classified them via the column relationship gate,
           warn that tests assume columns are replicates. Suppressed when colRelationship
-          was explicitly set (user made an informed choice). */}
+          was explicitly set (user made an informed choice). S137 (Phase C.1): rebuilt
+          as a status/warning aside-callout per typography system — light-amber bg
+          (UI.WARN.callout.bg) + 3px amber left rule (UI.WARN.callout.rule), bullet-lead
+          Semibold + body Regular at FS.sm sentence case. Pre-S137 chrome was a bordered
+          banner with a mono ALL CAPS Bold label. */}
       {(() => {
         const nDC = nCols;
         const hasConds = importConfig.condPerCol?.some(c=>c) || false;
         const userChose = importConfig.colRelationship; // explicit choice via gate
         if(userChose === 'conditions') return null; // conditions mode — note not needed
         if(nDC > 6 && !hasConds && !userChose) return (
-          <div style={{background:UI.WARN.bg,border:`1px solid ${ACCENT.GOLD.border}`,borderRadius:CR.MD,
-            padding:"10px 14px",marginBottom:"12px",fontSize:TF.BODY,color:UI.WARN.text,lineHeight:"1.6"}}>
-            <span style={{fontWeight:FW.BOLD,...M,fontSize:TF.DETAIL,letterSpacing:"0.06em"}}>⚠ COLUMN STRUCTURE NOTE</span>
+          <div style={{background:UI.WARN.callout.bg,borderLeft:`3px solid ${UI.WARN.callout.rule}`,borderRadius:"0 4px 4px 0",
+            padding:"14px 18px",marginBottom:"12px",fontSize:FS.sm,color:C.TEXT,lineHeight:"1.6",fontFamily:FF.UI}}>
+            <span style={{fontWeight:FW.SEMI}}>⚠ Column structure note</span>
             <span style={{marginLeft:"8px"}}>
               All {nDC} data columns are being treated as replicates of a single condition.
               If these are different biological samples, conditions, or time points, structural tests
@@ -991,11 +1000,11 @@ export function ReportView({ results, narrative, importConfig, matrix, rowMap, o
         // ── QC mode ──
         if (mode === "qc") return (
           <>
-            <Section number={1} title="SUMMARY">
+            <Section number={1} title="Summary">
               <VerdictBanner severity={severity} results={results} importConfig={importConfig} nRows={nRows} nCols={nCols} narrative={narrative} mode={mode} dataProfile={dataProfile}/>
             </Section>
 
-            <Section number={2} title="WHAT WAS CHECKED">
+            <Section number={2} title="What was checked">
               {(() => {
                 const catDescs = CATEGORY_SHORT_DESCRIPTIONS;
                 const qcDescriptions = QC_CATEGORY_DESCRIPTIONS;
@@ -1023,7 +1032,7 @@ export function ReportView({ results, narrative, importConfig, matrix, rowMap, o
               })()}
             </Section>
 
-            <Section number={3} title="WHAT NEXT">
+            <Section number={3} title="What next">
               <div style={{fontSize:TF.BODY,color:C.TEXT,lineHeight:"1.6",paddingTop:"2px"}}>
                 {severity === 0 && <>Your data passed all checks. No further action needed. You can download a {reportLink("summary report")} if you'd like to keep a record.</>}
                 {severity === 1 && <>One check found a minor pattern. This is common and usually has an innocent explanation — review the flagged category above to see what was found. You can download the {reportLink("annotated report")} for details.</>}
@@ -1084,12 +1093,12 @@ export function ReportView({ results, narrative, importConfig, matrix, rowMap, o
           return (
           <>
             {/* ── 1. Summary ── */}
-            <Section number={1} title="SUMMARY">
+            <Section number={1} title="Summary">
               <VerdictBanner severity={severity} results={results} importConfig={importConfig} nRows={nRows} nCols={nCols} narrative={narrative} mode={mode} dataProfile={dataProfile}/>
             </Section>
 
             {/* ── 2. What was found / What was checked ── */}
-            <Section number={2} title={severity > 0 ? "WHAT WAS FOUND" : "WHAT WAS CHECKED"}>
+            <Section number={2} title={severity > 0 ? "What was found" : "What was checked"}>
               {severity > 0 && (
                 <div style={{display:"flex",alignItems:"center",gap:12,flexWrap:"wrap",fontSize:TF.SMALL,color:C.TEXT_3,marginBottom:8,paddingLeft:13}}>
                   <span style={{display:"inline-flex",alignItems:"center",gap:4}}>
@@ -1131,13 +1140,13 @@ export function ReportView({ results, narrative, importConfig, matrix, rowMap, o
 
             {/* ── 3. Where to look ── */}
             {severity > 0 && (
-              <Section number={3} title="WHERE TO LOOK">
+              <Section number={3} title="Where to look">
                 <HotspotExcerptList {...heatmapProps} />
               </Section>
             )}
 
             {/* ── 4. What to ask / What next ── */}
-            <Section number={severity > 0 ? 4 : 3} title={severity > 0 ? "WHAT TO ASK" : "WHAT NEXT"}>
+            <Section number={severity > 0 ? 4 : 3} title={severity > 0 ? "What to ask" : "What next"}>
               <div style={{fontSize:TF.BODY,color:C.TEXT,lineHeight:"1.6",paddingTop:"2px"}}>
                 {reviewGuidance[severity]}
               </div>
@@ -1179,7 +1188,7 @@ export function ReportView({ results, narrative, importConfig, matrix, rowMap, o
           <PulseProvider>
             <PulseStyle />
             {/* ── §1 SUMMARY ── */}
-            <Section number={1} title="SUMMARY">
+            <Section number={1} title="Summary">
               <VerdictBanner severity={severity} results={results} importConfig={importConfig} nRows={nRows} nCols={nCols} narrative={narrative} mode="full" dataProfile={dataProfile}/>
             </Section>
             {/* Excel forensics — below verdict card in Detailed mode */}
@@ -1200,7 +1209,7 @@ export function ReportView({ results, narrative, importConfig, matrix, rowMap, o
             />
 
             {/* ── §4 INVESTIGATE FURTHER ── */}
-            <Section number={4} title="INVESTIGATE FURTHER">
+            <Section number={4} title="Investigate further">
               {severity === 0 ? (
                 <div style={{fontSize:TF.BODY,color:C.TEXT_3,padding:"4px 0"}}>No anomalies were detected. No further investigation is needed.</div>
               ) : (
@@ -1222,7 +1231,7 @@ export function ReportView({ results, narrative, importConfig, matrix, rowMap, o
             {(()=>{
               const nApp=results.filter(r=>r.flag!=="N/A").length;
               return (
-                <Section number={5} title="METHODOLOGY">
+                <Section number={5} title="Methodology">
                   <div style={{fontSize:TF.BODY,color:C.TEXT_2,lineHeight:"1.6",marginBottom:"10px"}}>
                     {nApp} of {results.length} tests applicable. Tests span 5 investigation categories across 24 independent statistical procedures.
                     <span style={{display:"block",marginTop:"6px",color:C.TEXT_3,fontSize:TF.DETAIL}}>This report is a screening aid, not a determination of misconduct. Flagged patterns require expert interpretation in context.</span>
