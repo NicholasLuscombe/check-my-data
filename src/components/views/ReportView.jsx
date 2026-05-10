@@ -511,7 +511,7 @@ export function ReportView({ results, narrative, importConfig, matrix, rowMap, o
     // Build summary sheet HTML
     const flagLabel = f => ({HIGH:"FLAGGED",MODERATE:"NOTED",LOW:"CLEAR","N/A":"N/A"}[f]||f);
     const groups = buildMechanismGroups(results);
-    let summHtml = `<table border="1" cellpadding="4" style="border-collapse:collapse;font-family:${FF.PRINT};font-size:${TF.DETAIL}">`;
+    let summHtml = `<table border="1" cellpadding="4" style="border-collapse:collapse;font-family:${FF.UI};font-size:${TF.DETAIL}">`;
     summHtml += `<tr><td colspan="4" style="background:${C.TEXT};color:${C.WHITE};font-size:${TF.TITLE};font-weight:${FW.BOLD};padding:8px">Check My Data Report — Severity ${severity}</td></tr>`;
     summHtml += `<tr><td colspan="4" style="padding:6px;color:${C.TEXT_3}">File: ${esc(importConfig.fileName||"uploaded")} | ${nRows} rows × ${nCols} cols | Assay: ${esc(assayLabel)}</td></tr>`;
     summHtml += '<tr><td colspan="4"></td></tr>';

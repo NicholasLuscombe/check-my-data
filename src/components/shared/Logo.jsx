@@ -1,4 +1,4 @@
-import { C, FF, FW } from "../../constants/tokens.js";
+import { C, FW } from "../../constants/tokens.js";
 
 export function Logo({ width=280 }) {
   return (
@@ -6,7 +6,7 @@ export function Logo({ width=280 }) {
       <text
         x="290"
         y="85"
-        fontFamily={FF.SERIF}
+        fontFamily="Georgia, 'Times New Roman', serif"
         fontWeight={FW.BOLD}
         fontSize="64"
         fill={C.TEXT}

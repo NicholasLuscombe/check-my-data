@@ -111,7 +111,7 @@ export function FindingChip({ finding, onActivate, showRegionNumber = false }) {
         border: `1px solid ${sev.border}`,
         borderRadius: CR.MD,
         boxShadow: stripeShadow,
-        color: sev.text,
+        color: sev.color,
         fontSize: TF.DETAIL,
         fontFamily: FF.UI,
         fontWeight: FW.SEMI,
@@ -120,7 +120,7 @@ export function FindingChip({ finding, onActivate, showRegionNumber = false }) {
       }}
     >
       {showRegionNumber && N != null && (
-        <span style={{ fontWeight: FW.BOLD, color: sev.text }}>[{N}]</span>
+        <span style={{ fontWeight: FW.BOLD, color: sev.color }}>[{N}]</span>
       )}
       <span>{chipLabel}</span>
       {otherDims > 0 && (
