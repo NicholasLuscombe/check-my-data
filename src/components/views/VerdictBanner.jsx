@@ -19,7 +19,7 @@ const MECHANISM_STRIP_LABEL = {
 // Identity-row paired-fact register (typography system § Identity row pattern).
 // Both label and value spans share family / size / weight / line-height; the
 // colour split (C.TEXT_3 label, C.TEXT value) is the only differentiation.
-// Right-column settings entries reuse the same row register at the value tone.
+// Left column (identityRows) and right column (settings) share this register.
 const IDENTITY_ROW = { padding:"2px 0", fontSize:FS.base, lineHeight:"1.5" };
 
 export function VerdictBanner({ severity, results, importConfig, nRows, nCols, mode, dataProfile }) {
@@ -146,16 +146,15 @@ export function VerdictBanner({ severity, results, importConfig, nRows, nCols, m
       </div>
       {/* Data profile — neutral background body, two-column grid with
           a vertical hairline divider between columns.
-          S138: identity-row paired-fact register — base Regular sans, label
-          C.TEXT_3 + value C.TEXT colour split per typography system. The
-          colon between label and value sits inside the label span and
-          inherits the label colour. Right-column settings entries lack
-          explicit label/value structure, so they render at the value tone
-          only (single span at C.TEXT) — restructure parked for a future
-          dataProfile copy pass. Per-row tokens (padding, size,
-          line-height) are byte-identical between columns so rows sit at
-          the same vertical positions and the divider reads as a clean
-          rule between two parallel content stacks. */}
+          S138 + S138-fix1: both columns render the identity-row paired-
+          fact register — base Regular sans, label C.TEXT_3 + value
+          C.TEXT colour split per typography system. The colon between
+          label and value sits in the JSX template, not the data; both
+          columns share the same span-pair structure. Per-row tokens
+          (padding, size, line-height) are byte-identical between
+          columns so rows sit at the same vertical positions and the
+          divider reads as a clean rule between two parallel content
+          stacks. */}
       {dataProfile && dataProfile.identityRows && dataProfile.identityRows.length > 0 && (
         <div style={{
           padding:"10px 16px",
@@ -174,9 +173,10 @@ export function VerdictBanner({ severity, results, importConfig, nRows, nCols, m
             ))}
           </div>
           <div style={{paddingLeft:"12px"}}>
-            {(dataProfile.settings || []).map((entry, i) => (
+            {(dataProfile.settings || []).map(({ label, value }, i) => (
               <div key={i} style={IDENTITY_ROW}>
-                <span style={{color:C.TEXT}}>{entry}</span>
+                <span style={{color:C.TEXT_3}}>{label}: </span>
+                <span style={{color:C.TEXT}}>{value}</span>
               </div>
             ))}
           </div>

@@ -675,30 +675,37 @@ export function ReportView({ results, importConfig, matrix, rowMap, onBack, onCh
   const dataProfile = (() => {
     const s = importConfig.summary;
     const precKeys = s ? Object.keys(s.prec).map(Number).sort((a,b)=>a-b) : [];
-    const precDesc = precKeys.length === 1
+    const precValue = precKeys.length === 1
       ? `${precKeys[0]} decimal places`
       : precKeys.length > 1
         ? `mixed (${precKeys[0]}–${precKeys[precKeys.length-1]} dp)`
         : "integer";
 
-    const colsDesc = importConfig.colRelationship === 'conditions'
-      ? "conditions organised in columns"
-      : "replicates organised in columns";
+    const colsValue = importConfig.colRelationship === 'conditions'
+      ? "conditions"
+      : "replicates";
 
-    let rowsDesc = "";
+    // S138-fix1: settings carries `{ label, value }` pairs so the right
+    // column mirrors the identity-row paired-fact split. Provenance tag
+    // (user-set / auto) on Row order preserves S133h hard-coding —
+    // STATUS parked #13 (provenance plumbing) is the real fix.
+    let rowsPair = null;
     if (importConfig.rowSemantics) {
       const tag = importConfig.rowSemanticsAuto ? "(auto)" : "(user-set)";
-      rowsDesc = `rows ${importConfig.rowSemantics} ${tag}`;
+      rowsPair = { label: "Row order", value: `${importConfig.rowSemantics} ${tag}` };
     }
 
     const tf = importConfig.vst?.transform;
-    const transformDesc = tf === 'log'      ? "values log transformed"
-                         : tf && tf !== 'raw' ? "values Anscombe transformed"
-                         : "values raw";
+    const transformValue = tf === 'log'         ? "log"
+                          : tf && tf !== 'raw'  ? "Anscombe"
+                          : "raw";
 
-    const settings = [colsDesc];
-    if (rowsDesc) settings.push(rowsDesc);
-    settings.push(transformDesc, precDesc);
+    const settings = [{ label: "Columns", value: colsValue }];
+    if (rowsPair) settings.push(rowsPair);
+    settings.push(
+      { label: "Transform", value: transformValue },
+      { label: "Precision", value: precValue },
+    );
 
     const identityRows = [
       ["Measurement type", assayLabel],
