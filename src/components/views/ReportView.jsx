@@ -1291,12 +1291,18 @@ export function ReportView({ results, importConfig, matrix, rowMap, onBack, onCh
                 S139b: section renamed "Methodology" → "Test coverage" (lowered reader
                 expectation to match the surface's count-line + battery scope). Battery list
                 rebuilt from canonical METHOD_BATTERY (module-top) — per-test applicability
-                dimming (Shape A): skipped tests (r.flag === "N/A") render at C.TEXT_3,
-                applied at C.TEXT_2 inherited from wrapper. Category header dims when every
-                member is skipped. Inventory completed: split Benford 1st/2nd into separate
-                items, added windowed autocorrelation, blocked Mahalanobis, cross-condition
-                consistency (3 previously-uncatalogued). Labels are §5-local handwritten
-                phrasings; DO NOT substitute DISPLAY_NAMES. */}
+                dimming (Shape A). Category header dims when every member is skipped.
+                Inventory completed: split Benford 1st/2nd into separate items, added
+                windowed autocorrelation, blocked Mahalanobis, cross-condition consistency
+                (3 previously-uncatalogued). Labels are §5-local handwritten phrasings;
+                DO NOT substitute DISPLAY_NAMES.
+                S139b-fix1: contrast pushed from one-step to two-step — applied at C.TEXT,
+                skipped at C.TEXT_3 (one-step C.TEXT_2 vs C.TEXT_3 read too subtle on visual
+                verification). Per-span colour now explicit on both states; wrapper colour
+                C.TEXT_2 → C.TEXT so inherited punctuation (':' / ', ') aligns with the
+                dominant applied tone. Colour axis carries the distinction alone — no
+                strikethrough, no other decoration. References body wrapper still C.TEXT_2
+                (single-register prose, no per-token applicability axis). */}
             {(()=>{
               const nApp=results.filter(r=>r.flag!=="N/A").length;
               const skippedNames = new Set(results.filter(r=>r.flag==="N/A").map(r=>r.name));
@@ -1315,16 +1321,16 @@ export function ReportView({ results, importConfig, matrix, rowMap, onBack, onCh
                     <span>Test battery details</span>
                   </button>
                   {showMethodBattery && (
-                    <div style={{padding:"10px 14px",background:C.BG_L,borderRadius:CR.SM,fontSize:FS.sm,color:C.TEXT_2,marginBottom:"8px"}}>
+                    <div style={{padding:"10px 14px",background:C.BG_L,borderRadius:CR.SM,fontSize:FS.sm,color:C.TEXT,marginBottom:"8px"}}>
                       {METHOD_BATTERY.map((cat,ci)=>{
                         const allSkipped=cat.tests.every(([n])=>skippedNames.has(n));
                         const isLast=ci===METHOD_BATTERY.length-1;
                         return (
                           <div key={cat.label} style={isLast?undefined:{marginBottom:"4px"}}>
-                            <span style={{fontWeight:FW.SEMI,color:allSkipped?C.TEXT_3:C.TEXT_2}}>{cat.label}:</span>{" "}
+                            <span style={{fontWeight:FW.SEMI,color:allSkipped?C.TEXT_3:C.TEXT}}>{cat.label}:</span>{" "}
                             {cat.tests.flatMap(([n,label],i)=>{
                               const sk=skippedNames.has(n);
-                              const span=<span key={n} style={sk?{color:C.TEXT_3}:undefined}>{label}</span>;
+                              const span=<span key={n} style={{color:sk?C.TEXT_3:C.TEXT}}>{label}</span>;
                               return i===0?[span]:[", ",span];
                             })}
                           </div>
