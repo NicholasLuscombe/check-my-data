@@ -30,6 +30,53 @@ const lazyExportToExcel = async (opts) => {
 
 const SEV_COLORS={3:SEV_VERDICT[3].color,2:SEV_VERDICT[2].color,1:SEV_VERDICT[1].color,0:SEV_VERDICT[0].color,"SKIP":ROLES.condition.color,"ERROR":SIGNAL.RED.dot};
 
+// §5 Test coverage battery — surface-specific handwritten phrasings (NOT
+// DISPLAY_NAMES). Each row maps a canonical engine test name (r.name in
+// results[]) to the §5-local conversational label. Order within category
+// = engine execution / display order from TEST_MECHANISM. Applicability
+// dimming (S139b): per-test skipped marker is r.flag === "N/A"; category
+// dims when every member is skipped.
+const METHOD_BATTERY = [
+  { label: "Copy, paste, edit", tests: [
+    ["Exact Duplicate Detection",          "Duplicate detection"],
+    ["Constant-Offset Blocks",             "constant-offset blocks"],
+    ["Residual Spike Correlation",         "residual spike correlation"],
+  ]},
+  { label: "Unusual digits", tests: [
+    ["Terminal Digit Uniformity",          "Terminal digit preference"],
+    ["Benford's Law (First Digit)",        "Benford 1st digit"],
+    ["Benford's Law (Second Digit)",       "Benford 2nd digit"],
+    ["Decimal Precision Consistency",      "decimal precision clustering"],
+    ["Value-Frequency Spike",              "value-frequency spikes"],
+  ]},
+  { label: "Distribution shapes", tests: [
+    ["Entropy / Zipf Analysis",            "Entropy / Zipf analysis"],
+    ["Column Goodness-of-Fit",             "column goodness-of-fit"],
+    ["Modality Test",                      "modality test"],
+  ]},
+  { label: "Cross-replicate comparisons", tests: [
+    ["Inter-Replicate Correlation",        "Inter-replicate correlation"],
+    ["Excess Kurtosis",                    "kurtosis + Anderson-Darling"],
+    ["Autocorrelation",                    "autocorrelation"],
+    ["Windowed Autocorrelation",           "windowed autocorrelation"],
+    ["Runs Test",                          "runs test"],
+    ["Noise Scaling With Measurement Size","noise scaling"],
+    ["Within-Row Variance",                "within-row variance"],
+    ["Selective Noise Partitioning",       "selective noise"],
+    ["Regional Noise Homogeneity",         "regional noise"],
+    ["LOESS Residual Analysis",            "LOESS + CUSUM noise changepoint"],
+    ["Row-Mean Runs",                      "row-mean runs"],
+    ["Mahalanobis Row Outlier",            "Mahalanobis unusual rows"],
+    ["Blocked Mahalanobis",                "blocked Mahalanobis"],
+    ["Missing Data Pattern",               "missing data patterns"],
+  ]},
+  { label: "Cross-group comparisons", tests: [
+    ["Cross-Condition Rank Correlation",   "Cross-condition Spearman rank"],
+    ["Baseline Balance",                   "Carlisle condition balance"],
+    ["Cross-Condition Consistency",        "cross-condition consistency"],
+  ]},
+];
+
 export function ReportView({ results, importConfig, matrix, rowMap, onBack, onChangeFile }) {
   const { severity, high, mod, nFlaggedDimensions } = computeSeverity(results);
   const sevColor=SEV_COLORS[severity];
@@ -1234,17 +1281,27 @@ export function ReportView({ results, importConfig, matrix, rowMap, onBack, onCh
               )}
             </Section>
 
-            {/* ── §5 METHODOLOGY ──
+            {/* ── §5 TEST COVERAGE ──
                 S139 (Phase C.3): full sweep onto the typography system. Test-count line at
                 Body prose register (FS.base FW.NORM C.TEXT). Screening-aid disclaimer promoted
                 to a trust-aside-callout (UI.INFO.callout) mirroring S137's WARN callout for
                 the column-structure note. Disclosure toggles on the Button register (FS.base
                 FW.MED C.TEXT). Battery + references body on the Footnote/reference register
-                (FS.sm FW.NORM C.TEXT_2). Per-category labels promoted to explicit FW.SEMI. */}
+                (FS.sm FW.NORM C.TEXT_2). Per-category labels promoted to explicit FW.SEMI.
+                S139b: section renamed "Methodology" → "Test coverage" (lowered reader
+                expectation to match the surface's count-line + battery scope). Battery list
+                rebuilt from canonical METHOD_BATTERY (module-top) — per-test applicability
+                dimming (Shape A): skipped tests (r.flag === "N/A") render at C.TEXT_3,
+                applied at C.TEXT_2 inherited from wrapper. Category header dims when every
+                member is skipped. Inventory completed: split Benford 1st/2nd into separate
+                items, added windowed autocorrelation, blocked Mahalanobis, cross-condition
+                consistency (3 previously-uncatalogued). Labels are §5-local handwritten
+                phrasings; DO NOT substitute DISPLAY_NAMES. */}
             {(()=>{
               const nApp=results.filter(r=>r.flag!=="N/A").length;
+              const skippedNames = new Set(results.filter(r=>r.flag==="N/A").map(r=>r.name));
               return (
-                <Section number={5} title="Methodology">
+                <Section number={5} title="Test coverage">
                   <div style={{fontSize:FS.base,color:C.TEXT,marginBottom:"12px"}}>
                     {nApp} of {results.length} tests applied, spanning 5 investigation categories.
                   </div>
@@ -1259,11 +1316,20 @@ export function ReportView({ results, importConfig, matrix, rowMap, onBack, onCh
                   </button>
                   {showMethodBattery && (
                     <div style={{padding:"10px 14px",background:C.BG_L,borderRadius:CR.SM,fontSize:FS.sm,color:C.TEXT_2,marginBottom:"8px"}}>
-                      <div style={{marginBottom:"4px"}}><span style={{fontWeight:FW.SEMI,color:C.TEXT_2}}>Copy, paste, edit:</span> Duplicate detection, constant-offset blocks, residual spike correlation</div>
-                      <div style={{marginBottom:"4px"}}><span style={{fontWeight:FW.SEMI,color:C.TEXT_2}}>Unusual digits:</span> Terminal digit preference, Benford 1st &amp; 2nd digit, decimal precision clustering, value-frequency spikes</div>
-                      <div style={{marginBottom:"4px"}}><span style={{fontWeight:FW.SEMI,color:C.TEXT_2}}>Distribution shapes:</span> Entropy / Zipf analysis, column goodness-of-fit, modality test</div>
-                      <div style={{marginBottom:"4px"}}><span style={{fontWeight:FW.SEMI,color:C.TEXT_2}}>Cross-replicate comparisons:</span> Inter-replicate correlation, kurtosis + Anderson-Darling, autocorrelation, runs test, noise scaling, within-row variance, selective noise, regional noise, LOESS + CUSUM noise changepoint, row-mean runs, Mahalanobis unusual rows, missing data patterns</div>
-                      <div><span style={{fontWeight:FW.SEMI,color:C.TEXT_2}}>Cross-group comparisons:</span> Cross-condition Spearman rank, Carlisle condition balance</div>
+                      {METHOD_BATTERY.map((cat,ci)=>{
+                        const allSkipped=cat.tests.every(([n])=>skippedNames.has(n));
+                        const isLast=ci===METHOD_BATTERY.length-1;
+                        return (
+                          <div key={cat.label} style={isLast?undefined:{marginBottom:"4px"}}>
+                            <span style={{fontWeight:FW.SEMI,color:allSkipped?C.TEXT_3:C.TEXT_2}}>{cat.label}:</span>{" "}
+                            {cat.tests.flatMap(([n,label],i)=>{
+                              const sk=skippedNames.has(n);
+                              const span=<span key={n} style={sk?{color:C.TEXT_3}:undefined}>{label}</span>;
+                              return i===0?[span]:[", ",span];
+                            })}
+                          </div>
+                        );
+                      })}
                     </div>
                   )}
                   {/* References */}
