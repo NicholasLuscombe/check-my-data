@@ -58,7 +58,8 @@ Six sizes total. No others permitted. ImportView's component-scoped FS scale
 retires. TF.NOTE (12px, zero consumers) retires. TF.HERO folds into xl.
 
 Hardcoded pixel literals in any file retire — all sizes through tokens. The
-hardcoded "14px" in Section.jsx replaces with `--fs-sm`.
+hardcoded "14px" in Section.jsx replaces with `--fs-lg` (per register
+inventory — section heading is `lg = 25px`).
 
 ## Weights
 
@@ -213,7 +214,7 @@ For meta-content: frame-setting notes, trust statements, status indicators.
 
 ## Register inventory — applied to chrome surfaces
 
-13 distinct (size, weight, colour, family) tuples on chrome.
+18 distinct (size, weight, colour, family) tuples on chrome.
 
 | Role | Size | Weight | Colour | Family |
 |------|------|--------|--------|--------|
@@ -221,6 +222,7 @@ For meta-content: frame-setting notes, trust statements, status indicators.
 | Verdict sub | base | Regular | C.TEXT_2 | sans |
 | Section heading | lg | Semibold | C.TEXT | sans |
 | Sub-heading (test card title) | md | Semibold | C.TEXT | sans |
+| Column title (verdict §1) | md | Semibold | C.TEXT | sans |
 | Body prose | base | Regular | C.TEXT | sans |
 | Test card sub | base | Regular | C.TEXT_2 | sans |
 | Identity row label | base | Regular | C.TEXT_3 | sans |
@@ -238,7 +240,9 @@ For meta-content: frame-setting notes, trust statements, status indicators.
 | Aside callout body | sm | Regular | C.TEXT | sans |
 | Aside callout bullet lead | sm | Semibold | C.TEXT | sans |
 
-18 roles, 13 distinct tuples. Down from ~40 in pre-system inventory.
+21 roles, 18 distinct tuples. Down from ~40 in pre-system inventory.
+
+Note: prior versions of this doc cited "18 roles, 13 distinct tuples". Recount at S138 close (post-Phase C.2 surface migration) found the actual table contained more tuples than the summary line claimed. Whether this was original miscount at S134 lock or drift since lock is undetermined from available evidence; the numbers above reflect the current table as the source of truth going forward. Column title (verdict §1) role added during S138-fix4 as a co-consumer of the Sub-heading tuple — no new tuple introduced.
 
 ## Implementation notes — for Phase B and Phase C
 
@@ -246,7 +250,7 @@ For meta-content: frame-setting notes, trust statements, status indicators.
 
 1. `src/constants/tokens.js` becomes the single source of truth for every
    typography token defined above.
-2. Section.jsx hardcoded "14px" literal replaces with `--fs-sm` token reference.
+2. Section.jsx hardcoded "14px" literal replaces with `--fs-lg` token reference.
 3. ImportView.jsx component-scoped FS scale retires; usages migrate to TF tokens.
 4. styles.js inline typography definitions retire or reference tokens.js.
 5. index.html `<th>`/`<td>` global CSS retires; table rendering goes through
@@ -290,8 +294,8 @@ fixture set.
   no "I picked something that looked right" decisions land
 - This doc updates only via deliberate revision; ad-hoc edits during chrome
   sessions are not allowed
-- Inventory drift (creep beyond ~13 tuples on chrome) flagged in the
-  next typography audit and reconciled
+- Inventory drift (creep beyond current 18 tuples on chrome) flagged in
+  the next typography audit and reconciled
 
 ## Locked at end of Session A
 
@@ -300,5 +304,7 @@ Locks: voice profile · two-face Inter + JetBrains Mono · 6-step 1.25 scale ·
 line-heights · convention alignment (left default, right numerics, centre
 frame-setters) · paired-fact identity row pattern (colour split) · aside
 callout pattern (3 semantic sub-types) · table sizing (size to content,
-centre when narrow) · 13-tuple chrome register inventory · single colour
-hierarchy across families · 5 token definition sites collapse to 1.
+centre when narrow) · 18-tuple chrome register inventory (recounted at
+S138 close — prior "13" was either original miscount or pre-S138 drift) ·
+single colour hierarchy across families · 5 token definition sites
+collapse to 1.

@@ -1,5 +1,16 @@
 # Typography inventory — pre-system audit
 
+> **LOCKED — pre-migration snapshot.** This document captures the typography
+> setup at end of S135 audit, prior to Phase B token consolidation and
+> Phase C surface migration. **Do not edit.** It serves as the historical
+> "before" reference. Current-state truth lives in `TYPOGRAPHY-SYSTEM.md`.
+>
+> Section 2.2 (VerdictBanner inventory) and other surface sections describe
+> elements that have since been retired or restructured during Phase C
+> surface migration (e.g. count-strip retired at S138-fix2; identity row
+> paired-fact pattern landed at S138 Phase C.2). For current rendering,
+> see the relevant source files and `TYPOGRAPHY-SYSTEM.md`.
+
 Read-only inventory of the typography setup in active rendering. No
 recommendations, no value judgements — facts only. Audit performed
 post-S133h FIX4 against worktree `claude/nostalgic-lovelace-c5dd6b`

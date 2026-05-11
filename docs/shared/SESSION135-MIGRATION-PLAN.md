@@ -192,10 +192,14 @@ status/warning (light amber). No corresponding token group exists today.
 | Border-radius | `ASIDE.RAD` | `"0 4px 4px 0"` | New layout token (or inline) |
 | Rule width | `ASIDE.RULE_W` | `"3px"` | New |
 
-Decision required: are aside-callout tokens part of typography tokens.js,
-or are they layout/colour tokens that live alongside `UI.{WARN,OK,INFO}`?
-Recommendation: extend `UI.{WARN,OK,INFO}` with the new bg/rule values
-(updates), retire `ASIDE` namespace concept, keep typography as type-only.
+Decision (resolved S136 kickoff): aside-callout values live as sub-keys
+under `UI.{WARN,INFO,OK}` — `UI.WARN.callout = {bg, rule}` etc. — plus a
+new `UI.FRAME.callout` for the neutral-grey frame-setting variant. Sub-key
+shape preferred over flat-key replacement: existing `UI.WARN.bg` / `.rule`
+values differ from the aside-callout values in the table above, so flat
+updates would shift unrelated chip / box consumers. Sub-keys gate the
+diff to aside callouts only. Phase C decides whether to consolidate.
+Typography tokens stay type-only; no `ASIDE` namespace.
 
 ### 1.12 Other tokens noted in inventory §1.10–§1.12
 
@@ -599,7 +603,7 @@ become slightly darker. Anything else is a regression.
 | Step | Surface | Files | Why this order | Verification fixtures |
 |---|---|---|---|---|
 | **C.1** | Page chrome (file bar, mode tabs, ⋯ Actions, Section dividers, advisory) | [ReportView.jsx](src/components/views/ReportView.jsx) (lines 720–776), [Section.jsx](src/components/shared/Section.jsx) | Visible on every screen. Validates `lg` section heading, `base` button/tab register, advisory aside-callout pattern. Smallest file count (~2). Most dramatic change (section headers 14→25px sentence case) — best to land first to ground subsequent work | DS01 (clean), DS02 (severity 3) |
-| **C.2** | VerdictBanner (§1) | [VerdictBanner.jsx](src/components/views/VerdictBanner.jsx) | Anchors the verdict-headline and identity-row register patterns. 1 file, ~10 elements. Headline 22→32px is dramatic; lands the canonical paired-fact pattern | DS01, DS02, DS21 (severity 2) |
+| **C.2** | VerdictBanner (§1) | [VerdictBanner.jsx](src/components/views/VerdictBanner.jsx) | Anchors the verdict-headline and identity-row register patterns. 1 file, ~10 elements. Headline 22→32px is dramatic; lands the canonical paired-fact pattern. **Actual S138 arc expanded scope across four fix-cycles — see SESSION138-SUMMARY.md for fix-cycle detail (settings restructure, count-strip retirement, two-column titling, column-title role addition).** | DS01, DS02, DS21 (severity 2) |
 | **C.3** | §5 Methodology | [ReportView.jsx](src/components/views/ReportView.jsx) (lines 1221–1256) | Small surface. Lands the trust-aside-callout pattern (screening-aid disclaimer) | DS01, DS21 |
 | **C.4** | §4 Investigate further | [ReportView.jsx](src/components/views/ReportView.jsx) (lines 1202–1219) | Small surface. Lands `JetBrains Mono` for prompt body. Validates button register | DS02, DS21 |
 | **C.5** | ImportView | [ImportView.jsx](src/components/views/ImportView.jsx) | Heaviest single-file surface (56 `FS.*` refs, 2 hardcoded literals, ~15 distinct registers). Lands aside-callout patterns at the privacy block. ALL CAPS retirement most visible here (zone headers, fieldLabel, AUTO/SET ME/REQUIRED badges). Self-contained — no shared helpers downstream depend on its decisions | DS01, DS04, DS21 (different file types) |
