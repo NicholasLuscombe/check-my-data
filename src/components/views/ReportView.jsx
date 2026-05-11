@@ -1300,9 +1300,16 @@ export function ReportView({ results, importConfig, matrix, rowMap, onBack, onCh
                 skipped at C.TEXT_3 (one-step C.TEXT_2 vs C.TEXT_3 read too subtle on visual
                 verification). Per-span colour now explicit on both states; wrapper colour
                 C.TEXT_2 → C.TEXT so inherited punctuation (':' / ', ') aligns with the
-                dominant applied tone. Colour axis carries the distinction alone — no
-                strikethrough, no other decoration. References body wrapper still C.TEXT_2
-                (single-register prose, no per-token applicability axis). */}
+                dominant applied tone. References body wrapper still C.TEXT_2 (single-
+                register prose, no per-token applicability axis).
+                S139b-fix2: strikethrough added on skipped tests + all-skipped category
+                headers (textDecoration "line-through" + textDecorationThickness "1.5px"
+                — Inter Regular at FS.sm produces a ~1px default stroke that reads thin;
+                1.5px holds against the surrounding prose). Two-step colour push from
+                fix1 retained — fix2 layers typographic distinction on top, second axis
+                earns its keep after colour-alone verified ambiguous at-a-glance.
+                Decoration colour inherits naturally from each span's color (no explicit
+                textDecorationColor needed). */}
             {(()=>{
               const nApp=results.filter(r=>r.flag!=="N/A").length;
               const skippedNames = new Set(results.filter(r=>r.flag==="N/A").map(r=>r.name));
@@ -1327,10 +1334,10 @@ export function ReportView({ results, importConfig, matrix, rowMap, onBack, onCh
                         const isLast=ci===METHOD_BATTERY.length-1;
                         return (
                           <div key={cat.label} style={isLast?undefined:{marginBottom:"4px"}}>
-                            <span style={{fontWeight:FW.SEMI,color:allSkipped?C.TEXT_3:C.TEXT}}>{cat.label}:</span>{" "}
+                            <span style={{fontWeight:FW.SEMI,color:allSkipped?C.TEXT_3:C.TEXT,...(allSkipped&&{textDecoration:"line-through",textDecorationThickness:"1.5px"})}}>{cat.label}:</span>{" "}
                             {cat.tests.flatMap(([n,label],i)=>{
                               const sk=skippedNames.has(n);
-                              const span=<span key={n} style={{color:sk?C.TEXT_3:C.TEXT}}>{label}</span>;
+                              const span=<span key={n} style={{color:sk?C.TEXT_3:C.TEXT,...(sk&&{textDecoration:"line-through",textDecorationThickness:"1.5px"})}}>{label}</span>;
                               return i===0?[span]:[", ",span];
                             })}
                           </div>
