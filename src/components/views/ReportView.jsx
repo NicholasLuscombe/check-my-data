@@ -684,7 +684,6 @@ export function ReportView({ results, importConfig, matrix, rowMap, onBack, onCh
   const ensureTestCardExpanded = (testName) =>
     setExpandedTestEvidence(prev => prev[testName] ? prev : ({...prev, [testName]: true}));
   const [showMethodBattery, setShowMethodBattery] = useState(false);
-  const [showMethodRefs, setShowMethodRefs] = useState(false);
   const [aiCopied, setAiCopied] = useState(false);
   const handleAIConsult = async () => {
     const prompt = buildConsultationPrompt(results, importConfig, nRows, nCols, severity);
@@ -818,6 +817,17 @@ export function ReportView({ results, importConfig, matrix, rowMap, onBack, onCh
             )}
           </div>
         </div>
+      </div>
+
+      {/* Screening-aid disclaimer — trust-aside-callout (UI.INFO.callout). S139c:
+          relocated from §5 to the report-top above §1, read as report-level preamble.
+          Chrome mirrors the S139 §5 site verbatim (light-blue bg, 3px blue left rule,
+          square-left-edge border-radius, Aside-callout body register at FS.sm C.TEXT).
+          Inline render mirrors S137 + S139 precedent; helper extraction defers until a
+          third cross-sub-type consumer. */}
+      <div style={{background:UI.INFO.callout.bg,borderLeft:`3px solid ${UI.INFO.callout.rule}`,borderRadius:"0 4px 4px 0",
+        padding:"14px 18px",marginBottom:"12px",fontSize:FS.sm,color:C.TEXT,fontFamily:FF.UI}}>
+        Check My Data flags statistical patterns. Please interpret them using domain knowledge.
       </div>
 
       {/* Replicate-structure advisory: when many ungrouped columns are treated as replicates
@@ -1282,34 +1292,25 @@ export function ReportView({ results, importConfig, matrix, rowMap, onBack, onCh
             </Section>
 
             {/* ── §5 TEST COVERAGE ──
-                S139 (Phase C.3): full sweep onto the typography system. Test-count line at
-                Body prose register (FS.base FW.NORM C.TEXT). Screening-aid disclaimer promoted
-                to a trust-aside-callout (UI.INFO.callout) mirroring S137's WARN callout for
-                the column-structure note. Disclosure toggles on the Button register (FS.base
-                FW.MED C.TEXT). Battery + references body on the Footnote/reference register
-                (FS.sm FW.NORM C.TEXT_2). Per-category labels promoted to explicit FW.SEMI.
+                Post-S139c surface: count line + battery-details expandable. Nothing else.
+                Screening-aid disclaimer relocated to report-top (above §1) as a report-
+                level preamble; references retired (partial list — full citations live in
+                METHODOLOGY.md). §5 spec-complete on copy, rendering, and structure.
+                S139 (Phase C.3): typography-system migration — test-count line on Body
+                (FS.base C.TEXT); battery body on Footnote/reference (FS.sm C.TEXT);
+                disclosure toggle on Button (FS.base FW.MED C.TEXT); per-category labels
+                explicit FW.SEMI.
                 S139b: section renamed "Methodology" → "Test coverage" (lowered reader
                 expectation to match the surface's count-line + battery scope). Battery list
                 rebuilt from canonical METHOD_BATTERY (module-top) — per-test applicability
                 dimming (Shape A). Category header dims when every member is skipped.
-                Inventory completed: split Benford 1st/2nd into separate items, added
-                windowed autocorrelation, blocked Mahalanobis, cross-condition consistency
-                (3 previously-uncatalogued). Labels are §5-local handwritten phrasings;
-                DO NOT substitute DISPLAY_NAMES.
+                Labels are §5-local handwritten phrasings; DO NOT substitute DISPLAY_NAMES.
                 S139b-fix1: contrast pushed from one-step to two-step — applied at C.TEXT,
-                skipped at C.TEXT_3 (one-step C.TEXT_2 vs C.TEXT_3 read too subtle on visual
-                verification). Per-span colour now explicit on both states; wrapper colour
-                C.TEXT_2 → C.TEXT so inherited punctuation (':' / ', ') aligns with the
-                dominant applied tone. References body wrapper still C.TEXT_2 (single-
-                register prose, no per-token applicability axis).
+                skipped at C.TEXT_3. Per-span colour explicit on both states; wrapper colour
+                C.TEXT so inherited punctuation (':' / ', ') aligns with the dominant tone.
                 S139b-fix2: strikethrough added on skipped tests + all-skipped category
-                headers (textDecoration "line-through" + textDecorationThickness "1.5px"
-                — Inter Regular at FS.sm produces a ~1px default stroke that reads thin;
-                1.5px holds against the surrounding prose). Two-step colour push from
-                fix1 retained — fix2 layers typographic distinction on top, second axis
-                earns its keep after colour-alone verified ambiguous at-a-glance.
-                Decoration colour inherits naturally from each span's color (no explicit
-                textDecorationColor needed). */}
+                headers (textDecoration "line-through" + textDecorationThickness "1.5px").
+                Decoration colour inherits naturally from each span's color. */}
             {(()=>{
               const nApp=results.filter(r=>r.flag!=="N/A").length;
               const skippedNames = new Set(results.filter(r=>r.flag==="N/A").map(r=>r.name));
@@ -1318,17 +1319,13 @@ export function ReportView({ results, importConfig, matrix, rowMap, onBack, onCh
                   <div style={{fontSize:FS.base,color:C.TEXT,marginBottom:"12px"}}>
                     {nApp} of {results.length} tests applied, spanning 5 investigation categories.
                   </div>
-                  <div style={{background:UI.INFO.callout.bg,borderLeft:`3px solid ${UI.INFO.callout.rule}`,borderRadius:"0 4px 4px 0",
-                    padding:"14px 18px",marginBottom:"12px",fontSize:FS.sm,color:C.TEXT,fontFamily:FF.UI}}>
-                    This report is a screening aid, not a determination of misconduct. Flagged patterns require expert interpretation in context.
-                  </div>
                   {/* Battery */}
                   <button onClick={()=>setShowMethodBattery(v=>!v)} style={{background:"none",border:"none",padding:0,cursor:"pointer",color:C.TEXT,fontSize:FS.base,fontWeight:FW.MED,fontFamily:FF.UI,display:"flex",alignItems:"center",gap:"4px",marginBottom:"4px"}}>
                     <span>{showMethodBattery?"▾":"▸"}</span>
                     <span>Test battery details</span>
                   </button>
                   {showMethodBattery && (
-                    <div style={{padding:"10px 14px",background:C.BG_L,borderRadius:CR.SM,fontSize:FS.sm,color:C.TEXT,marginBottom:"8px"}}>
+                    <div style={{padding:"10px 14px",background:C.BG_L,borderRadius:CR.SM,fontSize:FS.sm,color:C.TEXT}}>
                       {METHOD_BATTERY.map((cat,ci)=>{
                         const allSkipped=cat.tests.every(([n])=>skippedNames.has(n));
                         const isLast=ci===METHOD_BATTERY.length-1;
@@ -1343,16 +1340,6 @@ export function ReportView({ results, importConfig, matrix, rowMap, onBack, onCh
                           </div>
                         );
                       })}
-                    </div>
-                  )}
-                  {/* References */}
-                  <button onClick={()=>setShowMethodRefs(v=>!v)} style={{background:"none",border:"none",padding:0,cursor:"pointer",color:C.TEXT,fontSize:FS.base,fontWeight:FW.MED,fontFamily:FF.UI,display:"flex",alignItems:"center",gap:"4px"}}>
-                    <span>{showMethodRefs?"▾":"▸"}</span>
-                    <span>References</span>
-                  </button>
-                  {showMethodRefs && (
-                    <div style={{padding:"10px 14px",background:C.BG_L,borderRadius:CR.SM,fontSize:FS.sm,color:C.TEXT_2,marginTop:"4px"}}>
-                      Simonsohn (2013); Al-Marzouki et al. (2005); Carlisle (2017); Bik et al. (2016); Nigrini (2012); Mosimann et al. (2002); Wald &amp; Wolfowitz (1940); Efron (2007); Mahalanobis (1936)
                     </div>
                   )}
                 </Section>
