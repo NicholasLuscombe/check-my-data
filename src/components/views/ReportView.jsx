@@ -1234,36 +1234,45 @@ export function ReportView({ results, importConfig, matrix, rowMap, onBack, onCh
               )}
             </Section>
 
-            {/* ── §5 METHODOLOGY ── */}
+            {/* ── §5 METHODOLOGY ──
+                S139 (Phase C.3): full sweep onto the typography system. Test-count line at
+                Body prose register (FS.base FW.NORM C.TEXT). Screening-aid disclaimer promoted
+                to a trust-aside-callout (UI.INFO.callout) mirroring S137's WARN callout for
+                the column-structure note. Disclosure toggles on the Button register (FS.base
+                FW.MED C.TEXT). Battery + references body on the Footnote/reference register
+                (FS.sm FW.NORM C.TEXT_2). Per-category labels promoted to explicit FW.SEMI. */}
             {(()=>{
               const nApp=results.filter(r=>r.flag!=="N/A").length;
               return (
                 <Section number={5} title="Methodology">
-                  <div style={{fontSize:TF.BODY,color:C.TEXT_2,lineHeight:"1.6",marginBottom:"10px"}}>
+                  <div style={{fontSize:FS.base,color:C.TEXT,marginBottom:"12px"}}>
                     {nApp} of {results.length} tests applicable. Tests span 5 investigation categories across 24 independent statistical procedures.
-                    <span style={{display:"block",marginTop:"6px",color:C.TEXT_3,fontSize:TF.DETAIL}}>This report is a screening aid, not a determination of misconduct. Flagged patterns require expert interpretation in context.</span>
+                  </div>
+                  <div style={{background:UI.INFO.callout.bg,borderLeft:`3px solid ${UI.INFO.callout.rule}`,borderRadius:"0 4px 4px 0",
+                    padding:"14px 18px",marginBottom:"12px",fontSize:FS.sm,color:C.TEXT,fontFamily:FF.UI}}>
+                    This report is a screening aid, not a determination of misconduct. Flagged patterns require expert interpretation in context.
                   </div>
                   {/* Battery */}
-                  <button onClick={()=>setShowMethodBattery(v=>!v)} style={{background:"none",border:"none",padding:0,cursor:"pointer",color:C.TEXT_3,fontSize:TF.DETAIL,display:"flex",alignItems:"center",gap:"4px",marginBottom:"4px"}}>
+                  <button onClick={()=>setShowMethodBattery(v=>!v)} style={{background:"none",border:"none",padding:0,cursor:"pointer",color:C.TEXT,fontSize:FS.base,fontWeight:FW.MED,fontFamily:FF.UI,display:"flex",alignItems:"center",gap:"4px",marginBottom:"4px"}}>
                     <span>{showMethodBattery?"▾":"▸"}</span>
                     <span>Test battery details</span>
                   </button>
                   {showMethodBattery && (
-                    <div style={{padding:"10px 14px",background:C.BG_L,borderRadius:CR.SM,fontSize:TF.DETAIL,color:C.TEXT_3,lineHeight:"1.7",marginBottom:"8px"}}>
-                      <div style={{marginBottom:"4px"}}><strong style={{color:C.TEXT_2}}>Copy, paste, edit:</strong> Duplicate detection, constant-offset blocks, residual spike correlation</div>
-                      <div style={{marginBottom:"4px"}}><strong style={{color:C.TEXT_2}}>Unusual digits:</strong> Terminal digit preference, Benford 1st &amp; 2nd digit, decimal precision clustering, value-frequency spikes</div>
-                      <div style={{marginBottom:"4px"}}><strong style={{color:C.TEXT_2}}>Distribution shapes:</strong> Entropy / Zipf analysis, column goodness-of-fit, modality test</div>
-                      <div style={{marginBottom:"4px"}}><strong style={{color:C.TEXT_2}}>Cross-replicate comparisons:</strong> Inter-replicate correlation, kurtosis + Anderson-Darling, autocorrelation, runs test, noise scaling, within-row variance, selective noise, regional noise, LOESS + CUSUM noise changepoint, row-mean runs, Mahalanobis unusual rows, missing data patterns</div>
-                      <div><strong style={{color:C.TEXT_2}}>Cross-group comparisons:</strong> Cross-condition Spearman rank, Carlisle condition balance</div>
+                    <div style={{padding:"10px 14px",background:C.BG_L,borderRadius:CR.SM,fontSize:FS.sm,color:C.TEXT_2,marginBottom:"8px"}}>
+                      <div style={{marginBottom:"4px"}}><span style={{fontWeight:FW.SEMI,color:C.TEXT_2}}>Copy, paste, edit:</span> Duplicate detection, constant-offset blocks, residual spike correlation</div>
+                      <div style={{marginBottom:"4px"}}><span style={{fontWeight:FW.SEMI,color:C.TEXT_2}}>Unusual digits:</span> Terminal digit preference, Benford 1st &amp; 2nd digit, decimal precision clustering, value-frequency spikes</div>
+                      <div style={{marginBottom:"4px"}}><span style={{fontWeight:FW.SEMI,color:C.TEXT_2}}>Distribution shapes:</span> Entropy / Zipf analysis, column goodness-of-fit, modality test</div>
+                      <div style={{marginBottom:"4px"}}><span style={{fontWeight:FW.SEMI,color:C.TEXT_2}}>Cross-replicate comparisons:</span> Inter-replicate correlation, kurtosis + Anderson-Darling, autocorrelation, runs test, noise scaling, within-row variance, selective noise, regional noise, LOESS + CUSUM noise changepoint, row-mean runs, Mahalanobis unusual rows, missing data patterns</div>
+                      <div><span style={{fontWeight:FW.SEMI,color:C.TEXT_2}}>Cross-group comparisons:</span> Cross-condition Spearman rank, Carlisle condition balance</div>
                     </div>
                   )}
                   {/* References */}
-                  <button onClick={()=>setShowMethodRefs(v=>!v)} style={{background:"none",border:"none",padding:0,cursor:"pointer",color:C.TEXT_3,fontSize:TF.DETAIL,display:"flex",alignItems:"center",gap:"4px"}}>
+                  <button onClick={()=>setShowMethodRefs(v=>!v)} style={{background:"none",border:"none",padding:0,cursor:"pointer",color:C.TEXT,fontSize:FS.base,fontWeight:FW.MED,fontFamily:FF.UI,display:"flex",alignItems:"center",gap:"4px"}}>
                     <span>{showMethodRefs?"▾":"▸"}</span>
                     <span>References</span>
                   </button>
                   {showMethodRefs && (
-                    <div style={{padding:"10px 14px",background:C.BG_L,borderRadius:CR.SM,fontSize:TF.DETAIL,color:C.TEXT_3,lineHeight:"1.7",marginTop:"4px"}}>
+                    <div style={{padding:"10px 14px",background:C.BG_L,borderRadius:CR.SM,fontSize:FS.sm,color:C.TEXT_2,marginTop:"4px"}}>
                       Simonsohn (2013); Al-Marzouki et al. (2005); Carlisle (2017); Bik et al. (2016); Nigrini (2012); Mosimann et al. (2002); Wald &amp; Wolfowitz (1940); Efron (2007); Mahalanobis (1936)
                     </div>
                   )}
