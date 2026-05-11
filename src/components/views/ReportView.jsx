@@ -1246,7 +1246,7 @@ export function ReportView({ results, importConfig, matrix, rowMap, onBack, onCh
               return (
                 <Section number={5} title="Methodology">
                   <div style={{fontSize:FS.base,color:C.TEXT,marginBottom:"12px"}}>
-                    {nApp} of {results.length} tests applicable. Tests span 5 investigation categories across 24 independent statistical procedures.
+                    {nApp} of {results.length} tests applied, spanning 5 investigation categories.
                   </div>
                   <div style={{background:UI.INFO.callout.bg,borderLeft:`3px solid ${UI.INFO.callout.rule}`,borderRadius:"0 4px 4px 0",
                     padding:"14px 18px",marginBottom:"12px",fontSize:FS.sm,color:C.TEXT,fontFamily:FF.UI}}>
