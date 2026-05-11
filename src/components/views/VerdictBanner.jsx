@@ -15,8 +15,9 @@ const IDENTITY_ROW = { padding:"2px 0", fontSize:FS.base, lineHeight:"1.5" };
 // settings"). Sub-heading register at the small step: sm Semibold C.TEXT.
 // S138-fix3 bumped from sm Medium C.TEXT_2 (Footnote-shape with a weight
 // nudge) to sm Semibold C.TEXT so the titles read unambiguously as
-// orientation, not as borderline footnote register. Adds one register
-// tuple to TYPOGRAPHY-SYSTEM.md § Register inventory.
+// orientation, not as borderline footnote register. Adds a new role to
+// TYPOGRAPHY-SYSTEM.md § Register inventory at an existing tuple
+// (Aside callout bullet lead already uses sm Semibold C.TEXT sans).
 const COLUMN_TITLE = { fontSize:FS.sm, fontWeight:FW.SEMI, color:C.TEXT, marginBottom:"8px" };
 
 // Oxford-comma join. Used by the action-sub count sentence to list §3

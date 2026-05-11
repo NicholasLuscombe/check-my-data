@@ -221,6 +221,7 @@ For meta-content: frame-setting notes, trust statements, status indicators.
 | Verdict sub | base | Regular | C.TEXT_2 | sans |
 | Section heading | lg | Semibold | C.TEXT | sans |
 | Sub-heading (test card title) | md | Semibold | C.TEXT | sans |
+| Column title (verdict block) | sm | Semibold | C.TEXT | sans |
 | Body prose | base | Regular | C.TEXT | sans |
 | Test card sub | base | Regular | C.TEXT_2 | sans |
 | Identity row label | base | Regular | C.TEXT_3 | sans |
@@ -238,7 +239,17 @@ For meta-content: frame-setting notes, trust statements, status indicators.
 | Aside callout body | sm | Regular | C.TEXT | sans |
 | Aside callout bullet lead | sm | Semibold | C.TEXT | sans |
 
-18 roles, 13 distinct tuples. Down from ~40 in pre-system inventory.
+19 roles, 13 distinct tuples. Down from ~40 in pre-system inventory.
+
+**Post-lock addition (S138-fix3):** the Column title (verdict block)
+row at `sm Semibold C.TEXT` was added after the Session-A lock when
+visual verification on the two-column verdict body surfaced the need
+for a sub-heading-shape orientation register at the small step. The
+tuple itself isn't new — Aside callout bullet lead already uses
+`sm Semibold C.TEXT sans` — so this is a new role at an existing
+tuple. Sits semantically as a small-step variant of Sub-heading
+(test card title): same weight / colour / family, smaller size.
+Roles grew from 18 to 19; tuple count unchanged at 13.
 
 ## Implementation notes — for Phase B and Phase C
 
@@ -300,5 +311,9 @@ Locks: voice profile · two-face Inter + JetBrains Mono · 6-step 1.25 scale ·
 line-heights · convention alignment (left default, right numerics, centre
 frame-setters) · paired-fact identity row pattern (colour split) · aside
 callout pattern (3 semantic sub-types) · table sizing (size to content,
-centre when narrow) · 13-tuple chrome register inventory · single colour
-hierarchy across families · 5 token definition sites collapse to 1.
+centre when narrow) · 13-tuple chrome register inventory (roles grew
+from 18 to 19 at S138-fix3 with the Column title row added; tuple
+count unchanged since the role reuses the existing Aside-callout-
+bullet-lead tuple — see § Register inventory post-lock note) · single
+colour hierarchy across families · 5 token definition sites collapse
+to 1.
