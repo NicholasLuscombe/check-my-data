@@ -262,7 +262,7 @@ export function BatchView({ onBack }) {
       rowSemanticsAuto: r.rowSemanticsAuto,
       longFormatDetected: r.longFormatDetected,
     };
-    return <div><ReportView results={r.results} narrative={null} importConfig={batchImportConfig} matrix={r.matrix||null} rowMap={r.rowMap||null} onBack={()=>setSelectedIdx(null)} backLabel="Back to batch"/></div>;
+    return <div><ReportView results={r.results} importConfig={batchImportConfig} matrix={r.matrix||null} rowMap={r.rowMap||null} onBack={()=>setSelectedIdx(null)} backLabel="Back to batch"/></div>;
   }
 
   return (

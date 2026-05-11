@@ -1,22 +1,15 @@
 /* ── Shared inline styles — single source of truth for repeated patterns ── */
 
-import { C, TF, FW, FF, M, UI, CC, SIGNAL, ACCENT } from "../../constants/tokens.js";
+import { C, TF, FW, FF, UI, CC, SIGNAL, ACCENT } from "../../constants/tokens.js";
 import { FLAG_STYLES } from "../../constants/thresholds.js";
 
 // Sub-heading inside MiniCards — used by all 24 cards for section labels.
 export const SUB_HEAD = { fontSize: TF.DETAIL, fontFamily: FF.UI, fontWeight: FW.SEMI, color: C.TEXT_3, marginBottom: "8px" };
 
 export const S_NOTE  = { fontFamily: FF.UI, fontSize: TF.DETAIL, color: C.TEXT_4, marginTop: "2px", paddingLeft: "4px" };
-export const S_TABLE = { width: "100%", borderCollapse: "collapse", fontSize: TF.DETAIL, ...M };
 // Shared header style for all data tables (evidence, hotspot, import preview).
-// fontSize matches S_TABLE / import preview (TF.DETAIL). Background at <tr> level.
+// Background applied at <tr> level.
 export const TH_EVIDENCE = { boxSizing:"border-box", padding:"6px 8px", fontSize:TF.DETAIL, fontFamily:FF.UI, fontWeight:FW.SEMI, color:C.TEXT_3, textAlign:"center", borderBottom:`1px solid ${C.BORDER_L}`, whiteSpace:"nowrap" };
-
-// Data cell: monospace for numeric columns (crossbar 0s, fixed-width digits).
-export const TD_EVIDENCE = { boxSizing:"border-box", padding:"4px 8px", fontSize:TF.DETAIL, fontFamily:FF.MONO, fontVariantNumeric:"tabular-nums", textAlign:"center", whiteSpace:"nowrap" };
-
-// Identifier cell: same size/padding as data, but sans-serif (row #, position, labels).
-export const TD_EVIDENCE_ID = { boxSizing:"border-box", padding:"4px 8px", fontSize:TF.DETAIL, fontFamily:FF.UI, textAlign:"center", whiteSpace:"nowrap" };
 
 // Data excerpt cell styles — used by DupDet, HotspotExcerptList, and any raw data table.
 // Override only background/color/fontWeight for highlighting; dimensions are baked in.

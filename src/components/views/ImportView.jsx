@@ -12,7 +12,7 @@ import { getApplicabilityTests } from "../../analysis/severity.js";
 import { extractAnalysisInputs } from "../../analysis/engine.js";
 import { LongFormatModal } from "./LongFormatModal.jsx";
 import { RoleBadge } from "../shared/RoleBadge.jsx";
-import { C, FF, FW, TF, CR, CC, M, UI, BADGE, SIGNAL, ACCENT } from "../../constants/tokens.js";
+import { C, FF, FW, TF, FS, CR, CC, M, UI, BADGE, SIGNAL, ACCENT } from "../../constants/tokens.js";
 import { FLAG_STYLES } from "../../constants/thresholds.js";
 import { ROLES, ROLE_KEYS, COND_COLORS } from "../../constants/roles.js";
 import { MECHANISMS, MECHANISM_ORDER, TEST_MECHANISM, DISPLAY_NAMES } from "../../constants/mechanisms.js";
@@ -537,7 +537,7 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
         </div>
         <div style={{textAlign:"center",marginTop:"20px"}}>
           <div style={{fontSize:"13px",fontWeight:FW.SEMI,color:C.TEXT_2,marginBottom:"4px"}}>🔒 Your data never leaves your computer</div>
-          <div style={{fontSize:"12px",color:C.TEXT_3}}>All analyses run in your browser. No data is uploaded, transmitted, or stored by this software.</div>
+          <div style={{fontSize:FS.xs,color:C.TEXT_3}}>All analyses run in your browser. No data is uploaded, transmitted, or stored by this software.</div>
         </div>
         </div>
       ) : (

@@ -9,21 +9,20 @@
    top. Section continues to compose SectionHeader + card body for
    sections that fit the standard mould. */
 
-import { C, FW, CR } from "../../constants/tokens.js";
+import { C, FS, FW, CR } from "../../constants/tokens.js";
 
-/** Section-header typography chrome — exported so sub-header consumers
- *  (e.g. StickySurface lane labels) inherit family / weight / tracking /
- *  casing / color from a single source. Override `fontSize` at the call
- *  site to express hierarchy (sub-headers smaller than section headers).
- *  S126b add-6: extracted to fix lane-label visual drift surfaced on DS11
- *  verification — pre-add-6 LANE_LABEL diverged on color (TEXT_3 vs
- *  TEXT_2) and on size (9px TF.SMALL vs 14px) which made lane labels
- *  read disconnected from the section headers above and below. */
+/** Section-header typography chrome — single source of truth for the
+ *  numbered "1 · Summary" divider strip. S137 (Phase C.1): values
+ *  re-registered onto the typography system's section heading row
+ *  (lg / Semibold / C.TEXT / sans, sentence case, no tracking). Pre-S137
+ *  values were 14px ALL CAPS C.TEXT_2 with 0.12em tracking — retired
+ *  under the system's "ALL CAPS retires entirely / letter-spacing → 0"
+ *  rule. Lane labels (StickySurface / DeepLookModal) keep their own
+ *  local sub-header register (TF.BODY Semibold C.TEXT) — they're not
+ *  consumers of this helper. */
 export const SECTION_HEADER_TYPOGRAPHY = {
-  fontSize: "14px",
-  color: C.TEXT_2,
-  textTransform: "uppercase",
-  letterSpacing: "0.12em",
+  fontSize: FS.lg,
+  color: C.TEXT,
   fontWeight: FW.SEMI,
   whiteSpace: "nowrap",
 };

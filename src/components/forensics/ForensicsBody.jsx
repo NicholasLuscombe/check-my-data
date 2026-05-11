@@ -247,7 +247,7 @@ export function ForensicsBody({
           inside (full radii, full marginBottom). */}
       {stickyVisible
         ? <>
-            <Section number={2} title="WHAT WAS FOUND" flatBottom />
+            <Section number={2} title="What was found" flatBottom />
             <StickySurface
               findings={findings}
               severity={severity}
@@ -255,7 +255,7 @@ export function ForensicsBody({
               minimapSlot={minimapSlot}
             />
           </>
-        : <Section number={2} title="WHAT WAS FOUND">
+        : <Section number={2} title="What was found">
             <div style={{
               fontSize: TF.BODY,
               fontFamily: FF.UI,
@@ -267,7 +267,7 @@ export function ForensicsBody({
       }
 
       {/* §3 DETAILED TEST RESULTS — dimension cards */}
-      <Section number={3} title="DETAILED TEST RESULTS">
+      <Section number={3} title="Detailed test results">
         {MECHANISM_ORDER.map((mk, idx) => {
           const cat = catSummaries.find(c => c.mk === mk);
           if (!cat) return null;

@@ -1,11 +1,14 @@
 /* ── Palette — 4 primitives, everything else derived ───────────────── */
 
 // 1. NEUTRALS — slate ramp. Change these 9 values to re-theme the entire UI.
+//    S136: TEXT/TEXT_2/TEXT_3 hex shifted to neutral-700/600/500 ramp per
+//    typography system. TEXT_4 aliases TEXT_3 — folded as a transitional step;
+//    consumers retire to TEXT_3 over Phase C, alias removed at C close.
 export const C = {
-  TEXT:     "#1E293B",  // headings, primary labels (slate-800)
-  TEXT_2:   "#475569",  // secondary text (slate-600)
-  TEXT_3:   "#64748B",  // table headers, axis labels (slate-500)
-  TEXT_4:   "#94A3B8",  // muted, annotations, N/A (slate-400)
+  TEXT:     "#1F1F1F",  // headings, primary labels
+  TEXT_2:   "#525252",  // secondary text
+  TEXT_3:   "#737373",  // table headers, axis labels, fine print
+  TEXT_4:   "#737373",  // alias of TEXT_3 — retires at end of Phase C
   BORDER:   "#CBD5E1",  // primary borders, dividers (slate-300)
   BORDER_L: "#E2E8F0",  // light row separators (slate-200)
   BG:       "#F1F5F9",  // card/row alt backgrounds (slate-100)
@@ -46,16 +49,19 @@ export const CHART = {
 
 // 5. TYPOGRAPHY — font stacks, weights, sizes.
 //    Change these to re-font the entire app.
+//    S136: FF.UI/FF.MONO swapped onto Inter + JetBrains Mono web fonts (loaded
+//    via index.html <link> tags). FF.PRINT and FF.SERIF retired — system rule
+//    "two-face system" (sans + mono only). FW.MED added for the typography
+//    system's table-header / button / tab-inactive register.
 export const FF = {
-  MONO:  "'SF Mono','Cascadia Code',Menlo,Consolas,monospace",  // data tables, code, stats, report grid
-  UI:    "system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif", // app UI, SVG charts, report body
-  PRINT: "Calibri,sans-serif",                                  // HTML report summary tables
-  SERIF: "Georgia,'Times New Roman',serif",                     // logo only
+  MONO:  "'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace",                // data tables, code, stats, report grid
+  UI:    "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", // app UI, SVG charts, report body
 };
 export const FW = {
-  BOLD:  700,   // headings, flagged values, emphasis, logo
-  SEMI:  600,   // sub-headings, labels, table headers
-  NORM:  400,   // body text, normal weight
+  BOLD:  700,   // verdict headline only (system: narrowed register)
+  SEMI:  600,   // section headings, sub-headings, tabs (active), filename
+  MED:   500,   // table headers, buttons, tabs (inactive), tier word
+  NORM:  400,   // body prose, identity rows, table cells, fine print
 };
 // SVG chart font sizes — 6 levels (nothing below 9pt)
 export const CF = {
@@ -66,14 +72,26 @@ export const CF = {
   SMALL: "9",      // secondary annotations, reference line labels
   TINY: "9",       // floor — nothing smaller than 9pt in any chart
 };
-// HTML card font sizes — 5 levels only
+// HTML card font sizes — legacy 5-level scale (TF.NOTE retired S136).
+// TF.* values UNCHANGED in S136 — per-call-site role classification deferred to
+// Phase C. Surfaces continue to render at current sizes through B.
 export const TF = {
   HERO: "22px",    // verdict headline
   TITLE: "16px",   // modal/section titles
   BODY: "13px",    // descriptions, body text, panel headings, buttons, test names
-  NOTE: "12px",    // method descriptions, tertiary annotations
   DETAIL: "11px",  // stat numbers, table cells, footers, secondary text
   SMALL: "9px",    // uppercase labels, badges, dense table headers
+};
+// Typography system size scale (S136) — six steps, 1.25 ratio anchored at 16px.
+// Coexists with the legacy TF.* keys through Phase C; consumers re-point per
+// call-site role classification, then TF.* retires at end of Phase C.
+export const FS = {
+  xs:   "13px",  // table cells, fine print, deep footnotes
+  sm:   "14px",  // secondary text, captions, table headers, footnotes, aside callouts
+  base: "16px",  // body, identity rows, settings, tabs, buttons (reference register)
+  md:   "20px",  // sub-headings, modal headers, test card titles
+  lg:   "25px",  // section headings (1 · Summary, 2 · What was found, ...)
+  xl:   "32px",  // verdict headline only
 };
 // Chart plot widths — heights stay per-component
 export const CP = {
@@ -144,11 +162,13 @@ export const DUP_GROUP_PALETTE = [
 ];
 export const SERIES7 = [CC.OBS, CHART.S_ORANGE, ACCENT.TEAL.color, ACCENT.PURPLE.color, ACCENT.PINK.color, CHART.S_INDIGO, SIGNAL.AMBER.dot];
 
+// S136: .text retired per typography system "single saturation level" rule.
+// Pre-S136 consumers (FindingPill, FindingChip × 2) re-pointed to .color.
 export const SEV_VERDICT = {
-  0: { color:SIGNAL.GREEN.dot, text:SIGNAL.GREEN.text||"#166534", bg:SIGNAL.GREEN.bg, border:SIGNAL.GREEN.border },
-  1: { color:"#84CC16", text:"#4D7C0F", bg:"#F7FEE7", border:"#BEF264" },
-  2: { color:"#F97316", text:"#C2410C", bg:"#FFF7ED", border:"#FDBA74" },
-  3: { color:SIGNAL.RED.dot, text:SIGNAL.RED.text||"#991B1B", bg:SIGNAL.RED.bg, border:SIGNAL.RED.border },
+  0: { color:SIGNAL.GREEN.dot, bg:SIGNAL.GREEN.bg, border:SIGNAL.GREEN.border },
+  1: { color:"#84CC16", bg:"#F7FEE7", border:"#BEF264" },
+  2: { color:"#F97316", bg:"#FFF7ED", border:"#FDBA74" },
+  3: { color:SIGNAL.RED.dot, bg:SIGNAL.RED.bg, border:SIGNAL.RED.border },
 };
 
 // Severity word ladder. Indexed by severity tier (0–3). Single source of truth
@@ -156,16 +176,27 @@ export const SEV_VERDICT = {
 // Excel report header — keep in sync with SEV_VERDICT keys.
 export const SEVERITY_WORD = ["Clean", "Low", "Moderate", "High"];
 
+// S136: .callout sub-objects extend each UI tier with the typography system's
+// aside-callout pattern values (background tint + saturated left rule). Existing
+// .text/.bg/.border slots untouched — they back current banner / hint chrome
+// across the app. UI.FRAME.callout is new (neutral grey, no existing chrome).
+// Phase C consumers re-point onto .callout for the canonical aside pattern.
 export const UI = {
-  WARN: { text:ACCENT.GOLD.text, bg:ACCENT.GOLD.bg, border:ACCENT.GOLD.border },
-  OK:   { text:ACCENT.TEAL.text, bg:ACCENT.TEAL.bg, border:ACCENT.TEAL.border },
-  INFO: { text:ACCENT.BLUE.text, bg:ACCENT.BLUE.bg, border:ACCENT.BLUE.border },
+  WARN:  { text:ACCENT.GOLD.text, bg:ACCENT.GOLD.bg, border:ACCENT.GOLD.border, callout: { bg:"#FEF3C7", rule:"#CA8A04" } },
+  OK:    { text:ACCENT.TEAL.text, bg:ACCENT.TEAL.bg, border:ACCENT.TEAL.border, callout: { bg:"#F0FDF4", rule:"#16A34A" } },
+  INFO:  { text:ACCENT.BLUE.text, bg:ACCENT.BLUE.bg, border:ACCENT.BLUE.border, callout: { bg:"#EFF6FF", rule:"#2563EB" } },
+  FRAME: { callout: { bg:"#F5F5F5", rule:C.TEXT_3 } },
 };
+// S136: SET_ME and REQUIRED added (chip-tint shape mirroring AUTO; ACCENT.GOLD-
+// derived for amber tint). Consumer migration is Phase C — current AUTO/SET ME/
+// REQUIRED ALL CAPS chrome lives inline at ImportView.jsx until C.5 surface pass.
 export const BADGE = {
   PROMOTED: { text:ACCENT.GOLD.text, bg:ACCENT.GOLD.bg, border:ACCENT.GOLD.border },
   VST_LOG:  { text:ACCENT.PURPLE.color, bg:ACCENT.PURPLE.bg, border:ACCENT.PURPLE.border },
   VST_ANS:  { text:ACCENT.TEAL.text, bg:ACCENT.TEAL.bg, border:ACCENT.TEAL.border },
   AUTO:     { text:ACCENT.TEAL.text, bg:ACCENT.TEAL.bg, border:ACCENT.TEAL.border },
+  SET_ME:   { text:ACCENT.GOLD.text, bg:ACCENT.GOLD.bg, border:ACCENT.GOLD.border },
+  REQUIRED: { text:ACCENT.GOLD.text, bg:ACCENT.GOLD.bg, border:ACCENT.GOLD.border },
 };
 
 export const M = { fontFamily: FF.MONO };

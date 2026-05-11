@@ -68,7 +68,7 @@ export function FindingPill({ finding, onActivate }) {
         border: `1px solid ${sev.border}`,
         borderRadius: CR.MD,
         boxShadow: stripeShadow,
-        color: sev.text,
+        color: sev.color,
         fontSize: TF.DETAIL,
         fontFamily: FF.UI,
         fontWeight: FW.SEMI,
