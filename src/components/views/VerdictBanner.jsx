@@ -12,9 +12,12 @@ const IDENTITY_ROW = { padding:"2px 0", fontSize:FS.base, lineHeight:"1.5" };
 
 // Column title — sits at the top of each two-column-body column, signalling
 // the purpose of the stack below ("Dataset properties" / "Data import
-// settings"). Footnote-shape size + colour with the weight bumped to MED so
-// it reads as an organiser, not a footnote. S138-fix2 introduced.
-const COLUMN_TITLE = { fontSize:FS.sm, fontWeight:FW.MED, color:C.TEXT_2, marginBottom:"8px" };
+// settings"). Sub-heading register at the small step: sm Semibold C.TEXT.
+// S138-fix3 bumped from sm Medium C.TEXT_2 (Footnote-shape with a weight
+// nudge) to sm Semibold C.TEXT so the titles read unambiguously as
+// orientation, not as borderline footnote register. Adds one register
+// tuple to TYPOGRAPHY-SYSTEM.md § Register inventory.
+const COLUMN_TITLE = { fontSize:FS.sm, fontWeight:FW.SEMI, color:C.TEXT, marginBottom:"8px" };
 
 // Oxford-comma join. Used by the action-sub count sentence to list §3
 // category names when severity > 0.
@@ -138,7 +141,11 @@ export function VerdictBanner({ severity, results, importConfig, nRows, nCols, m
           borderTop:`1px solid ${C.BORDER_L}`,
           background:C.WHITE,
           display:"grid",
-          gridTemplateColumns:"1fr 1fr",
+          // S138-fix3: 60/40 left-heavier split (was 1fr 1fr). Left column
+          // holds compound nouns ("Western Blot Densitometry") that wrap
+          // mid-name at 50/50; right column holds atomic value strings with
+          // slack to spare. Vertical divider follows the new split point.
+          gridTemplateColumns:"3fr 2fr",
           gap:"4px 0",
         }}>
           <div style={{paddingRight:"12px",borderRight:`1px solid ${C.BORDER_L}`}}>
