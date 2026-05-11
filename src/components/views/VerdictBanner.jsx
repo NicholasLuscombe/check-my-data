@@ -12,13 +12,12 @@ const IDENTITY_ROW = { padding:"2px 0", fontSize:FS.base, lineHeight:"1.5" };
 
 // Column title — sits at the top of each two-column-body column, signalling
 // the purpose of the stack below ("Dataset properties" / "Data import
-// settings"). Sub-heading register at the small step: sm Semibold C.TEXT.
-// S138-fix3 bumped from sm Medium C.TEXT_2 (Footnote-shape with a weight
-// nudge) to sm Semibold C.TEXT so the titles read unambiguously as
-// orientation, not as borderline footnote register. Adds a new role to
-// TYPOGRAPHY-SYSTEM.md § Register inventory at an existing tuple
-// (Aside callout bullet lead already uses sm Semibold C.TEXT sans).
-const COLUMN_TITLE = { fontSize:FS.sm, fontWeight:FW.SEMI, color:C.TEXT, marginBottom:"8px" };
+// settings"). Sub-heading register (md Semibold C.TEXT) — same tuple as
+// the test card title role; matches site-wide "headings are larger-or-
+// equal than the rows they organise" pattern. S138-fix4 promoted from
+// the fix3 sm Semibold landing (smaller than the base-size rows below,
+// inverting hierarchy) to the canonical md Semibold sub-heading slot.
+const COLUMN_TITLE = { fontSize:FS.md, fontWeight:FW.SEMI, color:C.TEXT, marginBottom:"8px" };
 
 // Oxford-comma join. Used by the action-sub count sentence to list §3
 // category names when severity > 0.
