@@ -487,18 +487,13 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
     onProceed(config);
   };
 
-  // Import page 3-tier font sizes
-  // T1: headings, control values, CTA — the user's eye goes here first
-  // T2: body text, form labels, stats — secondary reading
-  // T3: hints, badges, metadata — tertiary
-  const FS={T1:"14px",T2:"13px",T3:"11px"};
   const card={background:C.BG_L,border:`1px solid ${C.BORDER}`,borderRadius:CR.LG,padding:"14px 18px",marginBottom:"12px"};
-  // Form field labels: small, muted, uppercase — NOT headings
-  const fieldLabel={fontSize:FS.T2,color:C.TEXT_3,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:"4px",fontWeight:FW.NORM};
+  // Identity-row-label register per typography system.
+  const fieldLabel={fontSize:FS.base,color:C.TEXT_3,marginBottom:"4px",fontWeight:FW.NORM};
   const zoneHeader = (num, label) => (
     <div style={{display:"flex",alignItems:"center",gap:"10px",marginBottom:"10px"}}>
       <div style={{flex:1,height:"1px",background:C.BORDER}}/>
-      <span style={{fontSize:FS.T1,color:C.TEXT_2,textTransform:"uppercase",letterSpacing:"0.12em",fontWeight:FW.SEMI,whiteSpace:"nowrap"}}>{num} · {label}</span>
+      <span style={{fontSize:FS.lg,color:C.TEXT,fontWeight:FW.SEMI,whiteSpace:"nowrap"}}>{num} · {label}</span>
       <div style={{flex:1,height:"1px",background:C.BORDER}}/>
     </div>
   );
@@ -525,19 +520,19 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
           style={{border:"2px dashed "+(dragging?CC.OBS:C.BORDER),borderRadius:CR.XL,padding:"48px 28px",
             display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",minHeight:"180px",
             width:"100%",boxSizing:"border-box",background:dragging?C.BG:C.WHITE,transition:"all 0.2s"}}>
-          <p style={{color:C.TEXT_2,fontSize:FS.T2,marginTop:0,marginBottom:"12px"}}>Upload a dataset to begin analysis</p>
+          <p style={{color:C.TEXT,fontSize:FS.base,fontWeight:FW.NORM,marginTop:0,marginBottom:"12px"}}>Upload a dataset to begin analysis</p>
           <div style={{display:"flex",gap:"8px",alignItems:"center"}}>
-            <label style={{cursor:"pointer",display:"inline-block",padding:"10px 24px",background:C.BG,border:`1px solid ${C.BORDER}`,borderRadius:CR.MD,color:C.TEXT,fontSize:TF.BODY,fontWeight:FW.SEMI}}>
+            <label style={{cursor:"pointer",display:"inline-block",padding:"10px 24px",background:C.BG,border:`1px solid ${C.BORDER}`,borderRadius:CR.MD,color:C.TEXT,fontSize:FS.base,fontWeight:FW.MED}}>
               Upload File
               <input type="file" accept=".csv,.tsv,.txt,.xlsx,.xls" onChange={e=>onFile(e.target.files?.[0])} style={{display:"none"}}/>
             </label>
-            {onBatch&&<button onClick={onBatch} style={{padding:"10px 16px",background:C.BG,border:`1px solid ${C.BORDER}`,borderRadius:CR.MD,color:C.TEXT,fontSize:TF.BODY,cursor:"pointer",fontWeight:FW.SEMI}}>Batch Analysis</button>}
+            {onBatch&&<button onClick={onBatch} style={{padding:"10px 16px",background:C.BG,border:`1px solid ${C.BORDER}`,borderRadius:CR.MD,color:C.TEXT,fontSize:FS.base,cursor:"pointer",fontWeight:FW.MED}}>Batch Analysis</button>}
           </div>
-          <p style={{color:C.TEXT_4,fontSize:FS.T3,marginTop:"10px",marginBottom:0}}>Drop a .csv / .tsv / .xlsx file</p>
+          <p style={{color:C.TEXT_3,fontSize:FS.sm,marginTop:"10px",marginBottom:0}}>Drop a .csv / .tsv / .xlsx file</p>
         </div>
         <div style={{textAlign:"center",marginTop:"20px"}}>
-          <div style={{fontSize:"13px",fontWeight:FW.SEMI,color:C.TEXT_2,marginBottom:"4px"}}>🔒 Your data never leaves your computer</div>
-          <div style={{fontSize:FS.xs,color:C.TEXT_3}}>All analyses run in your browser. No data is uploaded, transmitted, or stored by this software.</div>
+          <div style={{fontSize:FS.base,fontWeight:FW.SEMI,color:C.TEXT,marginBottom:"4px"}}>🔒 Your data never leaves your computer</div>
+          <div style={{fontSize:FS.base,fontWeight:FW.NORM,color:C.TEXT_3}}>All analyses run in your browser. No data is uploaded, transmitted, or stored by this software.</div>
         </div>
         </div>
       ) : (
@@ -545,11 +540,11 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
           onDrop={e=>{e.preventDefault();setDragging(false);onFile(e.dataTransfer?.files?.[0]);}}
           style={{display:"flex",alignItems:"center",gap:"10px",padding:"10px 16px",
             background:dragging?C.BG:C.WHITE,border:`1px solid ${dragging?CC.OBS:C.BORDER}`,borderRadius:CR.MD,
-            fontSize:TF.BODY,flexWrap:"wrap",transition:"all 0.2s"}}>
+            fontSize:FS.base,flexWrap:"wrap",transition:"all 0.2s"}}>
           <button onClick={()=>{setData(null);setRawRows(null);setFileName("");setErr(null);setPrepInfo(null);setBlocks(null);setSelectedBlock(0);setHdrs([]);setRoles([]);setCondPerCol(null);setCondColorMap({});setAssay("general");setAssayAutoDetected(false);setAssaySuggestion(null);setDataType("continuous");setZeroAsMissing(false);setColRelationship(null);setColRelAutoSet(false);setRowSemantics(null);setRowSemAutoSet(false);setLongFormatDetected(false);setPivotConfig(null);setVstProposal(null);setVstDecision(null);setVstAutoSet(false);setExcelMeta(null);setExcelSheetPicker(null);setApplicExpanded(false);}}
-            style={{background:"none",border:"none",cursor:"pointer",color:C.TEXT_3,fontSize:TF.DETAIL,fontWeight:FW.SEMI,padding:0}}>← Back</button>
+            style={{background:"none",border:"none",cursor:"pointer",color:C.TEXT,fontSize:FS.base,fontWeight:FW.MED,padding:0}}>← Back</button>
           <span style={{color:C.BORDER}}>|</span>
-          <span style={{color:C.TEXT,fontWeight:FW.SEMI,fontSize:FS.T1}}>{fileName}</span>
+          <span style={{color:C.TEXT,fontWeight:FW.SEMI,fontSize:FS.base}}>{fileName}</span>
           {pinnedFile
             ? <span style={{display:"inline-flex",alignItems:"center",gap:"4px",fontSize:TF.DETAIL,color:CC.OBS}}>
                 📌
@@ -569,12 +564,12 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
               </button>
           }
           <span style={{flex:1}}/>
-          <label style={{cursor:"pointer",padding:"4px 12px",background:C.BG,border:`1px solid ${C.BORDER}`,borderRadius:CR.SM,color:C.TEXT_2,fontSize:TF.DETAIL,fontWeight:FW.SEMI}}>
+          <label style={{cursor:"pointer",padding:"4px 12px",background:C.BG,border:`1px solid ${C.BORDER}`,borderRadius:CR.SM,color:C.TEXT,fontSize:FS.base,fontWeight:FW.MED}}>
             Change file
             <input type="file" accept=".csv,.tsv,.txt,.xlsx,.xls" onChange={e=>onFile(e.target.files?.[0])} style={{display:"none"}}/>
           </label>
           {prepInfo&&(prepInfo.skippedRows>0||prepInfo.removedCols.length>0||prepInfo.trimmedRows>0)&&(
-            <div style={{width:"100%",fontSize:FS.T3,color:C.TEXT_4,marginTop:"2px"}}>
+            <div style={{width:"100%",fontSize:FS.sm,color:C.TEXT_3,marginTop:"2px"}}>
               Auto-cleaned:
               {prepInfo.skippedRows>0&&<span> stripped {prepInfo.skippedRows} preamble row{prepInfo.skippedRows>1?"s":""}</span>}
               {prepInfo.trimmedRows>0&&<span> · trimmed {prepInfo.trimmedRows} trailing row{prepInfo.trimmedRows>1?"s":""}</span>}
@@ -584,20 +579,20 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
         </div>
       )}
 
-      {err&&<div style={{background:FLAG_STYLES.HIGH.bg,border:`1px solid ${SIGNAL.RED.border}`,borderRadius:CR.LG,padding:"12px 16px",color:FLAG_STYLES.HIGH.text,fontSize:TF.BODY,marginBottom:"12px"}}>{err}</div>}
+      {err&&<div style={{background:FLAG_STYLES.HIGH.bg,border:`1px solid ${SIGNAL.RED.border}`,borderRadius:CR.LG,padding:"12px 16px",color:FLAG_STYLES.HIGH.text,fontSize:FS.base,marginBottom:"12px"}}>{err}</div>}
 
       {/* Excel sheet picker — shown when workbook has multiple sheets */}
       {excelSheetPicker&&(
         <div style={{background:UI.INFO.bg,border:`1px solid ${ACCENT.BLUE.border}`,borderRadius:CR.LG,padding:"14px 18px",marginBottom:"12px"}}>
-          <div style={{fontSize:TF.DETAIL,color:UI.INFO.text,textTransform:"uppercase",letterSpacing:"0.08em",fontWeight:FW.SEMI,marginBottom:"8px"}}>Select Sheet</div>
-          <div style={{fontSize:TF.BODY,color:C.TEXT_2,marginBottom:"10px"}}>
+          <div style={{fontSize:FS.sm,color:UI.INFO.text,fontWeight:FW.SEMI,marginBottom:"8px"}}>Select sheet</div>
+          <div style={{fontSize:FS.base,color:C.TEXT,marginBottom:"10px"}}>
             This workbook contains {excelSheetPicker.sheetNames.length} sheets. Select which sheet to analyse:
           </div>
           <div style={{display:"flex",gap:"6px",flexWrap:"wrap"}}>
             {excelSheetPicker.sheetNames.map((name,i)=>(
               <button key={name} onClick={()=>loadExcelSheet(excelSheetPicker.file,name)}
                 style={{padding:"8px 16px",background:i===0?CC.OBS:C.WHITE,border:`1px solid ${i===0?CC.OBS:C.BORDER}`,
-                  borderRadius:CR.MD,color:i===0?C.WHITE:C.TEXT_2,fontSize:TF.BODY,fontWeight:FW.SEMI,cursor:"pointer"}}>
+                  borderRadius:CR.MD,color:i===0?C.WHITE:C.TEXT,fontSize:FS.base,fontWeight:FW.MED,cursor:"pointer"}}>
                 {name}
               </button>
             ))}
@@ -613,9 +608,9 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
             {blocks.map((block,bi)=>{
               const info=blockSummary(block);const active=bi===selectedBlock;
               return <button key={bi} onClick={()=>{setSelectedBlock(bi);loadBlock(block);}} style={{padding:"10px 16px",borderRadius:CR.MD,cursor:"pointer",background:active?C.BG:C.BG,border:"1px solid "+(active?CC.OBS:C.BORDER),textAlign:"left",minWidth:"160px"}}>
-                <div style={{fontSize:TF.BODY,fontWeight:FW.BOLD,color:active?CC.OBS:C.TEXT_2,marginBottom:"4px"}}>Block {bi+1}</div>
-                <div style={{fontSize:TF.BODY,color:C.TEXT_3}}>{info.dataRows} data rows, {info.cols} cols</div>
-                <div style={{fontSize:TF.DETAIL,color:C.TEXT_4,marginTop:"2px",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",maxWidth:"200px"}}>{info.preview}</div>
+                <div style={{fontSize:FS.base,fontWeight:FW.SEMI,color:active?CC.OBS:C.TEXT,marginBottom:"4px"}}>Block {bi+1}</div>
+                <div style={{fontSize:FS.base,color:C.TEXT_3}}>{info.dataRows} data rows, {info.cols} cols</div>
+                <div style={{fontSize:FS.sm,color:C.TEXT_3,marginTop:"2px",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",maxWidth:"200px"}}>{info.preview}</div>
               </button>;
             })}
           </div>
@@ -632,9 +627,9 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
             <div style={{display:"flex"}}>
               {[0,1,2].map(n=>(
                 <button key={n} onClick={()=>{setHeaderRows(n);if(rawRows)applyHeaders(rawRows,n);}}
-                  style={{padding:"0 14px",height:"36px",boxSizing:"border-box",fontSize:FS.T1,fontWeight:FW.SEMI,cursor:"pointer",
+                  style={{padding:"0 14px",height:"36px",boxSizing:"border-box",fontSize:FS.base,fontWeight:FW.MED,cursor:"pointer",
                     background:headerRows===n?C.BG:C.WHITE,border:"1px solid "+(headerRows===n?CC.OBS:C.BORDER),
-                    color:headerRows===n?C.TEXT:C.TEXT_4,borderRadius:n===0?`${CR.MD} 0 0 ${CR.MD}`:n===2?`0 ${CR.MD} ${CR.MD} 0`:"0",marginLeft:n>0?"-1px":0}}>{n}</button>
+                    color:headerRows===n?C.TEXT:C.TEXT_3,borderRadius:n===0?`${CR.MD} 0 0 ${CR.MD}`:n===2?`0 ${CR.MD} ${CR.MD} 0`:"0",marginLeft:n>0?"-1px":0}}>{n}</button>
               ))}
             </div>
           </div>
@@ -643,26 +638,28 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
             <button onClick={()=>setAssayOpen(!assayOpen)} style={{width:"100%",textAlign:"left",height:"36px",boxSizing:"border-box",
               background:data&&assay==="general"?UI.WARN.bg:C.WHITE,
               border:`1px solid ${data&&assay==="general"?UI.WARN.border:C.BORDER}`,
-              borderRadius:CR.MD,padding:"0 12px",cursor:"pointer",color:C.TEXT,fontSize:FS.T1,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+              borderRadius:CR.MD,padding:"0 12px",cursor:"pointer",color:C.TEXT,fontSize:FS.base,fontWeight:FW.MED,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
               <span style={{display:"flex",alignItems:"center",gap:"6px"}}>
                 {ASSAYS.find(a=>a.v===assay)?.l}
                 {/* S123 — AUTO badge covers both high-confidence detection
                     (assayAutoDetected=true) and low-confidence silent
                     application (assay was set by detectAssay to the
                     suggestion value; user has not touched it). User click
-                    clears assaySuggestion → badge drops. */}
-                {(assayAutoDetected||(assay!=="general"&&assaySuggestion===assay))&&<span style={{fontSize:FS.T3,background:BADGE.AUTO.bg,color:BADGE.AUTO.text,border:`1px solid ${BADGE.AUTO.text}`,borderRadius:CR.SM,padding:"1px 5px",fontWeight:FW.BOLD,letterSpacing:"0.02em"}}>AUTO</span>}
-                {data&&assay==="general"&&<span style={{fontSize:FS.T3,background:UI.WARN.bg,color:UI.WARN.text,border:`1px solid ${UI.WARN.text}`,borderRadius:CR.SM,padding:"1px 5px",fontWeight:FW.BOLD,letterSpacing:"0.02em"}}>SET ME</span>}
+                    clears assaySuggestion → badge drops. S141 — passive
+                    provenance badge: sentence-case content, chrome
+                    preserved pending C.5b chip-family redesign. */}
+                {(assayAutoDetected||(assay!=="general"&&assaySuggestion===assay))&&<span style={{fontSize:TF.DETAIL,background:BADGE.AUTO.bg,color:BADGE.AUTO.text,border:`1px solid ${BADGE.AUTO.text}`,borderRadius:CR.SM,padding:"1px 5px",fontWeight:FW.BOLD,letterSpacing:"0.02em"}}>Auto</span>}
+                {data&&assay==="general"&&<span style={{fontSize:TF.DETAIL,background:UI.WARN.bg,color:UI.WARN.text,border:`1px solid ${UI.WARN.text}`,borderRadius:CR.SM,padding:"1px 5px",fontWeight:FW.BOLD,letterSpacing:"0.02em"}}>SET ME</span>}
               </span>
-              <span style={{color:C.TEXT_4,transform:assayOpen?"rotate(180deg)":"",transition:"0.15s"}}>▾</span>
+              <span style={{color:C.TEXT_3,transform:assayOpen?"rotate(180deg)":"",transition:"0.15s"}}>▾</span>
             </button>
             {assayOpen&&(
               <div style={{position:"absolute",top:"100%",left:0,right:0,marginTop:"3px",zIndex:50,background:C.WHITE,border:`1px solid ${C.BORDER}`,borderRadius:CR.LG,boxShadow:"0 8px 24px rgba(0,0,0,.1)",maxHeight:"260px",overflowY:"auto"}}>
                 {ASSAYS.map(a=>(
                   <button key={a.v} onClick={()=>{setAssay(a.v);setAssayAutoDetected(false);setAssaySuggestion(null);setAssayOpen(false);const _dt=ASSAY_DATATYPE_MAP[a.v]||'continuous';setDataType(_dt);setVstProposal(null);setVstDecision(null);setVstAutoSet(false);}}
                     style={{display:"block",width:"100%",textAlign:"left",padding:"10px 12px",border:"none",background:a.v===assay?C.BG:C.WHITE,cursor:"pointer",borderBottom:`1px solid ${C.BORDER_L}`}}>
-                    <div style={{fontSize:TF.BODY,fontWeight:FW.SEMI,color:a.v===assay?C.TEXT:C.TEXT}}>{a.l}</div>
-                    <div style={{fontSize:TF.DETAIL,color:C.TEXT_3,marginTop:"2px"}}>{a.d}</div>
+                    <div style={{fontSize:FS.base,fontWeight:FW.MED,color:C.TEXT}}>{a.l}</div>
+                    <div style={{fontSize:FS.sm,color:C.TEXT_3,marginTop:"2px"}}>{a.d}</div>
                   </button>
                 ))}
               </div>
@@ -670,25 +667,25 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
           </div>
           <div style={{flex:"0 0 160px"}}>
             {(()=>{const locked=assay!=="general"&&!!ASSAY_DATATYPE_MAP[assay];return <>
-            <div style={fieldLabel}>Data Type</div>
+            <div style={fieldLabel}>Data type</div>
             <select value={dataType} disabled={locked} onChange={e=>setDataType(e.target.value)}
-              style={{width:"100%",height:"36px",boxSizing:"border-box",padding:"0 12px",border:`1px solid ${C.BORDER}`,borderRadius:CR.MD,fontSize:FS.T1,color:locked?C.TEXT_3:C.TEXT,background:locked?C.BG:C.WHITE,cursor:locked?"default":"pointer",opacity:locked?0.7:1}}>
+              style={{width:"100%",height:"36px",boxSizing:"border-box",padding:"0 12px",border:`1px solid ${C.BORDER}`,borderRadius:CR.MD,fontSize:FS.base,fontWeight:FW.MED,color:locked?C.TEXT_3:C.TEXT,background:locked?C.BG:C.WHITE,cursor:locked?"default":"pointer",opacity:locked?0.7:1}}>
               {DATA_TYPES.map(dt=>(
                 <option key={dt.v} value={dt.v}>{dt.l}</option>
               ))}
             </select>
-            {locked&&<div style={{fontSize:FS.T3,color:C.TEXT_4,marginTop:"3px"}}>Set by measurement type</div>}
+            {locked&&<div style={{fontSize:FS.sm,color:C.TEXT_3,marginTop:"3px"}}>Set by measurement type</div>}
             </>;})()}
           </div>
         </div>
         {/* Assay hints — below the control row, not embedded in the assay column */}
-        {data&&assay==="general"&&<div style={{fontSize:FS.T3,color:UI.WARN.text,marginBottom:"4px"}}>Select a measurement type for instrument-specific noise flagging{assaySuggestion&&(()=>{
+        {data&&assay==="general"&&<div style={{fontSize:FS.sm,color:UI.WARN.text,marginBottom:"4px"}}>Select a measurement type for instrument-specific noise flagging{assaySuggestion&&(()=>{
           const sug=ASSAYS.find(a=>a.v===assaySuggestion);
           return sug?<span> · Suggested: <button onClick={()=>{setAssay(sug.v);setAssayAutoDetected(false);setAssaySuggestion(null);setAssayOpen(false);}}
-            style={{background:"none",border:"none",color:CC.OBS,fontWeight:FW.SEMI,cursor:"pointer",textDecoration:"underline",fontSize:FS.T3,padding:0}}>{sug.l}</button></span>:null;
+            style={{background:"none",border:"none",color:CC.OBS,fontWeight:FW.MED,cursor:"pointer",textDecoration:"underline",fontSize:FS.sm,padding:0}}>{sug.l}</button></span>:null;
         })()}</div>}
         {(()=>{const hint=assayPlausibilityHint(assay,sum);return hint&&(
-          <div style={{fontSize:TF.DETAIL,marginBottom:"8px",padding:"5px 8px",borderRadius:CR.MD,lineHeight:"1.5",
+          <div style={{fontSize:FS.sm,marginBottom:"8px",padding:"5px 8px",borderRadius:CR.MD,lineHeight:"1.5",
             background:hint.level==="warn"?UI.WARN.bg:UI.INFO.bg,
             border:`1px solid ${hint.level==="warn"?UI.WARN.border:UI.INFO.border}`,
             color:hint.level==="warn"?FLAG_STYLES.MODERATE.text:C.TEXT}}>
@@ -707,10 +704,10 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
             <span style={{display:"flex",alignItems:"center",gap:"6px",flexWrap:"wrap"}}>
               {ROLE_KEYS.map(k=><RoleBadge key={k} role={k}/>)}
             </span>
-            <span style={{fontSize:FS.T3,color:C.TEXT_4,whiteSpace:"nowrap"}}>▼ click headers to cycle</span>
+            <span style={{fontSize:FS.sm,color:C.TEXT_3,whiteSpace:"nowrap"}}>▼ click headers to cycle</span>
             <span style={{marginLeft:"auto",display:"flex",gap:"4px",flexShrink:0}}>
               {[["Auto",()=>{if(data)setRoles(inferRoles(data,hdrs,condPerCol));}],["All Data",()=>setRoles(p=>p.map(()=>"data"))],["All Off",()=>setRoles(p=>p.map(()=>"ignore"))]].map(([label,fn])=>(
-                <button key={label} onClick={fn} style={{background:C.WHITE,border:`1px solid ${C.BORDER}`,color:C.TEXT_3,padding:"4px 0",minWidth:"55px",textAlign:"center",borderRadius:CR.SM,fontSize:FS.T3,cursor:"pointer"}}>{label}</button>
+                <button key={label} onClick={fn} style={{background:C.WHITE,border:`1px solid ${C.BORDER}`,color:C.TEXT,padding:"4px 0",minWidth:"55px",textAlign:"center",borderRadius:CR.SM,fontSize:FS.base,fontWeight:FW.MED,cursor:"pointer"}}>{label}</button>
               ))}
             </span>
           </div>
@@ -740,7 +737,7 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
             }}
             onHeaderClick={(ci)=>{setRoles(p=>{const n=[...p];n[ci]=ROLE_KEYS[(ROLE_KEYS.indexOf(n[ci])+1)%4];return n;});}}
           />
-          {data.length>EDGE*2+5&&<div style={{padding:"6px 12px",borderTop:`1px solid ${C.BORDER_L}`,fontSize:TF.DETAIL,color:C.TEXT_4,textAlign:"center"}}>Showing first {EDGE} and last {EDGE} of {data.length.toLocaleString()} rows</div>}
+          {data.length>EDGE*2+5&&<div style={{padding:"6px 12px",borderTop:`1px solid ${C.BORDER_L}`,fontSize:FS.sm,color:C.TEXT_3,textAlign:"center"}}>Showing first {EDGE} and last {EDGE} of {data.length.toLocaleString()} rows</div>}
         </div>
       )}
       </div>
@@ -753,18 +750,18 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
 
         {/* Treat 0 as missing */}
         <div style={{background:C.WHITE,border:`1px solid ${C.BORDER_L}`,borderRadius:CR.LG,padding:"14px 18px",marginBottom:"8px"}}>
-          <label style={{display:"flex",alignItems:"center",gap:"8px",cursor:"pointer",color:zeroAsMissing?ROLES.condition.color:C.TEXT_2,fontSize:FS.T2}}>
+          <label style={{display:"flex",alignItems:"center",gap:"8px",cursor:"pointer",color:zeroAsMissing?ROLES.condition.color:C.TEXT,fontSize:FS.base}}>
             <input type="checkbox" checked={zeroAsMissing} onChange={()=>setZeroAsMissing(v=>!v)} style={{accentColor:CC.OBS}}/>
             Treat 0 as missing
-            {sum.zeros>0&&<span style={{fontSize:FS.T3,color:C.TEXT_3}}>({sum.zeros} zeros in dataset)</span>}
-            {(sum.zeros===0||sum.zeros==null)&&<span style={{fontSize:FS.T3,color:C.TEXT_4}}>No zeros detected</span>}
+            {sum.zeros>0&&<span style={{fontSize:FS.base,color:C.TEXT_3}}>({sum.zeros} zeros in dataset)</span>}
+            {(sum.zeros===0||sum.zeros==null)&&<span style={{fontSize:FS.base,color:C.TEXT_3}}>No zeros detected</span>}
           </label>
           {!zeroAsMissing && sum.zeros > 0 && (assay === 'genomics' || assay === 'cell_count') && (
-            <div style={{fontSize:TF.DETAIL,color:ROLES.condition.color,background:UI.WARN.bg,border:`1px solid ${ACCENT.GOLD.border}`,borderRadius:CR.MD,padding:"6px 10px",marginTop:"6px"}}>
+            <div style={{fontSize:FS.sm,color:ROLES.condition.color,background:UI.WARN.bg,border:`1px solid ${ACCENT.GOLD.border}`,borderRadius:CR.MD,padding:"6px 10px",marginTop:"6px"}}>
               <strong>Recommended:</strong> {assay === 'genomics' ? 'RNA-seq' : 'Cell count'} data has {sum.zeros} zero values.
               Zero-count {assay === 'genomics' ? 'genes' : 'entries'} are uninformative for forensic screening and can distort duplicate detection and variance estimates.
               <button onClick={()=>setZeroAsMissing(true)}
-                style={{marginLeft:"8px",background:C.WHITE,border:`1px solid ${ACCENT.GOLD.border}`,borderRadius:CR.SM,padding:"2px 8px",fontSize:TF.DETAIL,cursor:"pointer",color:UI.WARN.text,fontWeight:FW.SEMI}}>
+                style={{marginLeft:"8px",background:C.WHITE,border:`1px solid ${ACCENT.GOLD.border}`,borderRadius:CR.SM,padding:"2px 8px",fontSize:FS.sm,cursor:"pointer",color:UI.WARN.text,fontWeight:FW.MED}}>
                 Enable
               </button>
             </div>
@@ -781,7 +778,7 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
           const isRequired = !colRelationship && !isAuto;
           return (
           <div style={{background:C.WHITE, border:`1px solid ${C.BORDER_L}`, borderLeft:isRequired?`3px solid #F59E0B`:`3px solid ${C.BORDER_L}`, borderRadius:CR.LG,padding:"14px 18px",marginBottom:"8px"}}>
-            <div style={{fontSize:FS.T2,color:C.TEXT_2,marginBottom:"10px",lineHeight:"1.5",display:"flex",alignItems:"baseline",gap:"8px",flexWrap:"wrap"}}>
+            <div style={{fontSize:FS.base,color:C.TEXT,marginBottom:"10px",lineHeight:"1.5",display:"flex",alignItems:"baseline",gap:"8px",flexWrap:"wrap"}}>
               <span>Are the {sum.nDC} DATA columns <strong>replicates</strong> or <strong>non-replicates</strong>?</span>
               {isRequired&&<span style={{fontSize:TF.SMALL,background:UI.WARN.bg,color:UI.WARN.text,border:`1px solid ${UI.WARN.text}`,borderRadius:CR.SM,padding:"1px 5px",fontWeight:FW.BOLD,letterSpacing:"0.02em"}}>REQUIRED</span>}
             </div>
@@ -791,26 +788,26 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
                   background:colRelationship==='replicates'?ACCENT.BLUE.bg:C.WHITE,
                   border:`1.5px solid ${colRelationship==='replicates'?CC.OBS:C.BORDER}`,
                   opacity:colRelationship&&colRelationship!=='replicates'?0.65:1,transition:"opacity 0.15s"}}>
-                <div style={{fontSize:FS.T2,fontWeight:FW.BOLD,color:colRelationship==='replicates'?CC.OBS:C.TEXT_2,marginBottom:"3px",display:"flex",alignItems:"center",gap:"6px",flexWrap:"wrap"}}>
+                <div style={{fontSize:FS.base,fontWeight:FW.SEMI,color:colRelationship==='replicates'?CC.OBS:C.TEXT,marginBottom:"3px",display:"flex",alignItems:"center",gap:"6px",flexWrap:"wrap"}}>
                   <span>{!isAuto&&colRelationship==='replicates'?"✓ ":""}Replicates</span>
-                  {isAuto&&colRelationship==='replicates'&&<span style={{fontSize:FS.T3,background:BADGE.AUTO.bg,color:BADGE.AUTO.text,border:`1px solid ${BADGE.AUTO.text}`,borderRadius:CR.SM,padding:"1px 5px",fontWeight:FW.BOLD,letterSpacing:"0.02em"}}>AUTO</span>}
+                  {isAuto&&colRelationship==='replicates'&&<span style={{fontSize:TF.DETAIL,background:BADGE.AUTO.bg,color:BADGE.AUTO.text,border:`1px solid ${BADGE.AUTO.text}`,borderRadius:CR.SM,padding:"1px 5px",fontWeight:FW.BOLD,letterSpacing:"0.02em"}}>Auto</span>}
                 </div>
-                <div style={{fontSize:FS.T3,color:C.TEXT_3,lineHeight:"1.4"}}>Columns measure the same thing</div>
+                <div style={{fontSize:FS.base,color:C.TEXT_3,lineHeight:"1.4"}}>Columns measure the same thing</div>
               </button>
               <button onClick={()=>{setColRelationship('conditions');setColRelAutoSet(false);}}
                 style={{flex:"1 1 180px",padding:"10px 14px",borderRadius:CR.MD,cursor:"pointer",textAlign:"left",
                   background:colRelationship==='conditions'?ACCENT.BLUE.bg:C.WHITE,
                   border:`1.5px solid ${colRelationship==='conditions'?CC.OBS:C.BORDER}`,
                   opacity:colRelationship&&colRelationship!=='conditions'?0.65:1,transition:"opacity 0.15s"}}>
-                <div style={{fontSize:FS.T2,fontWeight:FW.BOLD,color:colRelationship==='conditions'?CC.OBS:C.TEXT_2,marginBottom:"3px",display:"flex",alignItems:"center",gap:"6px",flexWrap:"wrap"}}>
+                <div style={{fontSize:FS.base,fontWeight:FW.SEMI,color:colRelationship==='conditions'?CC.OBS:C.TEXT,marginBottom:"3px",display:"flex",alignItems:"center",gap:"6px",flexWrap:"wrap"}}>
                   <span>{!isAuto&&colRelationship==='conditions'?"✓ ":""}Non-replicates</span>
-                  {isAuto&&colRelationship==='conditions'&&<span style={{fontSize:FS.T3,background:BADGE.AUTO.bg,color:BADGE.AUTO.text,border:`1px solid ${BADGE.AUTO.text}`,borderRadius:CR.SM,padding:"1px 5px",fontWeight:FW.BOLD,letterSpacing:"0.02em"}}>AUTO</span>}
+                  {isAuto&&colRelationship==='conditions'&&<span style={{fontSize:TF.DETAIL,background:BADGE.AUTO.bg,color:BADGE.AUTO.text,border:`1px solid ${BADGE.AUTO.text}`,borderRadius:CR.SM,padding:"1px 5px",fontWeight:FW.BOLD,letterSpacing:"0.02em"}}>Auto</span>}
                 </div>
-                <div style={{fontSize:FS.T3,color:C.TEXT_3,lineHeight:"1.4"}}>Columns measure different things</div>
+                <div style={{fontSize:FS.base,color:C.TEXT_3,lineHeight:"1.4"}}>Columns measure different things</div>
               </button>
             </div>
             {isRequired&&(
-              <div style={{fontSize:FS.T3,color:C.TEXT_4,lineHeight:"1.4"}}>
+              <div style={{fontSize:FS.sm,color:C.TEXT_3,lineHeight:"1.4"}}>
                 Select the column relationship before running analysis.
               </div>
             )}
@@ -839,37 +836,37 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
             : null;
           return (
           <div style={{background:C.WHITE, border:`1px solid ${C.BORDER_L}`, borderLeft:isRequired?`3px solid #F59E0B`:`3px solid ${C.BORDER_L}`, borderRadius:CR.LG,padding:"14px 18px",marginBottom:"8px"}}>
-            <div style={{fontSize:FS.T2,color:C.TEXT_2,marginBottom:autoSubText?"4px":"10px",lineHeight:"1.5",display:"flex",alignItems:"baseline",gap:"8px",flexWrap:"wrap"}}>
+            <div style={{fontSize:FS.base,color:C.TEXT,marginBottom:autoSubText?"4px":"10px",lineHeight:"1.5",display:"flex",alignItems:"baseline",gap:"8px",flexWrap:"wrap"}}>
               <span>Is the row order <strong>meaningful</strong> (plate position, instrument sequence, dose gradient) or <strong>arbitrary</strong> (gene list, alphabetised protein IDs, subject ID)?</span>
               {isRequired&&<span style={{fontSize:TF.SMALL,background:UI.WARN.bg,color:UI.WARN.text,border:`1px solid ${UI.WARN.text}`,borderRadius:CR.SM,padding:"1px 5px",fontWeight:FW.BOLD,letterSpacing:"0.02em"}}>REQUIRED</span>}
             </div>
-            {autoSubText&&<div style={{fontSize:FS.T3,color:C.TEXT_3,marginBottom:"10px",lineHeight:"1.4"}}>{autoSubText}</div>}
+            {autoSubText&&<div style={{fontSize:FS.xs,color:C.TEXT_3,marginBottom:"10px",lineHeight:"1.4"}}>{autoSubText}</div>}
             <div style={{display:"flex",gap:"8px",flexWrap:"wrap",marginBottom:"6px"}}>
               <button onClick={()=>{setRowSemantics('ordered');setRowSemAutoSet(false);}}
                 style={{flex:"1 1 180px",padding:"10px 14px",borderRadius:CR.MD,cursor:"pointer",textAlign:"left",
                   background:rowSemantics==='ordered'?ACCENT.BLUE.bg:C.WHITE,
                   border:`1.5px solid ${rowSemantics==='ordered'?CC.OBS:C.BORDER}`,
                   opacity:rowSemantics&&rowSemantics!=='ordered'?0.65:1,transition:"opacity 0.15s"}}>
-                <div style={{fontSize:FS.T2,fontWeight:FW.BOLD,color:rowSemantics==='ordered'?CC.OBS:C.TEXT_2,marginBottom:"3px",display:"flex",alignItems:"center",gap:"6px",flexWrap:"wrap"}}>
+                <div style={{fontSize:FS.base,fontWeight:FW.SEMI,color:rowSemantics==='ordered'?CC.OBS:C.TEXT,marginBottom:"3px",display:"flex",alignItems:"center",gap:"6px",flexWrap:"wrap"}}>
                   <span>{!isAuto&&rowSemantics==='ordered'?"✓ ":""}Ordered</span>
-                  {isAuto&&rowSemantics==='ordered'&&<span style={{fontSize:FS.T3,background:BADGE.AUTO.bg,color:BADGE.AUTO.text,border:`1px solid ${BADGE.AUTO.text}`,borderRadius:CR.SM,padding:"1px 5px",fontWeight:FW.BOLD,letterSpacing:"0.02em"}}>AUTO</span>}
+                  {isAuto&&rowSemantics==='ordered'&&<span style={{fontSize:TF.DETAIL,background:BADGE.AUTO.bg,color:BADGE.AUTO.text,border:`1px solid ${BADGE.AUTO.text}`,borderRadius:CR.SM,padding:"1px 5px",fontWeight:FW.BOLD,letterSpacing:"0.02em"}}>Auto</span>}
                 </div>
-                <div style={{fontSize:FS.T3,color:C.TEXT_3,lineHeight:"1.4"}}>Row order carries forensic meaning</div>
+                <div style={{fontSize:FS.base,color:C.TEXT_3,lineHeight:"1.4"}}>Row order carries forensic meaning</div>
               </button>
               <button onClick={()=>{setRowSemantics('arbitrary');setRowSemAutoSet(false);}}
                 style={{flex:"1 1 180px",padding:"10px 14px",borderRadius:CR.MD,cursor:"pointer",textAlign:"left",
                   background:rowSemantics==='arbitrary'?ACCENT.BLUE.bg:C.WHITE,
                   border:`1.5px solid ${rowSemantics==='arbitrary'?CC.OBS:C.BORDER}`,
                   opacity:rowSemantics&&rowSemantics!=='arbitrary'?0.65:1,transition:"opacity 0.15s"}}>
-                <div style={{fontSize:FS.T2,fontWeight:FW.BOLD,color:rowSemantics==='arbitrary'?CC.OBS:C.TEXT_2,marginBottom:"3px",display:"flex",alignItems:"center",gap:"6px",flexWrap:"wrap"}}>
+                <div style={{fontSize:FS.base,fontWeight:FW.SEMI,color:rowSemantics==='arbitrary'?CC.OBS:C.TEXT,marginBottom:"3px",display:"flex",alignItems:"center",gap:"6px",flexWrap:"wrap"}}>
                   <span>{!isAuto&&rowSemantics==='arbitrary'?"✓ ":""}Arbitrary</span>
-                  {isAuto&&rowSemantics==='arbitrary'&&<span style={{fontSize:FS.T3,background:BADGE.AUTO.bg,color:BADGE.AUTO.text,border:`1px solid ${BADGE.AUTO.text}`,borderRadius:CR.SM,padding:"1px 5px",fontWeight:FW.BOLD,letterSpacing:"0.02em"}}>AUTO</span>}
+                  {isAuto&&rowSemantics==='arbitrary'&&<span style={{fontSize:TF.DETAIL,background:BADGE.AUTO.bg,color:BADGE.AUTO.text,border:`1px solid ${BADGE.AUTO.text}`,borderRadius:CR.SM,padding:"1px 5px",fontWeight:FW.BOLD,letterSpacing:"0.02em"}}>Auto</span>}
                 </div>
-                <div style={{fontSize:FS.T3,color:C.TEXT_3,lineHeight:"1.4"}}>Row order is not meaningful (e.g. gene list)</div>
+                <div style={{fontSize:FS.base,color:C.TEXT_3,lineHeight:"1.4"}}>Row order is not meaningful (e.g. gene list)</div>
               </button>
             </div>
             {isRequired&&(
-              <div style={{fontSize:FS.T3,color:C.TEXT_4,lineHeight:"1.4"}}>
+              <div style={{fontSize:FS.sm,color:C.TEXT_3,lineHeight:"1.4"}}>
                 Select the row order before running analysis.
               </div>
             )}
@@ -892,7 +889,7 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
             : null;
           return (
           <div style={{background:C.WHITE, border:`1px solid ${C.BORDER_L}`, borderLeft:`3px solid ${C.BORDER_L}`, borderRadius:CR.LG,padding:"14px 18px",marginBottom:"8px"}}>
-            <div style={{fontSize:FS.T2,color:C.TEXT_2,marginBottom:autoSubText?"4px":"10px",lineHeight:"1.8"}}>
+            <div style={{fontSize:FS.base,color:C.TEXT,marginBottom:autoSubText?"4px":"10px",lineHeight:"1.55"}}>
               {assay==='general'
                 ? (vstProposal.transform==='log'
                     ? <>Proportional noise detected (slope = {vstProposal.dataSlope?.toFixed(2)}, 95% CI [{vstProposal.slopeCI?.[0]?.toFixed(2)}, {vstProposal.slopeCI?.[1]?.toFixed(2)}]). <strong>Apply log transform?</strong></>
@@ -900,18 +897,18 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
                 : <><strong>{assayLabel}</strong> assays typically use {transformLabel} to stabilise variance before forensic screening.</>
               }
             </div>
-            {autoSubText&&<div style={{fontSize:FS.T3,color:C.TEXT_3,marginBottom:"10px",lineHeight:"1.4"}}>{autoSubText}</div>}
+            {autoSubText&&<div style={{fontSize:FS.xs,color:C.TEXT_3,marginBottom:"10px",lineHeight:"1.4"}}>{autoSubText}</div>}
             <div style={{display:"flex",gap:"8px",flexWrap:"wrap",marginBottom:"6px"}}>
               <button onClick={()=>{setVstDecision('raw');setVstAutoSet(false);}}
                 style={{flex:"1 1 180px",padding:"10px 14px",borderRadius:CR.MD,cursor:"pointer",textAlign:"left",
                   background:vstDecision==='raw'?ACCENT.BLUE.bg:C.WHITE,
                   border:`1.5px solid ${vstDecision==='raw'?CC.OBS:C.BORDER}`,
                   opacity:vstDecision&&vstDecision!=='raw'?0.65:1,transition:"opacity 0.15s"}}>
-                <div style={{fontSize:FS.T2,fontWeight:FW.BOLD,color:vstDecision==='raw'?CC.OBS:C.TEXT_2,marginBottom:"3px",display:"flex",alignItems:"center",gap:"6px",flexWrap:"wrap"}}>
+                <div style={{fontSize:FS.base,fontWeight:FW.SEMI,color:vstDecision==='raw'?CC.OBS:C.TEXT,marginBottom:"3px",display:"flex",alignItems:"center",gap:"6px",flexWrap:"wrap"}}>
                   <span>{!vstAutoSet&&vstDecision==='raw'?"✓ ":""}Keep raw (no transform)</span>
-                  {vstAutoSet&&vstDecision==='raw'&&<span style={{fontSize:FS.T3,background:BADGE.AUTO.bg,color:BADGE.AUTO.text,border:`1px solid ${BADGE.AUTO.text}`,borderRadius:CR.SM,padding:"1px 5px",fontWeight:FW.BOLD,letterSpacing:"0.02em"}}>AUTO</span>}
+                  {vstAutoSet&&vstDecision==='raw'&&<span style={{fontSize:TF.DETAIL,background:BADGE.AUTO.bg,color:BADGE.AUTO.text,border:`1px solid ${BADGE.AUTO.text}`,borderRadius:CR.SM,padding:"1px 5px",fontWeight:FW.BOLD,letterSpacing:"0.02em"}}>Auto</span>}
                 </div>
-                <div style={{fontSize:FS.T3,color:C.TEXT_3,lineHeight:"1.4"}}>
+                <div style={{fontSize:FS.base,color:C.TEXT_3,lineHeight:"1.4"}}>
                   Safe default for most data
                 </div>
               </button>
@@ -920,11 +917,11 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
                   background:vstDecision==='apply'?ACCENT.BLUE.bg:C.WHITE,
                   border:`1.5px solid ${vstDecision==='apply'?CC.OBS:C.BORDER}`,
                   opacity:vstDecision&&vstDecision!=='apply'?0.65:1,transition:"opacity 0.15s"}}>
-                <div style={{fontSize:FS.T2,fontWeight:FW.BOLD,color:vstDecision==='apply'?CC.OBS:C.TEXT_2,marginBottom:"3px",display:"flex",alignItems:"center",gap:"6px",flexWrap:"wrap"}}>
+                <div style={{fontSize:FS.base,fontWeight:FW.SEMI,color:vstDecision==='apply'?CC.OBS:C.TEXT,marginBottom:"3px",display:"flex",alignItems:"center",gap:"6px",flexWrap:"wrap"}}>
                   <span>{!vstAutoSet&&vstDecision==='apply'?"✓ ":""}Apply {transformLabel}</span>
-                  {vstAutoSet&&vstDecision==='apply'&&<span style={{fontSize:FS.T3,background:BADGE.AUTO.bg,color:BADGE.AUTO.text,border:`1px solid ${BADGE.AUTO.text}`,borderRadius:CR.SM,padding:"1px 5px",fontWeight:FW.BOLD,letterSpacing:"0.02em"}}>AUTO</span>}
+                  {vstAutoSet&&vstDecision==='apply'&&<span style={{fontSize:TF.DETAIL,background:BADGE.AUTO.bg,color:BADGE.AUTO.text,border:`1px solid ${BADGE.AUTO.text}`,borderRadius:CR.SM,padding:"1px 5px",fontWeight:FW.BOLD,letterSpacing:"0.02em"}}>Auto</span>}
                 </div>
-                <div style={{fontSize:FS.T3,color:C.TEXT_3,lineHeight:"1.4"}}>
+                <div style={{fontSize:FS.base,color:C.TEXT_3,lineHeight:"1.4"}}>
                   {vstProposal.transform==='log'
                     ? "For instrument data with proportional noise"
                     : "For count data (cell counts, colonies)"}
@@ -966,9 +963,9 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
             return (
               <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:"6px 18px"}}>
                 {gridItems.map(([k,v,c,tip])=>(
-                  <div key={k} style={{fontSize:FS.T2}} title={tip||undefined}>
+                  <div key={k} style={{fontSize:FS.base}} title={tip||undefined}>
                     <span style={{color:C.TEXT_3}}>{k} </span>
-                    <span style={{color:c||C.TEXT,fontWeight:FW.SEMI,fontSize:FS.T2,whiteSpace:"nowrap"}}>{v}</span>
+                    <span style={{color:c||C.TEXT,fontWeight:FW.SEMI,fontSize:FS.base,whiteSpace:"nowrap"}}>{v}</span>
                   </div>
                 ))}
               </div>
@@ -977,18 +974,18 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
           {/* Conditions — label + badges inline */}
           {sum.nC>0&&(
             <div style={{marginTop:"12px",display:"flex",alignItems:"center",flexWrap:"wrap",gap:"4px 8px"}}>
-              <span style={{color:C.TEXT_3,fontSize:FS.T2}}>Conditions</span>
+              <span style={{color:C.TEXT_3,fontSize:FS.base}}>Conditions</span>
               {sum.cNames.map((c,i)=>(
-                <span key={i} style={{display:"inline-block",background:condColorMap[c]?.bg||C.BG,border:"1px solid "+(condColorMap[c]?.border||C.BORDER),color:condColorMap[c]?.text||C.TEXT_2,padding:"2px 10px",borderRadius:CR.MD,fontSize:FS.T3,fontWeight:FW.SEMI}}>{c}</span>
+                <span key={i} style={{display:"inline-block",background:condColorMap[c]?.bg||C.BG,border:"1px solid "+(condColorMap[c]?.border||C.BORDER),color:condColorMap[c]?.text||C.TEXT_2,padding:"2px 10px",borderRadius:CR.MD,fontSize:TF.DETAIL,fontWeight:FW.SEMI}}>{c}</span>
               ))}
             </div>
           )}
           {pivotConfig&&(
             <div style={{marginTop:"8px",display:"flex",alignItems:"center",gap:"8px",flexWrap:"wrap"}}>
-              <span style={{color:C.TEXT_4,fontSize:FS.T3}}>Measuring</span>
+              <span style={{color:C.TEXT_3,fontSize:FS.sm}}>Measuring</span>
               <select value={pivotConfig.measureCol}
                 onChange={e=>changeMeasureCol(Number(e.target.value))}
-                style={{padding:"3px 8px",border:`1px solid ${ACCENT.BLUE.border}`,borderRadius:CR.MD,fontSize:TF.BODY,fontFamily:FF.UI,background:ROLES.data.bg,color:C.TEXT,fontWeight:FW.SEMI,cursor:"pointer"}}>
+                style={{padding:"3px 8px",border:`1px solid ${ACCENT.BLUE.border}`,borderRadius:CR.MD,fontSize:FS.base,fontFamily:FF.UI,background:ROLES.data.bg,color:C.TEXT,fontWeight:FW.MED,cursor:"pointer"}}>
                 {pivotConfig.measureCandidates.map(c=>{
                   const k=String(c.h).toLowerCase().replace(/[^a-z0-9]/g,"");
                   const isPrimary=["ct","cq","od","absorbance","fluorescence","rfu","intensity"].includes(k);
@@ -1000,7 +997,7 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
                   );
                 })}
               </select>
-              <span style={{fontSize:TF.DETAIL,color:C.TEXT_3}}>— switch to re-run on a different column</span>
+              <span style={{fontSize:FS.sm,color:C.TEXT_3}}>— switch to re-run on a different column</span>
             </div>
           )}
 
@@ -1022,10 +1019,10 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
         return (
           <div style={{marginBottom:"12px"}}>
             <button onClick={()=>setApplicExpanded(p=>!p)}
-              style={{background:"none",border:"none",cursor:"pointer",padding:"4px 0",fontSize:FS.T1,color:C.TEXT,display:"flex",alignItems:"center",gap:"6px",flexWrap:"wrap"}}>
-              <span style={{color:C.TEXT_4,fontSize:FS.T3,transform:applicExpanded?"rotate(90deg)":"",transition:"0.15s"}}>▶</span>
+              style={{background:"none",border:"none",cursor:"pointer",padding:"4px 0",fontSize:FS.base,fontWeight:FW.MED,color:C.TEXT,display:"flex",alignItems:"center",gap:"6px",flexWrap:"wrap"}}>
+              <span style={{color:C.TEXT_3,fontSize:FS.sm,transform:applicExpanded?"rotate(90deg)":"",transition:"0.15s"}}>▶</span>
               <span>{nOk} of {tests.length} tests applicable</span>
-              {!applicExpanded&&<span style={{fontSize:FS.T3,color:C.TEXT_4}}>
+              {!applicExpanded&&<span style={{fontSize:FS.sm,color:C.TEXT_3}}>
                 — {summaryParts.map(({m,g})=>`${m.label} ${g.ok}/${g.total}`).join(" · ")}
               </span>}
             </button>
@@ -1038,13 +1035,13 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
                     <div key={mech} style={{marginBottom:"10px"}}>
                       <div style={{display:"flex",alignItems:"center",gap:"6px",marginBottom:"4px"}}>
                         <span style={{width:"8px",height:"8px",borderRadius:"50%",background:m.color,display:"inline-block",flexShrink:0}}/>
-                        <span style={{fontSize:FS.T2,color:C.TEXT,fontWeight:FW.SEMI}}>{m.label}</span>
-                        <span style={{fontSize:FS.T3,color:C.TEXT_3}}>{g.ok}/{g.total}</span>
+                        <span style={{fontSize:FS.base,color:C.TEXT,fontWeight:FW.SEMI}}>{m.label}</span>
+                        <span style={{fontSize:FS.sm,color:C.TEXT_3}}>{g.ok}/{g.total}</span>
                       </div>
                       <div style={{display:"flex",flexWrap:"wrap",gap:"2px 14px",paddingLeft:"14px"}}>
                         {g.tests.map(t=>(
-                          <div key={t.name} style={{fontSize:FS.T3,color:t.ok?C.TEXT_2:C.TEXT_4,display:"flex",alignItems:"center",gap:"3px",minWidth:"140px"}}>
-                            <span style={{color:t.ok?m.color:C.TEXT_4}}>{t.ok?"✓":"✗"}</span>
+                          <div key={t.name} style={{fontSize:FS.sm,color:t.ok?C.TEXT_2:C.TEXT_3,display:"flex",alignItems:"center",gap:"3px",minWidth:"140px"}}>
+                            <span style={{color:t.ok?m.color:C.TEXT_3}}>{t.ok?"✓":"✗"}</span>
                             <span>{DISPLAY_NAMES[t.name]||t.name}</span>
                           </div>
                         ))}
@@ -1070,12 +1067,12 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
               : "Run Analyses";
           return (
             <button onClick={handleProceed} disabled={!ready}
-              style={{flex:1,padding:"13px 24px",background:ready?CC.OBS:C.TEXT_4,border:"none",borderRadius:CR.LG,color:C.WHITE,fontSize:FS.T1,fontWeight:FW.BOLD,cursor:ready?"pointer":"not-allowed",letterSpacing:"0.02em",opacity:ready?1:0.7}}>
+              style={{flex:1,padding:"13px 24px",background:ready?CC.OBS:C.TEXT_4,border:"none",borderRadius:CR.LG,color:C.WHITE,fontSize:FS.sm,fontWeight:FW.BOLD,cursor:ready?"pointer":"not-allowed",letterSpacing:"0.02em",opacity:ready?1:0.7}}>
               {label}
             </button>
           );
         })():(
-          <div style={{flex:1,padding:"12px 16px",textAlign:"center",color:ROLES.condition.color,fontSize:TF.BODY}}>
+          <div style={{flex:1,padding:"12px 16px",textAlign:"center",color:ROLES.condition.color,fontSize:FS.base}}>
             Assign at least 2 columns as DATA to proceed
           </div>
         )}
