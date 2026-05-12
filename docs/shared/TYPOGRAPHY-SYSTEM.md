@@ -208,8 +208,31 @@ For meta-content: frame-setting notes, trust statements, status indicators.
 | Type | Background | Left rule | Use |
 |------|------------|-----------|-----|
 | Frame-setting | `#F5F5F5` neutral grey | C.TEXT_3 | Reading conventions, supplementary notes, help-block content |
-| Trust / info | `#EFF6FF` light blue | `#2563EB` blue | Privacy statements, screening-aid disclaimer, scope limits |
+| Trust / info | `#EFF6FF` light blue | `#2563EB` blue | Screening-aid disclaimer (canonical), scope limits within content-dense surfaces. See usage note below |
 | Status / warning | `#FEF3C7` light amber | `#CA8A04` amber | Beta features, experimental flags, onboarding hints |
+
+**When callout chrome earns its place — and when it doesn't:**
+
+Aside callouts compete with surrounding content for visual weight. They earn
+their place when the surrounding chrome is dense. Canonical case is the
+screening-aid disclaimer at the top of ReportView, where it sits alongside
+flagged-content chrome and earns INFO chrome to register against the
+surrounding noise. On empty-state or sparsely-populated surfaces, standalone
+prose with weight-based emphasis (Semibold headline + Regular continuation)
+can carry adequate prominence without callout chrome; adding the panel + rule
+would over-engineer the space.
+
+Canonical example of standalone-not-callout: ImportView empty state. The
+privacy block ("🔒 Your data never leaves your computer" + supporting line)
+sits as standalone centred prose on a near-empty page. Headline at `base
+Semibold C.TEXT`, supporting line at `base Regular C.TEXT_3`. No callout
+chrome.
+
+**FRAME sub-type current status:** Zero live consumers in product. The token
+(`UI.FRAME.callout` in `tokens.js`) sits available; first consumer pending a
+genuinely-ambient frame-setting block (reading conventions, dense help-block
+content) that earns the panel chrome over standalone treatment. FRAME may
+stay unused if no surface needs the panel chrome.
 
 ## Register inventory — applied to chrome surfaces
 
