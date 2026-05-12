@@ -245,6 +245,7 @@ stay unused if no surface needs the panel chrome.
 | Section heading | lg | Semibold | C.TEXT | sans |
 | Sub-heading (test card title) | md | Semibold | C.TEXT | sans |
 | Column title (verdict §1) | md | Semibold | C.TEXT | sans |
+| Primary page-level action | md | Semibold | C.WHITE | sans |
 | Body prose | base | Regular | C.TEXT | sans |
 | Test card sub | base | Regular | C.TEXT_2 | sans |
 | Identity row label | base | Regular | C.TEXT_3 | sans |
@@ -262,9 +263,9 @@ stay unused if no surface needs the panel chrome.
 | Aside callout body | sm | Regular | C.TEXT | sans |
 | Aside callout bullet lead | sm | Semibold | C.TEXT | sans |
 
-21 roles, 18 distinct tuples. Down from ~40 in pre-system inventory.
+22 roles, 19 distinct tuples. Down from ~40 in pre-system inventory.
 
-Note: prior versions of this doc cited "18 roles, 13 distinct tuples". Recount at S138 close (post-Phase C.2 surface migration) found the actual table contained more tuples than the summary line claimed. Whether this was original miscount at S134 lock or drift since lock is undetermined from available evidence; the numbers above reflect the current table as the source of truth going forward. Column title (verdict §1) role added during S138-fix4 as a co-consumer of the Sub-heading tuple — no new tuple introduced.
+Note: prior versions of this doc cited "18 roles, 13 distinct tuples". Recount at S138 close (post-Phase C.2 surface migration) found the actual table contained more tuples than the summary line claimed. Whether this was original miscount at S134 lock or drift since lock is undetermined from available evidence; the numbers above reflect the current table as the source of truth going forward. Column title (verdict §1) role added during S138-fix4 as a co-consumer of the Sub-heading tuple — no new tuple introduced. Primary page-level action role added during S144 (ImportView Run Analyses post-S143 placement); shares `md Semibold` with sub-headings but text colour is `C.WHITE` on accent bg (chrome necessity), introducing one new tuple. The role is narrowly scoped: the singular action button that closes a configuration / setup page (currently ImportView's Run Analyses). Section-level CTAs (ReportView §4 Copy prompt) stay at canonical Button register (`base Medium C.TEXT sans`).
 
 ## Implementation notes — for Phase B and Phase C
 
