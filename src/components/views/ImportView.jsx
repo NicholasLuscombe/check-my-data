@@ -1067,7 +1067,7 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
               : "Run Analyses";
           return (
             <button onClick={handleProceed} disabled={!ready}
-              style={{flex:1,padding:"13px 24px",background:ready?CC.OBS:C.TEXT_4,border:"none",borderRadius:CR.LG,color:C.WHITE,fontSize:FS.sm,fontWeight:FW.BOLD,cursor:ready?"pointer":"not-allowed",letterSpacing:"0.02em",opacity:ready?1:0.7}}>
+              style={{flex:1,padding:"13px 24px",background:ready?CC.OBS:C.TEXT_4,border:"none",borderRadius:CR.LG,color:C.WHITE,fontSize:FS.base,fontWeight:FW.MED,cursor:ready?"pointer":"not-allowed",opacity:ready?1:0.7}}>
               {label}
             </button>
           );
