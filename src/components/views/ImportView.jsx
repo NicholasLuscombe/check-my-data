@@ -1055,30 +1055,33 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
         );
       })()}
 
-      {/* Run Analysis — inside Zone 4. Gated on both column-relationship
-          and row-semantics resolution (S118 Track H). */}
-      <div style={{marginTop:"16px",display:"flex",gap:"8px"}}>
-        {sum.nDC>=2?(() => {
-          const ready = !!effectiveColRel && !rowSemRequired;
-          const label = !effectiveColRel
-            ? "Select column relationship above to proceed"
-            : rowSemRequired
-              ? "Select row order above to proceed"
-              : "Run Analyses";
-          return (
-            <button onClick={handleProceed} disabled={!ready}
-              style={{flex:1,padding:"13px 24px",background:ready?CC.OBS:C.TEXT_4,border:"none",borderRadius:CR.LG,color:C.WHITE,fontSize:FS.base,fontWeight:FW.MED,cursor:ready?"pointer":"not-allowed",opacity:ready?1:0.7}}>
-              {label}
-            </button>
-          );
-        })():(
-          <div style={{flex:1,padding:"12px 16px",textAlign:"center",color:ROLES.condition.color,fontSize:FS.base}}>
-            Assign at least 2 columns as DATA to proceed
-          </div>
-        )}
-      </div>
-
       </div>}
+
+      {/* Run Analysis — page-level action, sibling of Zone 4. Gated on
+          column-relationship and row-semantics resolution (S118 Track H). */}
+      {sum&&<div style={zoneGap}/>}
+      {sum&&(
+        <div style={{display:"flex",gap:"8px"}}>
+          {sum.nDC>=2?(() => {
+            const ready = !!effectiveColRel && !rowSemRequired;
+            const label = !effectiveColRel
+              ? "Select column relationship above to proceed"
+              : rowSemRequired
+                ? "Select row order above to proceed"
+                : "Run Analyses";
+            return (
+              <button onClick={handleProceed} disabled={!ready}
+                style={{flex:1,padding:"13px 24px",background:ready?CC.OBS:C.TEXT_4,border:"none",borderRadius:CR.LG,color:C.WHITE,fontSize:FS.base,fontWeight:FW.MED,cursor:ready?"pointer":"not-allowed",opacity:ready?1:0.7}}>
+                {label}
+              </button>
+            );
+          })():(
+            <div style={{flex:1,padding:"12px 16px",textAlign:"center",color:ROLES.condition.color,fontSize:FS.base}}>
+              Assign at least 2 columns as DATA to proceed
+            </div>
+          )}
+        </div>
+      )}
 
     </div>
   );
