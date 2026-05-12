@@ -113,10 +113,9 @@ in current system retire to zero.
 
 Exceptions to sentence case:
 
-- **Title Case / verbatim** preserved on proper nouns, branded names
-  (`Western Blot Densitometry`), named methodologies (`Bik standard`), and
-  verbatim user-supplied data (condition labels like `Inhibitor_A`, column
-  headers).
+- **Title Case / verbatim** preserved on proper nouns, branded names (Western Blot Densitometry), named methodologies (Bik standard), and verbatim user-supplied data (condition labels like Inhibitor_A, column headers).
+- **ALL CAPS state tokens on blocking validation chips** preserved — SET ME, REQUIRED, and any future blocking-state vocabulary inside chip chrome. The case treatment carries semantic weight: ALL CAPS signals "the user must act to proceed." Passive provenance signals (Auto) stay sentence case. The carve-out is scoped narrowly to chip-rendered state tokens with blocking semantics; no other ALL-CAPS use is licensed.
+- **Glyph prefixes** (#, ▶, ▼, ✓, ✗, 🔒, etc.) stay as content; the first alphabetic character is the case anchor. # Header rows is sentence case (the H is the anchor), ▶ Test battery details is sentence case (the T is the anchor).
 
 ## Line-heights
 
