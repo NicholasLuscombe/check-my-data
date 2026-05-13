@@ -659,10 +659,13 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
         {zoneHeader("2", "Review columns")}
         <div style={{marginBottom:"0"}}>
           <div style={{display:"flex",alignItems:"center",gap:"8px",marginBottom:"6px",flexWrap:"wrap"}}>
-            <span style={{fontSize:FS.sm,color:C.TEXT_3,whiteSpace:"nowrap"}}>▼ click headers to cycle</span>
-            <span style={{marginLeft:"auto",display:"flex",gap:"4px",flexShrink:0}}>
-              {[["Auto",()=>{if(data)setRoles(inferRoles(data,hdrs,condPerCol));}],["All Data",()=>setRoles(p=>p.map(()=>"data"))],["All Off",()=>setRoles(p=>p.map(()=>"ignore"))]].map(([label,fn])=>(
-                <button key={label} onClick={fn} style={{background:C.WHITE,border:`1px solid ${C.BORDER}`,color:C.TEXT,padding:"4px 0",minWidth:"55px",textAlign:"center",borderRadius:CR.SM,fontSize:FS.base,fontWeight:FW.MED,cursor:"pointer"}}>{label}</button>
+            <span style={{fontSize:FS.base,color:C.TEXT}}>Click headers to set column roles.</span>
+            <span style={{marginLeft:"auto",display:"flex",alignItems:"center",flexShrink:0}}>
+              {[["Auto",()=>{if(data)setRoles(inferRoles(data,hdrs,condPerCol));}],["All data",()=>setRoles(p=>p.map(()=>"data"))],["All off",()=>setRoles(p=>p.map(()=>"ignore"))]].map(([label,fn],i)=>(
+                <React.Fragment key={label}>
+                  {i>0&&<span style={{color:C.TEXT_3,margin:"0 6px"}}>·</span>}
+                  <button onClick={fn} style={{background:"none",border:"none",color:CC.OBS,cursor:"pointer",textDecoration:"underline",fontSize:FS.base,fontWeight:FW.MED,padding:0}}>{label}</button>
+                </React.Fragment>
               ))}
             </span>
           </div>
@@ -1023,7 +1026,7 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
               ? "Select column relationship above to proceed"
               : rowSemRequired
                 ? "Select row order above to proceed"
-                : "Run Analyses";
+                : "Run analyses";
             return (
               <button onClick={handleProceed} disabled={!ready}
                 style={{flex:1,padding:"13px 24px",background:ready?CC.OBS:C.TEXT_4,border:"none",borderRadius:CR.LG,color:C.WHITE,fontSize:FS.md,fontWeight:FW.SEMI,cursor:ready?"pointer":"not-allowed",opacity:ready?1:0.7}}>
