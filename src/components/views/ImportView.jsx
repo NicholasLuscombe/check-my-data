@@ -11,7 +11,6 @@ import { detectAssay, ASSAYS, DATA_TYPES, ASSAY_DATATYPE_MAP } from "../../const
 import { getApplicabilityTests } from "../../analysis/severity.js";
 import { extractAnalysisInputs } from "../../analysis/engine.js";
 import { LongFormatModal } from "./LongFormatModal.jsx";
-import { RoleBadge } from "../shared/RoleBadge.jsx";
 import { C, FF, FW, TF, FS, CR, CC, M, UI, BADGE, SIGNAL, ACCENT } from "../../constants/tokens.js";
 import { FLAG_STYLES } from "../../constants/thresholds.js";
 import { ROLES, ROLE_KEYS, COND_COLORS } from "../../constants/roles.js";
@@ -660,9 +659,6 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
         {zoneHeader("2", "Review columns")}
         <div style={{marginBottom:"0"}}>
           <div style={{display:"flex",alignItems:"center",gap:"8px",marginBottom:"6px",flexWrap:"wrap"}}>
-            <span style={{display:"flex",alignItems:"center",gap:"6px",flexWrap:"wrap"}}>
-              {ROLE_KEYS.map(k=><RoleBadge key={k} role={k}/>)}
-            </span>
             <span style={{fontSize:FS.sm,color:C.TEXT_3,whiteSpace:"nowrap"}}>▼ click headers to cycle</span>
             <span style={{marginLeft:"auto",display:"flex",gap:"4px",flexShrink:0}}>
               {[["Auto",()=>{if(data)setRoles(inferRoles(data,hdrs,condPerCol));}],["All Data",()=>setRoles(p=>p.map(()=>"data"))],["All Off",()=>setRoles(p=>p.map(()=>"ignore"))]].map(([label,fn])=>(
