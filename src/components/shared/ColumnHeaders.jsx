@@ -144,7 +144,7 @@ export function ColumnHeaders({
                 return (
                   <th key={si} colSpan={sp.len} style={{
                     ...BB, ...TH_EVIDENCE,
-                    fontSize: showRoleBadge ? FS.xs : TF.SMALL,
+                    fontSize: TF.SMALL,
                     fontWeight: showRoleBadge ? FW.NORM : FW.BOLD,
                     ...(showRoleBadge ? {} : { letterSpacing: "0.04em" }),
                     textAlign: "center", whiteSpace: "nowrap",
@@ -179,7 +179,7 @@ export function ColumnHeaders({
               return (
                 <th key={gi} colSpan={g.len} style={{
                   ...BB, ...TH_EVIDENCE,
-                  fontSize: showRoleBadge ? FS.xs : TF.SMALL,
+                  fontSize: TF.SMALL,
                   fontWeight: showRoleBadge ? FW.NORM : FW.BOLD,
                   ...(showRoleBadge ? {} : { letterSpacing: "0.04em" }),
                   textAlign: "center", whiteSpace: "nowrap",
@@ -239,7 +239,7 @@ export function ColumnHeaders({
                   whiteSpace: isData ? "normal" : "nowrap", wordBreak: isData ? "break-word" : undefined,
                   overflow: "hidden", textOverflow: "ellipsis" }}>{displayName}</div>
                 <div style={{ padding: "2px 6px 5px" }}>
-                  <span style={{ display: "inline-block", background: r.bg, color: r.color,
+                  <span style={{ display: "inline-block", background: C.WHITE, color: r.color,
                     borderRadius: "4px", padding: "2px 6px", fontSize: FS.xs, fontFamily: FF.UI,
                     fontWeight: FW.MED, userSelect: "none" }}>{r.chipLabel || r.label}</span>
                 </div>
