@@ -655,7 +655,7 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
 
       {data&&<div style={zoneGap}/>}
       {data&&(
-        <div style={zonePanel}>
+        <div style={{...zonePanel,...(sum&&sum.nDC<2?{borderLeft:`3px solid #F59E0B`}:{})}}>
         {zoneHeader("2", "Review columns")}
         <div style={{marginBottom:"0"}}>
           <div style={{display:"flex",alignItems:"center",gap:"8px",marginBottom:"6px",flexWrap:"wrap"}}>
@@ -696,6 +696,11 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
             onHeaderClick={(ci)=>{setRoles(p=>{const n=[...p];n[ci]=ROLE_KEYS[(ROLE_KEYS.indexOf(n[ci])+1)%4];return n;});}}
           />
           {data.length>EDGE*2+5&&<div style={{padding:"6px 12px",borderTop:`1px solid ${C.BORDER_L}`,fontSize:FS.sm,color:C.TEXT_3,textAlign:"center"}}>Showing first {EDGE} and last {EDGE} of {data.length.toLocaleString()} rows</div>}
+        </div>
+      )}
+      {sum&&sum.nDC<2&&(
+        <div style={{fontSize:FS.sm,color:UI.WARN.text,lineHeight:"1.4",marginTop:"8px"}}>
+          Assign at least 2 data columns to proceed.
         </div>
       )}
       </div>
@@ -1016,11 +1021,14 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
       </div>}
 
       {/* Run Analysis — page-level action, sibling of Zone 4. Gated on
-          column-relationship and row-semantics resolution (S118 Track H). */}
-      {sum&&<div style={zoneGap}/>}
-      {sum&&(
+          column-relationship and row-semantics resolution (S118 Track H).
+          When fewer than 2 DATA columns are assigned the precondition
+          message renders inside Zone 2 (S147-fix7); page-level block
+          renders nothing in that state. */}
+      {sum&&sum.nDC>=2&&<div style={zoneGap}/>}
+      {sum&&sum.nDC>=2&&(
         <div style={{display:"flex",gap:"8px"}}>
-          {sum.nDC>=2?(() => {
+          {(()=>{
             const ready = !!effectiveColRel && !rowSemRequired;
             const label = !effectiveColRel
               ? "Select column relationship above to proceed"
@@ -1033,11 +1041,7 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
                 {label}
               </button>
             );
-          })():(
-            <div style={{flex:1,padding:"12px 16px",textAlign:"center",color:C.TEXT_2,fontSize:FS.base}}>
-              Assign at least 2 columns as data to proceed.
-            </div>
-          )}
+          })()}
         </div>
       )}
 
