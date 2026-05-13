@@ -9,12 +9,11 @@
    Used by ImportView, HotspotExcerpt, HotspotExcerptList, DupDet. */
 
 import { useRef, useState, useLayoutEffect } from "react";
-import { C, CC, TF, FW, FF, CR } from "../../constants/tokens.js";
+import { C, CC, TF, FW, FF, FS, CR } from "../../constants/tokens.js";
 import { FLAG_STYLES } from "../../constants/thresholds.js";
 import { ROLES } from "../../constants/roles.js";
 import { TH_EVIDENCE, COL_W, FREEZE_COL_W, FREEZE_Z } from "./styles.js";
 import { shortColName } from "./coordinates.js";
-import { RoleBadge } from "./RoleBadge.jsx";
 
 const BB = { boxSizing: "border-box" };
 
@@ -144,8 +143,11 @@ export function ColumnHeaders({
                 const ccm = condColorMap?.[sp.name];
                 return (
                   <th key={si} colSpan={sp.len} style={{
-                    ...BB, ...TH_EVIDENCE, fontSize: TF.SMALL, fontWeight: FW.BOLD,
-                    letterSpacing: "0.04em", textAlign: "center", whiteSpace: "nowrap",
+                    ...BB, ...TH_EVIDENCE,
+                    fontSize: showRoleBadge ? FS.xs : TF.SMALL,
+                    fontWeight: showRoleBadge ? FW.NORM : FW.BOLD,
+                    ...(showRoleBadge ? {} : { letterSpacing: "0.04em" }),
+                    textAlign: "center", whiteSpace: "nowrap",
                     borderBottom: "none", overflow: "hidden",
                     padding: sp.name ? "4px 8px" : "4px 2px",
                     color: sp.name ? (ccm?.text || C.TEXT_2) : C.BORDER,
@@ -176,8 +178,11 @@ export function ColumnHeaders({
               const ccm = condColorMap?.[g.name];
               return (
                 <th key={gi} colSpan={g.len} style={{
-                  ...BB, ...TH_EVIDENCE, fontSize: TF.SMALL, fontWeight: FW.BOLD,
-                  letterSpacing: "0.04em", textAlign: "center", whiteSpace: "nowrap",
+                  ...BB, ...TH_EVIDENCE,
+                  fontSize: showRoleBadge ? FS.xs : TF.SMALL,
+                  fontWeight: showRoleBadge ? FW.NORM : FW.BOLD,
+                  ...(showRoleBadge ? {} : { letterSpacing: "0.04em" }),
+                  textAlign: "center", whiteSpace: "nowrap",
                   borderBottom: "none", overflow: "hidden",
                   padding: g.name ? "4px 8px" : "4px 2px",
                   color: g.name ? (ccm?.text || C.TEXT_2) : C.BORDER,
@@ -233,7 +238,11 @@ export function ColumnHeaders({
                 <div style={{ padding: "5px 6px 2px", fontSize: TF.DETAIL, fontWeight: FW.SEMI, color: C.TEXT,
                   whiteSpace: isData ? "normal" : "nowrap", wordBreak: isData ? "break-word" : undefined,
                   overflow: "hidden", textOverflow: "ellipsis" }}>{displayName}</div>
-                <div style={{ padding: "2px 6px 5px" }}><RoleBadge role={col.role} /></div>
+                <div style={{ padding: "2px 6px 5px" }}>
+                  <span style={{ display: "inline-block", background: r.bg, color: r.color,
+                    borderRadius: "4px", padding: "2px 6px", fontSize: FS.xs, fontFamily: FF.UI,
+                    fontWeight: FW.MED, userSelect: "none" }}>{r.chipLabel || r.label}</span>
+                </div>
               </th>
             );
           }

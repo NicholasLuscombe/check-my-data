@@ -1,10 +1,10 @@
 import { C, ACCENT } from './tokens.js';
 
 export const ROLES = {
-  data:      { label:"DATA",  color:ACCENT.BLUE.color,   bg:ACCENT.BLUE.bg,   border:ACCENT.BLUE.border },
-  label:     { label:"LABEL", color:ACCENT.PURPLE.color,  bg:ACCENT.PURPLE.bg,  border:ACCENT.PURPLE.border },
-  condition: { label:"COND",  color:ACCENT.GOLD.color,   bg:ACCENT.GOLD.bg,   border:ACCENT.GOLD.border },
-  ignore:    { label:"SKIP",  color:C.TEXT_3,             bg:C.BG,             border:C.BORDER },
+  data:      { label:"DATA",  chipLabel:"Data",  color:ACCENT.BLUE.color,   bg:ACCENT.BLUE.bg,   border:ACCENT.BLUE.border },
+  label:     { label:"LABEL", chipLabel:"Label", color:ACCENT.PURPLE.color,  bg:ACCENT.PURPLE.bg,  border:ACCENT.PURPLE.border },
+  condition: { label:"COND",  chipLabel:"Cond",  color:ACCENT.GOLD.color,   bg:ACCENT.GOLD.bg,   border:ACCENT.GOLD.border },
+  ignore:    { label:"SKIP",  chipLabel:"Skip",  color:C.TEXT_3,             bg:C.BG,             border:C.BORDER },
 };
 export const ROLE_KEYS = ["data", "label", "condition", "ignore"];
 
