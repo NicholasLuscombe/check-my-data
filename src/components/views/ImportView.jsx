@@ -659,13 +659,13 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
         {zoneHeader("2", "Review columns")}
         <div style={{marginBottom:"0"}}>
           <div style={{display:"flex",alignItems:"center",gap:"8px",marginBottom:"6px",flexWrap:"wrap"}}>
-            <span style={{fontSize:FS.base,color:C.TEXT}}>Click headers to set column roles.</span>
-            <span style={{marginLeft:"auto",display:"flex",alignItems:"center",flexShrink:0}}>
-              {[["Auto",()=>{if(data)setRoles(inferRoles(data,hdrs,condPerCol));}],["All data",()=>setRoles(p=>p.map(()=>"data"))],["All off",()=>setRoles(p=>p.map(()=>"ignore"))]].map(([label,fn],i)=>(
-                <React.Fragment key={label}>
-                  {i>0&&<span style={{color:C.TEXT_3,margin:"0 6px"}}>·</span>}
-                  <button onClick={fn} style={{background:"none",border:"none",color:CC.OBS,cursor:"pointer",textDecoration:"underline",fontSize:FS.base,fontWeight:FW.MED,padding:0}}>{label}</button>
-                </React.Fragment>
+            <span style={{fontSize:FS.base,color:C.TEXT}}>▼ Click headers to set column roles.</span>
+            <span style={{marginLeft:"auto",display:"flex",alignItems:"center",gap:"6px",flexShrink:0}}>
+              {[["Auto",()=>{if(data)setRoles(inferRoles(data,hdrs,condPerCol));}],["All data",()=>setRoles(p=>p.map(()=>"data"))],["All off",()=>setRoles(p=>p.map(()=>"ignore"))]].map(([label,fn])=>(
+                <button key={label} onClick={fn}
+                  onMouseEnter={e=>e.currentTarget.style.background=C.BG_L}
+                  onMouseLeave={e=>e.currentTarget.style.background="transparent"}
+                  style={{background:"transparent",border:`1px solid ${C.BORDER}`,color:C.TEXT,fontSize:FS.sm,fontWeight:FW.NORM,padding:"4px 10px",borderRadius:CR.SM,cursor:"pointer"}}>{label}</button>
               ))}
             </span>
           </div>
