@@ -11,7 +11,6 @@ import { detectAssay, ASSAYS, DATA_TYPES, ASSAY_DATATYPE_MAP } from "../../const
 import { getApplicabilityTests } from "../../analysis/severity.js";
 import { extractAnalysisInputs } from "../../analysis/engine.js";
 import { LongFormatModal } from "./LongFormatModal.jsx";
-import { RoleBadge } from "../shared/RoleBadge.jsx";
 import { C, FF, FW, TF, FS, CR, CC, M, UI, BADGE, SIGNAL, ACCENT } from "../../constants/tokens.js";
 import { FLAG_STYLES } from "../../constants/thresholds.js";
 import { ROLES, ROLE_KEYS, COND_COLORS } from "../../constants/roles.js";
@@ -607,8 +606,8 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
                     clears assaySuggestion → badge drops. S141 — passive
                     provenance badge: sentence-case content, chrome
                     preserved pending C.5b chip-family redesign. */}
-                {(assayAutoDetected||(assay!=="general"&&assaySuggestion===assay))&&<span style={{fontSize:TF.DETAIL,background:BADGE.AUTO.bg,color:BADGE.AUTO.text,border:`1px solid ${BADGE.AUTO.text}`,borderRadius:CR.SM,padding:"1px 5px",fontWeight:FW.BOLD,letterSpacing:"0.02em"}}>Auto</span>}
-                {data&&assay==="general"&&<span style={{fontSize:TF.DETAIL,background:UI.WARN.bg,color:UI.WARN.text,border:`1px solid ${UI.WARN.text}`,borderRadius:CR.SM,padding:"1px 5px",fontWeight:FW.BOLD,letterSpacing:"0.02em"}}>SET ME</span>}
+                {(assayAutoDetected||(assay!=="general"&&assaySuggestion===assay))&&<span style={{display:"inline-block",fontSize:FS.xs,background:BADGE.AUTO.bg,color:BADGE.AUTO.text,borderRadius:"4px",padding:"2px 6px",fontWeight:FW.MED,userSelect:"none"}}>Auto</span>}
+                {data&&assay==="general"&&<span style={{display:"inline-block",fontSize:FS.xs,background:C.BG,color:C.TEXT_2,borderRadius:"4px",padding:"2px 6px",fontWeight:FW.MED,letterSpacing:"0.02em",userSelect:"none"}}>SET ME</span>}
               </span>
               <span style={{color:C.TEXT_3,transform:assayOpen?"rotate(180deg)":"",transition:"0.15s"}}>▾</span>
             </button>
@@ -656,17 +655,17 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
 
       {data&&<div style={zoneGap}/>}
       {data&&(
-        <div style={zonePanel}>
+        <div style={{...zonePanel,...(sum&&sum.nDC<2?{borderLeft:`3px solid #F59E0B`}:{})}}>
         {zoneHeader("2", "Review columns")}
         <div style={{marginBottom:"0"}}>
           <div style={{display:"flex",alignItems:"center",gap:"8px",marginBottom:"6px",flexWrap:"wrap"}}>
-            <span style={{display:"flex",alignItems:"center",gap:"6px",flexWrap:"wrap"}}>
-              {ROLE_KEYS.map(k=><RoleBadge key={k} role={k}/>)}
-            </span>
-            <span style={{fontSize:FS.sm,color:C.TEXT_3,whiteSpace:"nowrap"}}>▼ click headers to cycle</span>
-            <span style={{marginLeft:"auto",display:"flex",gap:"4px",flexShrink:0}}>
-              {[["Auto",()=>{if(data)setRoles(inferRoles(data,hdrs,condPerCol));}],["All Data",()=>setRoles(p=>p.map(()=>"data"))],["All Off",()=>setRoles(p=>p.map(()=>"ignore"))]].map(([label,fn])=>(
-                <button key={label} onClick={fn} style={{background:C.WHITE,border:`1px solid ${C.BORDER}`,color:C.TEXT,padding:"4px 0",minWidth:"55px",textAlign:"center",borderRadius:CR.SM,fontSize:FS.base,fontWeight:FW.MED,cursor:"pointer"}}>{label}</button>
+            <span style={{fontSize:FS.base,color:C.TEXT}}>▼ Click headers to set column roles.</span>
+            <span style={{marginLeft:"auto",display:"flex",alignItems:"center",gap:"6px",flexShrink:0}}>
+              {[["Auto",()=>{if(data)setRoles(inferRoles(data,hdrs,condPerCol));}],["All data",()=>setRoles(p=>p.map(()=>"data"))],["All off",()=>setRoles(p=>p.map(()=>"ignore"))]].map(([label,fn])=>(
+                <button key={label} onClick={fn}
+                  onMouseEnter={e=>e.currentTarget.style.background=C.BG_L}
+                  onMouseLeave={e=>e.currentTarget.style.background="transparent"}
+                  style={{background:"transparent",border:`1px solid ${C.BORDER}`,color:C.TEXT,fontSize:FS.sm,fontWeight:FW.NORM,padding:"4px 10px",borderRadius:CR.SM,cursor:"pointer"}}>{label}</button>
               ))}
             </span>
           </div>
@@ -697,6 +696,11 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
             onHeaderClick={(ci)=>{setRoles(p=>{const n=[...p];n[ci]=ROLE_KEYS[(ROLE_KEYS.indexOf(n[ci])+1)%4];return n;});}}
           />
           {data.length>EDGE*2+5&&<div style={{padding:"6px 12px",borderTop:`1px solid ${C.BORDER_L}`,fontSize:FS.sm,color:C.TEXT_3,textAlign:"center"}}>Showing first {EDGE} and last {EDGE} of {data.length.toLocaleString()} rows</div>}
+        </div>
+      )}
+      {sum&&sum.nDC<2&&(
+        <div style={{fontSize:FS.sm,color:UI.WARN.text,lineHeight:"1.4",marginTop:"8px"}}>
+          Assign at least 2 data columns to proceed.
         </div>
       )}
       </div>
@@ -739,7 +743,7 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
           <div style={{background:C.WHITE, border:`1px solid ${C.BORDER_L}`, borderLeft:isRequired?`3px solid #F59E0B`:`3px solid ${C.BORDER_L}`, borderRadius:CR.LG,padding:"14px 18px",marginBottom:"8px"}}>
             <div style={{fontSize:FS.base,color:C.TEXT,marginBottom:"10px",lineHeight:"1.5",display:"flex",alignItems:"baseline",gap:"8px",flexWrap:"wrap"}}>
               <span>Are the {sum.nDC} DATA columns <strong>replicates</strong> or <strong>non-replicates</strong>?</span>
-              {isRequired&&<span style={{fontSize:TF.SMALL,background:UI.WARN.bg,color:UI.WARN.text,border:`1px solid ${UI.WARN.text}`,borderRadius:CR.SM,padding:"1px 5px",fontWeight:FW.BOLD,letterSpacing:"0.02em"}}>REQUIRED</span>}
+              {isRequired&&<span style={{display:"inline-block",fontSize:FS.xs,background:BADGE.REQUIRED.bg,color:BADGE.REQUIRED.text,borderRadius:"4px",padding:"2px 6px",fontWeight:FW.MED,letterSpacing:"0.02em",userSelect:"none"}}>REQUIRED</span>}
             </div>
             <div style={{display:"flex",gap:"8px",flexWrap:"wrap",marginBottom:"6px"}}>
               <button onClick={()=>{setColRelationship('replicates');setColRelAutoSet(false);}}
@@ -749,7 +753,7 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
                   opacity:colRelationship&&colRelationship!=='replicates'?0.65:1,transition:"opacity 0.15s"}}>
                 <div style={{fontSize:FS.base,fontWeight:FW.SEMI,color:colRelationship==='replicates'?CC.OBS:C.TEXT,marginBottom:"3px",display:"flex",alignItems:"center",gap:"6px",flexWrap:"wrap"}}>
                   <span>{!isAuto&&colRelationship==='replicates'?"✓ ":""}Replicates</span>
-                  {isAuto&&colRelationship==='replicates'&&<span style={{fontSize:TF.DETAIL,background:BADGE.AUTO.bg,color:BADGE.AUTO.text,border:`1px solid ${BADGE.AUTO.text}`,borderRadius:CR.SM,padding:"1px 5px",fontWeight:FW.BOLD,letterSpacing:"0.02em"}}>Auto</span>}
+                  {isAuto&&colRelationship==='replicates'&&<span style={{display:"inline-block",fontSize:FS.xs,background:BADGE.AUTO.bg,color:BADGE.AUTO.text,borderRadius:"4px",padding:"2px 6px",fontWeight:FW.MED,userSelect:"none"}}>Auto</span>}
                 </div>
                 <div style={{fontSize:FS.base,color:C.TEXT_3,lineHeight:"1.4"}}>Columns measure the same thing</div>
               </button>
@@ -760,7 +764,7 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
                   opacity:colRelationship&&colRelationship!=='conditions'?0.65:1,transition:"opacity 0.15s"}}>
                 <div style={{fontSize:FS.base,fontWeight:FW.SEMI,color:colRelationship==='conditions'?CC.OBS:C.TEXT,marginBottom:"3px",display:"flex",alignItems:"center",gap:"6px",flexWrap:"wrap"}}>
                   <span>{!isAuto&&colRelationship==='conditions'?"✓ ":""}Non-replicates</span>
-                  {isAuto&&colRelationship==='conditions'&&<span style={{fontSize:TF.DETAIL,background:BADGE.AUTO.bg,color:BADGE.AUTO.text,border:`1px solid ${BADGE.AUTO.text}`,borderRadius:CR.SM,padding:"1px 5px",fontWeight:FW.BOLD,letterSpacing:"0.02em"}}>Auto</span>}
+                  {isAuto&&colRelationship==='conditions'&&<span style={{display:"inline-block",fontSize:FS.xs,background:BADGE.AUTO.bg,color:BADGE.AUTO.text,borderRadius:"4px",padding:"2px 6px",fontWeight:FW.MED,userSelect:"none"}}>Auto</span>}
                 </div>
                 <div style={{fontSize:FS.base,color:C.TEXT_3,lineHeight:"1.4"}}>Columns measure different things</div>
               </button>
@@ -797,7 +801,7 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
           <div style={{background:C.WHITE, border:`1px solid ${C.BORDER_L}`, borderLeft:isRequired?`3px solid #F59E0B`:`3px solid ${C.BORDER_L}`, borderRadius:CR.LG,padding:"14px 18px",marginBottom:"8px"}}>
             <div style={{fontSize:FS.base,color:C.TEXT,marginBottom:autoSubText?"4px":"10px",lineHeight:"1.5",display:"flex",alignItems:"baseline",gap:"8px",flexWrap:"wrap"}}>
               <span>Is the row order <strong>meaningful</strong> (plate position, instrument sequence, dose gradient) or <strong>arbitrary</strong> (gene list, alphabetised protein IDs, subject ID)?</span>
-              {isRequired&&<span style={{fontSize:TF.SMALL,background:UI.WARN.bg,color:UI.WARN.text,border:`1px solid ${UI.WARN.text}`,borderRadius:CR.SM,padding:"1px 5px",fontWeight:FW.BOLD,letterSpacing:"0.02em"}}>REQUIRED</span>}
+              {isRequired&&<span style={{display:"inline-block",fontSize:FS.xs,background:BADGE.REQUIRED.bg,color:BADGE.REQUIRED.text,borderRadius:"4px",padding:"2px 6px",fontWeight:FW.MED,letterSpacing:"0.02em",userSelect:"none"}}>REQUIRED</span>}
             </div>
             {autoSubText&&<div style={{fontSize:FS.xs,color:C.TEXT_3,marginBottom:"10px",lineHeight:"1.4"}}>{autoSubText}</div>}
             <div style={{display:"flex",gap:"8px",flexWrap:"wrap",marginBottom:"6px"}}>
@@ -808,7 +812,7 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
                   opacity:rowSemantics&&rowSemantics!=='ordered'?0.65:1,transition:"opacity 0.15s"}}>
                 <div style={{fontSize:FS.base,fontWeight:FW.SEMI,color:rowSemantics==='ordered'?CC.OBS:C.TEXT,marginBottom:"3px",display:"flex",alignItems:"center",gap:"6px",flexWrap:"wrap"}}>
                   <span>{!isAuto&&rowSemantics==='ordered'?"✓ ":""}Ordered</span>
-                  {isAuto&&rowSemantics==='ordered'&&<span style={{fontSize:TF.DETAIL,background:BADGE.AUTO.bg,color:BADGE.AUTO.text,border:`1px solid ${BADGE.AUTO.text}`,borderRadius:CR.SM,padding:"1px 5px",fontWeight:FW.BOLD,letterSpacing:"0.02em"}}>Auto</span>}
+                  {isAuto&&rowSemantics==='ordered'&&<span style={{display:"inline-block",fontSize:FS.xs,background:BADGE.AUTO.bg,color:BADGE.AUTO.text,borderRadius:"4px",padding:"2px 6px",fontWeight:FW.MED,userSelect:"none"}}>Auto</span>}
                 </div>
                 <div style={{fontSize:FS.base,color:C.TEXT_3,lineHeight:"1.4"}}>Row order carries forensic meaning</div>
               </button>
@@ -819,7 +823,7 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
                   opacity:rowSemantics&&rowSemantics!=='arbitrary'?0.65:1,transition:"opacity 0.15s"}}>
                 <div style={{fontSize:FS.base,fontWeight:FW.SEMI,color:rowSemantics==='arbitrary'?CC.OBS:C.TEXT,marginBottom:"3px",display:"flex",alignItems:"center",gap:"6px",flexWrap:"wrap"}}>
                   <span>{!isAuto&&rowSemantics==='arbitrary'?"✓ ":""}Arbitrary</span>
-                  {isAuto&&rowSemantics==='arbitrary'&&<span style={{fontSize:TF.DETAIL,background:BADGE.AUTO.bg,color:BADGE.AUTO.text,border:`1px solid ${BADGE.AUTO.text}`,borderRadius:CR.SM,padding:"1px 5px",fontWeight:FW.BOLD,letterSpacing:"0.02em"}}>Auto</span>}
+                  {isAuto&&rowSemantics==='arbitrary'&&<span style={{display:"inline-block",fontSize:FS.xs,background:BADGE.AUTO.bg,color:BADGE.AUTO.text,borderRadius:"4px",padding:"2px 6px",fontWeight:FW.MED,userSelect:"none"}}>Auto</span>}
                 </div>
                 <div style={{fontSize:FS.base,color:C.TEXT_3,lineHeight:"1.4"}}>Row order is not meaningful (e.g. gene list)</div>
               </button>
@@ -865,7 +869,7 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
                   opacity:vstDecision&&vstDecision!=='raw'?0.65:1,transition:"opacity 0.15s"}}>
                 <div style={{fontSize:FS.base,fontWeight:FW.SEMI,color:vstDecision==='raw'?CC.OBS:C.TEXT,marginBottom:"3px",display:"flex",alignItems:"center",gap:"6px",flexWrap:"wrap"}}>
                   <span>{!vstAutoSet&&vstDecision==='raw'?"✓ ":""}Keep raw (no transform)</span>
-                  {vstAutoSet&&vstDecision==='raw'&&<span style={{fontSize:TF.DETAIL,background:BADGE.AUTO.bg,color:BADGE.AUTO.text,border:`1px solid ${BADGE.AUTO.text}`,borderRadius:CR.SM,padding:"1px 5px",fontWeight:FW.BOLD,letterSpacing:"0.02em"}}>Auto</span>}
+                  {vstAutoSet&&vstDecision==='raw'&&<span style={{display:"inline-block",fontSize:FS.xs,background:BADGE.AUTO.bg,color:BADGE.AUTO.text,borderRadius:"4px",padding:"2px 6px",fontWeight:FW.MED,userSelect:"none"}}>Auto</span>}
                 </div>
                 <div style={{fontSize:FS.base,color:C.TEXT_3,lineHeight:"1.4"}}>
                   Safe default for most data
@@ -878,7 +882,7 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
                   opacity:vstDecision&&vstDecision!=='apply'?0.65:1,transition:"opacity 0.15s"}}>
                 <div style={{fontSize:FS.base,fontWeight:FW.SEMI,color:vstDecision==='apply'?CC.OBS:C.TEXT,marginBottom:"3px",display:"flex",alignItems:"center",gap:"6px",flexWrap:"wrap"}}>
                   <span>{!vstAutoSet&&vstDecision==='apply'?"✓ ":""}Apply {transformLabel}</span>
-                  {vstAutoSet&&vstDecision==='apply'&&<span style={{fontSize:TF.DETAIL,background:BADGE.AUTO.bg,color:BADGE.AUTO.text,border:`1px solid ${BADGE.AUTO.text}`,borderRadius:CR.SM,padding:"1px 5px",fontWeight:FW.BOLD,letterSpacing:"0.02em"}}>Auto</span>}
+                  {vstAutoSet&&vstDecision==='apply'&&<span style={{display:"inline-block",fontSize:FS.xs,background:BADGE.AUTO.bg,color:BADGE.AUTO.text,borderRadius:"4px",padding:"2px 6px",fontWeight:FW.MED,userSelect:"none"}}>Auto</span>}
                 </div>
                 <div style={{fontSize:FS.base,color:C.TEXT_3,lineHeight:"1.4"}}>
                   {vstProposal.transform==='log'
@@ -935,7 +939,7 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
             <div style={{marginTop:"12px",display:"flex",alignItems:"center",flexWrap:"wrap",gap:"4px 8px"}}>
               <span style={{color:C.TEXT_3,fontSize:FS.base}}>Conditions</span>
               {sum.cNames.map((c,i)=>(
-                <span key={i} style={{display:"inline-block",background:condColorMap[c]?.bg||C.BG,border:"1px solid "+(condColorMap[c]?.border||C.BORDER),color:condColorMap[c]?.text||C.TEXT_2,padding:"2px 10px",borderRadius:CR.MD,fontSize:TF.DETAIL,fontWeight:FW.SEMI}}>{c}</span>
+                <span key={i} style={{display:"inline-block",background:condColorMap[c]?.bg||C.BG,color:condColorMap[c]?.text||C.TEXT_2,padding:"2px 6px",borderRadius:"4px",fontSize:FS.xs,fontWeight:FW.NORM,userSelect:"none"}}>{c}</span>
               ))}
             </div>
           )}
@@ -1017,28 +1021,27 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
       </div>}
 
       {/* Run Analysis — page-level action, sibling of Zone 4. Gated on
-          column-relationship and row-semantics resolution (S118 Track H). */}
-      {sum&&<div style={zoneGap}/>}
-      {sum&&(
+          column-relationship and row-semantics resolution (S118 Track H).
+          When fewer than 2 DATA columns are assigned the precondition
+          message renders inside Zone 2 (S147-fix7); page-level block
+          renders nothing in that state. */}
+      {sum&&sum.nDC>=2&&<div style={zoneGap}/>}
+      {sum&&sum.nDC>=2&&(
         <div style={{display:"flex",gap:"8px"}}>
-          {sum.nDC>=2?(() => {
+          {(()=>{
             const ready = !!effectiveColRel && !rowSemRequired;
             const label = !effectiveColRel
               ? "Select column relationship above to proceed"
               : rowSemRequired
                 ? "Select row order above to proceed"
-                : "Run Analyses";
+                : "Run analyses";
             return (
               <button onClick={handleProceed} disabled={!ready}
                 style={{flex:1,padding:"13px 24px",background:ready?CC.OBS:C.TEXT_4,border:"none",borderRadius:CR.LG,color:C.WHITE,fontSize:FS.md,fontWeight:FW.SEMI,cursor:ready?"pointer":"not-allowed",opacity:ready?1:0.7}}>
                 {label}
               </button>
             );
-          })():(
-            <div style={{flex:1,padding:"12px 16px",textAlign:"center",color:ROLES.condition.color,fontSize:FS.base}}>
-              Assign at least 2 columns as DATA to proceed
-            </div>
-          )}
+          })()}
         </div>
       )}
 
