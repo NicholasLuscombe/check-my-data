@@ -22,8 +22,6 @@ import { ScrollTable } from "../shared/ScrollTable.jsx";
 
 export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onPendingFileConsumed }) {
   const [fileName,setFileName]=useState("");
-  const [pinnedFile,setPinnedFile]=useState(null); // {name, text} persisted to storage
-  const rawTextRef=useRef(null); // raw CSV text — survives unpin so we can re-pin
   const fileNameRef=useRef("");
   const [err,setErr]=useState(null);
   const [rawRows,setRawRows]=useState(null);
@@ -63,7 +61,7 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
     document.addEventListener("mousedown",h);return()=>document.removeEventListener("mousedown",h);
   },[]);
 
-  // On mount: restore from initialConfig (back from report) or pinned storage
+  // On mount: restore from initialConfig (back from report)
   useEffect(()=>{
     if(initialConfig && initialConfig.data){
       // Restore directly from the config that was used for analysis
@@ -85,22 +83,7 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
         names.forEach((n,i)=>{ccm[n]=COND_COLORS[i%COND_COLORS.length];});
         setCondColorMap(ccm);
       }
-      return;
     }
-    (async()=>{
-      try {
-        const saved=await window.storage.get("dfx-pinned-file");
-        if(saved){
-          const {name,text}=JSON.parse(saved.value);
-          rawTextRef.current=text;
-          fileNameRef.current=name;
-          setPinnedFile({name,text});
-          setFileName(name);
-          // parseAndLoad is not stable yet at this point — use a short delay
-          setTimeout(()=>{ try{ parseAndLoad(text,true); }catch(e){console.warn("storage op failed:",e)} },100);
-        }
-      } catch(e){console.warn("storage op failed:",e)}
-    })();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   },[]);
 
@@ -243,7 +226,6 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
       });
       // Convert 2D array to CSV text for parseAndLoad (reuses entire existing pipeline)
       const csvText=rows.map(r=>r.map(v=>v==null?"":(/[,"\n\r]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v)).join(",")).join("\n");
-      rawTextRef.current=csvText;
       parseAndLoad(csvText,true);
       setExcelSheetPicker(null);
     } catch(e){
@@ -282,12 +264,7 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
 
     const reader=new FileReader();
     reader.onload=e=>{
-      const text=e.target.result;
-      rawTextRef.current=text;
-      parseAndLoad(text,true);
-      // Save to storage so next artifact reload picks it up automatically
-      setPinnedFile({name:file.name,text});
-      (async()=>{try{await window.storage.set("dfx-pinned-file", JSON.stringify({name:file.name,text}));}catch(ex){console.warn("storage op failed:",ex)}})();
+      parseAndLoad(e.target.result,true);
     };
     reader.readAsText(file);
   },[parseAndLoad]);
@@ -545,24 +522,6 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
             style={{background:"none",border:"none",cursor:"pointer",color:C.TEXT,fontSize:FS.base,fontWeight:FW.MED,padding:0}}>← Back</button>
           <span style={{color:C.BORDER}}>|</span>
           <span style={{color:C.TEXT,fontWeight:FW.SEMI,fontSize:FS.base}}>{fileName}</span>
-          {pinnedFile
-            ? <span style={{display:"inline-flex",alignItems:"center",gap:"4px",fontSize:TF.DETAIL,color:CC.OBS}}>
-                📌
-                <button onClick={async()=>{
-                  try{await window.storage.delete("dfx-pinned-file");}catch(e){console.warn("storage op failed:",e)}
-                  setPinnedFile(null);
-                }} style={{background:"none",border:"none",cursor:"pointer",color:C.TEXT_4,
-                  fontSize:TF.BODY,padding:"0",lineHeight:1}} title="Unpin">✕</button>
-              </span>
-            : <button onClick={async()=>{
-                if(!rawTextRef.current||!fileName) return;
-                const obj={name:fileName,text:rawTextRef.current};
-                setPinnedFile(obj);
-                try{await window.storage.set("dfx-pinned-file",JSON.stringify(obj));}catch(e){console.warn("storage op failed:",e)}
-              }} style={{background:"none",border:"none",color:C.TEXT_4,cursor:"pointer",fontSize:TF.DETAIL,padding:0}} title="Pin this file">
-                📌
-              </button>
-          }
           <span style={{flex:1}}/>
           <label style={{cursor:"pointer",padding:"4px 12px",background:C.BG,border:`1px solid ${C.BORDER}`,borderRadius:CR.SM,color:C.TEXT,fontSize:FS.base,fontWeight:FW.MED}}>
             Change file
