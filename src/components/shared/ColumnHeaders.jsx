@@ -144,7 +144,7 @@ export function ColumnHeaders({
                 return (
                   <th key={si} colSpan={sp.len} style={{
                     ...BB, ...TH_EVIDENCE,
-                    fontSize: TF.SMALL,
+                    fontSize: FS.xs,
                     fontWeight: showRoleBadge ? FW.NORM : FW.BOLD,
                     ...(showRoleBadge ? {} : { letterSpacing: "0.04em" }),
                     textAlign: "center", whiteSpace: "nowrap",
@@ -179,7 +179,7 @@ export function ColumnHeaders({
               return (
                 <th key={gi} colSpan={g.len} style={{
                   ...BB, ...TH_EVIDENCE,
-                  fontSize: TF.SMALL,
+                  fontSize: FS.xs,
                   fontWeight: showRoleBadge ? FW.NORM : FW.BOLD,
                   ...(showRoleBadge ? {} : { letterSpacing: "0.04em" }),
                   textAlign: "center", whiteSpace: "nowrap",
