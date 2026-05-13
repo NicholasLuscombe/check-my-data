@@ -1034,8 +1034,8 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
               </button>
             );
           })():(
-            <div style={{flex:1,padding:"12px 16px",textAlign:"center",color:ROLES.condition.color,fontSize:FS.base}}>
-              Assign at least 2 columns as DATA to proceed
+            <div style={{flex:1,padding:"12px 16px",textAlign:"center",color:C.TEXT_2,fontSize:FS.base}}>
+              Assign at least 2 columns as data to proceed.
             </div>
           )}
         </div>
