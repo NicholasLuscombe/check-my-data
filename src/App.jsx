@@ -66,8 +66,7 @@ export default function CheckMyData() {
     window.scrollTo(0,0);
   },[]);
 
-  const handleChangeFile=useCallback(async(file)=>{
-    try{await window.storage.delete("dfx-pinned-file");}catch(e){console.warn("storage op failed:",e)}
+  const handleChangeFile=useCallback((file)=>{
     setPendingFile(file||null);
     setPhase("import");setResults(null);setImportConfig(null);
     if(!file) setImportKey(k=>k+1); // force ImportView remount when clearing (logo click)
