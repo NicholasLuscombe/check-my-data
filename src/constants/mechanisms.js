@@ -3,11 +3,11 @@
 // Keys match METHODOLOGY-MAP v3 five dimensions (I–V). Display order = concreteness:
 // most tangible evidence first (I, II), most abstract last (IV).
 export const MECHANISMS = {
-  copied:    { label: "Copy, Paste, Edit" },              // Dim I
-  digits:    { label: "Unusual Digits" },                 // Dim II
-  shapes:    { label: "Distribution Shapes" },            // Dim V
-  replicate: { label: "Cross-Replicate Comparisons" },    // Dim III
-  group:     { label: "Cross-Group Comparisons" },        // Dim IV
+  copied:    { label: "Copy, paste, edit" },              // Dim I
+  digits:    { label: "Unusual digits" },                 // Dim II
+  shapes:    { label: "Distribution shapes" },            // Dim V
+  replicate: { label: "Cross-replicate comparisons" },    // Dim III
+  group:     { label: "Cross-group comparisons" },        // Dim IV
 };
 export const MECHANISM_ORDER = ["copied", "digits", "shapes", "replicate", "group"];
 
@@ -54,34 +54,34 @@ export const TEST_MECHANISM = {
 
 // Display names — internal test names → user-facing labels
 export const DISPLAY_NAMES = {
-  "Exact Duplicate Detection": "Duplicated Data",
-  "Constant-Offset Blocks": "Duplicated and Offset",
-  "Inter-Replicate Correlation": "Inter-Replicate Correlation",
-  "Cross-Condition Rank Correlation": "Cross-Condition Similarity",
-  "Autocorrelation": "Noise Predictability",
-  "Windowed Autocorrelation": "Windowed Autocorrelation",
-  "Excess Kurtosis": "Replicate Noise Shape",
-  "Selective Noise Partitioning": "Distribution of Noise Across Columns",
-  "Runs Test": "Row-Order Randomness",
-  "Noise Scaling With Measurement Size": "Noise Scaling",
-  "Row-Mean Runs": "Row-Mean Patterns",
-  "Regional Noise Homogeneity": "Regional Noise",
-  "LOESS Residual Analysis": "Noise Consistency",
-  "Terminal Digit Uniformity": "Last-Digit Frequencies",
-  "Benford's Law (First Digit)": "First-Digit Frequencies",
-  "Decimal Precision Consistency": "Decimal Places",
-  "Benford's Law (Second Digit)": "Second-Digit Frequencies",
-  "Value-Frequency Spike": "Repeated Digits",
-  "Mahalanobis Row Outlier": "Unusual Rows",
-  "Blocked Mahalanobis": "Block Covariance Anomaly",
-  "Residual Spike Correlation": "Correlated Residuals",
-  "Within-Row Variance": "Row Variance Scan",
-  "Missing Data Pattern": "Missing Data Patterns",
-  "Baseline Balance": "Condition Balance",
-  "Entropy / Zipf Analysis": "Value Entropy",
-  "Column Goodness-of-Fit": "Column Shape Fit",
-  "Modality Test": "Column Modality",
-  "Cross-Condition Consistency": "Cross-Condition Consistency",
+  "Exact Duplicate Detection": "Duplicated data",
+  "Constant-Offset Blocks": "Duplicated and offset",
+  "Inter-Replicate Correlation": "Inter-replicate correlation",
+  "Cross-Condition Rank Correlation": "Cross-condition similarity",
+  "Autocorrelation": "Noise predictability",
+  "Windowed Autocorrelation": "Windowed autocorrelation",
+  "Excess Kurtosis": "Replicate noise shape",
+  "Selective Noise Partitioning": "Distribution of noise across columns",
+  "Runs Test": "Row-order randomness",
+  "Noise Scaling With Measurement Size": "Noise scaling",
+  "Row-Mean Runs": "Row-mean patterns",
+  "Regional Noise Homogeneity": "Regional noise",
+  "LOESS Residual Analysis": "Noise consistency",
+  "Terminal Digit Uniformity": "Last-digit frequencies",
+  "Benford's Law (First Digit)": "First-digit frequencies",
+  "Decimal Precision Consistency": "Decimal places",
+  "Benford's Law (Second Digit)": "Second-digit frequencies",
+  "Value-Frequency Spike": "Repeated digits",
+  "Mahalanobis Row Outlier": "Unusual rows",
+  "Blocked Mahalanobis": "Block covariance anomaly",
+  "Residual Spike Correlation": "Correlated residuals",
+  "Within-Row Variance": "Row variance scan",
+  "Missing Data Pattern": "Missing data patterns",
+  "Baseline Balance": "Condition balance",
+  "Entropy / Zipf Analysis": "Value entropy",
+  "Column Goodness-of-Fit": "Column shape fit",
+  "Modality Test": "Column modality",
+  "Cross-Condition Consistency": "Cross-condition consistency",
 };
 
 // ── Shared marker symbols ──

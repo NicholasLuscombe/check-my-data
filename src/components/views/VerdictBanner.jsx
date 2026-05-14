@@ -42,8 +42,8 @@ export function VerdictBanner({ severity, results, importConfig, nRows, nCols, m
   const K = results.filter(r => r.flag === "HIGH" || r.flag === "MODERATE").length;
 
   // Flagged §3 category names in MECHANISM_ORDER concreteness order —
-  // canonical "Copy, Paste, Edit" / "Unusual Digits" / "Distribution
-  // Shapes" / "Cross-Replicate Comparisons" / "Cross-Group Comparisons"
+  // canonical "Copy, paste, edit" / "Unusual digits" / "Distribution
+  // shapes" / "Cross-replicate comparisons" / "Cross-group comparisons"
   // labels from `MECHANISMS[mk].label`. Drives the action-sub count
   // sentence on severity > 0. Restores §1↔§3 vocabulary parity — the
   // pre-fix2 count strip carried a parallel mechanism taxonomy with

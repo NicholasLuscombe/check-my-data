@@ -509,7 +509,7 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
           <p style={{color:C.TEXT,fontSize:FS.base,fontWeight:FW.NORM,marginTop:0,marginBottom:"12px"}}>Upload a dataset to begin analysis</p>
           <div style={{display:"flex",gap:"8px",alignItems:"center"}}>
             <label style={{cursor:"pointer",display:"inline-block",padding:"10px 24px",background:C.BG,border:`1px solid ${C.BORDER}`,borderRadius:CR.MD,color:C.TEXT,fontSize:FS.base,fontWeight:FW.MED}}>
-              Upload File
+              Upload file
               <input type="file" accept=".csv,.tsv,.txt,.xlsx,.xls" onChange={e=>onFile(e.target.files?.[0])} style={{display:"none"}}/>
             </label>
             {onBatch&&<button onClick={onBatch} style={{padding:"10px 16px",background:C.BG,border:`1px solid ${C.BORDER}`,borderRadius:CR.MD,color:C.TEXT,fontSize:FS.base,cursor:"pointer",fontWeight:FW.MED}}>Batch analysis</button>}
