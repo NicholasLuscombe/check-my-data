@@ -618,7 +618,7 @@ export function ReportView({ results, importConfig, matrix, rowMap, onBack, onCh
 <div class="container">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
     <div>
-      <h1>Check My Data Report</h1>
+      <h1>Check My Data report</h1>
       <div class="subtitle">${esc(importConfig.fileName||"uploaded")} · ${nRows} rows × ${nCols} columns · Assay: ${esc(assayLabel)}</div>
     </div>
     <div>
@@ -628,7 +628,7 @@ export function ReportView({ results, importConfig, matrix, rowMap, onBack, onCh
   </div>
 
   <div class="section">
-    <h2>Annotated Data</h2>
+    <h2>Annotated data</h2>
     <div class="legend">
       <div class="legend-item"><div class="legend-swatch" style="background:${SIGNAL.RED.bg};border-color:${SIGNAL.RED.border}"></div>Block copy (matched columns)</div>
       <div class="legend-item"><div class="legend-swatch" style="background:${SIGNAL.AMBER.bg};border-color:${SIGNAL.AMBER.border}"></div>Duplicated row</div>
@@ -642,7 +642,7 @@ export function ReportView({ results, importConfig, matrix, rowMap, onBack, onCh
   </div>
 
   <div class="section">
-    <h2>Test Summary</h2>
+    <h2>Test summary</h2>
     ${summHtml}
   </div>
 </div>

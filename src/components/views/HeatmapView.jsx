@@ -384,7 +384,7 @@ export function HeatmapView({
           fontSize: TF.TITLE, fontWeight: FW.SEMI, color: C.TEXT,
           marginBottom: 8,
         }}>
-          {simplified ? "Data Overview" : "Convergence Heatmap"}
+          {simplified ? "Data overview" : "Convergence heatmap"}
           <span style={{ fontSize: TF.DETAIL, fontWeight: FW.NORM, color: C.TEXT_3, marginLeft: 8 }}>
             {simplified
               ? "Areas where multiple checks found issues are highlighted"

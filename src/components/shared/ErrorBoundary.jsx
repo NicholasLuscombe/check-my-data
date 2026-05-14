@@ -22,7 +22,7 @@ export class AnalysisErrorBoundary extends React.Component {
         <div style={{ maxWidth: "700px", margin: "60px auto", padding: "32px", background: SIGNAL.RED.bg, border: `1px solid ${SIGNAL.RED.border}`, borderRadius: CR.LG, fontFamily: FF.UI }}>
           <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px" }}>
             <span style={{ fontSize: "20px" }} aria-hidden="true">⚠</span>
-            <span style={{ fontSize: TF.H2, fontWeight: FW.BOLD, color: SIGNAL.RED.text, ...M }}>Analysis Error</span>
+            <span style={{ fontSize: TF.H2, fontWeight: FW.BOLD, color: SIGNAL.RED.text, ...M }}>Analysis error</span>
           </div>
           <p style={{ fontSize: TF.BODY, color: C.TEXT, lineHeight: 1.5, marginBottom: "16px" }}>
             An unexpected error occurred while rendering the analysis results. Your data has not been lost.

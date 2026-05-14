@@ -110,7 +110,7 @@ export function ExcelMetaCard({ meta }) {
           {/* ── Temporal anomalies ── */}
           {temporalFlags.length > 0 && (
             <div>
-              <div style={{ ...SEC, color: FLAG_STYLES.MODERATE.text }}>Temporal Anomalies</div>
+              <div style={{ ...SEC, color: FLAG_STYLES.MODERATE.text }}>Temporal anomalies</div>
               {temporalFlags.map((t, i) => (
                 <div key={i} style={{ fontSize: TF.BODY, color: FLAG_STYLES.MODERATE.text, marginBottom: "4px" }}>⚠ {t.description}</div>
               ))}
@@ -120,7 +120,7 @@ export function ExcelMetaCard({ meta }) {
           {/* ── Font anomalies ── */}
           {fontAnomalies.length > 0 && (
             <div>
-              <div style={{ ...SEC, color: FLAG_STYLES.HIGH.text }}>Font Metadata Anomalies</div>
+              <div style={{ ...SEC, color: FLAG_STYLES.HIGH.text }}>Font metadata anomalies</div>
               <AnomalyTable items={fontAnomalies} />
             </div>
           )}
@@ -128,7 +128,7 @@ export function ExcelMetaCard({ meta }) {
           {/* ── Number format anomalies ── */}
           {formatAnomalies.length > 0 && (
             <div>
-              <div style={{ ...SEC, color: FLAG_STYLES.MODERATE.text }}>Number Format Inconsistencies</div>
+              <div style={{ ...SEC, color: FLAG_STYLES.MODERATE.text }}>Number format inconsistencies</div>
               <AnomalyTable items={formatAnomalies} />
             </div>
           )}
@@ -136,7 +136,7 @@ export function ExcelMetaCard({ meta }) {
           {/* ── Hidden sheets ── */}
           {hiddenSheets.length > 0 && (
             <div>
-              <div style={{ ...SEC, color: FLAG_STYLES.MODERATE.text }}>Hidden Sheets</div>
+              <div style={{ ...SEC, color: FLAG_STYLES.MODERATE.text }}>Hidden sheets</div>
               {hiddenSheets.map((h, i) => (
                 <div key={i} style={{ fontSize: TF.BODY, color: C.TEXT_2, marginBottom: "4px" }}>
                   <strong style={{ color: CC.OBS }}>{h.name}</strong>
@@ -162,7 +162,7 @@ export function ExcelMetaCard({ meta }) {
           {/* ── Formula residue ── */}
           {formulaResidue.length > 0 && (
             <div>
-              <div style={{ ...SEC, color: FLAG_STYLES.MODERATE.text }}>Formula Residue</div>
+              <div style={{ ...SEC, color: FLAG_STYLES.MODERATE.text }}>Formula residue</div>
               <EvidenceTable
                 columns={[{label:"Column"},{label:"Formulas"},{label:"Sample"}]}
                 identifierColumns={1}
@@ -192,7 +192,7 @@ export function ExcelMetaCard({ meta }) {
 function AnomalyTable({ items }) {
   return (
     <EvidenceTable
-      columns={[{label:"Column"},{label:"Affected Rows"},{label:"Description"}]}
+      columns={[{label:"Column"},{label:"Affected rows"},{label:"Description"}]}
       identifierColumns={1}
       maxHeight={0}
       rows={items.map(a => [
