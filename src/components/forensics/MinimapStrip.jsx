@@ -40,7 +40,7 @@
    timeline of the dataset's row axis. */
 
 import { useMemo, useState, useEffect, useCallback } from "react";
-import { C, TF, FW, FF, CR, SEV_VERDICT } from "../../constants/tokens.js";
+import { C, FS, FW, FF, CR, SEV_VERDICT } from "../../constants/tokens.js";
 import { convergenceMinimapStyle, convergenceRampStyle, CONVERGENCE_RAMP } from "../shared/heatmapColors.js";
 import { usePulseTrigger } from "./pulseContext.jsx";
 import { usePulseAnimation } from "./PulseStyle.jsx";
@@ -130,7 +130,10 @@ function RegionBadge({ overlay, leftPct, onActivate }) {
         background: color,
         borderRadius: CR.SM,
         color: C.WHITE,
-        fontSize: TF.SMALL,
+        // Icon glyph — TYPOGRAPHY-SYSTEM.md §"What this system does NOT cover"
+        // carve-out (chart annotations are a separate sizing system). Hardcoded
+        // pending that system's land; do NOT promote to text-register tokens.
+        fontSize: "9px",
         fontFamily: FF.UI,
         fontWeight: FW.BOLD,
         lineHeight: `${BADGE_H}px`,
@@ -218,8 +221,8 @@ export function MinimapStrip({
   return (
     <div style={{ width: "100%", marginTop: 10 }}>
       {caption && (
-        <div style={{ fontSize: TF.SMALL, color: C.TEXT_3, marginBottom: 6, lineHeight: 1.5 }}>
-          <span style={{ fontWeight: FW.SEMI, color: C.TEXT_2 }}>Where flags are concentrated.</span>{" "}
+        <div style={{ fontSize: FS.base, color: C.TEXT, marginBottom: 6, lineHeight: 1.5 }}>
+          <span style={{ fontWeight: FW.SEMI }}>Where flags are concentrated.</span>{" "}
           Each segment is a row of your data, shaded by how many tests flag any cell in that row.
         </div>
       )}
@@ -286,9 +289,9 @@ export function MinimapStrip({
       {/* Convergence ramp legend — same swatches as HotspotExcerpt. */}
       <div style={{
         display: "flex", alignItems: "center", gap: 10, marginTop: 8,
-        fontSize: TF.SMALL, color: C.TEXT_3, flexWrap: "wrap",
+        fontSize: FS.sm, color: C.TEXT_3, flexWrap: "wrap",
       }}>
-        <span style={{ color: C.TEXT_4 }}>Tests flagging each cell:</span>
+        <span>Tests flagging each cell:</span>
         {CONVERGENCE_RAMP.slice(1).map((color, i) => {
           const count = i + 1;
           const rs = convergenceRampStyle(count);

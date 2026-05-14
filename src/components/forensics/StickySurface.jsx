@@ -21,7 +21,7 @@
    chip lane; ForensicsBody mounts MinimapStrip there. The deeper
    table excerpt still defers to S126c-b modal. */
 
-import { C, TF, FW, FF, CR, SEV_VERDICT } from "../../constants/tokens.js";
+import { C, FS, FW, FF, CR, SEV_VERDICT } from "../../constants/tokens.js";
 import { MECHANISMS } from "../../constants/mechanisms.js";
 import { LANE_LABEL_TYPOGRAPHY } from "../shared/Section.jsx";
 import { FindingPill } from "./FindingPill.jsx";
@@ -146,7 +146,7 @@ export function StickySurface({ findings, severity, onActivateTest, minimapSlot 
       {severity != null && (
         <div style={{
           fontFamily: FF.UI,
-          fontSize: TF.BODY,
+          fontSize: FS.base,
           fontWeight: FW.SEMI,
           color: sevColor,
           padding: "8px 0",
