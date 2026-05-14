@@ -271,7 +271,7 @@ export function BatchView({ onBack }) {
         <button onClick={onBack} style={{background:C.WHITE,border:`1px solid ${C.BORDER}`,color:C.TEXT_2,padding:"6px 14px",borderRadius:CR.MD,fontSize:TF.BODY,cursor:"pointer",...M}}>
           ← Back to Import
         </button>
-        <h2 style={{margin:0,fontSize:TF.TITLE,color:C.TEXT}}>Batch Analysis</h2>
+        <h2 style={{margin:0,fontSize:TF.TITLE,color:C.TEXT}}>Batch analysis</h2>
       </div>
 
       {/* Drop zone for multiple files */}
@@ -331,7 +331,7 @@ export function BatchView({ onBack }) {
             <button onClick={handleCopy}
               style={{padding:"5px 14px",background:copied?UI.OK.bg:C.WHITE,border:"1px solid "+(copied?UI.OK.border:C.BORDER),
                 borderRadius:CR.MD,color:copied?UI.OK.text:C.TEXT_2,fontSize:TF.BODY,cursor:"pointer",...M,transition:"all 0.2s",fontWeight:FW.SEMI}}>
-              {copied?"✓ Copied":"📋 Copy all results"}
+              {copied?"✓ Copied":"Copy all results"}
             </button>
           </div>
           <table style={{width:"100%",borderCollapse:"collapse",fontSize:TF.BODY,...M}}>
@@ -343,7 +343,7 @@ export function BatchView({ onBack }) {
                 <th style={{padding:"8px 8px",textAlign:"center",fontWeight:FW.BOLD,color:C.TEXT}}>Rating</th>
                 <th style={{padding:"8px 8px",textAlign:"center",fontWeight:FW.BOLD,color:C.TEXT}}>Flagged</th>
                 <th style={{padding:"8px 8px",textAlign:"center",fontWeight:FW.BOLD,color:C.TEXT}}>Noted</th>
-                <th style={{padding:"8px 8px",textAlign:"left",fontWeight:FW.BOLD,color:C.TEXT}}>Flagged Tests</th>
+                <th style={{padding:"8px 8px",textAlign:"left",fontWeight:FW.BOLD,color:C.TEXT}}>Flagged tests</th>
                 <th style={{padding:"8px 8px",textAlign:"center",fontWeight:FW.BOLD,color:C.TEXT}}></th>
               </tr>
             </thead>

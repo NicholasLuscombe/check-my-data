@@ -38,7 +38,7 @@ export const STICKY_SURFACE_SELECTOR = '[data-sticky-surface="forensics"]';
 // header peer. Matches ForensicsCategoryBlock's dimension-header style:
 // FF.UI, FW.SEMI, TF.BODY, C.TEXT, no letter-spacing, no text-transform.
 // Sentence-case strings ("Dataset-wide patterns" / "Localised patterns")
-// — dimension headers use sentence case ("Copy, Paste, Edit"). Lane
+// — dimension headers use sentence case ("Copy, paste, edit"). Lane
 // labels and dimension headers are sibling label-of-content constructs;
 // section headers are the tier above (uppercase, tracked).
 const LANE_LABEL = {

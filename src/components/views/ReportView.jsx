@@ -618,7 +618,7 @@ export function ReportView({ results, importConfig, matrix, rowMap, onBack, onCh
 <div class="container">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
     <div>
-      <h1>Check My Data Report</h1>
+      <h1>Check My Data report</h1>
       <div class="subtitle">${esc(importConfig.fileName||"uploaded")} · ${nRows} rows × ${nCols} columns · Assay: ${esc(assayLabel)}</div>
     </div>
     <div>
@@ -628,7 +628,7 @@ export function ReportView({ results, importConfig, matrix, rowMap, onBack, onCh
   </div>
 
   <div class="section">
-    <h2>Annotated Data</h2>
+    <h2>Annotated data</h2>
     <div class="legend">
       <div class="legend-item"><div class="legend-swatch" style="background:${SIGNAL.RED.bg};border-color:${SIGNAL.RED.border}"></div>Block copy (matched columns)</div>
       <div class="legend-item"><div class="legend-swatch" style="background:${SIGNAL.AMBER.bg};border-color:${SIGNAL.AMBER.border}"></div>Duplicated row</div>
@@ -642,7 +642,7 @@ export function ReportView({ results, importConfig, matrix, rowMap, onBack, onCh
   </div>
 
   <div class="section">
-    <h2>Test Summary</h2>
+    <h2>Test summary</h2>
     ${summHtml}
   </div>
 </div>
@@ -808,7 +808,7 @@ export function ReportView({ results, importConfig, matrix, rowMap, onBack, onCh
               <div style={{position:"absolute",top:"100%",right:0,marginTop:4,zIndex:50,background:C.WHITE,border:`1px solid ${C.BORDER}`,borderRadius:CR.LG,boxShadow:"0 8px 24px rgba(0,0,0,.1)",minWidth:200,padding:"4px 0"}}
                 onMouseLeave={()=>setActionsOpen(false)}>
                 <button onClick={()=>{window.print();setActionsOpen(false)}} style={{display:"block",width:"100%",padding:"8px 16px",background:"none",border:"none",textAlign:"left",color:C.TEXT,fontSize:FS.base,fontWeight:FW.MED,cursor:"pointer",fontFamily:FF.UI}}>🖨 Print</button>
-                <button onClick={()=>{handleCopySummary();setActionsOpen(false)}} style={{display:"block",width:"100%",padding:"8px 16px",background:"none",border:"none",textAlign:"left",color:C.TEXT,fontSize:FS.base,fontWeight:FW.MED,cursor:"pointer",fontFamily:FF.UI}}>{copied?"✓ Copied":"📋 Copy summary"}</button>
+                <button onClick={()=>{handleCopySummary();setActionsOpen(false)}} style={{display:"block",width:"100%",padding:"8px 16px",background:"none",border:"none",textAlign:"left",color:C.TEXT,fontSize:FS.base,fontWeight:FW.MED,cursor:"pointer",fontFamily:FF.UI}}>{copied?"✓ Copied":"Copy summary"}</button>
                 <button onClick={()=>{handleExportExcel();setActionsOpen(false)}} style={{display:"block",width:"100%",padding:"8px 16px",background:"none",border:"none",textAlign:"left",color:C.TEXT,fontSize:FS.base,fontWeight:FW.MED,cursor:"pointer",fontFamily:FF.UI}}>📊 Export report</button>
                 <button onClick={()=>{setActionsOpen(false);handleExcelDownload()}} disabled={exporting} style={{display:"block",width:"100%",padding:"8px 16px",background:"none",border:"none",textAlign:"left",color:exporting?C.TEXT_3:C.TEXT,fontSize:FS.base,fontWeight:FW.MED,cursor:exporting?"wait":"pointer",fontFamily:FF.UI}}>
                   {exporting?"⏳ Exporting…":"📥 Export to Excel"}
@@ -1284,8 +1284,11 @@ export function ReportView({ results, importConfig, matrix, rowMap, onBack, onCh
                   <div style={{background:C.BG_L,border:`1px solid ${C.BORDER}`,borderRadius:CR.MD,padding:"12px 16px",fontSize:TF.DETAIL,color:C.TEXT_3,lineHeight:"1.6",fontFamily:"monospace",whiteSpace:"pre-wrap",maxHeight:"180px",overflow:"auto",marginBottom:"10px"}}>
                     {buildConsultationPrompt(results, importConfig, nRows, nCols, severity)}
                   </div>
-                  <button onClick={handleAIConsult} style={{padding:"8px 18px",background:aiCopied?SIGNAL.GREEN.dot:ACCENT.BLUE.color,border:"none",borderRadius:CR.MD,color:C.WHITE,fontWeight:FW.SEMI,fontSize:TF.BODY,cursor:"pointer",transition:"background 0.2s"}}>
-                    {aiCopied ? "✓ Copied to clipboard" : "📋 Copy prompt"}
+                  <button onClick={handleAIConsult}
+                    onMouseEnter={e => { if (!aiCopied) e.currentTarget.style.background = C.BG_L; }}
+                    onMouseLeave={e => { if (!aiCopied) e.currentTarget.style.background = C.BG; }}
+                    style={{padding:"8px 18px",background:aiCopied?SIGNAL.GREEN.dot:C.BG,border:aiCopied?"none":`1px solid ${C.BORDER}`,borderRadius:CR.MD,color:aiCopied?C.WHITE:C.TEXT,fontWeight:FW.MED,fontSize:TF.BODY,cursor:"pointer",transition:"background 0.2s"}}>
+                    {aiCopied ? "✓ Copied to clipboard" : "Copy prompt"}
                   </button>
                 </>
               )}

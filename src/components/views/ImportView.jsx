@@ -488,9 +488,19 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
           onDismiss={dismissPivot}
         />
       )}
+      {/* Privacy banner — load-bearing trust statement at top of ImportView */}
+      <div style={{background:UI.INFO.callout.bg,borderRadius:CR.LG,padding:"16px 20px",marginBottom:"16px",display:"flex",alignItems:"center",gap:"14px",width:"100%",boxSizing:"border-box"}}>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={UI.INFO.callout.rule} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{flexShrink:0}} aria-hidden="true">
+          <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+        <div style={{display:"flex",flexDirection:"column",lineHeight:1.3}}>
+          <div style={{fontSize:FS.base,fontWeight:FW.MED,color:C.TEXT}}>Your data never leaves your browser</div>
+          <div style={{fontSize:FS.sm,fontWeight:FW.NORM,color:C.TEXT_2}}>All analysis runs locally</div>
+        </div>
+      </div>
       {/* Upload zone — full drop zone before load, compact bar after */}
       {!data ? (
-        <div>
         <div onDragOver={e=>{e.preventDefault();setDragging(true);}} onDragLeave={()=>setDragging(false)}
           onDrop={e=>{e.preventDefault();setDragging(false);onFile(e.dataTransfer?.files?.[0]);}}
           style={{border:"2px dashed "+(dragging?CC.OBS:C.BORDER),borderRadius:CR.XL,padding:"48px 28px",
@@ -499,17 +509,12 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
           <p style={{color:C.TEXT,fontSize:FS.base,fontWeight:FW.NORM,marginTop:0,marginBottom:"12px"}}>Upload a dataset to begin analysis</p>
           <div style={{display:"flex",gap:"8px",alignItems:"center"}}>
             <label style={{cursor:"pointer",display:"inline-block",padding:"10px 24px",background:C.BG,border:`1px solid ${C.BORDER}`,borderRadius:CR.MD,color:C.TEXT,fontSize:FS.base,fontWeight:FW.MED}}>
-              Upload File
+              Upload file
               <input type="file" accept=".csv,.tsv,.txt,.xlsx,.xls" onChange={e=>onFile(e.target.files?.[0])} style={{display:"none"}}/>
             </label>
-            {onBatch&&<button onClick={onBatch} style={{padding:"10px 16px",background:C.BG,border:`1px solid ${C.BORDER}`,borderRadius:CR.MD,color:C.TEXT,fontSize:FS.base,cursor:"pointer",fontWeight:FW.MED}}>Batch Analysis</button>}
+            {onBatch&&<button onClick={onBatch} style={{padding:"10px 16px",background:C.BG,border:`1px solid ${C.BORDER}`,borderRadius:CR.MD,color:C.TEXT,fontSize:FS.base,cursor:"pointer",fontWeight:FW.MED}}>Batch analysis</button>}
           </div>
           <p style={{color:C.TEXT_3,fontSize:FS.sm,marginTop:"10px",marginBottom:0}}>Drop a .csv / .tsv / .xlsx file</p>
-        </div>
-        <div style={{textAlign:"center",marginTop:"20px"}}>
-          <div style={{fontSize:FS.base,fontWeight:FW.SEMI,color:C.TEXT,marginBottom:"4px"}}>🔒 Your data never leaves your computer</div>
-          <div style={{fontSize:FS.base,fontWeight:FW.NORM,color:C.TEXT_3}}>All analyses run in your browser. No data is uploaded, transmitted, or stored by this software.</div>
-        </div>
         </div>
       ) : (
         <div onDragOver={e=>{e.preventDefault();setDragging(true);}} onDragLeave={()=>setDragging(false)}
