@@ -23,6 +23,7 @@
 
 import { C, TF, FW, FF, CR, SEV_VERDICT } from "../../constants/tokens.js";
 import { MECHANISMS } from "../../constants/mechanisms.js";
+import { LANE_LABEL_TYPOGRAPHY } from "../shared/Section.jsx";
 import { FindingPill } from "./FindingPill.jsx";
 import { FindingChip } from "./FindingChip.jsx";
 
@@ -34,21 +35,9 @@ const STICKY_TOP = 0;
 // Exported as a selector so consumers don't repeat the magic string.
 export const STICKY_SURFACE_SELECTOR = '[data-sticky-surface="forensics"]';
 
-// Lane label is a dimension-header peer (S126b add-7), not a section-
-// header peer. Matches ForensicsCategoryBlock's dimension-header style:
-// FF.UI, FW.SEMI, TF.BODY, C.TEXT, no letter-spacing, no text-transform.
-// Sentence-case strings ("Dataset-wide patterns" / "Localised patterns")
-// — dimension headers use sentence case ("Copy, paste, edit"). Lane
-// labels and dimension headers are sibling label-of-content constructs;
-// section headers are the tier above (uppercase, tracked).
-const LANE_LABEL = {
-  fontFamily: FF.UI,
-  fontSize: TF.BODY,
-  fontWeight: FW.SEMI,
-  color: C.TEXT,
-  whiteSpace: "nowrap",
-  flexShrink: 0,
-};
+// Layout-only properties for the lane-label spans. Typography lives in
+// LANE_LABEL_TYPOGRAPHY (Section.jsx). Spread both at each consumer site.
+const LANE_LABEL_LAYOUT = { whiteSpace: "nowrap", flexShrink: 0 };
 
 // Severity-descending sort with alphabetical fallback within the tier.
 // Pills are always single-test (HIGH/MOD globals) so the sort key is the
@@ -173,7 +162,7 @@ export function StickySurface({ findings, severity, onActivateTest, minimapSlot 
           flexWrap: "wrap",
           marginBottom: (localisedChips.length > 0 || fallbackChips.length > 0) ? "8px" : 0,
         }}>
-          <span style={LANE_LABEL}>Dataset-wide patterns</span>
+          <span style={{ ...LANE_LABEL_TYPOGRAPHY, ...LANE_LABEL_LAYOUT }}>Dataset-wide patterns</span>
           <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
             {pills.map(f => (
               <FindingPill key={f.id} finding={f} onActivate={onActivateTest} />
@@ -187,7 +176,7 @@ export function StickySurface({ findings, severity, onActivateTest, minimapSlot 
           flexWrap: "wrap",
           marginBottom: fallbackChips.length > 0 ? "8px" : 0,
         }}>
-          <span style={LANE_LABEL}>Localised patterns</span>
+          <span style={{ ...LANE_LABEL_TYPOGRAPHY, ...LANE_LABEL_LAYOUT }}>Localised patterns</span>
           <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
             {localisedChips.map(f => (
               <FindingChip key={f.id} finding={f} onActivate={onActivateTest} />
@@ -205,7 +194,7 @@ export function StickySurface({ findings, severity, onActivateTest, minimapSlot 
           display: "flex", alignItems: "center", gap: "10px",
           flexWrap: "wrap",
         }}>
-          <span style={LANE_LABEL}>Patterns flagged broadly</span>
+          <span style={{ ...LANE_LABEL_TYPOGRAPHY, ...LANE_LABEL_LAYOUT }}>Patterns flagged broadly</span>
           <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
             {fallbackChips.map(f => (
               <FindingChip key={f.id} finding={f} onActivate={onActivateTest} />

@@ -9,7 +9,7 @@
    top. Section continues to compose SectionHeader + card body for
    sections that fit the standard mould. */
 
-import { C, FS, FW, CR } from "../../constants/tokens.js";
+import { C, FS, FW, FF, CR } from "../../constants/tokens.js";
 
 /** Section-header typography chrome — single source of truth for the
  *  numbered "1 · Summary" divider strip. S137 (Phase C.1): values
@@ -17,14 +17,29 @@ import { C, FS, FW, CR } from "../../constants/tokens.js";
  *  (lg / Semibold / C.TEXT / sans, sentence case, no tracking). Pre-S137
  *  values were 14px ALL CAPS C.TEXT_2 with 0.12em tracking — retired
  *  under the system's "ALL CAPS retires entirely / letter-spacing → 0"
- *  rule. Lane labels (StickySurface / DeepLookModal) keep their own
- *  local sub-header register (TF.BODY Semibold C.TEXT) — they're not
- *  consumers of this helper. */
+ *  rule. */
 export const SECTION_HEADER_TYPOGRAPHY = {
   fontSize: FS.lg,
   color: C.TEXT,
   fontWeight: FW.SEMI,
   whiteSpace: "nowrap",
+};
+
+/** Lane-label typography — dimension-header peers in §2 (StickySurface)
+ *  and in DeepLookModal. Sentence-case content-tier register, semibold,
+ *  C.TEXT body colour. Sized at FS.base so the label outranks adjacent
+ *  FindingChip / FindingPill content (FS.sm) without crossing into the
+ *  sub-heading register (FS.md). S149 (C.6+C.7): extracted from the
+ *  byte-identical local consts that lived in StickySurface and
+ *  DeepLookModal so register changes land in one place.
+ *
+ *  Layout-only properties (whiteSpace, flexShrink) stay at the consumer
+ *  spread sites — they're layout, not typography. */
+export const LANE_LABEL_TYPOGRAPHY = {
+  fontFamily: FF.UI,
+  fontSize: FS.base,
+  fontWeight: FW.SEMI,
+  color: C.TEXT,
 };
 
 /** Bare divider+title strip — same chrome as Section, no card body. */

@@ -252,6 +252,8 @@ stay unused if no surface needs the panel chrome.
 | Identity row value | base | Regular | C.TEXT | sans |
 | Tier word | base | Medium | tier | sans |
 | Tab (active) | base | Semibold | C.TEXT | sans |
+| Lane label (§2 + DeepLookModal) | base | Semibold | C.TEXT | sans |
+| Modal sub-context | sm | Regular | C.TEXT_2 | sans |
 | Tab (inactive) | base | Medium | C.TEXT_2 | sans |
 | Button | base | Medium | C.TEXT | sans |
 | Table header (semantic) | sm | Medium | C.TEXT | sans |
@@ -263,9 +265,9 @@ stay unused if no surface needs the panel chrome.
 | Aside callout body | sm | Regular | C.TEXT | sans |
 | Aside callout bullet lead | sm | Semibold | C.TEXT | sans |
 
-22 roles, 19 distinct tuples. Down from ~40 in pre-system inventory.
+24 roles, 19 distinct tuples. Down from ~40 in pre-system inventory.
 
-Note: prior versions of this doc cited "18 roles, 13 distinct tuples". Recount at S138 close (post-Phase C.2 surface migration) found the actual table contained more tuples than the summary line claimed. Whether this was original miscount at S134 lock or drift since lock is undetermined from available evidence; the numbers above reflect the current table as the source of truth going forward. Column title (verdict §1) role added during S138-fix4 as a co-consumer of the Sub-heading tuple — no new tuple introduced. Primary page-level action role added during S144 (ImportView Run Analyses post-S143 placement); shares `md Semibold` with sub-headings but text colour is `C.WHITE` on accent bg (chrome necessity), introducing one new tuple. The role is narrowly scoped: the singular action button that closes a configuration / setup page (currently ImportView's Run Analyses). Section-level CTAs (ReportView §4 Copy prompt) stay at canonical Button register (`base Medium C.TEXT sans`).
+Note: prior versions of this doc cited "18 roles, 13 distinct tuples". Recount at S138 close (post-Phase C.2 surface migration) found the actual table contained more tuples than the summary line claimed. Whether this was original miscount at S134 lock or drift since lock is undetermined from available evidence; the numbers above reflect the current table as the source of truth going forward. Column title (verdict §1) role added during S138-fix4 as a co-consumer of the Sub-heading tuple — no new tuple introduced. Primary page-level action role added during S144 (ImportView Run Analyses post-S143 placement); shares `md Semibold` with sub-headings but text colour is `C.WHITE` on accent bg (chrome necessity), introducing one new tuple. The role is narrowly scoped: the singular action button that closes a configuration / setup page (currently ImportView's Run Analyses). Section-level CTAs (ReportView §4 Copy prompt) stay at canonical Button register (`base Medium C.TEXT sans`). Lane label (§2 StickySurface + DeepLookModal) and Modal sub-context roles added during S149 (C.6+C.7 combined) — Lane label shares the `base Semibold C.TEXT` tuple with Tab (active); Modal sub-context shares `sm Regular C.TEXT_2` with Footnote/reference. Both are role-additions only, no new tuples.
 
 ## Implementation notes — for Phase B and Phase C
 

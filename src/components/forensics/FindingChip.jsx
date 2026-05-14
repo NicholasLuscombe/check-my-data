@@ -44,7 +44,7 @@ function chipStyle(severity) {
     return {
       bg: sev.bg,
       border: sev.color,
-      text: sev.color,
+      color: sev.color,
       pulseColor: sev.color,
     };
   }
@@ -52,7 +52,7 @@ function chipStyle(severity) {
   return {
     bg: C.BG_L,
     border: C.BORDER,
-    text: C.TEXT_2,
+    color: C.TEXT_2,
     pulseColor: SEV_VERDICT[0].color,
   };
 }
