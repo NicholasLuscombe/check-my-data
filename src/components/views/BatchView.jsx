@@ -331,7 +331,7 @@ export function BatchView({ onBack }) {
             <button onClick={handleCopy}
               style={{padding:"5px 14px",background:copied?UI.OK.bg:C.WHITE,border:"1px solid "+(copied?UI.OK.border:C.BORDER),
                 borderRadius:CR.MD,color:copied?UI.OK.text:C.TEXT_2,fontSize:TF.BODY,cursor:"pointer",...M,transition:"all 0.2s",fontWeight:FW.SEMI}}>
-              {copied?"✓ Copied":"📋 Copy all results"}
+              {copied?"✓ Copied":"Copy all results"}
             </button>
           </div>
           <table style={{width:"100%",borderCollapse:"collapse",fontSize:TF.BODY,...M}}>

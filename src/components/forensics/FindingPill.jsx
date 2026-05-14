@@ -7,7 +7,7 @@
    pulse fires. Pulse from card-side click also lands here via the shared
    PulseProvider. */
 
-import { TF, FW, FF, CR, SEV_VERDICT, MECH_COLOR } from "../../constants/tokens.js";
+import { FS, FW, FF, CR, SEV_VERDICT, MECH_COLOR } from "../../constants/tokens.js";
 import { TEST_MECHANISM } from "../../constants/mechanisms.js";
 import { usePulseTrigger } from "./pulseContext.jsx";
 import { usePulseAnimation } from "./PulseStyle.jsx";
@@ -69,7 +69,7 @@ export function FindingPill({ finding, onActivate }) {
         borderRadius: CR.MD,
         boxShadow: stripeShadow,
         color: sev.color,
-        fontSize: TF.DETAIL,
+        fontSize: FS.sm,
         fontFamily: FF.UI,
         fontWeight: FW.SEMI,
         cursor: "pointer",

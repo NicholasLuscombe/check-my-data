@@ -27,7 +27,7 @@
    matching minimap region overlay. Scroll handling lives in ReportView
    via onActivate(firstTestId). */
 
-import { C, TF, FW, FF, CR, SEV_VERDICT, MECH_COLOR } from "../../constants/tokens.js";
+import { C, FS, FW, FF, CR, SEV_VERDICT, MECH_COLOR } from "../../constants/tokens.js";
 import { MECHANISMS } from "../../constants/mechanisms.js";
 import { usePulseTrigger } from "./pulseContext.jsx";
 import { usePulseAnimation } from "./PulseStyle.jsx";
@@ -112,7 +112,7 @@ export function FindingChip({ finding, onActivate, showRegionNumber = false }) {
         borderRadius: CR.MD,
         boxShadow: stripeShadow,
         color: sev.color,
-        fontSize: TF.DETAIL,
+        fontSize: FS.sm,
         fontFamily: FF.UI,
         fontWeight: FW.SEMI,
         cursor: "pointer",
