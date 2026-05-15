@@ -1281,7 +1281,7 @@ export function ReportView({ results, importConfig, matrix, rowMap, onBack, onCh
                   <div style={{fontSize:FS.base,color:C.TEXT,lineHeight:"1.6",marginBottom:"12px"}}>
                     Copy the prompt below and paste it into Claude or another AI assistant for help interpreting these findings and planning next steps.
                   </div>
-                  <div style={{background:C.BG_L,border:`1px solid ${C.BORDER}`,borderRadius:CR.MD,padding:"12px 16px",fontSize:FS.sm,color:C.TEXT,lineHeight:"1.6",fontFamily:FF.MONO,whiteSpace:"pre-wrap",maxHeight:"180px",overflow:"auto",marginBottom:"10px"}}>
+                  <div style={{background:C.BG_L,border:`1px solid ${C.BORDER}`,borderRadius:CR.MD,padding:"12px 16px",fontSize:FS.sm,fontWeight:FW.NORM,color:C.TEXT,lineHeight:"1.6",fontFamily:FF.MONO,whiteSpace:"pre-wrap",maxHeight:"180px",overflow:"auto",marginBottom:"10px"}}>
                     {buildConsultationPrompt(results, importConfig, nRows, nCols, severity)}
                   </div>
                   <button onClick={handleAIConsult}

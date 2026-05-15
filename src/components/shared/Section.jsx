@@ -42,6 +42,20 @@ export const LANE_LABEL_TYPOGRAPHY = {
   color: C.TEXT,
 };
 
+/** Minimap callout typography — inline-bold-prefix-plus-body pattern used at
+ *  the strip caption in §2 (MinimapStrip) and at the deep-look-modal
+ *  equivalent (ExcerptTable). Bold prefix and body declared as separate
+ *  spans at consumer sites; this export carries the shared base register.
+ *  Bold-prefix sites override `fontWeight` to `FW.SEMI`; the body inherits
+ *  `FW.NORM` from this export. S149-fix1 (C.4 + C.7 remainder): extracted
+ *  to retire byte-similar inline declarations across the two consumers. */
+export const MINIMAP_CALLOUT_TYPOGRAPHY = {
+  fontFamily: FF.UI,
+  fontSize: FS.base,
+  fontWeight: FW.NORM,
+  color: C.TEXT,
+};
+
 /** Bare divider+title strip — same chrome as Section, no card body. */
 export function SectionHeader({ number, title }) {
   return (

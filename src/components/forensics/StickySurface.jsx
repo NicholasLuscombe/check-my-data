@@ -146,7 +146,7 @@ export function StickySurface({ findings, severity, onActivateTest, minimapSlot 
       {severity != null && (
         <div style={{
           fontFamily: FF.UI,
-          fontSize: FS.base,
+          fontSize: FS.md,
           fontWeight: FW.SEMI,
           color: sevColor,
           padding: "8px 0",
