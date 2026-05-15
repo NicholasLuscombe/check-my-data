@@ -46,17 +46,21 @@
    Reverse direction (badge → chip) wired via the badge handler. */
 
 import { useMemo, useRef, useState, useCallback } from "react";
-import { Section } from "../shared/Section.jsx";
+import { Section, MINIMAP_CALLOUT_TYPOGRAPHY } from "../shared/Section.jsx";
 import { MECHANISM_ORDER, TEST_MECHANISM } from "../../constants/mechanisms.js";
 import { CATEGORY_SHORT_DESCRIPTIONS } from "../../constants/descriptions.js";
-import { C, TF, FW, FF } from "../../constants/tokens.js";
+import { C, FW } from "../../constants/tokens.js";
 import { StickySurface, STICKY_SURFACE_SELECTOR, shouldRenderSticky } from "./StickySurface.jsx";
 import { ForensicsCategoryBlock } from "./ForensicsCategoryBlock.jsx";
 import { MinimapStrip } from "./MinimapStrip.jsx";
 import { DeepLookModal } from "./DeepLookModal.jsx";
 import { usePulseTrigger } from "./pulseContext.jsx";
 
-const CLEAN_STATE_COPY = "All checks passed — no patterns to flag.";
+// S150-fix1: clean-state copy renders as bold sentence-lead + body
+// continuation, co-consuming MINIMAP_CALLOUT_TYPOGRAPHY. Body-prose
+// register lifts the empty-state from sub-body 13px to FS.base 16px.
+const CLEAN_STATE_LEAD = "All checks passed";
+const CLEAN_STATE_TAIL = " — no patterns to flag.";
 
 // Visual gap between the pinned sticky surface's bottom edge and the
 // scrolled-into-view card title (px). Used by `scrollToCard` below.
@@ -255,12 +259,9 @@ export function ForensicsBody({
             />
           </>
         : <Section number={2} title="What was found">
-            <div style={{
-              fontSize: TF.BODY,
-              fontFamily: FF.UI,
-              color: C.TEXT_2,
-            }}>
-              {CLEAN_STATE_COPY}
+            <div>
+              <span style={{ ...MINIMAP_CALLOUT_TYPOGRAPHY, fontWeight: FW.SEMI }}>{CLEAN_STATE_LEAD}</span>
+              <span style={MINIMAP_CALLOUT_TYPOGRAPHY}>{CLEAN_STATE_TAIL}</span>
             </div>
           </Section>
       }
