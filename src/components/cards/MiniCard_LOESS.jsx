@@ -3,23 +3,18 @@ import { EvidenceTable } from "../shared/EvidenceTable.jsx";
 import { PlotLayout } from "../shared/PlotLayout.jsx";
 import { ChartLegend } from "../shared/ChartLegend.jsx";
 import { NoiseProfilePlot } from "../plots/NoiseProfilePlot.jsx";
-import { C, CC, TF, FW, FF } from "../../constants/tokens.js";
-import { fmtPBadge, fmtPOp } from "../../constants/thresholds.js";
+import { CC, FF } from "../../constants/tokens.js";
+import { fmtPBadge } from "../../constants/thresholds.js";
 import { makeRowMapper } from "../shared/coordinates.js";
 import { SUB_HEAD } from "../shared/styles.js";
 
 
 export function MiniCard_LOESS({ result, importConfig, rowMap }) {
-  const details = result.details || [];
-  const isAgg = result.groupsAssessed !== undefined;
-
   // Coordinate mapping
   const { fileRow, toFileRow } = makeRowMapper(importConfig, rowMap);
 
   const cpRow = result.changepointRow;
   const hasCP = cpRow != null && cpRow !== "—" && String(result.cusumP) !== "—";
-  const scanPNum = typeof result.scanP === "number" ? result.scanP : parseFloat(result.scanP);
-  const cusumPNum = typeof result.cusumP === "number" ? result.cusumP : parseFloat(result.cusumP);
   const regions = result.regionComparison || [];
 
   // Coordinate-mapped display values
@@ -30,26 +25,8 @@ export function MiniCard_LOESS({ result, importConfig, rowMap }) {
     ? `${toFileRow(parseInt(bestWinParts[1]))}–${toFileRow(parseInt(bestWinParts[2]))}`
     : result.bestWindowRows || "—";
 
-  // Plain-English headline
-  let headline;
-  if (result.flag === "LOW") {
-    headline = "Noise character is consistent across all rows — no localised changes detected.";
-  } else if (result.pairPromoted && result.flag !== "LOW") {
-    const bp = result.pairResults?.reduce((a, b) => (a.adjP||1) < (b.adjP||1) ? a : b, {adjP:1, pair:"?"});
-    headline = `Pooled noise is consistent, but cols ${bp.pair} show a localised noise inconsistency that the pooled analysis dilutes.`;
-  } else if (hasCP && result.bestWindowRows) {
-    headline = `Noise changes ${cpBetween} — rows ${bestWinDisplay} have ${result.bestDirection||"different"} noise than the rest of the dataset.`;
-  } else if (result.bestWindowRows) {
-    headline = `Rows ${bestWinDisplay} have ${result.bestDirection||"different"} noise (${result.bestVarRatio||"?"} variance ratio) — inconsistent with the rest of the dataset.`;
-  } else if (hasCP) {
-    headline = `Noise level shifts ${cpBetween} (${result.changepointDirection}) — the dataset's noise is not uniform throughout.`;
-  } else {
-    headline = "Noise character varies across the dataset in a pattern inconsistent with uniform experimental conditions.";
-  }
-
   return (
-    <MiniCardLayout result={result} headline={headline}
-      desc={result.description}
+    <MiniCardLayout result={result}
       footer={<>
         {result.nValidRows||"?"} rows · {result.nWindows||"?"} windows scanned
         {result.bestDirection && result.bestDirection !== "—" && ` · best window: ${result.bestDirection}`}

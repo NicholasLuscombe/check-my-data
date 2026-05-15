@@ -21,17 +21,6 @@ export function MiniCard_Mahalanobis({ result, importConfig, rowMap }) {
     : (result.nRows || 0);
   const pctStr = totalRows > 0 ? ((totalOutliers / totalRows) * 100).toFixed(1) + "%" : "0%";
 
-  let headline;
-  if (result.flag === "LOW") {
-    headline = totalOutliers > 0
-      ? `${totalOutliers} potential outlier${totalOutliers !== 1 ? "s" : ""} (${pctStr}) — below significance threshold.`
-      : "All rows fit the dataset's overall pattern.";
-  } else if (result.flag === "HIGH") {
-    headline = `${totalOutliers} rows (${pctStr}) don't fit the dataset's pattern — far more than expected by chance.`;
-  } else {
-    headline = `${totalOutliers} row${totalOutliers !== 1 ? "s have" : " has"} unusual values that don't match the rest of the dataset's pattern.`;
-  }
-
   // Coordinate mapping
   const { fileRow } = makeRowMapper(importConfig, rowMap);
 
@@ -57,7 +46,7 @@ export function MiniCard_Mahalanobis({ result, importConfig, rowMap }) {
   legendItems.push({ color: CC.THRESH, label: "Threshold", swatchType: "line", dashed: true, opacity: 0.7 });
 
   return (
-    <MiniCardLayout result={result} headline={headline}
+    <MiniCardLayout result={result}
       footer={`${totalRows} rows tested · ${totalOutliers} outlier${totalOutliers!==1?"s":""} (${pctStr}) · ${fmtPBadge(result.primaryP)}`}
       lookFor="Outlier rows have values that don't fit the multivariate pattern of the rest of the data — they may have been manually edited, transcribed from a different source, or constructed independently. Check whether the flagged rows correspond to key experimental results (e.g. the treatment group showing the desired effect). Look at the specific values in those rows: are they rounder, more regular, or inconsistent with the instrument's precision?"
       implications="Rows that are multivariate outliers — plausible individually but unusual in combination — can result from genuine biological outlier samples or heavy-tailed distributions. They can also indicate rows where values were generated independently rather than drawn from the same multivariate distribution as the rest of the data.">

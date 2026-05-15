@@ -5,7 +5,7 @@
    Forensics adds p-value and method line. */
 
 import { useState } from "react";
-import { C, TF, FW, FF, CR, SEV_VERDICT } from "../../constants/tokens.js";
+import { C, TF, FS, FW, FF, CR, SEV_VERDICT } from "../../constants/tokens.js";
 import { DISPLAY_NAMES, TEST_DESCRIPTIONS, TEST_METHODS } from "../../constants/mechanisms.js";
 import { fmtPBadge } from "../../constants/thresholds.js";
 
@@ -81,9 +81,13 @@ export function TestCardLayout({ result, mode, expanded, onToggle, onSeverityBad
         <div style={{ marginTop: "10px" }}>
           {showMethod && methodText && (
             <div style={{marginBottom:"8px"}}>
+              {/* Collapsible toggle — sm Semibold C.TEXT (B2 lock, co-consumes
+                  Aside callout bullet-lead tuple). Chevron is an icon glyph at
+                  a hardcoded literal per the §"What this system does NOT
+                  cover" carve-out. */}
               <div onClick={() => setMethodOpen(o => !o)}
-                style={{fontSize:TF.DETAIL,color:C.TEXT_3,cursor:"pointer",fontWeight:FW.SEMI,padding:0,fontFamily:FF.UI}}>
-                <span style={{fontSize:TF.DETAIL,marginRight:"4px"}}>{methodOpen ? "▾" : "▸"}</span>
+                style={{fontSize:FS.sm,color:C.TEXT,cursor:"pointer",fontWeight:FW.SEMI,padding:0,fontFamily:FF.UI}}>
+                <span style={{fontSize:"14px",marginRight:"4px"}}>{methodOpen ? "▾" : "▸"}</span>
                 How this test works
               </div>
               {methodOpen && (

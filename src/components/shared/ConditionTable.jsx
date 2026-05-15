@@ -1,7 +1,6 @@
 import { C, TF, FW, FF, CR, CC, SIGNAL, BADGE } from "../../constants/tokens.js";
 import { EvidenceTable } from "./EvidenceTable.jsx";
-
-const SUB_HEAD = { fontSize: TF.DETAIL, fontFamily: FF.UI, fontWeight: FW.SEMI, color: C.TEXT_3, marginBottom: "8px" };
+import { SUB_HEAD } from "./styles.js";
 
 /** Per-condition breakdown table — shared by ConstOffset, Autocorr, Runs, RegNoise.
  *  columns: [{header, align?, bold?, render: row => value}]. Last column is always p-coloured.

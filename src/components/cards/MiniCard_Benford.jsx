@@ -2,39 +2,22 @@ import { MiniCardLayout } from "../shared/CardLayout.jsx";
 import { PlotLayout } from "../shared/PlotLayout.jsx";
 import { ChartLegend } from "../shared/ChartLegend.jsx";
 import { VBarPlot } from "../plots/VBarPlot.jsx";
-import { C, TF, FW, FF, CC } from "../../constants/tokens.js";
+import { CC } from "../../constants/tokens.js";
 import { fmtPBadge } from "../../constants/thresholds.js";
 import { SUB_HEAD } from "../shared/styles.js";
 
 
 export function MiniCard_Benford({ result, importConfig, rowMap }) {
   const details = result.details || [];
-  const sub = result.subDetails || [];
   const name = result.name;
-  const isAgg = result.groupsAssessed !== undefined;
 if(!details.length) return null;
 const isSecond = name.includes("Second");
 const items=details.map(d=>({...d,
   expNum:parseFloat(d.benfordPct)||0,
   obsNum:parseFloat(d.observedPct)||0}));
-let headline;
-if (result.flag === "LOW") {
-  headline = isSecond
-    ? "Second digits follow the expected Benford distribution."
-    : "First digits follow Benford's law — consistent with naturally occurring data.";
-} else {
-  const worst = [...items].sort((a,b) => Math.abs(b.obsNum - b.expNum) - Math.abs(a.obsNum - a.expNum))[0];
-  headline = worst
-    ? `Digit ${worst.digit} appears at ${worst.obsNum.toFixed(1)}% (Benford predicts ${worst.expNum.toFixed(1)}%) — ${isSecond ? "second" : "first"} digits deviate from the expected distribution.`
-    : `${isSecond ? "Second" : "First"} digits deviate from the expected Benford distribution.`;
-}
-const desc = isSecond
-  ? "Second digits in real measurement data follow a near-uniform distribution with a slight Benford skew. Fabricated data often shows preferences for certain second digits — especially 0 and 5 from rounding."
-  : "In naturally occurring datasets, the first significant digit is not equally likely — smaller digits (1, 2, 3) appear more often than larger ones, following Benford's law. Fabricated data tends to be too uniform or shows unusual digit preferences.";
 return (
 
-  <MiniCardLayout result={result} headline={headline}
-    desc={desc}
+  <MiniCardLayout result={result}
     footer={<>
       {result.nValues||"?"} values tested · χ²={result.chiSquared||"?"} · df={result.df||"?"} · {fmtPBadge(result.primaryP)}
     </>}

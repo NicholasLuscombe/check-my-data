@@ -20,24 +20,11 @@ export function MiniCard_DecimalPrecision({ result, importConfig, rowMap }) {
   });
   const hasGap = filledItems.some(d => d.isGap);
 
-  let headline;
-  if (result.flag === "LOW") {
-    headline = "Values use a consistent number of decimal places — typical of instrument output.";
-  } else if (hasGap) {
-    const gapDps = filledItems.filter(d => d.isGap).map(d => d.decimalPlaces);
-    headline = `Decimal place${gapDps.length > 1 ? "s" : ""} ${gapDps.join(", ")} entirely absent — a gap in precision levels that instruments don't produce.`;
-  } else {
-    headline = "The distribution of decimal places is inconsistent with a single fixed-precision instrument.";
-  }
-
-  const desc = "Instruments output values at a fixed decimal precision (or a smooth distribution from trailing-zero stripping). Fabricated data often mixes precisions — some values to 1 decimal place, others to 3 — or skips precision levels entirely.";
-
   const gapCount = (result.details || []).filter(d => d.deficit === true || parseFloat(d.ratio) < 0.5).length;
   const implications = `${gapCount || "Some"} precision level${gapCount !== 1 ? "s" : ""} show${gapCount === 1 ? "s" : ""} fewer values than the trailing-zero model predicts. A dataset recorded by a single instrument at consistent settings typically shows one dominant precision level with a smooth tail from trailing-zero stripping. Gaps or deficits in this pattern can indicate values from different sources, manual editing, or changes in recording precision mid-experiment.`;
 
   return (
-    <MiniCardLayout result={result} headline={headline}
-      desc={desc}
+    <MiniCardLayout result={result}
       implications={implications}
       footer={<>
         {result.nDecimalValues || "?"} values · {details.length} precision levels · max {maxDp} dp · {result.primaryP != null ? fmtPBadge(result.primaryP) : "structural test (no p-value)"}

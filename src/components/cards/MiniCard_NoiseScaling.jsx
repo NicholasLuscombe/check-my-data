@@ -6,33 +6,13 @@ import { C, TF, FF } from "../../constants/tokens.js";
 import { fmtPBadge } from "../../constants/thresholds.js";
 
 export function MiniCard_NoiseScaling({ result, importConfig, rowMap }) {
-  const details = result.details || [];
-  const sub = result.subDetails || [];
-  const name = result.name;
-  const isAgg = result.groupsAssessed !== undefined;
 if(!result.logPoints||!result.logPoints.length) return null;
 const obs=parseFloat(result.observedSlope)||0;
-const exp=result.expectedSlope!=null&&result.expectedSlope!=="—"?parseFloat(result.expectedSlope):null;
 const se=parseFloat(result.slopeSE)||0;
-// Plain-English headline — numbers live in the chart legend
 const assayLabel = result.assay === "general" ? "this measurement type" : (ASSAYS.find(a=>a.v===result.assay)?.l || result.assay).toLowerCase();
-let headline;
-if(exp===null){
-  headline=`Select an assay type to compare noise scaling against an expected pattern.`;
-} else if(result.flag==="LOW"){
-  headline=`Noise pattern is consistent with ${assayLabel} data.`;
-} else {
-  const slopeDesc=obs<0?"Noise decreases as measurements get larger"
-    :obs<0.3?"Noise is nearly constant regardless of measurement size"
-    :obs>2.5?"Noise grows much faster than expected for measurement size"
-    :obs<exp?"Noise grows more slowly than expected with measurement size"
-    :"Noise grows faster than expected with measurement size";
-  headline=`${slopeDesc} — unusual for ${assayLabel}.`;
-}
 return (
 
-  <MiniCardLayout result={result} headline={headline}
-    desc={result.description}
+  <MiniCardLayout result={result}
     footer={`${result.nPoints||"?"} column pairs · slope ${obs.toFixed(2)} (expected ${result.expectedSlope||"?"}) · ${fmtPBadge(result.primaryP)}`}
     lookFor={obs < 0.3 ? "Nearly constant noise regardless of signal size is unusual for most biological assays — it can indicate that noise was added artificially (e.g. from a random number generator with fixed variance). Check whether the variance of replicates is suspiciously uniform across high and low measurements." : obs > 2 ? "Noise that grows much faster than expected can indicate data constructed by scaling a template — multiplying a base pattern by different factors amplifies both signal and noise proportionally, steepening the slope." : "The noise-to-signal relationship doesn't match what this instrument type typically produces. Compare against other datasets from the same instrument and protocol to determine whether this pattern is unusual for your lab." }
     implications="The observed noise-magnitude relationship does not match the expected pattern for this instrument type. This can result from analysing data from a different assay than selected, applying an incorrect transformation, or mixing data from instruments with different noise characteristics. It can also indicate that noise was added or generated using a model that does not match the instrument's actual behaviour.">

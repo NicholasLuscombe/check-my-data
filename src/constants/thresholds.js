@@ -7,7 +7,6 @@ export const FLAG_STYLES = {
   "N/A":    { bg:C.BG,            border:C.BORDER,            text:C.TEXT_3,           dot:C.TEXT_4,         label:"N/A" },
   ERROR:    { bg:SIGNAL.RED.bg,   border:"#fca5a5",           text:SIGNAL.RED.text,    dot:"#dc2626",        label:"ERROR" },
 };
-export const HEADLINE_COLOR = { LOW:SIGNAL.GREEN.dot, MODERATE:SIGNAL.AMBER.dot, HIGH:SIGNAL.RED.dot };
 export const PLOT_FC = { HIGH:SIGNAL.RED.dot, MODERATE:SIGNAL.AMBER.dot, LOW:SIGNAL.GREEN.dot, "N/A":C.TEXT_4 };
 
 // Shared significance thresholds — single source of truth for all tests.

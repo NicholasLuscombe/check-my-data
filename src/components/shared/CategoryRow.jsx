@@ -8,6 +8,7 @@ import { C, TF, FW, CR, SIGNAL, SEV_VERDICT } from "../../constants/tokens.js";
 import { DISPLAY_NAMES, TEST_DESCRIPTIONS } from "../../constants/mechanisms.js";
 import { fmtP } from "../../constants/thresholds.js";
 import { TestCardLayout } from "./TestCardLayout.jsx";
+import { ClusterRow } from "./ClusterRow.jsx";
 import { TestCard } from "../cards/TestCard.jsx";
 
 /**
@@ -49,21 +50,17 @@ export function CategoryRow({
   return (
     <div style={{paddingBottom:isExpanded?"4px":"0"}}>
       {/* ── Category header row — sidebar lives here only ── */}
-      <div style={{
-        padding:"10px 10px",
-        borderLeft:`3px solid ${flagColor}`,
-      }}>
-        <div
-          style={{display:"flex",alignItems:"center",gap:"8px",cursor:isExpandable?"pointer":"default"}}
-          onClick={isExpandable ? onToggle : undefined}
-        >
-          <span style={{color:flagColor,fontSize:"15px",flexShrink:0}}>{isFlagged?"\u26A0\uFE0E":"\u2713\uFE0E"}</span>
-          <span style={{fontWeight:FW.SEMI,color:C.TEXT,fontSize:TF.BODY}}>{label}</span>
-          <span style={{color:C.TEXT_3,fontSize:TF.DETAIL,flexShrink:0}}>({checkCount} {countNoun}{checkCount !== 1 ? "s" : ""})</span>
-          <span style={{color:C.TEXT_3,fontSize:TF.BODY,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",minWidth:0}}>— {description}</span>
-          {isExpandable && <span style={{color:C.TEXT_2,fontSize:"14px",marginLeft:"auto",flexShrink:0}}>{isExpanded?"▾":"▸"}</span>}
-        </div>
-      </div>
+      <ClusterRow
+        label={label}
+        count={checkCount}
+        description={description}
+        noun={countNoun}
+        isFlagged={isFlagged}
+        flagColor={flagColor}
+        isExpanded={isExpanded}
+        isExpandable={isExpandable}
+        onToggle={onToggle}
+      />
 
       {/* ── Expanded content — no sidebar ── */}
       {isExpanded && isExpandable && (

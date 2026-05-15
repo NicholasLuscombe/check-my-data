@@ -28,20 +28,6 @@ export function MiniCard_Kurtosis({ result, importConfig, rowMap }) {
   const isPlat = kDev != null ? kDev < 0 : (pk != null && pk < -0.5);
   const isLepto = kDev != null ? kDev > 0 : (pk != null && pk > 0.5);
 
-  // Plain-English headline
-  let headline;
-  if (result.flag === "LOW" || result.flag === "N/A") {
-    headline = "Noise between replicates follows expected patterns.";
-  } else if (isPlat) {
-    headline = "Replicate noise is unusually uniform — values are too evenly spaced to be random.";
-  } else if (isLepto) {
-    headline = "Replicates agree too closely most of the time, with occasional large discrepancies.";
-  } else {
-    headline = "Replicate noise shape differs significantly from what's expected.";
-  }
-
-  const descText = result.description;
-
   // ── Chart legend ──
   const legendItems = [
     { color: CC.OBS, label: "Observed", opacity: 0.35 },
@@ -49,8 +35,7 @@ export function MiniCard_Kurtosis({ result, importConfig, rowMap }) {
   ];
 
   return (
-    <MiniCardLayout result={result} headline={headline}
-      desc={descText}
+    <MiniCardLayout result={result}
       footer={<>
         {result.nPairs} replicate pair{result.nPairs !== 1 ? "s" : ""} tested
         {isPlat ? " · too uniform (platykurtic)" : isLepto ? " · too peaked (leptokurtic)" : ""}

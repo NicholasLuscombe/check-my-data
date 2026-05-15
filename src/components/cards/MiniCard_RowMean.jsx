@@ -14,19 +14,7 @@ const CROSSING_COLOR = "#4A3D8F";
 const RUN_COLOR = "#A0A0CC";
 
 export function MiniCard_RowMean({ result, importConfig, rowMap }) {
-  const details = result.details || [];
-  const sub = result.subDetails || [];
-  const name = result.name;
   const isAgg = result.groupsAssessed !== undefined;
-let headline;
-if (result.flag === "LOW") {
-  headline = "Row means follow a random pattern — no systematic trends detected.";
-} else if (result.bestWindowRows) {
-  headline = `Rows ${result.bestWindowRows} show a systematic pattern in row means — values trend in one direction rather than fluctuating randomly.`;
-} else {
-  headline = "Row means show a systematic pattern — successive rows trend together rather than fluctuating randomly.";
-}
-const desc = "Computes the average value for each row and tracks how often it crosses the dataset-wide mean. Too few crossings (a sign-change runs test, specifically Wald\u2013Wolfowitz) indicates trending rather than random fluctuation.";
 
 // Condition label for the best sequence
 const bestLabel = result.bestSequence?.replace(/^Cond:\s*/, "") || null;
@@ -58,8 +46,7 @@ const condColor = bestLabel ? condColorMap[bestLabel]?.text : null;
 
 return (
 
-  <MiniCardLayout result={result} headline={headline}
-    desc={desc}
+  <MiniCardLayout result={result}
     footer={<>
       {result.firstPairSigns?.length||"?"} rows · {(result.firstPairRuns||1) - 1} crossings (expected <span style={{color:CC.EXP_SOFT}}>{(result.firstPairExp||1) - 1}</span>)
       {result.bestWindowRows && ` · anomaly: rows ${result.bestWindowRows}`}

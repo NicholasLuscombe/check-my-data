@@ -2,13 +2,19 @@
    Every evidence/data table in the app should use this component.
    Font split: <th> and identifier <td>s use FF.UI (sans-serif),
    data <td>s use FF.MONO (monospace — crossbar 0s, fixed-width digits).
-   Callers only override colour/background for flag highlighting. */
+   Callers only override colour/background for flag highlighting.
 
-import { C, TF, FW, FF, CR } from "../../constants/tokens.js";
+   S150 (C.8 / B5): cell sizes pegged to FS.xs (13px) per TYPOGRAPHY-SYSTEM.md
+   § Tables row; header retuned to sm Medium C.TEXT per Table header (semantic).
+   Footer slot retuned to Footnote/reference (sm Regular C.TEXT_2). Pre-S150
+   the table carried a redundant element-level fontSize override; retired in
+   favour of explicit per-cell styles. */
 
-const TH = { padding:"6px 8px", fontSize:TF.DETAIL, fontFamily:FF.UI, fontWeight:FW.SEMI, color:C.TEXT_3, textAlign:"center", borderBottom:`1px solid ${C.BORDER_L}`, whiteSpace:"nowrap", background:C.BG_L, position:"sticky", top:0, zIndex:1 };
-const TD_DATA = { padding:"4px 8px", fontSize:TF.DETAIL, fontFamily:FF.MONO, fontVariantNumeric:"tabular-nums", textAlign:"center", whiteSpace:"nowrap" };
-const TD_ID   = { padding:"4px 8px", fontSize:TF.DETAIL, fontFamily:FF.UI, textAlign:"center", whiteSpace:"nowrap" };
+import { C, FS, FW, FF, CR } from "../../constants/tokens.js";
+
+const TH = { padding:"6px 8px", fontSize:FS.sm, fontFamily:FF.UI, fontWeight:FW.MED, color:C.TEXT, textAlign:"center", borderBottom:`1px solid ${C.BORDER_L}`, whiteSpace:"nowrap", background:C.BG_L, position:"sticky", top:0, zIndex:1 };
+const TD_DATA = { padding:"4px 8px", fontSize:FS.xs, fontFamily:FF.MONO, fontVariantNumeric:"tabular-nums", textAlign:"center", whiteSpace:"nowrap" };
+const TD_ID   = { padding:"4px 8px", fontSize:FS.xs, fontFamily:FF.UI, textAlign:"center", whiteSpace:"nowrap" };
 
 /**
  * @param {object} props
@@ -34,7 +40,7 @@ export function EvidenceTable({ columns, rows, identifierColumns = 0, maxHeight 
   return (
     <>
       <div style={containerStyle}>
-        <table style={{ borderCollapse: "collapse", width: "100%", fontSize: TF.DETAIL }}>
+        <table style={{ borderCollapse: "collapse", width: "100%" }}>
           <thead>
             <tr style={{ background: C.BG_L }}>
               {cols.map((c, i) => (
@@ -66,7 +72,7 @@ export function EvidenceTable({ columns, rows, identifierColumns = 0, maxHeight 
           </tbody>
         </table>
       </div>
-      {footerText && <div style={{ fontSize: TF.DETAIL, fontFamily: FF.UI, color: C.TEXT_3, marginTop: "6px" }}>{footerText}</div>}
+      {footerText && <div style={{ fontSize: FS.sm, fontFamily: FF.UI, color: C.TEXT_2, marginTop: "6px" }}>{footerText}</div>}
     </>
   );
 }

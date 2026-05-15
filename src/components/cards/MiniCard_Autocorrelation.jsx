@@ -1,6 +1,6 @@
 /* ── MiniCard: Autocorrelation ── */
 
-import { C, CC, TF, FW, FF, CHART, SIGNAL } from "../../constants/tokens.js";
+import { C, CC, FW, CHART, SIGNAL } from "../../constants/tokens.js";
 import { fmtP } from "../../constants/thresholds.js";
 import { MiniCardLayout } from "../shared/CardLayout.jsx";
 import { EvidenceTable } from "../shared/EvidenceTable.jsx";
@@ -18,17 +18,6 @@ export function MiniCard_Autocorrelation({ result, importConfig, rowMap }) {
   const sub = result.subDetails || [];
   const condColorMap = buildCondColorMap(importConfig?.condPerCol);
   const meanR1 = typeof result.pooledMeanR1 === "number" ? result.pooledMeanR1 : parseFloat(result.pooledMeanR1);
-  const absR1 = Math.abs(meanR1);
-
-  // ── Headline ──
-  let headline;
-  if (result.flag === "LOW" || result.flag === "N/A") {
-    headline = "Row-to-row noise is random — no predictable patterns between successive measurements.";
-  } else if (result.effectSizeClass === "strong") {
-    headline = `Each row's noise strongly resembles the row before it (r\u2009=\u2009${meanR1.toFixed(3)}) — knowing one row's error lets you predict the next.`;
-  } else {
-    headline = `Each row's noise weakly resembles the row before it (r\u2009=\u2009${meanR1.toFixed(3)}) — successive measurements are not fully independent.`;
-  }
 
   // ── Chart ──
   const hasDecay = result.perGroupDecay?.length || result.decayCurve;
@@ -66,8 +55,7 @@ export function MiniCard_Autocorrelation({ result, importConfig, rowMap }) {
   const footer = `${result.nPairs} pair${result.nPairs !== 1 ? "s" : ""} tested${acDir} · mean |r| = ${isNaN(meanR1) ? "—" : Math.abs(meanR1).toFixed(3)} · p ${pStr.startsWith("<") ? pStr : "= " + pStr}`;
 
   return (
-    <MiniCardLayout result={result} headline={headline}
-      desc={result.description}
+    <MiniCardLayout result={result}
       footer={footer}
       lookFor={result.effectSizeClass === "strong" ? "Strong autocorrelation means that knowing one row's noise lets you predict the next — a hallmark of manually constructed sequences. Ask for the original instrument output files and compare the row ordering against the submitted data. Check whether the autocorrelation is concentrated in specific conditions by comparing the per-condition lines in the decay chart." : "Moderate autocorrelation can arise from several sources. Check whether the data was sorted or re-ordered before submission — this can break the natural measurement sequence and introduce artificial patterns. Compare against a fresh export from the instrument to rule out post-processing artefacts."}
       implications="Correlated consecutive noise can result from time-dependent biological processes — for example, temperature drift or reagent degradation affecting adjacent samples. It can also indicate that values were generated using a formula that links each row to its neighbours rather than recording independent measurements.">

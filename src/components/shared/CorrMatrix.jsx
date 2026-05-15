@@ -1,6 +1,5 @@
 import { C, TF, FF, CF, FW, CR } from "../../constants/tokens.js";
-
-const SUB_HEAD = { fontSize: TF.DETAIL, fontFamily: FF.UI, fontWeight: FW.SEMI, color: C.TEXT_3, marginBottom: "8px" };
+import { SUB_HEAD } from "./styles.js";
 
 // Lower-triangle correlation matrix heatmap.
 // Used by IRC (replicate correlations) and RSC (residual correlations).

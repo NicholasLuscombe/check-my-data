@@ -6,7 +6,7 @@
 
 import { useState, useMemo } from "react";
 import { C, TF, FW, FF, CR, SIGNAL, SEV_VERDICT } from "../../constants/tokens.js";
-import { TD_NUM_CELL, TD_ID_CELL } from "../shared/styles.js";
+import { TD_NUM_CELL, TD_ID_CELL, TH_EVIDENCE } from "../shared/styles.js";
 import { MECHANISMS, RANK_NUMS } from "../../constants/mechanisms.js";
 import { buildCondSpansForColumns, shortColName } from "../shared/coordinates.js";
 
@@ -118,7 +118,7 @@ function ExcerptTable({ hotspot, visGrid, rawData, colEntries, nVisRows, coordCt
       height: EXCERPT_H, overflowY: "auto", overflowX: "auto",
       border: `1px solid ${C.BORDER_L}`, borderRadius: CR.SM, background: C.WHITE,
     }}>
-      <table style={{ borderCollapse: "collapse", fontSize: TF.DETAIL, fontFamily: FF.UI, width: "100%" }}>
+      <table style={{ borderCollapse: "collapse", fontFamily: FF.UI, width: "100%" }}>
         <thead>
           {condSpans && condSpans.length > 0 && (
             <tr style={{ background: C.BG, position: "sticky", top: 0, zIndex: 3 }}>
@@ -135,13 +135,13 @@ function ExcerptTable({ hotspot, visGrid, rawData, colEntries, nVisRows, coordCt
             </tr>
           )}
           <tr style={{ background: C.BG, position: "sticky", top: condSpans && condSpans.length > 0 ? 24 : 0, zIndex: 2 }}>
-            <th style={{ borderBottom: `1px solid ${C.BORDER}`, borderRight: `1px solid ${C.BORDER}`, padding: "6px 8px", textAlign: "center", color: C.TEXT_3, fontWeight: FW.SEMI, background: C.BG, whiteSpace: "nowrap" }}>#</th>
+            <th style={{ ...TH_EVIDENCE, borderBottom: `1px solid ${C.BORDER}`, borderRight: `1px solid ${C.BORDER}`, background: C.BG }}>#</th>
             {colEntries.map((col, ci) => (
               <th key={ci} style={{
+                ...TH_EVIDENCE,
                 borderBottom: `1px solid ${C.BORDER}`, borderRight: `1px solid ${C.BORDER_L}`,
-                padding: "6px 8px", textAlign: "center",
-                color: col.role === "data" ? C.TEXT_2 : C.TEXT_4, fontWeight: FW.SEMI,
-                background: C.BG, whiteSpace: "nowrap",
+                color: col.role === "data" ? C.TEXT_2 : C.TEXT_3,
+                background: C.BG,
               }}>{condSpans && condSpans.length > 0 ? shortColName(col.label) : col.label}</th>
             ))}
           </tr>

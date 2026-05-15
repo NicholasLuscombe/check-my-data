@@ -15,18 +15,6 @@ export function MiniCard_WithinRowVariance({ result, importConfig, rowMap }) {
   const nSmooth = (result.flaggedRows || []).filter(r => r.direction === "too smooth").length;
   const nNoisy = nOut - nSmooth;
 
-  // Plain-English headline
-  let headline;
-  if (result.flag === "LOW" || result.flag === "N/A") {
-    headline = "Within-row spread across replicates follows the expected mean-variance pattern — no anomalous rows detected.";
-  } else if (nSmooth > 0 && nNoisy === 0) {
-    headline = `${nSmooth} row${nSmooth !== 1 ? "s have" : " has"} suspiciously low replicate spread — values are more uniform than the mean-variance trend predicts.`;
-  } else if (nNoisy > 0 && nSmooth === 0) {
-    headline = `${nNoisy} row${nNoisy !== 1 ? "s have" : " has"} unusually high replicate spread — more variable than the mean-variance trend predicts.`;
-  } else {
-    headline = `${nOut} rows with anomalous replicate spread: ${nSmooth} too smooth, ${nNoisy} too noisy.`;
-  }
-
   // Z-score histogram
   const zScores = result.zScores || [];
   let histPlot = null;
@@ -74,8 +62,7 @@ export function MiniCard_WithinRowVariance({ result, importConfig, rowMap }) {
   const rows = (result.details || []).slice(0, 20);
 
   return (
-    <MiniCardLayout result={result} headline={headline}
-      desc={result.description}
+    <MiniCardLayout result={result}
       footer={<>
         {result.nValid||"?"} rows tested · {nOut} outlier{nOut !== 1 ? "s" : ""} ({nSmooth} smooth, {nNoisy} noisy) · expected {result.expectedOutliers}
         {" · global p\u202f" + fmtPOp(parseFloat(result.globalP))}

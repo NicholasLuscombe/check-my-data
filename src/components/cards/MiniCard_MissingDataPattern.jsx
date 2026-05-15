@@ -17,18 +17,6 @@ export function MiniCard_MissingDataPattern({ result, importConfig, rowMap }) {
   const nCond = result.nCondHits || 0;
   const nBlock = result.nBlockHits || 0;
 
-  // Headline
-  let headline;
-  if (result.flag === "LOW" || result.flag === "N/A") {
-    headline = `Missing data (${result.missRate}) appears randomly distributed — no structured patterns detected.`;
-  } else {
-    const parts = [];
-    if (nPairwise > 0) parts.push(`${nPairwise} column pair${nPairwise !== 1 ? "s" : ""} with associated missingness`);
-    if (nCond > 0) parts.push(`${nCond} column${nCond !== 1 ? "s" : ""} with condition-dependent missing rates`);
-    if (nBlock > 0) parts.push(`${nBlock} rectangular all-missing block${nBlock !== 1 ? "s" : ""}`);
-    headline = `Structured missingness detected: ${parts.join("; ")}.`;
-  }
-
   // Column setup
   const hdrs = importConfig?.hdrs || [];
   const roles = importConfig?.roles || [];
@@ -117,8 +105,7 @@ export function MiniCard_MissingDataPattern({ result, importConfig, rowMap }) {
   }
 
   return (
-    <MiniCardLayout result={result} headline={headline}
-      desc={result.description}
+    <MiniCardLayout result={result}
       footer={<>
         {result.nMissing} missing cells ({result.missRate})
         {nPairwise > 0 && ` · ${nPairwise} pairwise`}

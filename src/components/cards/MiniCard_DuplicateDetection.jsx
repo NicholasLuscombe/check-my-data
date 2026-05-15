@@ -19,7 +19,6 @@ const withinDups = result.withinRowLocs || [];
 const blocks = result.blockCopies || [];
 const rowGroups = result.rowDupGroupList || [];
 const hasWithinRow = wrTotal > 0 && wrTotal > wrExp * 1.5;
-const hasBlocks = blocks.length > 0;
 const hasRowDups = rowGroups.length > 0;
 // Separate block types: multi-row or partial-width blocks vs full-row single-row pairs
 // Full-row height=1 blocks are better shown via rowGroups (multi-way clustering)
@@ -47,37 +46,7 @@ const _condRowNum = _hdr >= 2 ? _skip + 1 : null;
 // ── Helper: column name from matrix index ──
 const colName = (matIdx) => hdrs[dataColMap[matIdx]] || `Column ${matIdx+1}`;
 
-// ── Headline — one sentence ──
-let headline;
 const nDupRows = rowGroups.reduce((s,g) => s + g.count - 1, 0);
-if (result.flag === "LOW" && !hasBlocks && !hasRowDups && wrTotal <= wrExp * 1.5) {
-  headline = "No suspicious duplication detected — value repetition is within normal range for this data's precision and value distribution.";
-} else if (structuralBlocks.length > 0) {
-  const best = structuralBlocks[0];
-  const srcR1 = fileRow(toOrigRow(best.srcRows[0])), srcR2 = fileRow(toOrigRow(best.srcRows[1]));
-  const dstR1 = fileRow(toOrigRow(best.dstRows[0])), dstR2 = fileRow(toOrigRow(best.dstRows[1]));
-  if (best.isColumnMatch) {
-    const cn1 = colName(best.srcCol ?? best.cols[0]), cn2 = colName(best.dstCol ?? best.cols[1]);
-    headline = `${cn1} and ${cn2} are identical for ${best.height} consecutive rows (${srcR1}–${srcR2})`;
-  } else if (best.isFullRow) {
-    headline = `Rows ${srcR1}–${srcR2} are identical to rows ${dstR1}–${dstR2} across all columns`;
-  } else if (best.height === 1) {
-    headline = `Row ${srcR1} matches row ${dstR1} in ${best.width} columns`;
-  } else {
-    headline = `Rows ${srcR1}–${srcR2} are identical to rows ${dstR1}–${dstR2} in ${best.width} columns`;
-  }
-} else if (hasRowDups) {
-  headline = nDupRows === 1
-    ? `1 row is an exact copy of another row`
-    : `${nDupRows} rows are exact copies of other rows (${rowGroups.length} pattern${rowGroups.length!==1?"s":""})`;
-} else if (hasWithinRow) {
-  const ratio = (wrTotal/Math.max(wrExp,1)).toFixed(0);
-  headline = `Data entries are duplicated within a row ${ratio}× more often than expected`;
-} else {
-  headline = "Unusual value repetition detected";
-}
-
-const desc = "Checks for exact value repetition — copied blocks of rows, identical row vectors, and within-row value coincidences beyond what precision and value distribution predict.";
 
 // ── Footer ──
 const nDataRows = rawData?.length || "?";
@@ -171,8 +140,7 @@ const EvidenceBlock = ({label, detail, children}) => (
 
 return (
 
-  <MiniCardLayout result={result} headline={headline}
-    desc={desc}
+  <MiniCardLayout result={result}
     footer={footer}
     lookFor="Exact duplicates of entire rows or rectangular blocks of data are a strong indicator of copy-paste fabrication. Check whether the duplicated rows appear in the same experimental condition or across conditions. Ask for raw instrument files to verify that the submitted values are independent measurements."
     implications="Repeated values can occur naturally in integer or bounded-scale data where few distinct values are possible, or when measurements hit a detection limit. They can also result from accidental row duplication during data assembly — for example, copy-pasting between spreadsheets or merging files with overlapping row ranges.">
@@ -280,7 +248,7 @@ return (
               <ColumnHeaders columns={colDefs} highlightCols={mapHighlightCols(allDataCols)} visCols={mapVisCols(vc)} condSpans={condSpans} condRowNum={_condRowNum} nameRowNum={_nameRowNum}/>
               <tbody>
                 {grp.rows.slice(0,10).map((matIdx,i) => <DataRow key={i} ri={toOrigRow(matIdx)} highlightCols={allDataCols} bg={i%2?C.BG_L:C.WHITE} visCols={vc}/>)}
-                {grp.rows.length>10 && <tr><td colSpan={99} style={{...TD_ID_CELL,color:C.TEXT_4}}>… and {grp.rows.length-10} more identical rows</td></tr>}
+                {grp.rows.length>10 && <tr><td colSpan={99} style={{...TD_ID_CELL,color:C.TEXT_3}}>… and {grp.rows.length-10} more identical rows</td></tr>}
               </tbody>
             </table>
           </div>
@@ -324,7 +292,7 @@ return (
               });
               return <DataRow key={di} ri={fdr.origRow} colorMap={cm} bg={di%2?C.BG_L:C.WHITE} visCols={wrVc}/>;
             })}
-            {moreDupRows > 0 && <tr><td colSpan={99} style={{...TD_ID_CELL,color:C.TEXT_4}}>… and {moreDupRows} more rows with within-row duplicates</td></tr>}
+            {moreDupRows > 0 && <tr><td colSpan={99} style={{...TD_ID_CELL,color:C.TEXT_3}}>… and {moreDupRows} more rows with within-row duplicates</td></tr>}
           </tbody>
         </table>
       </EvidenceBlock>

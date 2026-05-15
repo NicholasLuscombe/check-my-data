@@ -1,6 +1,6 @@
 /* ── MiniCard: Modality Test ──
-   Mirrors MiniCard_ColumnGoF structure: headline + per-flagged-column
-   DataTable + footer. Producer (src/tests/modality.js) emits
+   Mirrors MiniCard_ColumnGoF structure: per-flagged-column DataTable +
+   footer. Producer (src/tests/modality.js) emits
    `details: [{Col, Dip, adjP}]` for flagged columns and `colDips`
    for the full per-column tested set; this card surfaces them.
 
@@ -10,7 +10,7 @@
    LOW the card body would render nothing under the title + verdict
    badge. */
 
-import { C, TF, FF } from "../../constants/tokens.js";
+import { C, TF, FS, FF } from "../../constants/tokens.js";
 import { fmtP, fmtPBadge } from "../../constants/thresholds.js";
 import { MiniCardLayout } from "../shared/CardLayout.jsx";
 import { DataTable } from "../shared/DataTable.jsx";
@@ -30,18 +30,10 @@ export function MiniCard_Modality({ result, importConfig, rowMap }) {
     ? `Values in ${flaggedColStr} are non-unimodal — the distribution shows multiple peaks or a dip exceeding the uniform-reference ceiling. Hartigan's dip statistic exceeding the uniform null is a strong fingerprint of mixture fabrication: two genuinely different sources (different cohorts, batches, or instrument runs) combined and presented as a single declared condition. Examine the column histograms for two or more peaks separated by a clear gap.`
     : `No columns produced multi-modal evidence above the uniform-reference null.`;
 
-  let headline;
-  if (result.flag === "LOW" || result.flag === "N/A") {
-    headline = "Column distributions consistent with unimodality — no multi-peak structure detected.";
-  } else {
-    headline = `${nFlagged} column${nFlagged !== 1 ? "s show" : " shows"} multi-modal structure (mixture-of-sources signature).`;
-  }
-
   const rows = (result.details || []).slice(0, 20);
 
   return (
-    <MiniCardLayout result={result} headline={headline}
-      desc={result.description}
+    <MiniCardLayout result={result}
       footer={<>
         {result.nTested} column{result.nTested !== 1 ? "s" : ""} tested
         {" · "}{nFlagged} flagged
@@ -59,7 +51,7 @@ export function MiniCard_Modality({ result, importConfig, rowMap }) {
             { header: "Dip", bold: true, render: d => d.Dip },
             { header: "adj. p", render: d => fmtP(d.adjP) },
           ]} />
-          {nFlagged > 20 && <div style={{ fontFamily: FF.UI, fontSize: TF.DETAIL, color: C.TEXT_4, marginTop: "3px" }}>…and {nFlagged - 20} more</div>}
+          {nFlagged > 20 && <div style={{ fontFamily: FF.UI, fontSize: FS.xs, color: C.TEXT_3, marginTop: "3px" }}>…and {nFlagged - 20} more</div>}
         </div>
       )}
 

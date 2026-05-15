@@ -117,7 +117,8 @@ export const HOTSPOT_PATTERNS = {
 };
 
 // ── QC hotspot narrative templates ───────────────────────────────────
-// Keyed by dominant category; used in HotspotCard for plain-language framing.
+// Keyed by dominant category. Orphan since S150 (C.8 retired HotspotCard,
+// the sole consumer). Retained pending C.9 dead-export cleanup pass.
 
 export const QC_HOTSPOT_NARRATIVE = {
   copied:  "These replicates show a consistent offset or identical values. Check whether these samples were run on a different day or plate.",
