@@ -1,6 +1,6 @@
 /* ── MiniCard: Carlisle Baseline Balance ── */
 
-import { C, CC, TF, FS, FW, FF, SIGNAL } from "../../constants/tokens.js";
+import { C, CC, CF, FS, FW, FF, SIGNAL } from "../../constants/tokens.js";
 import { fmtP, fmtPOp } from "../../constants/thresholds.js";
 import { MiniCardLayout } from "../shared/CardLayout.jsx";
 import { DataTable } from "../shared/DataTable.jsx";
@@ -42,7 +42,7 @@ export function MiniCard_CarlisleBalance({ result, importConfig, rowMap }) {
           return <line x1={padL} y1={ey} x2={padL + plotW} y2={ey}
             stroke={CC.EXP} strokeWidth={1} strokeDasharray="4,3" opacity={0.6} />;
         })()}
-        <text x={padL + plotW / 2} y={H - 1} textAnchor="middle" fontSize={9} fill={C.TEXT_4}>
+        <text x={padL + plotW / 2} y={H - 1} textAnchor="middle" fontSize={CF.SMALL} fill={C.TEXT_4}>
           ANOVA p-value distribution (10 bins)
         </text>
       </PlotSVG>
@@ -66,7 +66,7 @@ export function MiniCard_CarlisleBalance({ result, importConfig, rowMap }) {
         <PlotLayout>
           {histPlot}
         </PlotLayout>
-        <div style={{fontSize:TF.SMALL,fontFamily:FF.UI,color:C.TEXT_4,marginTop:"4px"}}>
+        <div style={{fontSize:FS.sm,fontFamily:FF.UI,color:C.TEXT_2,marginTop:"4px"}}>
           Bar height = count of features per p-value bin. Dashed line = expected under uniform.
           {direction === "too balanced" && " Highlighted bar = excess p-values near 1.0 (too balanced)."}
         </div>

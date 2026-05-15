@@ -2,7 +2,7 @@ import { MiniCardLayout } from "../shared/CardLayout.jsx";
 import { PlotLayout } from "../shared/PlotLayout.jsx";
 import { MeanVarianceScatter } from "../plots/MeanVarianceScatter.jsx";
 import { ASSAYS } from "../../constants/assays.js";
-import { C, TF, FF } from "../../constants/tokens.js";
+import { C, FS, FF } from "../../constants/tokens.js";
 import { fmtPBadge } from "../../constants/thresholds.js";
 
 export function MiniCard_NoiseScaling({ result, importConfig, rowMap }) {
@@ -25,7 +25,7 @@ return (
           expectedSlope={result.expectedSlope}
           slopeSE={result.slopeSE}/>
     </PlotLayout>
-    <div style={{fontSize:TF.SMALL,fontFamily:FF.UI,color:C.TEXT_4,marginTop:"4px"}}>
+    <div style={{fontSize:FS.sm,fontFamily:FF.UI,color:C.TEXT_2,marginTop:"4px"}}>
       Each dot = one row ({result.nPoints} rows). Solid line = observed fit{se>0&&se<2?" with 95% CI band":""}. Dashed = expected for {assayLabel}.
     </div>
 

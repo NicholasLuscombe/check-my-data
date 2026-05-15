@@ -1,6 +1,6 @@
 /* ── MiniCard: Duplicate Detection ── */
 
-import { C, CC, TF, FW, FF, M, CP, CR, SIGNAL, DUP_GROUP_PALETTE } from "../../constants/tokens.js";
+import { C, CC, FS, FW, FF, M, CP, CR, SIGNAL, DUP_GROUP_PALETTE } from "../../constants/tokens.js";
 import { SUB_HEAD, TD_NUM_CELL, TD_ID_CELL } from "../shared/styles.js";
 import { FLAG_STYLES, fmtPBadge } from "../../constants/thresholds.js";
 import { MiniCardLayout } from "../shared/CardLayout.jsx";
@@ -97,20 +97,20 @@ const DataRow = ({ri, highlightCols=[], colorMap={}, bg=C.WHITE, visCols=null}) 
   let insertedEllipsis = false;
   return (
     <tr style={{background:bg}}>
-      <td style={{...TD_ID_CELL,fontWeight:FW.BOLD,color:C.TEXT_3,borderRight:`1px solid ${C.BORDER_L}`,minWidth:"36px",...stickyRow,background:bg}}>{fileRow(ri)}</td>
+      <td style={{...TD_ID_CELL,fontFamily:FF.MONO,color:C.TEXT_2,borderRight:`1px solid ${C.BORDER_L}`,minWidth:"36px",...stickyRow,background:bg}}>{fileRow(ri)}</td>
       {hdrs.map((h,ci) => {
         if(roles[ci]==="ignore") return null;
         if(vc && !vc.keep.has(ci)) {
           if (insertedEllipsis) return null;
           insertedEllipsis = true;
-          return <td key="ell" style={{...TD_ID_CELL,color:C.TEXT_4}}>⋯</td>;
+          return <td key="ell" style={{...TD_ID_CELL,color:C.TEXT_3}}>⋯</td>;
         }
         insertedEllipsis = false;
         const cm = colorMap[ci];
         const isHl = cm || highlightCols.includes(ci);
         const base = roles[ci]==="data" ? TD_NUM_CELL : TD_ID_CELL;
         return <td key={ci} style={{...base,
-          color:cm?cm.text:highlightCols.includes(ci)?CC.THRESH:roles[ci]==="data"?C.TEXT:C.TEXT_4,
+          color:cm?cm.text:highlightCols.includes(ci)?CC.THRESH:roles[ci]==="data"?C.TEXT:C.TEXT_3,
           fontWeight:isHl?FW.BOLD:FW.NORM,
           background:cm?cm.bg:highlightCols.includes(ci)?FLAG_STYLES.HIGH.bg:"transparent"}}>{row[ci]!=null?String(row[ci]):"—"}</td>;
       })}
@@ -133,7 +133,7 @@ const mapVisCols = (vc) => {
 const EvidenceBlock = ({label, detail, children}) => (
   <div style={{marginTop:"12px"}}>
     <div style={SUB_HEAD}>{label}</div>
-    {detail && <div style={{fontSize:TF.DETAIL,fontFamily:FF.UI,color:C.TEXT_2,marginBottom:"8px"}}>{detail}</div>}
+    {detail && <div style={{fontSize:FS.base,fontFamily:FF.UI,color:C.TEXT_2,marginBottom:"8px"}}>{detail}</div>}
     <div style={{border:`1px solid ${C.BORDER_L}`,borderRadius:CR.MD,padding:0,overflowX:"auto",overflowY:"auto",maxHeight:"200px",background:C.WHITE,position:"relative"}}>{children}</div>
   </div>
 );
@@ -174,19 +174,19 @@ return (
             const dstName = colName(blk.dstCol ?? blk.cols[1]);
             return (
               <div key={`blk${bi}`} style={{marginBottom:"12px"}}>
-                {totalItems > 1 && <div style={{fontSize:TF.DETAIL,fontFamily:FF.UI,marginBottom:"4px"}}>
-                  <span style={{color:C.TEXT_2,fontWeight:FW.SEMI}}>
+                {totalItems > 1 && <div style={{fontSize:FS.sm,fontFamily:FF.UI,marginBottom:"4px"}}>
+                  <span style={{color:C.TEXT,fontWeight:FW.SEMI}}>
                     {srcName} = {dstName} for rows {fileRow(srcStart)}–{fileRow(srcEnd)}
                   </span>
-                  <span style={{color:C.TEXT_3}}>{` — ${blk.height} consecutive rows`}</span>
+                  <span style={{color:C.TEXT_2}}>{` — ${blk.height} consecutive rows`}</span>
                 </div>}
-                <table style={{borderCollapse:"separate",borderSpacing:"0",fontSize:TF.DETAIL,fontFamily:FF.UI,width:"100%"}}>
+                <table style={{borderCollapse:"separate",borderSpacing:"0",fontFamily:FF.UI,width:"100%"}}>
                   <ColumnHeaders columns={colDefs} highlightCols={mapHighlightCols(rawCols)} visCols={mapVisCols(vc)} condSpans={condSpans} condRowNum={_condRowNum} nameRowNum={_nameRowNum}/>
                   <tbody>
                     {Array.from({length:previewRows},(_, i) => (
                       <DataRow key={i} ri={toOrigRow(blk.srcRows[0]+i)} highlightCols={rawCols} bg={i%2?C.BG_L:C.WHITE} visCols={vc}/>
                     ))}
-                    {blk.height > previewRows && <tr><td colSpan={99} style={{...TD_ID_CELL,color:C.TEXT_4}}>… {blk.height - previewRows} more rows</td></tr>}
+                    {blk.height > previewRows && <tr><td colSpan={99} style={{...TD_ID_CELL,color:C.TEXT_3}}>… {blk.height - previewRows} more rows</td></tr>}
                   </tbody>
                 </table>
               </div>
@@ -198,36 +198,36 @@ return (
           const useStacked = nDataCols > 8;
           return (
             <div key={`blk${bi}`} style={{marginBottom:"12px"}}>
-              {totalItems > 1 && <div style={{fontSize:TF.DETAIL,fontFamily:FF.UI,marginBottom:"4px"}}>
-                <span style={{color:C.TEXT_2,fontWeight:FW.SEMI}}>
+              {totalItems > 1 && <div style={{fontSize:FS.sm,fontFamily:FF.UI,marginBottom:"4px"}}>
+                <span style={{color:C.TEXT,fontWeight:FW.SEMI}}>
                   Rows {fileRow(srcStart)}–{fileRow(srcEnd)} = Rows {fileRow(dstStart)}–{fileRow(dstEnd)}
                 </span>
-                {!blk.isFullRow && <span style={{color:C.TEXT_3}}>
+                {!blk.isFullRow && <span style={{color:C.TEXT_2}}>
                   {` — ${blk.height}×${blk.width} block (${blk.cols.length} of ${roles.filter(r=>r==="data").length} columns)`}
                 </span>}
               </div>}
               <div style={{display:"flex",flexDirection:useStacked?"column":"row",gap:useStacked?"4px":"8px",overflowX:"auto"}}>
                 <div style={{flex:useStacked?undefined:"1 0 auto",minWidth:useStacked?undefined:"min-content"}}>
-                  <div style={{fontSize:TF.DETAIL,color:C.TEXT_3,fontFamily:FF.UI,marginBottom:"2px"}}>Original (rows {fileRow(srcStart)}–{fileRow(srcEnd)})</div>
-                  <table style={{borderCollapse:"separate",borderSpacing:"0",fontSize:TF.DETAIL,fontFamily:FF.UI,width:"100%"}}>
+                  <div style={{fontSize:FS.xs,color:C.TEXT_3,fontFamily:FF.UI,marginBottom:"2px"}}>Original (rows {fileRow(srcStart)}–{fileRow(srcEnd)})</div>
+                  <table style={{borderCollapse:"separate",borderSpacing:"0",fontFamily:FF.UI,width:"100%"}}>
                     <ColumnHeaders columns={colDefs} highlightCols={mapHighlightCols(rawCols)} visCols={mapVisCols(vc)} condSpans={condSpans} condRowNum={_condRowNum} nameRowNum={_nameRowNum}/>
                     <tbody>
                       {Array.from({length:previewRows},(_, i) => (
                         <DataRow key={i} ri={toOrigRow(blk.srcRows[0]+i)} highlightCols={rawCols} bg={i%2?C.BG_L:C.WHITE} visCols={vc}/>
                       ))}
-                      {blk.height > previewRows && <tr><td colSpan={99} style={{...TD_ID_CELL,color:C.TEXT_4}}>… {blk.height - previewRows} more rows</td></tr>}
+                      {blk.height > previewRows && <tr><td colSpan={99} style={{...TD_ID_CELL,color:C.TEXT_3}}>… {blk.height - previewRows} more rows</td></tr>}
                     </tbody>
                   </table>
                 </div>
                 <div style={{flex:useStacked?undefined:"1 0 auto",minWidth:useStacked?undefined:"min-content"}}>
-                  <div style={{fontSize:TF.DETAIL,color:C.TEXT_3,fontFamily:FF.UI,marginBottom:"2px"}}>Copy (rows {fileRow(dstStart)}–{fileRow(dstEnd)})</div>
-                  <table style={{borderCollapse:"separate",borderSpacing:"0",fontSize:TF.DETAIL,fontFamily:FF.UI,width:"100%"}}>
+                  <div style={{fontSize:FS.xs,color:C.TEXT_3,fontFamily:FF.UI,marginBottom:"2px"}}>Copy (rows {fileRow(dstStart)}–{fileRow(dstEnd)})</div>
+                  <table style={{borderCollapse:"separate",borderSpacing:"0",fontFamily:FF.UI,width:"100%"}}>
                     <ColumnHeaders columns={colDefs} highlightCols={mapHighlightCols(rawCols)} visCols={mapVisCols(vc)} condSpans={condSpans} condRowNum={_condRowNum} nameRowNum={_nameRowNum}/>
                     <tbody>
                       {Array.from({length:previewRows},(_, i) => (
                         <DataRow key={i} ri={toOrigRow(blk.dstRows[0]+i)} highlightCols={rawCols} bg={i%2?C.BG_L:C.WHITE} visCols={vc}/>
                       ))}
-                      {blk.height > previewRows && <tr><td colSpan={99} style={{...TD_ID_CELL,color:C.TEXT_4}}>… {blk.height - previewRows} more rows</td></tr>}
+                      {blk.height > previewRows && <tr><td colSpan={99} style={{...TD_ID_CELL,color:C.TEXT_3}}>… {blk.height - previewRows} more rows</td></tr>}
                     </tbody>
                   </table>
                 </div>
@@ -241,10 +241,10 @@ return (
           const allDataCols = roles.map((_,ci) => ci).filter(ci => roles[ci]==="data");
           return (
           <div key={`row${gi}`} style={{marginBottom:"12px"}}>
-            {totalItems > 1 && <div style={{fontSize:TF.DETAIL,fontFamily:FF.UI,color:C.TEXT_2,fontWeight:FW.SEMI,marginBottom:"4px"}}>
+            {totalItems > 1 && <div style={{fontSize:FS.sm,fontFamily:FF.UI,color:C.TEXT,fontWeight:FW.SEMI,marginBottom:"4px"}}>
               {grp.count} rows with identical values
             </div>}
-            <table style={{borderCollapse:"separate",borderSpacing:"0",fontSize:TF.DETAIL,fontFamily:FF.UI,width:"100%"}}>
+            <table style={{borderCollapse:"separate",borderSpacing:"0",fontFamily:FF.UI,width:"100%"}}>
               <ColumnHeaders columns={colDefs} highlightCols={mapHighlightCols(allDataCols)} visCols={mapVisCols(vc)} condSpans={condSpans} condRowNum={_condRowNum} nameRowNum={_nameRowNum}/>
               <tbody>
                 {grp.rows.slice(0,10).map((matIdx,i) => <DataRow key={i} ri={toOrigRow(matIdx)} highlightCols={allDataCols} bg={i%2?C.BG_L:C.WHITE} visCols={vc}/>)}
@@ -281,7 +281,7 @@ return (
       return (
       <EvidenceBlock label="Duplicate values within a row"
         detail={`${wrTotal} coincidences (${wrExp.toFixed(0)} expected)`}>
-        <table style={{borderCollapse:"separate",borderSpacing:"0",fontSize:TF.DETAIL,fontFamily:FF.UI,width:"100%"}}>
+        <table style={{borderCollapse:"separate",borderSpacing:"0",fontFamily:FF.UI,width:"100%"}}>
           <ColumnHeaders columns={colDefs} visCols={mapVisCols(wrVc)} condSpans={condSpans} condRowNum={_condRowNum} nameRowNum={_nameRowNum}/>
           <tbody>
             {cappedDupRows.map((fdr,di) => {

@@ -1,6 +1,6 @@
 /* ── MiniCard: Within-Row Variance ── */
 
-import { C, CC, TF, FW, FF, SIGNAL } from "../../constants/tokens.js";
+import { C, CC, CF, FW, FF, SIGNAL } from "../../constants/tokens.js";
 import { fmtPOp } from "../../constants/thresholds.js";
 import { MiniCardLayout } from "../shared/CardLayout.jsx";
 import { EvidenceTable } from "../shared/EvidenceTable.jsx";
@@ -53,7 +53,7 @@ export function MiniCard_WithinRowVariance({ result, importConfig, rowMap }) {
           ) : null;
         })}
         {/* Labels */}
-        <text x={padL + plotW / 2} y={H - 1} textAnchor="middle" fontSize={9} fill={C.TEXT_4}>z-score (SD vs expected)</text>
+        <text x={padL + plotW / 2} y={H - 1} textAnchor="middle" fontSize={CF.SMALL} fill={C.TEXT_4}>z-score (SD vs expected)</text>
       </PlotSVG>
     );
   }
