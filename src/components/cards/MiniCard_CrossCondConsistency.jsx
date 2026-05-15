@@ -37,12 +37,6 @@ import { MiniCardLayout } from "../shared/CardLayout.jsx";
 import { EvidenceTable } from "../shared/EvidenceTable.jsx";
 import { SUB_HEAD } from "../shared/styles.js";
 
-const DESC =
-  "Compares condition pairs on robust distribution properties (trimmed span, " +
-  "dispersion, CDF shape). Real experimental conditions legitimately differ " +
-  "on these quantities, so the forensic signal lives in the 'too similar' " +
-  "tail — pairs that match more closely than random re-assignment produces.";
-
 const LOOK_FOR =
   "A 'too similar' flag between conditions that should produce different " +
   "biological responses suggests one condition's values may have been " +
@@ -65,25 +59,6 @@ const IMPLICATIONS =
 
 export function MiniCard_CrossCondConsistency({ result }) {
   const details = result.details || [];
-  const topPair = result.top;
-
-  // ── Headline ────────────────────────────────────────────────────
-  let headline;
-  if (result.flag === "N/A") {
-    headline = result.description || "Not applicable to this dataset.";
-  } else if (result.flag === "LOW") {
-    const nRan = result.nUnitsRan || 0;
-    headline = nRan > 0
-      ? `No condition pair is forensically anomalously similar across ${nRan} property × pair comparison${nRan === 1 ? "" : "s"} — no forensically actionable anomalies.`
-      : "No runnable property × pair comparisons — framework reports nothing suspicious.";
-  } else if (topPair) {
-    const extra = result.nFlagged > 1
-      ? ` ${result.nFlagged - 1} additional ${result.nFlagged - 1 === 1 ? "unit" : "units"} flagged across ${result.nFlaggedPairs} pair${result.nFlaggedPairs === 1 ? "" : "s"}.`
-      : "";
-    headline = `${topPair.pair} on ${topPair.property}: too ${topPair.direction} (adj-p ${topPair.adjP < ALPHA.FLAG ? "< " + fmtP(ALPHA.FLAG) : "= " + fmtP(topPair.adjP)}).${extra}`;
-  } else {
-    headline = "Flagged, but no forensic-direction unit identified.";
-  }
 
   // ── Footer ─────────────────────────────────────────────────────
   const primaryP = result.primaryP;
@@ -175,8 +150,7 @@ export function MiniCard_CrossCondConsistency({ result }) {
   };
 
   return (
-    <MiniCardLayout result={result} headline={headline}
-      desc={DESC}
+    <MiniCardLayout result={result}
       footer={footer}
       lookFor={LOOK_FOR}
       implications={IMPLICATIONS}>

@@ -61,23 +61,6 @@ const pairLabel = (pairStr, cond) => {
   return `${repName(a, cond)}\u2013${repName(b, cond)}`;
 };
 
-// Plain-English headline
-let headline;
-if (result.highSNRWarning) {
-  headline = "Signal is so strong that all replicates naturally correlate near-perfectly — this test has limited power here.";
-} else if (result.flag === "LOW") {
-  headline = "Replicate columns correlate as expected from the signal-to-noise ratio.";
-} else if (wins.length > 0 && nSusp === 0) {
-  // windowed scan drove the flag
-  const topWin = wins[0];
-  const condPfx = result.nConditions > 1 ? `${topWin.condition} ` : "";
-  headline = `${condPfx}${pairLabel(topWin.pair, topWin.condition || "All data")} show unusually high correlation in rows ${topWin.startRow}–${topWin.endRow} (r=${topWin.rWin}).`;
-} else if (nSusp >= 2) {
-  headline = `${nSusp} replicate pairs correlate more closely than the others predict — those columns may not be genuinely independent.`;
-} else {
-  headline = "One replicate pair correlates more closely than the others predict — worth inspecting.";
-}
-
 // ── Build per-condition correlation matrices for heatmap ──
 const condMap = {};
 for (const d of pairDetails) {
@@ -129,8 +112,7 @@ const topWins = [...wins].sort((a, b) => {
 
 return (
 
-  <MiniCardLayout result={result} headline={headline}
-    desc={result.description}
+  <MiniCardLayout result={result}
     footer={<>
       {n} column pair{n!==1?"s":""} tested · mean r = {result.meanR||"?"}
       {icc != null && ` · ICC-predicted ${icc.toFixed(2)}`}

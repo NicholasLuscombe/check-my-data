@@ -9,31 +9,15 @@ import { SUB_HEAD } from "../shared/styles.js";
 
 export function MiniCard_TerminalDigit({ result, importConfig, rowMap }) {
   const details = result.details || [];
-  const sub = result.subDetails || [];
-  const name = result.name;
-  const isAgg = result.groupsAssessed !== undefined;
 if(!details.length) return null;
 const chi = result.chiSquared || "?";
 const nVals = result.nValues || "?";
-let headline;
-if (result.flag === "LOW") {
-  headline = "Last digits are evenly distributed — consistent with instrument-generated values.";
-} else {
-  // Find most over/under-represented digit
-  const sorted = [...details].sort((a,b) => (parseInt(b.observed)||0) - (parseInt(b.expected)||0) - ((parseInt(a.observed)||0) - (parseInt(a.expected)||0)));
-  const top = sorted[0];
-  headline = top
-    ? `Digit ${top.digit} appears ${parseInt(top.observed)||0} times (expected ~${parseInt(top.expected)||0}) — last digits are not uniformly distributed.`
-    : "Last digits are not uniformly distributed across values.";
-}
-const desc = "Instrument readings produce last digits that are roughly equally likely (0–9 each ~10%). When values are typed by hand, people unconsciously favour certain digits and avoid others — creating a detectable fingerprint.";
 
 const implications = "Non-uniform last digits can result from instrument truncation, software rounding during export, or file format conversion that strips trailing zeros. They can also indicate hand-entered or hand-adjusted values — humans tend to avoid certain digits and over-use others when typing numbers.";
 
 return (
 
-  <MiniCardLayout result={result} headline={headline}
-    desc={desc}
+  <MiniCardLayout result={result}
     implications={implications}
     footer={<>
       {nVals} values tested · χ²={chi} · df={result.df||"?"} · {fmtPBadge(result.primaryP)}

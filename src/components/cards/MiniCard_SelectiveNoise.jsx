@@ -13,7 +13,6 @@ import { SUB_HEAD } from "../shared/styles.js";
 
 export function MiniCard_SelectiveNoise({ result, importConfig, rowMap }) {
   const details = result.details || [];
-  const sub = result.subDetails || [];
   const isAgg = result.groupsAssessed !== undefined;
 const ratio = parseFloat(result.maxMinVarianceRatio) || 0;
 const pivotBanner = result.pivotNote ? (
@@ -32,7 +31,7 @@ const perCol = result.perColumnResults || [];
 const flaggedCols = new Set(perCol.filter(c => c.flagged).map(c => c.col));
 const flaggedNames = [...flaggedCols].map(c => cn(c - 1));
 
-// Identify the worst outlier for headline/guidance (from per-column results if available, else heuristic)
+// Identify the worst outlier for the lookFor / footer copy (from per-column results if available, else heuristic)
 const cds = result.colDetails || [];
 let outlierName = "", outlierDir = "";
 if (flaggedNames.length === 1) {
@@ -59,18 +58,6 @@ if (flaggedNames.length === 1) {
   }
 }
 
-// Plain-English headline
-let headline;
-if (result.flag === "LOW" || result.flag === "N/A") {
-  headline = "Noise is evenly distributed across all columns.";
-} else if (flaggedNames.length > 1) {
-  headline = `${flaggedNames.length} columns have significantly different noise levels.`;
-} else if (outlierName) {
-  headline = `${outlierName} is significantly ${outlierDir} than the other columns.`;
-} else {
-  headline = "Unequal noise across columns.";
-}
-const descText = "Experimental noise tends to affect columns similarly — a column that is noisier or smoother than the others indicates a different setup. This card tests whether the spread of noise is the same across all columns.";
 const footerText = <>{cds.length} columns · variance ratio {ratio.toFixed(1)}× · Bartlett χ²={result.bartlettChi} · df={result.df} · {fmtPBadge(result.primaryP)}</>;
 const lookForText = outlierDir === "quieter"
   ? `${outlierName || "One column"} has less noise than the others — this can happen when a column's values were smoothed, averaged, or manually adjusted. Compare the flagged column's raw values against the instrument output file. Check whether the quiet column's values are rounder or less variable than the others at similar signal levels.`
@@ -80,7 +67,7 @@ const implicationsText = "Unequal variability across replicate columns can resul
 if(isAgg) {
   const items=details.map(d=>({...d, ratio:parseFloat(d.varRatio)||0}));
   return (
-    <MiniCardLayout result={result} headline={headline} desc={descText}
+    <MiniCardLayout result={result}
       footer={footerText} lookFor={lookForText} implications={implicationsText}>
       {pivotBanner}
       <PlotLayout>
@@ -94,7 +81,7 @@ if(isAgg) {
 if(result.colDetails?.length) {
   const labelledCols = result.colDetails.map(d => ({...d, label: cn(d.col - 1)}));
   return (
-    <MiniCardLayout result={result} headline={headline} desc={descText}
+    <MiniCardLayout result={result}
       footer={footerText} lookFor={lookForText} implications={implicationsText}>
       {pivotBanner}
       <div style={SUB_HEAD}>Residual spread by column</div>

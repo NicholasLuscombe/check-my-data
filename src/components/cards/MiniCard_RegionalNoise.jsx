@@ -44,23 +44,14 @@ export function MiniCard_RegionalNoise({ result, importConfig, rowMap }) {
     return isNaN(v) ? "—" : Math.sqrt(v).toFixed(2) + "×";
   })();
 
-  // Map bestRows for headline
   const bestRowsParts = String(bestRows).match(/(\d+)\D+(\d+)/);
   const bestRowsDisplay = bestRowsParts
     ? `${toFileRow(parseInt(bestRowsParts[1]))}–${toFileRow(parseInt(bestRowsParts[2]))}`
     : bestRows;
   const bestColName = typeof bestCol === "number" || /^\d+$/.test(bestCol) ? cn(parseInt(bestCol)) : bestCol;
 
-  let headline;
-  if (result.flag === "LOW" || result.flag === "N/A") {
-    headline = "Each column's noise is consistent throughout — no localised quiet or loud regions.";
-  } else {
-    headline = `${bestColName} has ${bestSDRatio} SD ratio in rows ${bestRowsDisplay} — its noise in that region differs from its own average.`;
-  }
-
   return (
-    <MiniCardLayout result={result} headline={headline}
-      desc={result.description}
+    <MiniCardLayout result={result}
       footer={`${result.nWindows||"?"} windows scanned · worst: ${bestColName} rows ${bestRowsDisplay} (${(details[0]?.direction) || "anomalous"}, SD ratio ${bestSDRatio}) · scan ${fmtPBadge(result.primaryP)}`}
       lookFor={`${bestColName} in rows ${bestRowsDisplay} has unusually ${parseFloat(bestVarRatio) > 1 ? "high" : "low"} noise compared to its own average. Examine that column in that region — are the values smoother, rounder, or more variable than the rest of the column? If multiple windows flag the same column, that column may have been selectively edited in those rows.`}
       implications="A region that is noisier or quieter than the column average can result from plate edge effects, batch boundaries, or changes in sample quality across the run. It can also indicate that a stretch of values in one column was smoothed or replaced while the rest was left intact.">

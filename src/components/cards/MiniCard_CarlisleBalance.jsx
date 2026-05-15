@@ -1,6 +1,6 @@
 /* ── MiniCard: Carlisle Baseline Balance ── */
 
-import { C, CC, TF, FW, FF, SIGNAL } from "../../constants/tokens.js";
+import { C, CC, TF, FS, FW, FF, SIGNAL } from "../../constants/tokens.js";
 import { fmtP, fmtPOp } from "../../constants/thresholds.js";
 import { MiniCardLayout } from "../shared/CardLayout.jsx";
 import { DataTable } from "../shared/DataTable.jsx";
@@ -14,18 +14,6 @@ export function MiniCard_CarlisleBalance({ result, importConfig, rowMap }) {
   const expected = result.expectedExcess || 0;
   const nFeatures = result.nFeatures || 0;
   const direction = result.direction || "normal";
-
-  // Headline
-  let headline;
-  if (result.flag === "LOW" || result.flag === "N/A") {
-    headline = `Between-condition comparison p-values are approximately uniform — no evidence of fabricated balance or non-random allocation.`;
-  } else if (direction === "too balanced") {
-    headline = `${nExcess} of ${nFeatures} features have p > 0.95 (expected ${expected}) — conditions are suspiciously similar, as if fabricated to match.`;
-  } else if (direction === "imbalanced") {
-    headline = `Significant departure from uniform p-value distribution — conditions may not be randomly allocated.`;
-  } else {
-    headline = `Anomalous distribution of between-condition comparison p-values detected.`;
-  }
 
   // P-value histogram (10 bins, expected uniform)
   const histBins = result.histBins || [];
@@ -64,8 +52,7 @@ export function MiniCard_CarlisleBalance({ result, importConfig, rowMap }) {
   const details = result.details || [];
 
   return (
-    <MiniCardLayout result={result} headline={headline}
-      desc={result.description}
+    <MiniCardLayout result={result}
       footer={<>
         {nFeatures} features tested
         {` · ${nExcess}/${nFeatures} with p>0.95 (expected ${expected})`}
@@ -93,7 +80,7 @@ export function MiniCard_CarlisleBalance({ result, importConfig, rowMap }) {
             { header: "ANOVA p", render: d => d["ANOVA p"] },
             { header: "Condition means", render: d => d.Means },
           ]} />
-          {details.length >= 20 && <div style={{ fontFamily: FF.UI, fontSize: TF.DETAIL, color: C.TEXT_4, marginTop: "3px" }}>
+          {details.length >= 20 && <div style={{ fontFamily: FF.UI, fontSize: FS.xs, color: C.TEXT_3, marginTop: "3px" }}>
             …and {nFeatures - 20} more features
           </div>}
         </div>

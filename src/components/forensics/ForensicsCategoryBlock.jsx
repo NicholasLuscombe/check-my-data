@@ -18,6 +18,7 @@ import { useState, useMemo } from "react";
 import { C, TF, FW, FF, CR, SEV_VERDICT } from "../../constants/tokens.js";
 import { DISPLAY_NAMES } from "../../constants/mechanisms.js";
 import { TestCardLayout } from "../shared/TestCardLayout.jsx";
+import { ClusterRow } from "../shared/ClusterRow.jsx";
 import { TestCard } from "../cards/TestCard.jsx";
 import { usePulseAnimation } from "./PulseStyle.jsx";
 
@@ -101,26 +102,16 @@ export function ForensicsCategoryBlock({
 
   return (
     <div style={{ paddingBottom: isExpanded ? "4px" : "0" }}>
-      <div style={{ padding: "10px 10px", borderLeft: `3px solid ${flagColor}` }}>
-        <div
-          style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}
-          onClick={onToggle}
-        >
-          <span style={{ color: flagColor, fontSize: "15px", flexShrink: 0 }}>
-            {isFlagged ? "⚠︎" : "✓︎"}
-          </span>
-          <span style={{ fontWeight: FW.SEMI, color: C.TEXT, fontSize: TF.BODY }}>{label}</span>
-          <span style={{ color: C.TEXT_3, fontSize: TF.DETAIL, flexShrink: 0 }}>
-            ({checkCount} test{checkCount !== 1 ? "s" : ""})
-          </span>
-          <span style={{ color: C.TEXT_3, fontSize: TF.BODY, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", minWidth: 0 }}>
-            — {description}
-          </span>
-          <span style={{ color: C.TEXT_2, fontSize: "14px", marginLeft: "auto", flexShrink: 0 }}>
-            {isExpanded ? "▾" : "▸"}
-          </span>
-        </div>
-      </div>
+      <ClusterRow
+        label={label}
+        count={checkCount}
+        description={description}
+        noun="test"
+        isFlagged={isFlagged}
+        flagColor={flagColor}
+        isExpanded={isExpanded}
+        onToggle={onToggle}
+      />
 
       {isExpanded && (
         <div style={{ padding: "0 10px 10px 0" }}>

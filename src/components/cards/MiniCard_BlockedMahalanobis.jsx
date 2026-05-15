@@ -17,24 +17,6 @@ export function MiniCard_BlockedMahalanobis({ result, importConfig, rowMap }) {
   const details = result.details || [];
   const { toFileRow } = makeRowMapper(importConfig, rowMap);
 
-  // ── Headline ──
-  let headline;
-  if (result.flag === "LOW" || result.flag === "N/A") {
-    headline = `No block-localised covariance or mean anomaly detected across ${result.nUnits || 0} (pass × condition) unit${result.nUnits === 1 ? "" : "s"}.`;
-  } else {
-    const sig = details.filter(d => d.significant);
-    const best = sig[0] || details[0];
-    if (!best) {
-      headline = `Block covariance anomaly detected at adj-p = ${fmtP(result.primaryP)}.`;
-    } else {
-      const what = best.passKey === 'mu'
-        ? "block mean shift"
-        : "block-level cross-replicate covariance inflation";
-      const extra = sig.length > 1 ? ` (${sig.length} flagged block${sig.length === 1 ? "" : "s"} across pass × condition)` : "";
-      headline = `Localised ${what} in ${best.condition} rows ${toFileRow(best.startRow)}\u2013${toFileRow(best.endRow)}${extra}.`;
-    }
-  }
-
   // ── Position strip ── reuse RegionalNoiseStrip: one "row" per (pass × cond).
   // Only show significant blocks on the strip to keep visual signal clean.
   const nRows = importConfig?.data?.length || 0;
@@ -61,9 +43,9 @@ export function MiniCard_BlockedMahalanobis({ result, importConfig, rowMap }) {
         const startFile = toFileRow(d.startRow);
         const endFile = toFileRow(d.endRow);
         return {
-          rows: `${startFile}\u2013${endFile}`,
+          rows: `${startFile}–${endFile}`,
           anomCol: String(idxByKey[`${d.pass} · ${d.condition}`]),
-          ratio: norm.toFixed(2) + "\u00d7",
+          ratio: norm.toFixed(2) + "×",
         };
       });
       strip = (
@@ -81,7 +63,7 @@ export function MiniCard_BlockedMahalanobis({ result, importConfig, rowMap }) {
       const cell = v => sig
         ? { value: v, style: { color: SIGNAL.AMBER.text, fontWeight: FW.SEMI } }
         : v;
-      const rowsLabel = `${toFileRow(d.startRow)}\u2013${toFileRow(d.endRow)}`;
+      const rowsLabel = `${toFileRow(d.startRow)}–${toFileRow(d.endRow)}`;
       const statLabel = `${d.statType} = ${d.stat}`;
       return [cell(d.pass), cell(d.condition), cell(rowsLabel), cell(statLabel), cell(fmtP(d.rawP)), cell(fmtP(d.adjP))];
     });
@@ -97,14 +79,13 @@ export function MiniCard_BlockedMahalanobis({ result, importConfig, rowMap }) {
   }
 
   const passLabel = `W=${result.windowSize}, stride=${result.stride}`;
-  const footer = `${result.nConditions || 0} condition${result.nConditions === 1 ? "" : "s"} \u00B7 ${result.nWindowsTotal || 0} windows (${passLabel}) \u00B7 B=${result.nPerm} \u00B7 ${fmtPBadge(result.primaryP)}`;
+  const footer = `${result.nConditions || 0} condition${result.nConditions === 1 ? "" : "s"} · ${result.nWindowsTotal || 0} windows (${passLabel}) · B=${result.nPerm} · ${fmtPBadge(result.primaryP)}`;
 
   return (
-    <MiniCardLayout result={result} headline={headline}
-      desc={result.description}
+    <MiniCardLayout result={result}
       footer={footer}
       lookFor="Row-range blocks where the covariance pattern across replicate columns shifts from the surrounding condition, or where the block mean differs from the condition-wide mean. Factor-model copy-paste with noise perturbation, block copies across replicates, and unrecorded localised batch effects all produce this signature. Cross-reference flagged blocks against sample collection logs or plate layouts."
-      implications="A block-covariance flag indicates rows where replicate values covary differently from the rest of the condition \u2014 consistent with copy-paste-with-jitter fabrication, a data-generation error confined to a row stretch, or an unrecorded batch effect. A block-mean flag indicates a stretch of rows whose mean differs from the condition background. Both pass independently \u2014 cross-reference between passes and against §2.6 Mahalanobis Row Outlier to distinguish joint-row anomalies from block-structural anomalies.">
+      implications="A block-covariance flag indicates rows where replicate values covary differently from the rest of the condition — consistent with copy-paste-with-jitter fabrication, a data-generation error confined to a row stretch, or an unrecorded batch effect. A block-mean flag indicates a stretch of rows whose mean differs from the condition background. Both pass independently — cross-reference between passes and against §2.6 Mahalanobis Row Outlier to distinguish joint-row anomalies from block-structural anomalies.">
 
       {strip && (
         <>

@@ -1,10 +1,18 @@
 /* ── Shared inline styles — single source of truth for repeated patterns ── */
 
-import { C, TF, FW, FF, UI, CC, SIGNAL, ACCENT } from "../../constants/tokens.js";
+import { C, TF, FS, FW, FF, UI, CC, SIGNAL, ACCENT } from "../../constants/tokens.js";
 import { FLAG_STYLES } from "../../constants/thresholds.js";
 
-// Sub-heading inside MiniCards — used by all 24 cards for section labels.
-export const SUB_HEAD = { fontSize: TF.DETAIL, fontFamily: FF.UI, fontWeight: FW.SEMI, color: C.TEXT_3, marginBottom: "8px" };
+// Sub-heading inside MiniCards — used across the §3 mini-card surface for
+// section labels above charts, tables, and per-condition breakdowns. Co-consumed
+// at 35+ sites across 26 mini-cards plus CorrMatrix + ConditionTable.
+//
+// Register: sm Semibold C.TEXT_3 sans — added to TYPOGRAPHY-SYSTEM.md § Register
+// inventory at S150 (C.8 / B1) as a genuinely new tuple. Pre-S150 the size was
+// TF.DETAIL (11px); the size lift to FS.sm (14px) makes the label legible at
+// the same physical distance the rest of §3 reads at, without crossing into
+// table-header weight + colour.
+export const SUB_HEAD = { fontSize: FS.sm, fontFamily: FF.UI, fontWeight: FW.SEMI, color: C.TEXT_3, marginBottom: "8px" };
 
 export const S_NOTE  = { fontFamily: FF.UI, fontSize: TF.DETAIL, color: C.TEXT_4, marginTop: "2px", paddingLeft: "4px" };
 // Shared header style for all data tables (evidence, hotspot, import preview).
@@ -13,8 +21,12 @@ export const TH_EVIDENCE = { boxSizing:"border-box", padding:"6px 8px", fontSize
 
 // Data excerpt cell styles — used by DupDet, HotspotExcerptList, and any raw data table.
 // Override only background/color/fontWeight for highlighting; dimensions are baked in.
-export const TD_NUM_CELL = { boxSizing:"border-box", padding:"4px 8px", fontSize:TF.DETAIL, fontFamily:FF.MONO, fontVariantNumeric:"tabular-nums", textAlign:"center", whiteSpace:"nowrap" };
-export const TD_ID_CELL  = { boxSizing:"border-box", padding:"4px 8px", fontSize:TF.DETAIL, fontFamily:FF.UI, textAlign:"center", whiteSpace:"nowrap" };
+// S150 (C.8 / B5): size pegged to FS.xs (13px) per TYPOGRAPHY-SYSTEM.md § Tables
+// "Body cells (text / numeric values)" row. Pre-S150 was TF.DETAIL (11px) — the
+// 11px residual preference noted at S136 (parked #14) re-evaluated and resolved
+// in favour of the spec target.
+export const TD_NUM_CELL = { boxSizing:"border-box", padding:"4px 8px", fontSize:FS.xs, fontFamily:FF.MONO, fontVariantNumeric:"tabular-nums", textAlign:"center", whiteSpace:"nowrap" };
+export const TD_ID_CELL  = { boxSizing:"border-box", padding:"4px 8px", fontSize:FS.xs, fontFamily:FF.UI, textAlign:"center", whiteSpace:"nowrap" };
 
 // Contextual banner for test cards — info (blue), warn (amber), caution (amber-highlight).
 // Edit here to change banner appearance for all cards at once.

@@ -15,16 +15,6 @@ export function MiniCard_WindowedAutocorr({ result, importConfig, rowMap }) {
   const details = result.details || [];
   const { toFileRow } = makeRowMapper(importConfig, rowMap);
 
-  // ── Headline ──
-  let headline;
-  if (result.flag === "LOW" || result.flag === "N/A") {
-    headline = "No localised lag-1 autocorrelation detected — replicate differences behave like independent noise in every window scanned.";
-  } else if (result.flag === "HIGH") {
-    headline = `${result.nSig05} of ${result.nWindowsTotal} (pair × window) units show localised serial structure in replicate differences (${result.nSig01} at adj-p < 0.01).`;
-  } else {
-    headline = `${result.nSig05} of ${result.nWindowsTotal} (pair × window) units show localised serial structure — a stretch of rows where replicate differences are not independent.`;
-  }
-
   // ── Position strip ── reuse RegionalNoiseStrip.
   // RegionalNoiseStrip expects details with { rows, anomCol, ratio }. Map
   // pair labels into "anomCol" slot and use |r| as the opacity-scaling ratio
@@ -77,8 +67,7 @@ export function MiniCard_WindowedAutocorr({ result, importConfig, rowMap }) {
   const footer = `${result.nPairs} pair${result.nPairs !== 1 ? "s" : ""} \u00B7 ${result.nWindowsTotal} windows (size ${result.windowSize}, stride ${result.stride}) \u00B7 B=${result.nPerm} \u00B7 ${fmtPBadge(result.primaryP)}`;
 
   return (
-    <MiniCardLayout result={result} headline={headline}
-      desc={result.description}
+    <MiniCardLayout result={result}
       footer={footer}
       lookFor="Localised lag-1 autocorrelation means the replicate differences follow a predictable pattern in a stretch of rows — typically a template-copied region or a hand-jittered block. Check whether the flagged window rows correspond to an identifiable sub-experiment, plate segment, or batch. Compare the values against a fresh instrument export to rule out post-processing ordering."
       implications="Within-window serial structure can result from time-dependent biological processes affecting adjacent rows (e.g., temperature drift, a single plate read out-of-order). It can also indicate that values in that stretch were generated from a formula linking each row to its neighbour rather than recorded independently.">

@@ -185,7 +185,10 @@ function IrcBracketStrip({ brackets, colEntries, hasMarker, tableRef, onHeightCh
                 <line x1={x2} y1={yTop} x2={x2} y2={yBot} stroke={C.TEXT_4} strokeWidth={1} />
                 <line x1={x1} y1={yTop} x2={x2} y2={yTop} stroke={C.TEXT_4} strokeWidth={1} />
                 <text x={xMid} y={yTop + 12} textAnchor="middle"
-                  style={{ fontSize: TF.SMALL, fontFamily: FF.MONO, fill: C.TEXT_4 }}>
+                  style={{ fontSize: "9px", fontFamily: FF.MONO, fill: C.TEXT_4 }}>
+                  {/* Chart-annotation glyph — carve-out per TYPOGRAPHY-SYSTEM.md
+                      §"What this system does NOT cover" (charts + chart-internal
+                      labels). Hardcoded pending the chart-typography pass. */}
                   {b.label}
                 </text>
               </g>
@@ -440,8 +443,11 @@ function RegionBadge({ overlay, y, onActivate }) {
     <g onClick={handleClick} style={{ cursor: "pointer" }}>
       <rect x={2} y={y} width={MINIMAP_W - 4} height={12}
         fill={fill} rx={2} />
+      {/* RegionBadge glyph — chart-annotation carve-out per TYPOGRAPHY-SYSTEM.md
+          §"What this system does NOT cover". Mirrors MinimapStrip's RegionBadge
+          (retired TF.SMALL → hardcoded literal at S149-fix1 piece 2). */}
       <text x={MINIMAP_W / 2} y={y + 9} textAnchor="middle"
-        style={{ fontSize: TF.SMALL, fontFamily: FF.UI, fontWeight: FW.BOLD, fill: C.WHITE,
+        style={{ fontSize: "9px", fontFamily: FF.UI, fontWeight: FW.BOLD, fill: C.WHITE,
           pointerEvents: "none" }}>
         {overlay.regionNumber}
       </text>
@@ -1001,10 +1007,14 @@ export function ExcerptTable({
               const markerBg = dupGrp ? spec.dupGroupTintMap?.get(dupGrp.id) || zebraBg : zebraBg;
               const markerCpBorder = spec.changepointVisRows?.includes(ri);
               return (
+                /* Group-marker glyph cell (e.g. ① ② ③) — chart-annotation carve-out
+                   per TYPOGRAPHY-SYSTEM.md §"What this system does NOT cover".
+                   The marker glyphs are inline-coloured by mechanism and sized
+                   below the type-scale floor. Hardcoded pending the chart pass. */
                 <td style={{
                   ...TD_ID_CELL, boxSizing: "border-box",
                   width: COL_W.MARKER, minWidth: COL_W.MARKER, maxWidth: COL_W.MARKER,
-                  padding: "1px 2px", textAlign: "center", fontSize: TF.SMALL, lineHeight: "1.2",
+                  padding: "1px 2px", textAlign: "center", fontSize: "9px", lineHeight: "1.2",
                   borderBottom: markerCpBorder ? `2px dashed ${SIGNAL.RED.dot}` : `1px solid ${C.BORDER_L}`,
                   borderRight: `1px solid ${C.BORDER_L}`,
                   background: blendOnto(markerBg, zebraBg),
@@ -1075,10 +1085,14 @@ export function ExcerptTable({
                             {"↳ " + fr(cpRow)}
                           </td>
                           {hasGroups && (
+                            /* Counterpart-row group marker — same chart-annotation
+                               carve-out as the primary group marker above; mirrors
+                               its inline literal so the two cells render at the
+                               same glyph size. */
                             <td style={{
                               ...TD_ID_CELL, boxSizing: "border-box",
                               width: COL_W.MARKER, minWidth: COL_W.MARKER, maxWidth: COL_W.MARKER,
-                              padding: "1px 2px", textAlign: "center", fontSize: TF.SMALL, lineHeight: "1.2",
+                              padding: "1px 2px", textAlign: "center", fontSize: "9px", lineHeight: "1.2",
                               borderBottom: `1px solid ${C.BORDER_L}`, background: style.counterpartTint,
                               position: "sticky", left: markerLeft, zIndex: FREEZE_Z.FROZEN_BODY,
                               color: MECH_COLOR[TEST_MECHANISM[grp.testKey]] || C.TEXT_3,

@@ -34,17 +34,6 @@ export function MiniCard_Runs({ result, importConfig, rowMap }) {
   const dataColMap = roles.map((r, i) => r === "data" ? i : -1).filter(i => i >= 0);
   const repName = (colIdx) => shortColName(hdrs[dataColMap[colIdx]] || `Rep${colIdx + 1}`);
 
-  // Headline
-  let headline;
-  const nSig = result.nSignificant || 0;
-  if (result.flag === "LOW" || result.flag === "N/A") {
-    headline = "Sign changes occur at the expected rate — row ordering appears random.";
-  } else if (pooledMeanZ <= -3) {
-    headline = `${nSig} of ${result.nPairs} replicate pairs show too few sign changes — replicates stay on the same side of each other for long stretches.`;
-  } else {
-    headline = "Sign changes between replicates happen less often than expected — row ordering is not fully random.";
-  }
-
   // Coordinate mapping
   const { fileRow } = makeRowMapper(importConfig, rowMap);
   const nMatrixRows = importConfig?.data?.length || 0;
@@ -86,8 +75,7 @@ export function MiniCard_Runs({ result, importConfig, rowMap }) {
   </>;
 
   return (
-    <MiniCardLayout result={result} headline={headline}
-      desc={result.description}
+    <MiniCardLayout result={result}
       footer={footerContent}
       lookFor={hasWindowed ? `Rows ${details.find(d=>d.source==="window")?.startRow||"?"}\u2013${details.find(d=>d.source==="window")?.endRow||"?"} show unusually long stretches where one replicate stays above the other. Examine those rows for signs of sequential construction — are the values suspiciously smooth, evenly spaced, or trending in one direction? Compare the sign pattern in that region against the rest of the dataset.` : "Too few sign changes means replicate differences persist in the same direction for long stretches. This is the signature of values typed row-by-row, where each value is anchored to the previous one. Ask for the original instrument files and compare the row ordering — if the data was re-sorted before submission, that alone can explain the pattern."}
       implications={runsImplications}>
