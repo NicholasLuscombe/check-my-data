@@ -1,19 +1,25 @@
 import { useState } from "react";
-import { C, TF, FS, FW, FF, CR } from "../../constants/tokens.js";
+import { C, FS, FW, FF, CR } from "../../constants/tokens.js";
 import { BANNER_STYLES } from "./styles.js";
 
+// S150 (C.8 / B3): fontSize lifted TF.DETAIL 11px -> FS.sm 14px. Chrome shape
+// preserved (bordered box + CR.MD radius); typography only retune. Five
+// consumers across MiniCard_InterReplicateCorrelation, MiniCard_Mahalanobis,
+// MiniCard_RankCorrelation, MiniCard_SelectiveNoise, MiniCard_ValueFrequency.
 export function CardBanner({ type="info", children }) {
   const s = BANNER_STYLES[type] || BANNER_STYLES.info;
   return (
     <div style={{background:s.bg,border:`1px solid ${s.border}`,borderRadius:CR.MD,
-      padding:"6px 10px",marginBottom:"6px",fontSize:TF.DETAIL,color:s.color,lineHeight:"1.5"}}>
+      padding:"6px 10px",marginBottom:"6px",fontSize:FS.sm,color:s.color,lineHeight:"1.5"}}>
       {children}
     </div>
   );
 }
 
+// S150 (C.8): retuned to Footnote/reference register sm Regular C.TEXT_2 sans.
+// Pre-S150: TF.DETAIL 11px / C.TEXT_3 (Session 1 dropped C.TEXT_4 alias here).
 export function CardFooter({ children }) {
-  return <div style={{fontFamily:FF.UI,fontSize:TF.DETAIL,color:C.TEXT_3,paddingLeft:"4px"}}>{children}</div>;
+  return <div style={{fontFamily:FF.UI,fontSize:FS.sm,color:C.TEXT_2,paddingLeft:"4px"}}>{children}</div>;
 }
 
 // Collapsible-section toggle row — sentence-case affordance, sm Semibold C.TEXT
@@ -49,7 +55,7 @@ export function MiniCardLayout({ result, lookFor, footer, children, implications
             Implications
           </div>
           {implOpen && (
-            <div style={{padding:"8px 12px",margin:"4px 0 0 0",background:C.BG_L,border:`1px solid ${C.BORDER_L}`,borderRadius:CR.MD,fontSize:TF.BODY,fontFamily:FF.UI,color:C.TEXT_2,lineHeight:"1.6"}}>
+            <div style={{padding:"8px 12px",margin:"4px 0 0 0",background:C.BG_L,border:`1px solid ${C.BORDER_L}`,borderRadius:CR.MD,fontSize:FS.base,fontFamily:FF.UI,color:C.TEXT,lineHeight:"1.6"}}>
               {implications}
             </div>
           )}
@@ -62,7 +68,7 @@ export function MiniCardLayout({ result, lookFor, footer, children, implications
             What to look for
           </div>
           {lookForOpen && (
-            <div style={{padding:"8px 12px",margin:"4px 0 0 0",background:C.BG_L,border:`1px solid ${C.BORDER_L}`,borderRadius:CR.MD,fontSize:TF.BODY,fontFamily:FF.UI,color:C.TEXT_2,lineHeight:"1.6"}}>
+            <div style={{padding:"8px 12px",margin:"4px 0 0 0",background:C.BG_L,border:`1px solid ${C.BORDER_L}`,borderRadius:CR.MD,fontSize:FS.base,fontFamily:FF.UI,color:C.TEXT,lineHeight:"1.6"}}>
               {lookFor}
             </div>
           )}

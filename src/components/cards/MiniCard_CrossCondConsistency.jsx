@@ -31,7 +31,7 @@
    (forensic or not) show as LOW. Skipped / degenerate rows sink to the
    bottom. */
 
-import { C, TF, FW, FF, SIGNAL } from "../../constants/tokens.js";
+import { C, FS, FW, FF, SIGNAL } from "../../constants/tokens.js";
 import { fmtP, fmtPBadge, ALPHA } from "../../constants/thresholds.js";
 import { MiniCardLayout } from "../shared/CardLayout.jsx";
 import { EvidenceTable } from "../shared/EvidenceTable.jsx";
@@ -100,7 +100,7 @@ export function MiniCard_CrossCondConsistency({ result }) {
   ];
 
   const AMBER_BG       = SIGNAL.AMBER.bg;
-  const INFORMATIONAL_COLOR = C.TEXT_4; // muted; same token Carlisle / LOESS use for secondary text
+  const INFORMATIONAL_COLOR = C.TEXT_3; // muted secondary text (C.TEXT_4 alias retired Phase B; folds to C.TEXT_3)
   const rows = ordered.map(d => {
     const amberHere = isAmberRow(d);
     // Style per cell is either amber-bg (amber row) or muted-color (informational row).
@@ -142,9 +142,9 @@ export function MiniCard_CrossCondConsistency({ result }) {
   const identifierColumns = 2; // Property, Pair — sans-serif
 
   const legendStyle = {
-    fontSize: TF.SMALL,
+    fontSize: FS.sm,
     fontFamily: FF.UI,
-    color: C.TEXT_4,
+    color: C.TEXT_2,
     marginTop: "4px",
     lineHeight: "1.5",
   };

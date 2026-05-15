@@ -1,6 +1,6 @@
 /* ── MiniCard: Inter-Replicate Correlation ── */
 
-import { C, TF, FW, FF } from "../../constants/tokens.js";
+import { C, FS, FW, FF } from "../../constants/tokens.js";
 import { TIER_COLOR } from "../shared/heatmapColors.js";
 import { COND_COLORS, buildCondColorMap } from "../../constants/roles.js";
 import { MiniCardLayout, CardBanner } from "../shared/CardLayout.jsx";
@@ -167,7 +167,7 @@ return (
       </div>
     )}
     {topWins.length === 0 && result.flag !== "LOW" && (
-      <div style={{marginTop:"12px",fontSize:TF.BODY,fontFamily:FF.UI,color:C.TEXT_3}}>
+      <div style={{marginTop:"12px",fontSize:FS.base,fontFamily:FF.UI,color:C.TEXT}}>
         No localised row ranges detected — elevated correlation is uniform across all rows.
       </div>
     )}

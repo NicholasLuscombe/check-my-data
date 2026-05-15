@@ -1,6 +1,6 @@
 /* ── MiniCard: Kurtosis ── */
 
-import { C, CC, TF, FW, FF, M, CP, CS, CF, CR, SIGNAL, UI, BADGE } from "../../constants/tokens.js";
+import { C, CC, TF, FS, FW, FF, M, CP, CS, CF, CR, SIGNAL, UI, BADGE } from "../../constants/tokens.js";
 import { fmtPBadge } from "../../constants/thresholds.js";
 import { MiniCardLayout } from "../shared/CardLayout.jsx";
 import { buildCondColorMap } from "../../constants/roles.js";
@@ -147,7 +147,7 @@ export function MiniCard_Kurtosis({ result, importConfig, rowMap }) {
                       const cLabel=cIsPlat?(cIsFlagged?"too uniform":"possibly uniform"):cIsLepto?(cIsFlagged?"too peaked":"possibly peaked"):"normal";
                       return (
                         <div key={ci} style={{display:"flex",flexDirection:"column",alignItems:"center"}}>
-                          <div style={{fontSize:TF.SMALL,fontWeight:FW.BOLD,marginBottom:"2px"}}>
+                          <div style={{fontSize:FS.sm,fontWeight:FW.SEMI,marginBottom:"2px"}}>
                             <span style={{color:condColorMap[c.condition]?.text||col}}>{c.condition}</span>
                             <span style={{color:col}}> ({cLabel})</span>
                           </div>
