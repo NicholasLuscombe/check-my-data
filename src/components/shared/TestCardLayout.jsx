@@ -53,11 +53,11 @@ export function TestCardLayout({ result, mode, expanded, onToggle, onSeverityBad
         onClick={expandable ? onToggle : undefined}
       >
         <span style={{ display: "flex", alignItems: "center", gap: "4px", overflow: "hidden", minWidth: 0 }}>
-          <span style={{ fontSize: TF.BODY, fontWeight: FW.SEMI, color: C.TEXT, whiteSpace: "nowrap" }}>
+          <span style={{ fontSize: FS.base, fontWeight: FW.SEMI, color: C.TEXT, whiteSpace: "nowrap" }}>
             {DISPLAY_NAMES[result.name] || result.name}
           </span>
           {showSubtitle && TEST_DESCRIPTIONS[result.name] && (
-            <span style={{ fontSize: TF.BODY, color: C.TEXT_3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            <span style={{ fontSize: FS.base, fontWeight: FW.NORM, color: C.TEXT_3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
               {" · "}{TEST_DESCRIPTIONS[result.name]}
             </span>
           )}

@@ -15,7 +15,7 @@
 */
 
 import { useState, useMemo } from "react";
-import { C, TF, FW, FF, CR, SEV_VERDICT } from "../../constants/tokens.js";
+import { C, FS, FW, FF, CR, SEV_VERDICT } from "../../constants/tokens.js";
 import { DISPLAY_NAMES } from "../../constants/mechanisms.js";
 import { TestCardLayout } from "../shared/TestCardLayout.jsx";
 import { ClusterRow } from "../shared/ClusterRow.jsx";
@@ -171,15 +171,15 @@ function ClearSummaryRow({ tests, onExpand, expanded = false }) {
         border: `1px solid ${C.BORDER_L}`,
         borderRadius: CR.LG,
         cursor: "pointer",
-        fontSize: TF.DETAIL,
+        fontSize: FS.base,
         fontFamily: FF.UI,
         color: C.TEXT_3,
         display: "flex", alignItems: "center", gap: "6px",
       }}
     >
-      <span style={{ color: SEV_VERDICT[0].color, fontSize: TF.BODY }}>✓</span>
-      <span style={{ fontWeight: FW.SEMI }}>{tests.length} test{tests.length !== 1 ? "s" : ""} CLEAR</span>
-      <span style={{ color: C.TEXT_4 }}>—</span>
+      <span style={{ color: SEV_VERDICT[0].color, fontSize: FS.base }}>✓</span>
+      <span style={{ fontWeight: FW.SEMI, color: C.TEXT }}>{tests.length} test{tests.length !== 1 ? "s" : ""} CLEAR</span>
+      <span style={{ color: C.TEXT_3 }}>—</span>
       <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", minWidth: 0 }}>
         {names}
       </span>
