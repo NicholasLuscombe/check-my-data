@@ -21,7 +21,7 @@
    chip lane; ForensicsBody mounts MinimapStrip there. The deeper
    table excerpt still defers to S126c-b modal. */
 
-import { C, FS, FW, FF, CR, SEV_VERDICT } from "../../constants/tokens.js";
+import { C, CR } from "../../constants/tokens.js";
 import { MECHANISMS } from "../../constants/mechanisms.js";
 import { LANE_LABEL_TYPOGRAPHY } from "../shared/Section.jsx";
 import { FindingPill } from "./FindingPill.jsx";
@@ -102,16 +102,9 @@ export function shouldRenderSticky(findings = []) {
   return pills.length > 0 || localisedChips.length > 0 || fallbackChips.length > 0;
 }
 
-export function StickySurface({ findings, severity, onActivateTest, minimapSlot = null }) {
+export function StickySurface({ findings, onActivateTest, minimapSlot = null }) {
   const { pills, localisedChips, fallbackChips } = pillsAndChips(findings);
   if (!pills.length && !localisedChips.length && !fallbackChips.length) return null;
-  // K = HIGH + MOD count across all three lanes (LOW excluded — matches the
-  // chip-layer CLEAR-collapse rule from S126b). Severity echo gives the
-  // screenshot the dataset-level verdict tier without requiring the §1 banner
-  // above it.
-  const allChips = [...localisedChips, ...fallbackChips];
-  const K = pills.length + allChips.filter(f => f.severity === "HIGH" || f.severity === "MOD").length;
-  const sevColor = (severity != null && SEV_VERDICT[severity]?.color) || C.TEXT;
 
   // S126b add-7b: rendered as a flat-top continuation of the
   // <Section flatBottom> sibling above. Same BG_ZONE bg + matching radii
@@ -138,24 +131,6 @@ export function StickySurface({ findings, severity, onActivateTest, minimapSlot 
       marginBottom: "12px",
       boxShadow: "0 4px 6px -2px rgba(0,0,0,0.05)",
     }}>
-      {/* Severity echo — top row above the two lane rows. Tier colour
-          (sevColor on the line) carries the dataset-level verdict signal;
-          the count carries scale. Pre-S133h FIX3 the line led with the
-          tier word ("High · K patterns flagged"); FIX3 retired the word
-          on parity with §1 dot row — colour alone IS the tier signal. */}
-      {severity != null && (
-        <div style={{
-          fontFamily: FF.UI,
-          fontSize: FS.md,
-          fontWeight: FW.SEMI,
-          color: sevColor,
-          padding: "8px 0",
-          borderBottom: `1px solid ${C.BORDER_L}`,
-          marginBottom: "8px",
-        }}>
-          {K} {K === 1 ? "pattern" : "patterns"} flagged
-        </div>
-      )}
       {pills.length > 0 && (
         <div style={{
           display: "flex", alignItems: "center", gap: "10px",
