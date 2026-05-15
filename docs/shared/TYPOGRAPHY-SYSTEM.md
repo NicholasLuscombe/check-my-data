@@ -296,6 +296,8 @@ For meta-content: frame-setting notes, trust statements, status indicators.
 | Identity row value | base | Regular | C.TEXT | sans |
 | Tier word | base | Medium | tier | sans |
 | Tab (active) | base | Semibold | C.TEXT | sans |
+| Lane label (§2 + DeepLookModal) | base | Semibold | C.TEXT | sans |
+| Modal sub-context | sm | Regular | C.TEXT_2 | sans |
 | Tab (inactive) | base | Medium | C.TEXT_2 | sans |
 | Button | base | Medium | C.TEXT | sans |
 | Primary banner headline | base | Medium | C.TEXT | sans |
@@ -309,9 +311,9 @@ For meta-content: frame-setting notes, trust statements, status indicators.
 | Aside callout body | sm | Regular | C.TEXT | sans |
 | Aside callout bullet lead | sm | Semibold | C.TEXT | sans |
 
-23 roles, 18 distinct tuples. Down from ~40 in pre-system inventory.
+25 roles, 18 distinct tuples. Down from ~40 in pre-system inventory.
 
-Note: prior versions of this doc cited "18 roles, 13 distinct tuples". Recount at S138 close (post-Phase C.2 surface migration) found the actual table contained more tuples than the summary line claimed. Whether this was original miscount at S134 lock or drift since lock is undetermined from available evidence; the numbers above reflect the current table as the source of truth going forward. Column title (verdict §1) role added during S138-fix4 as a co-consumer of the Sub-heading tuple — no new tuple introduced. Primary banner headline + sub-line roles added during S148 as co-consumers of the Button and Footnote tuples respectively — no new tuples introduced.
+Note: prior versions of this doc cited "18 roles, 13 distinct tuples". Recount at S138 close (post-Phase C.2 surface migration) found the actual table contained more tuples than the summary line claimed. Whether this was original miscount at S134 lock or drift since lock is undetermined from available evidence; the numbers above reflect the current table as the source of truth going forward. Column title (verdict §1) role added during S138-fix4 as a co-consumer of the Sub-heading tuple — no new tuple introduced. Primary banner headline + sub-line roles added during S148 as co-consumers of the Button and Footnote tuples respectively — no new tuples introduced. Lane label (§2 StickySurface + DeepLookModal) and Modal sub-context roles added during S149 (C.6+C.7 combined) — Lane label shares the `base Semibold C.TEXT` tuple with Tab (active); Modal sub-context shares `sm Regular C.TEXT_2` with Footnote/reference. Both are role-additions only, no new tuples.
 
 ## Implementation notes — for Phase B and Phase C
 

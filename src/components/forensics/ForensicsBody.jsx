@@ -250,7 +250,6 @@ export function ForensicsBody({
             <Section number={2} title="What was found" flatBottom />
             <StickySurface
               findings={findings}
-              severity={severity}
               onActivateTest={onActivateTest}
               minimapSlot={minimapSlot}
             />

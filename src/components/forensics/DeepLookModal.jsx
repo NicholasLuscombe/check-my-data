@@ -42,8 +42,9 @@
    pin range preserved on dismiss. */
 
 import { useEffect, useState, useMemo, useCallback } from "react";
-import { C, TF, FW, FF, CR, SEV_VERDICT } from "../../constants/tokens.js";
+import { C, FS, FW, FF, CR, SEV_VERDICT } from "../../constants/tokens.js";
 import { MECHANISMS, GROUP_MARKERS, RANK_NUMS } from "../../constants/mechanisms.js";
+import { LANE_LABEL_TYPOGRAPHY } from "../shared/Section.jsx";
 import { MinimapStrip } from "./MinimapStrip.jsx";
 import { ExcerptTable } from "./ExcerptTable.jsx";
 import { FindingPill } from "./FindingPill.jsx";
@@ -51,14 +52,9 @@ import { FindingChip } from "./FindingChip.jsx";
 import { pillsAndChips } from "./StickySurface.jsx";
 import { usePulseTrigger } from "./pulseContext.jsx";
 
-const LANE_LABEL = {
-  fontFamily: FF.UI,
-  fontSize: TF.BODY,
-  fontWeight: FW.SEMI,
-  color: C.TEXT,
-  whiteSpace: "nowrap",
-  flexShrink: 0,
-};
+// Layout-only properties for the lane-label spans. Typography lives in
+// LANE_LABEL_TYPOGRAPHY (Section.jsx). Spread both at each consumer site.
+const LANE_LABEL_LAYOUT = { whiteSpace: "nowrap", flexShrink: 0 };
 
 export function DeepLookModal({
   // Data props (threaded from ForensicsBody as a single `heatmapProps`
@@ -187,7 +183,10 @@ export function DeepLookModal({
           style={{
             position: "absolute", top: 12, right: 12,
             background: "none", border: "none",
-            fontSize: TF.TITLE, fontWeight: FW.NORM,
+            // Icon glyph — TYPOGRAPHY-SYSTEM.md §4.2 carve-out (icon-sizing
+            // system is separate from text register). Hardcoded pending
+            // that system's land; do NOT promote to text-register tokens.
+            fontSize: "16px", fontWeight: FW.NORM,
             color: C.TEXT_3, cursor: "pointer",
             padding: "4px 8px", lineHeight: 1,
           }}
@@ -197,11 +196,11 @@ export function DeepLookModal({
 
         {/* Header — modal title + focused region context. */}
         <div style={{ marginBottom: 14, paddingRight: 32 }}>
-          <div style={{ fontSize: TF.TITLE, fontWeight: FW.BOLD, color: C.TEXT }}>
+          <div style={{ fontSize: FS.md, fontWeight: FW.SEMI, color: C.TEXT }}>
             Deep look
           </div>
           {focusedFinding && (
-            <div style={{ fontSize: TF.DETAIL, color: C.TEXT_3, marginTop: 2 }}>
+            <div style={{ fontSize: FS.sm, fontWeight: FW.NORM, color: C.TEXT_2, marginTop: 2 }}>
               Region [{focusedFinding.regionNumber}] —
               {" "}{focusedFinding.tests?.[0]?.displayName || MECHANISMS[focusedFinding.dimensions?.[0]]?.label || ""}
             </div>
@@ -216,7 +215,7 @@ export function DeepLookModal({
             flexWrap: "wrap",
             marginBottom: (localisedChips.length > 0 || fallbackChips.length > 0) ? 8 : 12,
           }}>
-            <span style={LANE_LABEL}>Dataset-wide patterns</span>
+            <span style={{ ...LANE_LABEL_TYPOGRAPHY, ...LANE_LABEL_LAYOUT }}>Dataset-wide patterns</span>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
               {pills.map(f => (
                 <FindingPill key={f.id} finding={f} onActivate={onActivateInModal} />
@@ -235,7 +234,7 @@ export function DeepLookModal({
             flexWrap: "wrap",
             marginBottom: fallbackChips.length > 0 ? 8 : 14,
           }}>
-            <span style={LANE_LABEL}>Localised patterns</span>
+            <span style={{ ...LANE_LABEL_TYPOGRAPHY, ...LANE_LABEL_LAYOUT }}>Localised patterns</span>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
               {localisedChips.map(f => (
                 <FindingChip
@@ -257,7 +256,7 @@ export function DeepLookModal({
             display: "flex", alignItems: "center", gap: 10,
             flexWrap: "wrap", marginBottom: 14,
           }}>
-            <span style={LANE_LABEL}>Patterns flagged broadly</span>
+            <span style={{ ...LANE_LABEL_TYPOGRAPHY, ...LANE_LABEL_LAYOUT }}>Patterns flagged broadly</span>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
               {fallbackChips.map(f => (
                 <FindingChip

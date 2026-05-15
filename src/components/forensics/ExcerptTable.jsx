@@ -29,6 +29,7 @@
 
 import { useMemo, useState, useRef, useEffect, useLayoutEffect, useCallback, Fragment } from "react";
 import { C, TF, FW, FF, CR, SIGNAL, SEV_VERDICT, UI, MECH_COLOR } from "../../constants/tokens.js";
+import { MINIMAP_CALLOUT_TYPOGRAPHY } from "../shared/Section.jsx";
 import { MECHANISMS, TEST_MECHANISM, TEST_KEY_TO_NAME, RANK_NUMS } from "../../constants/mechanisms.js";
 import { ROLES, buildCondColorMap } from "../../constants/roles.js";
 import { colToExcelLetter, shortColName, buildCondSpansForColumns } from "../shared/coordinates.js";
@@ -936,11 +937,13 @@ export function ExcerptTable({
     <div>
       {/* Where flags are concentrated — heatmap + density minimaps caption */}
       {hasDataRows && (
-        <div style={{ fontSize: TF.DETAIL, color: C.TEXT_3, marginBottom: 6, lineHeight: 1.5 }}>
-          <span style={{ fontWeight: FW.SEMI, color: C.TEXT_2 }}>Where flags are concentrated.</span>{" "}
-          Rows × columns of your data, shaded by how many tests flag each cell.
-          {needsVScroll && " The strip to the left of the table projects flag density along rows."}
-          {needsHScroll && " The strip below the table projects flag density along columns."}
+        <div style={{ marginBottom: 6, lineHeight: 1.5 }}>
+          <span style={{ ...MINIMAP_CALLOUT_TYPOGRAPHY, fontWeight: FW.SEMI }}>Where flags are concentrated.</span>{" "}
+          <span style={MINIMAP_CALLOUT_TYPOGRAPHY}>
+            Rows × columns of your data, shaded by how many tests flag each cell.
+            {needsVScroll && " The strip to the left of the table projects flag density along rows."}
+            {needsHScroll && " The strip below the table projects flag density along columns."}
+          </span>
         </div>
       )}
       {/* Minimap + scrollable data table side by side — only when there are data rows */}

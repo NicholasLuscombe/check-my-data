@@ -25,7 +25,7 @@ function severityStyle(severity) {
   return {
     bg: sev.bg,
     border: sev.color,
-    text: sev.color,
+    color: sev.color,
     pulseColor: sev.color,
   };
 }
