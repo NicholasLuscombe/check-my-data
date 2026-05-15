@@ -101,7 +101,7 @@ Plus three semantic colour groups (unchanged from current system):
 
 ## Case rules
 
-Sentence case is the only product-generated case.
+Sentence case is the default product-generated case.
 
 Applied to: section headings, verdict headlines, sub-headings, tab labels,
 button labels, table headers, identity row labels, settings entries, footnotes,
@@ -111,11 +111,41 @@ aside callout content, prose paragraphs.
 Semibold sentence case. No letter-spacing. Five active letter-spacing values
 in current system retire to zero.
 
-Exceptions to sentence case:
+**Name-cased category labels** (added S148-fix1). Cluster names, test names,
+and statistical procedure labels render as name-cased category labels: first
+word initial-cap, rest lowercase, hyphenated compounds lowercase after the
+hyphen. They retain this casing in any context — list, sentence-start,
+mid-sentence, prose. They do not switch to sentence case mid-sentence.
 
-- **Title Case / verbatim** preserved on proper nouns, branded names (Western Blot Densitometry), named methodologies (Bik standard), and verbatim user-supplied data (condition labels like Inhibitor_A, column headers).
-- **ALL CAPS state tokens on blocking validation chips** preserved — SET ME, REQUIRED, and any future blocking-state vocabulary inside chip chrome. The case treatment carries semantic weight: ALL CAPS signals "the user must act to proceed." Passive provenance signals (Auto) stay sentence case. The carve-out is scoped narrowly to chip-rendered state tokens with blocking semantics; no other ALL-CAPS use is licensed.
-- **Glyph prefixes** (#, ▶, ▼, ✓, ✗, 🔒, etc.) stay as content; the first alphabetic character is the case anchor. # Header rows is sentence case (the H is the anchor), ▶ Test battery details is sentence case (the T is the anchor).
+Examples:
+- Cluster: `Copy, paste, edit`, `Cross-replicate comparisons`, `Unusual digits`
+- Test: `Noise predictability`, `Inter-replicate correlation`, `Row-order randomness`
+
+Rationale: these labels are named statistical categories, not descriptive
+phrases. "Tests flagged across Copy, paste, edit and Cross-replicate
+comparisons" reads correctly because the cluster names are functioning as
+named entities embedded in prose. The single-source-of-truth for these
+labels is `MECHANISMS` (cluster names) and `DISPLAY_NAMES` (test names) in
+`src/constants/mechanisms.js`; downstream consumers must read from these
+registries rather than re-derive casing.
+
+Exceptions to sentence case (apply also within name-cased labels):
+
+- **Eponymous tests and named methodologies** retain conventional casing:
+  Mahalanobis, Benford, Zipf, Mann-Whitney, Anderson-Darling,
+  Kolmogorov-Smirnov, Shapiro-Wilk, Ljung-Box, LOESS, Hartigan, Moran,
+  Fisher, Bonferroni, Benjamini-Hochberg.
+- **Established statistical acronyms** retain uppercase: GoF, MAD, VST,
+  BH-FDR, FDR, OLS, GLS, ANOVA, MCMC, RNG, PRNG.
+- **Domain measurement-type names** retain established proper-noun forms:
+  Western Blot Densitometry, qPCR, ELISA, SDS-PAGE.
+- **Branded names** preserved verbatim: `Check My Data` (brand),
+  `Bik standard` (named methodology), `Excel` (product).
+- **User-supplied data** preserved verbatim: condition labels
+  (`Inhibitor_A`), column headers, file names — never re-cased.
+- **Developer namespace identifiers** are not user-facing chrome and are
+  exempt from these rules: engine-dispatch keys (`r.name`), region-divider
+  comments, internal registry keys, debugging strings.
 
 ## Line-heights
 
@@ -190,6 +220,44 @@ Same size, same weight. **Colour split** is the differentiation: label at
 C.TEXT_3 (tertiary), value at C.TEXT (primary). Reads as quietly-organised
 rhythm.
 
+## Primary banner pattern
+
+For load-bearing product claims that warrant primary visual weight. Distinct
+from aside-callout (peripheral meta-content) — primary banners carry claims
+the user is there to evaluate, not background framing.
+
+First consumer (S148): privacy banner on ImportView — "Your data never
+leaves your browser / All analysis runs locally". Anchored at the top of
+the page, above all other content.
+
+**Structure:**
+- Background: tinted panel (`#EFF6FF` light blue when used for trust
+  claims, matching the trust register)
+- Border: none
+- Border-radius: 6px (CR.LG)
+- Padding: 16px 20px
+- Layout: flex row, gap 14px
+- Icon: 24px lucide-style SVG glyph on the left, coloured to match the
+  register tint (`#2563EB` blue for trust claims)
+- Text block: flex column, line-height 1.3
+  - Headline: base, Medium, C.TEXT
+  - Sub-line: sm, Regular, C.TEXT_2
+
+**Versus aside-callout.** Banners and aside-callouts are visually similar
+(both tinted panels) but semantically distinct:
+
+| | Primary banner | Aside callout |
+|---|---|---|
+| Role | Load-bearing product claim | Peripheral meta-content |
+| Placement | Page-top, before primary content | Embedded inline, alongside primary content |
+| Weight | Headline base Medium | Body sm Regular |
+| Icon | Yes (24px, register-coloured) | No |
+| Border-radius | 6px all corners | 0 4px 4px 0 (square left, rule-edge) |
+| Left rule | No | Yes (3px solid) |
+
+A claim that earns banner treatment never also appears as an aside-callout
+(no double-treatment). If demoted from banner, retire the banner entirely.
+
 ## Aside callout pattern
 
 For meta-content: frame-setting notes, trust statements, status indicators.
@@ -208,31 +276,8 @@ For meta-content: frame-setting notes, trust statements, status indicators.
 | Type | Background | Left rule | Use |
 |------|------------|-----------|-----|
 | Frame-setting | `#F5F5F5` neutral grey | C.TEXT_3 | Reading conventions, supplementary notes, help-block content |
-| Trust / info | `#EFF6FF` light blue | `#2563EB` blue | Screening-aid disclaimer (canonical), scope limits within content-dense surfaces. See usage note below |
+| Trust / info | `#EFF6FF` light blue | `#2563EB` blue | Screening-aid disclaimer, scope limits |
 | Status / warning | `#FEF3C7` light amber | `#CA8A04` amber | Beta features, experimental flags, onboarding hints |
-
-**When callout chrome earns its place — and when it doesn't:**
-
-Aside callouts compete with surrounding content for visual weight. They earn
-their place when the surrounding chrome is dense. Canonical case is the
-screening-aid disclaimer at the top of ReportView, where it sits alongside
-flagged-content chrome and earns INFO chrome to register against the
-surrounding noise. On empty-state or sparsely-populated surfaces, standalone
-prose with weight-based emphasis (Semibold headline + Regular continuation)
-can carry adequate prominence without callout chrome; adding the panel + rule
-would over-engineer the space.
-
-Canonical example of standalone-not-callout: ImportView empty state. The
-privacy block ("🔒 Your data never leaves your computer" + supporting line)
-sits as standalone centred prose on a near-empty page. Headline at `base
-Semibold C.TEXT`, supporting line at `base Regular C.TEXT_3`. No callout
-chrome.
-
-**FRAME sub-type current status:** Zero live consumers in product. The token
-(`UI.FRAME.callout` in `tokens.js`) sits available; first consumer pending a
-genuinely-ambient frame-setting block (reading conventions, dense help-block
-content) that earns the panel chrome over standalone treatment. FRAME may
-stay unused if no surface needs the panel chrome.
 
 ## Register inventory — applied to chrome surfaces
 
@@ -245,7 +290,6 @@ stay unused if no surface needs the panel chrome.
 | Section heading | lg | Semibold | C.TEXT | sans |
 | Sub-heading (test card title) | md | Semibold | C.TEXT | sans |
 | Column title (verdict §1) | md | Semibold | C.TEXT | sans |
-| Primary page-level action | md | Semibold | C.WHITE | sans |
 | Body prose | base | Regular | C.TEXT | sans |
 | Test card sub | base | Regular | C.TEXT_2 | sans |
 | Identity row label | base | Regular | C.TEXT_3 | sans |
@@ -254,18 +298,20 @@ stay unused if no surface needs the panel chrome.
 | Tab (active) | base | Semibold | C.TEXT | sans |
 | Tab (inactive) | base | Medium | C.TEXT_2 | sans |
 | Button | base | Medium | C.TEXT | sans |
+| Primary banner headline | base | Medium | C.TEXT | sans |
 | Table header (semantic) | sm | Medium | C.TEXT | sans |
 | Column index header (Excel-style) | xs | Medium | C.TEXT | mono |
 | Row index | xs | Regular | C.TEXT_2 | mono |
 | Table cell — all | xs | Regular | C.TEXT | mono |
 | Footnote / reference | sm | Regular | C.TEXT_2 | sans |
+| Primary banner sub-line | sm | Regular | C.TEXT_2 | sans |
 | Fine print | xs | Regular | C.TEXT_3 | sans |
 | Aside callout body | sm | Regular | C.TEXT | sans |
 | Aside callout bullet lead | sm | Semibold | C.TEXT | sans |
 
-22 roles, 19 distinct tuples. Down from ~40 in pre-system inventory.
+23 roles, 18 distinct tuples. Down from ~40 in pre-system inventory.
 
-Note: prior versions of this doc cited "18 roles, 13 distinct tuples". Recount at S138 close (post-Phase C.2 surface migration) found the actual table contained more tuples than the summary line claimed. Whether this was original miscount at S134 lock or drift since lock is undetermined from available evidence; the numbers above reflect the current table as the source of truth going forward. Column title (verdict §1) role added during S138-fix4 as a co-consumer of the Sub-heading tuple — no new tuple introduced. Primary page-level action role added during S144 (ImportView Run Analyses post-S143 placement); shares `md Semibold` with sub-headings but text colour is `C.WHITE` on accent bg (chrome necessity), introducing one new tuple. The role is narrowly scoped: the singular action button that closes a configuration / setup page (currently ImportView's Run Analyses). Section-level CTAs (ReportView §4 Copy prompt) stay at canonical Button register (`base Medium C.TEXT sans`).
+Note: prior versions of this doc cited "18 roles, 13 distinct tuples". Recount at S138 close (post-Phase C.2 surface migration) found the actual table contained more tuples than the summary line claimed. Whether this was original miscount at S134 lock or drift since lock is undetermined from available evidence; the numbers above reflect the current table as the source of truth going forward. Column title (verdict §1) role added during S138-fix4 as a co-consumer of the Sub-heading tuple — no new tuple introduced. Primary banner headline + sub-line roles added during S148 as co-consumers of the Button and Footnote tuples respectively — no new tuples introduced.
 
 ## Implementation notes — for Phase B and Phase C
 
