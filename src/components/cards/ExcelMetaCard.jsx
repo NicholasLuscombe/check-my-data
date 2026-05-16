@@ -15,9 +15,8 @@
  */
 
 import { useState } from "react";
-import { C, FS, FW, FF, CR, CC, ACCENT, SEV_VERDICT } from "../../constants/tokens.js";
+import { C, FS, FW, FF, CR, CC, ACCENT, SEV_VERDICT, SIGNAL } from "../../constants/tokens.js";
 import { FLAG_STYLES } from "../../constants/thresholds.js";
-import { FlagBadge } from "../shared/FlagBadge.jsx";
 import { EvidenceTable } from "../shared/EvidenceTable.jsx";
 
 // S150 (C.8 / B4): sub-section header. Pre-S150 carried ALL CAPS + letterSpacing
@@ -59,7 +58,32 @@ export function ExcelMetaCard({ meta }) {
           <span style={{ fontFamily: FF.UI, fontSize: FS.md, color: C.TEXT, fontWeight: FW.SEMI }}>
             Excel file forensics
           </span>
-          <FlagBadge flag={flag} />
+          {/* S152 (A3): bounded FlagBadge retired in favour of A6 "Severity
+              label" register — bare-text xs Semibold tier sans, ⚠/dot glyph
+              preserved per "alarm marker, separate from chrome" rule. Text
+              colour migrated from FLAG_STYLES[flag].text → SEV_VERDICT[s].color
+              (closes the cross-surface hue/saturation drift FindingPill.jsx:15-22
+              comment flags). Glyph fill stays on FLAG_STYLES[flag].dot — alarm
+              colour is independent of the typography hierarchy. Label copy
+              preserved verbatim from FLAG_STYLES[flag].label. */}
+          {(() => {
+            const sevColor =
+              flag === "HIGH" || flag === "ERROR" ? SEV_VERDICT[3].color
+              : flag === "MODERATE"               ? SEV_VERDICT[2].color
+              : flag === "LOW"                    ? SEV_VERDICT[0].color
+              :                                     C.TEXT_3;
+            const dotColor = flag === "ERROR" ? SIGNAL.RED.dot : (FLAG_STYLES[flag] || FLAG_STYLES["N/A"]).dot;
+            const label = (FLAG_STYLES[flag] || FLAG_STYLES["N/A"]).label;
+            return (
+              <span style={{ display: "inline-flex", alignItems: "center", gap: "5px",
+                fontFamily: FF.UI, fontSize: FS.xs, fontWeight: FW.SEMI, color: sevColor, whiteSpace: "nowrap" }}>
+                {flag === "ERROR"
+                  ? <span style={{ fontSize: "10px", lineHeight: 1, flexShrink: 0 }} aria-hidden="true">⚠</span>
+                  : <span style={{ width: "7px", height: "7px", borderRadius: "50%", background: dotColor, flexShrink: 0 }}/>}
+                {label}
+              </span>
+            );
+          })()}
         </div>
         {/* Chevron glyph — hardcoded size per TYPOGRAPHY-SYSTEM.md §"What this system does NOT cover" (icon carve-out). */}
         <span style={{ fontFamily: FF.UI, fontSize: "13px", color: C.TEXT_3, userSelect: "none" }}>{open ? "▾" : "▸"}</span>

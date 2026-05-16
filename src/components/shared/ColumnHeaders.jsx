@@ -240,7 +240,7 @@ export function ColumnHeaders({
                   overflow: "hidden", textOverflow: "ellipsis" }}>{displayName}</div>
                 <div style={{ padding: "2px 6px 5px" }}>
                   <span style={{ display: "inline-block", background: C.WHITE, color: r.color,
-                    borderRadius: "4px", padding: "2px 6px", fontSize: FS.xs, fontFamily: FF.UI,
+                    borderRadius: CR.S2, padding: "2px 6px", fontSize: FS.xs, fontFamily: FF.UI,
                     fontWeight: FW.MED, userSelect: "none" }}>{r.chipLabel || r.label}</span>
                 </div>
               </th>

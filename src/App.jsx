@@ -87,7 +87,7 @@ export default function CheckMyData() {
             </div>
             <div style={{display:"flex",alignItems:"center",gap:"8px",marginLeft:"4px"}}>
               <span style={{...M,color:C.TEXT_3,fontSize:FS.xs}}>v0.8</span>
-              {phase==="batch"&&<span style={{...M,color:ROLES.label.color,fontSize:FS.xs,padding:"2px 8px",background:ROLES.label.bg,border:`1px solid ${ACCENT.PURPLE.border}`,borderRadius:CR.SM}}>Batch Analysis</span>}
+              {phase==="batch"&&<span style={{fontFamily:FF.UI,color:ROLES.label.color,fontSize:FS.xs,padding:"2px 8px",background:ROLES.label.bg,border:`1px solid ${ACCENT.PURPLE.border}`,borderRadius:CR.SM}}>Batch Analysis</span>}
             </div>
           </div>
         </div>

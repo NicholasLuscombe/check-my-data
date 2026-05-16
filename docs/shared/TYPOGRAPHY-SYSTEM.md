@@ -281,7 +281,7 @@ For meta-content: frame-setting notes, trust statements, status indicators.
 
 ## Register inventory — applied to chrome surfaces
 
-21 distinct (size, weight, colour, family) tuples on chrome.
+25 distinct (size, weight, colour, family) tuples on chrome.
 
 | Role | Size | Weight | Colour | Family |
 |------|------|--------|--------|--------|
@@ -311,12 +311,34 @@ For meta-content: frame-setting notes, trust statements, status indicators.
 | Aside callout body | sm | Regular | C.TEXT | sans |
 | Aside callout bullet lead | sm | Semibold | C.TEXT | sans |
 | Mini-card sub-section label | sm | Semibold | C.TEXT_3 | sans |
-| Status badge | xs | Semibold | tier | sans |
+| Severity label | xs | Semibold | tier | sans |
+| Severity badge | xs | Semibold | tier | sans |
 | Pattern pill/chip | sm | Semibold | tier | sans |
+| State chip | xs | Medium | token | sans |
+| Identity chip | xs | Regular | tinted | sans |
+| Marker pill | xs | Semibold | accent | sans |
 
-28 roles, 21 distinct tuples. Down from ~40 in pre-system inventory.
+32 roles, 25 distinct tuples. Down from ~40 in pre-system inventory.
 
-Note: prior versions of this doc cited "18 roles, 13 distinct tuples". Recount at S138 close (post-Phase C.2 surface migration) found the actual table contained more tuples than the summary line claimed. Whether this was original miscount at S134 lock or drift since lock is undetermined from available evidence; the numbers above reflect the current table as the source of truth going forward. Column title (verdict §1) role added during S138-fix4 as a co-consumer of the Sub-heading tuple — no new tuple introduced. Primary banner headline + sub-line roles added during S148 as co-consumers of the Button and Footnote tuples respectively — no new tuples introduced. Lane label (§2 StickySurface + DeepLookModal) and Modal sub-context roles added during S149 (C.6+C.7 combined) — Lane label shares the `base Semibold C.TEXT` tuple with Tab (active); Modal sub-context shares `sm Regular C.TEXT_2` with Footnote/reference. Both are role-additions only, no new tuples. Mini-card sub-section label added during S150 (C.8) — `sm Semibold C.TEXT_3` is a genuinely new tuple, 35+ consumer sites via shared `SUB_HEAD` in `src/components/shared/styles.js`. Status badge + Pattern pill/chip added during S151 (C.9) — surfaced by S150-fix1 status badge tuple finding; genuine role distinction at xs (6 badge sites — TestCardLayout per-test verdict, ExcelMetaCard ×4 severity tags, CategoryRow rollup) vs sm (2 pattern surface chips — FindingPill + FindingChip). Option (a) two-row split chosen over option (b) consolidation to preserve §2 dataset-wide pattern surface prominence (sm) vs §3 per-row status indicator density (xs). Tier-coloured (red/amber/green per `SEV_VERDICT[s].color`) on both rows.
+Notes on chrome-shape vs typography register:
+
+- **Severity label** is a bare-text register — no bounded chrome. Consumed by TestCardLayout per-test verdict (`FLAGGED`/`Noted`/`Clear`) and ExcelMetaCard inline tier-coloured tags. Distinct from Severity badge (below) which is bounded.
+- **Severity badge** is bounded chrome (bg + border + padding + borderRadius). Canonical (currently sole) consumer is BatchView per-file severity in the tabular results column. Both rows share the same typography tuple (xs Semibold tier sans); the difference is chrome shape.
+- **Pattern pill/chip** is bounded chrome at the larger sm size. FindingPill + FindingChip on the §2 dataset-wide / localised pattern surface. Tier-coloured per SEV_VERDICT[s].color, with optional mech-stripe (4px inset boxShadow) as a second axis.
+- **State chip** is bounded chrome with no border. xs Medium with the colour wired to a `BADGE.*` token slot (`BADGE.AUTO` teal, `BADGE.REQUIRED` gold, `BADGE.SET_ME` neutral). Also the canonical register for the column-header role chip (DATA / LABEL / COND / SKIP — colour wired to `ROLES[role].color`). Colour axis is "token" rather than "tier" because state chips encode workflow chrome, not severity.
+- **Identity chip** is bounded chrome with no border, FW.NORM weight. Lighter weight signals an identity tag with no editorial claim — currently consumed by ImportView Zone 1 condition chips (one per condition name in `s.cNames`). Colour wired to `condColorMap[c]` from the 8-entry `COND_COLORS` palette.
+- **Marker pill** is bounded chrome with border. xs Semibold accent (currently gold via `BADGE.PROMOTED`, distinct from severity tier axis). Consumed by MiniCard_Kurtosis + ConditionTable "differs between conditions — promoted" badge — semantic marker for a cross-condition finding, not a severity.
+
+### Chip-family weight rule
+
+A deliberate weight axis runs through the chip-shape family. Match the weight to the semantic role:
+
+- **Regular (FW.NORM)** — identity tag. A condition name, a user-supplied label, anything that names but does not claim. Identity chip register.
+- **Medium (FW.MED)** — state/role indicator. AUTO / SET ME / REQUIRED / column-role chips. Workflow chrome, not editorial. State chip register.
+- **Semibold (FW.SEMI)** — severity or load-bearing finding. Severity labels (bare text), Severity badges (bounded), Pattern pills/chips, Marker pills. Claim-carrying weight.
+- **Bold (FW.BOLD)** retires from chip-family entirely. Bold remains reserved for the Verdict headline carve-out (per § Weights rule, line 73).
+
+Prior versions of this doc cited "18 roles, 13 distinct tuples". Recount at S138 close (post-Phase C.2 surface migration) found the actual table contained more tuples than the summary line claimed. Whether this was original miscount at S134 lock or drift since lock is undetermined from available evidence; the numbers above reflect the current table as the source of truth going forward. Column title (verdict §1) role added during S138-fix4 as a co-consumer of the Sub-heading tuple — no new tuple introduced. Primary banner headline + sub-line roles added during S148 as co-consumers of the Button and Footnote tuples respectively — no new tuples introduced. Lane label (§2 StickySurface + DeepLookModal) and Modal sub-context roles added during S149 (C.6+C.7 combined) — Lane label shares the `base Semibold C.TEXT` tuple with Tab (active); Modal sub-context shares `sm Regular C.TEXT_2` with Footnote/reference. Both are role-additions only, no new tuples. Mini-card sub-section label added during S150 (C.8) — `sm Semibold C.TEXT_3` is a genuinely new tuple, 35+ consumer sites via shared `SUB_HEAD` in `src/components/shared/styles.js`. Status badge + Pattern pill/chip added during S151 (C.9) — surfaced by S150-fix1 status badge tuple finding; genuine role distinction at xs (bare-text Severity label sites — TestCardLayout per-test verdict + ~8-10 ExcelMetaCard inline tier-text spans + bounded FlagBadge prior to its S152 retire) vs sm (2 pattern surface chips — FindingPill + FindingChip). Option (a) two-row split chosen over option (b) consolidation to preserve §2 dataset-wide pattern surface prominence (sm) vs §3 per-row status indicator density (xs). Tier-coloured (red/amber/green per `SEV_VERDICT[s].color`) on both rows. S152 badge-family pass: Status badge row renamed to Severity label (bare-text register, name now matches consumption); three new bounded-chrome rows added (Severity badge, State chip, Identity chip) plus one new accent-axis row (Marker pill); chip-family weight rule landed as a system rule alongside the existing letter-spacing retire-to-zero rule; FlagBadge bounded shape retired with sole consumer ExcelMetaCard now consuming the Severity label register via bare-text render; BatchView severity badge became the canonical Severity badge consumer (FW.BOLD → FW.SEMI, hex-math → SEV_VERDICT, letterSpacing 0.05em retired).
 
 ## Implementation notes — for Phase B and Phase C
 
