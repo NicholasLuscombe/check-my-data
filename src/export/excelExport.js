@@ -107,7 +107,7 @@ function buildColourMap(convergence, rowMap, dColMap, visColIndices) {
     if (visCol == null || visRow < 0) continue;
 
     const cat = dominantCategory(cell);
-    const hex = MECHANISMS[cat]?.color || C.TEXT_4;
+    const hex = MECHANISMS[cat]?.color || C.TEXT_3;
     const opacity = intensityOpacity(cell.count);
     if (opacity <= 0) continue;
 
@@ -435,7 +435,7 @@ export async function exportToExcel({ results, importConfig, matrix, rowMap, mod
   // Row 4 category swatches: every other column starting at C
   for (let i = 0; i < activeCategories.length; i++) {
     const cat = activeCategories[i];
-    const hex = MECHANISMS[cat]?.color || C.TEXT_4;
+    const hex = MECHANISMS[cat]?.color || C.TEXT_3;
     const argb = blendWithWhite(hex, 0.5);
     const colIdx = 2 + i * 2; // C=2, E=4, G=6...
     const ref = colLetter(colIdx) + "4"; // xlsx row 4

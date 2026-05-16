@@ -69,9 +69,9 @@ export function RegionalNoiseStrip({ details, nRows, colNames, toFileRow }) {
         );
       })}
       {/* X-axis: "Row" label + tick marks using file row numbers */}
-      <text x={PL+CW/2} y={H-2} fontSize={CF.LABEL} fill={C.TEXT_4} textAnchor="middle" fontFamily={FF.UI}>Row</text>
+      <text x={PL+CW/2} y={H-2} fontSize={CF.LABEL} fill={C.TEXT_3} textAnchor="middle" fontFamily={FF.UI}>Row</text>
       {ticks.map(t => (
-        <text key={t} x={xs(t)} y={H-16} fontSize={CF.SMALL} fill={C.TEXT_4}
+        <text key={t} x={xs(t)} y={H-16} fontSize={CF.SMALL} fill={C.TEXT_3}
           textAnchor="middle" fontFamily={FF.MONO}>{fn(t)}</text>
       ))}
     </PlotSVG>

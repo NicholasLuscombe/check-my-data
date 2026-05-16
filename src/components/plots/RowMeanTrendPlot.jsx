@@ -101,7 +101,7 @@ export function RowMeanTrendPlot({ rowMeans, simMeans, rowIdxs, grandMean, fileR
 
       {/* grand mean dashed line */}
       <line x1={PL} y1={gmY} x2={PL + plotW} y2={gmY}
-        stroke={C.TEXT_4} strokeWidth="1" strokeDasharray={CS.REF.dash} opacity={CS.REF.opacity} />
+        stroke={C.TEXT_3} strokeWidth="1" strokeDasharray={CS.REF.dash} opacity={CS.REF.opacity} />
 
       {/* simulated line — uniform mint, no crossing emphasis, no dots */}
       {simPts && simPts.map((pt, i) => {
@@ -142,7 +142,7 @@ export function RowMeanTrendPlot({ rowMeans, simMeans, rowIdxs, grandMean, fileR
         <g key={v}>
           <line x1={PL - 3} y1={sy(v)} x2={PL} y2={sy(v)}
             stroke={C.BORDER} strokeWidth={CS.GRID.w} />
-          <text x={PL - 5} y={sy(v) + 3} fontSize={CF.SMALL} fill={C.TEXT_4}
+          <text x={PL - 5} y={sy(v) + 3} fontSize={CF.SMALL} fill={C.TEXT_3}
             textAnchor="end" fontFamily={FF.MONO}>{fmtTick(v)}</text>
         </g>
       ))}
@@ -157,11 +157,11 @@ export function RowMeanTrendPlot({ rowMeans, simMeans, rowIdxs, grandMean, fileR
         <g key={i}>
           <line x1={sx(i)} y1={PT + plotH} x2={sx(i)} y2={PT + plotH + 3}
             stroke={C.BORDER} strokeWidth={CS.GRID.w} />
-          <text x={sx(i)} y={PT + plotH + 13} fontSize={CF.SMALL} fill={C.TEXT_4}
+          <text x={sx(i)} y={PT + plotH + 13} fontSize={CF.SMALL} fill={C.TEXT_3}
             textAnchor="middle" fontFamily={FF.MONO}>{fileRows[i]}</text>
         </g>
       ))}
-      <text x={PL + plotW / 2} y={H - 3} fontSize={CF.SMALL} fill={C.TEXT_4}
+      <text x={PL + plotW / 2} y={H - 3} fontSize={CF.SMALL} fill={C.TEXT_3}
         textAnchor="middle" fontFamily={FF.UI}>Row</text>
     </PlotSVG>
   );

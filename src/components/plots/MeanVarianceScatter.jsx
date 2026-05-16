@@ -78,14 +78,14 @@ export function MeanVarianceScatter({ logPoints, logCentroid, observedSlope, exp
         <g key={t}>
           <line x1={px(t)} y1={PT} x2={px(t)} y2={PT+CH} stroke={C.BORDER_L} strokeWidth={CS.GRID.w}/>
           <line x1={px(t)} y1={PT+CH} x2={px(t)} y2={PT+CH+4} stroke={C.BORDER} strokeWidth={CS.GRID.w}/>
-          <text x={px(t)} y={PT+CH+15} fontSize={CF.TICK} fill={C.TEXT_4} textAnchor="middle" fontFamily={FF.MONO}>{t.toFixed(1)}</text>
+          <text x={px(t)} y={PT+CH+15} fontSize={CF.TICK} fill={C.TEXT_3} textAnchor="middle" fontFamily={FF.MONO}>{t.toFixed(1)}</text>
         </g>
       ))}
       {yTicks.map(t=>(
         <g key={t}>
           <line x1={PL} y1={py(t)} x2={PL+CW} y2={py(t)} stroke={C.BORDER_L} strokeWidth={CS.GRID.w}/>
           <line x1={PL-4} y1={py(t)} x2={PL} y2={py(t)} stroke={C.BORDER} strokeWidth={CS.GRID.w}/>
-          <text x={PL-6} y={py(t)+3} fontSize={CF.TICK} fill={C.TEXT_4} textAnchor="end" fontFamily={FF.MONO}>{t.toFixed(1)}</text>
+          <text x={PL-6} y={py(t)+3} fontSize={CF.TICK} fill={C.TEXT_3} textAnchor="end" fontFamily={FF.MONO}>{t.toFixed(1)}</text>
         </g>
       ))}
       {/* axis labels */}
@@ -124,7 +124,7 @@ export function MeanVarianceScatter({ logPoints, logCentroid, observedSlope, exp
         </text>
       </>)}
       {expSlope===null&&(
-        <text x={PL+4} y={PT+30} fontSize={CF.AXIS} fill={C.TEXT_4} fontFamily={FF.UI}>
+        <text x={PL+4} y={PT+30} fontSize={CF.AXIS} fill={C.TEXT_3} fontFamily={FF.UI}>
           No assay-specific expected slope — select assay type for comparison
         </text>
       )}

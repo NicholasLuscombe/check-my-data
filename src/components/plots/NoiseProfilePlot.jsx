@@ -37,7 +37,7 @@ export function NoiseProfilePlot({ noiseProfile, changepointRow, secondaryRow, t
       {ySteps.map(v => (
         <g key={v}>
           <line x1={PL} y1={py(v)} x2={PL + CW} y2={py(v)} stroke={C.BORDER_L} strokeWidth={CS.GRID.w}/>
-          <text x={PL - 4} y={py(v) + 3} fontSize={CF.SMALL} fill={C.TEXT_4} textAnchor="end" fontFamily={FF.MONO}>
+          <text x={PL - 4} y={py(v) + 3} fontSize={CF.SMALL} fill={C.TEXT_3} textAnchor="end" fontFamily={FF.MONO}>
             {v < 0.01 ? v.toExponential(0) : v < 1 ? v.toFixed(2) : v.toFixed(1)}
           </text>
         </g>
@@ -46,7 +46,7 @@ export function NoiseProfilePlot({ noiseProfile, changepointRow, secondaryRow, t
       {xTicks.map(x => (
         <g key={x}>
           <line x1={px(x)} y1={PT + CH} x2={px(x)} y2={PT + CH + 4} stroke={C.BORDER} strokeWidth={CS.GRID.w}/>
-          <text x={px(x)} y={PT + CH + 14} fontSize={CF.SMALL} fill={C.TEXT_4} textAnchor="middle" fontFamily={FF.MONO}>{fn(x)}</text>
+          <text x={px(x)} y={PT + CH + 14} fontSize={CF.SMALL} fill={C.TEXT_3} textAnchor="middle" fontFamily={FF.MONO}>{fn(x)}</text>
         </g>
       ))}
       {/* Observed noise — dots + line */}
@@ -79,7 +79,7 @@ export function NoiseProfilePlot({ noiseProfile, changepointRow, secondaryRow, t
       {/* Axis labels */}
       <text x={10} y={PT + CH / 2} fontSize={CF.SMALL} fill={C.TEXT_3} textAnchor="middle"
         fontFamily={FF.UI} transform={`rotate(-90,10,${PT + CH / 2})`}>Noise level</text>
-      <text x={PL + CW / 2} y={H - 2} fontSize={CF.SMALL} fill={C.TEXT_4} textAnchor="middle"
+      <text x={PL + CW / 2} y={H - 2} fontSize={CF.SMALL} fill={C.TEXT_3} textAnchor="middle"
         fontFamily={FF.UI}>Row</text>
     </PlotSVG>
   );

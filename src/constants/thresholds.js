@@ -4,10 +4,10 @@ export const FLAG_STYLES = {
   HIGH:     { bg:SIGNAL.RED.bg,   border:SIGNAL.RED.border,   text:SIGNAL.RED.text,   dot:SIGNAL.RED.dot,   label:"FLAGGED" },
   MODERATE: { bg:SIGNAL.AMBER.bg, border:SIGNAL.AMBER.border, text:SIGNAL.AMBER.text, dot:SIGNAL.AMBER.dot, label:"NOTED" },
   LOW:      { bg:SIGNAL.GREEN.bg, border:SIGNAL.GREEN.border, text:SIGNAL.GREEN.text, dot:SIGNAL.GREEN.dot, label:"CLEAR" },
-  "N/A":    { bg:C.BG,            border:C.BORDER,            text:C.TEXT_3,           dot:C.TEXT_4,         label:"N/A" },
+  "N/A":    { bg:C.BG,            border:C.BORDER,            text:C.TEXT_3,           dot:C.TEXT_3,         label:"N/A" },
   ERROR:    { bg:SIGNAL.RED.bg,   border:"#fca5a5",           text:SIGNAL.RED.text,    dot:"#dc2626",        label:"ERROR" },
 };
-export const PLOT_FC = { HIGH:SIGNAL.RED.dot, MODERATE:SIGNAL.AMBER.dot, LOW:SIGNAL.GREEN.dot, "N/A":C.TEXT_4 };
+export const PLOT_FC = { HIGH:SIGNAL.RED.dot, MODERATE:SIGNAL.AMBER.dot, LOW:SIGNAL.GREEN.dot, "N/A":C.TEXT_3 };
 
 // Shared significance thresholds — single source of truth for all tests.
 // Change these once to adjust flag sensitivity across the entire tool.

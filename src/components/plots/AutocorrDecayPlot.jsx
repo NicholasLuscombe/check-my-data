@@ -42,7 +42,7 @@ export function AutocorrDecayPlot({ perGroupDecay, singleCurve, condColorMap }) 
           <line x1={PL} y1={ys(v)} x2={PL+CW} y2={ys(v)}
             stroke={v===0?C.BORDER:C.BORDER_L} strokeWidth={v===0?1:0.7}
             strokeDasharray={v===0?"4,3":""}/>
-          <text x={PL-4} y={ys(v)+3.5} fontSize={CF.LABEL} fill={C.TEXT_4}
+          <text x={PL-4} y={ys(v)+3.5} fontSize={CF.LABEL} fill={C.TEXT_3}
             textAnchor="end" fontFamily={FF.MONO}>{v.toFixed(1)}</text>
         </g>
       ))}
@@ -70,7 +70,7 @@ export function AutocorrDecayPlot({ perGroupDecay, singleCurve, condColorMap }) 
       {/* x axis */}
       <line x1={PL} y1={PT+CH} x2={PL+CW} y2={PT+CH} stroke={C.BORDER} strokeWidth={CS.GRID.w}/>
       {Array.from({length:LAGS},(_,i)=>(
-        <text key={i} x={xs(i+1)} y={H-PB+14} fontSize={CF.LABEL} fill={C.TEXT_4}
+        <text key={i} x={xs(i+1)} y={H-PB+14} fontSize={CF.LABEL} fill={C.TEXT_3}
           textAnchor="middle" fontFamily={FF.MONO}>{i+1}</text>
       ))}
       <text x={PL+CW/2} y={H-2} fontSize={CF.LABEL} fill={C.TEXT_3}

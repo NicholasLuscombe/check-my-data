@@ -49,7 +49,7 @@ export function ConstOffsetStrip({ details, nRows }) {
       })}
       {/* x axis ticks */}
       {ticks.map(t => (
-        <text key={t} x={xs(t)} y={H-4} fontSize={CF.SMALL} fill={C.TEXT_4}
+        <text key={t} x={xs(t)} y={H-4} fontSize={CF.SMALL} fill={C.TEXT_3}
           textAnchor="middle" fontFamily={FF.MONO}>{t}</text>
       ))}
     </PlotSVG>

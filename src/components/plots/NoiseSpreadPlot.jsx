@@ -50,7 +50,7 @@ export function NoiseSpreadPlot({ colDetails, flaggedCols, outlierCol, flag, W=C
       {yTicks.map((v, i) => (
         <g key={i}>
           <line x1={PL-3} x2={PL} y1={py(v)} y2={py(v)} stroke={C.BORDER} strokeWidth={CS.GRID.w}/>
-          <text x={PL-5} y={py(v)+3.5} textAnchor="end" fontSize={CF.TICK} fill={C.TEXT_4} fontFamily={FF.MONO}>
+          <text x={PL-5} y={py(v)+3.5} textAnchor="end" fontSize={CF.TICK} fill={C.TEXT_3} fontFamily={FF.MONO}>
             {fmtTick(v)}
           </text>
         </g>
@@ -81,7 +81,7 @@ export function NoiseSpreadPlot({ colDetails, flaggedCols, outlierCol, flag, W=C
               fill={isOutlier ? SIGNAL.AMBER.dot : C.TEXT_2} fontWeight={isOutlier ? 700 : 400} fontFamily={FF.UI}>
               {d.label || ("Col " + d.col)}
             </text>
-            <text x={x} y={H-PB+28} textAnchor="middle" fontSize={CF.TICK} fill={C.TEXT_4} fontFamily={FF.MONO}>
+            <text x={x} y={H-PB+28} textAnchor="middle" fontSize={CF.TICK} fill={C.TEXT_3} fontFamily={FF.MONO}>
               n={d.n}
             </text>
             {/* SD value */}

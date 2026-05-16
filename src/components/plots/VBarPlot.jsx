@@ -36,7 +36,7 @@ export function VBarPlot({ items, xKey, obsKey, expKey, xlabel, ylabel, obsColor
         <g key={t}>
           {t>0&&<line x1={PL} y1={yscale(t)} x2={W-PR} y2={yscale(t)}
             stroke={C.BORDER_L} strokeWidth={CS.GRID.w}/>}
-          <text x={PL-4} y={yscale(t)+3.5} fontSize={CF.TICK} fill={C.TEXT_4}
+          <text x={PL-4} y={yscale(t)+3.5} fontSize={CF.TICK} fill={C.TEXT_3}
             textAnchor="end" fontFamily={FF.MONO}>{fmtTick(t)}</text>
         </g>
       ))}
@@ -67,9 +67,9 @@ export function VBarPlot({ items, xKey, obsKey, expKey, xlabel, ylabel, obsColor
       {/* axes */}
       <line x1={PL} y1={PT} x2={PL} y2={PT+CH} stroke={C.BORDER} strokeWidth={CS.GRID.w}/>
       <line x1={PL} y1={PT+CH} x2={W-PR} y2={PT+CH} stroke={C.BORDER} strokeWidth={CS.GRID.w}/>
-      {xlabel&&<text x={PL+CW/2} y={H-2} fontSize={CF.LABEL} fill={C.TEXT_4} textAnchor="middle"
+      {xlabel&&<text x={PL+CW/2} y={H-2} fontSize={CF.LABEL} fill={C.TEXT_3} textAnchor="middle"
         fontFamily={FF.UI}>{xlabel}</text>}
-      {ylabel&&<text x={10} y={PT+CH/2} fontSize={CF.LABEL} fill={C.TEXT_4}
+      {ylabel&&<text x={10} y={PT+CH/2} fontSize={CF.LABEL} fill={C.TEXT_3}
         textAnchor="middle" fontFamily={FF.UI}
         transform={`rotate(-90,10,${PT+CH/2})`}>{ylabel}</text>}
     </PlotSVG>
