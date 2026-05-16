@@ -1,6 +1,6 @@
 /* ── MiniCard: Missing Data Pattern ── */
 
-import { C, CC, TF, FW, FF, CF, CP, CS, SIGNAL } from "../../constants/tokens.js";
+import { C, CC, FW, FF, CF, CP, CS, SIGNAL } from "../../constants/tokens.js";
 import { fmtPBadge } from "../../constants/thresholds.js";
 import { MiniCardLayout } from "../shared/CardLayout.jsx";
 import { PlotLayout } from "../shared/PlotLayout.jsx";
@@ -59,7 +59,7 @@ export function MiniCard_MissingDataPattern({ result, importConfig, rowMap }) {
           <g key={v}>
             <line x1={PL - 3} y1={py(v)} x2={PL} y2={py(v)}
               stroke={C.BORDER} strokeWidth={CS.GRID.w} />
-            <text x={PL - 5} y={py(v) + 3} fontSize={CF.SMALL} fill={C.TEXT_4}
+            <text x={PL - 5} y={py(v) + 3} fontSize={CF.SMALL} fill={C.TEXT_3}
               textAnchor="end" fontFamily={FF.MONO}>{v}%</text>
           </g>
         ))}
@@ -77,7 +77,7 @@ export function MiniCard_MissingDataPattern({ result, importConfig, rowMap }) {
           stroke={C.BORDER} strokeWidth={CS.GRID.w} />
         {colRates.map((_, i) => (
           <text key={i} x={bx(i) + barW / 2} y={PT + plotH + 12} fontSize={CF.SMALL}
-            fill={C.TEXT_4} textAnchor="end" fontFamily={FF.UI}
+            fill={C.TEXT_3} textAnchor="end" fontFamily={FF.UI}
             transform={`rotate(-45,${bx(i) + barW / 2},${PT + plotH + 12})`}>
             {colNames[i]}
           </text>

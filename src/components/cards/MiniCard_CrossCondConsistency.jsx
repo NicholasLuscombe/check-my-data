@@ -100,7 +100,7 @@ export function MiniCard_CrossCondConsistency({ result }) {
   ];
 
   const AMBER_BG       = SIGNAL.AMBER.bg;
-  const INFORMATIONAL_COLOR = C.TEXT_3; // muted secondary text (C.TEXT_4 alias retired Phase B; folds to C.TEXT_3)
+  const INFORMATIONAL_COLOR = C.TEXT_3; // muted secondary text
   const rows = ordered.map(d => {
     const amberHere = isAmberRow(d);
     // Style per cell is either amber-bg (amber row) or muted-color (informational row).

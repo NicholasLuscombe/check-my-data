@@ -21,7 +21,7 @@ import { FlagBadge } from "../shared/FlagBadge.jsx";
 import { EvidenceTable } from "../shared/EvidenceTable.jsx";
 
 // S150 (C.8 / B4): sub-section header. Pre-S150 carried ALL CAPS + letterSpacing
-// 0.08em + FW.BOLD + TF.DETAIL; now co-consumes the Mini-card sub-section label
+// 0.08em + FW.BOLD + 11px; now co-consumes the Mini-card sub-section label
 // (SUB_HEAD) register — sm Semibold C.TEXT_3 sans, sentence case. Each consumer
 // overrides `color` with a tier hue per section flag.
 const SEC = { fontFamily: FF.UI, fontSize: FS.sm, fontWeight: FW.SEMI, color: C.TEXT_3, marginBottom: "6px", marginTop: "12px" };

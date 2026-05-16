@@ -1,7 +1,7 @@
 import { MiniCardLayout } from "../shared/CardLayout.jsx";
 import { PlotLayout } from "../shared/PlotLayout.jsx";
 import { VBarPlot } from "../plots/VBarPlot.jsx";
-import { CHART, TF, FW, FF, C, CC } from "../../constants/tokens.js";
+import { CHART, FW, FF, C, CC } from "../../constants/tokens.js";
 import { fmtPBadge } from "../../constants/thresholds.js";
 import { SUB_HEAD } from "../shared/styles.js";
 

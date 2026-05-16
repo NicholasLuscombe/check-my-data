@@ -3,7 +3,7 @@ import { EvidenceTable } from "../shared/EvidenceTable.jsx";
 import { PlotLayout } from "../shared/PlotLayout.jsx";
 import { ChartLegend } from "../shared/ChartLegend.jsx";
 import { MahalanobisDistPlot } from "../plots/MahalanobisDistPlot.jsx";
-import { C, CC, TF, FW, FF } from "../../constants/tokens.js";
+import { C, CC, FW, FF } from "../../constants/tokens.js";
 import { COND_COLORS, buildCondColorMap } from "../../constants/roles.js";
 import { fmtPBadge } from "../../constants/thresholds.js";
 import { makeRowMapper } from "../shared/coordinates.js";

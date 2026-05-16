@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { C, FF, FW, TF, CR, CC, UI, ACCENT } from "../../constants/tokens.js";
+import { C, FF, FW, FS, CR, CC, UI, ACCENT } from "../../constants/tokens.js";
 import { FLAG_STYLES } from "../../constants/thresholds.js";
 import { LONG_FORMAT_EXPLAINER } from "../../constants/descriptions.js";
 
@@ -42,17 +42,17 @@ export function LongFormatModal({ detection, headers, onConfirm, onDismiss }) {
     return COLUMN_HINTS[k] || null;
   }
 
-  const iB = { padding:"10px", border:"none", borderRadius:CR.LG, fontSize:TF.BODY, fontWeight:FW.BOLD, cursor:"pointer", fontFamily:FF.UI };
-  const sB = { display:"block", fontSize:TF.BODY, fontWeight:FW.SEMI, color:C.TEXT, marginBottom:"4px", fontFamily:FF.UI };
-  const sel = { width:"100%", padding:"7px 10px", border:`1px solid ${C.BORDER}`, borderRadius:CR.MD, fontSize:TF.BODY, fontFamily:FF.UI };
+  const iB = { padding:"10px", border:"none", borderRadius:CR.LG, fontSize:FS.base, fontWeight:FW.BOLD, cursor:"pointer", fontFamily:FF.UI };
+  const sB = { display:"block", fontSize:FS.base, fontWeight:FW.SEMI, color:C.TEXT, marginBottom:"4px", fontFamily:FF.UI };
+  const sel = { width:"100%", padding:"7px 10px", border:`1px solid ${C.BORDER}`, borderRadius:CR.MD, fontSize:FS.base, fontFamily:FF.UI };
 
   const activeHint = getHint(detection.measureCandidates.find(c=>c.ci===measureCol)?.h || "");
 
   return (
     <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.45)",zIndex:1000,display:"flex",alignItems:"center",justifyContent:"center"}}>
       <div style={{background:C.WHITE,borderRadius:CR.XL,padding:"28px 32px",maxWidth:"520px",width:"94%",boxShadow:"0 8px 40px rgba(0,0,0,0.18)",fontFamily:FF.UI}}>
-        <div style={{fontSize:TF.TITLE,fontWeight:FW.BOLD,color:C.TEXT,marginBottom:"6px"}}>Long-format data detected</div>
-        <div style={{fontSize:TF.BODY,color:C.TEXT_2,marginBottom:"20px",lineHeight:1.55}}>
+        <div style={{fontSize:FS.md,fontWeight:FW.BOLD,color:C.TEXT,marginBottom:"6px"}}>Long-format data detected</div>
+        <div style={{fontSize:FS.base,color:C.TEXT_2,marginBottom:"20px",lineHeight:1.55}}>
           {LONG_FORMAT_EXPLAINER.map((p, i) => (
             <p key={i} style={{margin: i === LONG_FORMAT_EXPLAINER.length - 1 ? 0 : "0 0 8px"}}>{p}</p>
           ))}
@@ -73,7 +73,7 @@ export function LongFormatModal({ detection, headers, onConfirm, onDismiss }) {
           </select>
         </div>
         {activeHint && (
-          <div style={{fontSize:TF.DETAIL,color:activeHint.startsWith("⭐")?FLAG_STYLES.LOW.text:C.TEXT_3,background:activeHint.startsWith("⭐")?FLAG_STYLES.LOW.bg:C.BG,border:`1px solid ${activeHint.startsWith("⭐")?FLAG_STYLES.LOW.border:C.BORDER_L}`,borderRadius:CR.MD,padding:"5px 10px",marginBottom:"14px"}}>
+          <div style={{fontSize:FS.xs,color:activeHint.startsWith("⭐")?FLAG_STYLES.LOW.text:C.TEXT_3,background:activeHint.startsWith("⭐")?FLAG_STYLES.LOW.bg:C.BG,border:`1px solid ${activeHint.startsWith("⭐")?FLAG_STYLES.LOW.border:C.BORDER_L}`,borderRadius:CR.MD,padding:"5px 10px",marginBottom:"14px"}}>
             {activeHint}
           </div>
         )}
@@ -99,7 +99,7 @@ export function LongFormatModal({ detection, headers, onConfirm, onDismiss }) {
           </select>
         </div>
 
-        <div style={{background:UI.INFO.bg,border:`1px solid ${ACCENT.BLUE.border}`,borderRadius:CR.MD,padding:"8px 12px",fontSize:TF.BODY,color:CC.OBS,marginBottom:"20px"}}>
+        <div style={{background:UI.INFO.bg,border:`1px solid ${ACCENT.BLUE.border}`,borderRadius:CR.MD,padding:"8px 12px",fontSize:FS.base,color:CC.OBS,marginBottom:"20px"}}>
           After pivoting, your data will have about <strong>{previewRows}</strong> rows{idCol!=null?" (one per subject)":""} and <strong>{nConds}</strong> condition column{nConds===1?"":"s"} (<strong>{condNamesPreview}</strong>), each holding measurement values.
         </div>
 

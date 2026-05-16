@@ -7,7 +7,7 @@
    are mounted in the DOM. */
 
 import { Fragment, useRef, useMemo, useState, useCallback, useEffect } from "react";
-import { C, TF, FW, FF, CR } from "../../constants/tokens.js";
+import { C, FS, FW, FF, CR } from "../../constants/tokens.js";
 import { TD_ID_CELL, COL_W, FREEZE_COL_W, FREEZE_Z } from "./styles.js";
 import { ColumnHeaders } from "./ColumnHeaders.jsx";
 
@@ -181,7 +181,7 @@ export function ScrollTable({
   const renderGapRow = (count, key, topOnly = false) => {
     const text = `${count} row${count !== 1 ? "s" : ""} not shown`;
     const topBorder = topOnly ? "none" : `1px dashed ${C.BORDER}`;
-    const gapBase = { ...BB, padding: "4px 8px", textAlign: "center", fontSize: TF.SMALL, fontFamily: FF.UI, color: C.TEXT_4, background: C.BG, borderTop: topBorder, borderBottom: `1px dashed ${C.BORDER}` };
+    const gapBase = { ...BB, padding: "4px 8px", textAlign: "center", fontSize: FS.xs, fontFamily: FF.UI, color: C.TEXT_3, background: C.BG, borderTop: topBorder, borderBottom: `1px dashed ${C.BORDER}` };
     const nData = columns.length - nFrz;
     const dataCells = [];
     let di = 0;
@@ -321,7 +321,7 @@ export function ScrollTable({
     }}>
       <table style={{
         borderCollapse: "separate", borderSpacing: 0,
-        fontSize: TF.DETAIL, width: tableWidth, minWidth: "100%", tableLayout: "fixed",
+        fontSize: FS.xs, width: tableWidth, minWidth: "100%", tableLayout: "fixed",
       }}>
         <colgroup>
           <col style={{ width: COL_W.ROW_NUM }} />

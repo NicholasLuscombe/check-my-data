@@ -1,4 +1,4 @@
-import { C, TF, FF, CF, FW, CR } from "../../constants/tokens.js";
+import { C, FF, CF, FW, CR } from "../../constants/tokens.js";
 import { SUB_HEAD } from "./styles.js";
 
 // Lower-triangle correlation matrix heatmap.
@@ -48,7 +48,7 @@ export function CorrMatrix({ labels, getValue, formatCell, cellBg, cellText, cel
               <tr key={rowL}>
                 <td style={{fontSize:CF.SMALL,color:C.TEXT_2,fontFamily:FF.UI,fontWeight:FW.SEMI,
                   textAlign:"right",paddingRight:"4px",whiteSpace:"nowrap"}}>
-                  {labelNum ? <><span style={{color:C.TEXT_4,marginRight:"3px"}}>{ri+2}</span>{rowL}</> : rowL}
+                  {labelNum ? <><span style={{color:C.TEXT_3,marginRight:"3px"}}>{ri+2}</span>{rowL}</> : rowL}
                 </td>
                 {labels.slice(0,ri+1).map((colL,ci) => {
                   const val = getValue(rowL, colL);

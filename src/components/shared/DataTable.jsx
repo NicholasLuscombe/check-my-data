@@ -1,4 +1,4 @@
-import { C, TF, FW, M } from "../../constants/tokens.js";
+import { C, FW, M } from "../../constants/tokens.js";
 import { EvidenceTable } from "./EvidenceTable.jsx";
 
 // Thin wrapper: converts the column-render API to EvidenceTable's cell array API.

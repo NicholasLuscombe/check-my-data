@@ -5,7 +5,7 @@
  *   B. Sub-heading + PlotLayout (ρ correlation matrix via CorrMatrixSVG + tier legend).
  * No flex row — sections stack vertically, matching IRC/other card patterns.
  */
-import { C, TF, FF, FW } from "../../constants/tokens.js";
+import { C, FF, FW } from "../../constants/tokens.js";
 import { PlotLayout } from "../shared/PlotLayout.jsx";
 import { PlotSVG } from "./PlotSVG.jsx";
 import { CorrMatrixSVG } from "./CorrMatrixSVG.jsx";

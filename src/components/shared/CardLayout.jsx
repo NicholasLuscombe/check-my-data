@@ -2,7 +2,7 @@ import { useState } from "react";
 import { C, FS, FW, FF, CR } from "../../constants/tokens.js";
 import { BANNER_STYLES } from "./styles.js";
 
-// S150 (C.8 / B3): fontSize lifted TF.DETAIL 11px -> FS.sm 14px. Chrome shape
+// S150 (C.8 / B3): fontSize lifted 11px -> FS.sm 14px. Chrome shape
 // preserved (bordered box + CR.MD radius); typography only retune. Five
 // consumers across MiniCard_InterReplicateCorrelation, MiniCard_Mahalanobis,
 // MiniCard_RankCorrelation, MiniCard_SelectiveNoise, MiniCard_ValueFrequency.
@@ -17,14 +17,14 @@ export function CardBanner({ type="info", children }) {
 }
 
 // S150 (C.8): retuned to Footnote/reference register sm Regular C.TEXT_2 sans.
-// Pre-S150: TF.DETAIL 11px / C.TEXT_3 (Session 1 dropped C.TEXT_4 alias here).
+// Pre-S150: 11px / C.TEXT_3 (Session 1 dropped C.TEXT_4 alias here).
 export function CardFooter({ children }) {
   return <div style={{fontFamily:FF.UI,fontSize:FS.sm,color:C.TEXT_2,paddingLeft:"4px"}}>{children}</div>;
 }
 
 // Collapsible-section toggle row — sentence-case affordance, sm Semibold C.TEXT
 // (co-consumes the Aside callout bullet-lead tuple). S150 (C.8 / B2): retuned
-// from the pre-system TF.DETAIL / C.TEXT_3 register. The leading chevron is an
+// from the pre-system 11px / C.TEXT_3 register. The leading chevron is an
 // icon glyph and carries a hardcoded size to peer with the toggle text per
 // TYPOGRAPHY-SYSTEM.md §"What this system does NOT cover".
 const TOGGLE_TEXT = { fontSize: FS.sm, color: C.TEXT, cursor: "pointer", fontWeight: FW.SEMI, padding: 0, fontFamily: FF.UI };

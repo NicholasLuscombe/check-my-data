@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { C, TF, FW, M, CR, MECH_COLOR } from "../../constants/tokens.js";
+import { C, FS, CF, FW, M, CR, MECH_COLOR } from "../../constants/tokens.js";
 import { hexToRgb } from "../../constants/thresholds.js";
 import { MECHANISMS, MECHANISM_ORDER } from "../../constants/mechanisms.js";
 
@@ -86,13 +86,13 @@ export function DensityStrip({ localizations, nRows, nCols, dataColSet, colHeade
   return (
     <div style={{marginBottom:"16px",background:C.WHITE,border:`1px solid ${C.BORDER_L}`,borderRadius:CR.LG,padding:"12px 14px"}}>
       <div style={{display:"flex",alignItems:"baseline",gap:"8px",marginBottom:"8px",flexWrap:"wrap"}}>
-        <span style={{fontSize:TF.BODY,fontWeight:FW.BOLD,color:C.TEXT}}>Where flags are concentrated</span>
-        <span style={{fontSize:TF.DETAIL,color:C.TEXT_3,...M}}>{nRows} rows &times; {nCols} cols{dataColSet ? ` (${dataColSet.size} data)` : ""}</span>
-        {hoverLabel && <span style={{fontSize:TF.DETAIL,color:C.TEXT_2,...M,marginLeft:"auto",background:C.BG,padding:"2px 8px",borderRadius:CR.SM}}>{hoverLabel}</span>}
+        <span style={{fontSize:FS.base,fontWeight:FW.BOLD,color:C.TEXT}}>Where flags are concentrated</span>
+        <span style={{fontSize:FS.xs,color:C.TEXT_3,...M}}>{nRows} rows &times; {nCols} cols{dataColSet ? ` (${dataColSet.size} data)` : ""}</span>
+        {hoverLabel && <span style={{fontSize:FS.xs,color:C.TEXT_2,...M,marginLeft:"auto",background:C.BG,padding:"2px 8px",borderRadius:CR.SM}}>{hoverLabel}</span>}
       </div>
       <div style={{display:"flex",gap:"0",alignItems:"flex-start"}}>
         {/* Row axis */}
-        <div style={{width:`${LABEL_W}px`,height:`${stripH}px`,position:"relative",fontSize:TF.SMALL,color:C.TEXT_4,...M,flexShrink:0}}>
+        <div style={{width:`${LABEL_W}px`,height:`${stripH}px`,position:"relative",fontSize:CF.SMALL,color:C.TEXT_3,...M,flexShrink:0}}>
           <span style={{position:"absolute",top:0}}>1</span>
           {nRowBins > 10 && <span style={{position:"absolute",top:`${Math.floor(stripH/2)-4}px`}}>{Math.floor(nRows/2)}</span>}
           <span style={{position:"absolute",bottom:0}}>{nRows}</span>
@@ -133,7 +133,7 @@ export function DensityStrip({ localizations, nRows, nCols, dataColSet, colHeade
         <div style={{display:"flex",marginLeft:`${LABEL_W}px`,marginTop:"2px"}}>
           {colHeaders.map((h, ci) => {
             const isData = dataColSet ? dataColSet.has(ci) : true;
-            return <div key={ci} style={{width:`${CELL_W}px`,fontSize:TF.SMALL,color:isData?C.TEXT_3:C.BORDER,
+            return <div key={ci} style={{width:`${CELL_W}px`,fontSize:CF.SMALL,color:isData?C.TEXT_3:C.BORDER,
               transform:"rotate(-45deg)",transformOrigin:"top left",whiteSpace:"nowrap",overflow:"hidden",
               height:"40px",lineHeight:`${CELL_W}px`,...M}}>{h}</div>;
           })}
@@ -142,11 +142,11 @@ export function DensityStrip({ localizations, nRows, nCols, dataColSet, colHeade
       {/* Legend */}
       <div style={{display:"flex",gap:"12px",marginTop:"8px",flexWrap:"wrap"}}>
         {orderedActive.map(mech => (
-          <span key={mech} style={{display:"flex",alignItems:"center",gap:"4px",fontSize:TF.DETAIL,color:MECH_COLOR[mech],...M}}>
+          <span key={mech} style={{display:"flex",alignItems:"center",gap:"4px",fontSize:FS.xs,color:MECH_COLOR[mech],...M}}>
             <span style={{width:"8px",height:"8px",borderRadius:CR.XS,background:MECH_COLOR[mech],display:"inline-block"}}/> {MECHANISMS[mech].label}
           </span>
         ))}
-        {dataColSet && <span style={{display:"flex",alignItems:"center",gap:"4px",fontSize:TF.DETAIL,color:C.TEXT_4,...M}}>
+        {dataColSet && <span style={{display:"flex",alignItems:"center",gap:"4px",fontSize:FS.xs,color:C.TEXT_3,...M}}>
           <span style={{width:"8px",height:"8px",borderRadius:CR.XS,background:"repeating-linear-gradient(45deg,transparent,transparent 2px,#ddd 2px,#ddd 3px)",border:"1px solid #ddd",display:"inline-block"}}/> Label / condition
         </span>}
       </div>

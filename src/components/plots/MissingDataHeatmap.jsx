@@ -88,7 +88,7 @@ export function MissingDataHeatmap({ missGrid, colNames, fileRows, blocks }) {
       {/* Y-axis ticks — original file row numbers */}
       {yTicks.map(r => (
         <text key={r} x={PL - 3} y={PT + r * cellH + cellH / 2 + 3}
-          fontSize={CF.SMALL} fill={C.TEXT_4} textAnchor="end" fontFamily={FF.MONO}>
+          fontSize={CF.SMALL} fill={C.TEXT_3} textAnchor="end" fontFamily={FF.MONO}>
           {fileRows?.[r] ?? r + 1}
         </text>
       ))}
@@ -96,7 +96,7 @@ export function MissingDataHeatmap({ missGrid, colNames, fileRows, blocks }) {
       {/* X-axis column labels */}
       {colNames.map((name, c) => (
         <text key={c} x={PL + c * cellW + cellW / 2} y={PT + gridH + 12}
-          fontSize={CF.SMALL} fill={C.TEXT_4} textAnchor="end" fontFamily={FF.UI}
+          fontSize={CF.SMALL} fill={C.TEXT_3} textAnchor="end" fontFamily={FF.UI}
           transform={`rotate(-45,${PL + c * cellW + cellW / 2},${PT + gridH + 12})`}>
           {name}
         </text>

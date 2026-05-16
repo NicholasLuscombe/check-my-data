@@ -10,7 +10,7 @@
    no longer consumed; callers should migrate. */
 
 import { useState } from "react";
-import { C, TF, FW, FF, CR, SIGNAL } from "../../constants/tokens.js";
+import { C, FS, FW, FF, CR, SIGNAL } from "../../constants/tokens.js";
 import { RANK_NUMS } from "../../constants/mechanisms.js";
 
 /** Shared finding card — used by both 1A and 1B */
@@ -39,13 +39,13 @@ function FindingCard({ f, index, numbered, isActive, hasActive, onClick }) {
       }}>
       {numbered && (
         <span style={{
-          fontSize: TF.BODY, fontWeight: FW.BOLD, color: C.TEXT,
+          fontSize: FS.base, fontWeight: FW.BOLD, color: C.TEXT,
           flexShrink: 0, lineHeight: "1.5",
         }}>
           {RANK_NUMS[index] || `(${index + 1})`}
         </span>
       )}
-      <div style={{ fontSize: TF.BODY, color: C.TEXT_2, lineHeight: "1.5" }}>
+      <div style={{ fontSize: FS.base, color: C.TEXT_2, lineHeight: "1.5" }}>
         <span style={{ fontWeight: FW.SEMI, color: C.TEXT }}>
           {f.displayName}
         </span>
@@ -81,14 +81,14 @@ export function GlobalKeyFindings({ findings = [] }) {
   return (
     <div style={{ marginBottom: "16px" }}>
       <div style={{
-        fontSize: TF.DETAIL, fontFamily: FF.UI, fontWeight: FW.SEMI,
+        fontSize: FS.xs, fontFamily: FF.UI, fontWeight: FW.SEMI,
         color: C.TEXT_3, marginBottom: "4px",
       }}>
         Dataset-wide findings
       </div>
       <div style={{
-        fontSize: TF.DETAIL, fontFamily: FF.UI,
-        color: C.TEXT_4, marginBottom: "8px",
+        fontSize: FS.xs, fontFamily: FF.UI,
+        color: C.TEXT_3, marginBottom: "8px",
       }}>
         These test results apply across the entire dataset
       </div>
@@ -114,7 +114,7 @@ export function LocalKeyFindings({ findings = [], activeTestKey = null, onFindin
 
   if (!cards.length) {
     return (
-      <div style={{ padding: "8px 0", color: C.TEXT_4, fontSize: TF.BODY, fontFamily: FF.UI, marginBottom: "16px" }}>
+      <div style={{ padding: "8px 0", color: C.TEXT_3, fontSize: FS.base, fontFamily: FF.UI, marginBottom: "16px" }}>
         No localised anomalies detected.
       </div>
     );
@@ -123,14 +123,14 @@ export function LocalKeyFindings({ findings = [], activeTestKey = null, onFindin
   return (
     <div style={{ marginBottom: "16px" }}>
       <div style={{
-        fontSize: TF.DETAIL, fontFamily: FF.UI, fontWeight: FW.SEMI,
+        fontSize: FS.xs, fontFamily: FF.UI, fontWeight: FW.SEMI,
         color: C.TEXT_3, marginBottom: "4px",
       }}>
         Localised findings
       </div>
       <div style={{
-        fontSize: TF.DETAIL, fontFamily: FF.UI,
-        color: C.TEXT_4, marginBottom: "8px",
+        fontSize: FS.xs, fontFamily: FF.UI,
+        color: C.TEXT_3, marginBottom: "8px",
       }}>
         Click a finding to highlight in table
       </div>

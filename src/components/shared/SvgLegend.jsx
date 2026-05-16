@@ -27,7 +27,7 @@ export function SvgLegend({ items, x, y, itemWidth = 80 }) {
             fontSize={CF.SMALL}
             fontFamily={FF.UI}
             fontWeight={FW.NORM}
-            fill={C.TEXT_4}
+            fill={C.TEXT_3}
             dominantBaseline="central"
           >
             {item.label}

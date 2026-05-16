@@ -54,7 +54,7 @@ export function KurtosisDistPlot({ normDiffs, simDiffs }) {
         <g key={v}>
           <line x1={PL} y1={ys(v)} x2={PL+CW} y2={ys(v)}
             stroke={C.BORDER_L} strokeWidth={CS.GRID.w}/>
-          <text x={PL-4} y={ys(v)+3.5} fontSize={CF.SMALL} fill={C.TEXT_4}
+          <text x={PL-4} y={ys(v)+3.5} fontSize={CF.SMALL} fill={C.TEXT_3}
             textAnchor="end" fontFamily={FF.MONO}>{v.toFixed(1)}</text>
         </g>
       ))}
@@ -77,7 +77,7 @@ export function KurtosisDistPlot({ normDiffs, simDiffs }) {
       {xTicks.map(v=>(
         <g key={v}>
           <line x1={xs(v)} y1={PT+CH} x2={xs(v)} y2={PT+CH+3} stroke={C.BORDER} strokeWidth={CS.GRID.w}/>
-          <text x={xs(v)} y={PT+CH+12} fontSize={CF.SMALL} fill={C.TEXT_4}
+          <text x={xs(v)} y={PT+CH+12} fontSize={CF.SMALL} fill={C.TEXT_3}
             textAnchor="middle" fontFamily={FF.MONO}>{v}</text>
         </g>
       ))}

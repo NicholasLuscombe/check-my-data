@@ -1,6 +1,6 @@
 /* ── MiniCard: Selective Noise ── */
 
-import { C, TF, FW, FF, CC } from "../../constants/tokens.js";
+import { C, FW, FF, CC } from "../../constants/tokens.js";
 import { MiniCardLayout, CardBanner } from "../shared/CardLayout.jsx";
 import { EvidenceTable } from "../shared/EvidenceTable.jsx";
 import { PlotLayout } from "../shared/PlotLayout.jsx";

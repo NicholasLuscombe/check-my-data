@@ -9,7 +9,7 @@
    Goodness-of-Fit" in MINIPLOT_REGISTRY (MiniPlot.jsx) so the test
    card body rendered nothing under the title + verdict badge. */
 
-import { C, TF, FS, FF } from "../../constants/tokens.js";
+import { C, FS, FF } from "../../constants/tokens.js";
 import { fmtP, fmtPBadge } from "../../constants/thresholds.js";
 import { MiniCardLayout } from "../shared/CardLayout.jsx";
 import { DataTable } from "../shared/DataTable.jsx";

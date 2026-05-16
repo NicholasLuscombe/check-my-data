@@ -58,13 +58,13 @@ export function HBarPlot({ items, accessor, xlabel, refVal, refLabel, maxOverrid
         return (
           <g key={i}>
             <line x1={x} y1={axisY} x2={x} y2={axisY+3} stroke={C.BORDER} strokeWidth={0.5}/>
-            <text x={x} y={svgH-3} fontSize={CF.SMALL} fill={C.TEXT_4} textAnchor="middle"
+            <text x={x} y={svgH-3} fontSize={CF.SMALL} fill={C.TEXT_3} textAnchor="middle"
               fontFamily={FF.MONO}>{t % 1 === 0 ? t : t.toFixed(1)}</text>
           </g>
         );
       })}
       {/* x-axis label */}
-      {xlabel && <text x={LW+CW/2} y={svgH+8} fontSize={CF.LABEL} fill={C.TEXT_4} textAnchor="middle"
+      {xlabel && <text x={LW+CW/2} y={svgH+8} fontSize={CF.LABEL} fill={C.TEXT_3} textAnchor="middle"
         fontFamily={FF.UI}>{xlabel}</text>}
     </PlotSVG>
   );

@@ -2,13 +2,11 @@
 
 // 1. NEUTRALS — slate ramp. Change these 9 values to re-theme the entire UI.
 //    S136: TEXT/TEXT_2/TEXT_3 hex shifted to neutral-700/600/500 ramp per
-//    typography system. TEXT_4 aliases TEXT_3 — folded as a transitional step;
-//    consumers retire to TEXT_3 over Phase C, alias removed at C close.
+//    typography system. TEXT_4 alias retired S151 C.9 (Phase C close).
 export const C = {
   TEXT:     "#1F1F1F",  // headings, primary labels
   TEXT_2:   "#525252",  // secondary text
   TEXT_3:   "#737373",  // table headers, axis labels, fine print
-  TEXT_4:   "#737373",  // alias of TEXT_3 — retires at end of Phase C
   BORDER:   "#CBD5E1",  // primary borders, dividers (slate-300)
   BORDER_L: "#E2E8F0",  // light row separators (slate-200)
   BG:       "#F1F5F9",  // card/row alt backgrounds (slate-100)
@@ -72,19 +70,8 @@ export const CF = {
   SMALL: "9",      // secondary annotations, reference line labels
   TINY: "9",       // floor — nothing smaller than 9pt in any chart
 };
-// HTML card font sizes — legacy 5-level scale (TF.NOTE retired S136).
-// TF.* values UNCHANGED in S136 — per-call-site role classification deferred to
-// Phase C. Surfaces continue to render at current sizes through B.
-export const TF = {
-  HERO: "22px",    // verdict headline
-  TITLE: "16px",   // modal/section titles
-  BODY: "13px",    // descriptions, body text, panel headings, buttons, test names
-  DETAIL: "11px",  // stat numbers, table cells, footers, secondary text
-  SMALL: "9px",    // uppercase labels, badges, dense table headers
-};
 // Typography system size scale (S136) — six steps, 1.25 ratio anchored at 16px.
-// Coexists with the legacy TF.* keys through Phase C; consumers re-point per
-// call-site role classification, then TF.* retires at end of Phase C.
+// Sole HTML/DOM size token rail post-S151 C.9 (legacy TF.* scaffold retired).
 export const FS = {
   xs:   "13px",  // table cells, fine print, deep footnotes
   sm:   "14px",  // secondary text, captions, table headers, footnotes, aside callouts

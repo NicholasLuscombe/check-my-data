@@ -5,7 +5,7 @@
    Forensics adds p-value and method line. */
 
 import { useState } from "react";
-import { C, TF, FS, FW, FF, CR, SEV_VERDICT } from "../../constants/tokens.js";
+import { C, FS, FW, FF, CR, SEV_VERDICT } from "../../constants/tokens.js";
 import { DISPLAY_NAMES, TEST_DESCRIPTIONS, TEST_METHODS } from "../../constants/mechanisms.js";
 import { fmtPBadge } from "../../constants/thresholds.js";
 
@@ -66,13 +66,13 @@ export function TestCardLayout({ result, mode, expanded, onToggle, onSeverityBad
           <span
             onClick={onSeverityBadgeClick}
             style={{
-              fontWeight: FW.SEMI, fontSize: TF.BODY, color: flColor,
+              fontWeight: FW.SEMI, fontSize: FS.xs, color: flColor,
               cursor: onSeverityBadgeClick ? "pointer" : undefined,
             }}
           >
             {flLabel}{showPValue && fl !== "LOW" && result.primaryP != null ? ` ${fmtPBadge(result.primaryP)}` : ""}
           </span>
-          {expandable && <span style={{ color: C.TEXT_3, fontSize: TF.BODY }}>{expanded ? "▾" : "▸"}</span>}
+          {expandable && <span style={{ color: C.TEXT_3, fontSize: FS.base }}>{expanded ? "▾" : "▸"}</span>}
         </div>
       </div>
 
@@ -91,7 +91,7 @@ export function TestCardLayout({ result, mode, expanded, onToggle, onSeverityBad
                 How this test works
               </div>
               {methodOpen && (
-                <div style={{padding:"8px 12px",margin:"4px 0 0 0",background:C.BG,border:`1px solid ${C.BORDER_L}`,borderRadius:CR.MD,fontSize:TF.BODY,fontFamily:FF.UI,color:C.TEXT_2,lineHeight:"1.6"}}>
+                <div style={{padding:"8px 12px",margin:"4px 0 0 0",background:C.BG,border:`1px solid ${C.BORDER_L}`,borderRadius:CR.MD,fontSize:FS.base,fontFamily:FF.UI,color:C.TEXT_2,lineHeight:"1.6"}}>
                   {methodText}
                 </div>
               )}
@@ -99,7 +99,7 @@ export function TestCardLayout({ result, mode, expanded, onToggle, onSeverityBad
           )}
           {children}
           {footer && (
-            <div style={{ fontSize: TF.DETAIL, fontFamily: FF.UI, color: C.TEXT_3 }}>
+            <div style={{ fontSize: FS.xs, fontFamily: FF.UI, color: C.TEXT_3 }}>
               {footer}
             </div>
           )}

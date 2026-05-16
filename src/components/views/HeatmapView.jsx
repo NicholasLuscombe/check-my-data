@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useMemo, useEffect } from "react";
-import { C, TF, FW, FF, CR } from "../../constants/tokens.js";
+import { C, FS, FW, FF, CR } from "../../constants/tokens.js";
 import { MECHANISMS } from "../../constants/mechanisms.js";
 import { colToExcelLetter } from "../shared/coordinates.js";
 import { CONVERGENCE_RAMP, convergenceRampStyle, convergenceCellBg, convergenceCellTextColor } from "../shared/heatmapColors.js";
@@ -57,7 +57,7 @@ function RowDensityStrip({ grid, nRows, nCols }) {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", marginRight: 12, flexShrink: 0 }}>
-      <div style={{ fontSize: TF.SMALL, color: C.TEXT_3, marginBottom: 4, textAlign: "center", fontWeight: FW.SEMI }}>
+      <div style={{ fontSize: FS.xs, color: C.TEXT_3, marginBottom: 4, textAlign: "center", fontWeight: FW.SEMI }}>
         Density
       </div>
       <div style={{ display: "flex", flexDirection: "column", border: `1px solid ${C.BORDER_L}`, borderRadius: CR.SM, overflow: "hidden" }}>
@@ -89,7 +89,7 @@ function CellTooltip({ cell, x, y }) {
       position: "fixed", left: x + 12, top: y - 8,
       background: C.TEXT, color: C.BG_L,
       padding: "8px 12px", borderRadius: CR.MD,
-      fontSize: TF.DETAIL, lineHeight: "1.5",
+      fontSize: FS.xs, lineHeight: "1.5",
       pointerEvents: "none", zIndex: 9999,
       maxWidth: 280, boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
     }}>
@@ -97,9 +97,9 @@ function CellTooltip({ cell, x, y }) {
         {cell.count} test{cell.count !== 1 ? "s" : ""} flagged
       </div>
       <div style={{ marginBottom: 4 }}>
-        {cell.tests.map((t, i) => <div key={i} style={{ fontSize: TF.SMALL }}>• {t}</div>)}
+        {cell.tests.map((t, i) => <div key={i} style={{ fontSize: FS.xs }}>• {t}</div>)}
       </div>
-      <div style={{ fontSize: TF.SMALL, color: C.TEXT_4 }}>
+      <div style={{ fontSize: FS.xs, color: C.TEXT_3 }}>
         {cell.categories.map(c => MECHANISMS[c]?.label || c).join(", ")}
         {" — "}{SEV_LABEL[cell.maxSeverity] || "—"}
       </div>
@@ -120,7 +120,7 @@ function HotspotSummaryBar({ hotspots, onScrollTo, coordCtx }) {
       display: "flex", alignItems: "center", gap: 16,
       padding: "8px 16px", marginBottom: 12,
       background: C.BG_L, border: `1px solid ${C.BORDER_L}`,
-      borderRadius: CR.MD, fontSize: TF.DETAIL, color: C.TEXT_2,
+      borderRadius: CR.MD, fontSize: FS.xs, color: C.TEXT_2,
     }}>
       <span style={{ fontWeight: FW.SEMI, color: C.TEXT }}>
         {hotspots.length} hotspot{hotspots.length !== 1 ? "s" : ""}
@@ -135,7 +135,7 @@ function HotspotSummaryBar({ hotspots, onScrollTo, coordCtx }) {
             style={{
               background: "none", border: `1px solid ${color}`, borderRadius: CR.SM,
               padding: "2px 8px", cursor: "pointer", color: color,
-              fontFamily: FF.MONO, fontSize: TF.DETAIL, fontWeight: FW.SEMI,
+              fontFamily: FF.MONO, fontSize: FS.xs, fontWeight: FW.SEMI,
             }}
           >
             {labels[i]} {fc(h.colStart)}{fr(h.rowStart)}–{fc(h.colEnd)}{fr(h.rowEnd)}
@@ -365,7 +365,7 @@ export function HeatmapView({
           <span style={{
             position: "absolute", top: -1, left: -1,
             background: color, color: "#fff",
-            fontSize: TF.SMALL, fontWeight: FW.SEMI,
+            fontSize: FS.xs, fontWeight: FW.SEMI,
             padding: "1px 4px", borderRadius: `${CR.SM} 0 ${CR.SM} 0`,
             lineHeight: "1.2",
           }}>
@@ -381,11 +381,11 @@ export function HeatmapView({
       {/* Section header — suppressed when parent provides its own */}
       {!hideTitle && (
         <div style={{
-          fontSize: TF.TITLE, fontWeight: FW.SEMI, color: C.TEXT,
+          fontSize: FS.md, fontWeight: FW.SEMI, color: C.TEXT,
           marginBottom: 8,
         }}>
           {simplified ? "Data overview" : "Convergence heatmap"}
-          <span style={{ fontSize: TF.DETAIL, fontWeight: FW.NORM, color: C.TEXT_3, marginLeft: 8 }}>
+          <span style={{ fontSize: FS.xs, fontWeight: FW.NORM, color: C.TEXT_3, marginLeft: 8 }}>
             {simplified
               ? "Areas where multiple checks found issues are highlighted"
               : <>
@@ -398,7 +398,7 @@ export function HeatmapView({
         </div>
       )}
       {hideTitle && (
-        <div style={{ fontSize: TF.DETAIL, color: C.TEXT_3, marginBottom: 8 }}>
+        <div style={{ fontSize: FS.xs, color: C.TEXT_3, marginBottom: 8 }}>
           {visGrid.size} cell{visGrid.size !== 1 ? "s" : ""} flagged
           {pattern === "saturated" && " — saturated pattern"}
           {pattern === "scattered" && " — scattered (limited overlap)"}
@@ -433,7 +433,7 @@ export function HeatmapView({
             style={{
               borderCollapse: "collapse",
               fontFamily: FF.MONO,
-              fontSize: TF.DETAIL,
+              fontSize: FS.xs,
               tableLayout: "fixed",
               minWidth: tableW,
             }}
@@ -452,7 +452,7 @@ export function HeatmapView({
                   background: C.BG,
                   borderBottom: `1px solid ${C.BORDER}`,
                   borderRight: `1px solid ${C.BORDER}`,
-                  fontSize: TF.SMALL, color: C.TEXT_3,
+                  fontSize: FS.xs, color: C.TEXT_3,
                   padding: "0 4px",
                   textAlign: "center",
                 }}>
@@ -467,12 +467,12 @@ export function HeatmapView({
                         borderBottom: `1px solid ${C.BORDER}`,
                         borderRight: `1px solid ${C.BORDER_L}`,
                         padding: "0 2px", textAlign: "center",
-                        fontSize: TF.SMALL, color: C.TEXT_4, fontWeight: FW.NORM,
+                        fontSize: FS.xs, color: C.TEXT_3, fontWeight: FW.NORM,
                         background: "#EAECF0",
                       }}>
                         <div style={{ lineHeight: "1.1" }}>
-                          <div style={{ fontWeight: FW.SEMI, fontSize: "10px", color: C.TEXT_4 }}>{letter}</div>
-                          <div style={{ fontSize: "7px", color: C.TEXT_4, fontStyle: "italic" }}>—</div>
+                          <div style={{ fontWeight: FW.SEMI, fontSize: "10px", color: C.TEXT_3 }}>{letter}</div>
+                          <div style={{ fontSize: "7px", color: C.TEXT_3, fontStyle: "italic" }}>—</div>
                         </div>
                       </th>
                     );
@@ -491,8 +491,8 @@ export function HeatmapView({
                         overflow: "hidden",
                         textOverflow: "ellipsis",
                         whiteSpace: "nowrap",
-                        fontSize: TF.SMALL,
-                        color: isData ? C.TEXT_2 : C.TEXT_4,
+                        fontSize: FS.xs,
+                        color: isData ? C.TEXT_2 : C.TEXT_3,
                         fontWeight: FW.SEMI,
                         textAlign: "center",
                         background: isData ? C.BG : "#F1F5F9",
@@ -519,7 +519,7 @@ export function HeatmapView({
                       background: "#F1F3F5",
                       borderRight: `1px solid ${C.BORDER}`,
                       borderBottom: `1px solid ${C.BORDER_L}`,
-                      fontSize: TF.SMALL, color: C.TEXT_4,
+                      fontSize: FS.xs, color: C.TEXT_3,
                       textAlign: "center", padding: "0 2px",
                       fontStyle: "italic",
                     }}>
@@ -538,7 +538,7 @@ export function HeatmapView({
                           borderRight: `1px solid ${C.BORDER_L}`,
                           padding: "0 4px",
                           overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-                          fontSize: "8px", color: C.TEXT_4, fontStyle: "italic",
+                          fontSize: "8px", color: C.TEXT_3, fontStyle: "italic",
                           background: "#F1F3F5",
                         }}>
                           {val}
@@ -571,7 +571,7 @@ export function HeatmapView({
                     background: ri % 2 === 0 ? C.WHITE : C.BG_L,
                     borderRight: `1px solid ${C.BORDER}`,
                     borderBottom: `1px solid ${C.BORDER_L}`,
-                    fontSize: TF.SMALL, color: C.TEXT_4,
+                    fontSize: FS.xs, color: C.TEXT_3,
                     textAlign: "center",
                     padding: "0 2px",
                   }}>
@@ -592,7 +592,7 @@ export function HeatmapView({
                     const isData = roles[rawCI] === "data";
                     const cell = getCell(ri, visIdx);
                     const bg = isData ? convergenceCellBg(cell) : {};
-                    const textColor = isData ? convergenceCellTextColor(cell) : C.TEXT_4;
+                    const textColor = isData ? convergenceCellTextColor(cell) : C.TEXT_3;
                     const value = row[rawCI];
                     const displayVal = value == null || value === "" ? "" : String(value);
                     return (
@@ -609,7 +609,7 @@ export function HeatmapView({
                           whiteSpace: "nowrap",
                           textAlign: typeof value === "number" || !isNaN(Number(value)) ? "right" : "left",
                           color: textColor,
-                          fontSize: TF.SMALL,
+                          fontSize: FS.xs,
                           background: isData ? undefined : C.BG_L,
                           fontStyle: isData ? "normal" : "italic",
                           ...bg,
@@ -644,11 +644,11 @@ export function HeatmapView({
       {/* Heatmap legend — warm ramp scale */}
       <div style={{
         display: "flex", gap: 16, marginTop: 8,
-        fontSize: TF.SMALL, color: C.TEXT_3,
+        fontSize: FS.xs, color: C.TEXT_3,
         flexWrap: "wrap", alignItems: "center",
       }}>
         <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
-          <span style={{ color: C.TEXT_4, fontStyle: "italic" }}>Flags:</span>
+          <span style={{ color: C.TEXT_3, fontStyle: "italic" }}>Flags:</span>
           {CONVERGENCE_RAMP.slice(1).map((color, i) => {
             const count = i + 1;
             const rs = convergenceRampStyle(count);
@@ -658,7 +658,7 @@ export function HeatmapView({
                   display: "inline-block", width: 12, height: 12,
                   borderRadius: 2, background: color, opacity: rs?.opacity ?? 1,
                 }} />
-                <span style={{ color: C.TEXT_4 }}>{count === CONVERGENCE_RAMP.length - 1 ? `${count}+` : count}</span>
+                <span style={{ color: C.TEXT_3 }}>{count === CONVERGENCE_RAMP.length - 1 ? `${count}+` : count}</span>
               </span>
             );
           })}

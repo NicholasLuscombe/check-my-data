@@ -281,7 +281,7 @@ For meta-content: frame-setting notes, trust statements, status indicators.
 
 ## Register inventory — applied to chrome surfaces
 
-19 distinct (size, weight, colour, family) tuples on chrome.
+21 distinct (size, weight, colour, family) tuples on chrome.
 
 | Role | Size | Weight | Colour | Family |
 |------|------|--------|--------|--------|
@@ -311,10 +311,12 @@ For meta-content: frame-setting notes, trust statements, status indicators.
 | Aside callout body | sm | Regular | C.TEXT | sans |
 | Aside callout bullet lead | sm | Semibold | C.TEXT | sans |
 | Mini-card sub-section label | sm | Semibold | C.TEXT_3 | sans |
+| Status badge | xs | Semibold | tier | sans |
+| Pattern pill/chip | sm | Semibold | tier | sans |
 
-26 roles, 19 distinct tuples. Down from ~40 in pre-system inventory.
+28 roles, 21 distinct tuples. Down from ~40 in pre-system inventory.
 
-Note: prior versions of this doc cited "18 roles, 13 distinct tuples". Recount at S138 close (post-Phase C.2 surface migration) found the actual table contained more tuples than the summary line claimed. Whether this was original miscount at S134 lock or drift since lock is undetermined from available evidence; the numbers above reflect the current table as the source of truth going forward. Column title (verdict §1) role added during S138-fix4 as a co-consumer of the Sub-heading tuple — no new tuple introduced. Primary banner headline + sub-line roles added during S148 as co-consumers of the Button and Footnote tuples respectively — no new tuples introduced. Lane label (§2 StickySurface + DeepLookModal) and Modal sub-context roles added during S149 (C.6+C.7 combined) — Lane label shares the `base Semibold C.TEXT` tuple with Tab (active); Modal sub-context shares `sm Regular C.TEXT_2` with Footnote/reference. Both are role-additions only, no new tuples. Mini-card sub-section label added during S150 (C.8) — `sm Semibold C.TEXT_3` is a genuinely new tuple, 35+ consumer sites via shared `SUB_HEAD` in `src/components/shared/styles.js`.
+Note: prior versions of this doc cited "18 roles, 13 distinct tuples". Recount at S138 close (post-Phase C.2 surface migration) found the actual table contained more tuples than the summary line claimed. Whether this was original miscount at S134 lock or drift since lock is undetermined from available evidence; the numbers above reflect the current table as the source of truth going forward. Column title (verdict §1) role added during S138-fix4 as a co-consumer of the Sub-heading tuple — no new tuple introduced. Primary banner headline + sub-line roles added during S148 as co-consumers of the Button and Footnote tuples respectively — no new tuples introduced. Lane label (§2 StickySurface + DeepLookModal) and Modal sub-context roles added during S149 (C.6+C.7 combined) — Lane label shares the `base Semibold C.TEXT` tuple with Tab (active); Modal sub-context shares `sm Regular C.TEXT_2` with Footnote/reference. Both are role-additions only, no new tuples. Mini-card sub-section label added during S150 (C.8) — `sm Semibold C.TEXT_3` is a genuinely new tuple, 35+ consumer sites via shared `SUB_HEAD` in `src/components/shared/styles.js`. Status badge + Pattern pill/chip added during S151 (C.9) — surfaced by S150-fix1 status badge tuple finding; genuine role distinction at xs (6 badge sites — TestCardLayout per-test verdict, ExcelMetaCard ×4 severity tags, CategoryRow rollup) vs sm (2 pattern surface chips — FindingPill + FindingChip). Option (a) two-row split chosen over option (b) consolidation to preserve §2 dataset-wide pattern surface prominence (sm) vs §3 per-row status indicator density (xs). Tier-coloured (red/amber/green per `SEV_VERDICT[s].color`) on both rows.
 
 ## Implementation notes — for Phase B and Phase C
 

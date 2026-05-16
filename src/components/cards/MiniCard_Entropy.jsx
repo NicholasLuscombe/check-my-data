@@ -1,6 +1,6 @@
 /* ── MiniCard: Entropy / Zipf Analysis ── */
 
-import { C, TF, FS, FW, FF } from "../../constants/tokens.js";
+import { C, FS, FW, FF } from "../../constants/tokens.js";
 import { fmtP, fmtPBadge } from "../../constants/thresholds.js";
 import { MiniCardLayout } from "../shared/CardLayout.jsx";
 import { DataTable } from "../shared/DataTable.jsx";

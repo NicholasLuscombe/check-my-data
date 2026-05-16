@@ -7,9 +7,9 @@
  *   "tick"   — axis/heatmap labels   CF.TICK  FF.UI   FW.SEMI  C.TEXT_2
  *   "axis"   — axis titles            CF.AXIS  FF.UI   FW.SEMI  C.TEXT_2
  *   "title"  — section headings       12       FF.UI   FW.SEMI  C.TEXT_2
- *   "legend" — legend annotation      CF.SMALL FF.UI   FW.NORM  C.TEXT_4
+ *   "legend" — legend annotation      CF.SMALL FF.UI   FW.NORM  C.TEXT_3
  *   "value"  — in-cell numeric data   CF.TICK  FF.MONO FW.NORM  C.TEXT
- *   "yaxis"  — numeric row-index tick CF.AXIS  FF.MONO FW.NORM  C.TEXT_4
+ *   "yaxis"  — numeric row-index tick CF.AXIS  FF.MONO FW.NORM  C.TEXT_3
  *
  * Rotation: rotate=true applies rotate(deg ?? 45, x, y).
  *   deg=45  → clockwise "\" (default, for bottom-col labels)
@@ -21,9 +21,9 @@ const ROLES = {
   tick:   { fontSize: CF.TICK,  fontFamily: FF.UI,   fontWeight: FW.SEMI, fill: C.TEXT_2 },
   axis:   { fontSize: CF.AXIS,  fontFamily: FF.UI,   fontWeight: FW.SEMI, fill: C.TEXT_2 },
   title:  { fontSize: "12",     fontFamily: FF.UI,   fontWeight: FW.SEMI, fill: C.TEXT_2 },
-  legend: { fontSize: CF.SMALL, fontFamily: FF.UI,   fontWeight: FW.NORM, fill: C.TEXT_4 },
+  legend: { fontSize: CF.SMALL, fontFamily: FF.UI,   fontWeight: FW.NORM, fill: C.TEXT_3 },
   value:  { fontSize: CF.TICK,  fontFamily: FF.MONO, fontWeight: FW.NORM, fill: C.TEXT   },
-  yaxis:  { fontSize: CF.AXIS,  fontFamily: FF.MONO, fontWeight: FW.NORM, fill: C.TEXT_4 },
+  yaxis:  { fontSize: CF.AXIS,  fontFamily: FF.MONO, fontWeight: FW.NORM, fill: C.TEXT_3 },
 };
 
 export function SvgLabel({

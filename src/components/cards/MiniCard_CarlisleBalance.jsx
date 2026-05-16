@@ -32,7 +32,7 @@ export function MiniCard_CarlisleBalance({ result, importConfig, rowMap }) {
           const h = (count / maxC) * plotH;
           const isExcess = i === 9 && count > expectedPerBin * 2; // last bin (0.9–1.0) excess
           const isDeficit = i === 0 && count > expectedPerBin * 2; // first bin excess
-          const fill = isExcess ? SIGNAL.RED.dot : isDeficit ? SIGNAL.AMBER.dot : C.TEXT_4;
+          const fill = isExcess ? SIGNAL.RED.dot : isDeficit ? SIGNAL.AMBER.dot : C.TEXT_3;
           return <rect key={i} x={x} y={padT + plotH - h} width={barW - 1} height={h}
             fill={fill} fillOpacity="0.35" stroke={fill} strokeWidth="1" />;
         })}
@@ -42,7 +42,7 @@ export function MiniCard_CarlisleBalance({ result, importConfig, rowMap }) {
           return <line x1={padL} y1={ey} x2={padL + plotW} y2={ey}
             stroke={CC.EXP} strokeWidth={1} strokeDasharray="4,3" opacity={0.6} />;
         })()}
-        <text x={padL + plotW / 2} y={H - 1} textAnchor="middle" fontSize={CF.SMALL} fill={C.TEXT_4}>
+        <text x={padL + plotW / 2} y={H - 1} textAnchor="middle" fontSize={CF.SMALL} fill={C.TEXT_3}>
           ANOVA p-value distribution (10 bins)
         </text>
       </PlotSVG>

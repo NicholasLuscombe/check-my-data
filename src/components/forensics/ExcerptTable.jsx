@@ -28,7 +28,7 @@
    the WhereToLookSection import path). */
 
 import { useMemo, useState, useRef, useEffect, useLayoutEffect, useCallback, Fragment } from "react";
-import { C, TF, FW, FF, CR, SIGNAL, SEV_VERDICT, UI, MECH_COLOR } from "../../constants/tokens.js";
+import { C, FS, FW, FF, CR, SIGNAL, SEV_VERDICT, UI, MECH_COLOR } from "../../constants/tokens.js";
 import { MINIMAP_CALLOUT_TYPOGRAPHY } from "../shared/Section.jsx";
 import { MECHANISMS, TEST_MECHANISM, TEST_KEY_TO_NAME, RANK_NUMS } from "../../constants/mechanisms.js";
 import { ROLES, buildCondColorMap } from "../../constants/roles.js";
@@ -181,11 +181,11 @@ function IrcBracketStrip({ brackets, colEntries, hasMarker, tableRef, onHeightCh
             // U-shaped bracket: vertical tick down at each end + horizontal line across top
             return (
               <g key={i}>
-                <line x1={x1} y1={yTop} x2={x1} y2={yBot} stroke={C.TEXT_4} strokeWidth={1} />
-                <line x1={x2} y1={yTop} x2={x2} y2={yBot} stroke={C.TEXT_4} strokeWidth={1} />
-                <line x1={x1} y1={yTop} x2={x2} y2={yTop} stroke={C.TEXT_4} strokeWidth={1} />
+                <line x1={x1} y1={yTop} x2={x1} y2={yBot} stroke={C.TEXT_3} strokeWidth={1} />
+                <line x1={x2} y1={yTop} x2={x2} y2={yBot} stroke={C.TEXT_3} strokeWidth={1} />
+                <line x1={x1} y1={yTop} x2={x2} y2={yTop} stroke={C.TEXT_3} strokeWidth={1} />
                 <text x={xMid} y={yTop + 12} textAnchor="middle"
-                  style={{ fontSize: "9px", fontFamily: FF.MONO, fill: C.TEXT_4 }}>
+                  style={{ fontSize: "9px", fontFamily: FF.MONO, fill: C.TEXT_3 }}>
                   {/* Chart-annotation glyph — carve-out per TYPOGRAPHY-SYSTEM.md
                       §"What this system does NOT cover" (charts + chart-internal
                       labels). Hardcoded pending the chart-typography pass. */}
@@ -378,9 +378,9 @@ function SegmentMinimap({ visGrid, rowSegments, height, tableRef, headerH, activ
               <g key={`g${i}`}>
                 <rect x={0} y={item.y} width={MINIMAP_W} height={item.h} fill={C.BG} />
                 <line x1={2} y1={item.y + 1} x2={MINIMAP_W - 2} y2={item.y + 1}
-                  stroke={C.TEXT_4} strokeWidth={0.5} strokeDasharray="2,2" />
+                  stroke={C.TEXT_3} strokeWidth={0.5} strokeDasharray="2,2" />
                 <line x1={2} y1={item.y + item.h - 1} x2={MINIMAP_W - 2} y2={item.y + item.h - 1}
-                  stroke={C.TEXT_4} strokeWidth={0.5} strokeDasharray="2,2" />
+                  stroke={C.TEXT_3} strokeWidth={0.5} strokeDasharray="2,2" />
               </g>
             );
           }
@@ -445,7 +445,7 @@ function RegionBadge({ overlay, y, onActivate }) {
         fill={fill} rx={2} />
       {/* RegionBadge glyph — chart-annotation carve-out per TYPOGRAPHY-SYSTEM.md
           §"What this system does NOT cover". Mirrors MinimapStrip's RegionBadge
-          (retired TF.SMALL → hardcoded literal at S149-fix1 piece 2). */}
+          (retired 9px legacy token → hardcoded literal at S149-fix1 piece 2). */}
       <text x={MINIMAP_W / 2} y={y + 9} textAnchor="middle"
         style={{ fontSize: "9px", fontFamily: FF.UI, fontWeight: FW.BOLD, fill: C.WHITE,
           pointerEvents: "none" }}>
@@ -913,7 +913,7 @@ export function ExcerptTable({
   const renderGapRow = (count, key, topOnly = false) => {
     const text = `${count} row${count !== 1 ? "s" : ""} not shown`;
     const topBorder = topOnly ? "none" : `1px dashed ${C.BORDER}`;
-    const gapBase = { padding: "4px 8px", textAlign: "center", fontSize: TF.SMALL, fontFamily: FF.UI, color: C.TEXT_4, background: C.BG, borderTop: topBorder, borderBottom: `1px dashed ${C.BORDER}` };
+    const gapBase = { padding: "4px 8px", textAlign: "center", fontSize: FS.xs, fontFamily: FF.UI, color: C.TEXT_3, background: C.BG, borderTop: topBorder, borderBottom: `1px dashed ${C.BORDER}` };
     // DATA-zone cells: text every GAP_REPEAT columns
     const nData = colEntries.length - nFrz;
     const dataCells = [];
@@ -1050,7 +1050,7 @@ export function ExcerptTable({
                 inserted.push(
                   <tr key={`cp-label-${ri}`}>
                     <td colSpan={nCols} style={{
-                      padding: "2px 8px", fontSize: TF.SMALL, fontFamily: FF.UI,
+                      padding: "2px 8px", fontSize: FS.xs, fontFamily: FF.UI,
                       color: SIGNAL.RED.dot, background: C.WHITE, border: "none",
                       ...(freeze ? { position: "sticky", left: 0, zIndex: FREEZE_Z.FROZEN_BODY } : {}),
                     }}>
@@ -1078,8 +1078,8 @@ export function ExcerptTable({
                           <td style={{
                             ...TD_ID_CELL, borderBottom: `1px solid ${C.BORDER_L}`,
                             borderLeft: `3px solid ${style.border}`,
-                            background: style.counterpartTint, color: C.TEXT_4,
-                            fontSize: TF.SMALL, fontStyle: "italic",
+                            background: style.counterpartTint, color: C.TEXT_3,
+                            fontSize: FS.xs, fontStyle: "italic", fontWeight: FW.NORM,
                             ...(freeze ? { position: "sticky", left: 0, zIndex: FREEZE_Z.FROZEN_BODY } : {}),
                           }}>
                             {"↳ " + fr(cpRow)}
@@ -1192,7 +1192,7 @@ export function ExcerptTable({
                 : (cellHighlighted && !spec.boldRelevant) ? "#CCC"   // Mahalanobis-style
                 : (cellHighlighted && spec.boldRelevant) ? C.TEXT
                 : isData ? convergenceCellTextColor(cell)
-                : ROLE_COLOR[col.role] || C.TEXT_4;
+                : ROLE_COLOR[col.role] || C.TEXT_3;
               const fontWeight = (cellHighlighted && spec.boldRelevant) ? FW.SEMI : undefined;
 
               const finalBg = dimmed ? C.WHITE : hasHeat ? undefined : baseBg;
@@ -1225,8 +1225,8 @@ export function ExcerptTable({
         </div>
       )}
       {/* Convergence colour-ramp legend — shared by cells, row minimap, column minimap */}
-      <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 8, fontSize: TF.SMALL, color: C.TEXT_3, flexWrap: "wrap" }}>
-        <span style={{ color: C.TEXT_4 }}>Tests flagging each cell:</span>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 8, fontSize: FS.xs, color: C.TEXT_3, flexWrap: "wrap" }}>
+        <span style={{ color: C.TEXT_3 }}>Tests flagging each cell:</span>
         {CONVERGENCE_RAMP.slice(1).map((color, i) => {
           const count = i + 1;
           const rs = convergenceRampStyle(count);
@@ -1248,7 +1248,7 @@ export function ExcerptTable({
 
       {/* No-data-rows fallback — groups/global findings exist but no cells flagged in heatmap */}
       {!hasDataRows && (
-        <div style={{ padding: "16px 0", color: C.TEXT_3, fontSize: TF.BODY }}>
+        <div style={{ padding: "16px 0", color: C.TEXT_3, fontSize: FS.base }}>
           No spatially localised hotspots detected. Flags are from dataset-wide statistical tests rather than localised regions.
         </div>
       )}
@@ -1273,16 +1273,16 @@ export function ExcerptTable({
                   onMouseEnter={e => { if (h.origIdx !== activeHotspot) e.currentTarget.style.background = C.BG; }}
                   onMouseLeave={e => { if (h.origIdx !== activeHotspot) e.currentTarget.style.background = "transparent"; }}
                 >
-                  <span style={{ fontSize: TF.BODY, fontWeight: FW.BOLD, color: C.TEXT }}>{RANK_NUMS[i] || `(${i+1})`}</span>
-                  <span style={{ fontSize: TF.BODY, fontWeight: FW.SEMI, color: C.TEXT }}>{fmtLoc(h, coordCtx)}</span>
-                  <span style={{ fontSize: TF.DETAIL, color: C.TEXT_3 }}>
+                  <span style={{ fontSize: FS.base, fontWeight: FW.BOLD, color: C.TEXT }}>{RANK_NUMS[i] || `(${i+1})`}</span>
+                  <span style={{ fontSize: FS.base, fontWeight: FW.SEMI, color: C.TEXT }}>{fmtLoc(h, coordCtx)}</span>
+                  <span style={{ fontSize: FS.xs, color: C.TEXT_3 }}>
                     — {h.categories.map(cat => MECHANISMS[cat]?.label || cat).join(", ")}
                   </span>
                 </div>
               ))}
               {single.length > 0 && (
                 <div style={{ marginTop: 4 }}>
-                  <div style={{ fontSize: TF.DETAIL, color: C.TEXT_3, padding: "4px 8px" }}>
+                  <div style={{ fontSize: FS.xs, color: C.TEXT_3, padding: "4px 8px" }}>
                     {single.length} additional single-row hotspot{single.length !== 1 ? "s" : ""} detected.
                   </div>
                 </div>
@@ -1299,9 +1299,9 @@ export function ExcerptTable({
             return (
               <div key={`g${g.id}`} style={{
                 display: "flex", alignItems: "center", gap: 8, padding: "4px 8px",
-                fontSize: TF.BODY, color: C.TEXT_2,
+                fontSize: FS.base, color: C.TEXT_2,
               }}>
-                <span style={{ color: MECH_COLOR[TEST_MECHANISM[g.testKey]] || C.TEXT_3, fontWeight: FW.BOLD, fontSize: TF.BODY, flexShrink: 0 }}>
+                <span style={{ color: MECH_COLOR[TEST_MECHANISM[g.testKey]] || C.TEXT_3, fontWeight: FW.BOLD, fontSize: FS.base, flexShrink: 0 }}>
                   {marker}
                 </span>
                 <span>Rows {rowNums} — {desc}</span>
@@ -1310,7 +1310,7 @@ export function ExcerptTable({
           })}
           {/* Fallback when nothing */}
           {!hasHotspots && !hasGroups && (
-            <div style={{ padding: "8px 0", color: C.TEXT_3, fontSize: TF.DETAIL, lineHeight: "1.6" }}>
+            <div style={{ padding: "8px 0", color: C.TEXT_3, fontSize: FS.xs, lineHeight: "1.6" }}>
               Highlighted cells are flagged by individual tests.
             </div>
           )}

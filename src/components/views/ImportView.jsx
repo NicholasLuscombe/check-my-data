@@ -11,7 +11,7 @@ import { detectAssay, ASSAYS, DATA_TYPES, ASSAY_DATATYPE_MAP } from "../../const
 import { getApplicabilityTests } from "../../analysis/severity.js";
 import { extractAnalysisInputs } from "../../analysis/engine.js";
 import { LongFormatModal } from "./LongFormatModal.jsx";
-import { C, FF, FW, TF, FS, CR, CC, M, UI, BADGE, SIGNAL, ACCENT } from "../../constants/tokens.js";
+import { C, FF, FW, FS, CR, CC, M, UI, BADGE, SIGNAL, ACCENT } from "../../constants/tokens.js";
 import { FLAG_STYLES } from "../../constants/thresholds.js";
 import { ROLES, ROLE_KEYS, COND_COLORS } from "../../constants/roles.js";
 import { MECHANISMS, MECHANISM_ORDER, TEST_MECHANISM, DISPLAY_NAMES } from "../../constants/mechanisms.js";
@@ -429,11 +429,11 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
   },[data]);
 
   const fmtCell=(v,role)=>{
-    if(v==null||v==="")return <span style={{color:C.TEXT_4}}>—</span>;
+    if(v==null||v==="")return <span style={{color:C.TEXT_3}}>—</span>;
     if(role==="data"){if(!isNaN(Number(v)))return <span style={{...M,color:C.TEXT}}>{v}</span>;return <span style={{...M,color:UI.WARN.text,fontStyle:"italic"}}>{v}</span>;}
     if(role==="condition")return <span style={{color:UI.WARN.text}}>{v}</span>;
     if(role==="label")return <span style={{color:ROLES.label.color}}>{v}</span>;
-    return <span style={{color:C.TEXT_4}}>{v}</span>;
+    return <span style={{color:C.TEXT_3}}>{v}</span>;
   };
 
   const handleProceed=()=>{
@@ -1042,7 +1042,7 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
                 : "Run analyses";
             return (
               <button onClick={handleProceed} disabled={!ready}
-                style={{flex:1,padding:"13px 24px",background:ready?CC.OBS:C.TEXT_4,border:"none",borderRadius:CR.LG,color:C.WHITE,fontSize:FS.md,fontWeight:FW.SEMI,cursor:ready?"pointer":"not-allowed",opacity:ready?1:0.7}}>
+                style={{flex:1,padding:"13px 24px",background:ready?CC.OBS:C.TEXT_3,border:"none",borderRadius:CR.LG,color:C.WHITE,fontSize:FS.md,fontWeight:FW.SEMI,cursor:ready?"pointer":"not-allowed",opacity:ready?1:0.7}}>
                 {label}
               </button>
             );

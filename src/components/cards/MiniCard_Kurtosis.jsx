@@ -1,6 +1,6 @@
 /* ── MiniCard: Kurtosis ── */
 
-import { C, CC, TF, FS, FW, FF, M, CP, CS, CF, CR, SIGNAL, UI, BADGE } from "../../constants/tokens.js";
+import { C, CC, FS, FW, FF, M, CP, CS, CF, CR, SIGNAL, UI, BADGE } from "../../constants/tokens.js";
 import { fmtPBadge } from "../../constants/thresholds.js";
 import { MiniCardLayout } from "../shared/CardLayout.jsx";
 import { buildCondColorMap } from "../../constants/roles.js";
@@ -74,7 +74,7 @@ export function MiniCard_Kurtosis({ result, importConfig, rowMap }) {
         <div style={{marginTop:"10px"}}>
           <div style={SUB_HEAD}>
             Noise shape by condition
-            {condK.promoted && <span style={{marginLeft:"8px",fontSize:TF.SMALL,color:UI.WARN.text,background:BADGE.PROMOTED.bg,border:`1px solid ${BADGE.PROMOTED.border}`,borderRadius:CR.SM,padding:"1px 5px"}}>differs between conditions — promoted</span>}
+            {condK.promoted && <span style={{marginLeft:"8px",fontSize:FS.xs,color:UI.WARN.text,background:BADGE.PROMOTED.bg,border:`1px solid ${BADGE.PROMOTED.border}`,borderRadius:CR.SM,padding:"1px 5px"}}>differs between conditions — promoted</span>}
           </div>
           {(() => {
             const simK = result.simKurtosis;
@@ -156,7 +156,7 @@ export function MiniCard_Kurtosis({ result, importConfig, rowMap }) {
                             {(() => { const t=[]; for(let v=tickStep;v<=topTick+1e-9;v+=tickStep) t.push(parseFloat(v.toFixed(4))); return t; })().map(v=>(
                               <g key={v}>
                                 <line x1={PL} y1={ys(v)} x2={PL+CW} y2={ys(v)} stroke={C.BORDER_L} strokeWidth={CS.GRID.w}/>
-                                <text x={PL-3} y={ys(v)+3} fontSize={CF.TINY} fill={C.TEXT_4} textAnchor="end" fontFamily={FF.MONO}>{v.toFixed(1)}</text>
+                                <text x={PL-3} y={ys(v)+3} fontSize={CF.TINY} fill={C.TEXT_3} textAnchor="end" fontFamily={FF.MONO}>{v.toFixed(1)}</text>
                               </g>
                             ))}
                             {/* observed bars */}
@@ -172,7 +172,7 @@ export function MiniCard_Kurtosis({ result, importConfig, rowMap }) {
                             {xTicks.map(v=>(
                               <g key={v}>
                                 <line x1={xs(v)} y1={PT+CH} x2={xs(v)} y2={PT+CH+3} stroke={C.BORDER} strokeWidth={CS.GRID.w}/>
-                                <text x={xs(v)} y={PT+CH+11} fontSize={CF.SMALL} fill={C.TEXT_4} textAnchor="middle">{v}</text>
+                                <text x={xs(v)} y={PT+CH+11} fontSize={CF.SMALL} fill={C.TEXT_3} textAnchor="middle">{v}</text>
                               </g>
                             ))}
                           </PlotSVG>

@@ -7,7 +7,7 @@
      items + swatchType="line" → line+dot swatches for line charts
      gradient={from,to,startLabel,endLabel,width?}  → continuous gradient bar */
 
-import { C, FF, TF, FW } from "../../constants/tokens.js";
+import { C, FF, FS, FW } from "../../constants/tokens.js";
 
 const SWATCH = 12;
 
@@ -17,7 +17,7 @@ export function ChartLegend({ items, gradient, swatchType }) {
   if (gradient) {
     return (
       <div style={{...wrap, display: "flex", alignItems: "center", gap: "6px"}}>
-        <span style={{fontSize: TF.SMALL, fontFamily: FF.UI, color: C.TEXT_4}}>
+        <span style={{fontSize: FS.xs, fontFamily: FF.UI, color: C.TEXT_3}}>
           {gradient.startLabel}
         </span>
         <div style={{
@@ -28,7 +28,7 @@ export function ChartLegend({ items, gradient, swatchType }) {
           border: `0.5px solid ${C.BORDER_L}`,
           flexShrink: 0,
         }} />
-        <span style={{fontSize: TF.SMALL, fontFamily: FF.UI, color: C.TEXT_4}}>
+        <span style={{fontSize: FS.xs, fontFamily: FF.UI, color: C.TEXT_3}}>
           {gradient.endLabel}
         </span>
       </div>
@@ -41,7 +41,7 @@ export function ChartLegend({ items, gradient, swatchType }) {
     <div style={{...wrap, display: "flex", flexWrap: "wrap", gap: "12px"}}>
       {items.map((item, i) => {
         if (item.swatchType === "none") return (
-          <span key={i} style={{fontSize: TF.SMALL, fontFamily: FF.UI, fontStyle: "italic", color: C.TEXT_4}}>{item.label}</span>
+          <span key={i} style={{fontSize: FS.xs, fontFamily: FF.UI, fontStyle: "italic", color: C.TEXT_3}}>{item.label}</span>
         );
         const isLine = item.swatchType === "line" || (globalLine && item.swatchType !== "square" && item.swatchType !== "dot");
         const isDot = item.swatchType === "dot";
@@ -69,7 +69,7 @@ export function ChartLegend({ items, gradient, swatchType }) {
               ...(item.stroke ? {border: `2px solid ${item.stroke}`} : {}),
             }} />
           )}
-          <span style={{fontSize: TF.SMALL, fontFamily: FF.UI, fontWeight: FW.NORM, color: C.TEXT_4}}>
+          <span style={{fontSize: FS.xs, fontFamily: FF.UI, fontWeight: FW.NORM, color: C.TEXT_3}}>
             {item.label}
           </span>
         </div>

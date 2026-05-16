@@ -1,7 +1,7 @@
 import { useState, useCallback } from "react";
 
 /* ── Constants ────────────────────────────────────────────────────────── */
-import { C, ACCENT, FF, TF, CR, CC, SIGNAL, M } from "./constants/tokens.js";
+import { C, ACCENT, FF, FS, CR, CC, SIGNAL, M } from "./constants/tokens.js";
 import { ROLES } from "./constants/roles.js";
 
 /* ── Analysis engine ──────────────────────────────────────────────────── */
@@ -74,7 +74,7 @@ export default function CheckMyData() {
   },[]);
 
   return (
-    <div style={{minHeight:"100vh",background:C.BG_L,color:C.TEXT,fontFamily:FF.UI,fontSize:TF.BODY}}>
+    <div style={{minHeight:"100vh",background:C.BG_L,color:C.TEXT,fontFamily:FF.UI,fontSize:FS.base}}>
       <style>{`@media print { button { display: none !important; } .no-print { display: none !important; } }`}</style>
       {/* Header banner — hidden on in-Report views (Forensics / Review / QC).
           ReportView's own navbar (Back + filename + tab row) carries identity
@@ -86,8 +86,8 @@ export default function CheckMyData() {
               <Logo width={240}/>
             </div>
             <div style={{display:"flex",alignItems:"center",gap:"8px",marginLeft:"4px"}}>
-              <span style={{...M,color:C.TEXT_3,fontSize:TF.DETAIL}}>v0.8</span>
-              {phase==="batch"&&<span style={{...M,color:ROLES.label.color,fontSize:TF.DETAIL,padding:"2px 8px",background:ROLES.label.bg,border:`1px solid ${ACCENT.PURPLE.border}`,borderRadius:CR.SM}}>Batch Analysis</span>}
+              <span style={{...M,color:C.TEXT_3,fontSize:FS.xs}}>v0.8</span>
+              {phase==="batch"&&<span style={{...M,color:ROLES.label.color,fontSize:FS.xs,padding:"2px 8px",background:ROLES.label.bg,border:`1px solid ${ACCENT.PURPLE.border}`,borderRadius:CR.SM}}>Batch Analysis</span>}
             </div>
           </div>
         </div>
@@ -97,15 +97,15 @@ export default function CheckMyData() {
         {phase==="running"&&(
           <div style={{textAlign:"center",padding:"80px 20px"}}>
             {runProgress.startsWith("Error")?(
-              <div style={{color:SIGNAL.RED.dot,fontSize:TF.BODY,marginBottom:"8px"}}>{runProgress}</div>
+              <div style={{color:SIGNAL.RED.dot,fontSize:FS.base,marginBottom:"8px"}}>{runProgress}</div>
             ):(
-              <div style={{display:"inline-flex",alignItems:"center",gap:"12px",color:CC.OBS,fontSize:TF.BODY}}>
+              <div style={{display:"inline-flex",alignItems:"center",gap:"12px",color:CC.OBS,fontSize:FS.base}}>
                 <span style={{display:"inline-block",width:"16px",height:"16px",border:`2px solid ${ACCENT.BLUE.border}`,borderTopColor:CC.OBS,borderRadius:"50%",animation:"spin 0.8s linear infinite"}}/>
                 Running statistical tests…
               </div>
             )}
             {runProgress&&!runProgress.startsWith("Error")&&(
-              <div style={{marginTop:"10px",...M,fontSize:TF.DETAIL,color:C.TEXT_4}}>{runProgress}</div>
+              <div style={{marginTop:"10px",...M,fontSize:FS.xs,color:C.TEXT_3}}>{runProgress}</div>
             )}
             <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
           </div>

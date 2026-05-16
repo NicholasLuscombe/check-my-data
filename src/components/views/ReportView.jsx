@@ -10,7 +10,7 @@ import { HotspotExcerptList } from "./HotspotExcerptList.jsx";
 import { PulseProvider } from "../forensics/pulseContext.jsx";
 import { PulseStyle } from "../forensics/PulseStyle.jsx";
 import { ForensicsBody } from "../forensics/ForensicsBody.jsx";
-import { C, FF, FW, TF, FS, CR, UI, BADGE, SIGNAL, ACCENT, SEV_VERDICT, SEVERITY_WORD, DUP_GROUP_PALETTE } from "../../constants/tokens.js";
+import { C, FF, FW, FS, CR, UI, BADGE, SIGNAL, ACCENT, SEV_VERDICT, SEVERITY_WORD, DUP_GROUP_PALETTE } from "../../constants/tokens.js";
 import { FLAG_STYLES, ALPHA, fmtP } from "../../constants/thresholds.js";
 import { MECHANISMS, MECHANISM_ORDER, DISPLAY_NAMES, TEST_DESCRIPTIONS, TEST_MECHANISM, GLOBAL_TESTS } from "../../constants/mechanisms.js";
 import { ASSAYS, DATA_TYPES } from "../../constants/assays.js";
@@ -519,13 +519,13 @@ export function ReportView({ results, importConfig, matrix, rowMap, onBack, onCh
 
     // Build data sheet HTML
     const colLtr = (n) => { let s=""; while(true){s=String.fromCharCode(65+(n%26))+s;n=Math.floor(n/26)-1;if(n<0)break;} return s; };
-    let dataHtml = `<table class="data-table" border="1" cellpadding="3" style="border-collapse:collapse;font-family:${FF.MONO};font-size:${TF.DETAIL}">`;
+    let dataHtml = `<table class="data-table" border="1" cellpadding="3" style="border-collapse:collapse;font-family:${FF.MONO};font-size:${FS.xs}">`;
     // Row 1: Excel column letters
-    dataHtml += `<tr><th style="background:${C.BORDER_L};color:${C.TEXT_4};font-size:${TF.SMALL};text-align:center;padding:2px 6px;min-width:36px">#</th>`;
+    dataHtml += `<tr><th style="background:${C.BORDER_L};color:${C.TEXT_3};font-size:${FS.xs};text-align:center;padding:2px 6px;min-width:36px">#</th>`;
     let letterIdx = 0;
     for (let ci = 0; ci < hdrs.length; ci++) {
       if (roles[ci] === "ignore") continue;
-      dataHtml += `<th style="background:${C.BORDER_L};color:${C.TEXT_4};font-size:${TF.SMALL};text-align:center;padding:2px 6px">${colLtr(letterIdx)}</th>`;
+      dataHtml += `<th style="background:${C.BORDER_L};color:${C.TEXT_3};font-size:${FS.xs};text-align:center;padding:2px 6px">${colLtr(letterIdx)}</th>`;
       letterIdx++;
     }
     dataHtml += '</tr>\n';
@@ -541,7 +541,7 @@ export function ReportView({ results, importConfig, matrix, rowMap, onBack, onCh
       const row = rawData[ri];
       if (!row) continue;
       dataHtml += '<tr>';
-      dataHtml += `<td style="background:${C.BG_L};color:${C.TEXT_3};font-weight:${FW.BOLD};text-align:center;padding:2px 6px;font-size:${TF.DETAIL}">${ri+1}</td>`;
+      dataHtml += `<td style="background:${C.BG_L};color:${C.TEXT_3};font-weight:${FW.BOLD};text-align:center;padding:2px 6px;font-size:${FS.xs}">${ri+1}</td>`;
       for (let ci = 0; ci < hdrs.length; ci++) {
         if (roles[ci] === "ignore") continue;
         const bg = cellBg[ri]?.[ci] || null;
@@ -558,8 +558,8 @@ export function ReportView({ results, importConfig, matrix, rowMap, onBack, onCh
     // Build summary sheet HTML
     const flagLabel = f => ({HIGH:"FLAGGED",MODERATE:"NOTED",LOW:"CLEAR","N/A":"N/A"}[f]||f);
     const groups = buildMechanismGroups(results);
-    let summHtml = `<table border="1" cellpadding="4" style="border-collapse:collapse;font-family:${FF.UI};font-size:${TF.DETAIL}">`;
-    summHtml += `<tr><td colspan="4" style="background:${C.TEXT};color:${C.WHITE};font-size:${TF.TITLE};font-weight:${FW.BOLD};padding:8px">Check My Data Report — Severity ${severity}</td></tr>`;
+    let summHtml = `<table border="1" cellpadding="4" style="border-collapse:collapse;font-family:${FF.UI};font-size:${FS.xs}">`;
+    summHtml += `<tr><td colspan="4" style="background:${C.TEXT};color:${C.WHITE};font-size:${FS.md};font-weight:${FW.BOLD};padding:8px">Check My Data Report — Severity ${severity}</td></tr>`;
     summHtml += `<tr><td colspan="4" style="padding:6px;color:${C.TEXT_3}">File: ${esc(importConfig.fileName||"uploaded")} | ${nRows} rows × ${nCols} cols | Assay: ${esc(assayLabel)}</td></tr>`;
     summHtml += '<tr><td colspan="4"></td></tr>';
     summHtml += `<tr style="background:${C.BG_L}"><th style="text-align:left;padding:4px 8px">Category</th><th style="text-align:left;padding:4px 8px">Test</th><th style="text-align:center;padding:4px 8px">Result</th><th style="text-align:left;padding:4px 8px">Key metric</th></tr>`;
@@ -573,7 +573,7 @@ export function ReportView({ results, importConfig, matrix, rowMap, onBack, onCh
         const flagColor = FLAG_STYLES[r.flag]?.text||FLAG_STYLES.LOW.text;
         let metric = "";
         if (r.primaryP != null) metric = `p=${fmtP(r.primaryP)}`;
-        summHtml += `<tr><td style="padding:4px 8px;color:${C.TEXT_3}">${esc(group.label)}</td><td style="padding:4px 8px">${esc(rName)}</td><td style="background:${flagBg};color:${flagColor};font-weight:${FW.BOLD};text-align:center;padding:4px 8px">${fl}</td><td style="padding:4px 8px;font-family:${FF.MONO};font-size:${TF.DETAIL}">${esc(metric)}</td></tr>`;
+        summHtml += `<tr><td style="padding:4px 8px;color:${C.TEXT_3}">${esc(group.label)}</td><td style="padding:4px 8px">${esc(rName)}</td><td style="background:${flagBg};color:${flagColor};font-weight:${FW.BOLD};text-align:center;padding:4px 8px">${fl}</td><td style="padding:4px 8px;font-family:${FF.MONO};font-size:${FS.xs}">${esc(metric)}</td></tr>`;
       }
     }
     summHtml += '</table>';
@@ -589,27 +589,27 @@ export function ReportView({ results, importConfig, matrix, rowMap, onBack, onCh
   * { margin:0; padding:0; box-sizing:border-box; }
   body { font-family:${FF.UI}; color:${C.TEXT}; background:${C.BG_L}; padding:24px; }
   .container { max-width:1200px; margin:0 auto; }
-  h1 { font-size:${TF.HERO}; font-weight:${FW.BOLD}; margin-bottom:4px; }
-  .subtitle { font-size:${TF.BODY}; color:${C.TEXT_3}; margin-bottom:16px; }
-  .sev-badge { display:inline-block; font-size:${TF.BODY}; font-weight:${FW.BOLD}; padding:4px 14px; border-radius:${CR.LG}; }
+  h1 { font-size:${FS.xl}; font-weight:${FW.BOLD}; margin-bottom:4px; }
+  .subtitle { font-size:${FS.base}; color:${C.TEXT_3}; margin-bottom:16px; }
+  .sev-badge { display:inline-block; font-size:${FS.base}; font-weight:${FW.BOLD}; padding:4px 14px; border-radius:${CR.LG}; }
   .section { margin:24px 0; }
-  .section h2 { font-size:${TF.BODY}; font-weight:${FW.BOLD}; color:${C.TEXT}; margin-bottom:8px; border-bottom:2px solid ${C.BORDER_L}; padding-bottom:6px; }
-  table { border-collapse:collapse; width:100%; font-size:${TF.DETAIL}; }
+  .section h2 { font-size:${FS.lg}; font-weight:${FW.SEMI}; color:${C.TEXT}; margin-bottom:8px; border-bottom:2px solid ${C.BORDER_L}; padding-bottom:6px; }
+  table { border-collapse:collapse; width:100%; font-size:${FS.xs}; }
   th { background:${C.TEXT}; color:${C.WHITE}; font-weight:${FW.SEMI}; text-align:left; padding:6px 10px; position:sticky; top:0; z-index:1; }
   td { padding:4px 8px; border-bottom:1px solid ${C.BORDER_L}; font-variant-numeric:tabular-nums; }
-  .data-table { font-family:${FF.MONO}; font-size:${TF.DETAIL}; }
+  .data-table { font-family:${FF.MONO}; font-size:${FS.xs}; }
   .data-table td { white-space:nowrap; }
   .data-table td:first-child, .data-table th:first-child { position:sticky; left:0; z-index:2; }
   .data-table thead tr:first-child th { position:sticky; top:0; z-index:3; }
   .data-table thead tr:nth-child(2) th { position:sticky; top:24px; z-index:3; }
   .data-table thead tr:first-child th:first-child,
   .data-table thead tr:nth-child(2) th:first-child { z-index:4; }
-  .summ-table th { font-size:${TF.DETAIL}; }
+  .summ-table th { font-size:${FS.xs}; }
   .flag-HIGH { background:${SIGNAL.RED.bg}; color:${SIGNAL.RED.text}; font-weight:${FW.BOLD}; text-align:center; }
   .flag-MODERATE { background:${SIGNAL.AMBER.bg}; color:${SIGNAL.AMBER.text}; font-weight:${FW.BOLD}; text-align:center; }
   .flag-LOW { background:${SIGNAL.GREEN.bg}; color:${SIGNAL.GREEN.text}; text-align:center; }
-  .flag-NA { color:${C.TEXT_4}; text-align:center; }
-  .legend { display:flex; gap:12px; flex-wrap:wrap; margin-top:12px; font-size:${TF.DETAIL}; }
+  .flag-NA { color:${C.TEXT_3}; text-align:center; }
+  .legend { display:flex; gap:12px; flex-wrap:wrap; margin-top:12px; font-size:${FS.xs}; }
   .legend-item { display:flex; align-items:center; gap:6px; }
   .legend-swatch { width:20px; height:14px; border-radius:${CR.SM}; border:1px solid ${C.BORDER}; }
   @media print { body { padding:8px; } th { position:static; } .no-print { display:none; } }
@@ -623,7 +623,7 @@ export function ReportView({ results, importConfig, matrix, rowMap, onBack, onCh
     </div>
     <div>
       <span class="sev-badge" style="background:${sevBg};color:${sevFg}">Severity ${severity} — ${sevLabel}</span>
-      <button class="no-print" onclick="window.print()" style="margin-left:12px;padding:6px 16px;border:1px solid ${C.BORDER};border-radius:${CR.MD};background:${C.WHITE};cursor:pointer;font-size:${TF.DETAIL}">🖨 Print</button>
+      <button class="no-print" onclick="window.print()" style="margin-left:12px;padding:6px 16px;border:1px solid ${C.BORDER};border-radius:${CR.MD};background:${C.WHITE};cursor:pointer;font-size:${FS.xs}">🖨 Print</button>
     </div>
   </div>
 
@@ -660,7 +660,7 @@ export function ReportView({ results, importConfig, matrix, rowMap, onBack, onCh
     }
   };
 
-  const reportLink = (label) => <span onClick={handleExcelDownload} style={{display:"inline-block",padding:"1px 8px",background:ACCENT.BLUE.color+"18",border:`1px solid ${ACCENT.BLUE.color}`,borderRadius:CR.SM,color:ACCENT.BLUE.color,fontWeight:FW.SEMI,cursor:exporting?"wait":"pointer",fontSize:TF.DETAIL,verticalAlign:"middle"}}>{exporting?"exporting…":label}</span>;
+  const reportLink = (label) => <span onClick={handleExcelDownload} style={{display:"inline-block",padding:"1px 8px",background:ACCENT.BLUE.color+"18",border:`1px solid ${ACCENT.BLUE.color}`,borderRadius:CR.SM,color:ACCENT.BLUE.color,fontWeight:FW.SEMI,cursor:exporting?"wait":"pointer",fontSize:FS.xs,verticalAlign:"middle"}}>{exporting?"exporting…":label}</span>;
   const [actionsOpen, setActionsOpen] = useState(false);
   const [expandedCats, setExpandedCats] = useState({});
   const toggleCat = (mk) => setExpandedCats(prev => ({...prev, [mk]: !prev[mk]}));
@@ -1097,7 +1097,7 @@ export function ReportView({ results, importConfig, matrix, rowMap, onBack, onCh
             </Section>
 
             <Section number={3} title="What next">
-              <div style={{fontSize:TF.BODY,color:C.TEXT,lineHeight:"1.6",paddingTop:"2px"}}>
+              <div style={{fontSize:FS.base,color:C.TEXT,lineHeight:"1.6",paddingTop:"2px"}}>
                 {severity === 0 && <>Your data passed all checks. No further action needed. You can download a {reportLink("summary report")} if you'd like to keep a record.</>}
                 {severity === 1 && <>One check found a minor pattern. This is common and usually has an innocent explanation — review the flagged category above to see what was found. You can download the {reportLink("annotated report")} for details.</>}
                 {severity === 2 && <>
@@ -1164,7 +1164,7 @@ export function ReportView({ results, importConfig, matrix, rowMap, onBack, onCh
             {/* ── 2. What was found / What was checked ── */}
             <Section number={2} title={severity > 0 ? "What was found" : "What was checked"}>
               {severity > 0 && (
-                <div style={{display:"flex",alignItems:"center",gap:12,flexWrap:"wrap",fontSize:TF.SMALL,color:C.TEXT_3,marginBottom:8,paddingLeft:13}}>
+                <div style={{display:"flex",alignItems:"center",gap:12,flexWrap:"wrap",fontSize:FS.xs,color:C.TEXT_3,marginBottom:8,paddingLeft:13}}>
                   <span style={{display:"inline-flex",alignItems:"center",gap:4}}>
                     <span style={{color:SEV_VERDICT[3].color,fontSize:"13px",lineHeight:1}}>{"\u26A0\uFE0E"}</span>
                     <span>High-severity flag</span>
@@ -1211,16 +1211,16 @@ export function ReportView({ results, importConfig, matrix, rowMap, onBack, onCh
 
             {/* ── 4. What to ask / What next ── */}
             <Section number={severity > 0 ? 4 : 3} title={severity > 0 ? "What to ask" : "What next"}>
-              <div style={{fontSize:TF.BODY,color:C.TEXT,lineHeight:"1.6",paddingTop:"2px"}}>
+              <div style={{fontSize:FS.base,color:C.TEXT,lineHeight:"1.6",paddingTop:"2px"}}>
                 {reviewGuidance[severity]}
               </div>
               {severity > 0 && (
-                <div style={{marginTop:"12px",fontSize:TF.BODY,color:C.TEXT_2}}>
+                <div style={{marginTop:"12px",fontSize:FS.base,color:C.TEXT_2}}>
                   Download the {reportLink("annotated report")} to share with colleagues or include in your review.
                 </div>
               )}
               {severity === 0 && (
-                <div style={{marginTop:"8px",fontSize:TF.BODY,color:C.TEXT_2}}>
+                <div style={{marginTop:"8px",fontSize:FS.base,color:C.TEXT_2}}>
                   You can download a {reportLink("summary report")} if you'd like to keep a record.
                 </div>
               )}
@@ -1287,7 +1287,7 @@ export function ReportView({ results, importConfig, matrix, rowMap, onBack, onCh
                   <button onClick={handleAIConsult}
                     onMouseEnter={e => { if (!aiCopied) e.currentTarget.style.background = C.BG_L; }}
                     onMouseLeave={e => { if (!aiCopied) e.currentTarget.style.background = C.BG; }}
-                    style={{padding:"8px 18px",background:aiCopied?SIGNAL.GREEN.dot:C.BG,border:aiCopied?"none":`1px solid ${C.BORDER}`,borderRadius:CR.MD,color:aiCopied?C.WHITE:C.TEXT,fontWeight:FW.MED,fontSize:TF.BODY,cursor:"pointer",transition:"background 0.2s"}}>
+                    style={{padding:"8px 18px",background:aiCopied?SIGNAL.GREEN.dot:C.BG,border:aiCopied?"none":`1px solid ${C.BORDER}`,borderRadius:CR.MD,color:aiCopied?C.WHITE:C.TEXT,fontWeight:FW.MED,fontSize:FS.base,cursor:"pointer",transition:"background 0.2s"}}>
                     {aiCopied ? "✓ Copied to clipboard" : "Copy prompt"}
                   </button>
                 </>

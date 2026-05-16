@@ -175,7 +175,7 @@ export function MahalanobisDistPlot({ allCondD2, condColorMap, plotD2, plotD2Row
               <g key={`yt${v}`}>
                 <line x1={PL - 3} y1={yscale(v)} x2={PL} y2={yscale(v)}
                   stroke={C.BORDER} strokeWidth={CS.GRID.w} />
-                <text x={PL - 5} y={yscale(v) + 3} fontSize={CF.SMALL} fill={C.TEXT_4}
+                <text x={PL - 5} y={yscale(v) + 3} fontSize={CF.SMALL} fill={C.TEXT_3}
                   textAnchor="end" fontFamily={FF.MONO}>{Math.round(v)}</text>
               </g>
             ))}
@@ -204,7 +204,7 @@ export function MahalanobisDistPlot({ allCondD2, condColorMap, plotD2, plotD2Row
               <g key={`xt${v}`}>
                 <line x1={xscale(v - 1)} y1={MINI_H} x2={xscale(v - 1)} y2={MINI_H + 3}
                   stroke={C.BORDER} strokeWidth={CS.GRID.w} />
-                <text x={xscale(v - 1)} y={MINI_H + 12} fontSize={CF.SMALL} fill={C.TEXT_4}
+                <text x={xscale(v - 1)} y={MINI_H + 12} fontSize={CF.SMALL} fill={C.TEXT_3}
                   textAnchor="middle" fontFamily={FF.MONO}>{v}</text>
               </g>
             ))}
@@ -224,7 +224,7 @@ export function MahalanobisDistPlot({ allCondD2, condColorMap, plotD2, plotD2Row
             {outliers.map(o => (
               <g key={`rl${o.i}`}>
                 <line x1={o.x} y1={o.y - 5} x2={o.labelX} y2={o.labelY + 3}
-                  stroke={C.TEXT_4} strokeWidth={0.5} />
+                  stroke={C.TEXT_3} strokeWidth={0.5} />
                 <text x={o.labelX} y={o.labelY}
                   fontSize="9" fill={C.TEXT_2} textAnchor="middle"
                   fontFamily={FF.MONO}>{o.rowNum}</text>

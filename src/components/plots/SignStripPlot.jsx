@@ -154,11 +154,11 @@ export function SignStripPlot({ groupSignSeqs, singleSeq, singleRuns, singleExp,
       {/* Simulated strip — top pair expected, reduced opacity */}
       {hasSimStrip && (
         <g>
-          <text x={LABEL_W - 5} y={simY + ROW_H * 0.62} fontSize={CF.LABEL} fill={C.TEXT_4}
+          <text x={LABEL_W - 5} y={simY + ROW_H * 0.62} fontSize={CF.LABEL} fill={C.TEXT_3}
             textAnchor="end" fontFamily={FF.MONO}>{shortName(topName)} expected</text>
           {renderStrip(simSigns, simY, 0.4)}
           <text x={LABEL_W + STRIP_W + 6} y={simY + ROW_H * 0.7} fontSize={CF.LABEL}
-            fill={C.TEXT_4} fontFamily={FF.MONO}>{simRunCount} runs</text>
+            fill={C.TEXT_3} fontFamily={FF.MONO}>{simRunCount} runs</text>
         </g>
       )}
 
@@ -171,12 +171,12 @@ export function SignStripPlot({ groupSignSeqs, singleSeq, singleRuns, singleExp,
             x2={fileRowToX(fr)} y2={axisY + 4}
             stroke={C.BORDER} strokeWidth={CS.GRID.w}/>
           <text x={fileRowToX(fr)} y={axisY + 13} fontSize={CF.SMALL}
-            fill={C.TEXT_4} textAnchor="middle" fontFamily={FF.MONO}>
+            fill={C.TEXT_3} textAnchor="middle" fontFamily={FF.MONO}>
             {fr}
           </text>
         </g>
       ))}
-      <text x={LABEL_W + STRIP_W / 2} y={totalH - 3} fontSize={CF.LABEL} fill={C.TEXT_4}
+      <text x={LABEL_W + STRIP_W / 2} y={totalH - 3} fontSize={CF.LABEL} fill={C.TEXT_3}
         textAnchor="middle" fontFamily={FF.UI}>Row</text>
     </PlotSVG>
   );
