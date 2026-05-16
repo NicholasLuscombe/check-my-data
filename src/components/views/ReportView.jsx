@@ -708,16 +708,15 @@ export function ReportView({ results, importConfig, matrix, rowMap, onBack, onCh
   // condition names — datasets without condition columns drop to a
   // 2-row identity block.
   //
-  // Provenance tags `(user-set)` / `(auto)` reflect actual plumbing:
-  // - Row semantics: `importConfig.rowSemanticsAuto` is set on the
-  //   BatchView path (long-format / genomics / assay reasons) and left
-  //   undefined on the standalone ImportView path; auto truthy → tag
-  //   "(auto)", otherwise tag "(user-set)".
-  // - Column axis + transform: the in-ImportView auto-set flags
-  //   (`colRelAutoSet`, `vstAutoSet`) are NOT threaded through
-  //   `importConfig`, so provenance is unknown at this surface. Per
-  //   S133h spec we emit untagged rather than fabricate `(auto)` /
-  //   `(user-set)`. Plumbing gap parked #15.
+  // Provenance tags `(user-set)` / `(auto)` reflect actual plumbing.
+  // Four importConfig boolean fields are threaded by
+  // ImportView.handleProceed (ImportView.jsx:440) and by BatchView
+  // per-result rows: `assayAutoDetected` (Measurement type identity
+  // row), `colRelAutoSet` (Columns settings row), `rowSemanticsAuto`
+  // (Row order settings row), `vstAutoSet` (Transform settings row).
+  // Truthy → "(auto)", otherwise → "(user-set)". S153 A4 closed the
+  // parked-#13 plumbing gap; BatchView path retains its
+  // `rowSemanticsAuto` write at BatchView.jsx:179.
   const dataProfile = (() => {
     const s = importConfig.summary;
     const precKeys = s ? Object.keys(s.prec).map(Number).sort((a,b)=>a-b) : [];
@@ -746,15 +745,19 @@ export function ReportView({ results, importConfig, matrix, rowMap, onBack, onCh
                           : tf && tf !== 'raw'  ? "Anscombe"
                           : "raw";
 
-    const settings = [{ label: "Columns", value: colsValue }];
+    const colsTag = importConfig.colRelAutoSet ? "(auto)" : "(user-set)";
+    const transformTag = importConfig.vstAutoSet ? "(auto)" : "(user-set)";
+    const assayTag = importConfig.assayAutoDetected ? "(auto)" : "(user-set)";
+
+    const settings = [{ label: "Columns", value: `${colsValue} ${colsTag}` }];
     if (rowsPair) settings.push(rowsPair);
     settings.push(
-      { label: "Transform", value: transformValue },
+      { label: "Transform", value: `${transformValue} ${transformTag}` },
       { label: "Precision", value: precValue },
     );
 
     const identityRows = [
-      ["Measurement type", assayLabel],
+      ["Measurement type", `${assayLabel} ${assayTag}`],
       ["Table size", `${nRows} rows × ${nCols} data columns`],
     ];
     if (s && s.cNames?.length > 0) {

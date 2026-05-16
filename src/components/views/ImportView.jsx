@@ -437,7 +437,7 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
   };
 
   const handleProceed=()=>{
-    const config={data,roles,hdrs,condPerCol,zeroAsMissing,assay,dataType,fileName,isPivoted:!!pivotConfig,colRelationship:effectiveColRel,rowSemantics:effectiveRowSem,excelMeta,
+    const config={data,roles,hdrs,condPerCol,zeroAsMissing,assay,assayAutoDetected,dataType,fileName,isPivoted:!!pivotConfig,colRelationship:effectiveColRel,colRelAutoSet,rowSemantics:effectiveRowSem,rowSemanticsAuto:rowSemAutoSet,vstAutoSet,excelMeta,
       skippedRows:prepInfo?.skippedRows||0,
       headerRows:headerRows||0,
       removedCols:prepInfo?.removedCols||[],
