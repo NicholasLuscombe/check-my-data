@@ -11,12 +11,16 @@ import { computeSeverity } from "../../analysis/severity.js";
 import { extractAnalysisInputs, runFullAnalysis } from "../../analysis/engine.js";
 import { buildMechanismGroups } from "../../analysis/localization.js";
 import { ReportView } from "./ReportView.jsx";
-import { C, FF, FW, FS, CR, CC, M, UI, SIGNAL, ACCENT } from "../../constants/tokens.js";
+import { C, FF, FW, FS, CR, CC, M, UI, SIGNAL, ACCENT, SEV_VERDICT } from "../../constants/tokens.js";
 import { fmtPBadge } from "../../constants/thresholds.js";
 import { MECHANISM_ORDER } from "../../constants/mechanisms.js";
 import { ROLES } from "../../constants/roles.js";
 
-const SEV_COLORS={3:SIGNAL.RED.dot,2:SIGNAL.AMBER.dot,1:SIGNAL.AMBER.dot,0:SIGNAL.GREEN.dot,"ERROR":SIGNAL.RED.dot};
+// S152 (A3-sibling): per-file severity badge migrated from SIGNAL.*.dot
+// hex-math (sevC+"18"/sevC+"44") to SEV_VERDICT[s].{color,bg,border} — the
+// canonical "Severity badge" register per the A6 inventory. SEV_COLORS map
+// retired (sole consumer was the inline hex-math at the pill); ERROR maps
+// to SEV_VERDICT[3] (red tier) since it semantically aligns.
 
 export function BatchView({ onBack }) {
   const [files,setFiles]=useState([]); // [{name, text}]
@@ -350,7 +354,7 @@ export function BatchView({ onBack }) {
             <tbody>
               {results.map((r,i)=>{
                 const flagged=r.results.filter(t=>t.flag==="HIGH"||t.flag==="MODERATE");
-                const sevC=SEV_COLORS[r.severity]||C.TEXT_3;
+                const sev=SEV_VERDICT[r.error?3:r.severity]||{color:C.TEXT_3,bg:C.BG_L,border:C.BORDER_L};
                 const canView=!r.error&&r.results.length>0;
                 return (
                   <tr key={i} onClick={canView?()=>setSelectedIdx(i):undefined}
@@ -383,7 +387,7 @@ export function BatchView({ onBack }) {
                     <td style={{padding:"6px 8px",textAlign:"center",color:C.TEXT_3}}>{r.error?"—":`${r.nRows}×${r.nCols}`}</td>
                     <td style={{padding:"6px 8px",textAlign:"center",color:r.vst==="log"?ROLES.label.color:r.vst==="anscombe"?ACCENT.TEAL.text:C.TEXT_3}}>{r.vst}</td>
                     <td style={{padding:"6px 8px",textAlign:"center"}}>
-                      <span style={{fontWeight:FW.BOLD,fontSize:FS.xs,color:sevC,padding:"2px 8px",background:sevC+"18",border:"1px solid "+sevC+"44",borderRadius:CR.SM,letterSpacing:"0.05em"}}>
+                      <span style={{fontFamily:FF.UI,fontWeight:FW.SEMI,fontSize:FS.xs,color:sev.color,padding:"2px 8px",background:sev.bg,border:`1px solid ${sev.border}`,borderRadius:CR.SM}}>
                         {r.error?"ERROR":r.severity}
                       </span>
                     </td>
