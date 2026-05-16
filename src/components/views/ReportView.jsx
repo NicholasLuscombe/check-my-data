@@ -122,7 +122,7 @@ export function ReportView({ results, importConfig, matrix, rowMap, onBack, onCh
     const lines=[];
     const flagLabel = f => ({HIGH:"FLAGGED",MODERATE:"NOTED",LOW:"CLEAR","N/A":"N/A"}[f]||f);
     lines.push(`=== Check My Data v0.8 ===`);
-    lines.push(`File: ${importConfig.fileName||"uploaded"} | ${nRows} rows × ${nCols} cols | Assay: ${assayLabel} | Data: ${DATA_TYPES.find(d=>d.v===(importConfig.dataType||"continuous"))?.l||"Continuous"}${importConfig.colRelationship==='conditions'?' | Columns: Non-replicates':''} | Severity: ${severity}`);
+    lines.push(`File: ${importConfig.fileName||"uploaded"} | ${nRows} rows × ${nCols} cols | Measurement type: ${assayLabel} | Data: ${DATA_TYPES.find(d=>d.v===(importConfig.dataType||"continuous"))?.l||"Continuous"}${importConfig.colRelationship==='conditions'?' | Columns: Non-replicates':''} | Severity: ${severity}`);
     if(importConfig.zeroAsMissing) lines.push(`Zeros excluded.`);
     if(importConfig.vst && importConfig.vst.transform !== 'raw')
       lines.push(`VST: ${importConfig.vst.transform} — ${importConfig.vst.reason}`);
@@ -560,7 +560,7 @@ export function ReportView({ results, importConfig, matrix, rowMap, onBack, onCh
     const groups = buildMechanismGroups(results);
     let summHtml = `<table border="1" cellpadding="4" style="border-collapse:collapse;font-family:${FF.UI};font-size:${FS.xs}">`;
     summHtml += `<tr><td colspan="4" style="background:${C.TEXT};color:${C.WHITE};font-size:${FS.md};font-weight:${FW.BOLD};padding:8px">Check My Data Report — Severity ${severity}</td></tr>`;
-    summHtml += `<tr><td colspan="4" style="padding:6px;color:${C.TEXT_3}">File: ${esc(importConfig.fileName||"uploaded")} | ${nRows} rows × ${nCols} cols | Assay: ${esc(assayLabel)}</td></tr>`;
+    summHtml += `<tr><td colspan="4" style="padding:6px;color:${C.TEXT_3}">File: ${esc(importConfig.fileName||"uploaded")} | ${nRows} rows × ${nCols} cols | Measurement type: ${esc(assayLabel)}</td></tr>`;
     summHtml += '<tr><td colspan="4"></td></tr>';
     summHtml += `<tr style="background:${C.BG_L}"><th style="text-align:left;padding:4px 8px">Category</th><th style="text-align:left;padding:4px 8px">Test</th><th style="text-align:center;padding:4px 8px">Result</th><th style="text-align:left;padding:4px 8px">Key metric</th></tr>`;
     for (const mechKey of MECHANISM_ORDER) {
@@ -619,7 +619,7 @@ export function ReportView({ results, importConfig, matrix, rowMap, onBack, onCh
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
     <div>
       <h1>Check My Data report</h1>
-      <div class="subtitle">${esc(importConfig.fileName||"uploaded")} · ${nRows} rows × ${nCols} columns · Assay: ${esc(assayLabel)}</div>
+      <div class="subtitle">${esc(importConfig.fileName||"uploaded")} · ${nRows} rows × ${nCols} columns · Measurement type: ${esc(assayLabel)}</div>
     </div>
     <div>
       <span class="sev-badge" style="background:${sevBg};color:${sevFg}">Severity ${severity} — ${sevLabel}</span>

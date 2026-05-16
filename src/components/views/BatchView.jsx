@@ -205,7 +205,7 @@ export function BatchView({ onBack }) {
   const generateBatchSummary=useCallback(()=>{
     const lines=["=== Check My Data v0.7 — Batch Summary ===",""];
     const flagLabel = f => ({HIGH:"FLAGGED",MODERATE:"NOTED",LOW:"CLEAR","N/A":"N/A"}[f]||f);
-    lines.push(`| File | Rows×Cols | Assay | VST | Severity | Flagged | Noted | Tests |`);
+    lines.push(`| File | Rows×Cols | Measurement type | VST | Severity | Flagged | Noted | Tests |`);
     lines.push(`|------|----------|-------|-----|----------|---------|-------|-------|`);
     for(const r of results){
       if(r.error){

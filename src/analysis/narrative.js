@@ -17,7 +17,7 @@ export function buildConsultationPrompt(results, importConfig, nRows, nCols, sev
   const lines = [];
   lines.push("I'm investigating a dataset flagged by Check My Data, a statistical forensics screening tool. Help me interpret the results and decide next steps.");
   lines.push("");
-  lines.push(`Dataset: ${importConfig.fileName || "uploaded"} | ${nRows} rows × ${nCols} cols | Assay: ${importConfig.assay || "general"} | Data type: ${importConfig.dataType || "continuous"} | Severity: ${severity}`);
+  lines.push(`Dataset: ${importConfig.fileName || "uploaded"} | ${nRows} rows × ${nCols} cols | Measurement type: ${importConfig.assay || "general"} | Data type: ${importConfig.dataType || "continuous"} | Severity: ${severity}`);
   lines.push("");
   lines.push("FLAGGED TESTS:");
   for (const r of results.filter(r => r.flag === "HIGH" || r.flag === "MODERATE")) {
