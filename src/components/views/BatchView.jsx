@@ -11,7 +11,7 @@ import { computeSeverity } from "../../analysis/severity.js";
 import { extractAnalysisInputs, runFullAnalysis } from "../../analysis/engine.js";
 import { buildMechanismGroups } from "../../analysis/localization.js";
 import { ReportView } from "./ReportView.jsx";
-import { C, FF, FW, FS, CR, CC, M, UI, BADGE, SIGNAL, ACCENT } from "../../constants/tokens.js";
+import { C, FF, FW, FS, CR, CC, M, UI, SIGNAL, ACCENT } from "../../constants/tokens.js";
 import { fmtPBadge } from "../../constants/thresholds.js";
 import { MECHANISM_ORDER } from "../../constants/mechanisms.js";
 import { ROLES } from "../../constants/roles.js";
@@ -381,7 +381,7 @@ export function BatchView({ onBack }) {
                       </div>
                     </td>
                     <td style={{padding:"6px 8px",textAlign:"center",color:C.TEXT_3}}>{r.error?"—":`${r.nRows}×${r.nCols}`}</td>
-                    <td style={{padding:"6px 8px",textAlign:"center",color:r.vst==="log"?ROLES.label.color:r.vst==="anscombe"?BADGE.VST_ANS.text:C.TEXT_3}}>{r.vst}</td>
+                    <td style={{padding:"6px 8px",textAlign:"center",color:r.vst==="log"?ROLES.label.color:r.vst==="anscombe"?ACCENT.TEAL.text:C.TEXT_3}}>{r.vst}</td>
                     <td style={{padding:"6px 8px",textAlign:"center"}}>
                       <span style={{fontWeight:FW.BOLD,fontSize:FS.xs,color:sevC,padding:"2px 8px",background:sevC+"18",border:"1px solid "+sevC+"44",borderRadius:CR.SM,letterSpacing:"0.05em"}}>
                         {r.error?"ERROR":r.severity}

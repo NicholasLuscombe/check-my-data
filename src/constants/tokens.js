@@ -99,10 +99,14 @@ export const CS = {
   PT_SM:   { r: 2 },                                   // dense/background points
   PT_LG:   { r: 4 },                                   // emphasis/outlier points
 };
-// Border radii — 5 levels. Edit here to change rounding for all UI at once.
+// Border radii — 6 levels. Edit here to change rounding for all UI at once.
+// S152: CR.S2 added between SM and MD as the chip-family signature (10
+// consumer sites — AUTO ×7 + REQUIRED ×2 + SET ME ×1 + role chip +
+// condition chip — collapse from inline "4px" literals onto this slot).
 export const CR = {
   XS: "2px",   // cell highlights, mini swatches
   SM: "3px",   // badges, inline tags, heatmap cells
+  S2: "4px",   // chip-family signature (State / Identity chip)
   MD: "5px",   // banners, buttons, inputs, panels
   LG: "6px",   // major cards, report sections
   XL: "8px",   // hero cards, modals, drop zones
@@ -174,16 +178,20 @@ export const UI = {
   INFO:  { text:ACCENT.BLUE.text, bg:ACCENT.BLUE.bg, border:ACCENT.BLUE.border, callout: { bg:"#EFF6FF", rule:"#2563EB" } },
   FRAME: { callout: { bg:"#F5F5F5", rule:C.TEXT_3 } },
 };
-// S136: SET_ME and REQUIRED added (chip-tint shape mirroring AUTO; ACCENT.GOLD-
-// derived for amber tint). Consumer migration is Phase C — current AUTO/SET ME/
-// REQUIRED ALL CAPS chrome lives inline at ImportView.jsx until C.5 surface pass.
+// S152 badge-family pass: SET_ME retuned to neutral (text:C.TEXT_2 + bg:C.BG
+// — was ACCENT.GOLD-tinted; lone consumer at ImportView.jsx:615 had always
+// bypassed the token in favour of inline neutrals, retune unifies the path).
+// AUTO + REQUIRED .border slots retired (no consumer reads them — A2 lock).
+// VST_LOG retired entirely (orphan since S136; chip-tint shape never landed).
+// VST_ANS retired entirely (single-property .text consumer at BatchView.jsx
+// re-pointed direct to ACCENT.TEAL.text — three-property slot didn't earn its
+// keep for one property in a <td> cell). PROMOTED unchanged (Marker pill —
+// canonical accent-axis register per A6).
 export const BADGE = {
   PROMOTED: { text:ACCENT.GOLD.text, bg:ACCENT.GOLD.bg, border:ACCENT.GOLD.border },
-  VST_LOG:  { text:ACCENT.PURPLE.color, bg:ACCENT.PURPLE.bg, border:ACCENT.PURPLE.border },
-  VST_ANS:  { text:ACCENT.TEAL.text, bg:ACCENT.TEAL.bg, border:ACCENT.TEAL.border },
-  AUTO:     { text:ACCENT.TEAL.text, bg:ACCENT.TEAL.bg, border:ACCENT.TEAL.border },
-  SET_ME:   { text:ACCENT.GOLD.text, bg:ACCENT.GOLD.bg, border:ACCENT.GOLD.border },
-  REQUIRED: { text:ACCENT.GOLD.text, bg:ACCENT.GOLD.bg, border:ACCENT.GOLD.border },
+  AUTO:     { text:ACCENT.TEAL.text, bg:ACCENT.TEAL.bg },
+  SET_ME:   { text:C.TEXT_2,          bg:C.BG },
+  REQUIRED: { text:ACCENT.GOLD.text, bg:ACCENT.GOLD.bg },
 };
 
 export const M = { fontFamily: FF.MONO };
