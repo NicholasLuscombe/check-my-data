@@ -40,7 +40,7 @@ export function MiniCard_WithinRowVariance({ result, importConfig, rowMap }) {
           const h = (c / maxC) * plotH;
           const zMid = zMin + (i + 0.5) * binW;
           const isOutlier = Math.abs(zMid) > 3.5;
-          const fill = isOutlier ? SIGNAL.RED.dot : C.TEXT_4;
+          const fill = isOutlier ? SIGNAL.RED.dot : C.TEXT_3;
           return <rect key={i} x={x} y={padT + plotH - h} width={barW - 0.5} height={h}
             fill={fill} fillOpacity="0.35" stroke={fill} strokeWidth="1" />;
         })}
@@ -53,7 +53,7 @@ export function MiniCard_WithinRowVariance({ result, importConfig, rowMap }) {
           ) : null;
         })}
         {/* Labels */}
-        <text x={padL + plotW / 2} y={H - 1} textAnchor="middle" fontSize={CF.SMALL} fill={C.TEXT_4}>z-score (SD vs expected)</text>
+        <text x={padL + plotW / 2} y={H - 1} textAnchor="middle" fontSize={CF.SMALL} fill={C.TEXT_3}>z-score (SD vs expected)</text>
       </PlotSVG>
     );
   }
@@ -77,7 +77,7 @@ export function MiniCard_WithinRowVariance({ result, importConfig, rowMap }) {
         </PlotLayout>
         <ChartLegend items={[
           { color: SIGNAL.RED.dot, label: "Outside ±3.5σ threshold", opacity: 0.35 },
-          { color: C.TEXT_4, label: "Within expected range", opacity: 0.35 },
+          { color: C.TEXT_3, label: "Within expected range", opacity: 0.35 },
         ]} />
       </>}
 
