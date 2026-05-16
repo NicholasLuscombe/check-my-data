@@ -1,6 +1,6 @@
 /* ── MiniCard: Kurtosis ── */
 
-import { C, CC, FS, FW, FF, M, CP, CS, CF, CR, SIGNAL, UI, BADGE } from "../../constants/tokens.js";
+import { C, CC, FS, FW, FF, M, CP, CS, CF, CR, SIGNAL, BADGE } from "../../constants/tokens.js";
 import { fmtPBadge } from "../../constants/thresholds.js";
 import { MiniCardLayout } from "../shared/CardLayout.jsx";
 import { buildCondColorMap } from "../../constants/roles.js";
@@ -74,7 +74,7 @@ export function MiniCard_Kurtosis({ result, importConfig, rowMap }) {
         <div style={{marginTop:"10px"}}>
           <div style={SUB_HEAD}>
             Noise shape by condition
-            {condK.promoted && <span style={{marginLeft:"8px",fontSize:FS.xs,color:UI.WARN.text,background:BADGE.PROMOTED.bg,border:`1px solid ${BADGE.PROMOTED.border}`,borderRadius:CR.SM,padding:"1px 5px"}}>differs between conditions — promoted</span>}
+            {condK.promoted && <span style={{marginLeft:"8px",fontSize:FS.xs,color:BADGE.PROMOTED.text,background:BADGE.PROMOTED.bg,border:`1px solid ${BADGE.PROMOTED.border}`,borderRadius:CR.SM,padding:"1px 5px"}}>differs between conditions — promoted</span>}
           </div>
           {(() => {
             const simK = result.simKurtosis;
