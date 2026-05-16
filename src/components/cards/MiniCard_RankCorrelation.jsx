@@ -1,6 +1,6 @@
 /* ── MiniCard: Rank Correlation ── */
 
-import { C, TF, FW, FF } from "../../constants/tokens.js";
+import { C, FW, FF } from "../../constants/tokens.js";
 import { fmtP } from "../../constants/thresholds.js";
 import { TIER_COLOR } from "../shared/heatmapColors.js";
 import { buildCondColorMap } from "../../constants/roles.js";

@@ -1,6 +1,6 @@
 /* ── MiniCard: Missing Data Pattern ── */
 
-import { C, CC, TF, FW, FF, CF, CP, CS, SIGNAL } from "../../constants/tokens.js";
+import { C, CC, FW, FF, CF, CP, CS, SIGNAL } from "../../constants/tokens.js";
 import { fmtPBadge } from "../../constants/thresholds.js";
 import { MiniCardLayout } from "../shared/CardLayout.jsx";
 import { PlotLayout } from "../shared/PlotLayout.jsx";

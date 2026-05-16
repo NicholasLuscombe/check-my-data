@@ -11,7 +11,7 @@ import { detectAssay, ASSAYS, DATA_TYPES, ASSAY_DATATYPE_MAP } from "../../const
 import { getApplicabilityTests } from "../../analysis/severity.js";
 import { extractAnalysisInputs } from "../../analysis/engine.js";
 import { LongFormatModal } from "./LongFormatModal.jsx";
-import { C, FF, FW, TF, FS, CR, CC, M, UI, BADGE, SIGNAL, ACCENT } from "../../constants/tokens.js";
+import { C, FF, FW, FS, CR, CC, M, UI, BADGE, SIGNAL, ACCENT } from "../../constants/tokens.js";
 import { FLAG_STYLES } from "../../constants/thresholds.js";
 import { ROLES, ROLE_KEYS, COND_COLORS } from "../../constants/roles.js";
 import { MECHANISMS, MECHANISM_ORDER, TEST_MECHANISM, DISPLAY_NAMES } from "../../constants/mechanisms.js";

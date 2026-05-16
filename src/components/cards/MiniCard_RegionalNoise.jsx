@@ -5,7 +5,7 @@ import { buildCondColorMap } from "../../constants/roles.js";
 import { PlotLayout } from "../shared/PlotLayout.jsx";
 import { ChartLegend } from "../shared/ChartLegend.jsx";
 import { RegionalNoiseStrip } from "../plots/RegionalNoiseStrip.jsx";
-import { C, CC, TF, FW, FF } from "../../constants/tokens.js";
+import { C, CC, FW, FF } from "../../constants/tokens.js";
 import { fmtP, fmtPBadge } from "../../constants/thresholds.js";
 import { makeRowMapper } from "../shared/coordinates.js";
 import { SUB_HEAD } from "../shared/styles.js";

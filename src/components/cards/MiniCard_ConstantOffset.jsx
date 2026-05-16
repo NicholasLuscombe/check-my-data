@@ -1,6 +1,6 @@
 /* ── MiniCard: Constant Offset ── */
 
-import { C, TF, FW, FF } from "../../constants/tokens.js";
+import { C, FW, FF } from "../../constants/tokens.js";
 import { fmtP } from "../../constants/thresholds.js";
 import { MiniCardLayout } from "../shared/CardLayout.jsx";
 import { PlotLayout } from "../shared/PlotLayout.jsx";
