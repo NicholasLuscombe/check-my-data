@@ -11,7 +11,7 @@ import { computeSeverity } from "../../analysis/severity.js";
 import { extractAnalysisInputs, runFullAnalysis } from "../../analysis/engine.js";
 import { buildMechanismGroups } from "../../analysis/localization.js";
 import { ReportView } from "./ReportView.jsx";
-import { C, FF, FW, TF, CR, CC, M, UI, BADGE, SIGNAL, ACCENT } from "../../constants/tokens.js";
+import { C, FF, FW, FS, CR, CC, M, UI, BADGE, SIGNAL, ACCENT } from "../../constants/tokens.js";
 import { fmtPBadge } from "../../constants/thresholds.js";
 import { MECHANISM_ORDER } from "../../constants/mechanisms.js";
 import { ROLES } from "../../constants/roles.js";
@@ -268,42 +268,42 @@ export function BatchView({ onBack }) {
   return (
     <div>
       <div style={{display:"flex",alignItems:"center",gap:"12px",marginBottom:"16px"}}>
-        <button onClick={onBack} style={{background:C.WHITE,border:`1px solid ${C.BORDER}`,color:C.TEXT_2,padding:"6px 14px",borderRadius:CR.MD,fontSize:TF.BODY,cursor:"pointer",...M}}>
+        <button onClick={onBack} style={{background:C.WHITE,border:`1px solid ${C.BORDER}`,color:C.TEXT_2,padding:"6px 14px",borderRadius:CR.MD,fontSize:FS.base,cursor:"pointer",...M}}>
           ← Back to Import
         </button>
-        <h2 style={{margin:0,fontSize:TF.TITLE,color:C.TEXT}}>Batch analysis</h2>
+        <h2 style={{margin:0,fontSize:FS.md,color:C.TEXT}}>Batch analysis</h2>
       </div>
 
       {/* Drop zone for multiple files */}
       <div onDragOver={e=>{e.preventDefault();setDragging(true);}} onDragLeave={()=>setDragging(false)}
         onDrop={e=>{e.preventDefault();setDragging(false);handleFiles(e.dataTransfer?.files);}}
         style={{border:"2px dashed "+(dragging?CC.OBS:C.BORDER),borderRadius:CR.XL,padding:"24px",textAlign:"center",marginBottom:"16px",background:dragging?C.BG:C.WHITE,transition:"all 0.2s"}}>
-        <label style={{cursor:"pointer",display:"inline-block",padding:"10px 24px",background:C.BG,border:`1px solid ${C.BORDER}`,borderRadius:CR.MD,color:UI.INFO.text,fontSize:TF.BODY,fontWeight:FW.SEMI}}>
+        <label style={{cursor:"pointer",display:"inline-block",padding:"10px 24px",background:C.BG,border:`1px solid ${C.BORDER}`,borderRadius:CR.MD,color:UI.INFO.text,fontSize:FS.base,fontWeight:FW.SEMI}}>
           Select Files
           <input type="file" multiple accept=".csv,.tsv,.txt,.xlsx,.xls" onChange={e=>handleFiles(e.target.files)} style={{display:"none"}}/>
         </label>
-        <p style={{fontSize:TF.BODY,color:C.TEXT_3,marginTop:"8px"}}>Drop multiple CSV/TSV/XLSX files or click to select. Each file is analysed independently with auto-detected settings.</p>
+        <p style={{fontSize:FS.base,color:C.TEXT_3,marginTop:"8px"}}>Drop multiple CSV/TSV/XLSX files or click to select. Each file is analysed independently with auto-detected settings.</p>
       </div>
 
       {/* File list */}
       {files.length>0&&(
         <div style={{background:C.WHITE,border:`1px solid ${C.BORDER_L}`,borderRadius:CR.LG,padding:"12px 16px",marginBottom:"16px"}}>
-          <div style={{...M,fontSize:TF.DETAIL,color:C.TEXT_3,textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:"8px",fontWeight:FW.BOLD}}>
+          <div style={{...M,fontSize:FS.xs,color:C.TEXT_3,textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:"8px",fontWeight:FW.BOLD}}>
             {files.length} file{files.length!==1?"s":""} queued
           </div>
           <div style={{display:"flex",flexWrap:"wrap",gap:"6px"}}>
             {files.map(f=>(
-              <span key={f.name} style={{display:"inline-flex",alignItems:"center",gap:"4px",fontSize:TF.BODY,
+              <span key={f.name} style={{display:"inline-flex",alignItems:"center",gap:"4px",fontSize:FS.base,
                 padding:"3px 10px",background:ROLES.data.bg,border:`1px solid ${ACCENT.BLUE.border}`,borderRadius:CR.MD,color:CC.OBS}}>
                 {f.name}
                 {!running&&<button onClick={()=>removeFile(f.name)} style={{background:"none",border:"none",cursor:"pointer",
-                  color:C.TEXT_4,fontSize:TF.BODY,padding:"0",lineHeight:1}} title="Remove">✕</button>}
+                  color:C.TEXT_3,fontSize:FS.base,padding:"0",lineHeight:1}} title="Remove">✕</button>}
               </span>
             ))}
           </div>
           {!running&&(
             <button onClick={runBatch} style={{marginTop:"12px",padding:"10px 28px",background:CC.OBS,border:"none",
-              borderRadius:CR.LG,color:C.WHITE,fontSize:TF.BODY,fontWeight:FW.BOLD,cursor:"pointer",...M,letterSpacing:"0.02em"}}>
+              borderRadius:CR.LG,color:C.WHITE,fontSize:FS.base,fontWeight:FW.BOLD,cursor:"pointer",...M,letterSpacing:"0.02em"}}>
               Run All → {files.length} file{files.length!==1?"s":""}
             </button>
           )}
@@ -312,7 +312,7 @@ export function BatchView({ onBack }) {
 
       {/* Progress */}
       {running&&(
-        <div style={{textAlign:"center",padding:"20px",color:CC.OBS,fontSize:TF.BODY}}>
+        <div style={{textAlign:"center",padding:"20px",color:CC.OBS,fontSize:FS.base}}>
           <span style={{display:"inline-block",width:"14px",height:"14px",border:`2px solid ${ACCENT.BLUE.border}`,borderTopColor:CC.OBS,borderRadius:"50%",animation:"spin 0.8s linear infinite",marginRight:"10px",verticalAlign:"middle"}}/>
           {progress}
           <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
@@ -324,17 +324,17 @@ export function BatchView({ onBack }) {
         <div style={{background:C.WHITE,border:`1px solid ${C.BORDER_L}`,borderRadius:CR.LG,overflow:"hidden",marginBottom:"16px"}}>
           {/* Table header row with copy button */}
           <div style={{padding:"8px 12px",borderBottom:`1px solid ${C.BORDER_L}`,display:"flex",alignItems:"center",justifyContent:"space-between",background:C.BG_L}}>
-            <span style={{...M,fontSize:TF.DETAIL,fontWeight:FW.BOLD,color:C.TEXT_2}}>
+            <span style={{...M,fontSize:FS.xs,fontWeight:FW.BOLD,color:C.TEXT_2}}>
               {results.length} file{results.length!==1?"s":""} analysed
               {running&&<span style={{marginLeft:"8px",color:CC.OBS}}>— running…</span>}
             </span>
             <button onClick={handleCopy}
               style={{padding:"5px 14px",background:copied?UI.OK.bg:C.WHITE,border:"1px solid "+(copied?UI.OK.border:C.BORDER),
-                borderRadius:CR.MD,color:copied?UI.OK.text:C.TEXT_2,fontSize:TF.BODY,cursor:"pointer",...M,transition:"all 0.2s",fontWeight:FW.SEMI}}>
+                borderRadius:CR.MD,color:copied?UI.OK.text:C.TEXT_2,fontSize:FS.base,cursor:"pointer",...M,transition:"all 0.2s",fontWeight:FW.SEMI}}>
               {copied?"✓ Copied":"Copy all results"}
             </button>
           </div>
-          <table style={{width:"100%",borderCollapse:"collapse",fontSize:TF.BODY,...M}}>
+          <table style={{width:"100%",borderCollapse:"collapse",fontSize:FS.base,...M}}>
             <thead>
               <tr style={{background:C.BG_L,borderBottom:`2px solid ${C.BORDER_L}`}}>
                 <th style={{padding:"8px 12px",textAlign:"left",fontWeight:FW.BOLD,color:C.TEXT}}>File</th>
@@ -350,7 +350,7 @@ export function BatchView({ onBack }) {
             <tbody>
               {results.map((r,i)=>{
                 const flagged=r.results.filter(t=>t.flag==="HIGH"||t.flag==="MODERATE");
-                const sevC=SEV_COLORS[r.severity]||C.TEXT_4;
+                const sevC=SEV_COLORS[r.severity]||C.TEXT_3;
                 const canView=!r.error&&r.results.length>0;
                 return (
                   <tr key={i} onClick={canView?()=>setSelectedIdx(i):undefined}
@@ -370,7 +370,7 @@ export function BatchView({ onBack }) {
                           else {console.warn(`[BatchView] Unknown rowSemanticsAuto code: ${auto}`); label='arbitrary';}
                           return (
                             <span title={`${ROW_SEMANTICS_SKIP_REASON} Sequential tests gated to N/A — see test applicability in drill-in.`}
-                              style={{display:"inline-block",flexShrink:0,fontSize:TF.SMALL,fontFamily:FF.UI,
+                              style={{display:"inline-block",flexShrink:0,fontSize:FS.xs,fontFamily:FF.UI,
                                 padding:"1px 6px",background:C.BG_L,border:`1px solid ${C.BORDER_L}`,
                                 borderRadius:CR.SM,color:C.TEXT_3,fontWeight:FW.NORM,letterSpacing:"0.02em",
                                 whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",maxWidth:"160px"}}>
@@ -381,15 +381,15 @@ export function BatchView({ onBack }) {
                       </div>
                     </td>
                     <td style={{padding:"6px 8px",textAlign:"center",color:C.TEXT_3}}>{r.error?"—":`${r.nRows}×${r.nCols}`}</td>
-                    <td style={{padding:"6px 8px",textAlign:"center",color:r.vst==="log"?ROLES.label.color:r.vst==="anscombe"?BADGE.VST_ANS.text:C.TEXT_4}}>{r.vst}</td>
+                    <td style={{padding:"6px 8px",textAlign:"center",color:r.vst==="log"?ROLES.label.color:r.vst==="anscombe"?BADGE.VST_ANS.text:C.TEXT_3}}>{r.vst}</td>
                     <td style={{padding:"6px 8px",textAlign:"center"}}>
-                      <span style={{fontWeight:FW.BOLD,fontSize:TF.DETAIL,color:sevC,padding:"2px 8px",background:sevC+"18",border:"1px solid "+sevC+"44",borderRadius:CR.SM,letterSpacing:"0.05em"}}>
+                      <span style={{fontWeight:FW.BOLD,fontSize:FS.xs,color:sevC,padding:"2px 8px",background:sevC+"18",border:"1px solid "+sevC+"44",borderRadius:CR.SM,letterSpacing:"0.05em"}}>
                         {r.error?"ERROR":r.severity}
                       </span>
                     </td>
-                    <td style={{padding:"6px 8px",textAlign:"center",fontWeight:FW.BOLD,color:r.high>0?SIGNAL.RED.dot:C.TEXT_4}}>{r.high||"—"}</td>
-                    <td style={{padding:"6px 8px",textAlign:"center",fontWeight:FW.BOLD,color:r.mod>0?SIGNAL.AMBER.dot:C.TEXT_4}}>{r.mod||"—"}</td>
-                    <td style={{padding:"6px 8px",color:C.TEXT,fontSize:TF.DETAIL}}>
+                    <td style={{padding:"6px 8px",textAlign:"center",fontWeight:FW.BOLD,color:r.high>0?SIGNAL.RED.dot:C.TEXT_3}}>{r.high||"—"}</td>
+                    <td style={{padding:"6px 8px",textAlign:"center",fontWeight:FW.BOLD,color:r.mod>0?SIGNAL.AMBER.dot:C.TEXT_3}}>{r.mod||"—"}</td>
+                    <td style={{padding:"6px 8px",color:C.TEXT,fontSize:FS.xs}}>
                       {r.error?<span style={{color:SIGNAL.RED.dot}}>{r.error}</span>:
                         flagged.length===0?"All LOW/N/A":
                         flagged.map(t=><span key={t.name} style={{display:"inline-block",marginRight:"6px",
@@ -398,7 +398,7 @@ export function BatchView({ onBack }) {
                         </span>)}
                     </td>
                     <td style={{padding:"6px 8px",textAlign:"center"}}>
-                      {canView&&<span style={{fontSize:TF.DETAIL,color:CC.OBS,...M,fontWeight:FW.SEMI}}>View →</span>}
+                      {canView&&<span style={{fontSize:FS.xs,color:CC.OBS,...M,fontWeight:FW.SEMI}}>View →</span>}
                     </td>
                   </tr>
                 );

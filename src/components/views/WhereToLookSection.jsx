@@ -14,7 +14,7 @@
    summary text and as a fallback when the parent doesn't pass findings. */
 
 import { useState, useRef, useMemo, useCallback } from "react";
-import { C, TF, FW, FF, CR, SIGNAL, MECH_COLOR } from "../../constants/tokens.js";
+import { C, FS, FW, FF, CR, SIGNAL, MECH_COLOR } from "../../constants/tokens.js";
 import { MECHANISMS, TEST_MECHANISM, DISPLAY_NAMES, GLOBAL_TESTS, MECHANISM_ORDER, RANK_NUMS, GROUP_MARKERS, TEST_KEY_TO_NAME } from "../../constants/mechanisms.js";
 import { buildLayerZeroSummary } from "../../analysis/layerZeroSummary.js";
 import { HotspotExcerpt } from "./HotspotExcerpt.jsx";
@@ -25,7 +25,7 @@ function Collapsible({ label, count, children, defaultOpen = false }) {
   return (
     <div style={{ marginTop: 4 }}>
       <div onClick={() => setOpen(!open)} style={{
-        cursor: "pointer", fontSize: TF.DETAIL, fontFamily: FF.UI, color: C.TEXT_3,
+        cursor: "pointer", fontSize: FS.xs, fontFamily: FF.UI, color: C.TEXT_3,
         padding: "4px 0", userSelect: "none",
       }}>
         <span style={{ marginRight: 4 }}>{open ? "▾" : "▸"}</span>
@@ -47,7 +47,7 @@ function LayerZeroSummary({ results }) {
   // 1 category: single sentence
   if (phrases.length === 1) {
     return (
-      <div style={{ fontSize: TF.BODY, fontFamily: FF.UI, color: C.TEXT_2, lineHeight: "1.6", marginBottom: 12 }}>
+      <div style={{ fontSize: FS.base, fontFamily: FF.UI, color: C.TEXT_2, lineHeight: "1.6", marginBottom: 12 }}>
         {count} {noun} flagged. {phrases[0]}.
       </div>
     );
@@ -56,7 +56,7 @@ function LayerZeroSummary({ results }) {
   // 2 categories: sentence with "and"
   if (phrases.length === 2) {
     return (
-      <div style={{ fontSize: TF.BODY, fontFamily: FF.UI, color: C.TEXT_2, lineHeight: "1.6", marginBottom: 12 }}>
+      <div style={{ fontSize: FS.base, fontFamily: FF.UI, color: C.TEXT_2, lineHeight: "1.6", marginBottom: 12 }}>
         {count} {noun} flagged. {phrases[0]} and {phrases[1].charAt(0).toLowerCase() + phrases[1].slice(1)}.
       </div>
     );
@@ -64,7 +64,7 @@ function LayerZeroSummary({ results }) {
 
   // 3+ categories: bullet list
   return (
-    <div style={{ fontSize: TF.BODY, fontFamily: FF.UI, color: C.TEXT_2, lineHeight: "1.6", marginBottom: 12 }}>
+    <div style={{ fontSize: FS.base, fontFamily: FF.UI, color: C.TEXT_2, lineHeight: "1.6", marginBottom: 12 }}>
       <div>{count} {noun} flagged:</div>
       <ul style={{ margin: "4px 0 0", paddingLeft: 20 }}>
         {phrases.map((p, i) => (
@@ -199,9 +199,9 @@ export function WhereToLookSection({ findings, results, heatmapProps,
             display: "flex", alignItems: "center", gap: 8, padding: "4px 8px",
             cursor: "pointer", borderRadius: CR.SM,
           }}>
-            <span style={{ fontSize: TF.BODY, fontWeight: FW.BOLD, color: C.TEXT }}>{RANK_NUMS[i] || `(${i + 1})`}</span>
-            <span style={{ fontSize: TF.BODY, fontWeight: FW.SEMI, color: C.TEXT }}>{fmtHotspotLoc(h, coordCtx)}</span>
-            <span style={{ fontSize: TF.DETAIL, color: C.TEXT_3 }}>
+            <span style={{ fontSize: FS.base, fontWeight: FW.BOLD, color: C.TEXT }}>{RANK_NUMS[i] || `(${i + 1})`}</span>
+            <span style={{ fontSize: FS.base, fontWeight: FW.SEMI, color: C.TEXT }}>{fmtHotspotLoc(h, coordCtx)}</span>
+            <span style={{ fontSize: FS.xs, color: C.TEXT_3 }}>
               — {h.categories.map(cat => MECHANISMS[cat]?.label || cat).join(", ")}
             </span>
           </div>
@@ -212,8 +212,8 @@ export function WhereToLookSection({ findings, results, heatmapProps,
             display: "flex", alignItems: "center", gap: 8, padding: "4px 8px",
             cursor: "pointer", borderRadius: CR.SM,
           }}>
-            <span style={{ fontSize: TF.BODY, fontWeight: FW.SEMI, color: C.TEXT }}>{fmtHotspotLoc(h, coordCtx)}</span>
-            <span style={{ fontSize: TF.DETAIL, color: C.TEXT_3 }}>
+            <span style={{ fontSize: FS.base, fontWeight: FW.SEMI, color: C.TEXT }}>{fmtHotspotLoc(h, coordCtx)}</span>
+            <span style={{ fontSize: FS.xs, color: C.TEXT_3 }}>
               — {h.categories.map(cat => MECHANISMS[cat]?.label || cat).join(", ")}
             </span>
           </div>
@@ -221,7 +221,7 @@ export function WhereToLookSection({ findings, results, heatmapProps,
 
         return (
           <div>
-            <div style={{ fontSize: TF.BODY, color: C.TEXT_2, padding: "4px 8px" }}>{summaryText}</div>
+            <div style={{ fontSize: FS.base, color: C.TEXT_2, padding: "4px 8px" }}>{summaryText}</div>
             {multiRow.length > 3
               ? <Collapsible label="Show all hotspots" count={multiRow.length}>{renderMultiRow()}</Collapsible>
               : multiRow.length > 0 ? renderMultiRow() : null
@@ -261,7 +261,7 @@ export function WhereToLookSection({ findings, results, heatmapProps,
             return (
               <div key={`g${g.id}`} style={{
                 display: "flex", alignItems: "center", gap: 8, padding: "4px 8px",
-                fontSize: TF.BODY, color: C.TEXT_2,
+                fontSize: FS.base, color: C.TEXT_2,
               }}>
                 <span style={{ color: MECH_COLOR[TEST_MECHANISM[TEST_KEY_TO_NAME[g.testKey]]] || C.TEXT_3, fontWeight: FW.BOLD, flexShrink: 0 }}>
                   {marker}
@@ -273,7 +273,7 @@ export function WhereToLookSection({ findings, results, heatmapProps,
 
           return (
             <div key={type}>
-              <div style={{ fontSize: TF.BODY, color: C.TEXT_2, padding: "4px 8px" }}>{summaryText}</div>
+              <div style={{ fontSize: FS.base, color: C.TEXT_2, padding: "4px 8px" }}>{summaryText}</div>
               {tGroups.length > 3
                 ? <Collapsible label={`Show all ${label}${plural}`} count={tGroups.length}>{renderEntries()}</Collapsible>
                 : renderEntries()

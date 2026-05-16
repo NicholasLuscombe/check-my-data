@@ -1,4 +1,4 @@
-import { C, TF, FW, CR, SIGNAL } from "../../constants/tokens.js";
+import { C, FS, FW, CR, SIGNAL } from "../../constants/tokens.js";
 import { hexToRgb, flagRankOf } from "../../constants/thresholds.js";
 import { MECHANISMS, MECHANISM_ORDER, TEST_MECHANISM } from "../../constants/mechanisms.js";
 
@@ -71,14 +71,14 @@ export function TestHeatmapFacets({ localizations, nRows, nCols, results, dataCo
 
   return (
     <div style={{marginBottom:"16px",background:C.WHITE,border:`1px solid ${C.BORDER_L}`,borderRadius:CR.LG,padding:"12px 14px"}}>
-      <div style={{fontSize:TF.BODY,fontWeight:FW.BOLD,color:C.TEXT,marginBottom:"8px"}}>Per-test breakdown</div>
+      <div style={{fontSize:FS.base,fontWeight:FW.BOLD,color:C.TEXT,marginBottom:"8px"}}>Per-test breakdown</div>
       <div style={{display:"flex",gap:"12px",flexWrap:"wrap"}}>
         {testGrids.map(t => {
           const info = MECHANISMS[t.mechanism];
           const isFlagged = t.flag === "HIGH" || t.flag === "MODERATE";
           return (
             <div key={t.name} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:"3px",opacity:isFlagged?1:0.5}}>
-              <div style={{fontSize:TF.SMALL,color:isFlagged ? info.color : C.TEXT_4,fontWeight:isFlagged?700:500,textAlign:"center",maxWidth:`${nColBins*CELL_W+10}px`}}>{t.name === "Exact Duplicate Detection" ? "Exact Duplicates" : t.name}</div>
+              <div style={{fontSize:FS.xs,color:isFlagged ? info.color : C.TEXT_3,fontWeight:isFlagged?700:500,textAlign:"center",maxWidth:`${nColBins*CELL_W+10}px`}}>{t.name === "Exact Duplicate Detection" ? "Exact Duplicates" : t.name}</div>
               <div style={{display:"flex",flexDirection:"column",border:"1px solid "+(isFlagged ? info.color+"44" : C.BORDER_L),borderRadius:CR.XS,overflow:"hidden",position:"relative"}}>
                 {t.grid.map((row, rb) => (
                   <div key={rb} style={{display:"flex",height:`${CELL_H}px`}}>
@@ -102,8 +102,8 @@ export function TestHeatmapFacets({ localizations, nRows, nCols, results, dataCo
                   <span style={{fontSize:"16px",color:SIGNAL.GREEN.dot,opacity:0.5}}>{"✓"}</span>
                 </div>}
               </div>
-              {isFlagged && t.label && <div style={{fontSize:TF.SMALL,color:C.TEXT_4}}>{t.label.split(" ").slice(0,4).join(" ")}</div>}
-              {!isFlagged && <div style={{fontSize:TF.SMALL,color:SIGNAL.GREEN.dot}}>Clean</div>}
+              {isFlagged && t.label && <div style={{fontSize:FS.xs,color:C.TEXT_3}}>{t.label.split(" ").slice(0,4).join(" ")}</div>}
+              {!isFlagged && <div style={{fontSize:FS.xs,color:SIGNAL.GREEN.dot}}>Clean</div>}
             </div>
           );
         })}

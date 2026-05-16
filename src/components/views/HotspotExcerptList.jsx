@@ -5,7 +5,7 @@
    expandable with hotspot rows ± 2 context rows, fixed 200px scrollable. */
 
 import { useState, useMemo } from "react";
-import { C, TF, FW, FF, CR, SIGNAL, SEV_VERDICT } from "../../constants/tokens.js";
+import { C, FS, FW, FF, CR, SIGNAL, SEV_VERDICT } from "../../constants/tokens.js";
 import { TD_NUM_CELL, TD_ID_CELL, TH_EVIDENCE } from "../shared/styles.js";
 import { MECHANISMS, RANK_NUMS } from "../../constants/mechanisms.js";
 import { buildCondSpansForColumns, shortColName } from "../shared/coordinates.js";
@@ -127,7 +127,7 @@ function ExcerptTable({ hotspot, visGrid, rawData, colEntries, nVisRows, coordCt
                 <th key={si} colSpan={sp.len} style={{
                   borderBottom: "none", padding: sp.name ? "4px 8px" : "4px 2px",
                   textAlign: "center", whiteSpace: "nowrap",
-                  fontSize: TF.SMALL, fontWeight: FW.BOLD, letterSpacing: "0.04em",
+                  fontSize: FS.xs, fontWeight: FW.BOLD,
                   color: sp.name ? C.TEXT_2 : C.BORDER, background: C.BG,
                   borderLeft: si > 0 && sp.name ? `2px solid ${C.WHITE}` : "none",
                 }}>{sp.name || ""}</th>
@@ -165,7 +165,7 @@ function ExcerptTable({ hotspot, visGrid, rawData, colEntries, nVisRows, coordCt
                   const isData = col.role === "data";
                   const cell = isData ? visGrid.get(`${ri},${col.vi}`) : null;
                   const bg = isData ? cellBg(cell) : {};
-                  const textColor = isData ? cellTextColor(cell) : C.TEXT_4;
+                  const textColor = isData ? cellTextColor(cell) : C.TEXT_3;
                   const value = row[col.rawCI];
                   const displayVal = value == null || value === "" ? "" : String(value);
                   const base = isData ? TD_NUM_CELL : TD_ID_CELL;
@@ -238,9 +238,9 @@ export function HotspotExcerptList({
   // No hotspots
   if (!visHotspots.length) {
     if (pattern === "clean" || grid.size === 0) {
-      return <div style={{ padding: "16px 0", color: C.TEXT_3, fontSize: TF.BODY }}>No convergent spatial patterns detected.</div>;
+      return <div style={{ padding: "16px 0", color: C.TEXT_3, fontSize: FS.base }}>No convergent spatial patterns detected.</div>;
     }
-    return <div style={{ padding: "16px 0", color: C.TEXT_2, fontSize: TF.BODY, lineHeight: "1.6" }}>No spatially localised hotspots detected. Flags are from dataset-wide statistical tests rather than localised regions.</div>;
+    return <div style={{ padding: "16px 0", color: C.TEXT_2, fontSize: FS.base, lineHeight: "1.6" }}>No spatially localised hotspots detected. Flags are from dataset-wide statistical tests rather than localised regions.</div>;
   }
 
   return (
@@ -255,15 +255,15 @@ export function HotspotExcerptList({
             {/* Hotspot header */}
             <div style={{ padding: "12px 16px" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-                <span style={{ fontSize: TF.BODY, fontWeight: FW.BOLD, color: C.TEXT }}>{RANK_NUMS[i] || `(${i + 1})`}</span>
-                <span style={{ fontSize: TF.BODY, fontWeight: FW.SEMI, color: C.TEXT }}>
+                <span style={{ fontSize: FS.base, fontWeight: FW.BOLD, color: C.TEXT }}>{RANK_NUMS[i] || `(${i + 1})`}</span>
+                <span style={{ fontSize: FS.base, fontWeight: FW.SEMI, color: C.TEXT }}>
                   {fmtLoc(h, coordCtx)}
                 </span>
-                <span style={{ fontSize: TF.DETAIL, color: C.TEXT_3 }}>
+                <span style={{ fontSize: FS.xs, color: C.TEXT_3 }}>
                   — {h.categories.map(cat => MECHANISMS[cat]?.label || cat).join(", ")}
                 </span>
               </div>
-              <div style={{ fontSize: TF.DETAIL, color: C.TEXT_3, marginLeft: 22 }}>
+              <div style={{ fontSize: FS.xs, color: C.TEXT_3, marginLeft: 22 }}>
                 {h.tests.length} test{h.tests.length !== 1 ? "s" : ""}, {h.categories.length} categor{h.categories.length !== 1 ? "ies" : "y"} converging
               </div>
               {/* Show data excerpt toggle */}
@@ -271,7 +271,7 @@ export function HotspotExcerptList({
                 onClick={() => setExpandedExcerpts(prev => ({ ...prev, [i]: !prev[i] }))}
                 style={{
                   background: "none", border: "none", padding: 0, cursor: "pointer",
-                  color: C.TEXT_3, fontSize: TF.DETAIL, display: "flex", alignItems: "center",
+                  color: C.TEXT_3, fontSize: FS.xs, display: "flex", alignItems: "center",
                   gap: "4px", marginTop: "6px", marginLeft: 22,
                 }}
               >
