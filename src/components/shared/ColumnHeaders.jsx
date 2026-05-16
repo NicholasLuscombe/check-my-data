@@ -9,7 +9,7 @@
    Used by ImportView, HotspotExcerpt, HotspotExcerptList, DupDet. */
 
 import { useRef, useState, useLayoutEffect } from "react";
-import { C, CC, TF, FW, FF, FS, CR } from "../../constants/tokens.js";
+import { C, CC, FW, FF, FS, CR } from "../../constants/tokens.js";
 import { FLAG_STYLES } from "../../constants/thresholds.js";
 import { ROLES } from "../../constants/roles.js";
 import { TH_EVIDENCE, COL_W, FREEZE_COL_W, FREEZE_Z } from "./styles.js";
@@ -95,24 +95,24 @@ export function ColumnHeaders({
       {/* Row 0: Excel column letters */}
       {showLetterRow && (
         <tr ref={lettersRef} style={{ background: C.BG }}>
-          <th style={{ ...BB, ...TH_EVIDENCE, fontSize: TF.SMALL, borderBottom: "none", borderRight: `1px solid ${C.BORDER_L}`,
-            color: C.TEXT_4, background: C.BG, overflow: "hidden",
+          <th style={{ ...BB, ...TH_EVIDENCE, fontSize: FS.xs, borderBottom: "none", borderRight: `1px solid ${C.BORDER_L}`,
+            color: C.TEXT_3, background: C.BG, overflow: "hidden",
             ...stickyRow(letterTop, 6), ...cornerStyle("header") }} />
-          {hasMarker && <th style={{ ...BB, ...TH_EVIDENCE, fontSize: TF.SMALL, borderBottom: "none",
+          {hasMarker && <th style={{ ...BB, ...TH_EVIDENCE, fontSize: FS.xs, borderBottom: "none",
             borderRight: `1px solid ${C.BORDER_L}`,
-            color: C.TEXT_4, background: C.BG, overflow: "hidden", width: COL_W.MARKER,
+            color: C.TEXT_3, background: C.BG, overflow: "hidden", width: COL_W.MARKER,
             ...stickyRow(letterTop, 6), ...markerStyle() }} />}
           {columns.map((col, ci) => {
             if (vc && !vc.keep.has(ci)) {
               if (ellL) return null;
               ellL = true;
-              return <th key="ell" style={{ ...BB, ...TH_EVIDENCE, fontSize: TF.SMALL, borderBottom: "none", color: C.BORDER, background: C.BG, ...stickyRow(letterTop, 6) }}>⋯</th>;
+              return <th key="ell" style={{ ...BB, ...TH_EVIDENCE, fontSize: FS.xs, borderBottom: "none", color: C.BORDER, background: C.BG, ...stickyRow(letterTop, 6) }}>⋯</th>;
             }
             ellL = false;
             const isHl = hl.has(ci);
             const isTinted = !isHl && headerTintCols?.has(ci);
-            return <th key={ci} style={{ ...BB, ...TH_EVIDENCE, fontSize: TF.SMALL, borderBottom: "none",
-              color: isHl ? CC.THRESH : C.TEXT_4, background: isHl ? FLAG_STYLES.HIGH.bg : isTinted ? headerTintColor : C.BG,
+            return <th key={ci} style={{ ...BB, ...TH_EVIDENCE, fontSize: FS.xs, borderBottom: "none",
+              color: isHl ? CC.THRESH : C.TEXT_3, background: isHl ? FLAG_STYLES.HIGH.bg : isTinted ? headerTintColor : C.BG,
               overflow: "hidden",
               ...nonFrzBorderLeft(ci),
               ...stickyRow(letterTop, 6), ...frozenStyle(ci, "header"),
@@ -125,10 +125,10 @@ export function ColumnHeaders({
       {/* Row 1: Condition group spans */}
       {hasCondRow && (
         <tr ref={condRef} style={{ background: C.BG }}>
-          <th style={{ ...BB, ...TH_EVIDENCE, fontSize: TF.SMALL, borderBottom: "none", borderRight: `1px solid ${C.BORDER_L}`,
+          <th style={{ ...BB, ...TH_EVIDENCE, fontSize: FS.xs, borderBottom: "none", borderRight: `1px solid ${C.BORDER_L}`,
             background: C.BG, overflow: "hidden",
             ...stickyRow(condTop, 5), ...cornerStyle("header") }}>{condRowNum ?? ""}</th>
-          {hasMarker && <th style={{ ...BB, ...TH_EVIDENCE, fontSize: TF.SMALL, borderBottom: "none",
+          {hasMarker && <th style={{ ...BB, ...TH_EVIDENCE, fontSize: FS.xs, borderBottom: "none",
             borderRight: `1px solid ${C.BORDER_L}`,
             background: C.BG, overflow: "hidden", width: COL_W.MARKER,
             ...stickyRow(condTop, 5), ...markerStyle() }} />}
@@ -204,7 +204,7 @@ export function ColumnHeaders({
           ...(showRoleBadge ? { borderBottom: "none", boxShadow: `inset 0 -2px 0 ${C.BORDER}` } : {}),
           ...stickyRow(nameTop, 4), ...cornerStyle("header"),
         }}>{nameRowNum ?? (showRoleBadge ? "#" : "Row")}</th>
-        {hasMarker && <th style={{ ...BB, ...TH_EVIDENCE, fontSize: TF.SMALL,
+        {hasMarker && <th style={{ ...BB, ...TH_EVIDENCE, fontSize: FS.xs,
           padding: "4px 2px", background: showRoleBadge ? C.WHITE : C.BG_L,
           overflow: "hidden", width: COL_W.MARKER, borderRight: `1px solid ${C.BORDER_L}`,
           ...(showRoleBadge ? { borderBottom: "none", boxShadow: `inset 0 -2px 0 ${C.BORDER}` } : {}),
@@ -214,7 +214,7 @@ export function ColumnHeaders({
           if (vc && !vc.keep.has(ci)) {
             if (ellN) return null;
             ellN = true;
-            return <th key="ell" style={{ ...BB, ...TH_EVIDENCE, padding: "8px 8px 6px", color: C.TEXT_4, background: showRoleBadge ? C.WHITE : C.BG_L,
+            return <th key="ell" style={{ ...BB, ...TH_EVIDENCE, padding: "8px 8px 6px", color: C.TEXT_3, background: showRoleBadge ? C.WHITE : C.BG_L,
               ...stickyRow(nameTop, 4) }}>⋯{vc.omitted} cols</th>;
           }
           ellN = false;
@@ -235,7 +235,7 @@ export function ColumnHeaders({
                   ...stickyRow(nameTop, 4), ...frozenStyle(ci, "header"),
                   ...(isLastFrz(ci) ? freezeBorder : {}),
                 }}>
-                <div style={{ padding: "5px 6px 2px", fontSize: TF.DETAIL, fontWeight: FW.SEMI, color: C.TEXT,
+                <div style={{ padding: "5px 6px 2px", fontSize: FS.xs, fontWeight: FW.SEMI, color: C.TEXT,
                   whiteSpace: isData ? "normal" : "nowrap", wordBreak: isData ? "break-word" : undefined,
                   overflow: "hidden", textOverflow: "ellipsis" }}>{displayName}</div>
                 <div style={{ padding: "2px 6px 5px" }}>
@@ -248,7 +248,7 @@ export function ColumnHeaders({
           }
 
           // Simple style: plain text header (DupDet, HotspotExcerptList)
-          const nameColor = isHl ? CC.THRESH : col.role === "data" ? CC.OBS : C.TEXT_4;
+          const nameColor = isHl ? CC.THRESH : col.role === "data" ? CC.OBS : C.TEXT_3;
           return <th key={ci} style={{ ...BB, ...TH_EVIDENCE,
             padding: showLetterRow || hasCondRow ? "8px 8px 6px" : "6px 8px",
             color: nameColor, background: isHl ? FLAG_STYLES.HIGH.bg : C.BG_L,
@@ -263,18 +263,18 @@ export function ColumnHeaders({
         let ellR = false;
         return (
           <tr style={{ background: C.WHITE }}>
-            <th style={{ ...BB, ...TH_EVIDENCE, fontSize: TF.SMALL, padding: "2px 8px",
+            <th style={{ ...BB, ...TH_EVIDENCE, fontSize: FS.xs, padding: "2px 8px",
               borderRight: `1px solid ${C.BORDER_L}`, background: C.WHITE, overflow: "hidden",
               ...stickyRow(roleTop, 3), ...cornerStyle("header") }} />
             {columns.map((col, ci) => {
               if (vc && !vc.keep.has(ci)) {
                 if (ellR) return null;
                 ellR = true;
-                return <th key="ell" style={{ ...BB, ...TH_EVIDENCE, fontSize: TF.SMALL, padding: "2px 8px", color: C.BORDER, background: C.WHITE, ...stickyRow(roleTop, 3) }} />;
+                return <th key="ell" style={{ ...BB, ...TH_EVIDENCE, fontSize: FS.xs, padding: "2px 8px", color: C.BORDER, background: C.WHITE, ...stickyRow(roleTop, 3) }} />;
               }
               ellR = false;
               const roleInfo = ROLES[col.role] || ROLES.data;
-              return <th key={ci} style={{ ...BB, ...TH_EVIDENCE, fontSize: TF.SMALL, padding: "2px 8px",
+              return <th key={ci} style={{ ...BB, ...TH_EVIDENCE, fontSize: FS.xs, padding: "2px 8px",
                 color: roleInfo.color, fontWeight: FW.SEMI, letterSpacing: "0.04em", background: C.WHITE,
                 ...stickyRow(roleTop, 3) }}>{roleInfo.label}</th>;
             })}

@@ -1,4 +1,4 @@
-import { C, TF, FW, FF, CR, CC, SIGNAL, BADGE } from "../../constants/tokens.js";
+import { C, FS, FW, FF, CR, CC, SIGNAL, BADGE } from "../../constants/tokens.js";
 import { EvidenceTable } from "./EvidenceTable.jsx";
 import { SUB_HEAD } from "./styles.js";
 
@@ -27,7 +27,7 @@ export function ConditionTable({ data, title, columns, condColorMap = {} }) {
     <div style={{ marginTop: "10px" }}>
       <div style={SUB_HEAD}>
         {title}
-        {data.promoted && <span style={{ marginLeft: "8px", fontSize: TF.SMALL, color: BADGE.PROMOTED.text, background: BADGE.PROMOTED.bg, border: `1px solid ${BADGE.PROMOTED.border}`, borderRadius: CR.SM, padding: "1px 5px" }}>differs between conditions — promoted</span>}
+        {data.promoted && <span style={{ marginLeft: "8px", fontSize: FS.xs, color: BADGE.PROMOTED.text, background: BADGE.PROMOTED.bg, border: `1px solid ${BADGE.PROMOTED.border}`, borderRadius: CR.SM, padding: "1px 5px" }}>differs between conditions — promoted</span>}
       </div>
       <EvidenceTable columns={cols} rows={rows} identifierColumns={1} />
     </div>

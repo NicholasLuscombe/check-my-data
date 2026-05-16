@@ -1,6 +1,6 @@
 /* ── Shared inline styles — single source of truth for repeated patterns ── */
 
-import { C, TF, FS, FW, FF, UI, CC, SIGNAL, ACCENT } from "../../constants/tokens.js";
+import { C, FS, FW, FF, UI, CC, SIGNAL, ACCENT } from "../../constants/tokens.js";
 import { FLAG_STYLES } from "../../constants/thresholds.js";
 
 // Sub-heading inside MiniCards — used across the §3 mini-card surface for
@@ -14,10 +14,14 @@ import { FLAG_STYLES } from "../../constants/thresholds.js";
 // table-header weight + colour.
 export const SUB_HEAD = { fontSize: FS.sm, fontFamily: FF.UI, fontWeight: FW.SEMI, color: C.TEXT_3, marginBottom: "8px" };
 
-export const S_NOTE  = { fontFamily: FF.UI, fontSize: TF.DETAIL, color: C.TEXT_4, marginTop: "2px", paddingLeft: "4px" };
+// S151 (C.9 / B1): full spec match for footnote/reference register.
+// Pre-S151: fontSize TF.DETAIL (11px) + color C.TEXT_4. Now sm Regular C.TEXT_2 sans
+// per TYPOGRAPHY-SYSTEM.md § Tables "Footnote / reference under table" row.
+export const S_NOTE  = { fontFamily: FF.UI, fontSize: FS.sm, color: C.TEXT_2, marginTop: "2px", paddingLeft: "4px" };
 // Shared header style for all data tables (evidence, hotspot, import preview).
-// Background applied at <tr> level.
-export const TH_EVIDENCE = { boxSizing:"border-box", padding:"6px 8px", fontSize:TF.DETAIL, fontFamily:FF.UI, fontWeight:FW.SEMI, color:C.TEXT_3, textAlign:"center", borderBottom:`1px solid ${C.BORDER_L}`, whiteSpace:"nowrap" };
+// Background applied at <tr> level. S151 (C.9): fontSize TF.DETAIL → FS.sm
+// per TYPOGRAPHY-SYSTEM.md § Tables "Header (semantic)" row.
+export const TH_EVIDENCE = { boxSizing:"border-box", padding:"6px 8px", fontSize:FS.sm, fontFamily:FF.UI, fontWeight:FW.SEMI, color:C.TEXT_3, textAlign:"center", borderBottom:`1px solid ${C.BORDER_L}`, whiteSpace:"nowrap" };
 
 // Data excerpt cell styles — used by DupDet, HotspotExcerptList, and any raw data table.
 // Override only background/color/fontWeight for highlighting; dimensions are baked in.
@@ -37,7 +41,7 @@ export const BANNER_STYLES = {
 };
 
 // ── Column width rules — shared by HotspotExcerpt and ImportView ──
-// DATA columns: uniform fixed width (fits "0.5398" in monospace at TF.DETAIL).
+// DATA columns: uniform fixed width (fits "0.5398" in monospace at FS.xs).
 // LABEL/COND columns: sized to content with min/max bounds.
 // # column: compact, fits 2–4 digit row numbers.
 export const COL_W = {

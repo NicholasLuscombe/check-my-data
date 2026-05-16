@@ -4,7 +4,7 @@
    Mode prop controls expanded content.
    Individual tests render as white TestCardLayout cards. */
 
-import { C, TF, FW, CR, SIGNAL, SEV_VERDICT } from "../../constants/tokens.js";
+import { C, FS, FW, CR, SIGNAL, SEV_VERDICT } from "../../constants/tokens.js";
 import { DISPLAY_NAMES, TEST_DESCRIPTIONS } from "../../constants/mechanisms.js";
 import { fmtP } from "../../constants/thresholds.js";
 import { TestCardLayout } from "./TestCardLayout.jsx";
@@ -89,7 +89,7 @@ export function CategoryRow({
           if (isTestOpen && mode === "review") {
             const finding = getPrimaryFinding ? getPrimaryFinding(r) : null;
             evidenceChildren = finding ? (
-              <div style={{fontSize:TF.DETAIL,color:C.TEXT_2,lineHeight:"1.5"}}>{finding}</div>
+              <div style={{fontSize:FS.xs,color:C.TEXT_2,lineHeight:"1.5"}}>{finding}</div>
             ) : null;
           } else if (isTestOpen && mode === "full") {
             evidenceChildren = (
@@ -118,7 +118,7 @@ export function CategoryRow({
     if (isFlagged) {
       return (
         <div style={{marginTop:"8px",paddingBottom:"6px"}}>
-          {qcDescription && <div style={{fontSize:TF.BODY,color:C.TEXT_2,lineHeight:"1.65",marginBottom:"10px"}}>{qcDescription}</div>}
+          {qcDescription && <div style={{fontSize:FS.base,color:C.TEXT_2,lineHeight:"1.65",marginBottom:"10px"}}>{qcDescription}</div>}
           {renderTechDetails()}
         </div>
       );
@@ -150,7 +150,7 @@ export function CategoryRow({
     if (!testResults.length) return null;
     return (
       <div style={{marginTop:"6px"}}>
-        <button onClick={e=>{e.stopPropagation();onToggleTech?.();}} style={{background:"none",border:"none",padding:0,cursor:"pointer",color:C.TEXT_3,fontSize:TF.DETAIL,display:"flex",alignItems:"center",gap:"4px"}}>
+        <button onClick={e=>{e.stopPropagation();onToggleTech?.();}} style={{background:"none",border:"none",padding:0,cursor:"pointer",color:C.TEXT_3,fontSize:FS.xs,display:"flex",alignItems:"center",gap:"4px"}}>
           <span>{isTechExpanded?"\u25BE":"\u25B8"}</span>
           <span>Show technical details</span>
         </button>
