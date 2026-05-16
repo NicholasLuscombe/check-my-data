@@ -177,6 +177,9 @@ export function BatchView({ onBack }) {
           zeroAsMissing,
           rowSemantics:batchRowSem,
           rowSemanticsAuto:rsSuggestion.auto?rsSuggestion.reason:null,
+          assayAutoDetected:true,
+          colRelAutoSet:true,
+          vstAutoSet:true,
           longFormatDetected:lfDetected,
           nRows:matrix.length,
           nCols:matrix[0]?.length||0,
@@ -205,7 +208,7 @@ export function BatchView({ onBack }) {
   const generateBatchSummary=useCallback(()=>{
     const lines=["=== Check My Data v0.7 — Batch Summary ===",""];
     const flagLabel = f => ({HIGH:"FLAGGED",MODERATE:"NOTED",LOW:"CLEAR","N/A":"N/A"}[f]||f);
-    lines.push(`| File | Rows×Cols | Assay | VST | Severity | Flagged | Noted | Tests |`);
+    lines.push(`| File | Rows×Cols | Measurement type | VST | Severity | Flagged | Noted | Tests |`);
     lines.push(`|------|----------|-------|-----|----------|---------|-------|-------|`);
     for(const r of results){
       if(r.error){
@@ -264,6 +267,9 @@ export function BatchView({ onBack }) {
       hdrs: r.hdrs || [],
       rowSemantics: r.rowSemantics,
       rowSemanticsAuto: r.rowSemanticsAuto,
+      assayAutoDetected: r.assayAutoDetected,
+      colRelAutoSet: r.colRelAutoSet,
+      vstAutoSet: r.vstAutoSet,
       longFormatDetected: r.longFormatDetected,
     };
     return <div><ReportView results={r.results} importConfig={batchImportConfig} matrix={r.matrix||null} rowMap={r.rowMap||null} onBack={()=>setSelectedIdx(null)} backLabel="Back to batch"/></div>;

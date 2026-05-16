@@ -454,7 +454,7 @@ export async function exportToExcel({ results, importConfig, matrix, rowMap, mod
   rptAoa.push([]);
   rptAoa.push(["File", fileName]);
   rptAoa.push(["Dimensions", `${nRows} rows x ${nCols} columns`]);
-  rptAoa.push(["Assay", assayLabel]);
+  rptAoa.push(["Measurement type", assayLabel]);
   rptAoa.push(["Analysis mode", MODES[mode]?.label || mode]);
   rptAoa.push(["Severity", `${severity} — ${sevLabels[severity] || "UNKNOWN"}`]);
   rptAoa.push(["Date", new Date().toISOString().split("T")[0]]);
