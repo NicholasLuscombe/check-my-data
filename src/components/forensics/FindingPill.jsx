@@ -7,44 +7,40 @@
    pulse fires. Pulse from card-side click also lands here via the shared
    PulseProvider. */
 
-import { FS, FW, FF, CR, SEV_VERDICT, MECH_COLOR } from "../../constants/tokens.js";
+import { C, FS, FW, FF, CR, SEV_VERDICT, MECH_COLOR } from "../../constants/tokens.js";
 import { TEST_MECHANISM } from "../../constants/mechanisms.js";
 import { usePulseTrigger } from "./pulseContext.jsx";
 import { usePulseAnimation } from "./PulseStyle.jsx";
 
-// S126b add-7: pill chrome derives from SEV_VERDICT — the same token
-// family the test card verdict badges use (TestCardLayout's `flColor`).
-// Pre-add-7 pills routed through FLAG_STYLES → SIGNAL.[hue].text/border
-// which resolved to a desaturated text colour and a yellow-tinted border
-// for the AMBER severity, visually distinct from the vivid orange the
-// badges paint. Unifying on SEV_VERDICT eliminates the cross-surface
-// hue/saturation drift. Globals don't emit LOW findings via buildFindings
-// v1.0 so no LOW branch needed here.
-function severityStyle(severity) {
+// S156-fix1 (refinement to S156 D6): pill chrome reshape mirrors FindingChip.
+// MECH_COLOR moves back to a 5px left-edge stripe via inset shadow;
+// full-border treatment retires. SEV_VERDICT owns the background tint.
+// Tier word colour update lives at the render call site (consumes
+// SEV_VERDICT[severity] colour, plain weight). Globals don't emit LOW
+// findings via buildFindings v1.0 so no LOW branch needed here.
+const STRIPE_W = 5;
+function severityStyle(severity, mechColor) {
   const sev = severity === "HIGH" ? SEV_VERDICT[3] : SEV_VERDICT[2];
   return {
     bg: sev.bg,
-    border: sev.color,
-    color: sev.color,
+    stripe: mechColor || sev.color,
+    color: C.TEXT,
     pulseColor: sev.color,
+    sevColor: sev.color,
   };
 }
 
+// D1 sentence-case tier word.
+const TIER_WORD = { HIGH: "High", MOD: "Moderate", LOW: "Clear" };
+
 export function FindingPill({ finding, onActivate }) {
   const test = finding.tests[0];
-  const sev = severityStyle(finding.severity);
-  const ref = usePulseAnimation(`pill:${test.testId}`, sev.pulseColor);
-  const trigger = usePulseTrigger();
-  // S133f: 4px left-edge stripe in MECH_COLOR keyed off the test's primary
-  // mechanism — same encoding as FindingChip. Pills are always single-test
-  // (HIGH/MOD globals only), so dimensions[0] from buildFindings carries the
-  // test's mechanism unambiguously. TEST_MECHANISM[testId] is the equivalent
-  // direct lookup; preferring it here keeps the pill self-contained against
-  // the finding's dimensions[] shape (which carries fallback logic in
-  // buildFindings). Stripe omitted when MECH_COLOR has no matching key.
   const dimKey = TEST_MECHANISM[test.testId];
   const mechColor = MECH_COLOR[dimKey];
-  const stripeShadow = mechColor ? `inset 4px 0 0 ${mechColor}` : "none";
+  const sev = severityStyle(finding.severity, mechColor);
+  const tierWord = TIER_WORD[finding.severity];
+  const ref = usePulseAnimation(`pill:${test.testId}`, sev.pulseColor);
+  const trigger = usePulseTrigger();
 
   const handleClick = () => {
     // Pulse self + the test card. Scroll handling lives on the parent
@@ -63,11 +59,11 @@ export function FindingPill({ finding, onActivate }) {
       title={test.displayName}
       style={{
         display: "inline-flex", alignItems: "center",
-        padding: mechColor ? "3px 10px 3px 14px" : "3px 10px",
+        padding: `3px 10px 3px ${STRIPE_W + 8}px`,
         background: sev.bg,
-        border: `1px solid ${sev.border}`,
+        border: "none",
         borderRadius: CR.MD,
-        boxShadow: stripeShadow,
+        boxShadow: `inset ${STRIPE_W}px 0 0 ${sev.stripe}`,
         color: sev.color,
         fontSize: FS.sm,
         fontFamily: FF.UI,
@@ -77,6 +73,9 @@ export function FindingPill({ finding, onActivate }) {
       }}
     >
       {test.displayName}
+      {tierWord && (
+        <span style={{ color: sev.sevColor, fontWeight: FW.NORM }}>{" · "}{tierWord}</span>
+      )}
     </span>
   );
 }

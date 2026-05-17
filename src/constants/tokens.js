@@ -162,10 +162,11 @@ export const SEV_VERDICT = {
   3: { color:SIGNAL.RED.dot, bg:SIGNAL.RED.bg, border:SIGNAL.RED.border },
 };
 
-// Severity word ladder. Indexed by severity tier (0–3). Single source of truth
-// for verdict-banner severity-dot label, sticky-surface severity echo, and
-// Excel report header — keep in sync with SEV_VERDICT keys.
-export const SEVERITY_WORD = ["Clean", "Low", "Moderate", "High"];
+// S156 (A1.D0c-bis B1 retire): SEVERITY_WORD retired. Pre-S156 consumers
+// retired at S133h FIX3 (VerdictBanner dot-row label) and S138-fix2
+// (StickySurface severity echo); sole remaining consumer at
+// ReportView.jsx:582 (Excel HTML export header) repointed to ACTION_LABEL
+// (narrative.js) per D5 dataset-level canon.
 
 // S136: .callout sub-objects extend each UI tier with the typography system's
 // aside-callout pattern values (background tint + saturated left rule). Existing

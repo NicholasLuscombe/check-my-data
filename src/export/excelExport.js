@@ -18,7 +18,8 @@ import { C, ACCENT } from "../constants/tokens.js";
 import { buildMechanismGroups } from "../analysis/localization.js";
 import { buildConvergence } from "../analysis/convergence.js";
 import { computeSeverity } from "../analysis/severity.js";
-import { fmtP } from "../constants/thresholds.js";
+import { ACTION_LABEL } from "../analysis/narrative.js";
+import { fmtP, FLAG_STYLES } from "../constants/thresholds.js";
 import { MODES, SEVERITY_TEXT, CATEGORY_GUIDANCE, HOTSPOT_PATTERNS, QC_NO_HOTSPOT } from "../constants/guidance.js";
 import { ASSAYS } from "../constants/assays.js";
 import { originalFileRow } from "../components/shared/coordinates.js";
@@ -447,7 +448,9 @@ export async function exportToExcel({ results, importConfig, matrix, rowMap, mod
   // ════════════════════════════════════════════════════════════════════
 
   const rptAoa = [];
-  const sevLabels = ["CLEAN", "LOW", "ELEVATED", "CRITICAL"];
+  // S156 (A1.D0c-bis D5 lock): sevLabels = ["CLEAN", "LOW", "ELEVATED",
+  // "CRITICAL"] retired; outcome ladder consumes ACTION_LABEL.
+  const action = ACTION_LABEL[severity] || { score: severity + 1, label: "Unknown" };
 
   // Section 1: Header
   rptAoa.push(["Check My Data — Investigation Report"]);
@@ -456,7 +459,7 @@ export async function exportToExcel({ results, importConfig, matrix, rowMap, mod
   rptAoa.push(["Dimensions", `${nRows} rows x ${nCols} columns`]);
   rptAoa.push(["Measurement type", assayLabel]);
   rptAoa.push(["Analysis mode", MODES[mode]?.label || mode]);
-  rptAoa.push(["Severity", `${severity} — ${sevLabels[severity] || "UNKNOWN"}`]);
+  rptAoa.push(["Outcome", `${action.score} of 4 — ${action.label}`]);
   rptAoa.push(["Date", new Date().toISOString().split("T")[0]]);
   rptAoa.push([]);
 
@@ -530,8 +533,11 @@ export async function exportToExcel({ results, importConfig, matrix, rowMap, mod
       const catLabel = MECHANISMS[cat]?.label || cat;
       const g = CATEGORY_GUIDANCE[cat]?.[modeKey];
       const desc = g ? `${g.short}. ${g.lookFor}` : "";
-      // Worst flag in group
-      const worstFlag = flags.includes("HIGH") ? "HIGH" : "MODERATE";
+      // Worst flag in group — S156 D1 canon: emit user-facing sentence-case
+      // word via FLAG_STYLES.label rather than the raw HIGH/MODERATE
+      // identifier (audit C2).
+      const worstFlagKey = flags.includes("HIGH") ? "HIGH" : "MODERATE";
+      const worstFlag = FLAG_STYLES[worstFlagKey]?.label || worstFlagKey;
       const testNames = tests.map(t => DISPLAY_NAMES[t.name] || t.name).join(", ");
       if (mode === "qc") {
         rptAoa.push([catLabel, worstFlag, desc]);
@@ -591,7 +597,10 @@ export async function exportToExcel({ results, importConfig, matrix, rowMap, mod
       const pVal = r.primaryP != null ? fmtP(r.primaryP) : "—";
       const loc = testLocalisation(r, rowMap, fileRowFn);
       const desc = (r.description || "").slice(0, 100);
-      detailAoa.push([displayName, r._category, r.flag || "—", pVal, loc, desc]);
+      // S156 D1: emit FLAG_STYLES.label sentence-case rather than the raw
+      // HIGH/MODERATE/LOW identifier (audit C3).
+      const flagLabel = (r.flag && FLAG_STYLES[r.flag]?.label) || r.flag || "—";
+      detailAoa.push([displayName, r._category, flagLabel, pVal, loc, desc]);
     }
     ws3 = XLSX.utils.aoa_to_sheet(detailAoa);
     ws3["!cols"] = [{ wch: 28 }, { wch: 18 }, { wch: 10 }, { wch: 14 }, { wch: 24 }, { wch: 60 }];
@@ -632,23 +641,28 @@ export async function exportToExcel({ results, importConfig, matrix, rowMap, mod
   legendAoa.push(["", "3+ tests flagged this cell"]);
   legendAoa.push([]);
 
-  // Flag level definitions
+  // Flag level definitions — S156 D1 canon: single sentence-case ladder
+  // (High / Moderate / Clear / N/A). Pre-S156 dual labelling
+  // ("FLAGGED (HIGH)" etc.) retired now that chrome + emit + export share
+  // one word per tier.
   legendAoa.push(["FLAG LEVEL DEFINITIONS"]);
   legendAoa.push(["Flag", "Meaning"]);
-  legendAoa.push(["FLAGGED (HIGH)", "Statistical evidence of anomaly (p < 0.001 after correction)"]);
-  legendAoa.push(["NOTED (MODERATE)", "Borderline evidence warranting attention (p < 0.01 after correction)"]);
-  legendAoa.push(["CLEAR (LOW)", "No evidence of anomaly at this threshold"]);
-  legendAoa.push(["N/A", "Test not applicable to this dataset (insufficient data, wrong data type, etc.)"]);
+  legendAoa.push(["High",     "Statistical evidence of anomaly (p < 0.001 after correction)"]);
+  legendAoa.push(["Moderate", "Borderline evidence warranting attention (p < 0.01 after correction)"]);
+  legendAoa.push(["Clear",    "No evidence of anomaly at this threshold"]);
+  legendAoa.push(["N/A",      "Test not applicable to this dataset (insufficient data, wrong data type, etc.)"]);
   legendAoa.push([]);
 
-  // Severity scale
-  legendAoa.push(["SEVERITY SCALE"]);
-  legendAoa.push(["Level", "Label", "Description"]);
+  // Outcome ladder — S156 D5 canon: dataset-level outcome rendered as
+  // "N of 4 — Label" (ACTION_LABEL). Pre-S156 ladder ["CLEAN", "LOW",
+  // "ELEVATED", "CRITICAL"] retired alongside the local sevLabels const.
+  legendAoa.push(["OUTCOME SCALE"]);
+  legendAoa.push(["Position", "Label", "Description"]);
   const sevDesc = SEVERITY_TEXT.review || {};
-  legendAoa.push([0, "CLEAN", sevDesc[0]?.sub || "No flags detected"]);
-  legendAoa.push([1, "LOW", sevDesc[1]?.sub || "Minor flags, likely false positives"]);
-  legendAoa.push([2, "ELEVATED", sevDesc[2]?.sub || "Anomalies detected, warrants review"]);
-  legendAoa.push([3, "CRITICAL", sevDesc[3]?.sub || "Multiple anomalies, investigation recommended"]);
+  for (let s = 0; s < 4; s++) {
+    const a = ACTION_LABEL[s];
+    legendAoa.push([`${a.score} of 4`, a.label, sevDesc[s]?.sub || ""]);
+  }
   legendAoa.push([]);
 
   // Methodology note

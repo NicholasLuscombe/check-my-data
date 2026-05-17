@@ -39,7 +39,7 @@ function pulseColorForFlag(flag) {
  *   - intercepts severity-badge click to fire the symmetric pulse via
  *     onBadgeClick(result) — does not touch the existing onToggle path.
  */
-function ForensicsTestCard({ result, expanded, onToggle, importConfig, rowMap, onBadgeClick }) {
+function ForensicsTestCard({ result, mk, expanded, onToggle, importConfig, rowMap, onBadgeClick }) {
   const pulseColor = pulseColorForFlag(result.flag);
   const ref = usePulseAnimation(`card:${result.name}`, pulseColor);
   const evidenceChildren = expanded ? (
@@ -52,7 +52,7 @@ function ForensicsTestCard({ result, expanded, onToggle, importConfig, rowMap, o
       style={{ borderRadius: CR.LG }}
     >
       <TestCardLayout
-        result={result} mode="full"
+        result={result} mode="full" mk={mk}
         expanded={expanded}
         onToggle={onToggle}
         onSeverityBadgeClick={onBadgeClick ? (e) => { e.stopPropagation(); onBadgeClick(result); } : undefined}
@@ -103,12 +103,13 @@ export function ForensicsCategoryBlock({
   return (
     <div style={{ paddingBottom: isExpanded ? "4px" : "0" }}>
       <ClusterRow
+        mk={mk}
         label={label}
         count={checkCount}
         description={description}
         noun="test"
         isFlagged={isFlagged}
-        flagColor={flagColor}
+        hasHigh={hasHigh}
         isExpanded={isExpanded}
         onToggle={onToggle}
       />
@@ -125,6 +126,7 @@ export function ForensicsCategoryBlock({
                 <ForensicsTestCard
                   key={r.name}
                   result={r}
+                  mk={mk}
                   expanded={!!isOpen}
                   onToggle={(e) => { e.stopPropagation(); onToggleTestEvidence?.(r.name, defaultOpen); }}
                   importConfig={importConfig}
@@ -144,6 +146,7 @@ export function ForensicsCategoryBlock({
                   <ForensicsTestCard
                     key={r.name}
                     result={r}
+                    mk={mk}
                     expanded={false}
                     onToggle={undefined}
                     importConfig={importConfig}
@@ -178,7 +181,9 @@ function ClearSummaryRow({ tests, onExpand, expanded = false }) {
       }}
     >
       <span style={{ color: SEV_VERDICT[0].color, fontSize: FS.base }}>✓</span>
-      <span style={{ fontWeight: FW.SEMI, color: C.TEXT }}>{tests.length} test{tests.length !== 1 ? "s" : ""} CLEAR</span>
+      {/* S156 (A1.D0c-bis D4 lock): ALL CAPS "CLEAR" retired; sentence-case
+          past-tense "cleared" verb matches the post-S137 canon. */}
+      <span style={{ fontWeight: FW.SEMI, color: C.TEXT }}>{tests.length} test{tests.length !== 1 ? "s" : ""} cleared</span>
       <span style={{ color: C.TEXT_3 }}>—</span>
       <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", minWidth: 0 }}>
         {names}

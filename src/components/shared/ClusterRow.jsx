@@ -1,4 +1,4 @@
-/* ── ClusterRow — §3 cluster header row (icon · label · count · description · chevron) ──
+/* ── ClusterRow — §3 cluster header row (label · count · description · word badge · chevron) ──
    S150 (C.8): extracted from the byte-identical 5-span flex composition that
    lived inline at ForensicsCategoryBlock.jsx and CategoryRow.jsx. Same hazard
    pattern as LANE_LABEL (S149) — touching one without the other would create
@@ -16,15 +16,23 @@
                             (co-consumes Identity-row-label tuple — same as
                              count; both at C.TEXT_3 surround the primary label)
 
-   Icon and chevron are typeset glyphs but render as icons, not text — they
-   bypass the typography system per TYPOGRAPHY-SYSTEM.md §"What this system
-   does NOT cover" (chart-annotation / icon-glyph carve-out). S149 ✕ button
-   precedent: hardcoded literal size + carve-out comment.
+   S156 (A1.D0c-bis D6 lock): parallel encoding — the borderLeft now carries
+   MECH_COLOR keyed off the cluster mechanism, and the inline-left ⚠/✓ glyph
+   retires. The worst-tier word badge ("High" / "Moderate" / "Clear") moves
+   to the right side of the row in SEV_VERDICT colour, plain weight. The
+   parallel-encoding pair: mechanism on the left (matching §2 chip border),
+   severity on the right (matching §3 per-card badge colour). When `mk` is
+   omitted (defensive fallback), the row degrades to the pre-S156 SEV-coded
+   left border + glyph.
+
+   Chevron is a typeset glyph but renders as an icon, not text — bypasses
+   the typography system per TYPOGRAPHY-SYSTEM.md §"What this system does
+   NOT cover" (chart-annotation / icon-glyph carve-out).
 
    The 3px borderLeft sidebar and 10px outer padding are part of the row's
    chrome and live inside this component — consumers don't wrap. */
 
-import { C, FS, FW } from "../../constants/tokens.js";
+import { C, FS, FW, MECH_COLOR, SEV_VERDICT } from "../../constants/tokens.js";
 import { LANE_LABEL_TYPOGRAPHY } from "./Section.jsx";
 
 /**
@@ -33,8 +41,11 @@ import { LANE_LABEL_TYPOGRAPHY } from "./Section.jsx";
  * @param {number} props.count - applicable test/check count for the cluster
  * @param {string} props.description - one-liner shown after the em-dash
  * @param {"test"|"check"} [props.noun="test"] - QC mode uses "check"; Forensics + Review use "test"
- * @param {boolean} props.isFlagged - ⚠︎ icon when true; ✓︎ when false
- * @param {string} props.flagColor - icon + borderLeft tier colour
+ * @param {boolean} props.isFlagged - any HIGH or MODERATE tests
+ * @param {boolean} [props.hasHigh] - any HIGH tests (drives worst-tier word)
+ * @param {string} [props.mk] - mechanism cluster key for MECH_COLOR border resolution
+ * @param {string} [props.flagColor] - legacy SEV-coded border colour, used only
+ *   when `mk` is absent (defensive fallback)
  * @param {boolean} props.isExpanded - chevron orientation (▾ vs ▸)
  * @param {boolean} [props.isExpandable=true] - when false, cursor stays default
  *   and chevron + onClick suppressed (CategoryRow clean-state path).
@@ -43,22 +54,21 @@ import { LANE_LABEL_TYPOGRAPHY } from "./Section.jsx";
 export function ClusterRow({
   label, count, description,
   noun = "test",
-  isFlagged, flagColor,
+  isFlagged, hasHigh,
+  mk, flagColor,
   isExpanded, isExpandable = true,
   onToggle,
 }) {
+  const borderColor = (mk && MECH_COLOR[mk]) || flagColor;
+  // Worst-tier word + colour: HIGH → "High", MODERATE → "Moderate", LOW → "Clear".
+  const wordColor = hasHigh ? SEV_VERDICT[3].color : isFlagged ? SEV_VERDICT[2].color : SEV_VERDICT[0].color;
+  const wordText  = hasHigh ? "High"               : isFlagged ? "Moderate"           : "Clear";
   return (
-    <div style={{ padding: "10px 10px", borderLeft: `3px solid ${flagColor}` }}>
+    <div style={{ padding: "10px 10px", borderLeft: `3px solid ${borderColor}` }}>
       <div
         style={{ display: "flex", alignItems: "center", gap: "8px", cursor: isExpandable ? "pointer" : "default" }}
         onClick={isExpandable ? onToggle : undefined}
       >
-        {/* Icon glyph — carve-out per TYPOGRAPHY-SYSTEM.md §"What this system
-            does NOT cover". Hardcoded pending icon-sizing system; do NOT
-            promote to text-register tokens. */}
-        <span style={{ color: flagColor, fontSize: "15px", flexShrink: 0 }}>
-          {isFlagged ? "⚠︎" : "✓︎"}
-        </span>
         <span style={{ ...LANE_LABEL_TYPOGRAPHY }}>
           {label}
         </span>
@@ -68,9 +78,17 @@ export function ClusterRow({
         <span style={{ fontSize: FS.base, fontWeight: FW.NORM, color: C.TEXT_3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", minWidth: 0 }}>
           {"— "}{description}
         </span>
+        {/* Worst-tier word badge — colour-on-chrome / words-stay-plain rule.
+            SEV_VERDICT colour matches the per-card badge at TestCardLayout
+            for visual continuity. */}
+        <span style={{ fontSize: FS.base, fontWeight: FW.NORM, color: wordColor, marginLeft: "auto", flexShrink: 0 }}>
+          {wordText}
+        </span>
         {isExpandable && (
-          /* Chevron glyph — same carve-out as the icon above. */
-          <span style={{ color: C.TEXT_2, fontSize: "14px", marginLeft: "auto", flexShrink: 0 }}>
+          /* Chevron glyph — icon-glyph carve-out per TYPOGRAPHY-SYSTEM.md
+             §"What this system does NOT cover". Hardcoded literal pending
+             icon-sizing system. */
+          <span style={{ color: C.TEXT_2, fontSize: "14px", flexShrink: 0 }}>
             {isExpanded ? "▾" : "▸"}
           </span>
         )}

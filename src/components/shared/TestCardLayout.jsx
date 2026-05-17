@@ -5,8 +5,8 @@
    Forensics adds p-value and method line. */
 
 import { useState } from "react";
-import { C, FS, FW, FF, CR, SEV_VERDICT } from "../../constants/tokens.js";
-import { DISPLAY_NAMES, TEST_DESCRIPTIONS, TEST_METHODS } from "../../constants/mechanisms.js";
+import { C, FS, FW, FF, CR, SEV_VERDICT, MECH_COLOR } from "../../constants/tokens.js";
+import { DISPLAY_NAMES, TEST_DESCRIPTIONS, TEST_METHODS, MECHANISMS } from "../../constants/mechanisms.js";
 import { fmtPBadge } from "../../constants/thresholds.js";
 
 /**
@@ -14,6 +14,11 @@ import { fmtPBadge } from "../../constants/thresholds.js";
  * @param {object} props.result - test result object (must have .name, .flag, .primaryP)
  * @param {"qc"|"review"|"full"} props.mode
  * @param {boolean} props.expanded
+ * @param {string} [props.mk] - mechanism cluster key. When supplied, the card
+ *   renders a 3px left stripe in MECH_COLOR[mk] mirroring the parent
+ *   cluster-header stripe (S156-fix3). Carries mechanism context into the
+ *   card body. Omitted callers fall through to the legacy 1px C.BORDER_L
+ *   left edge.
  * @param {function} [props.onToggle] - click handler for expand/collapse
  * @param {function} [props.onSeverityBadgeClick] - S126b: badge-only click
  *   (forensics pulse). Receives the click event; caller must stopPropagation.
@@ -22,16 +27,19 @@ import { fmtPBadge } from "../../constants/thresholds.js";
  * @param {string|JSX.Element} [props.footer] - summary line below evidence
  * @param {JSX.Element} [props.children] - evidence content (EvidenceTable, plots, etc.)
  */
-export function TestCardLayout({ result, mode, expanded, onToggle, onSeverityBadgeClick, footer, children }) {
+export function TestCardLayout({ result, mode, mk, expanded, onToggle, onSeverityBadgeClick, footer, children }) {
   const [methodOpen, setMethodOpen] = useState(false);
   const fl = result.flag || "LOW";
   const isFl = fl === "HIGH" || fl === "FLAGGED";
   const isNt = fl === "MODERATE" || fl === "NOTED";
   const hasEvidence = isFl || isNt;
   const flColor = isFl ? SEV_VERDICT[3].color : isNt ? SEV_VERDICT[2].color : SEV_VERDICT[0].color;
+  // S156 (A1.D0c-bis D1 lock): Forensics/Review tier canon → sentence-case
+  // `High` / `Moderate` / `Clear`. QC ALL CAPS branch unchanged (out of scope
+  // for the canon migration; stale pending a QC-mode session).
   const flLabel = mode === "qc"
     ? (isFl ? "FLAGGED" : isNt ? "NOTED" : "CLEAR")
-    : (isFl ? "Flagged" : isNt ? "Noted" : "Clear");
+    : (isFl ? "High" : isNt ? "Moderate" : "Clear");
 
   const showSubtitle = mode !== "qc";
   const showPValue = mode === "full";
@@ -39,14 +47,42 @@ export function TestCardLayout({ result, mode, expanded, onToggle, onSeverityBad
   const expandable = hasEvidence && mode !== "qc";
   const methodText = TEST_METHODS[result.name];
 
+  // S156-fix3: optional mechanism stripe on the card's left edge. Width
+  // matches the ClusterRow header stripe (3px) so the user reads a
+  // continuous mechanism anchor scrolling from header into card. Padding-
+  // left grows to accommodate the stripe (existing 16px → stripe + 8px
+  // breathing room).
+  const mechStripe = mk ? MECH_COLOR[mk] : null;
+  // S156-fix5: cluster-name breadcrumb above the test-name line. Renders
+  // when `mk` is supplied AND maps to a known cluster — defensive skip
+  // when mk is null/undefined (non-Forensics modes, custom card surfaces
+  // outside cluster context). Cleared-tier cards drop opacity to 0.4,
+  // matching the S156-fix1 chip stripe treatment so the mechanism handle
+  // reads as muted alongside flagged-tier cards.
+  const isCleared = !isFl && !isNt;
+  const clusterLabel = mk && MECHANISMS[mk] ? MECHANISMS[mk].label : null;
   return (
     <div style={{
       background: "#FFFFFF",
       border: "1px solid #E5E7EB",
+      ...(mechStripe ? { borderLeft: `3px solid ${mechStripe}` } : {}),
       borderRadius: "6px",
-      padding: "8px 16px",
+      padding: mechStripe ? "8px 16px 8px 11px" : "8px 16px",
       fontFamily: FF.UI,
     }}>
+      {/* ── Cluster-name breadcrumb (S156-fix5) ── */}
+      {clusterLabel && (
+        <div style={{
+          fontSize: FS.sm,
+          fontWeight: FW.NORM,
+          color: mechStripe,
+          opacity: isCleared ? 0.4 : 1,
+          lineHeight: "1.2",
+          marginBottom: "2px",
+        }}>
+          {clusterLabel}
+        </div>
+      )}
       {/* ── Header line ── */}
       <div
         style={{ display: "flex", justifyContent: "space-between", alignItems: "center", cursor: expandable ? "pointer" : "default" }}

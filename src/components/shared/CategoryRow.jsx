@@ -4,7 +4,7 @@
    Mode prop controls expanded content.
    Individual tests render as white TestCardLayout cards. */
 
-import { C, FS, FW, CR, SIGNAL, SEV_VERDICT } from "../../constants/tokens.js";
+import { C, FS, FW, CR, SIGNAL } from "../../constants/tokens.js";
 import { DISPLAY_NAMES, TEST_DESCRIPTIONS } from "../../constants/mechanisms.js";
 import { fmtP } from "../../constants/thresholds.js";
 import { TestCardLayout } from "./TestCardLayout.jsx";
@@ -43,7 +43,6 @@ export function CategoryRow({
   expandedTestEvidence, onToggleTestEvidence,
   importConfig, rowMap, getPrimaryFinding,
 }) {
-  const flagColor = hasHigh ? SEV_VERDICT[3].color : isFlagged ? SEV_VERDICT[2].color : SEV_VERDICT[0].color;
   const isExpandable = alwaysExpandable || isFlagged;
   const countNoun = mode === "qc" ? "check" : "test";
 
@@ -51,12 +50,13 @@ export function CategoryRow({
     <div style={{paddingBottom:isExpanded?"4px":"0"}}>
       {/* ── Category header row — sidebar lives here only ── */}
       <ClusterRow
+        mk={mk}
         label={label}
         count={checkCount}
         description={description}
         noun={countNoun}
         isFlagged={isFlagged}
-        flagColor={flagColor}
+        hasHigh={hasHigh}
         isExpanded={isExpanded}
         isExpandable={isExpandable}
         onToggle={onToggle}
@@ -102,6 +102,7 @@ export function CategoryRow({
               key={r.name}
               result={r}
               mode={mode}
+              mk={mk}
               expanded={!!isTestOpen}
               onToggle={hasEvidence ? (e) => { e.stopPropagation(); onToggleTestEvidence?.(r.name, defaultOpen); } : undefined}
             >
@@ -127,7 +128,7 @@ export function CategoryRow({
     return testResults.length > 0 ? (
       <div style={{display:"flex",flexDirection:"column",gap:"8px",marginTop:"8px"}}>
         {testResults.map(r => (
-          <TestCardLayout key={r.name} result={r} mode="qc" expanded={false} />
+          <TestCardLayout key={r.name} result={r} mode="qc" mk={mk} expanded={false} />
         ))}
       </div>
     ) : null;
@@ -157,7 +158,7 @@ export function CategoryRow({
         {isTechExpanded && (
           <div style={{display:"flex",flexDirection:"column",gap:"8px",marginTop:"8px"}}>
             {testResults.map(r => (
-              <TestCardLayout key={r.name} result={r} mode="qc" expanded={false} />
+              <TestCardLayout key={r.name} result={r} mode="qc" mk={mk} expanded={false} />
             ))}
           </div>
         )}
