@@ -7,7 +7,7 @@ export const MECHANISMS = {
   digits:    { label: "Unusual digits" },                 // Dim II
   shapes:    { label: "Distribution shapes" },            // Dim V
   replicate: { label: "Cross-replicate comparisons" },    // Dim III
-  group:     { label: "Cross-group comparisons" },        // Dim IV
+  group:     { label: "Cross-condition comparisons" },    // Dim IV (engine key `group` stays per S132g engine-identifier-stays / display-label-moves)
 };
 export const MECHANISM_ORDER = ["copied", "digits", "shapes", "replicate", "group"];
 
@@ -42,7 +42,7 @@ export const TEST_MECHANISM = {
   "Row-Mean Runs":                    "replicate",
   "Mahalanobis Row Outlier":          "replicate",
   "Blocked Mahalanobis":              "replicate",
-  // Cross-Group Comparisons (3) — Dim IV
+  // Cross-Condition Comparisons (3) — Dim IV
   "Cross-Condition Rank Correlation": "group",
   "Baseline Balance":                 "group",
   "Cross-Condition Consistency":      "group",
@@ -119,7 +119,7 @@ export const MECHANISM_PROSE = {
   digits:    "digit patterns",
   shapes:    "distributional shape",
   replicate: "replicate agreement",
-  group:     "cross-group similarity",
+  group:     "cross-condition similarity",
 };
 
 // testKey → full test name (for mapping group testKeys back to result names)
@@ -204,7 +204,7 @@ export const TEST_METHODS = {
 
   'Noise Scaling With Measurement Size': 'Checks whether noise scales with signal magnitude in the way the instrument type predicts \u2014 for example, constant variability for qPCR or proportional variability for ELISA. Fits a trend line on a log-log scale and compares the observed slope to the expected slope for the selected assay (z-test with block-robust standard error).',
 
-  // --- Cross-Replicate + Distribution Shapes + Cross-Group ---
+  // --- Cross-Replicate + Distribution Shapes + Cross-Condition ---
   'Within-Row Variance': 'Computes how much replicates vary around each row\'s mean, then compares that spread to what the overall noise pattern predicts for a row at that signal level. Rows with unusually low spread are flagged as outliers (binomial test on z-score exceedances).',
 
   'Entropy / Zipf Analysis': 'Measures how many distinct values appear in each column and how evenly they\'re spread (Shannon entropy). Compares the observed diversity to what the column\'s distribution would produce. Flags columns where values repeat more than expected, or where values are more evenly spread than expected (parametric bootstrap).',

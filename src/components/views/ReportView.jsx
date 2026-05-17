@@ -70,7 +70,7 @@ const METHOD_BATTERY = [
     ["Blocked Mahalanobis",                "blocked Mahalanobis"],
     ["Missing Data Pattern",               "missing data patterns"],
   ]},
-  { label: "Cross-group comparisons", tests: [
+  { label: "Cross-condition comparisons", tests: [
     ["Cross-Condition Rank Correlation",   "Cross-condition Spearman rank"],
     ["Baseline Balance",                   "Carlisle condition balance"],
     ["Cross-Condition Consistency",        "cross-condition consistency"],

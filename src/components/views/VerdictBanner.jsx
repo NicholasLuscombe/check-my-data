@@ -1,5 +1,6 @@
 import { C, FS, FW, CR, SEV_VERDICT, MECH_COLOR } from "../../constants/tokens.js";
 import { MECHANISMS, MECHANISM_ORDER } from "../../constants/mechanisms.js";
+import { MechIcon, mechIconSize } from "../shared/MechIcon.jsx";
 import { VERDICT_TEXT } from "../../analysis/narrative.js";
 import { buildMechanismGroups } from "../../analysis/localization.js";
 import { SEVERITY_TEXT } from "../../constants/guidance.js";
@@ -19,20 +20,30 @@ const IDENTITY_ROW = { padding:"2px 0", fontSize:FS.base, lineHeight:"1.5" };
 // inverting hierarchy) to the canonical md Semibold sub-heading slot.
 const COLUMN_TITLE = { fontSize:FS.md, fontWeight:FW.SEMI, color:C.TEXT, marginBottom:"8px" };
 
-// Oxford-comma join with MECH_COLOR-coloured cluster names. S156-fix2:
-// each cluster name renders in MECH_COLOR[mk] (closes J1 mechanism handle
-// break catalogued in S155 audit); connecting commas + "and" stay in the
-// surrounding text colour. Cluster names are coloured at this scale because
-// §1 carries dataset-level SEV chrome on the card + mechanism-scale words
-// inside — two different scales, no competition. Tier-count words
-// ("high-severity" / "moderate") stay plain — they ARE SEV-scale words
-// inside SEV-scale card chrome.
+// Oxford-comma join with MECH_COLOR-coloured cluster names + MechIcon prefix.
+// S156-fix2: each cluster name renders in MECH_COLOR[mk] (closes J1 mechanism
+// handle break catalogued in S155 audit); connecting commas + "and" stay in
+// the surrounding text colour. S157-fix4: 14px MechIcon prefixes the label
+// per cluster, closing the §1 → §2 chrome discontinuity (cluster names in
+// §1 now carry the same icon+colour pair the §2 chip lane uses below).
+// Cluster names are coloured at this scale because §1 carries dataset-level
+// SEV chrome on the card + mechanism-scale words inside — two different
+// scales, no competition. Tier-count words ("high-severity" / "moderate")
+// stay plain — they ARE SEV-scale words inside SEV-scale card chrome.
 //
 // `cats` is an array of { mk, label } objects.
 function joinCategoryElements(cats) {
   if (cats.length === 0) return null;
+  // Inline-flex wraps the icon+label pair so they ride together when the
+  // sentence wraps. verticalAlign: baseline keeps the wrapper sitting on
+  // the surrounding text baseline; alignItems: center inside the flex
+  // centres the icon against the label's x-height. mechIconSize bumps
+  // ti-123 to 16px automatically when the digits cluster surfaces.
   const namedSpan = (c, i) => (
-    <span key={i} style={{ color: MECH_COLOR[c.mk] || "inherit" }}>{c.label}</span>
+    <span key={i} style={{ display: "inline-flex", alignItems: "center", gap: "4px", verticalAlign: "baseline", color: MECH_COLOR[c.mk] || "inherit" }}>
+      <MechIcon mk={c.mk} size={mechIconSize(c.mk, 14)} color={MECH_COLOR[c.mk]} />
+      <span>{c.label}</span>
+    </span>
   );
   if (cats.length === 1) return namedSpan(cats[0], 0);
   if (cats.length === 2) {
@@ -67,7 +78,7 @@ export function VerdictBanner({ severity, results, importConfig, nRows, nCols, m
 
   // Flagged §3 category names in MECHANISM_ORDER concreteness order —
   // canonical "Copy, paste, edit" / "Unusual digits" / "Distribution
-  // shapes" / "Cross-replicate comparisons" / "Cross-group comparisons"
+  // shapes" / "Cross-replicate comparisons" / "Cross-condition comparisons"
   // labels from `MECHANISMS[mk].label`. Drives the action-sub count
   // sentence on severity > 0. S156-fix2: each entry carries its
   // mechanism key so the renderer can colour the cluster name.

@@ -58,7 +58,7 @@ export function getApplicabilityTests(s, colRel) {
     {name:"Mahalanobis row outlier",fam:"replicate", ok:!isCond&&s.nDC>=3&&s.nR>=3*s.nDC},
     {name:"Blocked Mahalanobis",    fam:"replicate", ok:!isCond&&s.nDC>=3&&s.nR>=60},
     {name:"Missing data pattern",   fam:"replicate", ok:s.nDC>=2&&s.nR>=10}, // interim (S95)
-    // Cross-group comparisons (Dim IV)
+    // Cross-condition comparisons (Dim IV)
     {name:"Cross-cond. rank corr.", fam:"group",     ok:xCondOk&&s.nR>=10},
     {name:"Baseline balance",       fam:"group",     ok:isCond?(s.nDC>=5):(s.nC>=2&&s.nR>=10)},
     {name:"Cross-cond. consistency",fam:"group",     ok:xCondOk&&s.total>=60}, // ≥2 conditions × ≥30 values per cond (P1/P2/P3 minN)

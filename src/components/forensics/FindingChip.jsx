@@ -28,42 +28,35 @@
    via onActivate(firstTestId). */
 
 import { C, FS, FW, FF, CR, SEV_VERDICT, MECH_COLOR } from "../../constants/tokens.js";
-import { hexToRgb } from "../../constants/thresholds.js";
 import { MECHANISMS } from "../../constants/mechanisms.js";
+import { MechIcon, mechIconSize } from "../shared/MechIcon.jsx";
 import { usePulseTrigger } from "./pulseContext.jsx";
 import { usePulseAnimation } from "./PulseStyle.jsx";
 
-// S156-fix1 (refinement to S156 D6): chip chrome reshape after screenshot
-// review. The S156 full-border MECH treatment lost hue separation at chip
-// scale on adjacent dark-blue/dark-purple clusters (Copy/paste/edit ↔
-// Cross-replicate). Restore the pre-S156 left-edge MECH stripe — at 5px
-// (between original 4px stripe and the 3px cluster-header borderLeft) for
-// higher visual weight at chip scale — and retire the full-border treatment.
-// SEV_VERDICT still owns the background tint (HIGH/MOD); cleared-tier chips
-// render the stripe at 0.4 opacity. Tier word colour update lives at the
-// render call site (consumes SEV_VERDICT[severity] colour, plain weight).
-const STRIPE_W = 5;
-const FADE_ALPHA = 0.4;
-function fadeHex(hex) {
-  if (!hex) return null;
-  const [r, g, b] = hexToRgb(hex);
-  return `rgba(${r}, ${g}, ${b}, ${FADE_ALPHA})`;
-}
-function chipStyle(severity, mechColor) {
+// S157: mechanism iconography. The S156-fix1 left-edge MECH stripe
+// retires entirely; a 16px MechIcon at the chip-leading position
+// carries the mechanism handle. The icon does compact-scale
+// identification (resolving the slate-blue ↔ violet adjacency that
+// the stripe alone couldn't separate); the icon's MECH_COLOR hue
+// keeps the broader family suggestion. SEV_VERDICT still owns the
+// chip background tint (HIGH/MOD); cleared-tier chips render the
+// icon at 0.4 opacity (matching the previous stripe-opacity rule).
+// Tier word colour update lives at the render call site.
+const ICON_SIZE = 16;
+const CLEARED_OPACITY = 0.4;
+function chipStyle(severity) {
   if (severity === "HIGH" || severity === "MOD") {
     const sev = severity === "HIGH" ? SEV_VERDICT[3] : SEV_VERDICT[2];
     return {
       bg: sev.bg,
-      stripe: mechColor || sev.color,
       color: C.TEXT,
       pulseColor: sev.color,
       sevColor: sev.color,
     };
   }
-  // Cleared-tier chip: MECH stripe at reduced opacity, no SEV background.
+  // Cleared-tier chip: no SEV background; icon rendered at reduced opacity.
   return {
     bg: C.WHITE,
-    stripe: fadeHex(mechColor) || C.BORDER,
     color: C.TEXT_2,
     pulseColor: SEV_VERDICT[0].color,
     sevColor: SEV_VERDICT[0].color,
@@ -91,7 +84,8 @@ export function FindingChip({ finding, onActivate, showRegionNumber = false }) {
   const otherDims = isSingleTest ? 0 : Math.max(0, (finding.dimensions?.length || 0) - 1);
   const N = finding.regionNumber;
   const mechColor = MECH_COLOR[dimKey];
-  const sev = chipStyle(finding.severity, mechColor);
+  const sev = chipStyle(finding.severity);
+  const isCleared = finding.severity === "LOW";
   // D3: single-test chip carries tier word; multi-test chip omits (M tests
   // may span tiers, no single word applies).
   const tierWord = isSingleTest ? TIER_WORD[finding.severity] : null;
@@ -116,12 +110,11 @@ export function FindingChip({ finding, onActivate, showRegionNumber = false }) {
       onClick={handleClick}
       title={tooltip}
       style={{
-        display: "inline-flex", alignItems: "center", gap: "4px",
-        padding: `3px 10px 3px ${STRIPE_W + 8}px`,
+        display: "inline-flex", alignItems: "center", gap: "6px",
+        padding: "3px 10px 3px 8px",
         background: sev.bg,
         border: "none",
         borderRadius: CR.MD,
-        boxShadow: `inset ${STRIPE_W}px 0 0 ${sev.stripe}`,
         color: sev.color,
         fontSize: FS.sm,
         fontFamily: FF.UI,
@@ -130,6 +123,7 @@ export function FindingChip({ finding, onActivate, showRegionNumber = false }) {
         whiteSpace: "nowrap",
       }}
     >
+      <MechIcon mk={dimKey} size={mechIconSize(dimKey, ICON_SIZE)} color={mechColor} opacity={isCleared ? CLEARED_OPACITY : 1} />
       {showRegionNumber && N != null && (
         <span style={{ fontWeight: FW.BOLD }}>[{N}]</span>
       )}

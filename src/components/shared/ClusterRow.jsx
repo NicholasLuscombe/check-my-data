@@ -34,6 +34,7 @@
 
 import { C, FS, FW, MECH_COLOR, SEV_VERDICT } from "../../constants/tokens.js";
 import { LANE_LABEL_TYPOGRAPHY } from "./Section.jsx";
+import { MechIcon, mechIconSize } from "./MechIcon.jsx";
 
 /**
  * @param {object} props
@@ -69,6 +70,13 @@ export function ClusterRow({
         style={{ display: "flex", alignItems: "center", gap: "8px", cursor: isExpandable ? "pointer" : "default" }}
         onClick={isExpandable ? onToggle : undefined}
       >
+        {/* S157: cluster-identity icon at the row's leading position.
+            20px to match the cluster-header text weight; MECH_COLOR
+            hue carried through MechIcon's default colour resolution
+            via the mk key. Renders at full opacity in all tiers — the
+            right-side worst-tier word badge does the cleared/flagged
+            muting work via SEV_VERDICT colour. */}
+        {mk && <MechIcon mk={mk} size={mechIconSize(mk, 20)} />}
         <span style={{ ...LANE_LABEL_TYPOGRAPHY }}>
           {label}
         </span>
