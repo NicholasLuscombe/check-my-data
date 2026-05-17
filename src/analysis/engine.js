@@ -319,7 +319,7 @@ export async function runFullAnalysis(matrix, rawMatrix, condCtx, assay, onProgr
       if (hasVST) r.vstTransform = vstType;
       return r;
     }],
-    // --- Cross-Group Comparisons + Cross-Replicate (row outliers) ---
+    // --- Cross-Condition Comparisons + Cross-Replicate (row outliers) ---
     ["Baseline Balance",             () => testCarlisleBalance(matrix, condCtx)],
     ["Cross-Condition Rank Corr.",   () => testSpearmanCrossCondition(matrix, condCtx)],
     ["Cross-Condition Consistency",  () => {

@@ -8,6 +8,7 @@ import { useState } from "react";
 import { C, FS, FW, FF, CR, SEV_VERDICT, MECH_COLOR } from "../../constants/tokens.js";
 import { DISPLAY_NAMES, TEST_DESCRIPTIONS, TEST_METHODS, MECHANISMS } from "../../constants/mechanisms.js";
 import { fmtPBadge } from "../../constants/thresholds.js";
+import { MechIcon, mechIconSize } from "./MechIcon.jsx";
 
 /**
  * @param {object} props
@@ -70,9 +71,12 @@ export function TestCardLayout({ result, mode, mk, expanded, onToggle, onSeverit
       padding: mechStripe ? "8px 16px 8px 11px" : "8px 16px",
       fontFamily: FF.UI,
     }}>
-      {/* ── Cluster-name breadcrumb (S156-fix5) ── */}
+      {/* ── Cluster-name breadcrumb (S156-fix5 + S157 icon) ── */}
       {clusterLabel && (
         <div style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "6px",
           fontSize: FS.sm,
           fontWeight: FW.NORM,
           color: mechStripe,
@@ -80,7 +84,8 @@ export function TestCardLayout({ result, mode, mk, expanded, onToggle, onSeverit
           lineHeight: "1.2",
           marginBottom: "2px",
         }}>
-          {clusterLabel}
+          <MechIcon mk={mk} size={mechIconSize(mk, 14)} color={mechStripe} />
+          <span>{clusterLabel}</span>
         </div>
       )}
       {/* ── Header line ── */}

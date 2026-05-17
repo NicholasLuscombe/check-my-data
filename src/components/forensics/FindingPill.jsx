@@ -9,21 +9,19 @@
 
 import { C, FS, FW, FF, CR, SEV_VERDICT, MECH_COLOR } from "../../constants/tokens.js";
 import { TEST_MECHANISM } from "../../constants/mechanisms.js";
+import { MechIcon, mechIconSize } from "../shared/MechIcon.jsx";
 import { usePulseTrigger } from "./pulseContext.jsx";
 import { usePulseAnimation } from "./PulseStyle.jsx";
 
-// S156-fix1 (refinement to S156 D6): pill chrome reshape mirrors FindingChip.
-// MECH_COLOR moves back to a 5px left-edge stripe via inset shadow;
-// full-border treatment retires. SEV_VERDICT owns the background tint.
-// Tier word colour update lives at the render call site (consumes
-// SEV_VERDICT[severity] colour, plain weight). Globals don't emit LOW
-// findings via buildFindings v1.0 so no LOW branch needed here.
-const STRIPE_W = 5;
-function severityStyle(severity, mechColor) {
+// S157: pill chrome mirrors FindingChip's icon-replaces-stripe pattern.
+// 5px MECH stripe retires; 16px MechIcon at the leading position.
+// SEV_VERDICT owns the background tint (globals don't emit LOW via
+// buildFindings v1.0, so no cleared branch needed here).
+const ICON_SIZE = 16;
+function severityStyle(severity) {
   const sev = severity === "HIGH" ? SEV_VERDICT[3] : SEV_VERDICT[2];
   return {
     bg: sev.bg,
-    stripe: mechColor || sev.color,
     color: C.TEXT,
     pulseColor: sev.color,
     sevColor: sev.color,
@@ -37,7 +35,7 @@ export function FindingPill({ finding, onActivate }) {
   const test = finding.tests[0];
   const dimKey = TEST_MECHANISM[test.testId];
   const mechColor = MECH_COLOR[dimKey];
-  const sev = severityStyle(finding.severity, mechColor);
+  const sev = severityStyle(finding.severity);
   const tierWord = TIER_WORD[finding.severity];
   const ref = usePulseAnimation(`pill:${test.testId}`, sev.pulseColor);
   const trigger = usePulseTrigger();
@@ -58,12 +56,11 @@ export function FindingPill({ finding, onActivate }) {
       onClick={handleClick}
       title={test.displayName}
       style={{
-        display: "inline-flex", alignItems: "center",
-        padding: `3px 10px 3px ${STRIPE_W + 8}px`,
+        display: "inline-flex", alignItems: "center", gap: "6px",
+        padding: "3px 10px 3px 8px",
         background: sev.bg,
         border: "none",
         borderRadius: CR.MD,
-        boxShadow: `inset ${STRIPE_W}px 0 0 ${sev.stripe}`,
         color: sev.color,
         fontSize: FS.sm,
         fontFamily: FF.UI,
@@ -72,7 +69,8 @@ export function FindingPill({ finding, onActivate }) {
         whiteSpace: "nowrap",
       }}
     >
-      {test.displayName}
+      <MechIcon mk={dimKey} size={mechIconSize(dimKey, ICON_SIZE)} color={mechColor} />
+      <span>{test.displayName}</span>
       {tierWord && (
         <span style={{ color: sev.sevColor, fontWeight: FW.NORM }}>{" · "}{tierWord}</span>
       )}

@@ -55,7 +55,7 @@ const IMPLICATIONS =
   "Stage 1 properties this card flags only the reverse case: pairs that are " +
   "suspiciously close to each other on a property that honest conditions " +
   "generally distinguish. Interpret alongside experimental design and any " +
-  "convergent signals from other cross-group comparisons tests.";
+  "convergent signals from other cross-condition comparisons tests.";
 
 export function MiniCard_CrossCondConsistency({ result }) {
   const details = result.details || [];
