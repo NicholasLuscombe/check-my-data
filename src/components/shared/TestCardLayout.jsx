@@ -6,7 +6,7 @@
 
 import { useState } from "react";
 import { C, FS, FW, FF, CR, SEV_VERDICT, MECH_COLOR } from "../../constants/tokens.js";
-import { DISPLAY_NAMES, TEST_DESCRIPTIONS, TEST_METHODS } from "../../constants/mechanisms.js";
+import { DISPLAY_NAMES, TEST_DESCRIPTIONS, TEST_METHODS, MECHANISMS } from "../../constants/mechanisms.js";
 import { fmtPBadge } from "../../constants/thresholds.js";
 
 /**
@@ -53,6 +53,14 @@ export function TestCardLayout({ result, mode, mk, expanded, onToggle, onSeverit
   // left grows to accommodate the stripe (existing 16px → stripe + 8px
   // breathing room).
   const mechStripe = mk ? MECH_COLOR[mk] : null;
+  // S156-fix5: cluster-name breadcrumb above the test-name line. Renders
+  // when `mk` is supplied AND maps to a known cluster — defensive skip
+  // when mk is null/undefined (non-Forensics modes, custom card surfaces
+  // outside cluster context). Cleared-tier cards drop opacity to 0.4,
+  // matching the S156-fix1 chip stripe treatment so the mechanism handle
+  // reads as muted alongside flagged-tier cards.
+  const isCleared = !isFl && !isNt;
+  const clusterLabel = mk && MECHANISMS[mk] ? MECHANISMS[mk].label : null;
   return (
     <div style={{
       background: "#FFFFFF",
@@ -62,6 +70,19 @@ export function TestCardLayout({ result, mode, mk, expanded, onToggle, onSeverit
       padding: mechStripe ? "8px 16px 8px 11px" : "8px 16px",
       fontFamily: FF.UI,
     }}>
+      {/* ── Cluster-name breadcrumb (S156-fix5) ── */}
+      {clusterLabel && (
+        <div style={{
+          fontSize: FS.sm,
+          fontWeight: FW.NORM,
+          color: mechStripe,
+          opacity: isCleared ? 0.4 : 1,
+          lineHeight: "1.2",
+          marginBottom: "2px",
+        }}>
+          {clusterLabel}
+        </div>
+      )}
       {/* ── Header line ── */}
       <div
         style={{ display: "flex", justifyContent: "space-between", alignItems: "center", cursor: expandable ? "pointer" : "default" }}
