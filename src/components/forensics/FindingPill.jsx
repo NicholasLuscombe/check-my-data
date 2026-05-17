@@ -12,18 +12,21 @@ import { TEST_MECHANISM } from "../../constants/mechanisms.js";
 import { usePulseTrigger } from "./pulseContext.jsx";
 import { usePulseAnimation } from "./PulseStyle.jsx";
 
-// S156 (A1.D0c-bis D6 lock): parallel encoding — MECH_COLOR moves from the
-// 4px left-edge stripe to the full pill border; SEV_VERDICT moves from
-// border+text to background tint only. Pill text stays plain (C.TEXT) per
-// the colour-on-chrome / words-stay-plain rule. Globals don't emit LOW
+// S156-fix1 (refinement to S156 D6): pill chrome reshape mirrors FindingChip.
+// MECH_COLOR moves back to a 5px left-edge stripe via inset shadow;
+// full-border treatment retires. SEV_VERDICT owns the background tint.
+// Tier word colour update lives at the render call site (consumes
+// SEV_VERDICT[severity] colour, plain weight). Globals don't emit LOW
 // findings via buildFindings v1.0 so no LOW branch needed here.
+const STRIPE_W = 5;
 function severityStyle(severity, mechColor) {
   const sev = severity === "HIGH" ? SEV_VERDICT[3] : SEV_VERDICT[2];
   return {
     bg: sev.bg,
-    border: mechColor || sev.color,
+    stripe: mechColor || sev.color,
     color: C.TEXT,
     pulseColor: sev.color,
+    sevColor: sev.color,
   };
 }
 
@@ -56,10 +59,11 @@ export function FindingPill({ finding, onActivate }) {
       title={test.displayName}
       style={{
         display: "inline-flex", alignItems: "center",
-        padding: "3px 10px",
+        padding: `3px 10px 3px ${STRIPE_W + 8}px`,
         background: sev.bg,
-        border: `1px solid ${sev.border}`,
+        border: "none",
         borderRadius: CR.MD,
+        boxShadow: `inset ${STRIPE_W}px 0 0 ${sev.stripe}`,
         color: sev.color,
         fontSize: FS.sm,
         fontFamily: FF.UI,
@@ -68,7 +72,10 @@ export function FindingPill({ finding, onActivate }) {
         whiteSpace: "nowrap",
       }}
     >
-      {test.displayName}{tierWord && <>{" · "}{tierWord}</>}
+      {test.displayName}
+      {tierWord && (
+        <span style={{ color: sev.sevColor, fontWeight: FW.NORM }}>{" · "}{tierWord}</span>
+      )}
     </span>
   );
 }

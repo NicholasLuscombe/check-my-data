@@ -5,7 +5,7 @@
    Forensics adds p-value and method line. */
 
 import { useState } from "react";
-import { C, FS, FW, FF, CR, SEV_VERDICT } from "../../constants/tokens.js";
+import { C, FS, FW, FF, CR, SEV_VERDICT, MECH_COLOR } from "../../constants/tokens.js";
 import { DISPLAY_NAMES, TEST_DESCRIPTIONS, TEST_METHODS } from "../../constants/mechanisms.js";
 import { fmtPBadge } from "../../constants/thresholds.js";
 
@@ -14,6 +14,11 @@ import { fmtPBadge } from "../../constants/thresholds.js";
  * @param {object} props.result - test result object (must have .name, .flag, .primaryP)
  * @param {"qc"|"review"|"full"} props.mode
  * @param {boolean} props.expanded
+ * @param {string} [props.mk] - mechanism cluster key. When supplied, the card
+ *   renders a 3px left stripe in MECH_COLOR[mk] mirroring the parent
+ *   cluster-header stripe (S156-fix3). Carries mechanism context into the
+ *   card body. Omitted callers fall through to the legacy 1px C.BORDER_L
+ *   left edge.
  * @param {function} [props.onToggle] - click handler for expand/collapse
  * @param {function} [props.onSeverityBadgeClick] - S126b: badge-only click
  *   (forensics pulse). Receives the click event; caller must stopPropagation.
@@ -22,7 +27,7 @@ import { fmtPBadge } from "../../constants/thresholds.js";
  * @param {string|JSX.Element} [props.footer] - summary line below evidence
  * @param {JSX.Element} [props.children] - evidence content (EvidenceTable, plots, etc.)
  */
-export function TestCardLayout({ result, mode, expanded, onToggle, onSeverityBadgeClick, footer, children }) {
+export function TestCardLayout({ result, mode, mk, expanded, onToggle, onSeverityBadgeClick, footer, children }) {
   const [methodOpen, setMethodOpen] = useState(false);
   const fl = result.flag || "LOW";
   const isFl = fl === "HIGH" || fl === "FLAGGED";
@@ -42,12 +47,19 @@ export function TestCardLayout({ result, mode, expanded, onToggle, onSeverityBad
   const expandable = hasEvidence && mode !== "qc";
   const methodText = TEST_METHODS[result.name];
 
+  // S156-fix3: optional mechanism stripe on the card's left edge. Width
+  // matches the ClusterRow header stripe (3px) so the user reads a
+  // continuous mechanism anchor scrolling from header into card. Padding-
+  // left grows to accommodate the stripe (existing 16px → stripe + 8px
+  // breathing room).
+  const mechStripe = mk ? MECH_COLOR[mk] : null;
   return (
     <div style={{
       background: "#FFFFFF",
       border: "1px solid #E5E7EB",
+      ...(mechStripe ? { borderLeft: `3px solid ${mechStripe}` } : {}),
       borderRadius: "6px",
-      padding: "8px 16px",
+      padding: mechStripe ? "8px 16px 8px 11px" : "8px 16px",
       fontFamily: FF.UI,
     }}>
       {/* ── Header line ── */}

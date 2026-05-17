@@ -33,12 +33,16 @@ import { MECHANISMS } from "../../constants/mechanisms.js";
 import { usePulseTrigger } from "./pulseContext.jsx";
 import { usePulseAnimation } from "./PulseStyle.jsx";
 
-// S156 (A1.D0c-bis D6 lock): parallel encoding — MECH_COLOR moves from the
-// 4px left-edge stripe to the full chip border; SEV_VERDICT moves from
-// border+text to background tint only. Chip text stays plain (C.TEXT) per
-// the colour-on-chrome / words-stay-plain rule. Cleared-tier chips render
-// the MECH border at 0.4 opacity to read as muted alongside the
-// HIGH / MOD chips in the same lane.
+// S156-fix1 (refinement to S156 D6): chip chrome reshape after screenshot
+// review. The S156 full-border MECH treatment lost hue separation at chip
+// scale on adjacent dark-blue/dark-purple clusters (Copy/paste/edit ↔
+// Cross-replicate). Restore the pre-S156 left-edge MECH stripe — at 5px
+// (between original 4px stripe and the 3px cluster-header borderLeft) for
+// higher visual weight at chip scale — and retire the full-border treatment.
+// SEV_VERDICT still owns the background tint (HIGH/MOD); cleared-tier chips
+// render the stripe at 0.4 opacity. Tier word colour update lives at the
+// render call site (consumes SEV_VERDICT[severity] colour, plain weight).
+const STRIPE_W = 5;
 const FADE_ALPHA = 0.4;
 function fadeHex(hex) {
   if (!hex) return null;
@@ -50,17 +54,19 @@ function chipStyle(severity, mechColor) {
     const sev = severity === "HIGH" ? SEV_VERDICT[3] : SEV_VERDICT[2];
     return {
       bg: sev.bg,
-      border: mechColor || sev.color,
+      stripe: mechColor || sev.color,
       color: C.TEXT,
       pulseColor: sev.color,
+      sevColor: sev.color,
     };
   }
-  // Cleared-tier chip: MECH border at reduced opacity, no SEV background.
+  // Cleared-tier chip: MECH stripe at reduced opacity, no SEV background.
   return {
     bg: C.WHITE,
-    border: fadeHex(mechColor) || C.BORDER,
+    stripe: fadeHex(mechColor) || C.BORDER,
     color: C.TEXT_2,
     pulseColor: SEV_VERDICT[0].color,
+    sevColor: SEV_VERDICT[0].color,
   };
 }
 
@@ -111,10 +117,11 @@ export function FindingChip({ finding, onActivate, showRegionNumber = false }) {
       title={tooltip}
       style={{
         display: "inline-flex", alignItems: "center", gap: "4px",
-        padding: "3px 10px",
+        padding: `3px 10px 3px ${STRIPE_W + 8}px`,
         background: sev.bg,
-        border: `1px solid ${sev.border}`,
+        border: "none",
         borderRadius: CR.MD,
+        boxShadow: `inset ${STRIPE_W}px 0 0 ${sev.stripe}`,
         color: sev.color,
         fontSize: FS.sm,
         fontFamily: FF.UI,
@@ -127,7 +134,9 @@ export function FindingChip({ finding, onActivate, showRegionNumber = false }) {
         <span style={{ fontWeight: FW.BOLD }}>[{N}]</span>
       )}
       <span>{chipLabel}</span>
-      {tierWord && <span>{" · "}{tierWord}</span>}
+      {tierWord && (
+        <span style={{ color: sev.sevColor, fontWeight: FW.NORM }}>{" · "}{tierWord}</span>
+      )}
       {otherDims > 0 && (
         <span style={{ color: C.TEXT_3, fontWeight: FW.NORM }}>+{otherDims}</span>
       )}

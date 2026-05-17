@@ -39,7 +39,7 @@ function pulseColorForFlag(flag) {
  *   - intercepts severity-badge click to fire the symmetric pulse via
  *     onBadgeClick(result) — does not touch the existing onToggle path.
  */
-function ForensicsTestCard({ result, expanded, onToggle, importConfig, rowMap, onBadgeClick }) {
+function ForensicsTestCard({ result, mk, expanded, onToggle, importConfig, rowMap, onBadgeClick }) {
   const pulseColor = pulseColorForFlag(result.flag);
   const ref = usePulseAnimation(`card:${result.name}`, pulseColor);
   const evidenceChildren = expanded ? (
@@ -52,7 +52,7 @@ function ForensicsTestCard({ result, expanded, onToggle, importConfig, rowMap, o
       style={{ borderRadius: CR.LG }}
     >
       <TestCardLayout
-        result={result} mode="full"
+        result={result} mode="full" mk={mk}
         expanded={expanded}
         onToggle={onToggle}
         onSeverityBadgeClick={onBadgeClick ? (e) => { e.stopPropagation(); onBadgeClick(result); } : undefined}
@@ -126,6 +126,7 @@ export function ForensicsCategoryBlock({
                 <ForensicsTestCard
                   key={r.name}
                   result={r}
+                  mk={mk}
                   expanded={!!isOpen}
                   onToggle={(e) => { e.stopPropagation(); onToggleTestEvidence?.(r.name, defaultOpen); }}
                   importConfig={importConfig}
@@ -145,6 +146,7 @@ export function ForensicsCategoryBlock({
                   <ForensicsTestCard
                     key={r.name}
                     result={r}
+                    mk={mk}
                     expanded={false}
                     onToggle={undefined}
                     importConfig={importConfig}

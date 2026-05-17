@@ -1,4 +1,4 @@
-import { C, FS, FW, CR, SEV_VERDICT } from "../../constants/tokens.js";
+import { C, FS, FW, CR, SEV_VERDICT, MECH_COLOR } from "../../constants/tokens.js";
 import { MECHANISMS, MECHANISM_ORDER } from "../../constants/mechanisms.js";
 import { VERDICT_TEXT } from "../../analysis/narrative.js";
 import { buildMechanismGroups } from "../../analysis/localization.js";
@@ -19,13 +19,33 @@ const IDENTITY_ROW = { padding:"2px 0", fontSize:FS.base, lineHeight:"1.5" };
 // inverting hierarchy) to the canonical md Semibold sub-heading slot.
 const COLUMN_TITLE = { fontSize:FS.md, fontWeight:FW.SEMI, color:C.TEXT, marginBottom:"8px" };
 
-// Oxford-comma join. Used by the action-sub count sentence to list §3
-// category names when severity > 0.
-function joinCategories(cats) {
-  if (cats.length === 0) return "";
-  if (cats.length === 1) return cats[0];
-  if (cats.length === 2) return `${cats[0]} and ${cats[1]}`;
-  return `${cats.slice(0, -1).join(", ")}, and ${cats[cats.length - 1]}`;
+// Oxford-comma join with MECH_COLOR-coloured cluster names. S156-fix2:
+// each cluster name renders in MECH_COLOR[mk] (closes J1 mechanism handle
+// break catalogued in S155 audit); connecting commas + "and" stay in the
+// surrounding text colour. Cluster names are coloured at this scale because
+// §1 carries dataset-level SEV chrome on the card + mechanism-scale words
+// inside — two different scales, no competition. Tier-count words
+// ("high-severity" / "moderate") stay plain — they ARE SEV-scale words
+// inside SEV-scale card chrome.
+//
+// `cats` is an array of { mk, label } objects.
+function joinCategoryElements(cats) {
+  if (cats.length === 0) return null;
+  const namedSpan = (c, i) => (
+    <span key={i} style={{ color: MECH_COLOR[c.mk] || "inherit" }}>{c.label}</span>
+  );
+  if (cats.length === 1) return namedSpan(cats[0], 0);
+  if (cats.length === 2) {
+    return <>{namedSpan(cats[0], 0)} and {namedSpan(cats[1], 1)}</>;
+  }
+  return (
+    <>
+      {cats.slice(0, -1).map((c, i) => (
+        <span key={i}>{namedSpan(c, i)}{i < cats.length - 2 ? ", " : ""}</span>
+      ))}
+      , and {namedSpan(cats[cats.length - 1], cats.length - 1)}
+    </>
+  );
 }
 
 export function VerdictBanner({ severity, results, importConfig, nRows, nCols, mode, dataProfile }) {
@@ -49,15 +69,14 @@ export function VerdictBanner({ severity, results, importConfig, nRows, nCols, m
   // canonical "Copy, paste, edit" / "Unusual digits" / "Distribution
   // shapes" / "Cross-replicate comparisons" / "Cross-group comparisons"
   // labels from `MECHANISMS[mk].label`. Drives the action-sub count
-  // sentence on severity > 0. Restores §1↔§3 vocabulary parity — the
-  // pre-fix2 count strip carried a parallel mechanism taxonomy with
-  // shorter labels that didn't match §3 headers.
+  // sentence on severity > 0. S156-fix2: each entry carries its
+  // mechanism key so the renderer can colour the cluster name.
   const flaggedCategories = MECHANISM_ORDER
     .filter(mk => {
       const g = groups[mk];
       return ((g?.highCount || 0) + (g?.modCount || 0)) > 0;
     })
-    .map(mk => MECHANISMS[mk].label);
+    .map(mk => ({ mk, label: MECHANISMS[mk].label }));
 
   return (
     <div style={{border:`2px solid ${v.color}`,borderRadius:CR.XL,overflow:"hidden"}}>
@@ -114,7 +133,7 @@ export function VerdictBanner({ severity, results, importConfig, nRows, nCols, m
               {nHigh > 0 && nMod > 0 && (
                 <>{nHigh} high-severity finding{nHigh === 1 ? "" : "s"} and {nMod} moderate finding{nMod === 1 ? "" : "s"}</>
               )}
-              {" across "}{joinCategories(flaggedCategories)}.
+              {" across "}{joinCategoryElements(flaggedCategories)}.
             </>
           )}
         </div>

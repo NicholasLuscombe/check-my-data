@@ -102,6 +102,7 @@ export function CategoryRow({
               key={r.name}
               result={r}
               mode={mode}
+              mk={mk}
               expanded={!!isTestOpen}
               onToggle={hasEvidence ? (e) => { e.stopPropagation(); onToggleTestEvidence?.(r.name, defaultOpen); } : undefined}
             >
@@ -127,7 +128,7 @@ export function CategoryRow({
     return testResults.length > 0 ? (
       <div style={{display:"flex",flexDirection:"column",gap:"8px",marginTop:"8px"}}>
         {testResults.map(r => (
-          <TestCardLayout key={r.name} result={r} mode="qc" expanded={false} />
+          <TestCardLayout key={r.name} result={r} mode="qc" mk={mk} expanded={false} />
         ))}
       </div>
     ) : null;
@@ -157,7 +158,7 @@ export function CategoryRow({
         {isTechExpanded && (
           <div style={{display:"flex",flexDirection:"column",gap:"8px",marginTop:"8px"}}>
             {testResults.map(r => (
-              <TestCardLayout key={r.name} result={r} mode="qc" expanded={false} />
+              <TestCardLayout key={r.name} result={r} mode="qc" mk={mk} expanded={false} />
             ))}
           </div>
         )}
