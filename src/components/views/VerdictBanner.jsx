@@ -37,9 +37,13 @@ export function VerdictBanner({ severity, results, importConfig, nRows, nCols, m
   const v = modeText ? { ...vFull, headline: modeText.headline } : vFull;
   const groups = buildMechanismGroups(results);
   const nApplicable = results.filter(r => r.flag !== "N/A").length;
-  // K = HIGH + MOD count; LOW excluded to match the chip-layer CLEAR-collapse
-  // rule (S126b: chips emit at HIGH/MOD only).
-  const K = results.filter(r => r.flag === "HIGH" || r.flag === "MODERATE").length;
+  // S156 (A1.D0c-bis D2 lock): split K = HIGH + MOD count into per-tier
+  // counts. The opener count clause renders three branches: HIGH only,
+  // MOD only, or mixed. Total K retained for the false-positive context
+  // line which compares against expected-by-chance.
+  const nHigh = results.filter(r => r.flag === "HIGH").length;
+  const nMod  = results.filter(r => r.flag === "MODERATE").length;
+  const K = nHigh + nMod;
 
   // Flagged §3 category names in MECHANISM_ORDER concreteness order —
   // canonical "Copy, paste, edit" / "Unusual digits" / "Distribution
@@ -88,20 +92,30 @@ export function VerdictBanner({ severity, results, importConfig, nRows, nCols, m
 
         {/* Action one-liner — mode-agnostic ladder from VERDICT_TEXT.sub
             (e.g. "Investigate dataset before proceeding") with a count
-            sentence appended on severity > 0: "<actionText>. K tests
-            flagged across <category-list>." Category list reads §3
-            category names in MECHANISM_ORDER concreteness order with
-            Oxford-comma join. Single register throughout — no in-paragraph
-            weight or colour accents; the verdict headline above carries
-            the visual emphasis. Pre-fix2 a separate count strip carried
-            mech-coloured numerals + a parallel taxonomy; S138-fix2
-            retired the strip and folded the summary here to restore
-            §1↔§3 vocabulary parity.
+            sentence appended on severity > 0. S156 (A1.D0c-bis D2 lock):
+            count clause splits HIGH and MOD into per-tier counts. Three
+            branches — HIGH only, MOD only, mixed — sharing the trailing
+            "across <category-list>" clause. Words "high-severity" and
+            "moderate" themselves stay plain weight + plain colour — the
+            colour-on-chrome / words-stay-plain rule (per D3); the
+            verdict headline above carries the visual emphasis.
             Register: `base Regular C.TEXT_2`. */}
         <div style={{fontSize:FS.base,color:C.TEXT_2,marginTop:"8px",lineHeight:"1.5"}}>
           {v.sub}
           {severity > 0 && flaggedCategories.length > 0 && (
-            <>. {K} test{K === 1 ? "" : "s"} flagged across {joinCategories(flaggedCategories)}.</>
+            <>
+              {". "}
+              {nHigh > 0 && nMod === 0 && (
+                <>{nHigh} high-severity finding{nHigh === 1 ? "" : "s"}</>
+              )}
+              {nHigh === 0 && nMod > 0 && (
+                <>{nMod} moderate finding{nMod === 1 ? "" : "s"}</>
+              )}
+              {nHigh > 0 && nMod > 0 && (
+                <>{nHigh} high-severity finding{nHigh === 1 ? "" : "s"} and {nMod} moderate finding{nMod === 1 ? "" : "s"}</>
+              )}
+              {" across "}{joinCategories(flaggedCategories)}.
+            </>
           )}
         </div>
 

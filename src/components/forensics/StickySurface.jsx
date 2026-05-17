@@ -169,7 +169,7 @@ export function StickySurface({ findings, onActivateTest, minimapSlot = null }) 
           display: "flex", alignItems: "center", gap: "10px",
           flexWrap: "wrap",
         }}>
-          <span style={{ ...LANE_LABEL_TYPOGRAPHY, ...LANE_LABEL_LAYOUT }}>Patterns flagged broadly</span>
+          <span style={{ ...LANE_LABEL_TYPOGRAPHY, ...LANE_LABEL_LAYOUT }}>Broadly flagged patterns</span>
           <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
             {fallbackChips.map(f => (
               <FindingChip key={f.id} finding={f} onActivate={onActivateTest} />

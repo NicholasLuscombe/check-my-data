@@ -4,13 +4,13 @@ import { buildConvergenceFromFindings } from "../../analysis/convergence.js";
 import { buildFindings } from "../../analysis/findings.js";
 import { computeSeverity } from "../../analysis/severity.js";
 import { VerdictBanner } from "./VerdictBanner.jsx";
-import { buildConsultationPrompt } from "../../analysis/narrative.js";
+import { buildConsultationPrompt, ACTION_LABEL } from "../../analysis/narrative.js";
 import { CategoryRow } from "../shared/CategoryRow.jsx";
 import { HotspotExcerptList } from "./HotspotExcerptList.jsx";
 import { PulseProvider } from "../forensics/pulseContext.jsx";
 import { PulseStyle } from "../forensics/PulseStyle.jsx";
 import { ForensicsBody } from "../forensics/ForensicsBody.jsx";
-import { C, FF, FW, FS, CR, UI, BADGE, SIGNAL, ACCENT, SEV_VERDICT, SEVERITY_WORD, DUP_GROUP_PALETTE } from "../../constants/tokens.js";
+import { C, FF, FW, FS, CR, UI, BADGE, SIGNAL, ACCENT, SEV_VERDICT, DUP_GROUP_PALETTE } from "../../constants/tokens.js";
 import { FLAG_STYLES, ALPHA, fmtP } from "../../constants/thresholds.js";
 import { MECHANISMS, MECHANISM_ORDER, DISPLAY_NAMES, TEST_DESCRIPTIONS, TEST_MECHANISM, GLOBAL_TESTS } from "../../constants/mechanisms.js";
 import { ASSAYS, DATA_TYPES } from "../../constants/assays.js";
@@ -555,8 +555,10 @@ export function ReportView({ results, importConfig, matrix, rowMap, onBack, onCh
     }
     dataHtml += '</table>';
 
-    // Build summary sheet HTML
-    const flagLabel = f => ({HIGH:"FLAGGED",MODERATE:"NOTED",LOW:"CLEAR","N/A":"N/A"}[f]||f);
+    // Build summary sheet HTML. flagLabel reads FLAG_STYLES[f].label directly
+    // per S156 D1 lock — local mapping retired in favour of the single
+    // source of truth.
+    const flagLabel = f => FLAG_STYLES[f]?.label || f;
     const groups = buildMechanismGroups(results);
     let summHtml = `<table border="1" cellpadding="4" style="border-collapse:collapse;font-family:${FF.UI};font-size:${FS.xs}">`;
     summHtml += `<tr><td colspan="4" style="background:${C.TEXT};color:${C.WHITE};font-size:${FS.md};font-weight:${FW.BOLD};padding:8px">Check My Data Report — Severity ${severity}</td></tr>`;
@@ -578,8 +580,9 @@ export function ReportView({ results, importConfig, matrix, rowMap, onBack, onCh
     }
     summHtml += '</table>';
 
-    // Build styled HTML report and open in new tab
-    const sevLabel = SEVERITY_WORD[severity] || "Unknown";
+    // Build styled HTML report and open in new tab. S156 D5: outcome
+    // ladder consumes ACTION_LABEL (engine severity 0–3 → outcome 1–4 of 4).
+    const action = ACTION_LABEL[severity] || { score: severity + 1, label: "Unknown" };
     const sevBg = {0:FLAG_STYLES.LOW.bg,1:FLAG_STYLES.MODERATE.bg,2:FLAG_STYLES.MODERATE.bg,3:FLAG_STYLES.HIGH.bg}[severity]||C.WHITE;
     const sevFg = {0:FLAG_STYLES.LOW.text,1:FLAG_STYLES.MODERATE.text,2:FLAG_STYLES.MODERATE.text,3:FLAG_STYLES.HIGH.text}[severity]||C.TEXT;
     const html = `<!DOCTYPE html>
@@ -622,7 +625,7 @@ export function ReportView({ results, importConfig, matrix, rowMap, onBack, onCh
       <div class="subtitle">${esc(importConfig.fileName||"uploaded")} · ${nRows} rows × ${nCols} columns · Measurement type: ${esc(assayLabel)}</div>
     </div>
     <div>
-      <span class="sev-badge" style="background:${sevBg};color:${sevFg}">Severity ${severity} — ${sevLabel}</span>
+      <span class="sev-badge" style="background:${sevBg};color:${sevFg}">Outcome: ${action.score} of 4 — ${action.label}</span>
       <button class="no-print" onclick="window.print()" style="margin-left:12px;padding:6px 16px;border:1px solid ${C.BORDER};border-radius:${CR.MD};background:${C.WHITE};cursor:pointer;font-size:${FS.xs}">🖨 Print</button>
     </div>
   </div>

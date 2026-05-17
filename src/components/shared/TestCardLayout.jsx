@@ -29,9 +29,12 @@ export function TestCardLayout({ result, mode, expanded, onToggle, onSeverityBad
   const isNt = fl === "MODERATE" || fl === "NOTED";
   const hasEvidence = isFl || isNt;
   const flColor = isFl ? SEV_VERDICT[3].color : isNt ? SEV_VERDICT[2].color : SEV_VERDICT[0].color;
+  // S156 (A1.D0c-bis D1 lock): Forensics/Review tier canon → sentence-case
+  // `High` / `Moderate` / `Clear`. QC ALL CAPS branch unchanged (out of scope
+  // for the canon migration; stale pending a QC-mode session).
   const flLabel = mode === "qc"
     ? (isFl ? "FLAGGED" : isNt ? "NOTED" : "CLEAR")
-    : (isFl ? "Flagged" : isNt ? "Noted" : "Clear");
+    : (isFl ? "High" : isNt ? "Moderate" : "Clear");
 
   const showSubtitle = mode !== "qc";
   const showPValue = mode === "full";

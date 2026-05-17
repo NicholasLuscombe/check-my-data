@@ -1,9 +1,17 @@
 import { C, SIGNAL } from './tokens.js';
 
+// S156 (A1.D0c-bis D1 lock): .label retired ALL CAPS ladder
+// (FLAGGED/NOTED/CLEAR) in favour of sentence-case `High`/`Moderate`/`Clear`.
+// N/A and ERROR retain their existing forms — N/A is a parenthetical
+// identifier and ERROR is an alarm-state lexeme, neither subject to the
+// tier-word canon. Consumers: ExcelMetaCard:76 (per-flag label lookup),
+// ReportView HTML export at :559 (local flagLabel retired in this pass —
+// now reads FLAG_STYLES[f].label directly), excelExport.js worstFlag/r.flag
+// emit sites (Pass 8.2).
 export const FLAG_STYLES = {
-  HIGH:     { bg:SIGNAL.RED.bg,   border:SIGNAL.RED.border,   text:SIGNAL.RED.text,   dot:SIGNAL.RED.dot,   label:"FLAGGED" },
-  MODERATE: { bg:SIGNAL.AMBER.bg, border:SIGNAL.AMBER.border, text:SIGNAL.AMBER.text, dot:SIGNAL.AMBER.dot, label:"NOTED" },
-  LOW:      { bg:SIGNAL.GREEN.bg, border:SIGNAL.GREEN.border, text:SIGNAL.GREEN.text, dot:SIGNAL.GREEN.dot, label:"CLEAR" },
+  HIGH:     { bg:SIGNAL.RED.bg,   border:SIGNAL.RED.border,   text:SIGNAL.RED.text,   dot:SIGNAL.RED.dot,   label:"High" },
+  MODERATE: { bg:SIGNAL.AMBER.bg, border:SIGNAL.AMBER.border, text:SIGNAL.AMBER.text, dot:SIGNAL.AMBER.dot, label:"Moderate" },
+  LOW:      { bg:SIGNAL.GREEN.bg, border:SIGNAL.GREEN.border, text:SIGNAL.GREEN.text, dot:SIGNAL.GREEN.dot, label:"Clear" },
   "N/A":    { bg:C.BG,            border:C.BORDER,            text:C.TEXT_3,           dot:C.TEXT_3,         label:"N/A" },
   ERROR:    { bg:SIGNAL.RED.bg,   border:"#fca5a5",           text:SIGNAL.RED.text,    dot:"#dc2626",        label:"ERROR" },
 };

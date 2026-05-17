@@ -103,12 +103,13 @@ export function ForensicsCategoryBlock({
   return (
     <div style={{ paddingBottom: isExpanded ? "4px" : "0" }}>
       <ClusterRow
+        mk={mk}
         label={label}
         count={checkCount}
         description={description}
         noun="test"
         isFlagged={isFlagged}
-        flagColor={flagColor}
+        hasHigh={hasHigh}
         isExpanded={isExpanded}
         onToggle={onToggle}
       />
@@ -178,7 +179,9 @@ function ClearSummaryRow({ tests, onExpand, expanded = false }) {
       }}
     >
       <span style={{ color: SEV_VERDICT[0].color, fontSize: FS.base }}>✓</span>
-      <span style={{ fontWeight: FW.SEMI, color: C.TEXT }}>{tests.length} test{tests.length !== 1 ? "s" : ""} CLEAR</span>
+      {/* S156 (A1.D0c-bis D4 lock): ALL CAPS "CLEAR" retired; sentence-case
+          past-tense "cleared" verb matches the post-S137 canon. */}
+      <span style={{ fontWeight: FW.SEMI, color: C.TEXT }}>{tests.length} test{tests.length !== 1 ? "s" : ""} cleared</span>
       <span style={{ color: C.TEXT_3 }}>—</span>
       <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", minWidth: 0 }}>
         {names}
