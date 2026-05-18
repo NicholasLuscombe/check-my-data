@@ -2,6 +2,67 @@ import { mean, stddev, kurtosis, trimmedKurtosis, normalCDF, zToP, fitPredictedS
 import { flagFromP, ALPHA, EFFECT_SIZE } from "../constants/thresholds.js";
 
 /* 6. Excess Kurtosis */
+
+// ── S159b scratch-buffer helpers ──────────────────────────────────────
+// The N_SIM = 1999 simulation loop calls trimmedKurtosis/kurtosis + adStatistic
+// on a per-sim batchDiffs array. Pre-S159b each sim allocated:
+//   - batchDiffs = []            (1× per sim)
+//   - simRow = []                (× nValidRows per sim → ~600k allocs/fixture)
+//   - sorted = arr.slice().sort()   inside adStatistic     (1× per sim)
+//   - sorted + trimmed slices       inside trimmedKurtosis (2× per sim, useRobust)
+// On DS20 this compounded to tens of thousands of length-~8k Array allocations
+// + hundreds of thousands of length-nC Array allocations per testKurtosis call.
+// Browser GC contention dominated wallclock; Node V8 absorbed it cheaply.
+// The helpers below accept pre-allocated Float64Array scratch and avoid all
+// per-call slicing/sorting/spreading. Statistical results are bit-identical
+// to the primitives versions (same formulas, same operation order; mean uses
+// arr.reduce style fold but with explicit indexed loops over a typed buffer).
+
+/** Kurtosis on buf[start..end) — matches primitives.kurtosis exactly:
+ *  m = Σx / N, s = √(Σ(x−m)² / (N−1)), return Σ((x−m)/s)⁴ / N − 3. */
+function kurtosisOfRange(buf, start, end) {
+  const N = end - start;
+  if (N < 4) return NaN;
+  let sumX = 0;
+  for (let i = start; i < end; i++) sumX += buf[i];
+  const m = sumX / N;
+  let sumD2 = 0;
+  for (let i = start; i < end; i++) { const d = buf[i] - m; sumD2 += d * d; }
+  const variance = sumD2 / Math.max(N - 1, 1);
+  if (variance === 0) return NaN;
+  const s = Math.sqrt(variance);
+  let sum4 = 0;
+  for (let i = start; i < end; i++) {
+    const z = (buf[i] - m) / s;
+    sum4 += z * z * z * z;
+  }
+  return sum4 / N - 3;
+}
+
+/** trimmedKurtosis equivalent on a sorted region. Caller must have already
+ *  sorted buf[0..n) ascending. cut = max(1, floor(n × 0.02)); kurtosis is
+ *  computed over buf[cut..n−cut). Mirrors primitives.trimmedKurtosis. */
+function trimmedKurtosisOfSorted(sortedBuf, n) {
+  const cut = Math.max(1, Math.floor(n * 0.02));
+  if (n - 2 * cut < 4) return NaN;
+  return kurtosisOfRange(sortedBuf, cut, n - cut);
+}
+
+/** Anderson-Darling A² against N(0, √2) on a sorted region. Caller must have
+ *  already sorted buf[0..n) ascending. Mirrors the inner adStatistic in the
+ *  pre-S159b code (identical formula, no slice/sort allocation). */
+function adStatisticOfSorted(sortedBuf, n) {
+  if (n < 8) return NaN;
+  const sqrt2 = Math.SQRT2;
+  let sum = 0;
+  for (let i = 0; i < n; i++) {
+    const Fi  = Math.max(1e-10, Math.min(1 - 1e-10, normalCDF(sortedBuf[i] / sqrt2)));
+    const Fni = Math.max(1e-10, Math.min(1 - 1e-10, normalCDF(sortedBuf[n - 1 - i] / sqrt2)));
+    sum += (2 * (i + 1) - 1) * (Math.log(Fi) + Math.log(Fni));
+  }
+  return -n - sum / n;
+}
+
 /**
  * Detects non-normal noise distributions (platykurtic from uniform RNG or leptokurtic anomalies) via kurtosis and Anderson-Darling tests.
  * @param {number[][]} matrix - Numeric matrix (rows x replicate columns, minimum 2 columns and 20 rows).
@@ -119,43 +180,81 @@ export function testKurtosis(matrix, condCtx, rng) {
     for (let i = 0; i < MAX_SIM_PAIRS; i++) simPairs.push(allPairIndices[Math.floor(i * step)]);
   }
 
+  // S159b — pre-allocate sim-loop scratch buffers. Caps are upper bounds on
+  // the per-sim working set; actual fills are tracked by batchLen each sim.
+  // nRowsForBatch caps validRowIdxs.length at MAX_SIM_ROWS when simSubsample
+  // is active; simPairs is already bounded by MAX_SIM_PAIRS. Worst case
+  // batchCap = 500 × 30 = 15000 doubles = 120 KB.
+  const nRowsForBatch = simSubsample ? MAX_SIM_ROWS : validRowIdxs.length;
+  const batchCap = Math.max(1, nRowsForBatch * simPairs.length);
+  const batchBuf  = new Float64Array(batchCap);
+  const sortBuf   = new Float64Array(batchCap);
+  const simRowBuf = new Float64Array(nC);
+  // Shuffle buffer only allocated when subsampling actually fires.
+  const shuffledBuf = simSubsample ? new Int32Array(validRowIdxs.length) : null;
+
   for (let b = 0; b < N_SIM; b++) {
-    const batchDiffs = [];
+    let batchLen = 0;
     let rowsToUse = validRowIdxs;
+    let rowsStart = 0;
+    let rowsEnd = validRowIdxs.length;
     if (simSubsample) {
-      const shuffled = validRowIdxs.slice();
-      for (let i = shuffled.length - 1; i > 0 && shuffled.length - i <= MAX_SIM_ROWS; i--) {
+      // Copy validRowIdxs into shuffledBuf (Int32 view), then partial
+      // Fisher-Yates on the trailing MAX_SIM_ROWS slots — preserves the
+      // exact PRNG call count and order of the pre-S159b path.
+      for (let i = 0; i < validRowIdxs.length; i++) shuffledBuf[i] = validRowIdxs[i];
+      for (let i = shuffledBuf.length - 1; i > 0 && shuffledBuf.length - i <= MAX_SIM_ROWS; i--) {
         const j = Math.floor(rng.random() * (i + 1));
-        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        const tmp = shuffledBuf[i]; shuffledBuf[i] = shuffledBuf[j]; shuffledBuf[j] = tmp;
       }
-      rowsToUse = shuffled.slice(-MAX_SIM_ROWS);
+      rowsToUse = shuffledBuf;
+      rowsStart = shuffledBuf.length - MAX_SIM_ROWS;
+      rowsEnd = shuffledBuf.length;
     }
     if (usePredicted) {
-      for (const r of rowsToUse) {
-        if (!predictedSigma[r] || predictedSigma[r] <= 0) continue;
-        const simRow = [];
-        for (let c = 0; c < nC; c++) simRow.push(predictedSigma[r] * rng.randn());
-        for (const [c1, c2] of simPairs) {
-          batchDiffs.push((simRow[c1] - simRow[c2]) / predictedSigma[r]);
+      for (let ri = rowsStart; ri < rowsEnd; ri++) {
+        const r = rowsToUse[ri];
+        const sigR = predictedSigma[r];
+        if (!sigR || sigR <= 0) continue;
+        for (let c = 0; c < nC; c++) simRowBuf[c] = sigR * rng.randn();
+        for (let pi = 0; pi < simPairs.length; pi++) {
+          const pair = simPairs[pi];
+          batchBuf[batchLen++] = (simRowBuf[pair[0]] - simRowBuf[pair[1]]) / sigR;
         }
       }
     } else {
-      for (const r of rowsToUse) {
-        if (!localSigma[r] || localSigma[r] <= 0) continue;
-        const simRow = [];
-        for (let c = 0; c < nC; c++) simRow.push(localSigma[r] * rng.randn());
-        const simMean = simRow.reduce((a, v) => a + v, 0) / nC;
-        const simSD = Math.sqrt(simRow.reduce((s, x) => s + (x - simMean) ** 2, 0) / Math.max(nC - 1, 1));
+      for (let ri = rowsStart; ri < rowsEnd; ri++) {
+        const r = rowsToUse[ri];
+        const sigR = localSigma[r];
+        if (!sigR || sigR <= 0) continue;
+        for (let c = 0; c < nC; c++) simRowBuf[c] = sigR * rng.randn();
+        let simSum = 0;
+        for (let c = 0; c < nC; c++) simSum += simRowBuf[c];
+        const simMean = simSum / nC;
+        let simSS = 0;
+        for (let c = 0; c < nC; c++) { const d = simRowBuf[c] - simMean; simSS += d * d; }
+        const simSD = Math.sqrt(simSS / Math.max(nC - 1, 1));
         if (simSD <= 0) continue;
-        for (const [c1, c2] of simPairs) {
-          batchDiffs.push((simRow[c1] - simRow[c2]) / simSD);
+        for (let pi = 0; pi < simPairs.length; pi++) {
+          const pair = simPairs[pi];
+          batchBuf[batchLen++] = (simRowBuf[pair[0]] - simRowBuf[pair[1]]) / simSD;
         }
       }
     }
-    if (batchDiffs.length >= 20) {
-      simKurts.push(useRobust ? trimmedKurtosis(batchDiffs) : kurtosis(batchDiffs));
-      simADs.push(adStatistic(batchDiffs));
-      if (b === 0) { for (const d of batchDiffs) { simDiffs.push(d); _sN++; } }
+    if (batchLen >= 20) {
+      // Both adStatistic and trimmedKurtosis need sorted input. Sort once
+      // into sortBuf and have the two helpers consume the same sorted view.
+      // Non-robust kurtosis is order-invariant, so reading from sortBuf is
+      // numerically identical to reading from batchBuf.
+      for (let i = 0; i < batchLen; i++) sortBuf[i] = batchBuf[i];
+      // Float64Array.sort() is numerical-ascending by default — no comparator
+      // needed (avoids the `(a,b)=>a-b` closure entirely).
+      sortBuf.subarray(0, batchLen).sort();
+      simKurts.push(useRobust
+        ? trimmedKurtosisOfSorted(sortBuf, batchLen)
+        : kurtosisOfRange(sortBuf, 0, batchLen));
+      simADs.push(adStatisticOfSorted(sortBuf, batchLen));
+      if (b === 0) { for (let i = 0; i < batchLen; i++) { simDiffs.push(batchBuf[i]); _sN++; } }
     }
   }
   const simKurt = simKurts.length >= 20 ? mean(simKurts) : NaN;
