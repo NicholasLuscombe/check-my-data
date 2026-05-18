@@ -53,6 +53,16 @@ async function aggregatePerGroup(testFn, groups, parentCondCtx) {
         }
       }
     }
+    // S162a: parallel remap for the additive flaggedRowIndices field on
+    // tests that emit it (Mahalanobis Row Outlier). Keeps the field's
+    // semantics dataset-relative across pooled and stratified dispatch
+    // when the worst-group spread below propagates it upward.
+    if (g.rowIndices && Array.isArray(r.flaggedRowIndices)) {
+      r.flaggedRowIndices = r.flaggedRowIndices.map(row1 => {
+        const idx = row1 - 1;
+        return (idx >= 0 && idx < g.rowIndices.length) ? g.rowIndices[idx] + 1 : row1;
+      });
+    }
     perGroup.push({group:g.name, n:g.matrix.length, flag:r.flag, result:r});
     await tick(); // yield between groups to prevent browser kill dialog
   }
