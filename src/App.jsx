@@ -45,11 +45,14 @@ export default function CheckMyData() {
       setImportConfig({...config, vst});
       setAnalysisMatrix(matrix);
       setRowMap(filteredIndices);
+      console.time('[CMD] engine');
       const testResults=await runFullAnalysis(
         matrix,rawMatrix,condCtx,config.assay,setRunProgress,vst,
         {isPivoted:!!config.isPivoted},config.dataType||'continuous',
         config.rowSemantics||'ordered'
       );
+      console.timeEnd('[CMD] engine');
+      console.time('[CMD] render');
       setResults(testResults);
       setPhase("report");
       window.scrollTo(0,0);

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { extractLocalizations, buildMechanismGroups } from "../../analysis/localization.js";
 import { buildConvergenceFromFindings } from "../../analysis/convergence.js";
 import { buildFindings } from "../../analysis/findings.js";
@@ -78,6 +78,10 @@ const METHOD_BATTERY = [
 ];
 
 export function ReportView({ results, importConfig, matrix, rowMap, onBack, onChangeFile }) {
+  useEffect(() => {
+    console.timeEnd('[CMD] render');
+    console.log('[CMD] render complete');
+  }, []); // fires once on initial results mount
   const { severity, high, mod, nFlaggedDimensions } = computeSeverity(results);
   const sevColor=SEV_COLORS[severity];
   const assayLabel=ASSAYS.find(a=>a.v===importConfig.assay)?.l||importConfig.assay;
