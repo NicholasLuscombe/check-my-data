@@ -71,6 +71,18 @@ function formatP(p) {
 }
 
 /**
+ * Format a p-value as a labelled clause with the right operator. Returns
+ * `${label} = X` for finite p-values and `${label} < X` at the floor
+ * (`< 0.0001`). Avoids the awkward `p = < 0.0001` rendering that
+ * `${label} = ${formatP(v)}` produces directly when the value is at floor.
+ */
+function formatPClause(label, value) {
+  const s = formatP(value);
+  if (s.startsWith("<")) return `${label} ${s}`;
+  return `${label} = ${s}`;
+}
+
+/**
  * Format a string-encoded scientific-notation p-value ("1.66e-6") as
  * Unicode "1.66×10⁻⁶" for prose. Falls through to formatP for non-sci
  * inputs.
@@ -207,8 +219,8 @@ function loessResidualAnalysis(r /*, ctx */) {
     line1Parts.push(`${direction} windows at ${winFragments.join(", ")}`);
   }
   const pBits = [];
-  if (cusumP != null) pBits.push(`CUSUM p = ${formatP(cusumP)}`);
-  if (scanP != null) pBits.push(`scan p = ${formatP(scanP)}`);
+  if (cusumP != null) pBits.push(formatPClause("CUSUM p", cusumP));
+  if (scanP != null) pBits.push(formatPClause("scan p", scanP));
   let line1 = line1Parts.join("; ");
   if (pBits.length > 0) line1 += `. ${pBits.join(", ")}`;
   if (line1) evidenceLines.push(line1 + ".");
@@ -250,10 +262,9 @@ function benfordFirstDigit(r /*, ctx */) {
   const evidenceLines = [];
 
   // Line 1: headline statistic + classification.
-  const line1 = `χ² = ${chiSqStr} on ${df} df, MAD = ${MADStr} (${conformity}, MAD p ${formatP(pMAD).replace(/^/, "")}).` +
+  const line1 = `χ² = ${chiSqStr} on ${df} df, MAD = ${MADStr} (${conformity}, ${formatPClause("MAD p", pMAD)}).` +
     (nValues != null ? ` N = ${nValues} first digits.` : "");
-  evidenceLines.push(line1.replace("MAD p < 0.0001", "MAD p < 0.0001")
-    .replace(/MAD p (\d)/, "MAD p = $1"));
+  evidenceLines.push(line1);
 
   // Line 2: digit distribution. Show first 5 digits with explicit comparison;
   // collapse 6–9 with "within ~Npp of expected" where N is the rounded
@@ -350,7 +361,7 @@ function interReplicateCorrelation(r /*, ctx */) {
     : `+${top.excess}`;
   const condBit = isMultiCondition && top.condition && top.condition !== "All data" ? ` in ${top.condition}` : "";
   const line1 = `Mean inter-replicate r = ${meanR} globally${alreadyHighQualifier}; pair ${top.pair}${condBit} specifically r = ${top.r} ` +
-    `(BH-adjusted p = ${formatP(top.adjP)}, excess ${excessStr} over leave-one-out predicted).`;
+    `(${formatPClause("BH-adjusted p", top.adjP)}, excess ${excessStr} over leave-one-out predicted).`;
   evidenceLines.push(line1);
 
   // Line 2: count + non-suspicious pair context.
@@ -383,7 +394,7 @@ function selectiveNoisePartitioning(r /*, ctx */) {
   const bartlettStr = Number.isFinite(bartlett) ? bartlett.toFixed(2) : String(r.bartlettChi);
   const ratioStr = Number.isFinite(maxMin) ? maxMin.toFixed(2) : String(r.maxMinVarianceRatio);
   evidenceLines.push(
-    `Bartlett χ² = ${bartlettStr} on ${df} df (p = ${formatP(pB)}). ` +
+    `Bartlett χ² = ${bartlettStr} on ${df} df (${formatPClause("p", pB)}). ` +
     `Max-to-min residual variance ratio across the ${nCols} columns is ${ratioStr}×, exceeding the 1.5× clean-data ceiling.`
   );
 
@@ -402,7 +413,7 @@ function selectiveNoisePartitioning(r /*, ctx */) {
     const flaggedClause = flaggedCols.length === 0
       ? `No single column flags individually at BH-FDR adjusted p ≤ 0.05; the signal is structural across columns.`
       : flaggedCols.length === 1
-        ? `Column ${flaggedCols[0].col} also flags individually at BH-FDR adjusted p = ${formatP(flaggedCols[0].adjP)}.`
+        ? `Column ${flaggedCols[0].col} also flags individually at ${formatPClause("BH-FDR adjusted p", flaggedCols[0].adjP)}.`
         : `${flaggedCols.length} columns flag individually at BH-FDR adjusted p < 0.05.`;
     evidenceLines.push(
       `Column ${quietest.col} is the quietest (residual SD = ${quietestSD}, ${quietestVarRatio}× the noisiest column); ` +
@@ -445,7 +456,7 @@ function mahalanobisRowOutlier(r /*, ctx */) {
   if (nExceed != null) {
     evidenceLines.push(
       `${nExceed} of ${nRows} rows exceed the p < 0.01 reference (${exceedFrac}, vs ${expectedExceed} expected under H₀); ` +
-      `binomial tail probability p = ${formatP(binomP)} across the dataset.`
+      `${formatPClause("binomial tail probability p", binomP)} across the dataset.`
     );
   }
 
@@ -481,32 +492,57 @@ function exactDuplicateDetection(r, ctx) {
 
   const evidenceLines = [];
 
-  // Line 1: sub-test results in a dense narrative.
+  // Line 1: sub-test results. List firing sub-tests inline; collapse non-
+  // firing sub-tests into a trailing "Also tested: … — both non-significant"
+  // aside. When all 4 fire, the aside is absent (matches the locked Anchor 6
+  // form on DS14).
+  // "name" carries the bare sub-test handle for the non-firing collapse
+  // aside ("value-level collisions, block copies — non-significant"); the
+  // p-rendering uses formatPClause directly so floor cases produce "p <
+  // 0.0001" without the post-string regex hack.
   const subTests = [
     {
-      label: `value-level collisions (${formatCount(collisionObs)} of ${formatCount(collisionNPairs)} pairs, p ${formatP(collisionP)})`,
+      name: "value-level collisions",
+      label: `value-level collisions (${formatCount(collisionObs)} of ${formatCount(collisionNPairs)} pairs, ${formatPClause("p", collisionP)})`,
       pStr: collisionP, fires: parseNum(collisionP) < 0.01 || collisionP === "<0.0001",
     },
     {
-      label: `row duplication (${dupRows} identical row vectors in ${rowDupGroups.length} ${pl(rowDupGroups.length, "group")}, p ${formatP(rowDupP)})`,
+      name: "row duplication",
+      label: `row duplication (${dupRows} identical row vectors in ${rowDupGroups.length} ${pl(rowDupGroups.length, "group")}, ${formatPClause("p", rowDupP)})`,
       pStr: rowDupP, fires: parseNum(rowDupP) < 0.01 || rowDupP === "<0.0001",
     },
     {
-      label: `within-row coincidence (${formatCount(wrMatches)} of ${formatCount(wrPairs)} pairs vs ${Number.isFinite(wrExpected) ? Math.round(wrExpected) : r.withinRowExpected} expected, p ${formatP(withinRowP)})`,
+      name: "within-row coincidence",
+      label: `within-row coincidence (${formatCount(wrMatches)} of ${formatCount(wrPairs)} pairs vs ${Number.isFinite(wrExpected) ? Math.round(wrExpected) : r.withinRowExpected} expected, ${formatPClause("p", withinRowP)})`,
       pStr: withinRowP, fires: parseNum(withinRowP) < 0.01 || withinRowP === "<0.0001",
     },
     {
-      label: `block copies (${blockCopies.length} ${pl(blockCopies.length, "site")}, best block p = ${formatP(bestBlockP)})`,
-      pStr: bestBlockP, fires: parseNum(bestBlockP) < 0.01,
+      name: "block copies",
+      label: `block copies (${blockCopies.length} ${pl(blockCopies.length, "site")}, ${formatPClause("best block p", bestBlockP)})`,
+      pStr: bestBlockP, fires: parseNum(bestBlockP) < 0.01 || bestBlockP === "<0.0001",
     },
   ];
   const firing = subTests.filter(t => t.fires);
+  const nonFiring = subTests.filter(t => !t.fires);
   const lead = firing.length === subTests.length
     ? "All 4 sub-tests fire"
     : `${firing.length} of ${subTests.length} sub-tests fire`;
-  // Format each sub-test with the embedded p-value prefix replaced ("p <" → "p <").
-  const fragments = subTests.map(t => t.label.replace(/p (\d|<)/, (m, c) => `p ${c === "<" ? "<" : "= " + c}`));
-  evidenceLines.push(`${lead}: ${fragments.join(", ")}.`);
+  const firingFragments = firing.map(t => t.label);
+  let line1 = `${lead}: ${firingFragments.join(", ")}.`;
+  if (nonFiring.length > 0) {
+    // Non-firing sub-tests collapse to a bare-name list with their (low-
+    // precision) p-value parenthetical. p ≈ 1 rendered as "p = 1.0" rather
+    // than "p = 1.0000" — 4dp serves no information at the top of the range.
+    const nonFiringFragments = nonFiring.map(t => {
+      const pNum = parseNum(t.pStr);
+      const pShort = Number.isFinite(pNum) && pNum >= 0.5 ? pNum.toFixed(1) : formatP(t.pStr);
+      const operator = String(pShort).startsWith("<") ? "" : "= ";
+      return `${t.name} (p ${operator}${pShort})`;
+    });
+    const tail = nonFiring.length === 1 ? "non-significant" : `${nonFiring.length === 2 ? "both" : "all"} non-significant`;
+    line1 += ` Also tested: ${nonFiringFragments.join(", ")} — ${tail}.`;
+  }
+  evidenceLines.push(line1);
 
   // Line 2: dominant duplicate group.
   // Likert/survey framing: when ctx tells us the dataset is survey-shaped
@@ -626,7 +662,7 @@ function benfordSecondDigit(r /*, ctx */) {
   const evidenceLines = [];
 
   evidenceLines.push(
-    `χ² = ${chiSqStr} on ${df} df, MAD = ${MADStr} (${conformity}, MAD p ${formatP(pMAD).startsWith("<") ? formatP(pMAD) : "= " + formatP(pMAD)}).` +
+    `χ² = ${chiSqStr} on ${df} df, MAD = ${MADStr} (${conformity}, ${formatPClause("MAD p", pMAD)}).` +
     (nValues != null ? ` N = ${nValues} second digits.` : "")
   );
 
@@ -660,7 +696,7 @@ function terminalDigitUniformity(r /*, ctx */) {
   const evidenceLines = [];
 
   evidenceLines.push(
-    `χ² = ${chiSqStr} on ${df} df against uniform (p = ${formatP(p)}). ` +
+    `χ² = ${chiSqStr} on ${df} df against uniform (${formatPClause("p", p)}). ` +
     (nValues != null ? `N = ${nValues} terminal digits.` : "")
   );
 
@@ -691,12 +727,12 @@ function decimalPrecisionConsistency(r /*, ctx */) {
   const evidenceLines = [];
   if (gaps != null && gaps > 0) {
     evidenceLines.push(
-      `${gaps} ${pl(gaps, "gap")} in decimal-precision distribution at ${gapAt}-dp (binomial p = ${formatP(p)}); ` +
+      `${gaps} ${pl(gaps, "gap")} in decimal-precision distribution at ${gapAt}-dp (${formatPClause("binomial p", p)}); ` +
       `dominant precision is ${dominantDp}dp at ${dominantFrac}, max ${maxDp}dp.`
     );
   } else {
     evidenceLines.push(
-      `Precision distribution deviates from the trailing-zero-stripping model (p = ${formatP(p)}); ` +
+      `Precision distribution deviates from the trailing-zero-stripping model (${formatPClause("p", p)}); ` +
       `dominant precision is ${dominantDp}dp at ${dominantFrac}, max ${maxDp}dp.`
     );
   }
@@ -722,13 +758,13 @@ function valueFrequencySpike(r /*, ctx */) {
   const passStr = passBits.length > 0 ? passBits.join(", ") : "no spikes";
 
   evidenceLines.push(
-    `${passStr} detected at BH-FDR adjusted p < 0.01 (best spike p = ${formatP(p)}).` +
+    `${passStr} detected at BH-FDR adjusted p < 0.01 (${formatPClause("best spike p", p)}).` +
     (drivingPass ? ` Driving pass: ${drivingPass === "digit" ? "fractional-digit substring" : "full-value"}.` : "")
   );
 
   if (details.length > 0) {
     const top = details.slice(0, 5).map(d =>
-      `${d.value} (${d.observed}× obs vs ${d.expected} exp, ${d.ratio})`
+      `${d.value} (${d.observed} obs vs ${d.expected} exp, ${d.ratio})`
     );
     evidenceLines.push(`Top ${top.length} ${pl(top.length, "spike")}: ${top.join(", ")}.`);
   }
@@ -754,7 +790,7 @@ function constantOffsetBlocks(r /*, ctx */) {
   const offsetWord = offsetType === "multiplicative" ? "multiplicative" : "additive";
   evidenceLines.push(
     `${blocks} ${pl(blocks, "block")} of consecutive row pairs sharing the same ${offsetWord} offset ` +
-    `(${expectedByChance} expected by chance across ${totalPairs} consecutive pairs); permutation p = ${formatP(p)}.`
+    `(${expectedByChance} expected by chance across ${totalPairs} consecutive pairs); ${formatPClause("permutation p", p)}.`
   );
   if (details.length > 0) {
     const top = details.slice(0, 3).map(d => `pair ${d.pair} at ${d.positions} (offset ${d.diff})`);
@@ -778,7 +814,7 @@ function residualSpikeCorrelation(r /*, ctx */) {
   const evidenceLines = [];
   evidenceLines.push(
     `${nOverlap} of the top-${topK} residual rows shared between ${bestPair} (${expectedOverlap} expected under independence across ${nRows} rows); ` +
-    `permutation p = ${formatP(p)}.`
+    `${formatPClause("permutation p", p)}.`
   );
   const highCorrPairs = pairDetails.filter(p => p?.highCorrelation);
   if (highCorrPairs.length > 0) {
@@ -807,9 +843,8 @@ function excessKurtosis(r /*, ctx */) {
   // Use whichever test drove the flag.
   const usedAD = r.andersonDarlingP != null;
   const testStat = usedAD ? `A² (Anderson–Darling)` : `pooled κ`;
-  const testP = usedAD ? formatP(adP) : formatP(kurtP);
   evidenceLines.push(
-    `Pooled kurtosis = ${stat}, κ-deviation ${dev} (${direction}; effect-size threshold ${adapStr}); ${testStat} p = ${testP} at pooled N = ${pooledN}.`
+    `Pooled kurtosis = ${stat}, κ-deviation ${dev} (${direction}; effect-size threshold ${adapStr}); ${testStat} ${formatPClause("p", usedAD ? adP : kurtP)} at pooled N = ${pooledN}.`
   );
   if (isPromoted) {
     evidenceLines.push(`Promoted via condition-stratified BH-FDR — at least one condition flags individually.`);
@@ -829,13 +864,13 @@ function autocorrelation(r /*, ctx */) {
 
   const evidenceLines = [];
   evidenceLines.push(
-    `Pooled lag-1 r = ${pooledR1} across ${nPairs} replicate ${pl(nPairs, "pair")} (t = ${pooledT}, p = ${formatP(pooledP)}); ` +
+    `Pooled lag-1 r = ${pooledR1} across ${nPairs} replicate ${pl(nPairs, "pair")} (t = ${pooledT}, ${formatPClause("p", pooledP)}); ` +
     `${nSig} of ${nPairs} ${pl(nPairs, "pair")} reach BH-FDR adjusted significance at lag 1.`
   );
   if (higherLagPromoted && lagTable.length > 0) {
     const promoted = lagTable.filter(l => l.isPromotionTrigger);
     if (promoted.length > 0) {
-      const frags = promoted.map(l => `lag ${l.lag} (pooled r = ${l.pooledR}, ${l.pairsSig}/${l.pairsTotal} pairs significant)`);
+      const frags = promoted.map(l => `lag ${l.lag} (pooled r = ${l.pooledR}, ${l.pairsSig} of ${l.pairsTotal} pairs significant)`);
       evidenceLines.push(`Higher-lag promotion to MODERATE: ${frags.join(", ")}.`);
     }
   }
@@ -854,11 +889,11 @@ function windowedAutocorrelation(r /*, ctx */) {
   const evidenceLines = [];
   evidenceLines.push(
     `${nSig05} of ${nWin} (pair × window) units flag at BH-FDR adjusted p < 0.05 (${nSig01} at adj-p < 0.01) ` +
-    `across ${nPairs} replicate ${pl(nPairs, "pair")}; best adj-p = ${formatP(p)}.`
+    `across ${nPairs} replicate ${pl(nPairs, "pair")}; ${formatPClause("best adj-p", p)}.`
   );
   if (details.length > 0) {
     const top = details.slice(0, 3).map(d =>
-      `pair ${d.pair} rows ${d.startRow}–${d.endRow} (r = ${parseNum(d.r).toFixed(3)}, adj-p = ${formatP(d.adjP)})`
+      `pair ${d.pair} rows ${d.startRow}–${d.endRow} (r = ${parseNum(d.r).toFixed(3)}, ${formatPClause("adj-p", d.adjP)})`
     );
     evidenceLines.push(`Top windows — ${top.join("; ")}.`);
   }
@@ -887,12 +922,12 @@ function runsTest(r /*, ctx */) {
   const worstPair = r.worstPairLabel;
 
   const z = parseNum(pooledZ);
-  const direction = Number.isFinite(z) && z < 0 ? "too few runs (consecutive same-sign streaks)" : "too many runs (over-alternation)";
+  const direction = Number.isFinite(z) && z < 0 ? "too few runs — consecutive same-sign streaks" : "too many runs — over-alternation";
 
   const evidenceLines = [];
   evidenceLines.push(
     `Pooled runs Z = ${pooledZ} (${direction}); observed/expected runs ratio = ${parseNum(obsOverExp).toFixed(2)}; ` +
-    `pooled t = ${pooledT}, p = ${formatP(pooledP)} across ${nPairs} ${pl(nPairs, "pair")}.`
+    `pooled t = ${pooledT}, ${formatPClause("p", pooledP)} across ${nPairs} ${pl(nPairs, "pair")}.`
   );
   if (nSig > 0 && worstPair) {
     evidenceLines.push(`${nSig} of ${nPairs} ${pl(nPairs, "pair")} flag individually; most extreme: ${worstPair}.`);
@@ -912,12 +947,12 @@ function noiseScaling(r /*, ctx */) {
   if (expSlope && expSlope !== "—") {
     evidenceLines.push(
       `Observed log-log mean–variance slope = ${obs} ± ${slopeSE} SE${assayBit}; expected slope ≈ ${expSlope} ` +
-      `(0=additive, 1=Poisson, 2=proportional); z-test p = ${formatP(p)}.`
+      `(0=additive, 1=Poisson, 2=proportional); ${formatPClause("z-test p", p)}.`
     );
   } else {
     evidenceLines.push(
       `Observed log-log mean–variance slope = ${obs} ± ${slopeSE} SE${assayBit}; ` +
-      `outside the [0, 2] range of known noise models (p = ${formatP(p)}).`
+      `outside the [0, 2] range of known noise models (${formatPClause("p", p)}).`
     );
   }
   return { location: "Global", evidenceLines };
@@ -940,7 +975,7 @@ function withinRowVariance(r /*, ctx */) {
 
   evidenceLines.push(
     `${nOutliers} of ${nValid} rows have within-row variance flagged (${outlierFrac}, vs ${expectedOut} expected under the mean-variance trend); ` +
-    `best per-row p = ${formatP(p)}.`
+    `${formatPClause("best per-row p", p)}.`
   );
   if (smooth.length + noisy.length > 0) {
     const directionParts = [];
@@ -964,7 +999,7 @@ function regionalNoiseHomogeneity(r /*, ctx */) {
   const evidenceLines = [];
   evidenceLines.push(
     `Window scan detects ${dirWord} noise in column ${bestCol} rows ${bestWin} (${bestRatio} variance ratio); ` +
-    `scan p = ${formatP(scanP)}.`
+    `${formatPClause("scan p", scanP)}.`
   );
   if (details.length > 1) {
     const tops = details.slice(0, 3).map(d => `rows ${d.rows} (${d.ratio} ${d.direction === "reduced" ? "quieter" : d.direction === "elevated" ? "noisier" : "deviation"})`);
@@ -982,11 +1017,11 @@ function rowMeanRuns(r /*, ctx */) {
   const expected = r.bestExpected;
   const z = parseNum(r.bestZ);
   const p = r.primaryP;
-  const direction = Number.isFinite(z) && z < 0 ? "too few crossings (sustained trend)" : "too many crossings (over-alternation)";
+  const direction = Number.isFinite(z) && z < 0 ? "too few crossings — sustained trend" : "too many crossings — over-alternation";
 
   const evidenceLines = [];
   evidenceLines.push(
-    `Best sequence "${seq}": ${runs} observed runs vs ${expected} expected (Z = ${r.bestZ}, ${direction}); pooled p = ${formatP(p)}.`
+    `Best sequence "${seq}": ${runs} observed runs vs ${expected} expected (Z = ${r.bestZ}, ${direction}); ${formatPClause("pooled p", p)}.`
   );
   if (r.windowSigCount > 0) {
     evidenceLines.push(`${r.windowSigCount} of ${r.nWindowsTested} windowed sub-units also flag at BH-FDR adjusted p < 0.05.`);
@@ -1012,7 +1047,7 @@ function missingDataPattern(r /*, ctx */) {
   evidenceLines.push(
     `${formatCount(nMissing)} missing cells (${missRate}); ` +
     (parts.length > 0 ? `${parts.join("; ")}; ` : "") +
-    `best adj-p = ${formatP(p)}.`
+    `${formatPClause("best adj-p", p)}.`
   );
   if (blockHits.length > 0) {
     const top = blockHits.slice(0, 3).map(b => `rows ${b.startRow}–${b.endRow} × cols ${b.cols.join(",")} (${b.height}×${b.width})`);
@@ -1040,7 +1075,7 @@ function crossConditionRankCorrelation(r /*, ctx */) {
   const evidenceLines = [];
   evidenceLines.push(
     `Mean cross-condition rank correlation ρ = ${meanRho} across ${nPairs} condition ${pl(nPairs, "pair")}; ` +
-    `${nSus} ${pl(nSus, "pair")} flagged as suspicious (best LOO-adjusted p = ${formatP(p)}).`
+    `${nSus} ${pl(nSus, "pair")} flagged as suspicious (${formatPClause("best LOO-adjusted p", p)}).`
   );
   if (top?.pair && top.spearmanR != null) {
     evidenceLines.push(`Top pair ${top.pair} at ρ = ${top.spearmanR} (interpretation: ${top.interpretation || "—"}).`);
@@ -1058,8 +1093,11 @@ function modalityTest(r /*, ctx */) {
   const p = r.primaryP;
 
   const evidenceLines = [];
+  const stem = nTested === 1
+    ? `The single column rejects unimodality at BH-FDR adjusted p < 0.01`
+    : `${nFlagged} of ${nTested} columns reject unimodality at BH-FDR adjusted p < 0.01`;
   evidenceLines.push(
-    `${nFlagged} of ${nTested} columns reject unimodality at BH-FDR adjusted p < 0.01 (best column p = ${formatP(p)}). ` +
+    `${stem} (${formatPClause("best column p", p)}). ` +
     `Hartigan dip statistic against uniform-reference null.`
   );
   if (flagged.length > 0) {
@@ -1083,19 +1121,26 @@ function columnGoodnessOfFit(r /*, ctx */) {
   const p = r.primaryP;
 
   const evidenceLines = [];
+  // Direction breakdown without nested parens — "with A² too large / small"
+  // reads cleanly when the whole list is wrapped in the outer parenthetical,
+  // and preserves grammatical agreement at any count.
   const dirBits = [];
-  if (nHigh > 0) dirBits.push(`${nHigh} mismatch (A² too large)`);
-  if (nLow > 0) dirBits.push(`${nLow} too-tight (A² too small)`);
+  if (nHigh > 0) dirBits.push(`${nHigh} with A² too large`);
+  if (nLow > 0) dirBits.push(`${nLow} with A² too small`);
+  // Single-column path reads "The single column …" — grammatical edge case
+  // surfaces on DS19 (the only one-column-tested fixture in the batch).
+  const stem = nTested === 1
+    ? `The single column deviates from the moment-matched {Normal, Poisson, NB} family at BH-FDR adjusted p < 0.01`
+    : `${nFlagged} of ${nTested} columns deviate from the moment-matched {Normal, Poisson, NB} family at BH-FDR adjusted p < 0.01`;
   evidenceLines.push(
-    `${nFlagged} of ${nTested} columns deviate from the moment-matched {Normal, Poisson, NB} family at BH-FDR adjusted p < 0.01 ` +
-    `(${dirBits.join(", ")}); best column p = ${formatP(p)}.`
+    `${stem} (${dirBits.join(", ")}); ${formatPClause("best column p", p)}.`
   );
   if (flagged.length > 0) {
     const cols = flagged.slice(0, 6).map(c => `col ${c.col} (A² ratio = ${parseNum(c.ratio).toFixed(2)}, ${c.direction})`);
     evidenceLines.push(`Flagged columns — ${cols.join(", ")}${flagged.length > 6 ? `, … (${flagged.length} total)` : ""}.`);
   }
   const location = nFlagged > 0
-    ? `${nFlagged} of ${nTested} ${pl(nTested, "column")}`
+    ? (nTested === 1 ? `The single column` : `${nFlagged} of ${nTested} ${pl(nTested, "column")}`)
     : "Global";
   return { location, evidenceLines };
 }
@@ -1111,12 +1156,16 @@ function entropyZipf(r /*, ctx */) {
   const p = r.primaryP;
 
   const evidenceLines = [];
+  // Direction breakdown without nested parens — "with low/high entropy"
+  // reads cleanly inside the outer parenthetical wrapping.
   const dirBits = [];
-  if (nLow > 0) dirBits.push(`${nLow} low entropy (few distinct values)`);
-  if (nHigh > 0) dirBits.push(`${nHigh} high entropy (over-randomised)`);
+  if (nLow > 0) dirBits.push(`${nLow} with low entropy — few distinct values`);
+  if (nHigh > 0) dirBits.push(`${nHigh} with high entropy — over-randomised`);
+  const stem = nTested === 1
+    ? `The single column deviates from the parametric-bootstrap entropy null at BH-FDR adjusted p < 0.01`
+    : `${nFlagged} of ${nTested} columns deviate from the parametric-bootstrap entropy null at BH-FDR adjusted p < 0.01`;
   evidenceLines.push(
-    `${nFlagged} of ${nTested} columns deviate from the parametric-bootstrap entropy null at BH-FDR adjusted p < 0.01 ` +
-    `(${dirBits.join(", ")}); best column p = ${formatP(p)}.`
+    `${stem} (${dirBits.join("; ")}); ${formatPClause("best column p", p)}.`
   );
   if (flagged.length > 0) {
     const cols = flagged.slice(0, 6).map(c => `col ${c.col} (${c.direction})`);
@@ -1140,7 +1189,7 @@ function blockedMahalanobis(r /*, ctx */) {
   const evidenceLines = [];
   evidenceLines.push(
     `${sig.length} of ${nUnits} (pass × condition) BH-FDR units flag (${nWindowsTotal} sliding windows scanned across ${conditions.length} ${pl(conditions.length, "condition")}); ` +
-    `best adj-p = ${formatP(p)}.`
+    `${formatPClause("best adj-p", p)}.`
   );
   if (sig.length > 0) {
     const top = sig.slice(0, 3).map(d => {
@@ -1163,7 +1212,7 @@ function crossConditionConsistency(r /*, ctx */) {
   const top = r.top;
   const nFlagged = r.nFlagged || 0;
   const nFlaggedPairs = r.nFlaggedPairs || 0;
-  const nProp = r.nProperties;
+  const nUnitsRan = r.nUnitsRan;
   const nPairs = r.nPairs;
   const p = r.primaryP;
 
@@ -1174,14 +1223,29 @@ function crossConditionConsistency(r /*, ctx */) {
     const statBit = Number.isFinite(dStat) && Number.isFinite(dThresh)
       ? `, statistic = ${dStat.toFixed(3)} vs threshold ${dThresh.toFixed(3)}`
       : "";
+    // "Top forensic-direction unit" reads accurately whether or not the
+    // unit cleared the per-stage gate. `top` is the lowest adj-p forensic-
+    // direction unit; nFlagged counts only gate-passed forensic units. The
+    // two diverge on DS15 / DS19 where the per-stage gate filters out the
+    // top forensic unit, so line 1 must not call top "flagged" if line 2
+    // reports nFlagged = 0.
+    const label = nFlagged > 0 ? "Top flagged unit" : "Top forensic-direction unit";
     evidenceLines.push(
-      `Top flagged unit: ${top.pair} on "${top.property}" — too ${top.direction} (BH-FDR adj-p = ${formatP(top.adjP)}${statBit}).`
+      `${label}: ${top.pair} on "${top.property}" — too ${top.direction} (${formatPClause("BH-FDR adj-p", top.adjP)}${statBit}).`
     );
   } else {
-    evidenceLines.push(`Best adj-p across ${nProp} properties × ${nPairs} condition pairs: ${formatP(p)}.`);
+    evidenceLines.push(`${formatPClause("Best adj-p across the property × pair grid", p)}.`);
   }
-  if (nFlagged > 1) {
-    evidenceLines.push(`${nFlagged} property-pair units flagged across ${nFlaggedPairs} ${pl(nFlaggedPairs, "condition pair")}.`);
+  // Line 2: unit-count context — independent of statistic finiteness so the
+  // degenerate-stat fixtures (DS15, DS19) still render a supporting line.
+  // Field names verified against src/tests/crossConditionConsistency.js
+  // (nFlagged, nFlaggedPairs, nUnitsRan, nPairs all in the test's documented
+  // return shape). nFlagged counts forensic-direction units that ALSO passed
+  // the per-stage gate AND BH-FDR at α=0.01.
+  if (nUnitsRan != null && nPairs != null) {
+    evidenceLines.push(
+      `${nFlagged} of ${nUnitsRan} (property × pair) BH-FDR units flag across ${nFlaggedPairs} of ${nPairs} condition ${pl(nPairs, "pair")} tested.`
+    );
   }
   const location = top ? `${top.pair} on ${top.property}` : "Global";
   return { location, evidenceLines };

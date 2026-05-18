@@ -50,7 +50,7 @@ Evidence: Pooled lag-1 r = 0.1607 across 6 replicate pairs (t = 3.465, p = 0.017
 **Runs Test** — cross-replicate cluster
 What the test detects: For each replicate pair, tracks which replicate has the larger value at each row and checks how often the lead switches. Too few switches means one replicate stays consistently above the other — either across the full column or within localised stretches (Wald–Wolfowitz runs test).
 Location: Global
-Evidence: Pooled runs Z = -0.686 (too few runs (consecutive same-sign streaks)); observed/expected runs ratio = 0.89; pooled t = -4.590, p = 0.0059 across 6 pairs.
+Evidence: Pooled runs Z = -0.686 (too few runs — consecutive same-sign streaks); observed/expected runs ratio = 0.89; pooled t = -4.590, p = 0.0059 across 6 pairs.
 
 #### Cleared (within flagged clusters)
 
@@ -120,13 +120,13 @@ Outcome 3 of 4 — Investigate closely. Significant anomalies detected. The comb
 **Terminal Digit Uniformity** — unusual digits cluster
 What the test detects: Counts the frequency of each last digit (0–9) across all values and tests for deviation from a uniform distribution (chi-squared test).
 Location: Global
-Evidence: χ² = 44.52 on 8 df against uniform (p = < 0.0001). N = 150 terminal digits.
+Evidence: χ² = 44.52 on 8 df against uniform (p < 0.0001). N = 150 terminal digits.
 Digit-level pattern — avoided: 0, 5.
 
 **Exact Duplicate Detection** — copy-paste/edit cluster
 What the test detects: Scans the dataset for identical values and tests the observed count against what would be expected if values were shuffled randomly (permutation test). Tests are computed independently; some duplicates may appear in more than one test.
 Location: 3 rows in 3 duplicate groups; 2 within-row coincidences
-Evidence: 2 of 4 sub-tests fire: value-level collisions (13 of 11,175 pairs, p = 1.0000), row duplication (3 identical row vectors in 3 groups, p < 0.0001), within-row coincidence (2 of 150 pairs vs 0 expected, p = 0.0063), block copies (0 sites, best block p = 1.0000).
+Evidence: 2 of 4 sub-tests fire: row duplication (3 identical row vectors in 3 groups, p < 0.0001), within-row coincidence (2 of 150 pairs vs 0 expected, p = 0.0063). Also tested: value-level collisions (p = 1.0), block copies (p = 1.0) — both non-significant.
 Dominant duplicate group: 2 identical rows of "31.43, 31.96, 31.74"; secondary groups of 2 and 2 identical rows on values 23.06 and 14.04.
 
 #### Moderate-severity findings
@@ -135,7 +135,7 @@ Dominant duplicate group: 2 identical rows of "31.43, 31.96, 31.74"; secondary g
 What the test detects: Tests whether any value in a column appears far more often than its neighbours. Hand-typed fabricated data tends to reuse "comfortable" values — round numbers, favourite digits — producing sharp frequency spikes against the smooth distribution real measurements produce. The test smooths each value’s frequency by comparing against its neighbours in value-space, then flags any value whose observed count is too high to be explained by the smoothed expectation. See METHODOLOGY.md §3.5 for the formal statement (leave-one-out neighbour smoothing; Poisson tail probability for the spike-vs-expected comparison).
 Location: 3 value spikes
 Evidence: 3 fractional-digit spikes detected at BH-FDR adjusted p < 0.01 (best spike p = 0.001). Driving pass: fractional-digit substring.
-Top 3 spikes: .96 (8× obs vs 1.0 exp, 8.00×), .91 (7× obs vs 1.0 exp, 7.00×), .56 (6× obs vs 0.8 exp, 7.20×).
+Top 3 spikes: .96 (8 obs vs 1.0 exp, 8.00×), .91 (7 obs vs 1.0 exp, 7.00×), .56 (6 obs vs 0.8 exp, 7.20×).
 
 #### Cleared (within flagged clusters)
 
@@ -195,7 +195,7 @@ Outcome 3 of 4 — Investigate closely. Significant anomalies detected. The comb
 **Exact Duplicate Detection** — copy-paste/edit cluster
 What the test detects: Scans the dataset for identical values and tests the observed count against what would be expected if values were shuffled randomly (permutation test). Tests are computed independently; some duplicates may appear in more than one test.
 Location: 1 block copy; 31 within-row coincidences
-Evidence: 2 of 4 sub-tests fire: value-level collisions (74 of 24,090 pairs, p < 0.0001), row duplication (0 identical row vectors in 0 groups, p = 1.0000), within-row coincidence (31 of 330 pairs vs 2 expected, p < 0.0001), block copies (1 site, best block p = < 0.0001).
+Evidence: 3 of 4 sub-tests fire: value-level collisions (74 of 24,090 pairs, p < 0.0001), within-row coincidence (31 of 330 pairs vs 2 expected, p < 0.0001), block copies (1 site, best block p < 0.0001). Also tested: row duplication (p = 1.0) — non-significant.
 Value 354 is over-represented (count 4 / expected 0).
 
 **Mahalanobis Row Outlier** — cross-replicate cluster
@@ -207,7 +207,7 @@ Evidence: Row 11 sits at Mahalanobis distance 33.57 (per-row p = 9.11×10⁻⁷)
 **Noise Scaling With Measurement Size** — cross-replicate cluster
 What the test detects: Checks whether noise scales with signal magnitude in the way the instrument type predicts — for example, constant variability for qPCR or proportional variability for ELISA. Fits a trend line on a log-log scale and compares the observed slope to the expected slope for the selected assay (z-test with block-robust standard error).
 Location: Global
-Evidence: Observed log-log mean–variance slope = 0.117 ± 0.2040 SE for cell_count data; expected slope ≈ 1 (0=additive, 1=Poisson, 2=proportional); z-test p = < 0.0001.
+Evidence: Observed log-log mean–variance slope = 0.117 ± 0.2040 SE for cell_count data; expected slope ≈ 1 (0=additive, 1=Poisson, 2=proportional); z-test p < 0.0001.
 
 #### Moderate-severity findings
 
@@ -215,7 +215,7 @@ Evidence: Observed log-log mean–variance slope = 0.117 ± 0.2040 SE for cell_c
 What the test detects: Tests whether any value in a column appears far more often than its neighbours. Hand-typed fabricated data tends to reuse "comfortable" values — round numbers, favourite digits — producing sharp frequency spikes against the smooth distribution real measurements produce. The test smooths each value’s frequency by comparing against its neighbours in value-space, then flags any value whose observed count is too high to be explained by the smoothed expectation. See METHODOLOGY.md §3.5 for the formal statement (leave-one-out neighbour smoothing; Poisson tail probability for the spike-vs-expected comparison).
 Location: 1 value spike
 Evidence: 1 full-value spike detected at BH-FDR adjusted p < 0.01 (best spike p = 0.0095). Driving pass: full-value.
-Top 1 spike: 590 (3× obs vs 0.1 exp, 30.00×).
+Top 1 spike: 590 (3 obs vs 0.1 exp, 30.00×).
 
 #### Cleared (within flagged clusters)
 
@@ -399,7 +399,7 @@ Largest deviations — digit 0: 8.5% (vs 12.0% expected), digit 1: 14.7% (vs 11.
 **Exact Duplicate Detection** — copy-paste/edit cluster
 What the test detects: Scans the dataset for identical values and tests the observed count against what would be expected if values were shuffled randomly (permutation test). Tests are computed independently; some duplicates may appear in more than one test.
 Location: 10 rows in 10 duplicate groups; 2 within-row coincidences
-Evidence: 1 of 4 sub-tests fire: value-level collisions (120 of 2,878,800 pairs, p = 1.0000), row duplication (10 identical row vectors in 10 groups, p < 0.0001), within-row coincidence (2 of 6,000 pairs vs 1 expected, p = 0.2765), block copies (0 sites, best block p = 1.0000).
+Evidence: 1 of 4 sub-tests fire: row duplication (10 identical row vectors in 10 groups, p < 0.0001). Also tested: value-level collisions (p = 1.0), within-row coincidence (p = 0.2765), block copies (p = 1.0) — all non-significant.
 Dominant duplicate group: 2 identical rows of "357.32, 537.82, 547.94, 337.88, 365.43, 384.82"; secondary groups of 2 and 2 and 2 and 2 and 2 and 2 and 2 and 2 and 2 identical rows on values 1038.76 and 51.39 and 21.09 and 71.51 and 493.80 and 2262.67 and 1842.02 and 66.45 and 944.69.
 Value 37.41 is over-represented (count 3 / expected 1).
 
@@ -407,8 +407,8 @@ Value 37.41 is over-represented (count 3 / expected 1).
 
 **Column Goodness-of-Fit** — distribution shapes cluster
 What the test detects: For each column, fits a parametric family (Normal, Poisson, or Negative Binomial) and measures how closely the column's CDF shape matches the fit (Anderson–Darling). A parametric bootstrap with refit calibrates the expected AD²; too-large values indicate shape mismatch (hand-typed, truncated, copied from a different-shape source), too-small values indicate a too-tight fit suggesting RNG padding.
-Location: 1 of 1 column
-Evidence: 1 of 1 columns deviate from the moment-matched {Normal, Poisson, NB} family at BH-FDR adjusted p < 0.01 (1 mismatch (A² too large)); best column p = 0.002.
+Location: The single column
+Evidence: The single column deviates from the moment-matched {Normal, Poisson, NB} family at BH-FDR adjusted p < 0.01 (1 with A² too large); best column p = 0.002.
 Flagged columns — col 5 (A² ratio = 106.49, high).
 
 **LOESS Residual Analysis** — cross-replicate cluster
@@ -494,7 +494,7 @@ Largest deviations — digit 0: 13.2% (vs 12.0% expected), digit 5: 10.9% (vs 9.
 **Autocorrelation** — cross-replicate cluster
 What the test detects: Checks whether the inter-replicate noise is correlated between adjacent rows. In independent measurements, knowing the noise at one row tells you nothing about the next — significant correlation means the noise follows a pattern rather than varying freely (lag-1 autocorrelation, pooled t-test).
 Location: Global
-Evidence: Pooled lag-1 r = 0.4557 across 6 replicate pairs (t = 20.093, p = < 0.0001); 6 of 6 pairs reach BH-FDR adjusted significance at lag 1.
+Evidence: Pooled lag-1 r = 0.4557 across 6 replicate pairs (t = 20.093, p < 0.0001); 6 of 6 pairs reach BH-FDR adjusted significance at lag 1.
 
 #### Moderate-severity findings
 
@@ -640,8 +640,8 @@ Outcome 2 of 4 — Investigate. The findings indicate anomalies worth investigat
 **Value-Frequency Spike** — unusual digits cluster
 What the test detects: Tests whether any value in a column appears far more often than its neighbours. Hand-typed fabricated data tends to reuse "comfortable" values — round numbers, favourite digits — producing sharp frequency spikes against the smooth distribution real measurements produce. The test smooths each value’s frequency by comparing against its neighbours in value-space, then flags any value whose observed count is too high to be explained by the smoothed expectation. See METHODOLOGY.md §3.5 for the formal statement (leave-one-out neighbour smoothing; Poisson tail probability for the spike-vs-expected comparison).
 Location: 2 value spikes
-Evidence: 2 full-value spikes detected at BH-FDR adjusted p < 0.01 (best spike p = < 0.0001). Driving pass: full-value.
-Top 2 spikes: 45 (25× obs vs 6.5 exp, 3.85×), 34 (31× obs vs 15.0 exp, 2.07×).
+Evidence: 2 full-value spikes detected at BH-FDR adjusted p < 0.01 (best spike p < 0.0001). Driving pass: full-value.
+Top 2 spikes: 45 (25 obs vs 6.5 exp, 3.85×), 34 (31 obs vs 15.0 exp, 2.07×).
 
 #### Moderate-severity findings
 
@@ -708,7 +708,7 @@ Value 3 is over-represented (count 250 / expected 76); the 5-value Likert alphab
 **Within-Row Variance** — cross-replicate cluster
 What the test detects: Computes how much replicates vary around each row's mean, then compares that spread to what the overall noise pattern predicts for a row at that signal level. Rows with unusually low spread are flagged as outliers (binomial test on z-score exceedances).
 Location: Rows 67, 70, 73
-Evidence: 3 of 80 rows have within-row variance flagged (3.75%, vs 0.0 expected under the mean-variance trend); best per-row p = < 0.0001.
+Evidence: 3 of 80 rows have within-row variance flagged (3.75%, vs 0.0 expected under the mean-variance trend); best per-row p < 0.0001.
 Direction breakdown: 3 too-smooth.
 
 #### Moderate-severity findings
@@ -781,7 +781,7 @@ Outcome 3 of 4 — Investigate closely. Significant anomalies detected. The comb
 **Missing Data Pattern** — cross-replicate cluster
 What the test detects: Checks whether missing values are scattered randomly or form patterns — for example, the same columns going missing together, one condition having more gaps than another, or a rectangular block of missing cells (Fisher’s exact and spatial clustering tests).
 Location: 1 missing block
-Evidence: 74 missing cells (7.7%); 1 rectangular missing block; 6 condition-dependent columns; 4 pairwise-correlated missing column pairs; best adj-p = < 0.0001.
+Evidence: 74 missing cells (7.7%); 1 rectangular missing block; 6 condition-dependent columns; 4 pairwise-correlated missing column pairs; best adj-p < 0.0001.
 Top missing block: rows 121–132 × cols 3,4,5 (12×3).
 
 #### Moderate-severity findings
@@ -789,7 +789,8 @@ Top missing block: rows 121–132 × cols 3,4,5 (12×3).
 **Cross-Condition Consistency** — cross-condition cluster
 What the test detects: Compares each condition pair on a set of robust distribution properties (trimmed span, dispersion, CDF shape) and flags pairs that are suspiciously close to each other — condition pairs that match more than random re-assignment of pooled values would produce. Real experimental conditions legitimately differ on location and scale, so the forensic signal for these properties lives in the "too similar" tail. Two-sided permutation null at the cell level, BH-FDR across all property × pair units; only similar-direction units contribute to the flag.
 Location: Control vs Treatment on Trimmed span (5–95%)
-Evidence: Top flagged unit: Control vs Treatment on "Trimmed span (5–95%)" — too similar (BH-FDR adj-p = 0.009).
+Evidence: Top forensic-direction unit: Control vs Treatment on "Trimmed span (5–95%)" — too similar (BH-FDR adj-p = 0.009).
+0 of 7 (property × pair) BH-FDR units flag across 0 of 1 condition pair tested.
 
 **Blocked Mahalanobis** — cross-replicate cluster
 What the test detects: Tests whether any contiguous block of rows shows a different mean or correlation structure than the rest of the dataset. Slides a window across the data, comparing each window’s column means and inter-column correlations against the surrounding rows. A fabricated insert — rows generated with a different covariance pattern than the rest, even when individual columns look unremarkable — flags here. See METHODOLOGY.md §2.6b for the formal statement (Hotelling T² with Ledoit-Wolf covariance shrinkage; covariance-shape component via the dominant eigenvalue of the between-vs-rest covariance ratio).
@@ -922,12 +923,13 @@ None.
 **Cross-Condition Consistency** — cross-condition cluster
 What the test detects: Compares each condition pair on a set of robust distribution properties (trimmed span, dispersion, CDF shape) and flags pairs that are suspiciously close to each other — condition pairs that match more than random re-assignment of pooled values would produce. Real experimental conditions legitimately differ on location and scale, so the forensic signal for these properties lives in the "too similar" tail. Two-sided permutation null at the cell level, BH-FDR across all property × pair units; only similar-direction units contribute to the flag.
 Location: Control vs Treatment on CDF shape (KS)
-Evidence: Top flagged unit: Control vs Treatment on "CDF shape (KS)" — too similar (BH-FDR adj-p = 0.006).
+Evidence: Top forensic-direction unit: Control vs Treatment on "CDF shape (KS)" — too similar (BH-FDR adj-p = 0.006).
+0 of 3 (property × pair) BH-FDR units flag across 0 of 1 condition pair tested.
 
 **Column Goodness-of-Fit** — distribution shapes cluster
 What the test detects: For each column, fits a parametric family (Normal, Poisson, or Negative Binomial) and measures how closely the column's CDF shape matches the fit (Anderson–Darling). A parametric bootstrap with refit calibrates the expected AD²; too-large values indicate shape mismatch (hand-typed, truncated, copied from a different-shape source), too-small values indicate a too-tight fit suggesting RNG padding.
-Location: 1 of 1 column
-Evidence: 1 of 1 columns deviate from the moment-matched {Normal, Poisson, NB} family at BH-FDR adjusted p < 0.01 (1 mismatch (A² too large)); best column p = 0.002.
+Location: The single column
+Evidence: The single column deviates from the moment-matched {Normal, Poisson, NB} family at BH-FDR adjusted p < 0.01 (1 with A² too large); best column p = 0.002.
 Flagged columns — col 1 (A² ratio = 5.01, high).
 
 #### Cleared (within flagged clusters)
@@ -995,7 +997,7 @@ Outcome 3 of 4 — Investigate closely. Significant anomalies detected. The comb
 **Selective Noise Partitioning** — cross-replicate cluster
 What the test detects: Checks whether all replicate columns have similar variability. A significant result means the noise levels are unequal (Bartlett's test), but with few columns it may not be possible to pinpoint which one differs.
 Location: Global (column-level heteroscedasticity)
-Evidence: Bartlett χ² = 358.65 on 7 df (p = < 0.0001). Max-to-min residual variance ratio across the 8 columns is 4.60×, exceeding the 1.5× clean-data ceiling.
+Evidence: Bartlett χ² = 358.65 on 7 df (p < 0.0001). Max-to-min residual variance ratio across the 8 columns is 4.60×, exceeding the 1.5× clean-data ceiling.
 Column 2 is the quietest (residual SD = 0.990, 0.39× the noisiest column); columns 1 and 3 and 4 and 5 and 6 and 7 and 8 sit at 1.040 and 1.043 and 1.306 and 1.578 and 1.675 and 1.909 and 2.122 respectively. 7 columns flag individually at BH-FDR adjusted p < 0.05.
 
 #### Moderate-severity findings
@@ -1003,7 +1005,7 @@ Column 2 is the quietest (residual SD = 0.990, 0.39× the noisiest column); colu
 **Column Goodness-of-Fit** — distribution shapes cluster
 What the test detects: For each column, fits a parametric family (Normal, Poisson, or Negative Binomial) and measures how closely the column's CDF shape matches the fit (Anderson–Darling). A parametric bootstrap with refit calibrates the expected AD²; too-large values indicate shape mismatch (hand-typed, truncated, copied from a different-shape source), too-small values indicate a too-tight fit suggesting RNG padding.
 Location: 4 of 7 columns
-Evidence: 4 of 7 columns deviate from the moment-matched {Normal, Poisson, NB} family at BH-FDR adjusted p < 0.01 (4 mismatch (A² too large)); best column p = 0.0035.
+Evidence: 4 of 7 columns deviate from the moment-matched {Normal, Poisson, NB} family at BH-FDR adjusted p < 0.01 (4 with A² too large); best column p = 0.0035.
 Flagged columns — col 4 (A² ratio = 5.14, high), col 5 (A² ratio = 9.25, high), col 6 (A² ratio = 7.59, high), col 7 (A² ratio = 23.28, high).
 
 **Autocorrelation** — cross-replicate cluster
@@ -1078,17 +1080,17 @@ Top flagged blocks — Control rows 81–110 (block-mean separation, T² = 130.0
 What the test detects: Checks whether the inter-replicate noise is correlated between adjacent rows. In independent measurements, knowing the noise at one row tells you nothing about the next — significant correlation means the noise follows a pattern rather than varying freely (lag-1 autocorrelation, pooled t-test).
 Location: Global
 Evidence: Pooled lag-1 r = 0.0628 across 28 replicate pairs (t = 4.519, p = 0.0001); 2 of 28 pairs reach BH-FDR adjusted significance at lag 1.
-Higher-lag promotion to MODERATE: lag 2 (pooled r = 0.0557, 3/28 pairs significant), lag 3 (pooled r = 0.0658, 3/28 pairs significant), lag 4 (pooled r = 0.0503, 2/28 pairs significant).
+Higher-lag promotion to MODERATE: lag 2 (pooled r = 0.0557, 3 of 28 pairs significant), lag 3 (pooled r = 0.0658, 3 of 28 pairs significant), lag 4 (pooled r = 0.0503, 2 of 28 pairs significant).
 
 **Runs Test** — cross-replicate cluster
 What the test detects: For each replicate pair, tracks which replicate has the larger value at each row and checks how often the lead switches. Too few switches means one replicate stays consistently above the other — either across the full column or within localised stretches (Wald–Wolfowitz runs test).
 Location: Global
-Evidence: Pooled runs Z = -1.019 (too few runs (consecutive same-sign streaks)); observed/expected runs ratio = 0.95; pooled t = -4.073, p = 0.0004 across 28 pairs.
+Evidence: Pooled runs Z = -1.019 (too few runs — consecutive same-sign streaks); observed/expected runs ratio = 0.95; pooled t = -4.073, p = 0.0004 across 28 pairs.
 
 **Row-Mean Runs** — cross-replicate cluster
 What the test detects: Within each condition, computes the average value for each row and tracks how often it crosses the condition-wide mean. Too few crossings indicates trending or block shifts; too many suggests unusual alternation (Wald–Wolfowitz runs test).
 Location: Sequence "Cond: Control"
-Evidence: Best sequence "Cond: Control": 77 observed runs vs 101 expected (Z = -3.393, too few crossings (sustained trend)); pooled p = 0.0007.
+Evidence: Best sequence "Cond: Control": 77 observed runs vs 101 expected (Z = -3.393, too few crossings — sustained trend); pooled p = 0.0007.
 
 #### Moderate-severity findings
 
@@ -1152,7 +1154,7 @@ Outcome 2 of 4 — Investigate. The findings indicate anomalies worth investigat
 **Runs Test** — cross-replicate cluster
 What the test detects: For each replicate pair, tracks which replicate has the larger value at each row and checks how often the lead switches. Too few switches means one replicate stays consistently above the other — either across the full column or within localised stretches (Wald–Wolfowitz runs test).
 Location: Global
-Evidence: Pooled runs Z = -0.709 (too few runs (consecutive same-sign streaks)); observed/expected runs ratio = 0.96; pooled t = -4.541, p = 0.0002 across 21 pairs.
+Evidence: Pooled runs Z = -0.709 (too few runs — consecutive same-sign streaks); observed/expected runs ratio = 0.96; pooled t = -4.541, p = 0.0002 across 21 pairs.
 
 #### Moderate-severity findings
 

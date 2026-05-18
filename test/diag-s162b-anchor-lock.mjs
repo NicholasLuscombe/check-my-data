@@ -45,7 +45,7 @@ const LOCKED = [
     evidenceLines: [
       "χ² = 30.83 on 8 df, MAD = 0.041 (Nonconforming, MAD p < 0.0001). N = 195 first digits.",
       "Digit distribution: 1: 19.0% (vs 30.1% expected), 2: 11.3% (17.6%), 3: 15.4% (12.5%), 4: 16.9% (9.7%), 5: 10.8% (7.9%); 6–9 within ~1pp of expected.",
-      "Underrepresentation of 1s (19% vs 30%) and overrepresentation of mid-range digits 3 and 4 are the dominant contributors to the χ².",
+      "Overrepresentation of 4s (16.9% vs 9.7%) and underrepresentation of 1s (19.0% vs 30.1%) are the dominant contributors to the χ².",
     ],
   },
   {
