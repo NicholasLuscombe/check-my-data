@@ -193,7 +193,48 @@ export function testKurtosis(matrix, condCtx, rng) {
   // Shuffle buffer only allocated when subsampling actually fires.
   const shuffledBuf = simSubsample ? new Int32Array(validRowIdxs.length) : null;
 
+  // S159d — pilot-simulation early-skip gate (kurtP branch / nC ≥ 4 only).
+  // Run a short pilot of N_PILOT iterations; if the observed pooledKurtosis
+  // sits clearly within the null body (|obs − pilotMedian| < pilotMAD ×
+  // PILOT_GATE_FACTOR), the test is mathematically destined for LOW and the
+  // remaining 1949 simulation iterations are wasted compute. Audit
+  // (SESSION159d) showed this gate fires on essentially all clean fixtures
+  // and never on the HIGH-Kurtosis fixtures (DS20 obsDev ≈ 1.0 vs MAD ≈ 0.07,
+  // 14× margin against the gate threshold).
+  //
+  // Spec/literal-form note: the S159d prompt's gate `abs(obs) < median ×
+  // GATE_FACTOR` is degenerate for this branch because simKurts is
+  // approximately symmetric around 0 under H₀ on the kurtP branch (zero
+  // excess kurtosis is the asymptotic Gaussian null). The MAD-around-median
+  // form captured here matches the prompt's stated intent ("less than half
+  // the typical null kurtosis — a 2× safety margin") and the post-loop
+  // two-sided p-value's `|sk − simMedian| ≥ obsDev` counting formula.
+  //
+  // PRNG preservation: 10 tests downstream of Kurtosis in engine.js
+  // dispatch consume rng (Entropy, Column GoF, Autocorrelation, Windowed
+  // Autocorrelation, Runs Test, Within-Row Variance, LOESS, Row-Mean Runs,
+  // Regional Noise, plus the kept-for-signature Modality slot). Skipping
+  // remaining iterations without burning their PRNG calls would diverge
+  // every downstream test. The per-iter call count is deterministic given
+  // the fixture (all validRowIdxs have sigR > 0 by construction at filter
+  // line above), so the burn loop replays the exact (random, randn) call
+  // pattern of the would-have-been sim iter — `random()` first if
+  // simSubsample fires, then `randn()` × rowsForBatch × nC. Box-Muller's
+  // internal `_bmSpare` state evolves identically because the call order
+  // and count match.
+  const N_PILOT = 50;
+  const PILOT_GATE_FACTOR = 0.5;
+  const burnRandomPerIter = simSubsample ? MAX_SIM_ROWS : 0;
+  const burnRandnPerIter  = (simSubsample ? MAX_SIM_ROWS : validRowIdxs.length) * nC;
+  let earlyExit = false;
+
   for (let b = 0; b < N_SIM; b++) {
+    if (earlyExit) {
+      // Burn this iter's PRNG quota to preserve downstream-test reproducibility.
+      for (let i = 0; i < burnRandomPerIter; i++) rng.random();
+      for (let i = 0; i < burnRandnPerIter;  i++) rng.randn();
+      continue;
+    }
     let batchLen = 0;
     let rowsToUse = validRowIdxs;
     let rowsStart = 0;
@@ -256,15 +297,41 @@ export function testKurtosis(matrix, condCtx, rng) {
       simADs.push(adStatisticOfSorted(sortBuf, batchLen));
       if (b === 0) { for (let i = 0; i < batchLen; i++) { simDiffs.push(batchBuf[i]); _sN++; } }
     }
+    // S159d — pilot-gate evaluation, ONCE after iter N_PILOT-1 (b+1 == N_PILOT).
+    // Restricted to kurtP branch (nC ≥ 4); A-D branch always runs full sim per
+    // S159d audit (Marsaglia analytic is structurally wrong under small-nC
+    // studentization-bounded d/σ̂). The check is cheap (≤ 50 entries to sort +
+    // 50 abs-deviations to sort), evaluated once per testKurtosis call.
+    if (!earlyExit && b + 1 === N_PILOT && nC >= 4 && simKurts.length >= 20 && !isNaN(pooledKurtosis)) {
+      const sortedPilot = simKurts.slice().sort((x, y) => x - y);
+      const pilotSimMedian = sortedPilot[Math.floor(sortedPilot.length / 2)];
+      const pilotDevs = new Array(simKurts.length);
+      for (let i = 0; i < simKurts.length; i++) pilotDevs[i] = Math.abs(simKurts[i] - pilotSimMedian);
+      pilotDevs.sort((x, y) => x - y);
+      const pilotSimMAD = pilotDevs[Math.floor(pilotDevs.length / 2)];
+      const obsDev = Math.abs(pooledKurtosis - pilotSimMedian);
+      if (pilotSimMAD > 0 && obsDev < pilotSimMAD * PILOT_GATE_FACTOR) {
+        earlyExit = true;
+      }
+    }
   }
   const simKurt = simKurts.length >= 20 ? mean(simKurts) : NaN;
 
   const pooledN = _hN;
   const kurtDeviation = !isNaN(pooledKurtosis) && !isNaN(simKurt) ? pooledKurtosis - simKurt : 0;
 
-  // Kurtosis simulation p-value (two-sided)
+  // Kurtosis simulation p-value (two-sided).
+  // S159d — when the pilot gate fired, the observed stat is within half-MAD
+  // of the null body; the two-sided formula would compute kurtP ≥ 0.5
+  // (by construction: gate-firing condition implies ≥ half of simKurts have
+  // larger absolute deviation than the observed). Override to 1.0 explicitly
+  // per the S159d spec ("return p = 1.0, definitively null") so the reported
+  // primaryP reads as the null result rather than a fractional value derived
+  // from the 50-entry pilot null.
   let kurtP = 1;
-  if (simKurts.length >= 20 && !isNaN(pooledKurtosis)) {
+  if (earlyExit) {
+    kurtP = 1.0;
+  } else if (simKurts.length >= 20 && !isNaN(pooledKurtosis)) {
     const simMedian = simKurts.slice().sort((a, b) => a - b)[Math.floor(simKurts.length / 2)];
     const obsDev = Math.abs(pooledKurtosis - simMedian);
     const nExceed = simKurts.filter(sk => Math.abs(sk - simMedian) >= obsDev).length;
@@ -273,7 +340,12 @@ export function testKurtosis(matrix, condCtx, rng) {
 
   // Anderson-Darling simulation p-value (one-sided: observed A² > simulated)
   let adP = 1;
-  if (simADs.length >= 20 && !isNaN(observedAD)) {
+  if (earlyExit) {
+    // adP is unused downstream on the gate-firing path (kurtP branch is
+    // active iff nC ≥ 4; pooledP = kurtP). Override for return-shape
+    // consistency.
+    adP = 1.0;
+  } else if (simADs.length >= 20 && !isNaN(observedAD)) {
     const nExceed = simADs.filter(a => a >= observedAD).length;
     adP = (nExceed + 1) / (simADs.length + 1);
   }
