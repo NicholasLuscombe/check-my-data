@@ -64,25 +64,30 @@ export function testEntropy(matrix, rng, dataType) {
     const hNull = new Float64Array(B);
     const isCount = dataType === "count";
 
+    // S159c — hoist per-perm scratch out of the loop. The synth buffer is
+    // re-filled each perm; freqMap is .clear()'d each call inside
+    // _shannonEntropyInto to avoid the per-perm `new Map()` allocation.
+    const synthBuf = new Float64Array(vals.length);
+    const freqMap = new Map();
+
     for (let b = 0; b < B; b++) {
-      const synth = new Array(vals.length);
       if (isCount && v2 / mu > 1.5 && mu > 0) {
         // Negative Binomial via Normal approximation (pragmatic)
-        for (let i = 0; i < synth.length; i++) {
-          synth[i] = Math.max(0, Math.round(mu + sd * rng.randn()));
+        for (let i = 0; i < vals.length; i++) {
+          synthBuf[i] = Math.max(0, Math.round(mu + sd * rng.randn()));
         }
       } else if (isCount) {
         // Poisson
-        for (let i = 0; i < synth.length; i++) {
-          synth[i] = _samplePoisson(mu, rng);
+        for (let i = 0; i < vals.length; i++) {
+          synthBuf[i] = _samplePoisson(mu, rng);
         }
       } else {
         // Continuous → Normal(mu, sd)
-        for (let i = 0; i < synth.length; i++) {
-          synth[i] = mu + sd * rng.randn();
+        for (let i = 0; i < vals.length; i++) {
+          synthBuf[i] = mu + sd * rng.randn();
         }
       }
-      hNull[b] = _shannonEntropy(synth, isCount ? 0 : prec);
+      hNull[b] = _shannonEntropyInto(synthBuf, vals.length, isCount ? 0 : prec, freqMap);
     }
 
     // Two-sided p-value
@@ -188,6 +193,24 @@ function _shannonEntropy(arr, prec) {
     freq.set(key, (freq.get(key) || 0) + 1);
   }
   const n = arr.length;
+  let h = 0;
+  for (const count of freq.values()) {
+    const p = count / n;
+    if (p > 0) h -= p * Math.log2(p);
+  }
+  return h;
+}
+
+/** Same calculation as _shannonEntropy but reads first `n` entries of a
+ *  typed buffer and reuses a caller-supplied Map (`.clear()` per call) to
+ *  avoid the per-perm `new Map()` allocation. S159c. */
+function _shannonEntropyInto(buf, n, prec, freq) {
+  freq.clear();
+  const factor = Math.pow(10, prec);
+  for (let i = 0; i < n; i++) {
+    const key = Math.round(buf[i] * factor);
+    freq.set(key, (freq.get(key) || 0) + 1);
+  }
   let h = 0;
   for (const count of freq.values()) {
     const p = count / n;

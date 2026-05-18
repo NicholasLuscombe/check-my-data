@@ -124,30 +124,43 @@ export function testColumnGof(matrix, rng, dataType) {
     const sortedObs = vals.slice().sort((a, b) => a - b);
     const A2_obs = andersonDarling(sortedObs, cdf);
 
+    // S159c — pre-allocate per-column scratch buffers reused across the B=999
+    // bootstrap. Replaces `sampleFamily()` Array + `synth.slice().sort()` Array
+    // allocations per perm. The refit CDF closure is unavoidable per perm
+    // because makeCDF returns an arrow function — that allocation is dwarfed
+    // by the data buffers it replaces.
+    const synthBuf = new Float64Array(vals.length);
+    const sortBuf  = new Float64Array(vals.length);
+
     // Bootstrap null with refit
     const A2_null = new Float64Array(B);
     const factor = Math.pow(10, prec);
     for (let b = 0; b < B; b++) {
-      const synth = sampleFamily(family, fitted, vals.length, rng);
+      sampleFamilyInto(family, fitted, synthBuf, vals.length, rng);
       // Discretise to modal precision (matches §3.6 bootstrap treatment).
       if (prec > 0) {
-        for (let i = 0; i < synth.length; i++) synth[i] = Math.round(synth[i] * factor) / factor;
+        for (let i = 0; i < vals.length; i++) synthBuf[i] = Math.round(synthBuf[i] * factor) / factor;
       } else if (family !== "poisson") {
         // Integer round for NB/Normal when modal precision is 0 (integer column).
-        for (let i = 0; i < synth.length; i++) synth[i] = Math.round(synth[i]);
+        for (let i = 0; i < vals.length; i++) synthBuf[i] = Math.round(synthBuf[i]);
       }
 
       // Refit family parameters on the bootstrap sample.
-      const smu = mean(synth);
-      const sv2 = variance(synth);
+      let smuSum = 0;
+      for (let i = 0; i < vals.length; i++) smuSum += synthBuf[i];
+      const smu = smuSum / vals.length;
+      let sv2Sum = 0;
+      for (let i = 0; i < vals.length; i++) { const d = synthBuf[i] - smu; sv2Sum += d * d; }
+      const sv2 = sv2Sum / Math.max(vals.length - 1, 1);
       const ssd = Math.sqrt(sv2);
       let refit;
       if (family === "poisson") refit = { lambda: smu > 0 ? smu : 1e-9 };
       else refit = { mu: smu, sd: ssd > 0 ? ssd : 1e-9 };  // normal, nb
       const refitCDF = makeCDF(family, refit);
 
-      const sortedSynth = synth.slice().sort((a, b) => a - b);
-      A2_null[b] = andersonDarling(sortedSynth, refitCDF);
+      for (let i = 0; i < vals.length; i++) sortBuf[i] = synthBuf[i];
+      sortBuf.sort(); // numerical-ascending by default on Float64Array
+      A2_null[b] = andersonDarlingTyped(sortBuf, vals.length, refitCDF);
     }
 
     // Two-sided p-values (permutation convention: +1 in numerator and denominator).
@@ -256,6 +269,22 @@ function andersonDarling(sorted, cdf) {
   return -N - S / N;
 }
 
+/** Variant of andersonDarling that reads a sorted typed-array region of
+ *  length N. Identical numerics to andersonDarling — same indexing, same
+ *  clip behavior. Separate function to keep the observed-pass call site
+ *  (Array<number>) untouched. */
+function andersonDarlingTyped(sortedBuf, N, cdf) {
+  let S = 0;
+  for (let i = 1; i <= N; i++) {
+    let Fi  = cdf(sortedBuf[i - 1]);
+    let FNi = cdf(sortedBuf[N - i]);
+    if (Fi  < CLIP_LO) Fi  = CLIP_LO; else if (Fi  > CLIP_HI) Fi  = CLIP_HI;
+    if (FNi < CLIP_LO) FNi = CLIP_LO; else if (FNi > CLIP_HI) FNi = CLIP_HI;
+    S += (2 * i - 1) * (Math.log(Fi) + Math.log(1 - FNi));
+  }
+  return -N - S / N;
+}
+
 /** Central moments m₂, m₃, m₄ (biased /N denominator — matches γ₁/γ₂ convention). */
 function centralMoments(vals, mu) {
   let m2 = 0, m3 = 0, m4 = 0;
@@ -305,6 +334,22 @@ function sampleFamily(family, params, n, rng) {
     for (let i = 0; i < n; i++) out[i] = Math.max(0, Math.round(mu + sd * rng.randn()));
   }
   return out;
+}
+
+/** Same draw as sampleFamily but writes into a caller-supplied Float64Array
+ *  scratch buffer of length ≥ n. PRNG call order/count is identical, so
+ *  the null distribution is bit-equivalent. S159c hot-loop variant. */
+function sampleFamilyInto(family, params, out, n, rng) {
+  if (family === "normal") {
+    const { mu, sd } = params;
+    for (let i = 0; i < n; i++) out[i] = mu + sd * rng.randn();
+  } else if (family === "poisson") {
+    const { lambda } = params;
+    for (let i = 0; i < n; i++) out[i] = samplePoisson(lambda, rng);
+  } else if (family === "nb") {
+    const { mu, sd } = params;
+    for (let i = 0; i < n; i++) out[i] = Math.max(0, Math.round(mu + sd * rng.randn()));
+  }
 }
 
 /** Poisson(λ) sampler — inverse-transform for small λ, Normal-approx for large λ.
