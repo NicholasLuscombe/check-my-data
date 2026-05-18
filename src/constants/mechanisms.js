@@ -2,12 +2,17 @@
 // Visual tokens (MECH_COLOR, DUP_GROUP_PALETTE) live in tokens.js — this file is text-only.
 // Keys match METHODOLOGY-MAP v3 five dimensions (I–V). Display order = concreteness:
 // most tangible evidence first (I, II), most abstract last (IV).
+// `clusterLabel` (S161, A1.D2): lowercase noun phrase used inline in §4 prompt
+// body finding headers ("{testName} — {clusterLabel} cluster"). Distinct from
+// `label` (title-case section header). Renderer capitalises first letter when
+// the same phrase heads the "Other clusters — all applicable tests cleared"
+// list.
 export const MECHANISMS = {
-  copied:    { label: "Copy, paste, edit" },              // Dim I
-  digits:    { label: "Unusual digits" },                 // Dim II
-  shapes:    { label: "Distribution shapes" },            // Dim V
-  replicate: { label: "Cross-replicate comparisons" },    // Dim III
-  group:     { label: "Cross-condition comparisons" },    // Dim IV (engine key `group` stays per S132g engine-identifier-stays / display-label-moves)
+  copied:    { label: "Copy, paste, edit",            clusterLabel: "copy-paste/edit" },     // Dim I
+  digits:    { label: "Unusual digits",               clusterLabel: "unusual digits" },      // Dim II
+  shapes:    { label: "Distribution shapes",          clusterLabel: "distribution shapes" }, // Dim V
+  replicate: { label: "Cross-replicate comparisons",  clusterLabel: "cross-replicate" },     // Dim III
+  group:     { label: "Cross-condition comparisons",  clusterLabel: "cross-condition" },     // Dim IV (engine key `group` stays per S132g engine-identifier-stays / display-label-moves)
 };
 export const MECHANISM_ORDER = ["copied", "digits", "shapes", "replicate", "group"];
 

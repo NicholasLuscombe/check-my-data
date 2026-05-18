@@ -4,18 +4,21 @@ import { buildConvergenceFromFindings } from "../../analysis/convergence.js";
 import { buildFindings } from "../../analysis/findings.js";
 import { computeSeverity } from "../../analysis/severity.js";
 import { VerdictBanner } from "./VerdictBanner.jsx";
-import { buildConsultationPrompt, ACTION_LABEL } from "../../analysis/narrative.js";
+import { ACTION_LABEL } from "../../analysis/narrative.js";
+import { buildHandoffModel } from "../../analysis/handoffModel.js";
+import { renderPromptBody } from "../../analysis/promptBodyRenderer.js";
 import { CategoryRow } from "../shared/CategoryRow.jsx";
 import { HotspotExcerptList } from "./HotspotExcerptList.jsx";
 import { PulseProvider } from "../forensics/pulseContext.jsx";
 import { PulseStyle } from "../forensics/PulseStyle.jsx";
 import { ForensicsBody } from "../forensics/ForensicsBody.jsx";
-import { C, FF, FW, FS, CR, UI, BADGE, SIGNAL, ACCENT, SEV_VERDICT, DUP_GROUP_PALETTE } from "../../constants/tokens.js";
+import { C, FF, FW, FS, CR, BADGE, SIGNAL, ACCENT, SEV_VERDICT, DUP_GROUP_PALETTE } from "../../constants/tokens.js";
 import { FLAG_STYLES, ALPHA, fmtP } from "../../constants/thresholds.js";
 import { MECHANISMS, MECHANISM_ORDER, DISPLAY_NAMES, TEST_DESCRIPTIONS, TEST_MECHANISM, GLOBAL_TESTS } from "../../constants/mechanisms.js";
 import { ASSAYS, DATA_TYPES } from "../../constants/assays.js";
 import { ROLES } from "../../constants/roles.js";
 import { Section } from "../shared/Section.jsx";
+import { AsideCallout } from "../shared/AsideCallout.jsx";
 import { ExcelMetaCard } from "../cards/ExcelMetaCard.jsx";
 import { TestCard } from "../cards/TestCard.jsx";
 import { KeyFindings } from "../shared/KeyFindings.jsx";
@@ -688,8 +691,20 @@ export function ReportView({ results, importConfig, matrix, rowMap, onBack, onCh
     setExpandedTestEvidence(prev => prev[testName] ? prev : ({...prev, [testName]: true}));
   const [showMethodBattery, setShowMethodBattery] = useState(false);
   const [aiCopied, setAiCopied] = useState(false);
+  // S161 (A1.D2): §4 prompt body now sourced from the shared HandoffModel
+  // via renderPromptBody. handoffModel construction is memoized so the
+  // §4 surface render + copy-button click read the same object.
+  // renderPromptBody returns null at outcome 0; the §4 chrome short-
+  // circuits earlier (severity === 0 branch at ~line 1283) so the null
+  // path is the contract-guard, not the user-visible path.
+  const handoffModel = useMemo(
+    () => buildHandoffModel(results, importConfig, nRows, nCols),
+    [results, importConfig, nRows, nCols],
+  );
+  const promptBody = useMemo(() => renderPromptBody(handoffModel), [handoffModel]);
   const handleAIConsult = async () => {
-    const prompt = buildConsultationPrompt(results, importConfig, nRows, nCols, severity);
+    const prompt = promptBody ?? "";
+    if (!prompt) return;
     try { await navigator.clipboard.writeText(prompt); } catch(e) {
       const ta = document.createElement("textarea"); ta.value = prompt;
       document.body.appendChild(ta); ta.select(); document.execCommand("copy"); document.body.removeChild(ta);
@@ -825,42 +840,32 @@ export function ReportView({ results, importConfig, matrix, rowMap, onBack, onCh
         </div>
       </div>
 
-      {/* Screening-aid disclaimer — trust-aside-callout (UI.INFO.callout). S139c:
-          relocated from §5 to the report-top above §1, read as report-level preamble.
-          Chrome mirrors the S139 §5 site verbatim (light-blue bg, 3px blue left rule,
-          square-left-edge border-radius, Aside-callout body register at FS.sm C.TEXT).
-          Inline render mirrors S137 + S139 precedent; helper extraction defers until a
-          third cross-sub-type consumer. */}
-      <div style={{background:UI.INFO.callout.bg,borderLeft:`3px solid ${UI.INFO.callout.rule}`,borderRadius:"0 4px 4px 0",
-        padding:"14px 18px",marginBottom:"12px",fontSize:FS.sm,color:C.TEXT,fontFamily:FF.UI}}>
+      {/* Screening-aid disclaimer — report-level preamble above §1.
+          S139c original (was inline UI.INFO.callout chrome) → S161 AsideCallout
+          extraction. Body register unchanged. */}
+      <AsideCallout tone="info">
         Check My Data flags statistical patterns. Please interpret them using domain knowledge.
-      </div>
+      </AsideCallout>
 
       {/* Replicate-structure advisory: when many ungrouped columns are treated as replicates
           AND user has not explicitly classified them via the column relationship gate,
           warn that tests assume columns are replicates. Suppressed when colRelationship
-          was explicitly set (user made an informed choice). S137 (Phase C.1): rebuilt
-          as a status/warning aside-callout per typography system — light-amber bg
-          (UI.WARN.callout.bg) + 3px amber left rule (UI.WARN.callout.rule), bullet-lead
-          Semibold + body Regular at FS.sm sentence case. Pre-S137 chrome was a bordered
-          banner with a mono ALL CAPS Bold label. */}
+          was explicitly set (user made an informed choice). S137 (Phase C.1):
+          status/warning aside-callout. S161 (A1.D2) → AsideCallout extraction; body
+          register unchanged. */}
       {(() => {
         const nDC = nCols;
         const hasConds = importConfig.condPerCol?.some(c=>c) || false;
         const userChose = importConfig.colRelationship; // explicit choice via gate
         if(userChose === 'conditions') return null; // conditions mode — note not needed
         if(nDC > 6 && !hasConds && !userChose) return (
-          <div style={{background:UI.WARN.callout.bg,borderLeft:`3px solid ${UI.WARN.callout.rule}`,borderRadius:"0 4px 4px 0",
-            padding:"14px 18px",marginBottom:"12px",fontSize:FS.sm,color:C.TEXT,lineHeight:"1.6",fontFamily:FF.UI}}>
-            <span style={{fontWeight:FW.SEMI}}>⚠ Column structure note</span>
-            <span style={{marginLeft:"8px"}}>
-              All {nDC} data columns are being treated as replicates of a single condition.
-              If these are different biological samples, conditions, or time points, structural tests
-              (duplicates, constant-offset, selective noise) and distributional tests (autocorrelation, runs, kurtosis, inter-replicate correlation)
-              will flag inter-sample variation as anomalous. Use "Revise import" to assign condition groups if applicable.
-              {importConfig.assay==="genomics" && " For raw RNA-seq counts, library size differences between samples naturally produce variance heterogeneity — normalize counts before forensic screening, or interpret Selective Noise with caution."}
-            </span>
-          </div>
+          <AsideCallout tone="warn" strongLabel="⚠ Column structure note">
+            All {nDC} data columns are being treated as replicates of a single condition.
+            If these are different biological samples, conditions, or time points, structural tests
+            (duplicates, constant-offset, selective noise) and distributional tests (autocorrelation, runs, kurtosis, inter-replicate correlation)
+            will flag inter-sample variation as anomalous. Use "Revise import" to assign condition groups if applicable.
+            {importConfig.assay==="genomics" && " For raw RNA-seq counts, library size differences between samples naturally produce variance heterogeneity — normalize counts before forensic screening, or interpret Selective Noise with caution."}
+          </AsideCallout>
         );
         return null;
       })()}
@@ -1285,10 +1290,17 @@ export function ReportView({ results, importConfig, matrix, rowMap, onBack, onCh
               ) : (
                 <>
                   <div style={{fontSize:FS.base,color:C.TEXT,lineHeight:"1.6",marginBottom:"12px"}}>
-                    Copy the prompt below and paste it into Claude or another AI assistant for help interpreting these findings and planning next steps.
+                    Copy the prompt below and paste it into an AI assistant. You can attach the dataset, paper, or annotated Excel report alongside it for a deeper cross-walk.
                   </div>
+                  {/* S161 (A1.D2) — confidentiality callout. Neutral grey
+                      UI.FRAME.callout register. Two-line copy, em-dash on
+                      line 1, persistent (no dismiss state, no icon). */}
+                  <AsideCallout tone="frame">
+                    Check My Data runs in your browser — your data stays on your machine.<br/>
+                    Anything you paste or upload to an LLM is subject to that service's terms. Review them before uploading sensitive or unpublished data.
+                  </AsideCallout>
                   <div style={{background:C.BG_L,border:`1px solid ${C.BORDER}`,borderRadius:CR.MD,padding:"12px 16px",fontSize:FS.sm,fontWeight:FW.NORM,color:C.TEXT,lineHeight:"1.6",fontFamily:FF.MONO,whiteSpace:"pre-wrap",maxHeight:"180px",overflow:"auto",marginBottom:"10px"}}>
-                    {buildConsultationPrompt(results, importConfig, nRows, nCols, severity)}
+                    {promptBody}
                   </div>
                   <button onClick={handleAIConsult}
                     onMouseEnter={e => { if (!aiCopied) e.currentTarget.style.background = C.BG_L; }}
