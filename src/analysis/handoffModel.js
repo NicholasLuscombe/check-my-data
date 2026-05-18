@@ -33,6 +33,7 @@ import {
 import { VST_LABEL } from "../stats/vst.js";
 import { computeSeverity } from "./severity.js";
 import { fmtP } from "../constants/thresholds.js";
+import { composeFinding } from "./findingComposers.js";
 
 // S156 D5 Outcome ladder (locked). Engine severity 0–3 → outcome positions
 // 1–4 of 4. Renderer formats as "Outcome: {tier+1} of 4 — {label}".
@@ -89,9 +90,9 @@ function capFirst(s) {
 // Phase A location summary. Mirrors src/export/excelExport.js:185
 // `testLocalisation` shape — kept here without row-mapping (rowMap is an
 // excel-specific concern; the prompt body uses dataset-relative counts).
-// Phase B: replace with per-test composer registry that produces DS08-rich
-// location strings ("Changepoint at row 32 …", "Replicates 2–3 across the
-// full dataset", etc.).
+// S162b dispatches `composeFinding(r, ctx)` first; this remains the
+// fallback for tests with no bespoke composer entry in
+// findingComposers.js's FINDING_COMPOSERS registry.
 function locationOf(r) {
   if (r.blockCopies?.length) {
     const n = r.blockCopies.length;
@@ -112,10 +113,11 @@ function locationOf(r) {
   return "Global";
 }
 
-// Phase A evidence shape: [interpretation, primaryP line]. Each entry is
-// one line in the rendered prompt body. Phase B replaces with per-test
-// bespoke composers — see DS08 worked example in SESSION160-SUMMARY.md
-// (χ² = …, MAD = …, digit distribution: … etc.).
+// Phase A evidence shape: [interpretation, primaryP line]. S162b dispatches
+// per-test composers ahead of this; the fallback fires when the test has no
+// composer entry. Tests that emit no `interpretation` field fall through to
+// a primaryP-only line under Phase A — Phase B composers fix this for every
+// fired test.
 function evidenceOf(r) {
   const lines = [];
   if (r.interpretation) lines.push(r.interpretation);
@@ -131,14 +133,15 @@ function clusterKeyOf(r) {
   return TEST_MECHANISM[r.name] || "replicate";
 }
 
-function buildFinding(r) {
+function buildFinding(r, ctx) {
   const key = clusterKeyOf(r);
+  const composed = composeFinding(r, ctx);
   return {
     testName: r.name,
     clusterLabel: MECHANISMS[key]?.clusterLabel || key,
     methodVerbatim: TEST_METHODS[r.name] || "",
-    location: locationOf(r),
-    evidenceLines: evidenceOf(r),
+    location: composed ? composed.location : locationOf(r),
+    evidenceLines: composed ? composed.evidenceLines : evidenceOf(r),
   };
 }
 
@@ -177,9 +180,16 @@ function buildOutcome(severity, results) {
   };
 }
 
-function buildFindings(results, conditions) {
-  const high = results.filter(r => r.flag === "HIGH").map(buildFinding);
-  const moderate = results.filter(r => r.flag === "MODERATE").map(buildFinding);
+function buildFindings(results, dataset) {
+  // ctx shape (S162b): minimal dataset slice the composers consume.
+  // Conditions are the only branching signal used today (IRC's multi-
+  // condition naming, SelNoise's per-condition narration). Threading the
+  // full dataset slot keeps the door open for nRows / nCols / vstLabel
+  // usage as composers extend.
+  const ctx = { dataset };
+  const conditions = dataset.conditions;
+  const high = results.filter(r => r.flag === "HIGH").map(r => buildFinding(r, ctx));
+  const moderate = results.filter(r => r.flag === "MODERATE").map(r => buildFinding(r, ctx));
 
   // Flagged clusters = clusters with at least one HIGH or MODERATE finding.
   // Ordered by **first appearance** in the combined HIGH→MODERATE finding
@@ -290,6 +300,6 @@ export function buildHandoffModel(results, importConfig, nRows, nCols) {
   return {
     dataset,
     outcome: buildOutcome(severity, results),
-    findings: buildFindings(results, dataset.conditions),
+    findings: buildFindings(results, dataset),
   };
 }
