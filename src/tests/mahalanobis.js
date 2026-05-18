@@ -219,6 +219,11 @@ export function testMahalanobisOutlier(matrix, assay='general') {
     primaryP: binomP,
     internalLogApplied,
     flag,
-    details: outlierRows.slice(0, 100)
+    details: outlierRows.slice(0, 100),
+    // Full uncapped 1-indexed row indices of every outlier surviving Stage-2
+    // BH-FDR. Additive to `details` (which caps at 100 and carries per-row
+    // statistics for the evidence table) so a downstream consumer needing
+    // the complete index set does not have to reconstruct from `details`.
+    flaggedRowIndices: outlierRows.map(r => r.Row)
   };
 }

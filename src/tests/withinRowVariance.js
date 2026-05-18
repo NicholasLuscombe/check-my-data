@@ -166,6 +166,12 @@ export function testWithinRowVariance(matrix, rng, rowSemantics = 'ordered') {
     nWindowsTested: windowPs.length,
     subunitsSuppressed: suppressWindowed ? ['windowed-scan'] : [],
     flaggedRows: flaggedRows.slice(0, 50),
+    // Full uncapped 1-indexed row indices of every flagged row (both
+    // "too smooth" and "too noisy" directions, matching `nOutliers`).
+    // Additive to `flaggedRows` (which caps at 50 and carries per-row
+    // stats for the evidence table) so a downstream consumer needing the
+    // complete index set does not have to reconstruct from `flaggedRows`.
+    flaggedRowIndices: flaggedRows.map(r => r.row),
     // For MiniCard histogram: sample of z-scores
     zScores: zScores.length > 300
       ? zScores.filter((_, i) => i % Math.ceil(zScores.length / 300) === 0)

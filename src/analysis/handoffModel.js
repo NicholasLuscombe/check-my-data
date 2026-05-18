@@ -243,8 +243,7 @@ function buildFindings(results, conditions) {
   }
 
   // Tests not run — flag === "N/A" carries r.description as engine reason.
-  // Reason strings are passed through verbatim; truncated forms (e.g.
-  // "…for narrow-range dat") are a separate engine bug (STATUS parked).
+  // Reason strings are passed through verbatim.
   const notRun = results
     .filter(r => r.flag === "N/A")
     .map(r => ({
