@@ -1,5 +1,5 @@
 import { bhFDR } from "../stats/primitives.js";
-import { flagFromP } from "../constants/thresholds.js";
+import { flagFromP, ALPHA } from "../constants/thresholds.js";
 
 /* 27. Blocked Mahalanobis Covariance-Anomaly Detection
    Detects contiguous row blocks whose cross-replicate covariance Σ or mean μ
@@ -484,16 +484,55 @@ export function testBlockedMahalanobis(matrix, condCtx, rng, dataType = 'continu
   });
   const shuffledBufs = applicable.map(ws => new Array(ws.N));
 
+  // S159d — LOW-path early-exit. Exceedance counters are monotone
+  // non-decreasing, so the (k+1)/(B+1) rawP can only grow as more
+  // permutations are tried. The floor rawP at iteration b — computed
+  // assuming zero future exceedances — equals (exceed_now+1)/(N_PERM+1).
+  // Apply BH-FDR to the floor-rawP vector; if min adj-p already exceeds
+  // ALPHA.NOTE, no future permutation can pull primaryP back into
+  // MOD/HIGH territory — the test is mathematically determined to be LOW.
+  //
+  // PRNG preservation: many downstream tests in engine.js (Kurtosis,
+  // Entropy, Column GoF, Autocorrelation et al.) consume rng AFTER BM in
+  // the dispatch sequence. Skipping `rng.shuffle(idx)` here would advance
+  // the engine PRNG by fewer calls, changing every downstream test's
+  // output. To preserve batch reproducibility, the shuffle is kept live
+  // on every iteration; only the expensive `scanCondition` + the
+  // shuffled-row write loop are skipped. Shuffle cost is ~N random()
+  // calls vs scanCondition's ~25k FP ops per slice per iter (ratio
+  // ~125:1), so the saving is ~99% of the per-iter cost on the
+  // skipped path.
+  //
+  // Minimum burn-in b ≥ 20 — avoids premature exit when the first few
+  // permutations happen to over-exceed before the null is well-sampled.
+  const EARLY_EXIT_BURN_IN = 20;
+  let earlyExit = false;
   for (let b = 0; b < N_PERM; b++) {
     for (let si = 0; si < applicable.length; si++) {
       const ws = applicable[si];
       const idx = idxBufs[si];
+      rng.shuffle(idx); // ALWAYS — preserves engine PRNG state
+      if (earlyExit) continue;
       const shuffled = shuffledBufs[si];
-      rng.shuffle(idx);
       for (let i = 0; i < ws.N; i++) shuffled[i] = ws.rows[idx[i]];
       const { tsqMax, rMax } = scanCondition(shuffled, ws.windows, p, ws.scratch, null);
       if (tsqMax >= ws.obsTsq) ws.exceedTsq++;
       if (rMax >= ws.obsR) ws.exceedR++;
+    }
+    // Early-exit check (only when in-flight; one-shot decision)
+    if (!earlyExit && b >= EARLY_EXIT_BURN_IN) {
+      const floorRawPs = new Array(applicable.length * 2);
+      let k = 0;
+      for (const ws of applicable) {
+        floorRawPs[k++] = (ws.exceedTsq + 1) / (N_PERM + 1);
+        floorRawPs[k++] = (ws.exceedR + 1) / (N_PERM + 1);
+      }
+      const floorAdjPs = bhFDR(floorRawPs);
+      let minFloorAdjP = Infinity;
+      for (const p of floorAdjPs) if (p < minFloorAdjP) minFloorAdjP = p;
+      if (minFloorAdjP > ALPHA.NOTE) {
+        earlyExit = true;
+      }
     }
   }
 
