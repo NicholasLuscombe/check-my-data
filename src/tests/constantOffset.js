@@ -168,20 +168,65 @@ function _runBlockDetection(pairDiffVecs, rng, nR) {
     : pairDiffVecs;
   const obsSubset = permVecs === pairDiffVecs ? obs : countBlocksPerPair(permVecs);
   const nPermPairs = permVecs.length;
+
+  // S159c — pre-allocate per-pair scratch:
+  //   nonNullValsOrig — Float64Array of the original (un-shuffled) non-null d-values
+  //   nonNullValsShuf — Float64Array same length, refilled+shuffled per perm
+  //   rankAt          — Int32Array(diffs.length) mapping diffs index → rank in non-null subset (-1 for null)
+  // The original code re-built fresh Array structures per perm (filter+map+
+  // destructuring-swap+map → ~5 arrays/objects per pair). The hoisted form
+  // does O(nValid) per perm with no allocation.
+  const permScratch = permVecs.map(({ diffs }) => {
+    const nValid = diffs.reduce((n, d) => n + (d !== null ? 1 : 0), 0);
+    const valsOrig = new Float64Array(nValid);
+    const valsShuf = new Float64Array(nValid);
+    const rankAt   = new Int32Array(diffs.length);
+    let k = 0;
+    for (let i = 0; i < diffs.length; i++) {
+      if (diffs[i] !== null) { valsOrig[k] = diffs[i].d; rankAt[i] = k; k++; }
+      else rankAt[i] = -1;
+    }
+    return { valsOrig, valsShuf, rankAt, nValid, diffs };
+  });
+
+  // countBlocksFromShuffled — operates on the shuffled non-null vals using
+  // pre-computed rankAt. Same semantics as countBlocksPerPair on a freshly
+  // shuffled diffs view: consecutive original-space pair (i, i+1) contributes
+  // when both positions are non-null AND vals[rankAt[i]] === vals[rankAt[i+1]]
+  // AND that value ≠ 0.
+  function countBlocksFromShuffled(diffs, valsShuf, rankAt) {
+    let b = 0, tp = 0;
+    for (let i = 0; i < diffs.length - 1; i++) {
+      if (diffs[i] && diffs[i + 1]) {
+        tp++;
+        const v1 = valsShuf[rankAt[i]];
+        const v2 = valsShuf[rankAt[i + 1]];
+        if (v1 === v2 && v1 !== 0) b++;
+      }
+    }
+    return { b, tp };
+  }
+
   let permExceed = 0;
   const pairExceed = new Array(nPermPairs).fill(0);
   for (let p = 0; p < N_PERM; p++) {
-    const shuffled = permVecs.map(({ c1, c2, diffs }) => {
-      const nonNull = diffs.filter(d => d !== null).map(d => d.d);
-      for (let i = nonNull.length - 1; i > 0; i--) { const j = Math.floor(rng.random() * (i + 1)); [nonNull[i], nonNull[j]] = [nonNull[j], nonNull[i]]; }
-      let ni = 0;
-      return { c1, c2, diffs: diffs.map(d => d === null ? null : { pos: d.pos, d: nonNull[ni++] }) };
-    });
-    const permObs = countBlocksPerPair(shuffled);
-    if (permObs.b >= obsSubset.b) permExceed++;
+    let permTotalB = 0;
     for (let pi = 0; pi < nPermPairs; pi++) {
-      if (permObs.perPair[pi] >= obsSubset.perPair[pi]) pairExceed[pi]++;
+      const sc = permScratch[pi];
+      const valsShuf = sc.valsShuf;
+      const valsOrig = sc.valsOrig;
+      const nValid = sc.nValid;
+      // Refill + Fisher-Yates shuffle in place
+      for (let i = 0; i < nValid; i++) valsShuf[i] = valsOrig[i];
+      for (let i = nValid - 1; i > 0; i--) {
+        const j = Math.floor(rng.random() * (i + 1));
+        const tmp = valsShuf[i]; valsShuf[i] = valsShuf[j]; valsShuf[j] = tmp;
+      }
+      const pObs = countBlocksFromShuffled(sc.diffs, valsShuf, sc.rankAt);
+      permTotalB += pObs.b;
+      if (pObs.b >= obsSubset.perPair[pi]) pairExceed[pi]++;
     }
+    if (permTotalB >= obsSubset.b) permExceed++;
   }
   const permP = (permExceed + 1) / (N_PERM + 1);
 

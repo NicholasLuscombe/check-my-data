@@ -1,5 +1,5 @@
-import { bhFDR, invertMatrix } from "../stats/primitives.js";
-import { flagFromP } from "../constants/thresholds.js";
+import { bhFDR } from "../stats/primitives.js";
+import { flagFromP, ALPHA } from "../constants/thresholds.js";
 
 /* 27. Blocked Mahalanobis Covariance-Anomaly Detection
    Detects contiguous row blocks whose cross-replicate covariance Σ or mean μ
@@ -22,6 +22,18 @@ import { flagFromP } from "../constants/thresholds.js";
    large-dimensional covariance matrices. J. Multivariate Analysis 88(2).
    Anderson (2003) §10.8 for the LR / two-sample T² framework.
 
+   S159 — pre-allocated scratch buffers. The permutation null calls
+   scanCondition N_PERM × nCond times; each call entered the window loop
+   nWin times and allocated ~50 fresh small arrays (covariance matrices,
+   means, augmented inversion buffer, eigenvector scratch). On DS21
+   (N_PERM=4999, 2 conds, 18 windows) that compounds to tens of millions
+   of allocations. V8 in Node absorbs the churn; browser GC does not.
+   The arithmetic is unchanged — every per-window matrix that was
+   allocated fresh is now pre-allocated once per slice and written into
+   in place. The local invertInto helper replaces primitives.invertMatrix
+   for the same reason (its augmented matrix + .map(row.slice) return
+   path allocated ~2n+2 arrays per call).
+
    See METHODOLOGY.md §"2.6b Blocked Mahalanobis".
 */
 
@@ -29,38 +41,48 @@ const MIN_N_CONSTRUCT = 60;
 const MIN_NC = 3;
 const DETAILS_CAP = 30;
 
-/** Compute p×p sample covariance (unbiased, N-1 denominator) of `rows` about
- *  the supplied `mean`. Caller guarantees rows have length p and N ≥ 2. */
-function sampleCov(rows, mean, p) {
+/** Compute p×p sample covariance (unbiased, N-1 denominator) of `rows`
+ *  about the supplied `mean`. Writes into `outS` (Array<Float64Array>,
+ *  pre-allocated by caller). Caller guarantees rows have length p. */
+function sampleCov(rows, mean, p, outS) {
+  // Zero the output (sampleCov uses += for the upper triangle).
+  for (let a = 0; a < p; a++) outS[a].fill(0);
   const N = rows.length;
-  const S = Array.from({ length: p }, () => new Array(p).fill(0));
-  if (N < 2) return S;
-  for (const row of rows) {
+  if (N < 2) return;
+  for (let i = 0; i < N; i++) {
+    const row = rows[i];
     for (let a = 0; a < p; a++) {
       const da = row[a] - mean[a];
+      const rowA = outS[a];
       for (let b = a; b < p; b++) {
-        S[a][b] += da * (row[b] - mean[b]);
+        rowA[b] += da * (row[b] - mean[b]);
       }
     }
   }
   const denom = N - 1;
   for (let a = 0; a < p; a++) {
+    const rowA = outS[a];
     for (let b = a; b < p; b++) {
-      S[a][b] /= denom;
-      if (a !== b) S[b][a] = S[a][b];
+      rowA[b] /= denom;
+      if (a !== b) outS[b][a] = rowA[b];
     }
   }
-  return S;
 }
 
 /** Ledoit-Wolf linear shrinkage toward the scaled-identity target
  *  T = (trace(S)/p)·I, per Ledoit & Wolf (2004) Theorem 1. Closed-form
  *  shrinkage intensity α̂ = min(1, max(0, β̂² / δ̂²)) with
  *  β̂² = (1/N²) Σ_i ‖(x_i − μ̂)(x_i − μ̂)^T − S‖²_F and
- *  δ̂² = ‖S − T‖²_F. Output Σ̂ = (1 − α̂)·S + α̂·T. */
-function ledoitWolfShrink(rows, mean, S, p) {
+ *  δ̂² = ‖S − T‖²_F. Output Σ̂ = (1 − α̂)·S + α̂·T written into `outShrunk`. */
+function ledoitWolfShrink(rows, mean, S, p, outShrunk) {
   const N = rows.length;
-  if (N < 2) return { shrunk: S.map(r => r.slice()), alpha: 0 };
+  if (N < 2) {
+    for (let a = 0; a < p; a++) {
+      const inRow = S[a], outRow = outShrunk[a];
+      for (let b = 0; b < p; b++) outRow[b] = inRow[b];
+    }
+    return 0;
+  }
 
   // target diagonal entry = trace(S) / p
   let trS = 0;
@@ -70,20 +92,23 @@ function ledoitWolfShrink(rows, mean, S, p) {
   // δ² = Σ (S_ij − T_ij)²
   let delta2 = 0;
   for (let a = 0; a < p; a++) {
+    const rowA = S[a];
     for (let b = 0; b < p; b++) {
       const t = (a === b) ? mu : 0;
-      const d = S[a][b] - t;
+      const d = rowA[b] - t;
       delta2 += d * d;
     }
   }
 
   // β² = (1/N²) Σ_i ‖x_i x_i^T − S‖²_F where x_i is the centered row.
   let sumBeta = 0;
-  for (const row of rows) {
+  for (let i = 0; i < N; i++) {
+    const row = rows[i];
     for (let a = 0; a < p; a++) {
       const da = row[a] - mean[a];
+      const rowA = S[a];
       for (let b = 0; b < p; b++) {
-        const diff = da * (row[b] - mean[b]) - S[a][b];
+        const diff = da * (row[b] - mean[b]) - rowA[b];
         sumBeta += diff * diff;
       }
     }
@@ -96,31 +121,33 @@ function ledoitWolfShrink(rows, mean, S, p) {
   if (alpha < 0) alpha = 0;
   if (alpha > 1) alpha = 1;
 
-  const out = Array.from({ length: p }, () => new Array(p).fill(0));
+  const oneMinus = 1 - alpha;
   for (let a = 0; a < p; a++) {
+    const outRow = outShrunk[a], inRow = S[a];
     for (let b = 0; b < p; b++) {
       const t = (a === b) ? mu : 0;
-      out[a][b] = (1 - alpha) * S[a][b] + alpha * t;
+      outRow[b] = oneMinus * inRow[b] + alpha * t;
     }
   }
-  return { shrunk: out, alpha };
+  return alpha;
 }
 
-/** Dominant (largest positive) eigenvalue of A (p×p) via power iteration with
- *  Rayleigh-quotient estimate. A is expected similar to a PD matrix (for the
- *  caller's use Σ_B · Σ_{\B}^{-1}), so the dominant eigenvalue is real and
- *  positive. Returns 0 on numerical breakdown. */
-function dominantEigenvalue(A, p) {
+/** Dominant (largest positive) eigenvalue of A (p×p) via power iteration
+ *  with Rayleigh-quotient estimate. A is expected similar to a PD matrix
+ *  (for the caller's use Σ_B · Σ_{\B}^{-1}), so the dominant eigenvalue
+ *  is real and positive. Returns 0 on numerical breakdown.
+ *  `v` and `w` are caller-supplied Float64Array(p) scratch buffers. */
+function dominantEigenvalue(A, p, v, w) {
   const MAX_IT = 200;
   const TOL = 1e-9;
-  let v = new Array(p).fill(0);
+  v.fill(0);
   v[0] = 1;
   let lambda = 0;
   for (let it = 0; it < MAX_IT; it++) {
-    const w = new Array(p);
     for (let i = 0; i < p; i++) {
+      const Ai = A[i];
       let s = 0;
-      for (let j = 0; j < p; j++) s += A[i][j] * v[j];
+      for (let j = 0; j < p; j++) s += Ai[j] * v[j];
       w[i] = s;
     }
     // Rayleigh quotient: λ ≈ (vᵀ A v) / (vᵀ v) = (vᵀ w) / (vᵀ v)
@@ -141,100 +168,191 @@ function dominantEigenvalue(A, p) {
   return lambda;
 }
 
-/** Compute block-vs-complement scan statistics on one condition's row set.
- *  Returns { tsqMax, rMax, perWindow[] }. perWindow carries per-window
- *  observed T² and R for detail reporting. */
-function scanCondition(rows, windows, p) {
+/** In-place Gauss-Jordan inverter. Writes M⁻¹ into `out`
+ *  (Array<Float64Array>); uses `aug` (Array<Float64Array> of width 2n)
+ *  as workspace. Returns true on success, false if M is singular at the
+ *  1e-12 pivot tolerance. Replaces primitives.invertMatrix to avoid its
+ *  Array.from(...) augmented-matrix allocation + .map(row.slice) return
+ *  path — both ran twice per window per permutation. */
+function invertInto(M, n, aug, out) {
+  // Build augmented [M | I] into the pre-allocated aug buffer.
+  for (let i = 0; i < n; i++) {
+    const augRow = aug[i];
+    augRow.fill(0);
+    const Mi = M[i];
+    for (let j = 0; j < n; j++) augRow[j] = Mi[j];
+    augRow[n + i] = 1;
+  }
+  const twoN = 2 * n;
+  for (let col = 0; col < n; col++) {
+    // Partial pivoting
+    let maxVal = Math.abs(aug[col][col]);
+    let maxRow = col;
+    for (let row = col + 1; row < n; row++) {
+      const v = Math.abs(aug[row][col]);
+      if (v > maxVal) { maxVal = v; maxRow = row; }
+    }
+    if (maxVal < 1e-12) return false; // singular
+
+    if (maxRow !== col) {
+      const tmp = aug[col]; aug[col] = aug[maxRow]; aug[maxRow] = tmp;
+    }
+
+    // Scale pivot row
+    const pivotRow = aug[col];
+    const pivot = pivotRow[col];
+    for (let j = 0; j < twoN; j++) pivotRow[j] /= pivot;
+
+    // Eliminate column
+    for (let row = 0; row < n; row++) {
+      if (row === col) continue;
+      const augRow = aug[row];
+      const factor = augRow[col];
+      if (factor === 0) continue;
+      for (let j = 0; j < twoN; j++) augRow[j] -= factor * pivotRow[j];
+    }
+  }
+
+  // Extract inverse into out
+  for (let i = 0; i < n; i++) {
+    const outRow = out[i];
+    const augRow = aug[i];
+    for (let j = 0; j < n; j++) outRow[j] = augRow[n + j];
+  }
+  return true;
+}
+
+/** Allocate one set of scratch buffers for a single condition slice. All
+ *  buffers depend only on p, W (block size), and Ncomp (= N − W). Sized
+ *  once and reused across the observed pass + N_PERM permutations. */
+function makeScratch(p, B, Ncomp) {
+  const mat = () => {
+    const m = new Array(p);
+    for (let i = 0; i < p; i++) m[i] = new Float64Array(p);
+    return m;
+  };
+  const aug = new Array(p);
+  for (let i = 0; i < p; i++) aug[i] = new Float64Array(2 * p);
+  return {
+    totalSum: new Float64Array(p),
+    muB: new Float64Array(p),
+    blockSum: new Float64Array(p),
+    muC: new Float64Array(p),
+    dmu: new Float64Array(p),
+    eigV: new Float64Array(p),
+    eigW: new Float64Array(p),
+    S_B: mat(), S_C: mat(),
+    sigB: mat(), sigC: mat(),
+    sigP: mat(),
+    invSigP: mat(), invSigC: mat(),
+    M_prod: mat(),
+    aug,
+    blockRows: new Array(B),
+    compRows: new Array(Ncomp),
+  };
+}
+
+/** Compute block-vs-complement scan statistics on one condition's row
+ *  set. Returns { tsqMax, rMax }. If `perWindowOut` is non-null, also
+ *  writes per-window observed { start, end, tsq, r } into it (observed
+ *  pass only — permutation pass passes null). All numeric scratch is
+ *  pre-allocated in `scratch` (see makeScratch). */
+function scanCondition(rows, windows, p, scratch, perWindowOut) {
   const N = rows.length;
-  const perWindow = new Array(windows.length);
+  const {
+    totalSum, muB, blockSum, muC, dmu, eigV, eigW,
+    S_B, S_C, sigB, sigC, sigP, invSigP, invSigC, M_prod,
+    aug, blockRows, compRows,
+  } = scratch;
+
   let tsqMax = 0, rMax = 0;
 
   // Pre-compute row contributions for complement mean: total sum across all
   // rows, then complement mean = (total − block_sum) / (N − B).
-  const totalSum = new Array(p).fill(0);
+  totalSum.fill(0);
   for (let i = 0; i < N; i++) {
     const row = rows[i];
     for (let j = 0; j < p; j++) totalSum[j] += row[j];
   }
 
   for (let wIdx = 0; wIdx < windows.length; wIdx++) {
-    const { start, end } = windows[wIdx];
+    const win = windows[wIdx];
+    const start = win.start, end = win.end;
     const B = end - start;
     const Ncomp = N - B;
 
     // Block mean
-    const muB = new Array(p).fill(0);
+    muB.fill(0);
     for (let i = start; i < end; i++) {
       const row = rows[i];
       for (let j = 0; j < p; j++) muB[j] += row[j];
     }
-    const blockSum = muB.slice();
-    for (let j = 0; j < p; j++) muB[j] /= B;
+    for (let j = 0; j < p; j++) {
+      blockSum[j] = muB[j];
+      muB[j] /= B;
+    }
 
     // Complement mean from totalSum − blockSum
-    const muC = new Array(p);
     for (let j = 0; j < p; j++) muC[j] = (totalSum[j] - blockSum[j]) / Ncomp;
 
-    // Assemble block and complement row views
-    const blockRows = new Array(B);
+    // Assemble block and complement row views (into pre-allocated buffers)
     for (let i = 0; i < B; i++) blockRows[i] = rows[start + i];
-    const compRows = new Array(Ncomp);
     let k = 0;
     for (let i = 0; i < start; i++) compRows[k++] = rows[i];
     for (let i = end; i < N; i++) compRows[k++] = rows[i];
 
-    // Sample covariances (unbiased)
-    const S_B = sampleCov(blockRows, muB, p);
-    const S_C = sampleCov(compRows, muC, p);
+    // Sample covariances (unbiased) — write into S_B / S_C
+    sampleCov(blockRows, muB, p, S_B);
+    sampleCov(compRows, muC, p, S_C);
 
-    // Ledoit-Wolf shrinkage (independent per side)
-    const { shrunk: sigB } = ledoitWolfShrink(blockRows, muB, S_B, p);
-    const { shrunk: sigC } = ledoitWolfShrink(compRows, muC, S_C, p);
+    // Ledoit-Wolf shrinkage (independent per side) — write into sigB / sigC
+    ledoitWolfShrink(blockRows, muB, S_B, p, sigB);
+    ledoitWolfShrink(compRows, muC, S_C, p, sigC);
 
     // μ-pass: pool shrunk covariances weighted by DoF.
-    const sigP = Array.from({ length: p }, () => new Array(p).fill(0));
     for (let a = 0; a < p; a++) {
+      const rowP = sigP[a], rowB = sigB[a], rowC = sigC[a];
       for (let b = 0; b < p; b++) {
-        sigP[a][b] = ((B - 1) * sigB[a][b] + (Ncomp - 1) * sigC[a][b]) / (N - 2);
+        rowP[b] = ((B - 1) * rowB[b] + (Ncomp - 1) * rowC[b]) / (N - 2);
       }
     }
-    const invSigP = invertMatrix(sigP, p);
     let tsq = 0;
-    if (invSigP) {
-      const dmu = new Array(p);
+    if (invertInto(sigP, p, aug, invSigP)) {
       for (let j = 0; j < p; j++) dmu[j] = muB[j] - muC[j];
       let quad = 0;
       for (let a = 0; a < p; a++) {
-        let row = 0;
-        for (let b = 0; b < p; b++) row += invSigP[a][b] * dmu[b];
-        quad += dmu[a] * row;
+        const inv_a = invSigP[a];
+        let rowSum = 0;
+        for (let b = 0; b < p; b++) rowSum += inv_a[b] * dmu[b];
+        quad += dmu[a] * rowSum;
       }
       tsq = quad * (B * Ncomp) / N;
       if (!isFinite(tsq) || tsq < 0) tsq = 0;
     }
 
     // Σ-pass: R = λ_max(sigB · sigC^{-1})
-    const invSigC = invertMatrix(sigC, p);
     let r = 0;
-    if (invSigC) {
-      const M = Array.from({ length: p }, () => new Array(p).fill(0));
+    if (invertInto(sigC, p, aug, invSigC)) {
       for (let a = 0; a < p; a++) {
+        const rowOut = M_prod[a], rowB = sigB[a];
         for (let b = 0; b < p; b++) {
           let s = 0;
-          for (let kk = 0; kk < p; kk++) s += sigB[a][kk] * invSigC[kk][b];
-          M[a][b] = s;
+          for (let kk = 0; kk < p; kk++) s += rowB[kk] * invSigC[kk][b];
+          rowOut[b] = s;
         }
       }
-      r = dominantEigenvalue(M, p);
+      r = dominantEigenvalue(M_prod, p, eigV, eigW);
       if (!isFinite(r) || r < 0) r = 0;
     }
 
     if (tsq > tsqMax) tsqMax = tsq;
     if (r > rMax) rMax = r;
-    perWindow[wIdx] = { start, end, tsq, r };
+    if (perWindowOut) {
+      perWindowOut[wIdx] = { start, end, tsq, r };
+    }
   }
 
-  return { tsqMax, rMax, perWindow };
+  return { tsqMax, rMax };
 }
 
 /**
@@ -333,12 +451,20 @@ export function testBlockedMahalanobis(matrix, condCtx, rng, dataType = 'continu
       description: `Insufficient rows per condition for the windowed scan (W=${W}, stride=${S_STRIDE}).` };
   }
 
+  // S159 — pre-allocate one scratch bundle per slice, reused across
+  // observed + N_PERM permutation calls. Buffer shapes depend on p (column
+  // count) and N (slice row count) only; both are fixed at this point.
+  for (const ws of applicable) {
+    ws.scratch = makeScratch(p, W, ws.N - W);
+  }
+
   // ── Observed statistics ──
   for (const ws of applicable) {
-    const { tsqMax, rMax, perWindow } = scanCondition(ws.rows, ws.windows, p);
+    const perWindowOut = new Array(ws.windows.length);
+    const { tsqMax, rMax } = scanCondition(ws.rows, ws.windows, p, ws.scratch, perWindowOut);
     ws.obsTsq = tsqMax;
     ws.obsR = rMax;
-    ws.obsPerWindow = perWindow;
+    ws.obsPerWindow = perWindowOut;
   }
 
   // Adaptive permutation count: matches LOESS §2.7 precedent on max-N.
@@ -358,16 +484,55 @@ export function testBlockedMahalanobis(matrix, condCtx, rng, dataType = 'continu
   });
   const shuffledBufs = applicable.map(ws => new Array(ws.N));
 
+  // S159d — LOW-path early-exit. Exceedance counters are monotone
+  // non-decreasing, so the (k+1)/(B+1) rawP can only grow as more
+  // permutations are tried. The floor rawP at iteration b — computed
+  // assuming zero future exceedances — equals (exceed_now+1)/(N_PERM+1).
+  // Apply BH-FDR to the floor-rawP vector; if min adj-p already exceeds
+  // ALPHA.NOTE, no future permutation can pull primaryP back into
+  // MOD/HIGH territory — the test is mathematically determined to be LOW.
+  //
+  // PRNG preservation: many downstream tests in engine.js (Kurtosis,
+  // Entropy, Column GoF, Autocorrelation et al.) consume rng AFTER BM in
+  // the dispatch sequence. Skipping `rng.shuffle(idx)` here would advance
+  // the engine PRNG by fewer calls, changing every downstream test's
+  // output. To preserve batch reproducibility, the shuffle is kept live
+  // on every iteration; only the expensive `scanCondition` + the
+  // shuffled-row write loop are skipped. Shuffle cost is ~N random()
+  // calls vs scanCondition's ~25k FP ops per slice per iter (ratio
+  // ~125:1), so the saving is ~99% of the per-iter cost on the
+  // skipped path.
+  //
+  // Minimum burn-in b ≥ 20 — avoids premature exit when the first few
+  // permutations happen to over-exceed before the null is well-sampled.
+  const EARLY_EXIT_BURN_IN = 20;
+  let earlyExit = false;
   for (let b = 0; b < N_PERM; b++) {
     for (let si = 0; si < applicable.length; si++) {
       const ws = applicable[si];
       const idx = idxBufs[si];
+      rng.shuffle(idx); // ALWAYS — preserves engine PRNG state
+      if (earlyExit) continue;
       const shuffled = shuffledBufs[si];
-      rng.shuffle(idx);
       for (let i = 0; i < ws.N; i++) shuffled[i] = ws.rows[idx[i]];
-      const { tsqMax, rMax } = scanCondition(shuffled, ws.windows, p);
+      const { tsqMax, rMax } = scanCondition(shuffled, ws.windows, p, ws.scratch, null);
       if (tsqMax >= ws.obsTsq) ws.exceedTsq++;
       if (rMax >= ws.obsR) ws.exceedR++;
+    }
+    // Early-exit check (only when in-flight; one-shot decision)
+    if (!earlyExit && b >= EARLY_EXIT_BURN_IN) {
+      const floorRawPs = new Array(applicable.length * 2);
+      let k = 0;
+      for (const ws of applicable) {
+        floorRawPs[k++] = (ws.exceedTsq + 1) / (N_PERM + 1);
+        floorRawPs[k++] = (ws.exceedR + 1) / (N_PERM + 1);
+      }
+      const floorAdjPs = bhFDR(floorRawPs);
+      let minFloorAdjP = Infinity;
+      for (const p of floorAdjPs) if (p < minFloorAdjP) minFloorAdjP = p;
+      if (minFloorAdjP > ALPHA.NOTE) {
+        earlyExit = true;
+      }
     }
   }
 
@@ -417,7 +582,7 @@ export function testBlockedMahalanobis(matrix, condCtx, rng, dataType = 'continu
         condition: u.condition,
         startRow: startFileRow,
         endRow: endFileRow,
-        rows: `${startFileRow}\u2013${endFileRow}`,
+        rows: `${startFileRow}–${endFileRow}`,
         statType: u.pass === 'mu' ? 'T²' : 'λ',
         stat: pw[statKey].toFixed(3),
         rawP: u.rawP,

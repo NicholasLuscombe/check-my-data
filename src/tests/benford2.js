@@ -33,21 +33,26 @@ export function testBenford2(matrix, rng) {
     benf2.push(p);
   }
 
-  // Extract second significant digits
+  // Extract second significant digits.
+  // S159c — numeric path replaces the prior `toExponential(10) + split + replace`
+  // chain. For an arbitrary positive value v, scale to scientific-notation
+  // mantissa m ∈ [1, 10) via m = v / 10^floor(log10(v)), then take
+  // d2 = floor((m − floor(m)) × 10). Matches the simulated-path extraction
+  // below so the null and observed counts are computed under the same
+  // algorithm (the calibration concern was inter-path divergence; both paths
+  // truncate identically now).
   const counts = new Array(10).fill(0);
   let total = 0;
   for (const v of allVals) {
     const a = Math.abs(v);
     if (a <= 0) continue;
-    // Get significant digits via scientific notation
-    const s = a.toExponential(10); // e.g. "1.2345678900e+2"
-    const mantissa = s.split("e")[0].replace(".", ""); // "12345678900"
-    if (mantissa.length >= 2) {
-      const d2 = parseInt(mantissa[1]);
-      if (d2 >= 0 && d2 <= 9) {
-        counts[d2]++;
-        total++;
-      }
+    const exp = Math.floor(Math.log10(a));
+    const m = a / Math.pow(10, exp); // m ∈ [1, 10)
+    const d1 = Math.floor(m);
+    const d2 = Math.floor((m - d1) * 10);
+    if (d2 >= 0 && d2 <= 9) {
+      counts[d2]++;
+      total++;
     }
   }
   if (total < 50) return { name: NAME, category: CAT, flag: "N/A",
@@ -79,16 +84,23 @@ export function testBenford2(matrix, rng) {
   const simN = Math.min(total, 10000);
   let madExceedCount = 0;
 
+  // S159c — numeric digit extraction replaces the prior string chain
+  // (`val.toExponential(10) + split("e") + replace(".", "")`). Inner-loop
+  // generator `Math.pow(10, rng.random())` always returns a value in [1, 10),
+  // so the second significant digit is `floor((val − floor(val)) × 10)`
+  // directly — no normalisation needed. Eliminates ~5 small string/Array
+  // allocations + 4 expensive string operations per inner iter (~190 ns →
+  // ~15 ns/iter). PRNG call count and sequence are preserved verbatim.
+  // simCounts hoisted to a pre-allocated Uint16Array(10) reset via .fill(0)
+  // per outer iter.
+  const simCounts = new Uint16Array(10);
   for (let s = 0; s < N_SIM; s++) {
-    const simCounts = new Array(10).fill(0);
+    simCounts.fill(0);
     for (let j = 0; j < simN; j++) {
       const val = Math.pow(10, rng.random());
-      const str = val.toExponential(10);
-      const mant = str.split("e")[0].replace(".", "");
-      if (mant.length >= 2) {
-        const d = parseInt(mant[1]);
-        if (d >= 0 && d <= 9) simCounts[d]++;
-      }
+      const d1 = Math.floor(val);
+      const d = Math.floor((val - d1) * 10);
+      if (d >= 0 && d <= 9) simCounts[d]++;
     }
     let simMad = 0;
     for (let i = 0; i <= 9; i++) simMad += Math.abs(simCounts[i] / simN - benf2[i]);

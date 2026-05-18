@@ -106,18 +106,24 @@ export function testRuns(matrix, condCtx, rng) {
     }
   }
 
-  // Helper: compute runs z for a single window of diffs
+  // Helper: compute runs z for a single window of diffs.
+  // S159c — sign counting + run counting in one pass; no signs Array, no
+  // .filter() calls. Caller may reuse the returned object reference because
+  // we never store it — the perm-loop path only reads `.z`.
   function windowRunsZ(diffs,start,win){
-    const signs=[];
+    let nP=0, nM=0;
     for(let i=start;i<start+win;i++){
-      const d=diffs[i]; signs.push(d>0?1:d<0?-1:0);
+      const d=diffs[i];
+      if(d>0) nP++; else if(d<0) nM++;
     }
-    const nP=signs.filter(s=>s>0).length, nM=signs.filter(s=>s<0).length;
     const n=nP+nM; if(nP===0||nM===0||n<8) return null;
-    const nz=signs.filter(s=>s!==0);
-    let runs=nz.length?1:0;
-    for(let i=1;i<nz.length;i++){
-      if(nz[i]!==nz[i-1]) runs++;
+    // Count runs over non-zero signs by walking diffs and tracking last non-zero sign.
+    let runs=0, lastSign=0;
+    for(let i=start;i<start+win;i++){
+      const d=diffs[i];
+      if(d===0) continue;
+      const s = d>0 ? 1 : -1;
+      if(s!==lastSign){ runs++; lastSign=s; }
     }
     const er=(2*nP*nM)/n+1, vr=(2*nP*nM*(2*nP*nM-n))/(n*n*(n-1));
     if(vr<=0) return null;
@@ -180,16 +186,21 @@ export function testRuns(matrix, condCtx, rng) {
   if(!esGate&&obsScanStat<Infinity&&scanSeqs.length>0){
     const maxN=Math.max(...scanSeqs.map(s=>s.diffs.length));
     const N_PERM=maxN<=100?999:maxN<=1000?499:199;
+    // S159c — one Float64Array shuffle buffer per scanSeq, allocated once.
+    // Replaces `seq.diffs.slice()` per perm and the destructuring swap temp.
+    const shuffledBufs = scanSeqs.map(seq => new Float64Array(seq.diffs.length));
     let exceedCount=0;
     for(let perm=0;perm<N_PERM;perm++){
       let permMin=Infinity;
-      for(const seq of scanSeqs){
+      for(let si=0; si<scanSeqs.length; si++){
+        const seq = scanSeqs[si];
         const n=seq.diffs.length;
-        // Fisher-Yates shuffle of difference array
-        const shuffled=seq.diffs.slice();
+        const shuffled = shuffledBufs[si];
+        // Refill from diffs then Fisher-Yates shuffle in place.
+        for(let i=0;i<n;i++) shuffled[i]=seq.diffs[i];
         for(let i=n-1;i>0;i--){
           const j=Math.floor(rng.random()*(i+1));
-          [shuffled[i],shuffled[j]]=[shuffled[j],shuffled[i]];
+          const tmp=shuffled[i]; shuffled[i]=shuffled[j]; shuffled[j]=tmp;
         }
         const pm=minWindowZ(shuffled,WIN,seq.stride);
         if(pm<permMin) permMin=pm;

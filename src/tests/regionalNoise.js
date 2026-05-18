@@ -83,40 +83,45 @@ export function testRegionalNoise(matrix, rng) {
     globalColVars.push(n >= 2 ? Math.max((s2 - s * s / n) / (n - 1), 1e-20) : 1e-20);
   }
 
-  // Helper: compute per-column variances within a window
-  function windowColVars(resid, start, win, nCol) {
-    const colVars = [];
+  // Helper: compute per-column variances within a window, writing into a
+  // caller-supplied Float64Array(nCol) scratch buffer. Returns true on
+  // success, false if any column had < 2 valid points. S159c — replaces
+  // the per-call `const colVars = []` allocation that fired once per
+  // window per permutation.
+  function windowColVarsInto(resid, start, win, nCol, out) {
     for (let c = 0; c < nCol; c++) {
       let s = 0, s2 = 0, n = 0;
       for (let i = start; i < start + win; i++) {
         const v = resid[i][c]; s += v; s2 += v * v; n++;
       }
-      if (n < 2) return null;
-      colVars.push(Math.max((s2 - s * s / n) / (n - 1), 1e-20));
+      if (n < 2) return false;
+      out[c] = Math.max((s2 - s * s / n) / (n - 1), 1e-20);
     }
-    return colVars;
+    return true;
   }
 
   // Compute observed scan statistic: max ratio across all windows × columns
-  // Also track per-column max ratios for pair-level BH-FDR promotion
+  // Also track per-column max ratios for pair-level BH-FDR promotion.
+  // S159c — shared Float64Array(nC) scratch reused for observed pass + every
+  // permutation × window call below.
+  const wvBuf = new Float64Array(nC);
   const allWindows = [];
   let obsScanStat = 0;
   let bestWinIdx = -1;
   const obsColMaxRatios = new Array(nC).fill(1);
 
   for (let s = 0; s + WIN <= validRows.length; s += stride) {
-    const wv = windowColVars(residuals, s, WIN, nC);
-    if (!wv) continue;
+    if (!windowColVarsInto(residuals, s, WIN, nC, wvBuf)) continue;
     let maxR = 0, anomCol = -1;
     for (let c = 0; c < nC; c++) {
-      const r = Math.max(wv[c] / globalColVars[c], globalColVars[c] / wv[c]);
+      const r = Math.max(wvBuf[c] / globalColVars[c], globalColVars[c] / wvBuf[c]);
       if (r > maxR) { maxR = r; anomCol = c; }
       if (r > obsColMaxRatios[c]) obsColMaxRatios[c] = r;
     }
-    const direction = anomCol >= 0 ? (wv[anomCol] < globalColVars[anomCol] ? "reduced" : "elevated") : "anomalous";
+    const direction = anomCol >= 0 ? (wvBuf[anomCol] < globalColVars[anomCol] ? "reduced" : "elevated") : "anomalous";
     const startRow = validRows[s];
     const endRow = validRows[Math.min(s + WIN - 1, validRows.length - 1)];
-    const winVar = anomCol >= 0 ? wv[anomCol] : 0;
+    const winVar = anomCol >= 0 ? wvBuf[anomCol] : 0;
     const globVar = anomCol >= 0 ? globalColVars[anomCol] : 0;
     allWindows.push({
       startRow: startRow + 1, endRow: endRow + 1,
@@ -145,10 +150,9 @@ export function testRegionalNoise(matrix, rng) {
     let permMax = 0;
     for (let c = 0; c < nC; c++) permColMax[c] = 1;
     for (let s = 0; s + WIN <= shuffled.length; s += stride) {
-      const wv = windowColVars(shuffled, s, WIN, nC);
-      if (!wv) continue;
+      if (!windowColVarsInto(shuffled, s, WIN, nC, wvBuf)) continue;
       for (let c = 0; c < nC; c++) {
-        const r = Math.max(wv[c] / globalColVars[c], globalColVars[c] / wv[c]);
+        const r = Math.max(wvBuf[c] / globalColVars[c], globalColVars[c] / wvBuf[c]);
         if (r > permMax) permMax = r;
         if (r > permColMax[c]) permColMax[c] = r;
       }

@@ -110,25 +110,56 @@ export function testResidualSpikeCorrelation(matrix, condCtx, rng) {
 
   // Permutation test on max pairwise overlap
   const N_PERM = 999;
+  // S159c — pre-allocate per-group scratch:
+  //   absResidBuf  — Float64Array of group's |residual| values (nulls → -Inf)
+  //   shuffledBuf  — Float64Array, refilled+shuffled per perm
+  //   idxBuf       — Int32Array of indices, sorted by shuffledBuf descending
+  //   topKMask     — Uint8Array of length nR; topKMask[r] = 1 iff r ∈ top-K
+  // Overlap = Σ_r mask_i[r] && mask_j[r] (no Set traversal).
+  const groupScratch = groupResiduals.map(c => {
+    const absResidBuf = new Float64Array(nR);
+    for (let i = 0; i < nR; i++) {
+      const v = c.absResid[i];
+      absResidBuf[i] = v != null ? v : -Infinity;
+    }
+    return {
+      absResidBuf,
+      shuffledBuf: new Float64Array(nR),
+      idxBuf: new Int32Array(nR),
+      topKMask: new Uint8Array(nR),
+    };
+  });
+
   let permExceed = 0;
   for (let p = 0; p < N_PERM; p++) {
-    const shuffledSets = groupResiduals.map(c => {
-      const arr = [...c.absResid];
-      rng.shuffle(arr);
-      const ranked = arr
-        .map((v, i) => ({ i, v: v != null ? v : -Infinity }))
-        .sort((a, b) => b.v - a.v)
-        .slice(0, K)
-        .map(x => x.i);
-      return new Set(ranked);
-    });
+    // Build top-K mask per group from a fresh permutation.
+    for (let g = 0; g < nC; g++) {
+      const sc = groupScratch[g];
+      const shuf = sc.shuffledBuf;
+      const idx = sc.idxBuf;
+      const mask = sc.topKMask;
+      // Refill + Fisher-Yates shuffle in place.
+      for (let i = 0; i < nR; i++) shuf[i] = sc.absResidBuf[i];
+      for (let i = nR - 1; i > 0; i--) {
+        const j = Math.floor(rng.random() * (i + 1));
+        const tmp = shuf[i]; shuf[i] = shuf[j]; shuf[j] = tmp;
+      }
+      // Sort indices by shuf value descending.
+      for (let i = 0; i < nR; i++) idx[i] = i;
+      idx.sort((a, b) => shuf[b] - shuf[a]);
+      // Mark top-K positions.
+      mask.fill(0);
+      for (let k = 0; k < K; k++) mask[idx[k]] = 1;
+    }
 
     let maxPermOverlap = 0;
     for (let i = 0; i < nC; i++) {
+      const mi = groupScratch[i].topKMask;
       for (let j = i + 1; j < nC; j++) {
+        const mj = groupScratch[j].topKMask;
         let ov = 0;
-        for (const r of shuffledSets[i]) {
-          if (shuffledSets[j].has(r)) ov++;
+        for (let r = 0; r < nR; r++) {
+          if (mi[r] && mj[r]) ov++;
         }
         if (ov > maxPermOverlap) maxPermOverlap = ov;
       }
