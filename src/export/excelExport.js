@@ -19,9 +19,9 @@ import { buildMechanismGroups } from "../analysis/localization.js";
 import { buildConvergence } from "../analysis/convergence.js";
 import { computeSeverity } from "../analysis/severity.js";
 import { ACTION_LABEL } from "../analysis/narrative.js";
+import { buildHandoffModel } from "../analysis/handoffModel.js";
 import { fmtP, FLAG_STYLES } from "../constants/thresholds.js";
 import { MODES, SEVERITY_TEXT, CATEGORY_GUIDANCE, HOTSPOT_PATTERNS, QC_NO_HOTSPOT } from "../constants/guidance.js";
-import { ASSAYS } from "../constants/assays.js";
 import { originalFileRow } from "../components/shared/coordinates.js";
 
 // ── Colour helpers ──────────────────────────────────────────────────
@@ -337,13 +337,22 @@ export async function exportToExcel({ results, importConfig, matrix, rowMap, mod
   const rawData = importConfig?.data || [];
   const hdrs = importConfig?.hdrs || [];
   const roles = importConfig?.roles || [];
-  const fileName = importConfig?.fileName || "check-my-data";
   const assay = importConfig?.assay || "general";
-  const assayLabel = ASSAYS.find(a => a.v === assay)?.l || assay;
   const nRows = matrix?.length || 0;
   const nCols = matrix?.[0]?.length || 0;
   const { severity } = computeSeverity(results);
-  const nApplicable = results.filter(r => r.flag !== "N/A").length;
+  // S161 (A1.D2): shared HandoffModel for header vocabulary. Phase A
+  // wiring touches only the §1 report-header section (File / Dimensions /
+  // Measurement type / Outcome rows) — every string the renderer emits
+  // there now reads from the model. The rest of the workbook (hotspots,
+  // narrative, category summary, test details, legend) retains its
+  // existing structure and content; Phase B (banked) routes the §4-style
+  // finding blocks + cluster vocabulary through the model and aligns the
+  // narrative + category sections to the §4 register.
+  const handoffModel = buildHandoffModel(results, importConfig, nRows, nCols);
+  const fileName = handoffModel.dataset.filename;
+  const assayLabel = handoffModel.dataset.assay;
+  const nApplicable = handoffModel.outcome.applicableTests;
 
   const visColIndices = hdrs.map((_, ci) => ci).filter(ci => roles[ci] !== "ignore");
   const dColMap = roles.map((rl, ci) => rl === "data" ? ci : -1).filter(ci => ci >= 0);
@@ -450,16 +459,25 @@ export async function exportToExcel({ results, importConfig, matrix, rowMap, mod
   const rptAoa = [];
   // S156 (A1.D0c-bis D5 lock): sevLabels = ["CLEAN", "LOW", "ELEVATED",
   // "CRITICAL"] retired; outcome ladder consumes ACTION_LABEL.
-  const action = ACTION_LABEL[severity] || { score: severity + 1, label: "Unknown" };
+  // S161 (A1.D2): header strings sourced from handoffModel.dataset and
+  // handoffModel.outcome — single source of truth shared with §4 prompt
+  // body renderer. Production output byte-identical against the
+  // pre-S161 path (model assembles via the same ASSAYS / ACTION_LABEL
+  // lookups); divergence only on the missing-importConfig.fileName fallback
+  // ("check-my-data" → "uploaded"), which is unreachable in production
+  // since ImportView always sets fileName before reaching ReportView /
+  // BatchView. See S161 SESSION161-SUMMARY.md §"Excel parity".
+  const d = handoffModel.dataset;
+  const o = handoffModel.outcome;
 
   // Section 1: Header
   rptAoa.push(["Check My Data — Investigation Report"]);
   rptAoa.push([]);
-  rptAoa.push(["File", fileName]);
-  rptAoa.push(["Dimensions", `${nRows} rows x ${nCols} columns`]);
-  rptAoa.push(["Measurement type", assayLabel]);
+  rptAoa.push(["File", d.filename]);
+  rptAoa.push(["Dimensions", `${d.rows} rows x ${d.cols} columns`]);
+  rptAoa.push(["Measurement type", d.assay]);
   rptAoa.push(["Analysis mode", MODES[mode]?.label || mode]);
-  rptAoa.push(["Outcome", `${action.score} of 4 — ${action.label}`]);
+  rptAoa.push(["Outcome", `${o.tier + 1} of 4 — ${o.label}`]);
   rptAoa.push(["Date", new Date().toISOString().split("T")[0]]);
   rptAoa.push([]);
 

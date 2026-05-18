@@ -1,6 +1,17 @@
 /* ── Variance-Stabilizing Transform detection ────────────────────────
    @see METHODOLOGY.md §"Variance-Stabilizing Transform (VST) Preprocessing" */
 
+/** Human-readable VST labels for §1 Verdict identity row, §4 prompt body
+ *  "Variance-stabilising transform" line, and Excel header. Keyed by
+ *  detectVST's `transform` field. Single source of truth — replaces the
+ *  inline ternary at ReportView.jsx:746-749 (not re-pointed in S161 to keep
+ *  scope surgical; banked for next ReportView-touching session). */
+export const VST_LABEL = {
+  raw:      "raw",
+  log:      "log",
+  anscombe: "Anscombe √(x+⅜)",   // √(x+⅜)
+};
+
 /** Flat-cell signedness stats (null/NaN-skipped). Shared helper consumed by
  *  `detectVST` and available to test-script callers. */
 export function computeSignednessStats(matrix) {
