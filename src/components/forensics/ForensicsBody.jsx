@@ -41,20 +41,31 @@
    position:sticky chrome and rendered as a separate sibling beneath
    StickySurface; that produced two stacked sticky boundaries and a
    "two clicks to see the table" friction surface. Phase 3e folds the
-   panel content back inside one sticky element. */
+   panel content back inside one sticky element.
 
-import { useMemo, useState, useCallback } from "react";
-import { Section, MINIMAP_CALLOUT_TYPOGRAPHY } from "../shared/Section.jsx";
+   S163 fix-pass 1: chrome retirements + permanent Data disclosure.
+   Chip [N] prefix, status row, header row, ✕ button all retire;
+   chips ring when active and re-clicking the active chip deactivates
+   it (toggle). The Data ▼/▲ toggle becomes a permanent affordance
+   at the sticky-surface level, independent of activeRegionNumber.
+   First chip click in session auto-expands the data block; user
+   toggle persists thereafter (no re-auto-expand on subsequent
+   chip clicks). */
+
+import { useMemo, useState, useRef, useCallback } from "react";
+import { Section } from "../shared/Section.jsx";
 import { MECHANISM_ORDER, TEST_MECHANISM } from "../../constants/mechanisms.js";
 import { CATEGORY_SHORT_DESCRIPTIONS } from "../../constants/descriptions.js";
-import { C, FW } from "../../constants/tokens.js";
-import { StickySurface, STICKY_SURFACE_SELECTOR, shouldRenderSticky } from "./StickySurface.jsx";
+import { C } from "../../constants/tokens.js";
+import { StickySurface, STICKY_SURFACE_SELECTOR } from "./StickySurface.jsx";
 import { ForensicsCategoryBlock } from "./ForensicsCategoryBlock.jsx";
 import { usePulseTrigger } from "./pulseContext.jsx";
 
 // S150-fix1: clean-state copy renders as bold sentence-lead + body
-// continuation, co-consuming MINIMAP_CALLOUT_TYPOGRAPHY. Body-prose
-// register lifts the empty-state from sub-body 13px to FS.base 16px.
+// continuation. Threaded through to StickySurface where it renders
+// above the Data toggle when no chips exist in any lane (S163
+// fix-pass 1 promoted clean-state rendering into the sticky surface
+// so the Data toggle is always available).
 const CLEAN_STATE_LEAD = "All checks passed";
 const CLEAN_STATE_TAIL = " — no patterns to flag.";
 
@@ -88,8 +99,6 @@ export function ForensicsBody({
     return m;
   }, [findings]);
 
-  const stickyVisible = shouldRenderSticky(findings);
-
   // Scroll-to-card via the data-test-id attribute that ForensicsTestCard
   // sets. CSS.escape handles test-id strings that contain spaces / parens
   // / quotes. The arithmetic offsets the landing position past the §2
@@ -111,15 +120,31 @@ export function ForensicsBody({
   }, []);
 
   // Active-region state. `activeRegionNumber` non-null →
-  // FindingDetailPanel mounts (and sticky-pins to viewport top during
-  // §3 scroll) focused on that region; every chip whose finding shares
-  // the regionNumber lights up with the [N] prefix. Writers: chip
-  // click via `onActivateTest` below; panel-internal MinimapStripVertical
-  // [N] badge via `onActivateRegion` below. Reader: the panel mount +
-  // the activeRegionNumber prop threaded into StickySurface for per-chip
-  // showRegionNumber derivation. Initial value null → panel does not
-  // auto-open on first load.
+  // FindingDetailPanel filters the §2 data block to that region (the
+  // vertical minimap filters to the active finding's tests; the table
+  // scrolls to region and tints cells per buildHighlightSpec); the
+  // matching chip in StickySurface rings via its isActive prop.
+  // Writers: chip click via `onActivateTest` below (sets, or toggles
+  // back to null when re-clicking the active chip); panel-internal
+  // MinimapStripVertical [N] badge via `onActivateRegion` below.
+  // Initial value null → no active chip, aggregated minimap view.
   const [activeRegionNumber, setActiveRegionNumber] = useState(null);
+
+  // S163 fix-pass 1: data-disclosure state. `dataExpanded` controls
+  // whether the §2 sticky surface renders the inline data block
+  // (vertical minimap + ExcerptTable). Independent of
+  // activeRegionNumber — the user can inspect the raw table even
+  // without an active chip. First chip click in session auto-expands
+  // via the hasAutoExpanded ref; subsequent chip clicks do not.
+  // User-toggle clicks on the Data ▼/▲ affordance flip the state
+  // and do not affect hasAutoExpanded (so an explicit collapse stays
+  // collapsed across later chip clicks).
+  const [dataExpanded, setDataExpanded] = useState(false);
+  const hasAutoExpanded = useRef(false);
+
+  const onToggleDataExpanded = useCallback(() => {
+    setDataExpanded(v => !v);
+  }, []);
 
   // Sticky-surface activation. Receives the full finding so multi-test
   // chips can expand every relevant test card (and all touched
@@ -138,14 +163,31 @@ export function ForensicsBody({
   // it lands on the card the first time the card mounts (or replays if
   // already mounted).
   //
-  // Localised chips (finding.regionNumber non-null) also set the active
-  // region. FindingDetailPanel mounts below the chip lanes and
-  // sticky-pins to viewport top; every chip whose finding shares the
-  // active region lights up with the [N] prefix.
+  // Chip / pill activation. Two paths through the state machine:
+  //   - Localised chip click on an INACTIVE chip → set activeRegionNumber,
+  //     expand dimension + card, auto-expand data block on first chip
+  //     click in session, scroll to first test card.
+  //   - Localised chip click on the CURRENTLY ACTIVE chip → write
+  //     activeRegionNumber back to null (toggle off). No re-scroll, no
+  //     auto-expand re-fire. The chip ring clears; the data block's
+  //     minimap unfilters and the table scrolls to row 1 unhighlighted.
+  //   - Pill click (no regionNumber) → expand dimension + card, scroll
+  //     to card; activeRegionNumber stays as-is (pills are not panel
+  //     writers).
+  //
+  // S163 fix-pass 1: auto-expand on first chip click. hasAutoExpanded
+  // ref guards against re-firing — once the data block opens on first
+  // click, the user owns the disclosure state from there.
   const onActivateTest = useCallback((finding) => {
     if (!finding) return;
     const tests = finding.tests || [];
     if (!tests.length) return;
+    // Toggle-off branch: re-clicking the currently active chip
+    // deactivates. No card scroll, no auto-expand re-fire.
+    if (finding.regionNumber != null && finding.regionNumber === activeRegionNumber) {
+      setActiveRegionNumber(null);
+      return;
+    }
     // Expand every dimension touched by this finding (multi-test chips
     // may span multiple dimensions in a future aggregator merge; today
     // each test maps to one dimension).
@@ -162,10 +204,16 @@ export function ForensicsBody({
       for (const t of tests) ensureTestCardExpanded(t.testId);
     }
     // Activate the panel for localised findings. Dataset-wide findings
-    // (pills) carry no regionNumber and leave activeRegionNumber alone
-    // — Phase 3b does not open the panel for global findings yet.
+    // (pills) carry no regionNumber and leave activeRegionNumber alone.
     if (finding.regionNumber != null) {
       setActiveRegionNumber(finding.regionNumber);
+      // First chip click in session — auto-expand the data block.
+      // hasAutoExpanded gates re-fire so explicit collapse stays
+      // collapsed across later chip clicks.
+      if (!hasAutoExpanded.current) {
+        hasAutoExpanded.current = true;
+        setDataExpanded(true);
+      }
     }
     // Scroll to the first test card. Double-rAF waits for both expand
     // commits + browser paint before reading layout geometry.
@@ -175,7 +223,7 @@ export function ForensicsBody({
     } else {
       scrollToCard(firstTestId);
     }
-  }, [scrollToCard, ensureCatExpanded, ensureTestCardExpanded]);
+  }, [scrollToCard, ensureCatExpanded, ensureTestCardExpanded, activeRegionNumber]);
 
   // Test-card severity-badge click. Routes the pulse back to the
   // finding's pill (global) or chip+region overlay (localised). The
@@ -195,18 +243,14 @@ export function ForensicsBody({
   // Region-badge click handler. Receives the overlay descriptor
   // `{ regionNumber, severity, visRowStart, visRowEnd, tests }`
   // computed by the panel-internal MinimapStripVertical from the
-  // focused finding. Sets active-region state → panel re-mounts for
-  // that region. The chip:N + region:N pulse triggers are fired by
-  // MinimapStripVertical itself so this callback is purely the
-  // activate dispatch.
+  // focused finding. Sets active-region state → the §2 data block
+  // re-filters for that region. The chip:N + region:N pulse triggers
+  // are fired by MinimapStripVertical itself so this callback is
+  // purely the activate dispatch.
   const onActivateRegion = useCallback((overlay) => {
     if (!overlay || overlay.regionNumber == null) return;
     setActiveRegionNumber(overlay.regionNumber);
   }, []);
-
-  // Panel ✕ button writer. Clears active-region state → panel unmounts;
-  // chips revert to no-[N] state.
-  const onClosePanel = useCallback(() => setActiveRegionNumber(null), []);
 
   // S163 Phase 3b: derive the active finding from activeRegionNumber.
   // The lookup matches against finding.regionNumber (localised findings
@@ -225,36 +269,32 @@ export function ForensicsBody({
           into one §2 surface. Section header in its own flat-bottom
           wrapper; StickySurface as a flat-top continuation, sticky-
           pinned to viewport top during §3 scroll. StickySurface owns
-          the inline FindingDetailPanel mount internally — chip lanes
-          and active-region content share one sticky element. Both
-          DOM elements are Fragment siblings of §3-§5 so the sticky
-          surface's pin range spans the whole report (sticky un-pins
-          at its parent's bottom edge; the parent is the ForensicsBody
-          Fragment / ReportView outer wrapper).
+          the lane render, the Data toggle, and (when expanded) the
+          active-region data block. Both DOM elements are Fragment
+          siblings of §3-§5 so the sticky surface's pin range spans
+          the whole report (sticky un-pins at its parent's bottom
+          edge; the parent is the ForensicsBody Fragment / ReportView
+          outer wrapper).
 
-          Clean state (no findings): no sticky surface — §2 renders as
-          a normal Section card with the clean-state copy inside (full
-          radii, full marginBottom). */}
-      {stickyVisible
-        ? <>
-            <Section number={2} title="What was found" flatBottom />
-            <StickySurface
-              findings={findings}
-              onActivateTest={onActivateTest}
-              activeRegionNumber={activeRegionNumber}
-              activeFinding={activeFinding}
-              onClosePanel={onClosePanel}
-              heatmapProps={heatmapProps}
-              onActivateRegion={onActivateRegion}
-            />
-          </>
-        : <Section number={2} title="What was found">
-            <div>
-              <span style={{ ...MINIMAP_CALLOUT_TYPOGRAPHY, fontWeight: FW.SEMI }}>{CLEAN_STATE_LEAD}</span>
-              <span style={MINIMAP_CALLOUT_TYPOGRAPHY}>{CLEAN_STATE_TAIL}</span>
-            </div>
-          </Section>
-      }
+          S163 fix-pass 1: StickySurface always renders in Forensics
+          mode, even when the dataset is fully clean. The Data toggle
+          is a permanent affordance — clean fixtures still let the
+          user inspect the raw table. Clean-state copy ("All checks
+          passed — no patterns to flag.") lives inside StickySurface
+          above the Data toggle when no chips exist. */}
+      <Section number={2} title="What was found" flatBottom />
+      <StickySurface
+        findings={findings}
+        onActivateTest={onActivateTest}
+        activeRegionNumber={activeRegionNumber}
+        activeFinding={activeFinding}
+        heatmapProps={heatmapProps}
+        onActivateRegion={onActivateRegion}
+        dataExpanded={dataExpanded}
+        onToggleDataExpanded={onToggleDataExpanded}
+        cleanStateLead={CLEAN_STATE_LEAD}
+        cleanStateTail={CLEAN_STATE_TAIL}
+      />
 
       {/* §3 DETAILED TEST RESULTS — dimension cards */}
       <Section number={3} title="Detailed test results">

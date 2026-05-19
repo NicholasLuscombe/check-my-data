@@ -47,9 +47,9 @@ export const LANE_LABEL_TYPOGRAPHY = {
  *  values as pre-3d; consumed via spread of LANE_LABEL_TYPOGRAPHY at the
  *  call site. */
 export const LANE_LABELS = {
-  pills: "Dataset-wide patterns",
-  localised: "Localised patterns",
-  fallback: "Broadly flagged patterns",
+  pills: "Dataset-wide",
+  localised: "Localised",
+  fallback: "Broadly flagged",
 };
 
 /** Minimap callout typography — inline-bold-prefix-plus-body pattern used at

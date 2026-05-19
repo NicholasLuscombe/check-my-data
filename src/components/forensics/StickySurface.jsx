@@ -1,29 +1,33 @@
 /* ── StickySurface — Forensics-mode §2 sticky surface (S126b → S163) ──
    Sits inside §2 WHAT WAS FOUND, below the section header. Pins to
    viewport top during §3 scroll. Renders three lanes of pills/chips
-   over the findings[] data layer; when a chip is activated, the
-   FindingDetailPanel content (header + status + Show data toggle +
-   bounded data block) renders inline below the chip lanes, separated
-   from them by a horizontal rule.
+   over the findings[] data layer, a permanent Data toggle below the
+   lanes, and (when the toggle is open) the active-region data view
+   provided by FindingDetailPanel.
 
-   Phase 3e (rework, S163 A1.D3): single sticky surface composing chip
-   lanes + active-region content. Pre-3e iterations (Phases 3b–3d)
-   split the active-region content into a separate FindingDetailPanel
-   with its own position:sticky chrome. The two-sticky shape introduced
-   nested-sticky handoff confusion on macOS trackpad scroll and a
-   "two clicks to see the table" friction surface (chip click activated
-   region, second click needed to expand data). Phase 3e folds the
-   panel content back inside this single sticky element — chip lanes +
-   panel content share one scroll context, one position:sticky
-   boundary, and one bounded data block with internal table scroll.
+   S163 fix-pass 1 (this rev) lands the post-triage design:
+     - Chips lose the [N] prefix; an active chip rings instead.
+     - Re-clicking the active chip deactivates it (toggle behaviour).
+     - Header row / status row / ✕ button retire entirely. Active-
+       region context lives in the chip's ring + the data block's
+       filtered minimap + region-zoomed table.
+     - "Data" toggle (▼/▲) lives at the sticky-surface level,
+       independent of activeRegionNumber. First chip click in
+       session auto-expands; user-toggle persists thereafter.
+     - Stronger bottom drop-shadow so the sticky/scrolling boundary
+       is visible.
 
-   FindingDetailPanel.jsx survives as a child component for separation
-   of concerns; it owns `dataExpanded` state and the three-case status
-   dispatch but carries no surface chrome of its own. */
+   Pre-fix-pass shape (Phase 3e) split the active-region content
+   into a FindingDetailPanel mounted below a horizontal-rule
+   separator. Triage surfaced that the [N] / status / ✕ chrome
+   was redundant once the chip ring + filtered minimap + zoomed
+   table carry the same information; fix-pass 1 retires that
+   chrome and promotes the Data toggle to a permanent affordance. */
 
-import { C, CR } from "../../constants/tokens.js";
+import { useId } from "react";
+import { C, CR, FS, FW, FF } from "../../constants/tokens.js";
 import { MECHANISMS } from "../../constants/mechanisms.js";
-import { LANE_LABEL_TYPOGRAPHY, LANE_LABELS } from "../shared/Section.jsx";
+import { LANE_LABEL_TYPOGRAPHY, LANE_LABELS, MINIMAP_CALLOUT_TYPOGRAPHY } from "../shared/Section.jsx";
 import { FindingPill } from "./FindingPill.jsx";
 import { FindingChip } from "./FindingChip.jsx";
 import { FindingDetailPanel } from "./FindingDetailPanel.jsx";
@@ -31,8 +35,8 @@ import { FindingDetailPanel } from "./FindingDetailPanel.jsx";
 const STICKY_TOP = 0;
 
 // Stable DOM marker so chip-click scroll handlers can read the sticky
-// surface's measured height and offset their landing position. Writer is
-// the outer div below; reader is `scrollToCard` in ForensicsBody.jsx.
+// surface's measured height and offset their landing position. Writer
+// is the outer div below; reader is `scrollToCard` in ForensicsBody.
 // Exported as a selector so consumers don't repeat the magic string.
 export const STICKY_SURFACE_SELECTOR = '[data-sticky-surface="forensics"]';
 
@@ -62,11 +66,10 @@ const compareBy = (getKey) => (a, b) => {
 
 // S133f: a localised finding with `region.cells.length === 0` carries no per-
 // row evidence — it's the S126b add-8 fallback (test fired with severity > LOW
-// but produced no specific rows / cells, so MinimapStrip filters it out of the
-// region overlays). Pre-S133f these chips were rendered alongside true
-// localised chips in a single lane, claiming a localisation the minimap
-// couldn't confirm. S133f routes them into a separate "Broadly flagged
-// patterns" lane so the §2 surface tells the truth about scope.
+// but produced no specific rows / cells). Pre-S133f these chips were rendered
+// alongside true localised chips in a single lane, claiming a localisation
+// the minimap couldn't confirm. S133f routes them into a separate "Broadly
+// flagged" lane so the §2 surface tells the truth about scope.
 const isFallbackChip = (f) => (f.region?.cells?.length || 0) === 0;
 
 /**
@@ -107,24 +110,26 @@ export function StickySurface({
   findings, onActivateTest,
   activeRegionNumber = null,
   activeFinding = null,
-  onClosePanel = null,
   heatmapProps = null,
   onActivateRegion = null,
+  dataExpanded = false,
+  onToggleDataExpanded = null,
+  cleanStateLead = null,
+  cleanStateTail = null,
 }) {
   const { pills, localisedChips, fallbackChips } = pillsAndChips(findings);
-  if (!pills.length && !localisedChips.length && !fallbackChips.length) return null;
+  const hasAnyChip = pills.length > 0 || localisedChips.length > 0 || fallbackChips.length > 0;
+
+  const toggleId = useId();
+  const dataReady = !!heatmapProps;
 
   // S126b add-7b: rendered as a flat-top continuation of the
   // <Section flatBottom> sibling above. Same BG_ZONE bg + matching
   // radii on the abutting edge → visual reads as one card.
-  // position:sticky here gives sticky enough vertical span to pin past
-  // §3-§5 (sticky un-pins at parent's bottom edge; this element's
-  // parent is the ForensicsBody Fragment / ReportView outer div,
-  // which extends the whole report).
-  //
-  // Phase 3e: activeFinding is non-null → FindingDetailPanel content
-  // renders inline below the chip lanes, separated by a horizontal
-  // rule. Whole composition stays in one sticky element.
+  // position:sticky here gives the surface enough vertical span to
+  // pin past §3-§5 (sticky un-pins at parent's bottom edge; this
+  // element's parent is the ForensicsBody Fragment / ReportView
+  // outer div, which extends the whole report).
   return (
     <div data-sticky-surface="forensics" style={{
       position: "sticky",
@@ -134,8 +139,23 @@ export function StickySurface({
       borderRadius: `0 0 ${CR.LG} ${CR.LG}`,
       padding: "0 20px 16px 20px",
       marginBottom: "12px",
-      boxShadow: "0 4px 6px -2px rgba(0,0,0,0.05)",
+      // S163 fix-pass 1: stronger bottom drop-shadow so the boundary
+      // between sticky surface and scrolling §3 content is visible.
+      // Positive y-offset + spread keeps the shadow on the bottom edge
+      // (no leakage to other sides).
+      boxShadow: "0 4px 12px rgba(0, 0, 0, 0.06)",
     }}>
+      {/* S163 fix-pass 1: clean-state copy when no chips in any lane.
+          Replaces the pre-fix-pass standalone Section card that wrapped
+          this copy when severity = 0. The Data toggle below stays
+          available so the user can inspect the raw table even on a
+          clean fixture. */}
+      {!hasAnyChip && cleanStateLead && (
+        <div>
+          <span style={{ ...MINIMAP_CALLOUT_TYPOGRAPHY, fontWeight: FW.SEMI }}>{cleanStateLead}</span>
+          {cleanStateTail && <span style={MINIMAP_CALLOUT_TYPOGRAPHY}>{cleanStateTail}</span>}
+        </div>
+      )}
       {pills.length > 0 && (
         <div style={{
           display: "flex", alignItems: "center", gap: "10px",
@@ -163,16 +183,16 @@ export function StickySurface({
                 key={f.id}
                 finding={f}
                 onActivate={onActivateTest}
-                showRegionNumber={f.regionNumber === activeRegionNumber}
+                isActive={f.regionNumber === activeRegionNumber}
               />
             ))}
           </div>
         </div>
       )}
-      {/* S133f: fallback chips (region.cells.length === 0) — tests that fired
-          severity > LOW but produced no specific rows. Routed out of the
-          Localised lane so the surface doesn't claim a localisation that
-          can't be drawn on a minimap. */}
+      {/* S133f: fallback chips (region.cells.length === 0) — tests
+          that fired severity > LOW but produced no specific rows.
+          Routed out of the Localised lane so the surface doesn't
+          claim a localisation that can't be drawn on a minimap. */}
       {fallbackChips.length > 0 && (
         <div style={{
           display: "flex", alignItems: "center", gap: "10px",
@@ -185,34 +205,55 @@ export function StickySurface({
                 key={f.id}
                 finding={f}
                 onActivate={onActivateTest}
-                showRegionNumber={f.regionNumber === activeRegionNumber}
+                isActive={f.regionNumber === activeRegionNumber}
               />
             ))}
           </div>
         </div>
       )}
 
-      {/* Phase 3e: inline active-region content. Renders only when a
-          chip has been clicked. Separator above ties it visually to
-          the chip lanes. FindingDetailPanel owns its own dataExpanded
-          state and the three-case status dispatch; the chrome (white
-          card, border, sticky pin) it carried in Phases 3b-3d retires
-          — the §2 sticky surface above is now the only surface chrome. */}
-      {activeFinding && (
-        <>
-          <div style={{
-            marginTop: "12px",
-            paddingTop: "12px",
-            borderTop: `1px solid ${C.BORDER_L}`,
-          }}>
-            <FindingDetailPanel
-              finding={activeFinding}
-              onClose={onClosePanel}
-              heatmapProps={heatmapProps}
-              onActivateRegion={onActivateRegion}
-            />
-          </div>
-        </>
+      {/* S163 fix-pass 1: Data toggle below the chip lanes. Renders
+          when at least one chip exists in any lane — clean fixtures
+          (no chips) currently hide the toggle because ExcerptTable
+          returns null when convergence has no rows. Always-render
+          on clean fixtures is deferred to a follow-on fix-pass that
+          adds a fallback "show all rows" mode to ExcerptTable. */}
+      {dataReady && hasAnyChip && (
+        <button
+          id={toggleId}
+          onClick={() => onToggleDataExpanded?.()}
+          aria-expanded={dataExpanded}
+          aria-controls={`${toggleId}-block`}
+          style={{
+            marginTop: "10px",
+            background: "none", border: "none",
+            padding: 0,
+            fontSize: FS.sm,
+            fontWeight: FW.NORM,
+            fontFamily: FF.UI,
+            color: C.TEXT_2,
+            cursor: "pointer",
+            display: "inline-flex", alignItems: "center", gap: "4px",
+          }}
+        >
+          <span>Data</span>
+          <span style={{ fontSize: "10px" }}>{dataExpanded ? "▲" : "▼"}</span>
+        </button>
+      )}
+
+      {/* Data block — vertical minimap + ExcerptTable side-by-side
+          in compactMode. Mount is gated on the parent's
+          dataExpanded state. Filtering of the minimap + cell
+          highlights to the active region happens inside
+          FindingDetailPanel based on the `finding` prop. */}
+      {dataReady && hasAnyChip && dataExpanded && (
+        <div id={`${toggleId}-block`}>
+          <FindingDetailPanel
+            finding={activeFinding}
+            heatmapProps={heatmapProps}
+            onActivateRegion={onActivateRegion}
+          />
+        </div>
       )}
     </div>
   );

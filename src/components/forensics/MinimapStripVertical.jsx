@@ -30,14 +30,17 @@
    shared with the horizontal sibling via minimapDerivation.js. */
 
 import { useMemo, useCallback } from "react";
-import { C, FW, FF, CR, SEV_VERDICT } from "../../constants/tokens.js";
+import { C, CR, SEV_VERDICT } from "../../constants/tokens.js";
 import { convergenceMinimapStyle } from "../shared/heatmapColors.js";
 import { usePulseTrigger } from "./pulseContext.jsx";
 import { usePulseAnimation } from "./PulseStyle.jsx";
 import { buildPerVisRowMax, deriveOverlays } from "./minimapDerivation.js";
 
 const STRIP_W = 32;
-const BADGE_H = 18;
+// S163 fix-pass 1: badges retire the numeric [N] label and become
+// small coloured squares — click anchors aligned with the horizontal
+// tick on the strip. BADGE_H is the square's side length.
+const BADGE_H = 10;
 const BADGE_GAP = 4;
 // Total component width = strip + gap + badge column. Height is
 // determined by the container; the SVG stretches to fill.
@@ -72,45 +75,36 @@ function RegionBadge({ overlay, topPct, onActivate }) {
       style={{
         position: "absolute",
         // Anchor at the badge centre so a region at row 0 doesn't clip
-        // off the top edge. Shift by half BADGE_H to centre the pill on
-        // its row position.
+        // off the top edge.
         top: `calc(${topPct}% - ${BADGE_H / 2}px)`,
         left: STRIP_W + BADGE_GAP,
+        width: BADGE_H,
         height: BADGE_H,
-        minWidth: BADGE_H,
-        padding: "0 6px",
         background: color,
         borderRadius: CR.SM,
-        color: C.WHITE,
-        // Chart annotation glyph — TYPOGRAPHY-SYSTEM.md §"What this system
-        // does NOT cover" carve-out (chart annotations are a separate sizing
-        // system). Hardcoded pending that system's land; do NOT promote to
-        // text-register tokens.
-        fontSize: "10px",
-        fontFamily: FF.UI,
-        fontWeight: FW.BOLD,
-        lineHeight: `${BADGE_H}px`,
-        textAlign: "center",
         cursor: "pointer",
-        whiteSpace: "nowrap",
         boxSizing: "border-box",
         userSelect: "none",
         zIndex: 1,
       }}
-    >
-      {overlay.regionNumber}
-    </span>
+    />
   );
 }
 
 export function MinimapStripVertical({
   convergence, findings, rowMap, nVisRows,
   onActivateRegion = null,
+  // S163 fix-pass 1: when non-null, restrict the per-row flag-count
+  // shading to cells whose tests intersect this set. Used by §2's
+  // sticky-surface mount to switch the strip from aggregated overlap
+  // view to single-test view when a chip is active. Overlay badges
+  // (region anchors) are unaffected — they still show all regions.
+  activeFindingTests = null,
 }) {
   const grid = convergence?.grid || null;
   const perRow = useMemo(
-    () => buildPerVisRowMax(grid, rowMap, nVisRows),
-    [grid, rowMap, nVisRows]
+    () => buildPerVisRowMax(grid, rowMap, nVisRows, activeFindingTests),
+    [grid, rowMap, nVisRows, activeFindingTests]
   );
   const overlays = useMemo(
     () => deriveOverlays(findings, rowMap),

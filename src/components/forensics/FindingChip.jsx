@@ -67,7 +67,7 @@ function chipStyle(severity) {
 // "Moderate" / "Clear".
 const TIER_WORD = { HIGH: "High", MOD: "Moderate", LOW: "Clear" };
 
-export function FindingChip({ finding, onActivate, showRegionNumber = false }) {
+export function FindingChip({ finding, onActivate, showRegionNumber = false, isActive = false }) {
   const tests = finding.tests || [];
   const isSingleTest = tests.length === 1;
   // Single-test chips use the test display name in place of the
@@ -121,6 +121,12 @@ export function FindingChip({ finding, onActivate, showRegionNumber = false }) {
         fontWeight: FW.SEMI,
         cursor: "pointer",
         whiteSpace: "nowrap",
+        // S163 fix-pass 1: active chip rings the chip with a thin
+        // outline in the severity colour. Outline (rather than border)
+        // avoids layout shift; the pulse-animation bus uses box-shadow
+        // separately, so no clash.
+        outline: isActive ? `2px solid ${sev.sevColor}` : "none",
+        outlineOffset: isActive ? "1px" : 0,
       }}
     >
       <MechIcon mk={dimKey} size={mechIconSize(dimKey, ICON_SIZE)} color={mechColor} opacity={isCleared ? CLEARED_OPACITY : 1} />

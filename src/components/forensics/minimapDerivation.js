@@ -20,20 +20,37 @@
  * the [0, nVisRows) range are dropped (defensive against rowMap entries
  * that filter rows out of the display).
  *
- * @param {Map<string, {count:number}>|null} grid - convergence.grid
+ * When `filterTests` is supplied (a Set of test-name strings), the
+ * cell's effective flag count is the size of the intersection between
+ * `cell.tests` and `filterTests`. Cells with no overlap drop out of
+ * the per-row max. This is the "filtered minimap" mode used by the
+ * §2 vertical minimap when a chip is active — the strip shows only
+ * the active finding's tests, not the aggregate across all tests.
+ *
+ * @param {Map<string, {count:number, tests:string[]}>|null} grid - convergence.grid
  * @param {number[]|null} rowMap - matRow → visRow indirection (identity fallback when null/undefined)
  * @param {number} nVisRows - visible row count, used as upper bound
+ * @param {Set<string>|null} [filterTests] - when non-null, restrict to cells whose tests overlap this set; count = overlap size
  * @returns {Map<number, number>} visRow → max flag count across cells in that row
  */
-export function buildPerVisRowMax(grid, rowMap, nVisRows) {
+export function buildPerVisRowMax(grid, rowMap, nVisRows, filterTests = null) {
   const map = new Map();
   if (!grid) return map;
   for (const [key, cell] of grid) {
     const [mr] = key.split(",").map(Number);
     const visRow = rowMap ? (rowMap[mr] ?? mr) : mr;
     if (visRow < 0 || visRow >= nVisRows) continue;
+    let count = cell.count;
+    if (filterTests) {
+      let overlap = 0;
+      for (const t of cell.tests || []) {
+        if (filterTests.has(t)) overlap++;
+      }
+      if (overlap === 0) continue;
+      count = overlap;
+    }
     const cur = map.get(visRow) || 0;
-    if (cell.count > cur) map.set(visRow, cell.count);
+    if (count > cur) map.set(visRow, count);
   }
   return map;
 }

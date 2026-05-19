@@ -595,6 +595,14 @@ export function ExcerptTable({
   // (per `findings.js` schema). Fall back to the existing scrollToHotspot(0)
   // auto-scroll when `region` is null.
   region = null,
+  // S163 fix-pass 1: when true, the component renders a tighter
+  // layout suited to mounting inside the §2 sticky-surface data
+  // block. Suppresses the caption, the left-of-table SegmentMinimap,
+  // and the below-table ColMinimap — the sticky surface's own
+  // MinimapStripVertical covers the row-density role, and the
+  // column-density strip is redundant inside a bounded surface.
+  // Default false preserves modal-era / back-compat-shim mount paths.
+  compactMode = false,
 }) {
   const { grid, hotspots, pattern, groups: rawGroups } = convergence;
   const nVisRows = rawData.length;
@@ -938,7 +946,7 @@ export function ExcerptTable({
   return (
     <div>
       {/* Where flags are concentrated — heatmap + density minimaps caption */}
-      {hasDataRows && (
+      {hasDataRows && !compactMode && (
         <div style={{ marginBottom: 6, lineHeight: 1.5 }}>
           <span style={{ ...MINIMAP_CALLOUT_TYPOGRAPHY, fontWeight: FW.SEMI }}>Where flags are concentrated.</span>{" "}
           <span style={MINIMAP_CALLOUT_TYPOGRAPHY}>
@@ -950,7 +958,7 @@ export function ExcerptTable({
       )}
       {/* Minimap + scrollable data table side by side — only when there are data rows */}
       {hasDataRows && <><div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
-        {needsVScroll && (
+        {needsVScroll && !compactMode && (
           <div style={{ paddingTop: headerZoneH }}>
             <SegmentMinimap visGrid={visGrid} rowSegments={rowSegments}
               height={Math.max(TABLE_H - headerH, 100)} tableRef={tableRef} headerH={headerH}
@@ -1208,7 +1216,7 @@ export function ExcerptTable({
       </div>
 
       {/* Horizontal column minimap — L-shape below table, right of vertical minimap corner */}
-      {needsHScroll && (
+      {needsHScroll && !compactMode && (
         <div style={{ display: "flex", gap: 8, marginTop: 4 }}>
           {/* Corner spacer (aligns with vertical minimap) */}
           {needsVScroll && (
