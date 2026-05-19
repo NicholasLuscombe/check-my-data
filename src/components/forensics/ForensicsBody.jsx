@@ -146,6 +146,84 @@ export function ForensicsBody({
     setDataExpanded(v => !v);
   }, []);
 
+  // S163 fix-pass 2: scrubber window state. Both axes are owned here
+  // so chip-click writers can snap the window to centre the active
+  // region. windowRowSize / windowColSize are constants tuned to the
+  // data block's bounded height + cell metrics; the *Start values are
+  // the navigable state. Manual scrubber drags on either minimap
+  // call the corresponding writer.
+  const WINDOW_ROW_SIZE = 10;
+  const WINDOW_COL_SIZE = 8;
+  const [windowRowStart, setWindowRowStart] = useState(0);
+  const [windowColStart, setWindowColStart] = useState(0);
+  const onWindowRowChange = useCallback((start) => setWindowRowStart(start), []);
+  const onWindowColChange = useCallback((start) => setWindowColStart(start), []);
+
+  // Map a matRow → visRow via rowMap, with identity fallback.
+  const visRowOf = useCallback((matRow) => {
+    const rm = heatmapProps?.rowMap;
+    if (!rm) return matRow;
+    return rm[matRow] ?? matRow;
+  }, [heatmapProps]);
+
+  // Map a matCol → visCol by linear scan over visColIndices.
+  const visColOf = useCallback((matCol) => {
+    const ids = heatmapProps?.visColIndices;
+    if (!ids) return matCol;
+    const i = ids.indexOf(matCol);
+    return i === -1 ? null : i;
+  }, [heatmapProps]);
+
+  // Centre the window on a centre row/col, clamped to the dataset
+  // bounds. Called from chip-click activation when a region is
+  // selected.
+  const snapWindowToRegion = useCallback((region) => {
+    if (!region) return;
+    const nVisRows = heatmapProps?.rawData?.length || 0;
+    const nVisCols = heatmapProps?.visColIndices?.length || 0;
+    // Row snap — midpoint of rowRange in vis-row space.
+    if (region.rowRange && Array.isArray(region.rowRange) && region.rowRange.length === 2) {
+      const visStart = visRowOf(region.rowRange[0]);
+      const visEnd = visRowOf(region.rowRange[1]);
+      if (Number.isFinite(visStart) && Number.isFinite(visEnd)) {
+        const centre = (visStart + visEnd) / 2;
+        let rowStart = Math.floor(centre - WINDOW_ROW_SIZE / 2);
+        const maxRowStart = Math.max(0, nVisRows - WINDOW_ROW_SIZE);
+        rowStart = Math.max(0, Math.min(maxRowStart, rowStart));
+        setWindowRowStart(rowStart);
+      }
+    }
+    // Col snap — midpoint of cell mat-cols in vis-col space. Only
+    // when region.cells carries per-cell coordinates; fallback chips
+    // (empty cells) leave windowColStart untouched.
+    if (region.cells && region.cells.length > 0) {
+      let minVis = Infinity;
+      let maxVis = -Infinity;
+      for (const [, mc] of region.cells) {
+        const v = visColOf(mc);
+        if (v == null) continue;
+        if (v < minVis) minVis = v;
+        if (v > maxVis) maxVis = v;
+      }
+      if (Number.isFinite(minVis) && Number.isFinite(maxVis)) {
+        // Subtract the leading frozen-column count so windowColStart
+        // is relative to the data-column range (matches what the
+        // horizontal minimap and ExcerptTable's compactMode slicing
+        // use as their axis).
+        const ids = heatmapProps?.visColIndices || [];
+        const roles = heatmapProps?.roles || [];
+        let nFrz = 0;
+        while (nFrz < ids.length && roles[ids[nFrz]] !== "data") nFrz++;
+        const centre = (minVis + maxVis) / 2 - nFrz;
+        let colStart = Math.floor(centre - WINDOW_COL_SIZE / 2);
+        const nDataCols = Math.max(0, nVisCols - nFrz);
+        const maxColStart = Math.max(0, nDataCols - WINDOW_COL_SIZE);
+        colStart = Math.max(0, Math.min(maxColStart, colStart));
+        setWindowColStart(colStart);
+      }
+    }
+  }, [heatmapProps, visRowOf, visColOf]);
+
   // Sticky-surface activation. Receives the full finding so multi-test
   // chips can expand every relevant test card (and all touched
   // dimensions). For pills + single-test chips this collapses to the
@@ -214,6 +292,12 @@ export function ForensicsBody({
         hasAutoExpanded.current = true;
         setDataExpanded(true);
       }
+      // S163 fix-pass 2: snap the scrubber window to centre the
+      // active region. Row snap always fires (rowRange is reliable);
+      // column snap fires only when region.cells carry per-cell
+      // coordinates. Toggle-deactivate (re-click active chip) above
+      // exits early so the window stays where the user scrubbed to.
+      snapWindowToRegion(finding.region);
     }
     // Scroll to the first test card. Double-rAF waits for both expand
     // commits + browser paint before reading layout geometry.
@@ -223,7 +307,7 @@ export function ForensicsBody({
     } else {
       scrollToCard(firstTestId);
     }
-  }, [scrollToCard, ensureCatExpanded, ensureTestCardExpanded, activeRegionNumber]);
+  }, [scrollToCard, ensureCatExpanded, ensureTestCardExpanded, activeRegionNumber, snapWindowToRegion]);
 
   // Test-card severity-badge click. Routes the pulse back to the
   // finding's pill (global) or chip+region overlay (localised). The
@@ -294,6 +378,12 @@ export function ForensicsBody({
         onToggleDataExpanded={onToggleDataExpanded}
         cleanStateLead={CLEAN_STATE_LEAD}
         cleanStateTail={CLEAN_STATE_TAIL}
+        windowRowStart={windowRowStart}
+        windowRowSize={WINDOW_ROW_SIZE}
+        onWindowRowChange={onWindowRowChange}
+        windowColStart={windowColStart}
+        windowColSize={WINDOW_COL_SIZE}
+        onWindowColChange={onWindowColChange}
       />
 
       {/* §3 DETAILED TEST RESULTS — dimension cards */}

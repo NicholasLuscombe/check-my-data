@@ -603,6 +603,17 @@ export function ExcerptTable({
   // column-density strip is redundant inside a bounded surface.
   // Default false preserves modal-era / back-compat-shim mount paths.
   compactMode = false,
+  // S163 fix-pass 2: windowed render. When all four window props
+  // are supplied (compactMode true), the table renders only rows in
+  // [windowRowStart, +windowRowSize) and only data columns in
+  // [windowColStart, +windowColSize). Leading non-data columns
+  // (label/ID/freeze) always render. No internal scroll on the table
+  // itself — the two minimap scrubbers in the sticky-surface chrome
+  // drive navigation across the dataset.
+  windowRowStart = 0,
+  windowRowSize = null,
+  windowColStart = 0,
+  windowColSize = null,
 }) {
   const { grid, hotspots, pattern, groups: rawGroups } = convergence;
   const nVisRows = rawData.length;
@@ -661,10 +672,28 @@ export function ExcerptTable({
   const fr = coordCtx?.fileRow || ((r) => r + 1);
 
   // Column entries
-  const colEntries = useMemo(() => visColIndices.map((rawCI, vi) => ({
-    vi, rawCI, role: roles[rawCI],
-    label: colHeaders[vi],
-  })), [visColIndices, roles, colHeaders]);
+  const colEntries = useMemo(() => {
+    const all = visColIndices.map((rawCI, vi) => ({
+      vi, rawCI, role: roles[rawCI],
+      label: colHeaders[vi],
+    }));
+    // S163 fix-pass 2: windowed render in compactMode. Leading non-
+    // data columns (label / ID / freeze) always render; the data
+    // columns slice to [windowColStart, +windowColSize). The vi field
+    // on each entry preserves the original visible-column index so
+    // downstream cell-lookup paths (specCellBg, tintedVisCols,
+    // visGrid.get) continue to resolve correctly even though the
+    // rendered ci range is shorter.
+    if (compactMode && windowColSize != null && windowColSize > 0) {
+      let nFrz = 0;
+      while (nFrz < all.length && all[nFrz].role !== "data") nFrz++;
+      const dataStart = nFrz + Math.max(0, windowColStart);
+      const dataEnd = Math.min(all.length, dataStart + windowColSize);
+      if (dataEnd <= dataStart) return all.slice(0, nFrz);
+      return [...all.slice(0, nFrz), ...all.slice(dataStart, dataEnd)];
+    }
+    return all;
+  }, [visColIndices, roles, colHeaders, compactMode, windowColStart, windowColSize]);
 
   // Condition spans for header
   const condSpans = useMemo(() => {
@@ -790,6 +819,18 @@ export function ExcerptTable({
   // gapBefore on first segment = rows skipped at the top.
   // gapAfter on last segment = rows skipped at the bottom.
   const rowSegments = useMemo(() => {
+    // S163 fix-pass 2: windowed-render override in compactMode.
+    // Replaces the excerpt-style segmented rendering with a simple
+    // contiguous slice of [windowRowStart, +windowRowSize). No gaps,
+    // no skip-row markers — the slice IS the rendered window.
+    if (compactMode && windowRowSize != null && windowRowSize > 0) {
+      const start = Math.max(0, Math.min(nVisRows, windowRowStart));
+      const end = Math.min(nVisRows, start + windowRowSize);
+      if (end <= start) return [];
+      const rows = [];
+      for (let r = start; r < end; r++) rows.push(r);
+      return [{ rows, gapAfter: 0, gapBefore: 0 }];
+    }
     const sorted = [...visibleRowSet].sort((a, b) => a - b);
     if (!sorted.length) return [];
     const segs = [];
@@ -812,7 +853,7 @@ export function ExcerptTable({
       segs[segs.length - 1].gapAfter = nVisRows - 1 - sorted[sorted.length - 1];
     }
     return segs;
-  }, [visibleRowSet, nVisRows]);
+  }, [visibleRowSet, nVisRows, compactMode, windowRowStart, windowRowSize]);
 
   // Scroll to a specific row — virtualized tables use __scrollToRow (row may not be in DOM)
   const scrollToRow = useCallback((row) => {
@@ -991,7 +1032,12 @@ export function ExcerptTable({
             headerTintColor={spec.tintColor}
             rowSegments={rowSegments}
             rawData={rawData}
-            height={TABLE_H}
+            // S163 fix-pass 2: in compactMode the table fits within
+            // the bounded data block (~320 px) without scrolling.
+            // Pass a numeric height equal to the wrapper budget so
+            // ScrollTable's container sits flush; the windowed
+            // rowSegments slice keeps content from overflowing.
+            height={compactMode ? 320 : TABLE_H}
             tableRef={tableRef}
             theadRef={theadRef}
             rowRefs={rowRefs}
@@ -1228,8 +1274,12 @@ export function ExcerptTable({
           </div>
         </div>
       )}
-      {/* Convergence colour-ramp legend — shared by cells, row minimap, column minimap */}
-      <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 8, fontSize: FS.xs, color: C.TEXT_3, flexWrap: "wrap" }}>
+      {/* Convergence colour-ramp legend — shared by cells, row minimap, column minimap.
+          Retired under compactMode (S163 fix-pass 2): the active-test
+          SEV tint carries the signal users need, and the cross-flag
+          gradation is no longer surfaced in the inline sticky-surface
+          data block. */}
+      {!compactMode && (<div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 8, fontSize: FS.xs, color: C.TEXT_3, flexWrap: "wrap" }}>
         <span style={{ color: C.TEXT_3 }}>Tests flagging each cell:</span>
         {CONVERGENCE_RAMP.slice(1).map((color, i) => {
           const count = i + 1;
@@ -1247,18 +1297,24 @@ export function ExcerptTable({
             </span>
           );
         })}
-      </div>
+      </div>)}
       </>}
 
-      {/* No-data-rows fallback — groups/global findings exist but no cells flagged in heatmap */}
-      {!hasDataRows && (
+      {/* No-data-rows fallback — groups/global findings exist but no cells flagged in heatmap.
+          Retired under compactMode (S163 fix-pass 2): the vertical minimap
+          shading + chip click navigation carry the same signal. */}
+      {!hasDataRows && !compactMode && (
         <div style={{ padding: "16px 0", color: C.TEXT_3, fontSize: FS.base }}>
           No spatially localised hotspots detected. Flags are from dataset-wide statistical tests rather than localised regions.
         </div>
       )}
 
-      {/* Findings below table: middleContent (layered) or simple fallback */}
-      {middleContent ? middleContent : (
+      {/* Findings below table: middleContent (layered) or simple fallback.
+          Retired under compactMode (S163 fix-pass 2): the hotspot list
+          footer + middleContent slot belong to the legacy modal /
+          excerpt mount paths. The sticky-surface data block doesn't
+          rerender these. */}
+      {!compactMode && (middleContent ? middleContent : (
         <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 4 }}>
           {/* Simple mode: convergence hotspots (multi-row numbered, single-row collapsed) */}
           {hasHotspots && (() => {
@@ -1319,7 +1375,7 @@ export function ExcerptTable({
             </div>
           )}
         </div>
-      )}
+      ))}
     </div>
   );
 }

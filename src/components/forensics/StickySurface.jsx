@@ -116,6 +116,16 @@ export function StickySurface({
   onToggleDataExpanded = null,
   cleanStateLead = null,
   cleanStateTail = null,
+  // S163 fix-pass 2: scrubber window state. Threaded through to the
+  // inline FindingDetailPanel which forwards to MinimapStripVertical /
+  // MinimapStripHorizontal / ExcerptTable. Parent (ForensicsBody)
+  // owns the state so chip-click writers can snap the window.
+  windowRowStart = 0,
+  windowRowSize = null,
+  onWindowRowChange = null,
+  windowColStart = 0,
+  windowColSize = null,
+  onWindowColChange = null,
 }) {
   const { pills, localisedChips, fallbackChips } = pillsAndChips(findings);
   const hasAnyChip = pills.length > 0 || localisedChips.length > 0 || fallbackChips.length > 0;
@@ -139,11 +149,11 @@ export function StickySurface({
       borderRadius: `0 0 ${CR.LG} ${CR.LG}`,
       padding: "0 20px 16px 20px",
       marginBottom: "12px",
-      // S163 fix-pass 1: stronger bottom drop-shadow so the boundary
-      // between sticky surface and scrolling §3 content is visible.
-      // Positive y-offset + spread keeps the shadow on the bottom edge
-      // (no leakage to other sides).
-      boxShadow: "0 4px 12px rgba(0, 0, 0, 0.06)",
+      // S163 fix-pass 2: hairline bottom border replaces the prior
+      // drop-shadow. The shadow read as ambient haze; a hairline
+      // reads as a clean "surface ends here" cue with less visual
+      // weight against the BG_ZONE backdrop.
+      borderBottom: `1px solid #E5E5E5`,
     }}>
       {/* S163 fix-pass 1: clean-state copy when no chips in any lane.
           Replaces the pre-fix-pass standalone Section card that wrapped
@@ -212,12 +222,12 @@ export function StickySurface({
         </div>
       )}
 
-      {/* S163 fix-pass 1: Data toggle below the chip lanes. Renders
-          when at least one chip exists in any lane — clean fixtures
-          (no chips) currently hide the toggle because ExcerptTable
-          returns null when convergence has no rows. Always-render
-          on clean fixtures is deferred to a follow-on fix-pass that
-          adds a fallback "show all rows" mode to ExcerptTable. */}
+      {/* S163 fix-pass 1: Data toggle below the chip lanes. Currently
+          gated on hasAnyChip — clean fixtures don't render the
+          toggle. Fix-pass 2 attempted to always render but ExcerptTable
+          returns an empty fiber on convergence-empty datasets even
+          under windowed mode; the always-render-on-clean path needs
+          separate diagnosis. Deferred. */}
       {dataReady && hasAnyChip && (
         <button
           id={toggleId}
@@ -252,6 +262,12 @@ export function StickySurface({
             finding={activeFinding}
             heatmapProps={heatmapProps}
             onActivateRegion={onActivateRegion}
+            windowRowStart={windowRowStart}
+            windowRowSize={windowRowSize}
+            onWindowRowChange={onWindowRowChange}
+            windowColStart={windowColStart}
+            windowColSize={windowColSize}
+            onWindowColChange={onWindowColChange}
           />
         </div>
       )}

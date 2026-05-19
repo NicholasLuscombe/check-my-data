@@ -1,35 +1,38 @@
 /* ── FindingDetailPanel — §2 sticky-surface data block (S163) ──
    Renders the active-region data view inside StickySurface — vertical
-   minimap + ExcerptTable in compactMode — when the parent's Data
-   toggle is open. The parent (StickySurface) gates the mount; this
-   component does not own `dataExpanded` state.
+   minimap + horizontal minimap + ExcerptTable in compactMode — when
+   the parent's Data toggle is open. The parent (StickySurface) gates
+   the mount; this component does not own `dataExpanded` state.
 
-   Phase 3b authored the scaffold (header + status placeholder + ✕).
-   Phase 3c added the Show data toggle, three-case status copy via
-   `TEST_RAW_VISIBILITY`, and the data block. Phase 3e folded the
-   panel content inside the sticky surface as a non-sticky child.
-   Fix-pass 1 (this rev) retires the header / status / ✕ row + Show
-   data toggle from this surface — those concerns either retire
-   entirely or move up to StickySurface. What remains here is the
-   data block layout: vertical minimap on the left, ExcerptTable on
-   the right, bounded at 320 px with internal table scroll.
+   Layout (after fix-pass 2):
+     ┌───────────────────────────────────────────┐
+     │            horizontal minimap             │  ← col-axis scrubber
+     ├────┬──────────────────────────────────────┤
+     │ v  │ excerpt — windowed, no internal      │
+     │ m  │ scroll                               │
+     └────┴──────────────────────────────────────┘
 
-   Two render modes:
+   The vertical minimap drives windowRowStart; the horizontal minimap
+   drives windowColStart. ExcerptTable in compactMode renders only the
+   sliced rows × columns inside those windows. Chip-click activation
+   in the chip lanes above writes windowRowStart + windowColStart to
+   centre the active region.
 
-     - finding === null: aggregated overlap view. Vertical minimap
-       shows convergence shading from all findings; ExcerptTable
-       scrolls to row 1 with no region/activeTestKey props.
-
-     - finding !== null: single-region view. Vertical minimap filters
-       to the active finding's tests via `activeFindingTests`;
-       ExcerptTable scrolls to `finding.region` and tints cells per
-       `finding.tests[0].testId`. Fallback findings (region.cells
-       empty) fall through to the aggregated view — they have no
-       per-cell evidence to filter on. */
+   Two render modes (data-axis):
+     - finding === null: aggregated overlap view. Vertical + horizontal
+       minimaps show convergence shading from all findings; ExcerptTable
+       windowed at current scrubber position with no
+       region/activeTestKey props.
+     - finding !== null: single-region view. Minimaps filter to the
+       active finding's tests via `activeFindingTests`; ExcerptTable
+       receives region + activeTestKey for cell-tint highlighting.
+       Fallback findings (region.cells empty) fall through to the
+       aggregated view — they have no per-cell evidence to filter on. */
 
 import { useMemo } from "react";
 import { GROUP_MARKERS, RANK_NUMS } from "../../constants/mechanisms.js";
 import { MinimapStripVertical } from "./MinimapStripVertical.jsx";
+import { MinimapStripHorizontal } from "./MinimapStripHorizontal.jsx";
 import { ExcerptTable } from "./ExcerptTable.jsx";
 
 // Chip-class predicate. Localised chips carry per-cell evidence
@@ -57,62 +60,122 @@ function buildGroupMarkerMap(convergence) {
   return map;
 }
 
-export function FindingDetailPanel({ finding, heatmapProps = null, onActivateRegion = null }) {
+// Build a matCol → visCol indirection map from the visColIndices
+// array. visColIndices is the visible-col → matCol forward map; this
+// inverts it so the horizontal minimap can map convergence-grid
+// matCol keys to its strip-axis position.
+function buildMatColToVisCol(visColIndices) {
+  const map = new Map();
+  if (!visColIndices) return map;
+  for (let vi = 0; vi < visColIndices.length; vi++) {
+    map.set(visColIndices[vi], vi);
+  }
+  return map;
+}
+
+export function FindingDetailPanel({
+  finding,
+  heatmapProps = null,
+  onActivateRegion = null,
+  windowRowStart = 0,
+  windowRowSize = null,
+  onWindowRowChange = null,
+  windowColStart = 0,
+  windowColSize = null,
+  onWindowColChange = null,
+}) {
   const groupMarkerMap = useMemo(
     () => buildGroupMarkerMap(heatmapProps?.convergence),
     [heatmapProps?.convergence]
   );
 
-  // Single-test ID filter for the vertical minimap. The Set is built
-  // from finding.tests when the chip is localised; otherwise null
-  // (no filter → aggregated overlap view). useMemo so referential
-  // identity stays stable across re-renders that don't change the
-  // finding.
+  // Single-test ID filter for the minimaps. Set is built from
+  // finding.tests when the chip is localised; otherwise null
+  // (no filter → aggregated overlap view).
   const activeFindingTests = useMemo(() => {
     if (!finding || !isLocalisedChip(finding)) return null;
     const ids = (finding.tests || []).map(t => t.testId).filter(Boolean);
     return ids.length ? new Set(ids) : null;
   }, [finding]);
 
+  const matColToVisCol = useMemo(
+    () => buildMatColToVisCol(heatmapProps?.visColIndices),
+    [heatmapProps?.visColIndices]
+  );
+
   if (!heatmapProps) return null;
 
   const localised = finding && isLocalisedChip(finding);
+  const nVisRows = heatmapProps.rawData?.length || 0;
+  const nVisCols = heatmapProps.visColIndices?.length || 0;
 
   return (
     <div style={{
       marginTop: "10px",
       display: "flex",
-      gap: "10px",
-      alignItems: "stretch",
-      maxHeight: "320px",
+      flexDirection: "column",
+      gap: "6px",
+      maxHeight: "364px",
     }}>
-      <div style={{ flexShrink: 0, height: "320px" }}>
-        <MinimapStripVertical
-          convergence={heatmapProps.convergence}
-          findings={heatmapProps.findings}
-          rowMap={heatmapProps.rowMap}
-          nVisRows={heatmapProps.rawData?.length || 0}
-          onActivateRegion={onActivateRegion}
-          activeFindingTests={activeFindingTests}
-        />
+      {/* Horizontal minimap above the table — column-axis scrubber.
+          Aligned to the right of the vertical minimap's width so the
+          flag-density bars sit over the table body, not over the
+          frozen index/label columns. */}
+      <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+        <div style={{ flexShrink: 0, width: 32 }} />
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <MinimapStripHorizontal
+            convergence={heatmapProps.convergence}
+            matColToVisCol={matColToVisCol}
+            nVisCols={nVisCols}
+            activeFindingTests={activeFindingTests}
+            windowColStart={windowColStart}
+            windowColSize={windowColSize}
+            onWindowChange={onWindowColChange}
+          />
+        </div>
       </div>
-      <div style={{ flex: 1, minWidth: 0, overflow: "auto", maxHeight: "320px" }}>
-        <ExcerptTable
-          convergence={heatmapProps.convergence}
-          rawData={heatmapProps.rawData}
-          rowMap={heatmapProps.rowMap}
-          colHeaders={heatmapProps.colHeaders}
-          visColIndices={heatmapProps.visColIndices}
-          dColMap={heatmapProps.dColMap}
-          roles={heatmapProps.roles}
-          coordCtx={heatmapProps.coordCtx}
-          condPerCol={heatmapProps.condPerCol}
-          findings={heatmapProps.findings}
-          groupMarkerMap={groupMarkerMap}
-          region={localised ? finding.region : null}
-          activeTestKey={localised ? (finding.tests?.[0]?.testId || null) : null}
-          compactMode={true}
-        />
+
+      {/* Vertical minimap + table row */}
+      <div style={{
+        display: "flex",
+        gap: "10px",
+        alignItems: "stretch",
+        maxHeight: "320px",
+      }}>
+        <div style={{ flexShrink: 0, height: "320px" }}>
+          <MinimapStripVertical
+            convergence={heatmapProps.convergence}
+            rowMap={heatmapProps.rowMap}
+            nVisRows={nVisRows}
+            activeFindingTests={activeFindingTests}
+            windowRowStart={windowRowStart}
+            windowRowSize={windowRowSize}
+            onWindowChange={onWindowRowChange}
+          />
+        </div>
+        <div style={{ flex: 1, minWidth: 0, overflow: "hidden", maxHeight: "320px" }}>
+          <ExcerptTable
+            convergence={heatmapProps.convergence}
+            rawData={heatmapProps.rawData}
+            rowMap={heatmapProps.rowMap}
+            colHeaders={heatmapProps.colHeaders}
+            visColIndices={heatmapProps.visColIndices}
+            dColMap={heatmapProps.dColMap}
+            roles={heatmapProps.roles}
+            coordCtx={heatmapProps.coordCtx}
+            condPerCol={heatmapProps.condPerCol}
+            findings={heatmapProps.findings}
+            groupMarkerMap={groupMarkerMap}
+            region={localised ? finding.region : null}
+            activeTestKey={localised ? (finding.tests?.[0]?.testId || null) : null}
+            compactMode={true}
+            windowRowStart={windowRowStart}
+            windowRowSize={windowRowSize}
+            windowColStart={windowColStart}
+            windowColSize={windowColSize}
+          />
+        </div>
       </div>
     </div>
   );

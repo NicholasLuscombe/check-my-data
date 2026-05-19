@@ -56,6 +56,55 @@ export function buildPerVisRowMax(grid, rowMap, nVisRows, filterTests = null) {
 }
 
 /**
+ * Per-visible-col max flag count derived from the convergence grid.
+ *
+ * Column-axis sibling of buildPerVisRowMax. The grid keys are matrix
+ * coords as `"matRow,matCol"` strings; matColToVisCol[matCol] = visCol
+ * maps matrix-col to vis-col space. Cols outside [0, nVisCols) drop out
+ * (defensive against entries that filter cols out of the display).
+ *
+ * `filterTests` parameter behaves identically to buildPerVisRowMax —
+ * when non-null, the cell's effective flag count is the size of the
+ * intersection between `cell.tests` and `filterTests`. Cells with no
+ * overlap drop out of the per-col max.
+ *
+ * @param {Map<string, {count:number, tests:string[]}>|null} grid - convergence.grid
+ * @param {Map<number, number>|object|null} matColToVisCol - matCol → visCol map (or array-like indirection)
+ * @param {number} nVisCols - visible col count, used as upper bound
+ * @param {Set<string>|null} [filterTests] - when non-null, restrict to cells whose tests overlap this set; count = overlap size
+ * @returns {Map<number, number>} visCol → max flag count across cells in that col
+ */
+export function buildPerVisColMax(grid, matColToVisCol, nVisCols, filterTests = null) {
+  const map = new Map();
+  if (!grid) return map;
+  const lookup = (mc) => {
+    if (!matColToVisCol) return mc;
+    if (typeof matColToVisCol.get === "function") {
+      const v = matColToVisCol.get(mc);
+      return v == null ? mc : v;
+    }
+    return matColToVisCol[mc] ?? mc;
+  };
+  for (const [key, cell] of grid) {
+    const [, mc] = key.split(",").map(Number);
+    const visCol = lookup(mc);
+    if (visCol < 0 || visCol >= nVisCols) continue;
+    let count = cell.count;
+    if (filterTests) {
+      let overlap = 0;
+      for (const t of cell.tests || []) {
+        if (filterTests.has(t)) overlap++;
+      }
+      if (overlap === 0) continue;
+      count = overlap;
+    }
+    const cur = map.get(visCol) || 0;
+    if (count > cur) map.set(visCol, count);
+  }
+  return map;
+}
+
+/**
  * Region overlay descriptors derived from the findings array.
  *
  * Localised findings with both a `regionNumber` and populated
