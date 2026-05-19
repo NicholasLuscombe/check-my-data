@@ -1,11 +1,13 @@
-/* ── FindingDetailPanel — persistent docked finding panel (S163 Phase 3b/3c/3d) ──
-   Mounts below the chip lanes inside §2 WHAT WAS FOUND. Driven by
-   ForensicsBody's `activeRegionNumber` state — a chip click activates a
-   region, the parent resolves the matching finding object, and this
-   panel receives it as the `finding` prop.
+/* ── FindingDetailPanel — active-region content inside §2 (S163 Phase 3b–3e) ──
+   Renders inline as a child of StickySurface, below the chip lanes,
+   separated from them by a horizontal rule. Driven by ForensicsBody's
+   `activeRegionNumber` state — a chip click activates a region, the
+   parent resolves the matching finding object, and StickySurface
+   passes it here as the `finding` prop.
 
    Phase 3b authored the scaffold (header + status placeholder + ✕).
-   Phase 3c adds:
+
+   Phase 3c added:
      - Show data toggle. Default collapsed on first activation; the
        toggle state inherits across region activations so the user's
        "show me data" intent carries forward until they collapse it.
@@ -14,26 +16,22 @@
        (localised vs fallback) and raw-visibility tag.
      - Data block: MinimapStripVertical + ExcerptTable side-by-side
        inside the panel when the toggle is expanded AND the chip is
-       localised. Fallback chips (no per-cell evidence) hide the toggle
-       entirely; the panel reduces to header + status copy that points
-       to the test card.
-   Phase 3d adds:
-     - position: sticky. The panel pins to viewport top during §3
-       scroll so the user can read test cards with the panel still
-       visible. Chip lanes above scroll off normally; the panel is
-       the sole sticky element in §2. ForensicsBody mounts this as a
-       Fragment sibling of §3-§5 so the pin range covers the whole
-       report (sticky un-pins at parent's bottom edge, parent is the
-       ForensicsBody Fragment / ReportView outer wrapper).
-     - `data-finding-detail-panel` is the load-bearing DOM marker that
-       scrollToCard reads to offset the chip-click landing position
-       past the panel.
+       localised. Fallback chips (no per-cell evidence) hide the
+       toggle entirely; the panel reduces to header + status copy
+       that points to the test card.
 
-   Chrome — white card, light border, moderate radius — sits cleanly
-   below the §2 BG_ZONE chip lanes without competing with them. */
+   Phase 3e (rework): the panel content lives INSIDE StickySurface as
+   a non-sticky child. Pre-3e the panel had its own position:sticky
+   chrome and rendered as a separate sibling beneath StickySurface;
+   that produced two stacked sticky boundaries and surfaced a "two
+   clicks to see the table" friction surface during triage. The
+   reworked single-sticky shape shares one scroll context — chip
+   lanes + active-region content scroll as one. The component still
+   owns the `dataExpanded` state and the three-case status dispatch;
+   it just no longer carries any surface chrome of its own. */
 
 import { useMemo, useState } from "react";
-import { C, FS, FW, FF, CR, SEV_VERDICT } from "../../constants/tokens.js";
+import { C, FS, FW, FF, SEV_VERDICT } from "../../constants/tokens.js";
 import { MECHANISMS, TEST_RAW_VISIBILITY, GROUP_MARKERS, RANK_NUMS } from "../../constants/mechanisms.js";
 import { MinimapStripVertical } from "./MinimapStripVertical.jsx";
 import { ExcerptTable } from "./ExcerptTable.jsx";
@@ -128,21 +126,7 @@ export function FindingDetailPanel({ finding, onClose, heatmapProps = null, onAc
   const showDataBlock = dataExpanded && localised && heatmapProps;
 
   return (
-    <div
-      data-finding-detail-panel
-      style={{
-        position: "sticky",
-        top: 0,
-        zIndex: 20,
-        background: C.WHITE,
-        border: `1px solid ${C.BORDER_L}`,
-        borderRadius: CR.LG,
-        padding: "12px 16px",
-        marginBottom: "12px",
-        fontFamily: FF.UI,
-        boxShadow: "0 4px 6px -2px rgba(0,0,0,0.05)",
-      }}
-    >
+    <div>
       {/* Header row — [N] prefix + finding name on the left, ✕ on the right. */}
       <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
         <div style={{
@@ -179,6 +163,7 @@ export function FindingDetailPanel({ finding, onClose, heatmapProps = null, onAc
             color: C.TEXT_3, cursor: "pointer",
             padding: "2px 6px", lineHeight: 1,
             flexShrink: 0,
+            fontFamily: FF.UI,
           }}
         >
           ✕
@@ -224,7 +209,14 @@ export function FindingDetailPanel({ finding, onClose, heatmapProps = null, onAc
       {/* Data block — vertical minimap + excerpt side by side. Mount is
           gated on (a) the toggle being open, (b) the chip being
           localised (the table has cells to tint), and (c) heatmapProps
-          being threaded through from ReportView. */}
+          being threaded through from ReportView.
+
+          Bounded at max-height: 320px. ExcerptTable owns the table's
+          internal scroll (ScrollTable's TABLE_H=400); the outer
+          wrapper's overflow:auto catches anything that overflows the
+          320px budget. macOS trackpad nested scroll routes correctly
+          because the §2 sticky surface above is the only outer
+          sticky boundary — no nested-sticky handoff confusion. */}
       {showDataBlock && (
         <div style={{
           marginTop: "10px",
