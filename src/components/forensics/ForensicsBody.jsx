@@ -295,10 +295,15 @@ export function ForensicsBody({
                 region. Sits in normal document flow as a sibling to the
                 sticky surface so it scrolls with the report rather than
                 pinning. Mount is conditional on activeRegionNumber; the
-                panel itself returns null when finding is null. */}
+                panel itself returns null when finding is null.
+                S163 Phase 3c: heatmapProps + onActivateRegion threaded
+                through so the panel can mount the vertical minimap and
+                the excerpt table when the Show data toggle is open. */}
             <FindingDetailPanel
               finding={activeFinding}
               onClose={onClosePanel}
+              heatmapProps={heatmapProps}
+              onActivateRegion={onActivateRegion}
             />
           </>
         : <Section number={2} title="What was found">

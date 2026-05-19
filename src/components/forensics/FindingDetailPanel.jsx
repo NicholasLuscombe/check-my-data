@@ -1,31 +1,32 @@
-/* ── FindingDetailPanel — persistent docked finding panel (S163 Phase 3b) ──
+/* ── FindingDetailPanel — persistent docked finding panel (S163 Phase 3b/3c) ──
    Mounts below StickySurface inside §2 WHAT WAS FOUND. Driven by
    ForensicsBody's `activeRegionNumber` state — a chip click activates a
    region, the parent resolves the matching finding object, and this
    panel receives it as the `finding` prop.
 
-   Phase 3b is the first UI-visible step of the A1.D3 arc. Render
-   contract here is intentionally minimal:
-
-     - Header row carries the [N] region-number prefix (when present),
-       the finding name (single-test displayName, else dominant-dimension
-       label), and a ✕ close button on the far right.
-     - Status placeholder line below the header reports either the row
-       count for the region or the dataset-wide marker.
-
-   Out of scope for Phase 3b (lands at 3c):
-     - Show data toggle.
-     - Excerpt table mount.
-     - Vertical minimap mount.
-     - TEST_RAW_VISIBILITY consumer dispatch (three-case status copy by
-       lane × raw-visibility).
+   Phase 3b authored the scaffold (header + status placeholder + ✕).
+   Phase 3c adds:
+     - Show data toggle. Default collapsed on first activation; the
+       toggle state inherits across region activations so the user's
+       "show me data" intent carries forward until they collapse it.
+     - Three-case status copy via `TEST_RAW_VISIBILITY` from
+       mechanisms.js (Phase 3a artefact). Dispatch keyed by chip class
+       (localised vs fallback) and raw-visibility tag.
+     - Data block: MinimapStripVertical + ExcerptTable side-by-side
+       inside the panel when the toggle is expanded AND the chip is
+       localised. Fallback chips (no per-cell evidence) hide the toggle
+       entirely; the panel reduces to header + status copy that points
+       to the test card.
 
    Chrome matches the §2 visual register — white card, light border,
    moderate radius — so the panel reads as a continuation of the sticky
    surface above it without competing with the chip lanes for emphasis. */
 
+import { useMemo, useState } from "react";
 import { C, FS, FW, FF, CR, SEV_VERDICT } from "../../constants/tokens.js";
-import { MECHANISMS } from "../../constants/mechanisms.js";
+import { MECHANISMS, TEST_RAW_VISIBILITY, GROUP_MARKERS, RANK_NUMS } from "../../constants/mechanisms.js";
+import { MinimapStripVertical } from "./MinimapStripVertical.jsx";
+import { ExcerptTable } from "./ExcerptTable.jsx";
 
 // HIGH / MOD / LOW → SEV_VERDICT tier index. Mirrors the FindingChip
 // chipStyle dispatch; centralised here so the [N] prefix colour matches
@@ -44,25 +45,76 @@ function findingName(finding) {
   return MECHANISMS[dimKey]?.label || dimKey || "";
 }
 
-function statusCopy(finding) {
-  if (finding.regionNumber != null) {
-    const range = finding.region?.rowRange;
-    if (range && range.length === 2) {
-      const n = range[1] - range[0] + 1;
-      return `${n} rows flagged`;
-    }
-    return "";
-  }
-  return "Dataset-wide finding";
+// Chip-class predicate. Localised chips carry per-cell evidence
+// (region.cells populated → the table excerpt has cells to tint).
+// Fallback chips fired severity > LOW but produced no specific cells;
+// the panel cannot mount a data view for them.
+function isLocalisedChip(finding) {
+  return (finding?.region?.cells?.length || 0) > 0;
 }
 
-export function FindingDetailPanel({ finding, onClose }) {
+// Three-case status copy per A1.D3 §5. The first two cases tag a
+// localised chip's status line by whether a reader inspecting the
+// flagged cells sees the pattern in those cells (Case 1, visible) or
+// has to read it off the test card's reasoning (Case 2, statistical).
+// Case 3 covers fallback chips whose evidence is dataset-wide.
+function statusCopy(finding) {
+  if (!isLocalisedChip(finding)) {
+    return "Flagged across your data — see the test card for the reasoning.";
+  }
+  const range = finding.region?.rowRange;
+  const n = range && range.length === 2 ? range[1] - range[0] + 1 : 0;
+  const firstTestId = finding.tests?.[0]?.testId;
+  let visibility = firstTestId ? TEST_RAW_VISIBILITY[firstTestId] : undefined;
+  if (visibility !== "visible" && visibility !== "statistical") {
+    if (firstTestId && typeof console !== "undefined") {
+      console.warn(`FindingDetailPanel: no TEST_RAW_VISIBILITY entry for "${firstTestId}", defaulting to "statistical"`);
+    }
+    visibility = "statistical";
+  }
+  if (visibility === "visible") {
+    return `${n} rows flagged — highlighted cells below`;
+  }
+  return `${n} rows flagged — the pattern is statistical, not visible in cell values. See the test card for the reasoning.`;
+}
+
+// Group-marker map derivation mirrors DeepLookModal's useMemo.
+// ExcerptTable consumes it via the optional `groupMarkerMap` prop to
+// render DupDet / ConstOffset markers in the leading column.
+function buildGroupMarkerMap(convergence) {
+  const groups = convergence?.groups || [];
+  const map = new Map();
+  const typeIdx = { exact: 0, offset: 0 };
+  for (const g of groups) {
+    const markers = GROUP_MARKERS[g.type] || RANK_NUMS;
+    const idx = typeIdx[g.type] ?? 0;
+    map.set(g.id, markers[idx] || `(${idx + 1})`);
+    if (g.type in typeIdx) typeIdx[g.type]++;
+  }
+  return map;
+}
+
+export function FindingDetailPanel({ finding, onClose, heatmapProps = null, onActivateRegion = null }) {
+  // Show data persistence: state lives on the panel itself, not on
+  // ForensicsBody. React keeps the value across re-renders so when the
+  // `finding` prop changes (chip click → new region), the expanded
+  // state carries forward — the user already signalled "I want to see
+  // data" once and shouldn't have to re-toggle on every chip switch.
+  const [dataExpanded, setDataExpanded] = useState(false);
+
+  const groupMarkerMap = useMemo(
+    () => buildGroupMarkerMap(heatmapProps?.convergence),
+    [heatmapProps?.convergence]
+  );
+
   if (!finding) return null;
 
   const N = finding.regionNumber;
   const name = findingName(finding);
   const status = statusCopy(finding);
   const accent = sevColor(finding.severity);
+  const localised = isLocalisedChip(finding);
+  const showDataBlock = dataExpanded && localised && heatmapProps;
 
   return (
     <div
@@ -118,8 +170,7 @@ export function FindingDetailPanel({ finding, onClose }) {
         </button>
       </div>
 
-      {/* Status placeholder row — Phase 3c replaces with the three-case
-          dispatch by (lane, raw-visibility). */}
+      {/* Status row — three-case dispatch via TEST_RAW_VISIBILITY. */}
       {status && (
         <div style={{
           marginTop: "6px",
@@ -128,6 +179,71 @@ export function FindingDetailPanel({ finding, onClose }) {
           color: C.TEXT_2,
         }}>
           {status}
+        </div>
+      )}
+
+      {/* Show data toggle — only rendered for localised chips. Fallback
+          chips (no per-cell evidence) drop the toggle entirely; their
+          status copy already points to the test card. */}
+      {localised && (
+        <button
+          onClick={() => setDataExpanded(v => !v)}
+          aria-expanded={dataExpanded}
+          style={{
+            marginTop: "8px",
+            background: "none", border: "none",
+            padding: 0,
+            fontSize: FS.sm,
+            fontWeight: FW.NORM,
+            fontFamily: FF.UI,
+            color: C.TEXT_2,
+            cursor: "pointer",
+            display: "inline-flex", alignItems: "center", gap: "4px",
+          }}
+        >
+          <span>Show data</span>
+          <span style={{ fontSize: "10px" }}>{dataExpanded ? "▴" : "▾"}</span>
+        </button>
+      )}
+
+      {/* Data block — vertical minimap + excerpt side by side. Mount is
+          gated on (a) the toggle being open, (b) the chip being
+          localised (the table has cells to tint), and (c) heatmapProps
+          being threaded through from ReportView. */}
+      {showDataBlock && (
+        <div style={{
+          marginTop: "10px",
+          display: "flex",
+          gap: "10px",
+          alignItems: "stretch",
+          maxHeight: "320px",
+        }}>
+          <div style={{ flexShrink: 0, height: "320px" }}>
+            <MinimapStripVertical
+              convergence={heatmapProps.convergence}
+              findings={heatmapProps.findings}
+              rowMap={heatmapProps.rowMap}
+              nVisRows={heatmapProps.rawData?.length || 0}
+              onActivateRegion={onActivateRegion}
+            />
+          </div>
+          <div style={{ flex: 1, minWidth: 0, overflow: "auto", maxHeight: "320px" }}>
+            <ExcerptTable
+              convergence={heatmapProps.convergence}
+              rawData={heatmapProps.rawData}
+              rowMap={heatmapProps.rowMap}
+              colHeaders={heatmapProps.colHeaders}
+              visColIndices={heatmapProps.visColIndices}
+              dColMap={heatmapProps.dColMap}
+              roles={heatmapProps.roles}
+              coordCtx={heatmapProps.coordCtx}
+              condPerCol={heatmapProps.condPerCol}
+              findings={heatmapProps.findings}
+              groupMarkerMap={groupMarkerMap}
+              region={finding.region}
+              activeTestKey={finding.tests?.[0]?.testId || null}
+            />
+          </div>
         </div>
       )}
     </div>
