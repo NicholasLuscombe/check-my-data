@@ -45,53 +45,12 @@ import { MINIMAP_CALLOUT_TYPOGRAPHY } from "../shared/Section.jsx";
 import { convergenceMinimapStyle, convergenceRampStyle, CONVERGENCE_RAMP } from "../shared/heatmapColors.js";
 import { usePulseTrigger } from "./pulseContext.jsx";
 import { usePulseAnimation } from "./PulseStyle.jsx";
+import { buildPerVisRowMax, deriveOverlays } from "./minimapDerivation.js";
 
 const STRIP_H = 32;
 const BADGE_H = 18;
 const BADGE_GAP = 4;
 const TOTAL_H = STRIP_H + BADGE_H + BADGE_GAP;
-
-// Per-visible-row max flag count from the convergence grid. The grid
-// keys are matrix coords ("matRow,matCol"); rowMap[matRow] = visRow.
-function buildPerVisRowMax(grid, rowMap, nVisRows) {
-  const map = new Map();
-  if (!grid) return map;
-  for (const [key, cell] of grid) {
-    const [mr] = key.split(",").map(Number);
-    const visRow = rowMap ? (rowMap[mr] ?? mr) : mr;
-    if (visRow < 0 || visRow >= nVisRows) continue;
-    const cur = map.get(visRow) || 0;
-    if (cell.count > cur) map.set(visRow, cell.count);
-  }
-  return map;
-}
-
-// Localised findings with regionNumber AND populated region.cells →
-// overlay descriptors in vis-row coords. Empty `region.cells` (S126b
-// add-8 fallback for chip-only Mahalanobis-style findings) excluded —
-// no minimap position to claim.
-function deriveOverlays(findings, rowMap) {
-  const out = [];
-  for (const f of (findings || [])) {
-    if (f.type !== "localised") continue;
-    if (f.regionNumber == null) continue;
-    if (!f.region?.cells?.length) continue;
-    if (!f.region?.rowRange) continue;
-    const matStart = f.region.rowRange[0];
-    const matEnd = f.region.rowRange[1];
-    const visStart = rowMap ? (rowMap[matStart] ?? matStart) : matStart;
-    const visEnd = rowMap ? (rowMap[matEnd] ?? matEnd) : matEnd;
-    out.push({
-      regionNumber: f.regionNumber,
-      severity: f.severity,
-      visRowStart: visStart,
-      visRowEnd: visEnd,
-      tests: f.tests || [],
-    });
-  }
-  out.sort((a, b) => a.regionNumber - b.regionNumber);
-  return out;
-}
 
 const sevColor = (severity) =>
   severity === "HIGH" ? SEV_VERDICT[3].color

@@ -228,3 +228,60 @@ export const TEST_METHODS = {
 
   'Cross-Condition Consistency': 'Compares each condition pair on a set of robust distribution properties (trimmed span, dispersion, CDF shape) and flags pairs that are suspiciously close to each other — condition pairs that match more than random re-assignment of pooled values would produce. Real experimental conditions legitimately differ on location and scale, so the forensic signal for these properties lives in the "too similar" tail. Two-sided permutation null at the cell level, BH-FDR across all property \u00d7 pair units; only similar-direction units contribute to the flag.',
 };
+
+// Raw-cell visibility classification for the A1.D3 panel status line
+// (S163 Phase 3a). Per-test answer to the question: when this test flags
+// rows or cells in a localised region, does a reader looking at the
+// flagged cells see something visibly anomalous?
+//
+//   "visible"     \u2014 the flagged cells themselves show the pattern (identical
+//                   rows, offset blocks, repeated values, missing-data gaps).
+//   "statistical" \u2014 the anomaly is computed (correlations, residuals,
+//                   distances, distributional shape, frequency tests).
+//                   The cells look unremarkable; the reasoning lives on
+//                   the test card.
+//
+// Consumed by the panel status line as `(lane, rawVisibility)` dispatch.
+// Dataset-wide findings (chips in the Dataset-wide patterns lane) take
+// Case 3 status copy via lane regardless of this field; rawVisibility is
+// load-bearing only for localised findings. Dataset-wide tests still
+// classify here for completeness; "statistical" is the conservative
+// default when raw-cell legibility is moot.
+//
+// Authored S163 Phase 3a; consumer wiring lands at Phase 3c.
+export const TEST_RAW_VISIBILITY = {
+  // Copy, Paste, Edit
+  "Exact Duplicate Detection":           "visible",
+  "Constant-Offset Blocks":              "visible",
+  "Residual Spike Correlation":          "statistical",
+  // Unusual Digits
+  "Benford's Law (First Digit)":         "statistical",
+  "Benford's Law (Second Digit)":        "statistical",
+  "Terminal Digit Uniformity":           "statistical",
+  "Decimal Precision Consistency":       "statistical",
+  "Value-Frequency Spike":               "visible",
+  // Distribution Shapes
+  "Entropy / Zipf Analysis":             "statistical",
+  "Column Goodness-of-Fit":              "statistical",
+  "Modality Test":                       "statistical",
+  // Cross-Replicate Comparisons
+  "Inter-Replicate Correlation":         "statistical",
+  "Excess Kurtosis":                     "statistical",
+  "Autocorrelation":                     "statistical",
+  "Windowed Autocorrelation":            "statistical",
+  "Runs Test":                           "statistical",
+  "Noise Scaling With Measurement Size": "statistical",
+  "Within-Row Variance":                 "statistical",
+  "Selective Noise Partitioning":        "statistical",
+  "Regional Noise Homogeneity":          "statistical",
+  "LOESS Residual Analysis":             "statistical",
+  "Row-Mean Runs":                       "statistical",
+  "Mahalanobis Row Outlier":             "statistical",
+  "Blocked Mahalanobis":                 "statistical",
+  // Cross-Condition Comparisons
+  "Cross-Condition Rank Correlation":    "statistical",
+  "Baseline Balance":                    "statistical",
+  "Cross-Condition Consistency":         "statistical",
+  // Other
+  "Missing Data Pattern":                "visible",
+};
