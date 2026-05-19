@@ -35,15 +35,23 @@
 
    Click model (spec §1.7):
      - chip click       → pulse(chip:N, region:N, card:<each>) + scroll card
+                          + activate region (S163 Phase 3b: chip click also
+                          sets activeRegionNumber, opening FindingDetailPanel)
      - pill click       → pulse(pill:test, card:test) + scroll card
      - badge click on
        a test card      → pulse(card:test, pill or chip+region from finding)
      - region [N] badge → pulse(region:N, chip:N) + onActivateRegion
-                          (S126c-b modal-open hook; null-stub today)
+                          (sets activeRegionNumber → panel opens)
 
    The `region:N` pulse target now has a listener (MinimapStrip's
    RegionBadge) — chip clicks reflect to the minimap visually.
-   Reverse direction (badge → chip) wired via the badge handler. */
+   Reverse direction (badge → chip) wired via the badge handler.
+
+   S163 Phase 3b lifecycle change: `modalRegionNumber` retired; the
+   single piece of state is now `activeRegionNumber` and it drives the
+   persistent FindingDetailPanel mount below the sticky surface AND
+   the `showRegionNumber` prefix on every chip whose finding shares
+   that region. Initial value null → panel not auto-open on load. */
 
 import { useMemo, useRef, useState, useCallback } from "react";
 import { Section, MINIMAP_CALLOUT_TYPOGRAPHY } from "../shared/Section.jsx";
@@ -53,7 +61,7 @@ import { C, FW } from "../../constants/tokens.js";
 import { StickySurface, STICKY_SURFACE_SELECTOR, shouldRenderSticky } from "./StickySurface.jsx";
 import { ForensicsCategoryBlock } from "./ForensicsCategoryBlock.jsx";
 import { MinimapStrip } from "./MinimapStrip.jsx";
-import { DeepLookModal } from "./DeepLookModal.jsx";
+import { FindingDetailPanel } from "./FindingDetailPanel.jsx";
 import { usePulseTrigger } from "./pulseContext.jsx";
 
 // S150-fix1: clean-state copy renders as bold sentence-lead + body
@@ -129,6 +137,17 @@ export function ForensicsBody({
     window.scrollTo({ top: Math.max(0, target), behavior: "smooth" });
   }, []);
 
+  // S163 Phase 3b: active-region state. `activeRegionNumber` non-null →
+  // FindingDetailPanel mounts below the sticky surface, focused on that
+  // region; every chip whose finding shares the regionNumber lights up
+  // with the [N] prefix. Writers are the chip click (via onActivateTest
+  // below) and the horizontal MinimapStrip [N] badge (via the
+  // onActivateRegion callback below). Reader is the panel mount + the
+  // activeRegionNumber prop threaded into StickySurface for per-chip
+  // showRegionNumber derivation. Initial value null → panel does not
+  // auto-open on first load.
+  const [activeRegionNumber, setActiveRegionNumber] = useState(null);
+
   // Sticky-surface activation. Receives the full finding so multi-test
   // chips can expand every relevant test card (and all touched
   // dimensions). For pills + single-test chips this collapses to the
@@ -146,8 +165,10 @@ export function ForensicsBody({
   // it lands on the card the first time the card mounts (or replays if
   // already mounted).
   //
-  // Minimap-scroll path is dormant under add-3 (no inline minimap to
-  // scroll); restored in S126c modal.
+  // S163 Phase 3b: localised chips (finding.regionNumber non-null) also
+  // set the active region. The FindingDetailPanel mount renders below
+  // the sticky surface; every chip whose finding shares the active
+  // region lights up with the [N] prefix.
   const onActivateTest = useCallback((finding) => {
     if (!finding) return;
     const tests = finding.tests || [];
@@ -166,6 +187,12 @@ export function ForensicsBody({
     // Expand every relevant test card body.
     if (ensureTestCardExpanded) {
       for (const t of tests) ensureTestCardExpanded(t.testId);
+    }
+    // Activate the panel for localised findings. Dataset-wide findings
+    // (pills) carry no regionNumber and leave activeRegionNumber alone
+    // — Phase 3b does not open the panel for global findings yet.
+    if (finding.regionNumber != null) {
+      setActiveRegionNumber(finding.regionNumber);
     }
     // Scroll to the first test card. Double-rAF waits for both expand
     // commits + browser paint before reading layout geometry.
@@ -191,24 +218,30 @@ export function ForensicsBody({
     trigger(...keys);
   }, [testToFinding, trigger]);
 
-  // S126c-b: deep-look modal state. `modalRegionNumber` non-null →
-  // DeepLookModal is mounted, focused on that regionNumber. The whole
-  // inline strip + each [N] badge are click targets that set this state.
-  const [modalRegionNumber, setModalRegionNumber] = useState(null);
-
   // Region-badge / strip-area click handler. Receives the overlay
   // descriptor `{ regionNumber, severity, visRowStart, visRowEnd, tests }`
-  // computed by MinimapStrip from the focused finding. Sets modal state
-  // → modal mount renders pre-zoomed to that region. The chip:N + region:N
+  // computed by MinimapStrip from the focused finding. Sets active-region
+  // state → panel mount renders for that region. The chip:N + region:N
   // pulse triggers are fired by MinimapStrip itself (badge handler and
   // strip-area handler both fire) so this callback is purely the
-  // modal-open dispatch.
+  // activate dispatch.
   const onActivateRegion = useCallback((overlay) => {
     if (!overlay || overlay.regionNumber == null) return;
-    setModalRegionNumber(overlay.regionNumber);
+    setActiveRegionNumber(overlay.regionNumber);
   }, []);
 
-  const onDismissModal = useCallback(() => setModalRegionNumber(null), []);
+  // Panel ✕ button writer. Clears active-region state → panel unmounts;
+  // chips revert to no-[N] state.
+  const onClosePanel = useCallback(() => setActiveRegionNumber(null), []);
+
+  // S163 Phase 3b: derive the active finding from activeRegionNumber.
+  // The lookup matches against finding.regionNumber (localised findings
+  // only); when activeRegionNumber is null, activeFinding is null too,
+  // and FindingDetailPanel renders nothing.
+  const activeFinding = useMemo(() => {
+    if (activeRegionNumber == null) return null;
+    return findings.find(f => f.regionNumber === activeRegionNumber) || null;
+  }, [findings, activeRegionNumber]);
 
   // Build the MinimapStrip slot once for the sticky surface. Mounting
   // is conditional on the data being available (convergence + rawData
@@ -256,6 +289,16 @@ export function ForensicsBody({
               findings={findings}
               onActivateTest={onActivateTest}
               minimapSlot={minimapSlot}
+              activeRegionNumber={activeRegionNumber}
+            />
+            {/* S163 Phase 3b: persistent docked panel for the active
+                region. Sits in normal document flow as a sibling to the
+                sticky surface so it scrolls with the report rather than
+                pinning. Mount is conditional on activeRegionNumber; the
+                panel itself returns null when finding is null. */}
+            <FindingDetailPanel
+              finding={activeFinding}
+              onClose={onClosePanel}
             />
           </>
         : <Section number={2} title="What was found">
@@ -295,21 +338,6 @@ export function ForensicsBody({
         })}
       </Section>
 
-      {/* S126c-b — DeepLookModal mount. Rendered as a Fragment sibling
-          (position:fixed inside the modal takes it out of document
-          flow). Sticky scope unchanged: StickySurface's parent extent
-          is unaffected by adding/removing a fixed-positioned sibling
-          → S126b add-7b pin range preserved on dismiss. */}
-      {modalRegionNumber != null && heatmapProps && (
-        <DeepLookModal
-          heatmapProps={heatmapProps}
-          results={results}
-          findings={findings}
-          initialRegionNumber={modalRegionNumber}
-          onDismiss={onDismissModal}
-          scrollToCardOutside={scrollToCard}
-        />
-      )}
     </>
   );
 }

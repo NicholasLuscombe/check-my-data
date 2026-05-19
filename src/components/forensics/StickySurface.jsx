@@ -102,7 +102,7 @@ export function shouldRenderSticky(findings = []) {
   return pills.length > 0 || localisedChips.length > 0 || fallbackChips.length > 0;
 }
 
-export function StickySurface({ findings, onActivateTest, minimapSlot = null }) {
+export function StickySurface({ findings, onActivateTest, minimapSlot = null, activeRegionNumber = null }) {
   const { pills, localisedChips, fallbackChips } = pillsAndChips(findings);
   if (!pills.length && !localisedChips.length && !fallbackChips.length) return null;
 
@@ -154,7 +154,12 @@ export function StickySurface({ findings, onActivateTest, minimapSlot = null }) 
           <span style={{ ...LANE_LABEL_TYPOGRAPHY, ...LANE_LABEL_LAYOUT }}>Localised patterns</span>
           <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
             {localisedChips.map(f => (
-              <FindingChip key={f.id} finding={f} onActivate={onActivateTest} />
+              <FindingChip
+                key={f.id}
+                finding={f}
+                onActivate={onActivateTest}
+                showRegionNumber={f.regionNumber === activeRegionNumber}
+              />
             ))}
           </div>
         </div>
@@ -172,7 +177,12 @@ export function StickySurface({ findings, onActivateTest, minimapSlot = null }) 
           <span style={{ ...LANE_LABEL_TYPOGRAPHY, ...LANE_LABEL_LAYOUT }}>Broadly flagged patterns</span>
           <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
             {fallbackChips.map(f => (
-              <FindingChip key={f.id} finding={f} onActivate={onActivateTest} />
+              <FindingChip
+                key={f.id}
+                finding={f}
+                onActivate={onActivateTest}
+                showRegionNumber={f.regionNumber === activeRegionNumber}
+              />
             ))}
           </div>
         </div>
