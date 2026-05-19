@@ -1,39 +1,28 @@
-/* ── StickySurface — Forensics-mode sticky navigation surface (S126b) ──
-   Sits inside §2 WHAT WAS FOUND, below the section header. Pins to
-   viewport top once user scrolls past the verdict banner + section
-   header. Renders a pill row + chip row over the findings[] data layer.
+/* ── StickySurface — Forensics-mode §2 chip lanes (S126b → S163) ──
+   Sits inside §2 WHAT WAS FOUND, below the section header. Renders the
+   three chip-lane rows over the findings[] data layer.
 
-   S126b add-2 retired the 3-state (A/B/C) machine — aggregator-level
-   row→cell expansion in findings.js made the State C trigger
-   structurally unreachable.
+   Pre-S163 (S126b add-7b through Phase 3c): this element carried
+   `position: sticky` and pinned to viewport top during §3 scroll. The
+   inline horizontal MinimapStrip rendered below the chip lanes inside
+   the sticky wrapper.
 
-   S126b add-3 retired the lone State B → null hotspotBlock slot too.
-   The minimap+table block exited inline render entirely (returned in
-   S126c modal). Sticky carried pills + chips only, ~80–120px tall.
-   `partitionForSticky` collapsed to `shouldRenderSticky(findings)` —
-   simple boolean. `pillsAndChips(findings)` returns the lanes for the
-   render path.
+   S163 Phase 3d (A1.D3 close): sticky chrome retires here. The
+   FindingDetailPanel (sibling below) is the sole sticky element in §2
+   now — chip lanes scroll off normally and the panel pins for the
+   active region. The inline MinimapStrip mount retires entirely; the
+   panel-internal MinimapStripVertical covers the navigation role.
 
-   S126c-a recovery (add-3 scoping error per SESSION126b-SUMMARY §3(e)):
-   the lightweight minimap (works for clustered AND diffuse findings)
-   should not have shared add-3's deferral with the table excerpt. The
-   sticky now accepts an optional `minimapSlot` prop rendered below the
-   chip lane; ForensicsBody mounts MinimapStrip there. The deeper
-   table excerpt still defers to S126c-b modal. */
+   The visual chrome stays — BG_ZONE bg + flat-top continuation of the
+   §2 Section header card, with bottom-rounded corners. The two DOM
+   elements still merge visually into one card from the section header
+   through the chip lanes. */
 
 import { C, CR } from "../../constants/tokens.js";
 import { MECHANISMS } from "../../constants/mechanisms.js";
-import { LANE_LABEL_TYPOGRAPHY } from "../shared/Section.jsx";
+import { LANE_LABEL_TYPOGRAPHY, LANE_LABELS } from "../shared/Section.jsx";
 import { FindingPill } from "./FindingPill.jsx";
 import { FindingChip } from "./FindingChip.jsx";
-
-const STICKY_TOP = 0;
-
-// Stable DOM marker so chip-click scroll handlers can read the sticky
-// surface's measured height and offset their landing position. Writer is
-// the outer div below; reader is `scrollToCard` in ForensicsBody.jsx.
-// Exported as a selector so consumers don't repeat the magic string.
-export const STICKY_SURFACE_SELECTOR = '[data-sticky-surface="forensics"]';
 
 // Layout-only properties for the lane-label spans. Typography lives in
 // LANE_LABEL_TYPOGRAPHY (Section.jsx). Spread both at each consumer site.
@@ -64,8 +53,8 @@ const compareBy = (getKey) => (a, b) => {
 // but produced no specific rows / cells, so MinimapStrip filters it out of the
 // region overlays). Pre-S133f these chips were rendered alongside true
 // localised chips in a single lane, claiming a localisation the minimap
-// couldn't confirm. S133f routes them into a separate "Patterns flagged
-// broadly" lane so the §2 surface tells the truth about scope.
+// couldn't confirm. S133f routes them into a separate "Broadly flagged
+// patterns" lane so the §2 surface tells the truth about scope.
 const isFallbackChip = (f) => (f.region?.cells?.length || 0) === 0;
 
 /**
@@ -92,44 +81,33 @@ export function pillsAndChips(findings = []) {
 }
 
 /**
- * Boolean predicate — true when sticky should render at all (i.e. there
- * is at least one pill or chip to display, in any lane). Caller branches
- * on this to decide whether to mount StickySurface or fall back to a
- * clean-state §2 body.
+ * Boolean predicate — true when StickySurface should render at all (i.e.
+ * there is at least one pill or chip to display, in any lane). Caller
+ * branches on this to decide whether to mount StickySurface or fall back
+ * to a clean-state §2 body. Name preserved from the pre-3d sticky era;
+ * the chip lanes still gate on this predicate even though the surface
+ * itself no longer pins.
  */
 export function shouldRenderSticky(findings = []) {
   const { pills, localisedChips, fallbackChips } = pillsAndChips(findings);
   return pills.length > 0 || localisedChips.length > 0 || fallbackChips.length > 0;
 }
 
-export function StickySurface({ findings, onActivateTest, minimapSlot = null, activeRegionNumber = null }) {
+export function StickySurface({ findings, onActivateTest, activeRegionNumber = null }) {
   const { pills, localisedChips, fallbackChips } = pillsAndChips(findings);
   if (!pills.length && !localisedChips.length && !fallbackChips.length) return null;
 
-  // S126b add-7b: rendered as a flat-top continuation of the
-  // <Section flatBottom> sibling above. Same BG_ZONE bg + matching radii
-  // on the abutting edge → visual reads as one card. position:sticky
-  // here (not on a child wrapper) so the sticky element's parent is the
-  // ForensicsBody fragment / ReportView outer div, giving sticky enough
-  // vertical span to pin past §3-§5 (sticky un-pins at parent's bottom
-  // edge — fragment's parent is ReportView's outer div extending the
-  // whole report, not §2's 83px-tall wrapper).
-  //
-  // S126c-a: `minimapSlot` renders below the chip lane when localised
-  // findings exist (caller decides whether to mount). The slot lives
-  // inside this sticky wrapper so the minimap pins together with the
-  // pills + chips. Sticky's DOM parent is unchanged — pin range still
-  // extends past §3-§5 via the Fragment / ReportView outer wrapper.
+  // Rendered as a flat-top continuation of the <Section flatBottom>
+  // sibling above. Same BG_ZONE bg + matching radii on the abutting
+  // edge so the visual reads as one card. Normal scroll flow at Phase
+  // 3d — the FindingDetailPanel sibling below is the §2 sticky
+  // element now.
   return (
-    <div data-sticky-surface="forensics" style={{
-      position: "sticky",
-      top: STICKY_TOP,
-      zIndex: 20,
+    <div data-forensics-chip-lanes style={{
       background: C.BG_ZONE,
       borderRadius: `0 0 ${CR.LG} ${CR.LG}`,
       padding: "0 20px 16px 20px",
       marginBottom: "12px",
-      boxShadow: "0 4px 6px -2px rgba(0,0,0,0.05)",
     }}>
       {pills.length > 0 && (
         <div style={{
@@ -137,7 +115,7 @@ export function StickySurface({ findings, onActivateTest, minimapSlot = null, ac
           flexWrap: "wrap",
           marginBottom: (localisedChips.length > 0 || fallbackChips.length > 0) ? "8px" : 0,
         }}>
-          <span style={{ ...LANE_LABEL_TYPOGRAPHY, ...LANE_LABEL_LAYOUT }}>Dataset-wide patterns</span>
+          <span style={{ ...LANE_LABEL_TYPOGRAPHY, ...LANE_LABEL_LAYOUT }}>{LANE_LABELS.pills}</span>
           <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
             {pills.map(f => (
               <FindingPill key={f.id} finding={f} onActivate={onActivateTest} />
@@ -151,7 +129,7 @@ export function StickySurface({ findings, onActivateTest, minimapSlot = null, ac
           flexWrap: "wrap",
           marginBottom: fallbackChips.length > 0 ? "8px" : 0,
         }}>
-          <span style={{ ...LANE_LABEL_TYPOGRAPHY, ...LANE_LABEL_LAYOUT }}>Localised patterns</span>
+          <span style={{ ...LANE_LABEL_TYPOGRAPHY, ...LANE_LABEL_LAYOUT }}>{LANE_LABELS.localised}</span>
           <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
             {localisedChips.map(f => (
               <FindingChip
@@ -166,15 +144,14 @@ export function StickySurface({ findings, onActivateTest, minimapSlot = null, ac
       )}
       {/* S133f: fallback chips (region.cells.length === 0) — tests that fired
           severity > LOW but produced no specific rows. Routed out of the
-          Localised lane so the surface doesn't claim a localisation the
-          minimap can't show. The minimap continues to filter these out via
-          its own `region.cells.length > 0` predicate. */}
+          Localised lane so the surface doesn't claim a localisation that
+          can't be drawn on a minimap. */}
       {fallbackChips.length > 0 && (
         <div style={{
           display: "flex", alignItems: "center", gap: "10px",
           flexWrap: "wrap",
         }}>
-          <span style={{ ...LANE_LABEL_TYPOGRAPHY, ...LANE_LABEL_LAYOUT }}>Broadly flagged patterns</span>
+          <span style={{ ...LANE_LABEL_TYPOGRAPHY, ...LANE_LABEL_LAYOUT }}>{LANE_LABELS.fallback}</span>
           <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
             {fallbackChips.map(f => (
               <FindingChip
@@ -187,7 +164,6 @@ export function StickySurface({ findings, onActivateTest, minimapSlot = null, ac
           </div>
         </div>
       )}
-      {minimapSlot}
     </div>
   );
 }

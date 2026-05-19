@@ -25,13 +25,12 @@ export const SECTION_HEADER_TYPOGRAPHY = {
   whiteSpace: "nowrap",
 };
 
-/** Lane-label typography — dimension-header peers in §2 (StickySurface)
- *  and in DeepLookModal. Sentence-case content-tier register, semibold,
- *  C.TEXT body colour. Sized at FS.base so the label outranks adjacent
- *  FindingChip / FindingPill content (FS.sm) without crossing into the
- *  sub-heading register (FS.md). S149 (C.6+C.7): extracted from the
- *  byte-identical local consts that lived in StickySurface and
- *  DeepLookModal so register changes land in one place.
+/** Lane-label typography — dimension-header peers in §2 (StickySurface).
+ *  Sentence-case content-tier register, semibold, C.TEXT body colour.
+ *  Sized at FS.base so the label outranks adjacent FindingChip /
+ *  FindingPill content (FS.sm) without crossing into the sub-heading
+ *  register (FS.md). S149 (C.6+C.7): extracted from byte-identical
+ *  local consts so register changes land in one place.
  *
  *  Layout-only properties (whiteSpace, flexShrink) stay at the consumer
  *  spread sites — they're layout, not typography. */
@@ -40,6 +39,17 @@ export const LANE_LABEL_TYPOGRAPHY = {
   fontSize: FS.base,
   fontWeight: FW.SEMI,
   color: C.TEXT,
+};
+
+/** §2 lane label strings — single source of truth for the three chip-lane
+ *  headers. S163 Phase 3d (A1.D3 close): extracted from inline literals in
+ *  StickySurface so future copy changes land in one place. Same string
+ *  values as pre-3d; consumed via spread of LANE_LABEL_TYPOGRAPHY at the
+ *  call site. */
+export const LANE_LABELS = {
+  pills: "Dataset-wide patterns",
+  localised: "Localised patterns",
+  fallback: "Broadly flagged patterns",
 };
 
 /** Minimap callout typography — inline-bold-prefix-plus-body pattern used at

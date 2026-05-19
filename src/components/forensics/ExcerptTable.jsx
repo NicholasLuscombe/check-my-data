@@ -1,28 +1,24 @@
-/* ── ExcerptTable — deep-look table excerpt for spatial findings (S126c-b) ──
-   Mounted inside the click-to-zoom modal (DeepLookModal) as the deeper-
-   inspection surface beneath the modal's pill cluster + chip cluster +
-   full-resolution MinimapStrip. Internally still composes a vertical
-   row strip (table-coupled SegmentMinimap, with viewport indicator +
-   click-to-scroll) and a horizontal column-density strip (ColMinimap)
-   alongside the scrollable ScrollTable; that triad is the deep-look's
-   own visual chrome — distinct from the inline §2 MinimapStrip which
-   is a lightweight standalone spatial-nav surface that needs no table.
+/* ── ExcerptTable — deep-look table excerpt for spatial findings ──
+   Mounted inside FindingDetailPanel as the deeper-inspection surface
+   that renders when Show data is expanded. Internally composes a
+   vertical row strip (table-coupled SegmentMinimap, with viewport
+   indicator + click-to-scroll), a horizontal column-density strip
+   (ColMinimap), and the scrollable ScrollTable — the internal triad
+   is distinct from the panel-level MinimapStripVertical that the panel
+   itself renders to the left of this excerpt.
 
-   Decoupling rationale (S126c-a recovery + S126c-b decouple): the
-   minimap-and-table tangle that lived inside HotspotExcerpt pre-S126c-a
-   was split conceptually in S126c-a (inline MinimapStrip surfaced; this
-   component deferred to modal scope). S126c-b lands the physical
-   decouple: ExcerptTable is the canonical home of the table-excerpt
-   surface; views/HotspotExcerpt.jsx remains as a back-compat re-export
-   shim for the dormant WhereToLookSection consumer.
+   Pre-S163-Phase-3d this component mounted inside DeepLookModal; the
+   modal retired at A1.D3 close and FindingDetailPanel is the sole
+   consumer now. views/HotspotExcerpt.jsx remains as a back-compat
+   re-export shim for the dormant WhereToLookSection consumer.
 
    Layout:
      Left: SVG minimap of focused-row range coloured by convergence density.
      Right: Scrollable data table with heatmap cell shading.
      Below: Horizontal column-density minimap (when h-scroll active).
 
-   New `region` prop (S126c-b): when supplied, the table auto-scrolls
-   to `region.rowRange[0]` on mount so the modal opens pre-zoomed to the
+   `region` prop: when supplied, the table auto-scrolls to
+   `region.rowRange[0]` on mount so the panel opens pre-zoomed to the
    clicked region. Falls back to the existing scrollToHotspot(0)
    auto-scroll behaviour when `region` is null/absent (back-compat for
    the WhereToLookSection import path). */

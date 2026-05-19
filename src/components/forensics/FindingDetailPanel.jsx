@@ -1,5 +1,5 @@
-/* ── FindingDetailPanel — persistent docked finding panel (S163 Phase 3b/3c) ──
-   Mounts below StickySurface inside §2 WHAT WAS FOUND. Driven by
+/* ── FindingDetailPanel — persistent docked finding panel (S163 Phase 3b/3c/3d) ──
+   Mounts below the chip lanes inside §2 WHAT WAS FOUND. Driven by
    ForensicsBody's `activeRegionNumber` state — a chip click activates a
    region, the parent resolves the matching finding object, and this
    panel receives it as the `finding` prop.
@@ -17,10 +17,20 @@
        localised. Fallback chips (no per-cell evidence) hide the toggle
        entirely; the panel reduces to header + status copy that points
        to the test card.
+   Phase 3d adds:
+     - position: sticky. The panel pins to viewport top during §3
+       scroll so the user can read test cards with the panel still
+       visible. Chip lanes above scroll off normally; the panel is
+       the sole sticky element in §2. ForensicsBody mounts this as a
+       Fragment sibling of §3-§5 so the pin range covers the whole
+       report (sticky un-pins at parent's bottom edge, parent is the
+       ForensicsBody Fragment / ReportView outer wrapper).
+     - `data-finding-detail-panel` is the load-bearing DOM marker that
+       scrollToCard reads to offset the chip-click landing position
+       past the panel.
 
-   Chrome matches the §2 visual register — white card, light border,
-   moderate radius — so the panel reads as a continuation of the sticky
-   surface above it without competing with the chip lanes for emphasis. */
+   Chrome — white card, light border, moderate radius — sits cleanly
+   below the §2 BG_ZONE chip lanes without competing with them. */
 
 import { useMemo, useState } from "react";
 import { C, FS, FW, FF, CR, SEV_VERDICT } from "../../constants/tokens.js";
@@ -78,9 +88,10 @@ function statusCopy(finding) {
   return `${n} rows flagged — the pattern is statistical, not visible in cell values. See the test card for the reasoning.`;
 }
 
-// Group-marker map derivation mirrors DeepLookModal's useMemo.
-// ExcerptTable consumes it via the optional `groupMarkerMap` prop to
-// render DupDet / ConstOffset markers in the leading column.
+// Group-marker map derivation — DupDet exact-row groups + ConstOffset
+// offset pairs flow from convergence.groups through this map into
+// ExcerptTable via the optional `groupMarkerMap` prop, which renders
+// rank / marker tokens in the table's leading column.
 function buildGroupMarkerMap(convergence) {
   const groups = convergence?.groups || [];
   const map = new Map();
@@ -120,12 +131,16 @@ export function FindingDetailPanel({ finding, onClose, heatmapProps = null, onAc
     <div
       data-finding-detail-panel
       style={{
+        position: "sticky",
+        top: 0,
+        zIndex: 20,
         background: C.WHITE,
         border: `1px solid ${C.BORDER_L}`,
         borderRadius: CR.LG,
         padding: "12px 16px",
         marginBottom: "12px",
         fontFamily: FF.UI,
+        boxShadow: "0 4px 6px -2px rgba(0,0,0,0.05)",
       }}
     >
       {/* Header row — [N] prefix + finding name on the left, ✕ on the right. */}
