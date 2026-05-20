@@ -64,29 +64,32 @@ const compareBy = (getKey) => (a, b) => {
   return getKey(a).localeCompare(getKey(b));
 };
 
-// S133f: a localised finding with `region.cells.length === 0` carries no per-
-// row evidence — it's the S126b add-8 fallback (test fired with severity > LOW
-// but produced no specific rows / cells). Pre-S133f these chips were rendered
-// alongside true localised chips in a single lane, claiming a localisation
-// the minimap couldn't confirm. S133f routes them into a separate "Broadly
-// flagged" lane so the §2 surface tells the truth about scope.
-const isFallbackChip = (f) => (f.region?.cells?.length || 0) === 0;
-
 /**
- * Partition findings into pill (HIGH/MOD globals), localised-chip, and
- * fallback-chip ("flagged broadly") lanes. Each lane sorted severity-
- * descending then alphabetically within a tier (S126b add-5).
+ * Partition findings into pill (dataset-wide), localised-chip
+ * (cell/row/column-local), and fallback-chip (unscoped) lanes. Each lane
+ * sorted severity-descending then alphabetically within a tier (S126b
+ * add-5).
+ *
+ * S163 B1: lane assignment reads the canonical `finding.locality` field
+ * computed by classifyLocality (analysis/findings.js). Pre-B1 this routed
+ * via a composite predicate (type/severity + region.cells.length) that
+ * conflated column-only-by-design tests (Selective Noise Partitioning)
+ * with verdict-vs-evidence mismatches (S126b add-8 fallback). Reading
+ * locality resolves the conflation: column-local findings join the
+ * Localised lane; only genuinely unscoped findings stay in fallback.
  */
 export function pillsAndChips(findings = []) {
   const pills = [];
   const localisedChips = [];
   const fallbackChips = [];
   for (const f of findings) {
-    if (f.type === "global" && (f.severity === "HIGH" || f.severity === "MOD")) {
+    if (f.locality === "dataset-wide") {
       pills.push(f);
-    } else if (f.type === "localised" && f.regionNumber != null) {
-      if (isFallbackChip(f)) fallbackChips.push(f);
-      else localisedChips.push(f);
+    } else if (f.locality === "unscoped") {
+      fallbackChips.push(f);
+    } else {
+      // cell-local | row-local | column-local
+      localisedChips.push(f);
     }
   }
   pills.sort(compareBy(pillSortKey));
@@ -189,16 +192,23 @@ export function StickySurface({
                 key={f.id}
                 finding={f}
                 onActivate={onActivateTest}
-                isActive={f.regionNumber === activeRegionNumber}
+                // S163 B1: require non-null regionNumber for the active
+                // ring. Column-only findings (Selective Noise Partitioning,
+                // locality === "column-local") carry regionNumber=null;
+                // without this guard the bare `=== activeRegionNumber`
+                // would resolve `null === null` to true and ring them as
+                // always-active when no other chip is selected.
+                isActive={f.regionNumber != null && f.regionNumber === activeRegionNumber}
               />
             ))}
           </div>
         </div>
       )}
-      {/* S133f: fallback chips (region.cells.length === 0) — tests
-          that fired severity > LOW but produced no specific rows.
-          Routed out of the Localised lane so the surface doesn't
-          claim a localisation that can't be drawn on a minimap. */}
+      {/* S163 B1: fallback chips are findings with locality === "unscoped"
+          — the test fired with severity > LOW but produced no per-row
+          evidence to localise it. Routed separately from the Localised
+          lane so the §2 surface doesn't claim a localisation it can't
+          draw. */}
       {fallbackChips.length > 0 && (
         <div style={{
           display: "flex", alignItems: "center", gap: "10px",
@@ -211,7 +221,7 @@ export function StickySurface({
                 key={f.id}
                 finding={f}
                 onActivate={onActivateTest}
-                isActive={f.regionNumber === activeRegionNumber}
+                isActive={f.regionNumber != null && f.regionNumber === activeRegionNumber}
               />
             ))}
           </div>

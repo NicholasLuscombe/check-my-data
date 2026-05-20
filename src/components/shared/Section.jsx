@@ -43,13 +43,19 @@ export const LANE_LABEL_TYPOGRAPHY = {
 
 /** §2 lane label strings — single source of truth for the three chip-lane
  *  headers. S163 Phase 3d (A1.D3 close): extracted from inline literals in
- *  StickySurface so future copy changes land in one place. Same string
- *  values as pre-3d; consumed via spread of LANE_LABEL_TYPOGRAPHY at the
- *  call site. */
+ *  StickySurface so future copy changes land in one place.
+ *
+ *  S163 B1: fallback label "Broadly flagged" → "Flagged, location unclear".
+ *  The lane now means: the test fired and is genuinely flagged, but the
+ *  per-row evidence to pin down WHERE did not materialise. Conceptually
+ *  distinct from "Dataset-wide" — there location is not-applicable by
+ *  nature; here a location conceptually exists but the tool couldn't
+ *  determine it. The new wording carries both halves: it IS a real
+ *  flag, and the WHERE is uncertain. */
 export const LANE_LABELS = {
   pills: "Dataset-wide",
   localised: "Localised",
-  fallback: "Broadly flagged",
+  fallback: "Flagged, location unclear",
 };
 
 /** Minimap callout typography — inline-bold-prefix-plus-body pattern used at

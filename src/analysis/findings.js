@@ -41,6 +41,12 @@
                  any other consumer agree on the [N] label without
                  re-deriving the mapping. Localised findings without a
                  row-bearing region (e.g. column-only) carry null.
+     locality    one of 'dataset-wide' | 'cell-local' | 'row-local' |
+                 'column-local' | 'unscoped'. Single canonical classifier
+                 derived from isGlobal + the shape of region.raw via
+                 classifyLocality (S163 B1). Read by §2 lane routing and
+                 downstream B2 table encoding so they agree on a single
+                 truth without re-composing the underlying primitives.
 
    v1.0 emits findings only for HIGH and MODERATE flagged tests, matching
    what existing surfaces render. The schema permits LOW/CLEAR/NA but
@@ -136,6 +142,43 @@ function aggregateRegions(regions, nRows, nCols) {
     : [];
   const rowRange = rows && rows.length ? [rows[0], rows[rows.length - 1]] : null;
   return { rows, cols, cells, rowRange };
+}
+
+/** Classify a finding's locality into one of five canonical tiers,
+ *  derived from primitives already on the finding (GLOBAL_TESTS membership
+ *  via the precomputed isGlobal flag, and the shape of region.raw entries
+ *  emitted by extractCellFlags). This is the single source of truth that
+ *  §2 lane routing (StickySurface.pillsAndChips) reads, replacing the
+ *  pre-B1 composite predicate that conflated column-only-by-design tests
+ *  (Selective Noise Partitioning) with verdict-vs-evidence mismatches
+ *  (DS11 RSC, DS15 Mahalanobis, DS22 Blocked Mahalanobis).
+ *
+ *  Tiers:
+ *    dataset-wide   — global test (no spatial scope by design).
+ *    cell-local     — at least one region entry has both rows and cols.
+ *    row-local      — entries have rows only (cols null).
+ *    column-local   — entries have cols only (rows null) — SNP today.
+ *    unscoped       — localised test fired but region.raw is empty
+ *                     (the S126b add-8 fallback path). Conceptually a
+ *                     real flag whose location couldn't be isolated.
+ *
+ *  Mixed-emit tests fall to highest specificity (cell > row > column):
+ *  Exact Duplicate Detection emitting both block-copies (rows+cols) and
+ *  row-duplicates (rows+null) classifies as cell-local. */
+function classifyLocality(finding, isGlobal) {
+  if (isGlobal) return "dataset-wide";
+  const raw = finding.region?.raw || [];
+  if (raw.length === 0) return "unscoped";
+  let hasCellLocal = false, hasRowLocal = false, hasColLocal = false;
+  for (const { rows, cols } of raw) {
+    if (rows && cols) hasCellLocal = true;
+    else if (rows && !cols) hasRowLocal = true;
+    else if (!rows && cols) hasColLocal = true;
+  }
+  if (hasCellLocal) return "cell-local";
+  if (hasRowLocal)  return "row-local";
+  if (hasColLocal)  return "column-local";
+  return "unscoped";
 }
 
 /**
@@ -255,6 +298,9 @@ export function buildFindings(results, nRows, nCols, opts = {}) {
       dimensions: [dim],
       tests: [test],
       region,
+      // B1: canonical locality classification (five tiers). Read by §2
+      // lane routing and downstream B2 table encoding.
+      locality: classifyLocality({ region }, isGlobal),
       summary,
       pinned: false,
       regionNumber: null,
