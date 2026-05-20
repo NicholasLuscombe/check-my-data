@@ -315,22 +315,61 @@ export function buildFindings(results, nRows, nCols, opts = {}) {
     return (a.tests[0].pValue ?? 1) - (b.tests[0].pValue ?? 1);
   });
 
-  // Assign 1-based region numbers to localised findings whose region
-  // carries a row range. Ordering: ascending first-row, then ascending
-  // first-col on ties. Consumers (FindingChip, minimap overlay) read
-  // this number rather than re-deriving it, so chips and overlays stay
-  // in lock-step.
-  const numbered = findings
-    .filter(f => f.type === "localised" && f.region && f.region.rowRange)
-    .slice()
-    .sort((a, b) => {
-      const ar = a.region.rowRange[0];
-      const br = b.region.rowRange[0];
-      if (ar !== br) return ar - br;
-      const ac = a.region.cols ? a.region.cols[0] : 0;
-      const bc = b.region.cols ? b.region.cols[0] : 0;
-      return ac - bc;
-    });
+  // Assign 1-based region numbers to ALL findings (global + localised).
+  // The number is the activation key the §2 state machine reads — every
+  // finding has one so every chip + pill can activate the data panel.
+  //
+  // Ordering:
+  //   1. Localised findings with a `rowRange` — sorted by ascending
+  //      first-row (ties broken on first-col).
+  //   2. Localised findings without a `rowRange` (column-local — SNP) —
+  //      sorted by ascending first-col.
+  //   3. Global findings — sorted by their existing severity-desc /
+  //      p-asc order (preserved from the prior `findings.sort` pass).
+  //
+  // Consumers (FindingChip activation, minimap overlay) read this
+  // number — chips, pills, panel state, and pulse targets stay in
+  // lock-step.
+  //
+  // S163 B2a: pre-B2a, numbering excluded findings without `rowRange`,
+  // leaving column-local + global findings with `regionNumber = null`
+  // and unable to drive the §2 activation state machine — chip / pill
+  // clicks fell through to the card-scroll branch without opening the
+  // data block. B2a's locality-dispatched treatments (column-band for
+  // column-local, whole-table wash for dataset-wide / unscoped) need
+  // activation for all five tiers, so numbering widens to every
+  // finding here. The minimap badge derivation (`deriveOverlays` in
+  // minimapDerivation.js) still defensively requires
+  // `region.cells.length > 0` AND `region.rowRange`, so column-local +
+  // add-8 fallback + global findings don't claim a badge position on
+  // the row-axis strip — only the chip / pill activates.
+  const localisedRanged = [];
+  const localisedNoRange = [];
+  const globals = [];
+  for (const f of findings) {
+    if (f.type === "global") {
+      globals.push(f);
+    } else if (f.region && f.region.rowRange) {
+      localisedRanged.push(f);
+    } else if (f.region) {
+      localisedNoRange.push(f);
+    }
+  }
+  localisedRanged.sort((a, b) => {
+    const ar = a.region.rowRange[0];
+    const br = b.region.rowRange[0];
+    if (ar !== br) return ar - br;
+    const ac = a.region.cols ? a.region.cols[0] : 0;
+    const bc = b.region.cols ? b.region.cols[0] : 0;
+    return ac - bc;
+  });
+  localisedNoRange.sort((a, b) => {
+    const ac = a.region.cols ? a.region.cols[0] : 0;
+    const bc = b.region.cols ? b.region.cols[0] : 0;
+    return ac - bc;
+  });
+  // globals retain their findings.sort order (severity desc, p asc).
+  const numbered = [...localisedRanged, ...localisedNoRange, ...globals];
   numbered.forEach((f, i) => { f.regionNumber = i + 1; });
 
   return findings;

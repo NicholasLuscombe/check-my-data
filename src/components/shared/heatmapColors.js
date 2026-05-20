@@ -14,7 +14,7 @@
  *         (suspicious flag → HIGH, r > ICC+0.01 → MID, else LOW)
  */
 
-import { HEATMAP_TIER, C, SIGNAL } from "../../constants/tokens.js";
+import { HEATMAP_TIER, C, SIGNAL, ACCENT } from "../../constants/tokens.js";
 
 /** Flat fill colour constants — imported by both IRC and CCR. */
 export const TIER_COLOR = {
@@ -59,18 +59,44 @@ export function rhoLegendItems(rhoValues) {
   ];
 }
 
-// ── Convergence heatmap warm ramp ────────────────────────────────────
-// Shared by HeatmapView, HotspotExcerpt, and density strips.
-// 0 = white, 1 = buff, 2 = amber, 3 = red, 4+ = deepening red.
+// ── Convergence heatmap purple ramp ──────────────────────────────────
+// Shared by HeatmapView, HotspotExcerpt, and density strips. Single
+// source of truth for the density axis (where + how many tests agree).
+//
+// S163 B2a: ramp recoloured orange → purple. Pre-B2a the ramp ran buff →
+// amber → red as count climbed, which collided with the severity scale
+// (green → amber → orange → red on §2 chips / §3 cards) — density read
+// as severity. Purple is a distinct axis: §2 chips / §3 cards still own
+// orange severity, this surface owns purple density. Sequential single-
+// hue ramp: light purple (1 test) → deep purple (N agree). Each step is
+// from the Tailwind v4 purple scale that ACCENT.PURPLE shades sit on, so
+// ACCENT.PURPLE.{border,color,text} slot in at indices 2 / 4 / 5.
+//
+// IDENTITY_BORDER (below) reads the deepest purple of the ramp as the
+// active-region border colour — fill lighter, border deeper, monochromatic.
 
 export const CONVERGENCE_RAMP = [
-  null,              // 0 flags — no shading
-  "#F5E6D3",        // 1 flag  — pale buff / warm neutral
-  SIGNAL.AMBER.dot, // 2 flags — amber
-  SIGNAL.RED.dot,   // 3 flags — red
-  "#DC2626",        // 4 flags — deeper red
-  "#991B1B",        // 5+ flags — dark red
+  null,                  // 0 flags — no shading
+  "#DDD6FE",            // 1 flag  — purple-200 (very light)
+  ACCENT.PURPLE.border, // 2 flags — purple-300 (#C4B5FD)
+  "#A78BFA",            // 3 flags — purple-400 (medium)
+  ACCENT.PURPLE.color,  // 4 flags — purple-500 (#8B5CF6, solid)
+  ACCENT.PURPLE.text,   // 5+ flags — purple-700 (#6D28D9, deep)
 ];
+
+// Deeper-purple identity border colour for the active finding's region
+// (S163 B2a W4). Monochromatic with the density ramp — same purple axis,
+// saturated edge against the lighter fills. Read by ExcerptTable's
+// renderCell when an active finding is set.
+export const IDENTITY_BORDER = ACCENT.PURPLE.text;
+
+// Whole-table wash for dataset-wide / unscoped active findings (S163
+// B2a W2). A finding that classifies as dataset-wide or unscoped has
+// no specific cells / rows / columns to point at; a uniform light-
+// purple wash signals "the test fired across the data, nothing to
+// isolate" without lighting nothing. Lighter than the count-1 swatch
+// so it reads as a wash, not an unintended density signal.
+export const LOCALITY_WHOLE_TABLE_WASH = "rgba(139, 92, 246, 0.08)";
 
 /** Get { color, opacity } for a convergence flag count (detail table cells) */
 export function convergenceRampStyle(count) {

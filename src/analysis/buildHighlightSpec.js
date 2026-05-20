@@ -7,6 +7,7 @@
  */
 
 import { C } from "../constants/tokens.js";
+import { LOCALITY_WHOLE_TABLE_WASH } from "../components/shared/heatmapColors.js";
 
 // ── Test names ──────────────────────────────────────────────────────
 const RSC  = "Residual Spike Correlation";
@@ -51,8 +52,12 @@ export const DUP_WITHIN_ROW_PALETTE = [
 ];
 export const DUP_DIM_OPACITY = 0.35;
 
-// Generic click-to-highlight tint (warm orange, matches NOTED/amber)
-export const HIGHLIGHT_TINT = "rgba(245,158,11,0.20)";
+// Generic click-to-highlight tint. S163 B2a: amber → light purple to
+// match the §2 density axis (CONVERGENCE_RAMP is now purple too, so
+// active-finding cells read as a saturated step on the same axis
+// rather than a competing severity hue). ACCENT.PURPLE.color blended
+// at ~0.20 sits a touch above the count-1 swatch.
+export const HIGHLIGHT_TINT = "rgba(139, 92, 246, 0.22)";
 
 // RSC cell color ramp: SIGNAL.RED.bg → CC.THRESH
 export function rscCellColor(intensity) {
@@ -64,6 +69,12 @@ export function rscCellColor(intensity) {
 }
 
 // ── Empty spec (no highlighting) ────────────────────────────────────
+// S163 B2a: `localityRegion` carries the active finding's locality
+// dispatch (cell-band / row-band / column-band / whole-table). Built
+// once at spec time so renderCell does not re-derive per cell.
+// LOCALITY_WHOLE_TABLE_WASH is the wash applied across the data block
+// for the dataset-wide / unscoped tiers — re-exported here so the
+// renderer can paint without reaching back into heatmapColors.
 const EMPTY_SPEC = Object.freeze({
   tintedVisCols: null,
   tintColor: null,
@@ -78,7 +89,79 @@ const EMPTY_SPEC = Object.freeze({
   dupGroupStyleMap: null,
   dupGroupTintMap: null,
   dupWithinRowMap: null,
+  localityRegion: null,
 });
+
+export { LOCALITY_WHOLE_TABLE_WASH };
+
+/**
+ * Build a locality region for the active finding (S163 B2a W2 / W4).
+ * Translates the finding's matrix-coord region into visible-coord sets
+ * the renderer can hit-test cheaply, and tags the dispatch kind so the
+ * renderer knows which extent + border treatment to apply.
+ *
+ * Kinds:
+ *   "cells"        — cell-local: each flagged cell gets fill + 4-sided
+ *                     deeper-purple border.
+ *   "row-band"     — row-local: every cell in flagged rows gets fill;
+ *                     border on top + bottom edges of each contiguous run.
+ *   "column-band"  — column-local: every cell in flagged cols gets fill;
+ *                     border on left + right edges of each contiguous run.
+ *   "whole-table"  — dataset-wide / unscoped: every data cell gets a
+ *                     subtle uniform wash, no border.
+ *
+ * Returns null when there is no active finding or the locality cannot be
+ * classified — the renderer falls back to its no-active-finding path
+ * (convergence density only).
+ */
+function buildLocalityRegion(finding, ctx) {
+  if (!finding) return null;
+  const { rowMap, matColToVisCol, nVisRows } = ctx;
+  const mapRow = (r) => (rowMap ? (rowMap[r] ?? r) : r);
+  const mapCol = (c) => (matColToVisCol ? matColToVisCol[c] : c);
+
+  switch (finding.locality) {
+    case "cell-local": {
+      const visCells = new Set();
+      const visRows  = new Set();
+      const visCols  = new Set();
+      for (const [r, c] of finding.region?.cells || []) {
+        const vr = mapRow(r);
+        const vc = mapCol(c);
+        if (vr >= 0 && vr < nVisRows && vc != null) {
+          visCells.add(`${vr},${vc}`);
+          visRows.add(vr);
+          visCols.add(vc);
+        }
+      }
+      if (!visCells.size) return null;
+      return { kind: "cells", visCells, visRows, visCols };
+    }
+    case "row-local": {
+      const visRows = new Set();
+      for (const r of finding.region?.rows || []) {
+        const vr = mapRow(r);
+        if (vr >= 0 && vr < nVisRows) visRows.add(vr);
+      }
+      if (!visRows.size) return null;
+      return { kind: "row-band", visRows };
+    }
+    case "column-local": {
+      const visCols = new Set();
+      for (const c of finding.region?.cols || []) {
+        const vc = mapCol(c);
+        if (vc != null) visCols.add(vc);
+      }
+      if (!visCols.size) return null;
+      return { kind: "column-band", visCols };
+    }
+    case "dataset-wide":
+    case "unscoped":
+      return { kind: "whole-table" };
+    default:
+      return null;
+  }
+}
 
 // ── Shared IRC pair classification ──────────────────────────────────
 /**
@@ -405,12 +488,25 @@ const BUILDERS = {
  *
  * @param {string|null} testKey - Active test name, or null for no highlight
  * @param {object[]|null} results - Test result array from engine
- * @param {object} ctx - Context: { dColMap, visColIndices, condPerCol, rowMap, nVisRows, matColToVisCol, groups }
+ * @param {object} ctx - Context: { dColMap, visColIndices, condPerCol,
+ *                                    rowMap, nVisRows, matColToVisCol,
+ *                                    groups, activeFinding? }
+ *                       activeFinding: the active §2 finding object (S163
+ *                       B2a). Read for finding.locality to dispatch the
+ *                       table highlight extent — cell / row-band /
+ *                       column-band / whole-table. When null, no locality
+ *                       dispatch is layered.
  * @returns {HighlightSpec}
  */
 export function buildHighlightSpec(testKey, results, ctx) {
-  if (!testKey) return EMPTY_SPEC;
-  if (!results) return EMPTY_SPEC;
+  // S163 B2a: locality dispatch needs to layer even on the empty-builder
+  // paths (no test key, no results). Compute the region first; the
+  // builder-driven body still short-circuits to EMPTY_SPEC's fields when
+  // there is nothing to paint test-specifically.
+  const localityRegion = buildLocalityRegion(ctx.activeFinding, ctx);
+  if (!testKey) return { ...EMPTY_SPEC, localityRegion };
+  if (!results) return { ...EMPTY_SPEC, localityRegion };
   const builder = BUILDERS[testKey] || buildGenericSpec;
-  return builder(results, ctx);
+  const spec = builder(results, ctx);
+  return { ...spec, localityRegion };
 }

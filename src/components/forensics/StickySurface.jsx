@@ -174,7 +174,17 @@ export function StickySurface({
           <span style={{ ...LANE_LABEL_TYPOGRAPHY, ...LANE_LABEL_LAYOUT }}>{LANE_LABELS.pills}</span>
           <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", flex: 1, minWidth: 0 }}>
             {pills.map(f => (
-              <FindingPill key={f.id} finding={f} onActivate={onActivateTest} />
+              <FindingPill
+                key={f.id}
+                finding={f}
+                onActivate={onActivateTest}
+                // S163 B2a: pills activate the panel for the dataset-
+                // wide locality tier. Ring uses the same active-id
+                // guard as chips below — defensively `!= null` (with
+                // numbering widened to all findings in B2a there is
+                // always an id, but the guard stays for parity).
+                isActive={f.regionNumber != null && f.regionNumber === activeRegionNumber}
+              />
             ))}
           </div>
         </div>

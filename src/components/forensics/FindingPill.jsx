@@ -31,7 +31,7 @@ function severityStyle(severity) {
 // D1 sentence-case tier word.
 const TIER_WORD = { HIGH: "High", MOD: "Moderate", LOW: "Clear" };
 
-export function FindingPill({ finding, onActivate }) {
+export function FindingPill({ finding, onActivate, isActive = false }) {
   const test = finding.tests[0];
   const dimKey = TEST_MECHANISM[test.testId];
   const mechColor = MECH_COLOR[dimKey];
@@ -77,6 +77,12 @@ export function FindingPill({ finding, onActivate }) {
         maxWidth: "100%",
         overflow: "hidden",
         textOverflow: "ellipsis",
+        // S163 B2a: dataset-wide pill activates the panel (whole-table
+        // wash + caption). Active pill rings in the severity colour,
+        // matching FindingChip — outline (not border) avoids layout
+        // shift on activation.
+        outline: isActive ? `2px solid ${sev.sevColor}` : "none",
+        outlineOffset: isActive ? "1px" : 0,
       }}
     >
       <MechIcon mk={dimKey} size={mechIconSize(dimKey, ICON_SIZE)} color={mechColor} />

@@ -38,10 +38,38 @@
        evidence to filter on. */
 
 import { useMemo, useState, useCallback, useLayoutEffect } from "react";
-import { GROUP_MARKERS, RANK_NUMS } from "../../constants/mechanisms.js";
+import { GROUP_MARKERS, RANK_NUMS, TEST_RAW_VISIBILITY } from "../../constants/mechanisms.js";
+import { FW } from "../../constants/tokens.js";
+import { MINIMAP_CALLOUT_TYPOGRAPHY } from "../shared/Section.jsx";
 import { MinimapStripVertical } from "./MinimapStripVertical.jsx";
 import { MinimapStripHorizontal } from "./MinimapStripHorizontal.jsx";
 import { ExcerptTable } from "./ExcerptTable.jsx";
+
+// S163 B2a W3: guidance caption above the data block, active-finding-
+// only. Reads TEST_RAW_VISIBILITY for the active test plus the
+// finding's locality, then picks the matching one-liner. The caption
+// reinforces what the highlight extent already shows visually — the
+// visual leads; this is the plain-English handshake.
+//
+// Wording locked to three plain cases:
+//   unscoped     — flagged but couldn't isolate a position
+//   visible      — pattern is in the cells themselves
+//   statistical  — pattern is computed, not eyeballable
+//
+// Pre-active-finding state: no caption row at all (returns null) so the
+// sticky surface stays as light as before at rest.
+function guidanceCaption(finding) {
+  if (!finding) return null;
+  if (finding.locality === "unscoped") {
+    return "This test flagged the data but couldn't isolate specific rows. See the test card for the statistical detail.";
+  }
+  const testName = finding.tests?.[0]?.testId;
+  const visibility = TEST_RAW_VISIBILITY[testName];
+  if (visibility === "visible") {
+    return "The flagged cells show the pattern directly — compare the highlighted values.";
+  }
+  return "This pattern is statistical — it won't be visible in the individual values. See the test card.";
+}
 
 // Chip-class predicate. Localised chips carry per-cell evidence
 // (region.cells populated → the table excerpt has cells to tint).
@@ -152,6 +180,7 @@ export function FindingDetailPanel({
   const localised = finding && isLocalisedChip(finding);
   const nVisRows = heatmapProps.rawData?.length || 0;
   const nVisCols = heatmapProps.visColIndices?.length || 0;
+  const caption = guidanceCaption(finding);
 
   return (
     <div style={{
@@ -160,6 +189,20 @@ export function FindingDetailPanel({
       flexDirection: "column",
       gap: "6px",
     }}>
+      {/* S163 B2a W3: active-finding guidance caption. Reinforces the
+          visual extent the table is painting. Rendered ONLY when a
+          finding is active — at rest the sticky surface keeps its
+          pre-B2a vertical footprint (no permanent status row). */}
+      {caption && (
+        <div style={{
+          ...MINIMAP_CALLOUT_TYPOGRAPHY,
+          fontWeight: FW.NORM,
+          lineHeight: 1.5,
+        }}>
+          {caption}
+        </div>
+      )}
+
       {/* Horizontal minimap above the table — viewport band tracks
           table.scrollLeft. Aligned to the right of the vertical
           minimap's width so the flag-density bars sit over the table
@@ -231,7 +274,8 @@ export function FindingDetailPanel({
             colMaxLen={heatmapProps.colMaxLen}
             groupMarkerMap={groupMarkerMap}
             region={localised ? finding.region : null}
-            activeTestKey={localised ? (finding.tests?.[0]?.testId || null) : null}
+            activeTestKey={finding ? (finding.tests?.[0]?.testId || null) : null}
+            activeFinding={finding}
             compactMode={true}
             onScrollContainerReady={onScrollContainerReady}
             hotspotScrollRef={hotspotScrollRef}

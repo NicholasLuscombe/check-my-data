@@ -39,7 +39,8 @@ const EDGE_THRESHOLD = 5; // extend to dataset edge rather than skipping ≤ thi
 const ROLE_COLOR = { label: ROLES.label.color, condition: UI.WARN.text, data: C.TEXT };
 
 // ── Highlight dispatch — all click-to-highlight logic centralized ──
-import { buildHighlightSpec, IRC_TINT, DUP_DIM_OPACITY, HIGHLIGHT_TINT } from "../../analysis/buildHighlightSpec.js";
+import { buildHighlightSpec, IRC_TINT, DUP_DIM_OPACITY, HIGHLIGHT_TINT, LOCALITY_WHOLE_TABLE_WASH } from "../../analysis/buildHighlightSpec.js";
+import { IDENTITY_BORDER } from "../shared/heatmapColors.js";
 
 // ── S126b: pulse-target context for region overlays on the minimap ──
 import { usePulseTick } from "./pulseContext.jsx";
@@ -194,6 +195,59 @@ function IrcBracketStrip({ brackets, colEntries, hasMarker, tableRef, onHeightCh
       )}
     </div>
   );
+}
+
+// ── Locality dispatch helpers (S163 B2a) ────────────────────────────
+// spec.localityRegion has kinds: "cells" | "row-band" | "column-band" |
+// "whole-table". The first three are extent claims about a specific
+// region; whole-table is the no-specific-region treatment for
+// dataset-wide / unscoped findings.
+
+const IDENTITY_BORDER_W = "1.5px";
+
+/** True when (ri, vi) is inside the active finding's locality region.
+ *  Whole-table mode returns false here — the caller handles whole-table
+ *  via a separate path (every data cell, no per-cell edge logic). */
+function isInLocalityRegion(loc, ri, vi) {
+  if (!loc) return false;
+  switch (loc.kind) {
+    case "cells":       return loc.visCells.has(`${ri},${vi}`);
+    case "row-band":    return loc.visRows.has(ri);
+    case "column-band": return loc.visCols.has(vi);
+    default:            return false;
+  }
+}
+
+/** Edges of the active region at (ri, vi). cell-local cells get all 4
+ *  edges (each flagged cell is its own micro-region). row-band cells
+ *  get top / bottom only at run boundaries → continuous horizontal
+ *  band. column-band cells get left / right only at run boundaries →
+ *  continuous vertical band. */
+function localityBorderEdges(loc, ri, vi) {
+  if (!loc) return null;
+  if (loc.kind === "cells") {
+    if (!loc.visCells.has(`${ri},${vi}`)) return null;
+    return { top: true, bottom: true, left: true, right: true };
+  }
+  if (loc.kind === "row-band") {
+    if (!loc.visRows.has(ri)) return null;
+    return {
+      top:    !loc.visRows.has(ri - 1),
+      bottom: !loc.visRows.has(ri + 1),
+      left:   false,
+      right:  false,
+    };
+  }
+  if (loc.kind === "column-band") {
+    if (!loc.visCols.has(vi)) return null;
+    return {
+      top:    false,
+      bottom: false,
+      left:   !loc.visCols.has(vi - 1),
+      right:  !loc.visCols.has(vi + 1),
+    };
+  }
+  return null;
 }
 
 // ── Coordinate helpers ──────────────────────────────────────────────
@@ -583,6 +637,15 @@ export function ExcerptTable({
   convergence, rawData, rowMap, colHeaders, visColIndices, dColMap, roles, coordCtx, condPerCol,
   activeTestKey = null, groupMarkerMap = null, middleContent = null, onScrollReady = null,
   results = null,
+  // S163 B2a: the active §2 finding (or null). Threaded so buildHighlightSpec
+  // can dispatch the table highlight extent on finding.locality —
+  // cell-local → individual cells, row-local → row-band, column-local →
+  // column-band, dataset-wide / unscoped → whole-table wash. The activeTestKey
+  // prop above continues to drive dimming and per-test specialised builders
+  // (IRC, RSC, LOESS, DupDet, Mahalanobis); the locality dispatch layers on
+  // top via the spec's `localityRegion` for the generic-builder paint extent
+  // and the deeper-purple identity border.
+  activeFinding = null,
   // Per-raw-column-index max formatted-string length (S163 A1.D3 final
   // pass) — feeds the content-aware column-width derivation. When
   // supplied, the colEntries below set a per-column `width` field that
@@ -797,8 +860,9 @@ export function ExcerptTable({
   const spec = useMemo(
     () => buildHighlightSpec(activeTestKey, results, {
       dColMap, visColIndices, condPerCol, rowMap, nVisRows, matColToVisCol, groups,
+      activeFinding,
     }),
-    [activeTestKey, results, dColMap, visColIndices, condPerCol, rowMap, nVisRows, matColToVisCol, groups]
+    [activeTestKey, results, dColMap, visColIndices, condPerCol, rowMap, nVisRows, matColToVisCol, groups, activeFinding]
   );
 
   // Compute exact table width as sum of col widths (for tableLayout:fixed)
@@ -1308,6 +1372,26 @@ export function ExcerptTable({
                 ? convergenceCellBg(cell) : null;
               const hasHeat = heatBg && heatBg.backgroundColor;
 
+              // ── S163 B2a: locality dispatch ──
+              // spec.localityRegion describes the active finding's extent.
+              // - cells / row-band / column-band: cells in-region get a
+              //   deeper-purple IDENTITY_BORDER on the appropriate edges
+              //   (4-sided per flagged cell, top+bottom for row-band runs,
+              //   left+right for column-band runs). Fill comes from the
+              //   per-test specialised builder when one painted; else
+              //   from HIGHLIGHT_TINT via genericHighlight; else from the
+              //   convergence heat. The dim path (cells outside the
+              //   region) keeps existing behaviour.
+              // - whole-table: dataset-wide / unscoped finding. Every
+              //   data cell gets LOCALITY_WHOLE_TABLE_WASH and the dim
+              //   path is suppressed — the wash IS the "couldn't
+              //   isolate" treatment, no per-cell border.
+              const locality = spec.localityRegion;
+              const wholeTableWash = isData && locality?.kind === "whole-table";
+              const borderEdges = isData && locality && locality.kind !== "whole-table"
+                ? localityBorderEdges(locality, ri, vi)
+                : null;
+
               // Background priority stack
               const baseBg = specCellBg
                 || withinRowTint
@@ -1321,7 +1405,8 @@ export function ExcerptTable({
               const isCpRow = spec.changepointVisRows?.includes(ri);
 
               // Text color + weight
-              const textColor = dimmed ? "#CCC"
+              const textColor = wholeTableWash ? C.TEXT
+                : dimmed ? "#CCC"
                 : specCellText ? specCellText
                 : (cellHighlighted && !spec.boldRelevant) ? "#CCC"   // Mahalanobis-style
                 : (cellHighlighted && spec.boldRelevant) ? C.TEXT
@@ -1329,7 +1414,10 @@ export function ExcerptTable({
                 : ROLE_COLOR[col.role] || C.TEXT_3;
               const fontWeight = (cellHighlighted && spec.boldRelevant) ? FW.SEMI : undefined;
 
-              const finalBg = dimmed ? C.WHITE : hasHeat ? undefined : baseBg;
+              const finalBg = wholeTableWash ? LOCALITY_WHOLE_TABLE_WASH
+                : dimmed ? C.WHITE
+                : hasHeat ? undefined
+                : baseBg;
               // Defensive content-min-width (S163 A1.D3 sign-clip fix).
               // The sticky-overlap bug above was the root cause of the
               // first-data-column leading-char clip on negative values;
@@ -1343,6 +1431,12 @@ export function ExcerptTable({
               const colW = colMaxLen && colMaxLen[colEntry.rawCI] > 0
                 ? colWidthFromMaxLen(colMaxLen[colEntry.rawCI])
                 : null;
+              // S163 B2a W4: deeper-purple identity border on the active
+              // finding's region. Per-edge so row-band / column-band
+              // appear as continuous bands. Applied LAST so it wins
+              // over the changepoint dashed border (LOESS still has its
+              // own row-band paint via spec.rowTint; on the rare overlap
+              // the identity border is the more load-bearing signal).
               return {
                 content: displayVal,
                 style: {
@@ -1350,7 +1444,7 @@ export function ExcerptTable({
                   ...(fontWeight ? { fontWeight } : {}),
                   ...(hasHeat ? heatBg : {}),
                   ...(isCpRow ? { borderBottom: `2px dashed ${SIGNAL.RED.dot}` } : {}),
-                  ...(isFrozen ? { background: dimmed ? C.WHITE : hasHeat ? heatBg.backgroundColor : baseBg } : {}),
+                  ...(isFrozen ? { background: wholeTableWash ? LOCALITY_WHOLE_TABLE_WASH : dimmed ? C.WHITE : hasHeat ? heatBg.backgroundColor : baseBg } : {}),
                   // S163 A1.D3 density pass: tighten cell vertical padding
                   // inside the sticky-surface data block (compactMode) so
                   // body rows render at ~22 px (down from 26.5 px) and
@@ -1360,6 +1454,10 @@ export function ExcerptTable({
                   // DupDet excerpt, modal-era shim).
                   ...(compactMode ? { padding: COMPACT_CELL_PADDING } : {}),
                   ...(colW != null ? { minWidth: colW } : {}),
+                  ...(borderEdges?.top    ? { borderTop:    `${IDENTITY_BORDER_W} solid ${IDENTITY_BORDER}` } : {}),
+                  ...(borderEdges?.bottom ? { borderBottom: `${IDENTITY_BORDER_W} solid ${IDENTITY_BORDER}` } : {}),
+                  ...(borderEdges?.left   ? { borderLeft:   `${IDENTITY_BORDER_W} solid ${IDENTITY_BORDER}` } : {}),
+                  ...(borderEdges?.right  ? { borderRight:  `${IDENTITY_BORDER_W} solid ${IDENTITY_BORDER}` } : {}),
                 },
               };
             }}
