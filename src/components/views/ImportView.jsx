@@ -16,7 +16,7 @@ import { FLAG_STYLES } from "../../constants/thresholds.js";
 import { ROLES, ROLE_KEYS, COND_COLORS } from "../../constants/roles.js";
 import { MECHANISMS, MECHANISM_ORDER, TEST_MECHANISM, DISPLAY_NAMES } from "../../constants/mechanisms.js";
 import { buildCondSpans, colToExcelLetter, originalFileRow } from "../shared/coordinates.js";
-import { COL_W, FREEZE_COL_W, FREEZE_Z, countFrozenCols } from "../shared/styles.js";
+import { COL_W, FREEZE_COL_W, FREEZE_Z, countFrozenCols, colWidthFromMaxLen } from "../shared/styles.js";
 import { ScrollTable } from "../shared/ScrollTable.jsx";
 
 export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onPendingFileConsumed }) {
@@ -384,15 +384,21 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
     return{n,offsets,totalW:left,spanFrozen};
   },[roles,condSpans]);
 
-  // Build column entries for ScrollTable
+  // Build column entries for ScrollTable. Per-column `width` derived
+  // from summary.colMaxLen makes the column sized to its actual content
+  // — independent of role. Side-benefit: role-cycle (Data → Label →
+  // Cond → Skip) no longer reflows the column because the width no
+  // longer keys off role.
   const tableColumns=useMemo(()=>{
     const removed=prepInfo?.removedCols||[];
+    const maxLens=sum?.colMaxLen||[];
     return hdrs.map((h,i)=>{
       let origIdx=i;
       for(const rc of removed){if(rc<=origIdx)origIdx++;}
-      return{letter:colToExcelLetter(origIdx),name:h,role:roles[i]};
+      const width=maxLens[i]>0?colWidthFromMaxLen(maxLens[i]):undefined;
+      return{letter:colToExcelLetter(origIdx),name:h,role:roles[i],width};
     });
-  },[hdrs,roles,prepInfo]);
+  },[hdrs,roles,prepInfo,sum]);
 
   // Auto-detect VST when data is available and dataType is not ordinal.
   // Runs eagerly so the selector card appears without needing to click Run first.

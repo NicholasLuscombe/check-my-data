@@ -30,7 +30,7 @@ import { MECHANISMS, TEST_MECHANISM, TEST_KEY_TO_NAME, RANK_NUMS } from "../../c
 import { ROLES, buildCondColorMap } from "../../constants/roles.js";
 import { colToExcelLetter, shortColName, buildCondSpansForColumns } from "../shared/coordinates.js";
 import { convergenceCellBg, convergenceCellTextColor, convergenceRampStyle, convergenceMinimapStyle, CONVERGENCE_RAMP } from "../shared/heatmapColors.js";
-import { TD_NUM_CELL, TD_ID_CELL, COL_W, FREEZE_COL_W, FREEZE_Z, countFrozenCols, COMPACT_CELL_PADDING } from "../shared/styles.js";
+import { TD_NUM_CELL, TD_ID_CELL, COL_W, FREEZE_COL_W, FREEZE_Z, countFrozenCols, COMPACT_CELL_PADDING, colWidthFromMaxLen } from "../shared/styles.js";
 import { ScrollTable, blendOnto } from "../shared/ScrollTable.jsx";
 
 const CONTEXT_ROWS = 2;
@@ -583,6 +583,12 @@ export function ExcerptTable({
   convergence, rawData, rowMap, colHeaders, visColIndices, dColMap, roles, coordCtx, condPerCol,
   activeTestKey = null, groupMarkerMap = null, middleContent = null, onScrollReady = null,
   results = null,
+  // Per-raw-column-index max formatted-string length (S163 A1.D3 final
+  // pass) — feeds the content-aware column-width derivation. When
+  // supplied, the colEntries below set a per-column `width` field that
+  // ScrollTable's colgroup consumes in preference to the role-keyed
+  // COL_W fallback.
+  colMaxLen = null,
   // S126b sticky-surface props (optional). regionOverlays paints region-N
   // badges on the row minimap; onRegionActivate is fired on overlay click;
   // hotspotScrollRef receives { scrollToHotspot, scrollToVisRow } so that
@@ -1047,7 +1053,19 @@ export function ExcerptTable({
               hasMarker={hasGroups} tableRef={tableRef} />
           ) */}
           <ScrollTable
-            columns={colEntries.map(col => ({ letter: colToExcelLetter(coordCtx?.origColMap?.[col.rawCI] ?? col.rawCI), name: col.label, role: col.role }))}
+            columns={colEntries.map(col => ({
+              letter: colToExcelLetter(coordCtx?.origColMap?.[col.rawCI] ?? col.rawCI),
+              name: col.label,
+              role: col.role,
+              // Content-aware width per raw-column-index (S163 A1.D3
+              // final pass). When colMaxLen is supplied, the column
+              // sizes to its longest formatted value — no forensic-
+              // precision truncation on wide values like "-0.595138".
+              // Undefined → ScrollTable falls back to role-keyed COL_W.
+              width: colMaxLen && colMaxLen[col.rawCI] > 0
+                ? colWidthFromMaxLen(colMaxLen[col.rawCI])
+                : undefined,
+            }))}
             condSpans={condSpans}
             condColorMap={condColorMap}
             freeze={freeze}
@@ -1057,13 +1075,16 @@ export function ExcerptTable({
             headerTintColor={spec.tintColor}
             rowSegments={rowSegments}
             rawData={rawData}
-            // S163 virtualisation rework: in compactMode the sticky-
-            // surface data block budgets 320 px; ScrollTable's
-            // overflow:auto + virtualisation handle scroll across
-            // datasets of any size within that budget. Non-compact
-            // mounts (modal-era / back-compat shim) keep the prior
-            // TABLE_H=400 default.
-            height={compactMode ? 320 : TABLE_H}
+            // S163 virtualisation rework + final-pass density:
+            // compactMode budgets ~250 px so the §3 test card below
+            // gets materially more room than the prior 320 px state.
+            // ScrollTable's overflow:auto + virtualisation handle
+            // scroll across datasets of any size within that budget.
+            // Non-compact mounts (modal-era / back-compat shim) keep
+            // the prior TABLE_H=400 default. The literal here is
+            // mirrored from FindingDetailPanel.DATA_BLOCK_HEIGHT — if
+            // either changes, both must change together.
+            height={compactMode ? 250 : TABLE_H}
             tableRef={tableRef}
             theadRef={theadRef}
             rowRefs={rowRefs}

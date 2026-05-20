@@ -83,6 +83,46 @@ export const COMPACT_ROW_H = 22.5;      // measured row height after compactMode
 // across DS11's 1499 rows, surfacing as scrollbar-thumb and minimap
 // viewport-band drift toward the bottom of the dataset.
 
+// ── Content-aware column-width derivation (S163 A1.D3 final pass) ──
+// Width formula for a data column:
+//   colW = max(maxLen × DATA_CHAR_W + DATA_CELL_PADDING_H + DATA_CELL_BORDER_W,
+//              MIN_DATA_COL_W)
+// where maxLen is the longest formatted-value string in the column
+// (carried in summary.colMaxLen). Char advance width measured live on
+// the dev server: JetBrains Mono at 13 px with font-variant-numeric:
+// tabular-nums renders every character at exactly 7.8 CSS px (verified
+// across digits, dot, sign — stable to 0.005 px). Horizontal cell
+// padding is 8 px each side; left border is 1 px. MIN_DATA_COL_W is the
+// floor so a 1-2-char value column doesn't collapse below a legible
+// minimum.
+//
+// The width replaces COL_W.DATA / COL_W.ID_MIN / FREEZE_COL_W.ID_COL
+// for non-marker, non-#-column cols when supplied at the consumer's
+// column-build site. ScrollTable's colgroup picks col.width ?? the
+// role-keyed COL_W fallback — when col.width is provided, the role-
+// keyed constant is bypassed (a side-benefit: ImportView role-cycle
+// stops reflowing because the width no longer keys off role).
+//
+// Truncation-safety: the formula derives width from the column's
+// MAXIMUM value, so no data value ever ellipsis-clips. Forensic signal
+// in trailing decimals (precision consistency, last-digit) is
+// preserved.
+export const DATA_CHAR_W = 7.8;            // CSS px per char, JetBrains Mono 13px tabular
+export const DATA_CELL_PADDING_H = 16;     // 8px × 2 (2px 8px cell padding)
+export const DATA_CELL_BORDER_W = 1;       // 1px left border (right border absent on most cells)
+export const MIN_DATA_COL_W = 48;          // floor — fits ~4 chars + padding
+
+/**
+ * Per-column rendered width from a max-content-length scalar.
+ * Used by ImportView + ExcerptTable when building the `columns` prop;
+ * the colgroup in ScrollTable consumes the resulting `width` field per
+ * column.
+ */
+export function colWidthFromMaxLen(maxLen) {
+  const contentW = (maxLen || 0) * DATA_CHAR_W + DATA_CELL_PADDING_H + DATA_CELL_BORDER_W;
+  return Math.max(MIN_DATA_COL_W, Math.ceil(contentW));
+}
+
 // ── Sticky frozen columns — shared by HotspotExcerpt and ImportView ──
 // Frozen column widths use COL_W for the # column and ID columns.
 export const FREEZE_COL_W = { ROW_NUM: COL_W.ROW_NUM, ID_COL: 80 };

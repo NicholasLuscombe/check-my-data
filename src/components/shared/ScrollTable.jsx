@@ -91,13 +91,21 @@ export function ScrollTable({
   const nFrz = freeze ? freeze.n : 0;
   const GAP_REPEAT = 5;
 
-  // Compute table width as sum of col widths
+  // Compute table width as sum of col widths.
+  // Per-column `col.width` (when supplied by the consumer's column-build
+  // site) takes precedence over the role-keyed COL_W fallback. The
+  // content-aware width pipeline routes through this: ImportView and
+  // ExcerptTable read summary.colMaxLen + colWidthFromMaxLen(), set
+  // col.width on each column, and the colgroup below + this width sum
+  // both honour the supplied value.
   const tableWidth = useMemo(() => {
     let w = COL_W.ROW_NUM + (hasMarker ? COL_W.MARKER : 0);
     for (let ci = 0; ci < columns.length; ci++) {
       const isFrozen = freeze && ci < nFrz;
       const isData = columns[ci].role === "data";
-      w += isFrozen ? FREEZE_COL_W.ID_COL : isData ? COL_W.DATA : COL_W.ID_MIN;
+      const supplied = columns[ci].width;
+      const fallback = isFrozen ? FREEZE_COL_W.ID_COL : isData ? COL_W.DATA : COL_W.ID_MIN;
+      w += supplied != null ? supplied : fallback;
     }
     return w;
   }, [columns, freeze, nFrz, hasMarker]);
@@ -351,7 +359,13 @@ export function ScrollTable({
           {columns.map((col, ci) => {
             const isFrozen = freeze && ci < nFrz;
             const isData = col.role === "data";
-            return <col key={ci} style={{ width: isFrozen ? FREEZE_COL_W.ID_COL : isData ? COL_W.DATA : COL_W.ID_MIN }} />;
+            // Per-column width override (content-aware path) takes
+            // precedence over the role-keyed COL_W fallback. When the
+            // consumer hasn't computed a width, fall through to the
+            // historical role-keyed constant.
+            const supplied = col.width;
+            const fallback = isFrozen ? FREEZE_COL_W.ID_COL : isData ? COL_W.DATA : COL_W.ID_MIN;
+            return <col key={ci} style={{ width: supplied != null ? supplied : fallback }} />;
           })}
         </colgroup>
 

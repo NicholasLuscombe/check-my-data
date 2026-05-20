@@ -37,7 +37,7 @@
        fall through to the aggregated view — they have no per-cell
        evidence to filter on. */
 
-import { useMemo, useState, useCallback } from "react";
+import { useMemo, useState, useCallback, useLayoutEffect } from "react";
 import { GROUP_MARKERS, RANK_NUMS } from "../../constants/mechanisms.js";
 import { MinimapStripVertical } from "./MinimapStripVertical.jsx";
 import { MinimapStripHorizontal } from "./MinimapStripHorizontal.jsx";
@@ -76,7 +76,14 @@ function buildMatColToVisCol(visColIndices) {
   return map;
 }
 
-const DATA_BLOCK_HEIGHT = 320;
+// S163 A1.D3 final pass: data block bounded so the §3 test card has
+// materially more room than the prior 320 px state. Budget breakdown:
+// header stack ~80 px (letter + condition span + name+chip rows in
+// compactMode) + 7 body rows × 22.5 px = 157.5 + paddingBottom 14 +
+// 1 px border ≈ 252 px total. Slight overshoot to 250 covers the case
+// where compactMode header chip retires (item 3) and the header stack
+// drops to ~60 px — giving ~8 visible body rows on chip-free fixtures.
+const DATA_BLOCK_HEIGHT = 250;
 
 export function FindingDetailPanel({
   finding,
@@ -112,6 +119,28 @@ export function FindingDetailPanel({
   const [scrollEl, setScrollEl] = useState(null);
   const onScrollContainerReady = useCallback((el) => setScrollEl(el), []);
 
+  // Overflow gates for the two panel minimaps (S163 A1.D3 final pass).
+  // Render each axis's minimap only when that axis actually scrolls —
+  // small/clean fixtures that fit in the visible window need no
+  // minimap. Both checks read scrollHeight/scrollWidth vs
+  // clientHeight/clientWidth on the ExcerptTable's scroll container
+  // once it has mounted. Re-checked on scrollEl identity change (the
+  // chip click activation cycle remounts ExcerptTable for a new
+  // active-region scope) and when the dataset dimensions change.
+  const [overflow, setOverflow] = useState({ vertical: false, horizontal: false });
+  useLayoutEffect(() => {
+    if (!scrollEl) {
+      setOverflow({ vertical: false, horizontal: false });
+      return;
+    }
+    // Use scrollHeight/Width vs clientHeight/Width. Threshold of >1 px
+    // tolerates sub-pixel rounding (Retina half-pixel residue from the
+    // density pass's 22.5 row height).
+    const v = scrollEl.scrollHeight - scrollEl.clientHeight > 1;
+    const h = scrollEl.scrollWidth  - scrollEl.clientWidth  > 1;
+    setOverflow({ vertical: v, horizontal: h });
+  }, [scrollEl, heatmapProps?.rawData, heatmapProps?.visColIndices, heatmapProps?.colMaxLen]);
+
   if (!heatmapProps) return null;
 
   const localised = finding && isLocalisedChip(finding);
@@ -128,19 +157,31 @@ export function FindingDetailPanel({
       {/* Horizontal minimap above the table — viewport band tracks
           table.scrollLeft. Aligned to the right of the vertical
           minimap's width so the flag-density bars sit over the table
-          body, not over the frozen index/label columns. */}
-      <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
-        <div style={{ flexShrink: 0, width: 32 }} />
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <MinimapStripHorizontal
-            convergence={heatmapProps.convergence}
-            matColToVisCol={matColToVisCol}
-            nVisCols={nVisCols}
-            activeFindingTests={activeFindingTests}
-            tableEl={scrollEl}
-          />
+          body, not over the frozen index/label columns. Rendered only
+          when the column axis actually overflows; narrow fixtures
+          where all columns fit within the visible width skip the strip
+          entirely (no reserved space — the whole row drops out). */}
+      {overflow.horizontal && (
+        <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+          {/* Left spacer matches the vertical minimap's width (32 px)
+              when it's rendered, so the horizontal strip's flag-
+              density bars sit over the table body — not over the
+              frozen # / Label columns. When the vertical minimap is
+              suppressed (small fixture, no row overflow), the spacer
+              also retires so the horizontal strip starts at the
+              table's actual left edge. */}
+          {overflow.vertical && <div style={{ flexShrink: 0, width: 32 }} />}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <MinimapStripHorizontal
+              convergence={heatmapProps.convergence}
+              matColToVisCol={matColToVisCol}
+              nVisCols={nVisCols}
+              activeFindingTests={activeFindingTests}
+              tableEl={scrollEl}
+            />
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Vertical minimap + scrollable table row. Total height
           bounded so the sticky-surface budget is predictable.
@@ -152,15 +193,23 @@ export function FindingDetailPanel({
         alignItems: "stretch",
         height: DATA_BLOCK_HEIGHT,
       }}>
-        <div style={{ flexShrink: 0, height: DATA_BLOCK_HEIGHT }}>
-          <MinimapStripVertical
-            convergence={heatmapProps.convergence}
-            rowMap={heatmapProps.rowMap}
-            nVisRows={nVisRows}
-            activeFindingTests={activeFindingTests}
-            tableEl={scrollEl}
-          />
-        </div>
+        {/* Vertical minimap rendered only when the row axis actually
+            overflows. Small fixtures whose rows fit in the visible
+            window get no strip — the row drops out and the table
+            takes the full width (vertical minimap's slot retires).
+            The table sits inside its own flex:1 column already, so
+            this column simply disappearing shifts the table left. */}
+        {overflow.vertical && (
+          <div style={{ flexShrink: 0, height: DATA_BLOCK_HEIGHT }}>
+            <MinimapStripVertical
+              convergence={heatmapProps.convergence}
+              rowMap={heatmapProps.rowMap}
+              nVisRows={nVisRows}
+              activeFindingTests={activeFindingTests}
+              tableEl={scrollEl}
+            />
+          </div>
+        )}
         <div style={{ flex: 1, minWidth: 0, height: DATA_BLOCK_HEIGHT }}>
           <ExcerptTable
             convergence={heatmapProps.convergence}
@@ -173,6 +222,7 @@ export function FindingDetailPanel({
             coordCtx={heatmapProps.coordCtx}
             condPerCol={heatmapProps.condPerCol}
             findings={heatmapProps.findings}
+            colMaxLen={heatmapProps.colMaxLen}
             groupMarkerMap={groupMarkerMap}
             region={localised ? finding.region : null}
             activeTestKey={localised ? (finding.tests?.[0]?.testId || null) : null}

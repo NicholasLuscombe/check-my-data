@@ -266,11 +266,23 @@ export function ColumnHeaders({
                 <div style={{ padding: nameInnerPad, fontSize: FS.xs, fontWeight: FW.SEMI, color: C.TEXT,
                   whiteSpace: isData ? "normal" : "nowrap", wordBreak: isData ? "break-word" : undefined,
                   overflow: "hidden", textOverflow: "ellipsis" }}>{displayName}</div>
-                <div style={{ padding: chipInnerPad }}>
-                  <span style={{ display: "inline-block", background: C.WHITE, color: r.color,
-                    borderRadius: CR.S2, padding: "2px 6px", fontSize: FS.xs, fontFamily: FF.UI,
-                    fontWeight: FW.MED, userSelect: "none" }}>{r.chipLabel || r.label}</span>
-                </div>
+                {/* Role chip — kept on the ImportView preview (the
+                    chip + cell-tint together teach the colour key in
+                    context, and the chip carries the clickable role-
+                    cycle affordance) but retired under compactMode
+                    (S163 A1.D3 final pass). In the forensics §2 panel
+                    the chip is informational only: roles are already
+                    decided at import, the column-letter row + cell
+                    tint + label colour all carry the role distinction
+                    visually, and the chip's 49 px stacked-div overhead
+                    is the biggest single header-row budget item. */}
+                {!compactMode && (
+                  <div style={{ padding: chipInnerPad }}>
+                    <span style={{ display: "inline-block", background: C.WHITE, color: r.color,
+                      borderRadius: CR.S2, padding: "2px 6px", fontSize: FS.xs, fontFamily: FF.UI,
+                      fontWeight: FW.MED, userSelect: "none" }}>{r.chipLabel || r.label}</span>
+                  </div>
+                )}
               </th>
             );
           }
