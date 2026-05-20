@@ -8,7 +8,7 @@
 
 import { Fragment, useRef, useMemo, useState, useCallback, useEffect } from "react";
 import { C, FS, FW, FF, CR } from "../../constants/tokens.js";
-import { TD_ID_CELL, COL_W, FREEZE_COL_W, FREEZE_Z } from "./styles.js";
+import { TD_ID_CELL, COL_W, FREEZE_COL_W, FREEZE_Z, COMPACT_ROW_H, COMPACT_CELL_PADDING } from "./styles.js";
 import { ColumnHeaders } from "./ColumnHeaders.jsx";
 
 const BB = { boxSizing: "border-box" };
@@ -32,7 +32,15 @@ export const blendOnto = (fg, baseBg) => {
 };
 
 // ── Virtualization constants ──
-const ROW_H = 28;           // estimated height per data/gap row (px)
+// ROW_H is now mode-aware: default (non-compact) callers render at the
+// historical 28 px row; the forensics §2 sticky-surface data block
+// (compactMode=true) tightens body padding to 2px 8px which measures
+// at 22 px (COMPACT_ROW_H). The virtualisation spacer math reads the
+// mode-appropriate value so spacer pixels match actual rendered row
+// height — without this, the scrollbar thumb size and minimap viewport
+// band drift on large fixtures (DS11 1499 rows ≈ 9 000 px spacer drift
+// pre-fix).
+const ROW_H_DEFAULT = 28;
 const VIRT_THRESHOLD = 500; // virtualize only when total data rows exceed this
 const VIRT_BUFFER = 20;     // extra rows rendered above/below viewport
 
@@ -72,7 +80,9 @@ export function ScrollTable({
   headerTintCols = null, headerTintColor = null,
   height = "360px", tableRef: externalRef = null, theadRef: externalTheadRef = null,
   rowRefs = null, children = null,
+  compactMode = false,
 }) {
+  const ROW_H = compactMode ? COMPACT_ROW_H : ROW_H_DEFAULT;
   const internalRef = useRef(null);
   const scrollRef = externalRef || internalRef;
   const internalTheadRef = useRef(null);
@@ -215,6 +225,12 @@ export function ScrollTable({
           color: rowExtra.color || C.TEXT_3, fontWeight: rowExtra.fontWeight || FW.NORM,
           background: zebraBg, overflow: "hidden",
           ...(freeze ? { position: "sticky", left: 0, zIndex: FREEZE_Z.FROZEN_BODY } : {}),
+          // S163 A1.D3 density pass: the # column cell would otherwise
+          // keep TD_ID_CELL's 4px 8px padding and pin the row height at
+          // ~26.5 px even when data cells shrink. Compact mode applies
+          // the body-padding override here too so all cells in the row
+          // share the new ~22 px height.
+          ...(compactMode ? { padding: COMPACT_CELL_PADDING } : {}),
         }}>
           {renderRowNum(ri, row)}
         </td>
@@ -353,6 +369,7 @@ export function ScrollTable({
           markerLeft={markerLeft}
           onColumnClick={onHeaderClick}
           theadRef={headRef}
+          compactMode={compactMode}
         />
 
         <tbody>

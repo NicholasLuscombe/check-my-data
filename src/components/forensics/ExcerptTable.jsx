@@ -30,7 +30,7 @@ import { MECHANISMS, TEST_MECHANISM, TEST_KEY_TO_NAME, RANK_NUMS } from "../../c
 import { ROLES, buildCondColorMap } from "../../constants/roles.js";
 import { colToExcelLetter, shortColName, buildCondSpansForColumns } from "../shared/coordinates.js";
 import { convergenceCellBg, convergenceCellTextColor, convergenceRampStyle, convergenceMinimapStyle, CONVERGENCE_RAMP } from "../shared/heatmapColors.js";
-import { TD_NUM_CELL, TD_ID_CELL, COL_W, FREEZE_COL_W, FREEZE_Z, countFrozenCols } from "../shared/styles.js";
+import { TD_NUM_CELL, TD_ID_CELL, COL_W, FREEZE_COL_W, FREEZE_Z, countFrozenCols, COMPACT_CELL_PADDING } from "../shared/styles.js";
 import { ScrollTable, blendOnto } from "../shared/ScrollTable.jsx";
 
 const CONTEXT_ROWS = 2;
@@ -1067,6 +1067,7 @@ export function ExcerptTable({
             tableRef={tableRef}
             theadRef={theadRef}
             rowRefs={rowRefs}
+            compactMode={compactMode}
             renderRowNum={(ri) => fr(ri)}
             renderRowExtra={(ri) => {
               const inHotspot = hasHotspots && visHotspots.some(h => ri >= h.rowStart && ri <= h.rowEnd);
@@ -1280,6 +1281,14 @@ export function ExcerptTable({
                   ...(hasHeat ? heatBg : {}),
                   ...(isCpRow ? { borderBottom: `2px dashed ${SIGNAL.RED.dot}` } : {}),
                   ...(isFrozen ? { background: dimmed ? C.WHITE : hasHeat ? heatBg.backgroundColor : baseBg } : {}),
+                  // S163 A1.D3 density pass: tighten cell vertical padding
+                  // inside the sticky-surface data block (compactMode) so
+                  // body rows render at ~22 px (down from 26.5 px) and
+                  // ~12-13 rows fit in the 320 px budget instead of ~8.
+                  // The shared TD_NUM_CELL / TD_ID_CELL constants stay at
+                  // 4px 8px for all other consumers (ImportView preview,
+                  // DupDet excerpt, modal-era shim).
+                  ...(compactMode ? { padding: COMPACT_CELL_PADDING } : {}),
                 },
               };
             }}

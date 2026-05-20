@@ -53,6 +53,29 @@ export const COL_W = {
   MARKER:  24,        // group marker column (①②③)
 };
 
+// ── compactMode density overrides (S163 A1.D3 density pass) ──
+// The forensics §2 sticky-surface data block mounts ExcerptTable with
+// compactMode=true and a 320 px height budget. Default body cell padding
+// (4px 8px) gives a 26.5 px row; the 100 px header stack (letter +
+// condition + name+chip rows) eats most of the budget, leaving ~8 rows
+// visible. These overrides tighten the vertical rhythm for the
+// sticky-surface mount only — non-compact callers (ImportView, modal-era
+// shim) keep the default paddings via TD_NUM_CELL / TD_ID_CELL / the
+// inline header literals.
+//
+// Padding-only changes: font size, weight, and colour roles are
+// untouched per TYPOGRAPHY-SYSTEM.md (the lock is on the type scale, not
+// on spacing). The compactRowH constant is the measured rendered height
+// after the padding tighten — ScrollTable's virtualisation spacer math
+// reads it when compactMode is true so spacer pixels match actual row
+// height (no scrollbar-thumb / minimap-band drift on virtualised
+// fixtures like DS11/DS19).
+export const COMPACT_CELL_PADDING       = "2px 8px";  // body cells
+export const COMPACT_HEADER_PADDING_TIGHT = "2px 8px"; // letter row, condition span, role label row
+export const COMPACT_HEADER_NAME_INNER_TOP    = "2px 6px 1px"; // name <div> inside the name+chip <th>
+export const COMPACT_HEADER_NAME_INNER_BOTTOM = "1px 6px 2px"; // chip wrapper <div>
+export const COMPACT_ROW_H = 22;        // measured row height after compactMode body-padding tighten
+
 // ── Sticky frozen columns — shared by HotspotExcerpt and ImportView ──
 // Frozen column widths use COL_W for the # column and ID columns.
 export const FREEZE_COL_W = { ROW_NUM: COL_W.ROW_NUM, ID_COL: 80 };
