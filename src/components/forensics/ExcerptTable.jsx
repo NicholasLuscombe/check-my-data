@@ -717,6 +717,27 @@ export function ExcerptTable({
 
   // ── Frozen column computation ──
   // Freeze # col + marker col (if groups) + all consecutive non-DATA columns from the left.
+  //
+  // CRITICAL CORRECTNESS: the cumulative `left` offsets MUST match the
+  // actual rendered widths the colgroup applies (per `col.width` from
+  // colMaxLen, or the role-keyed fallback). Pre-fix, this loop summed
+  // FREEZE_COL_W.ID_COL=80 per frozen column unconditionally — diverging
+  // from the colgroup whenever content-aware widths differ from 80.
+  //
+  // The divergence stranded sticky cells at incorrect `left:` positions.
+  // On DS22 (ID width 56, Condition width 88 from content-aware), the
+  // pre-fix offsets[2] = 42 + 80 = 122 instead of the correct 42 + 56 =
+  // 98 → Condition stuck at x=122 instead of its natural-flow x=98,
+  // overlaying the first non-frozen data column (Rep1) by 24 px on its
+  // left edge. The visible result on negative values like "-0.595138"
+  // (9 chars, centered in 88 px cell): the leading "-" + "0" hidden
+  // behind the sticky Condition cell, ".595138" the only visible
+  // remnant — silent sign flip on a forensics surface.
+  //
+  // Fix: sum the same per-column widths the colgroup uses. Per-column
+  // content-aware width via colMaxLen → colWidthFromMaxLen when
+  // supplied; falls back to FREEZE_COL_W.ID_COL otherwise (the historical
+  // 80 px behaviour for pre-colMaxLen mounts).
   const freeze = useMemo(() => {
     const colRoles = colEntries.map(c => c.role);
     const n = countFrozenCols(colRoles);
@@ -728,7 +749,11 @@ export function ExcerptTable({
     let left = FREEZE_COL_W.ROW_NUM + markerW;
     for (let i = 0; i < n; i++) {
       offsets.push(left);
-      left += FREEZE_COL_W.ID_COL;
+      const rawCI = colEntries[i].rawCI;
+      const supplied = colMaxLen && colMaxLen[rawCI] > 0
+        ? colWidthFromMaxLen(colMaxLen[rawCI])
+        : null;
+      left += supplied != null ? supplied : FREEZE_COL_W.ID_COL;
     }
     // Condition span analysis: which spans are entirely within frozen zone
     const spanFrozen = [];
@@ -741,7 +766,7 @@ export function ExcerptTable({
       }
     }
     return { n, offsets, totalW: left, spanFrozen };
-  }, [colEntries, condSpans, hasGroups]);
+  }, [colEntries, condSpans, hasGroups, colMaxLen]);
 
   // Map visible rows → groups (remap matrix rows via rowMap)
   const rowGroupMap = useMemo(() => {
@@ -1294,6 +1319,19 @@ export function ExcerptTable({
               const fontWeight = (cellHighlighted && spec.boldRelevant) ? FW.SEMI : undefined;
 
               const finalBg = dimmed ? C.WHITE : hasHeat ? undefined : baseBg;
+              // Defensive content-min-width (S163 A1.D3 sign-clip fix).
+              // The sticky-overlap bug above was the root cause of the
+              // first-data-column leading-char clip on negative values;
+              // this min-width is a safety net so even if a future
+              // layout regression mis-sizes a column, the data cell can
+              // never be narrower than its content needs. min-width on
+              // a tableLayout:fixed `<td>` only applies in the rare path
+              // where the cell's actual width drops below content (e.g.
+              // flex-distribution edge cases); when colgroup width >=
+              // content, this is a no-op.
+              const colW = colMaxLen && colMaxLen[colEntry.rawCI] > 0
+                ? colWidthFromMaxLen(colMaxLen[colEntry.rawCI])
+                : null;
               return {
                 content: displayVal,
                 style: {
@@ -1310,6 +1348,7 @@ export function ExcerptTable({
                   // 4px 8px for all other consumers (ImportView preview,
                   // DupDet excerpt, modal-era shim).
                   ...(compactMode ? { padding: COMPACT_CELL_PADDING } : {}),
+                  ...(colW != null ? { minWidth: colW } : {}),
                 },
               };
             }}

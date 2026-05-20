@@ -68,7 +68,13 @@ export function MinimapStripHorizontal({
     updateViewFrac();
     return () => {
       tableEl.removeEventListener("scroll", updateViewFrac);
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      // Null the ref after cancelling — see the matching comment in
+      // MinimapStripVertical.jsx. StrictMode double-invoke combined
+      // with a non-nulled rafRef strands viewFrac at [0,1] forever.
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
+      }
     };
   }, [tableEl, updateViewFrac]);
 

@@ -369,12 +369,23 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
   const condSpans=useMemo(()=>buildCondSpans(condPerCol),[condPerCol]);
 
   // ── Frozen column computation — reactive to role changes ──
+  // Sums the SAME per-column widths the colgroup applies, so sticky-left
+  // offsets match the actual rendered column positions. Pre-fix used
+  // FREEZE_COL_W.ID_COL=80 unconditionally — diverged from content-aware
+  // widths and caused the sticky frozen cell to overlay the first non-
+  // frozen column's left edge (visible on data tables as a leading-char
+  // clip on values centred in the first data column).
   const freeze=useMemo(()=>{
     const n=countFrozenCols(roles);
     if(n===0) return null;
+    const maxLens=sum?.colMaxLen||[];
     const offsets=[0]; // index 0 = # col (left:0)
     let left=FREEZE_COL_W.ROW_NUM;
-    for(let i=0;i<n;i++){offsets.push(left);left+=FREEZE_COL_W.ID_COL;}
+    for(let i=0;i<n;i++){
+      offsets.push(left);
+      const w=maxLens[i]>0?colWidthFromMaxLen(maxLens[i]):FREEZE_COL_W.ID_COL;
+      left+=w;
+    }
     // Condition span freeze analysis
     const spanFrozen=[];
     if(condSpans.length>0){
@@ -382,7 +393,7 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
       for(const sp of condSpans){const e=s+sp.len-1;spanFrozen.push(e<n);s+=sp.len;}
     }
     return{n,offsets,totalW:left,spanFrozen};
-  },[roles,condSpans]);
+  },[roles,condSpans,sum]);
 
   // Build column entries for ScrollTable. Per-column `width` derived
   // from summary.colMaxLen makes the column sized to its actual content

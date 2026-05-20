@@ -75,7 +75,16 @@ export function MinimapStripVertical({
     updateViewFrac();
     return () => {
       tableEl.removeEventListener("scroll", updateViewFrac);
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      // Null the ref after cancelling. Without this, the cancelled rAF
+      // ID stays in `rafRef.current` (truthy), and the next mount's
+      // `updateViewFrac()` short-circuits at its `if (rafRef.current)
+      // return;` guard — stranding viewFrac at its initial [0,1] state.
+      // React.StrictMode (src/main.jsx:6) double-invokes useEffect in
+      // dev, firing this exact race on every component mount.
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
+      }
     };
   }, [tableEl, updateViewFrac]);
 

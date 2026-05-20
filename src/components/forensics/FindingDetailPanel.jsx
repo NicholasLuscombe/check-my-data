@@ -119,27 +119,33 @@ export function FindingDetailPanel({
   const [scrollEl, setScrollEl] = useState(null);
   const onScrollContainerReady = useCallback((el) => setScrollEl(el), []);
 
-  // Overflow gates for the two panel minimaps (S163 A1.D3 final pass).
-  // Render each axis's minimap only when that axis actually scrolls —
-  // small/clean fixtures that fit in the visible window need no
-  // minimap. Both checks read scrollHeight/scrollWidth vs
-  // clientHeight/clientWidth on the ExcerptTable's scroll container
-  // once it has mounted. Re-checked on scrollEl identity change (the
-  // chip click activation cycle remounts ExcerptTable for a new
-  // active-region scope) and when the dataset dimensions change.
+  // Overflow gates for the two panel minimaps (S163 A1.D3 final pass +
+  // sign-clip fix). Render each axis's minimap only when that axis
+  // actually scrolls. Pre-fix, this was a single-shot useLayoutEffect
+  // that captured overflow once on scrollEl arrival — the captured
+  // state went stale as soon as the table's layout settled (e.g. when
+  // content-aware widths flowed through, when minWidth:100% distributed
+  // flex, on viewport resize). Post-fix uses a ResizeObserver on
+  // scrollEl so the gate re-evaluates whenever the scroller's
+  // dimensions OR content size change. Threshold > 1 px tolerates
+  // sub-pixel rounding (Retina half-pixel residue from the density
+  // pass's 22.5 row height).
   const [overflow, setOverflow] = useState({ vertical: false, horizontal: false });
   useLayoutEffect(() => {
     if (!scrollEl) {
       setOverflow({ vertical: false, horizontal: false });
-      return;
+      return undefined;
     }
-    // Use scrollHeight/Width vs clientHeight/Width. Threshold of >1 px
-    // tolerates sub-pixel rounding (Retina half-pixel residue from the
-    // density pass's 22.5 row height).
-    const v = scrollEl.scrollHeight - scrollEl.clientHeight > 1;
-    const h = scrollEl.scrollWidth  - scrollEl.clientWidth  > 1;
-    setOverflow({ vertical: v, horizontal: h });
-  }, [scrollEl, heatmapProps?.rawData, heatmapProps?.visColIndices, heatmapProps?.colMaxLen]);
+    const evalOverflow = () => {
+      const v = scrollEl.scrollHeight - scrollEl.clientHeight > 1;
+      const h = scrollEl.scrollWidth  - scrollEl.clientWidth  > 1;
+      setOverflow(prev => (prev.vertical === v && prev.horizontal === h) ? prev : { vertical: v, horizontal: h });
+    };
+    evalOverflow();
+    const ro = new ResizeObserver(evalOverflow);
+    ro.observe(scrollEl);
+    return () => ro.disconnect();
+  }, [scrollEl]);
 
   if (!heatmapProps) return null;
 
