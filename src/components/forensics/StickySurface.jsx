@@ -169,7 +169,7 @@ export function StickySurface({
           marginBottom: (localisedChips.length > 0 || fallbackChips.length > 0) ? "8px" : 0,
         }}>
           <span style={{ ...LANE_LABEL_TYPOGRAPHY, ...LANE_LABEL_LAYOUT }}>{LANE_LABELS.pills}</span>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", flex: 1, minWidth: 0 }}>
             {pills.map(f => (
               <FindingPill key={f.id} finding={f} onActivate={onActivateTest} />
             ))}
@@ -183,7 +183,7 @@ export function StickySurface({
           marginBottom: fallbackChips.length > 0 ? "8px" : 0,
         }}>
           <span style={{ ...LANE_LABEL_TYPOGRAPHY, ...LANE_LABEL_LAYOUT }}>{LANE_LABELS.localised}</span>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", flex: 1, minWidth: 0 }}>
             {localisedChips.map(f => (
               <FindingChip
                 key={f.id}
@@ -205,7 +205,7 @@ export function StickySurface({
           flexWrap: "wrap",
         }}>
           <span style={{ ...LANE_LABEL_TYPOGRAPHY, ...LANE_LABEL_LAYOUT }}>{LANE_LABELS.fallback}</span>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", flex: 1, minWidth: 0 }}>
             {fallbackChips.map(f => (
               <FindingChip
                 key={f.id}
@@ -242,7 +242,7 @@ export function StickySurface({
             display: "inline-flex", alignItems: "center", gap: "4px",
           }}
         >
-          <span>Data</span>
+          <span>Data table</span>
           <span style={{ fontSize: "10px" }}>{dataExpanded ? "▲" : "▼"}</span>
         </button>
       )}

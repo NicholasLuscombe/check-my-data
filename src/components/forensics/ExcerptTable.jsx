@@ -749,10 +749,17 @@ export function ExcerptTable({
     let left = FREEZE_COL_W.ROW_NUM + markerW;
     for (let i = 0; i < n; i++) {
       offsets.push(left);
-      const rawCI = colEntries[i].rawCI;
-      const supplied = colMaxLen && colMaxLen[rawCI] > 0
-        ? colWidthFromMaxLen(colMaxLen[rawCI])
-        : null;
+      const colEntry = colEntries[i];
+      const rawCI = colEntry.rawCI;
+      // Same max(content, header) logic the colgroup uses for non-data
+      // columns (item 6) — frozen columns are always non-data. If the
+      // colgroup width changes, the offset must change to match, or
+      // sticky cells overlay adjacent columns (the sign-clip bug
+      // pattern from the prior fix-pass).
+      const contentLen = colMaxLen && colMaxLen[rawCI] > 0 ? colMaxLen[rawCI] : 0;
+      const headerLen = colEntry.role !== "data" ? (colEntry.label?.length || 0) : 0;
+      const effectiveLen = Math.max(contentLen, headerLen);
+      const supplied = effectiveLen > 0 ? colWidthFromMaxLen(effectiveLen) : null;
       left += supplied != null ? supplied : FREEZE_COL_W.ID_COL;
     }
     // Condition span analysis: which spans are entirely within frozen zone
@@ -1078,19 +1085,23 @@ export function ExcerptTable({
               hasMarker={hasGroups} tableRef={tableRef} />
           ) */}
           <ScrollTable
-            columns={colEntries.map(col => ({
-              letter: colToExcelLetter(coordCtx?.origColMap?.[col.rawCI] ?? col.rawCI),
-              name: col.label,
-              role: col.role,
-              // Content-aware width per raw-column-index (S163 A1.D3
-              // final pass). When colMaxLen is supplied, the column
-              // sizes to its longest formatted value — no forensic-
-              // precision truncation on wide values like "-0.595138".
-              // Undefined → ScrollTable falls back to role-keyed COL_W.
-              width: colMaxLen && colMaxLen[col.rawCI] > 0
-                ? colWidthFromMaxLen(colMaxLen[col.rawCI])
-                : undefined,
-            }))}
+            columns={colEntries.map(col => {
+              // S163 fix-pass A item 6: identifier columns (label /
+              // condition / ignore) widen to max(content, header) so
+              // their header text ("Residue", "GeneID") doesn't
+              // ellipsis-clip when their content is shorter. Data
+              // columns keep content-only sizing (header wraps to
+              // multiple lines via whiteSpace:normal in ColumnHeaders).
+              const contentLen = colMaxLen && colMaxLen[col.rawCI] > 0 ? colMaxLen[col.rawCI] : 0;
+              const headerLen = col.role !== "data" ? (col.label?.length || 0) : 0;
+              const effectiveLen = Math.max(contentLen, headerLen);
+              return {
+                letter: colToExcelLetter(coordCtx?.origColMap?.[col.rawCI] ?? col.rawCI),
+                name: col.label,
+                role: col.role,
+                width: effectiveLen > 0 ? colWidthFromMaxLen(effectiveLen) : undefined,
+              };
+            })}
             condSpans={condSpans}
             condColorMap={condColorMap}
             freeze={freeze}

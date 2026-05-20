@@ -111,9 +111,15 @@ export function FindingChip({ finding, onActivate, showRegionNumber = false, isA
       title={tooltip}
       style={{
         display: "inline-flex", alignItems: "center", gap: "6px",
-        padding: "3px 10px 3px 8px",
+        padding: "3px 10px 3px 7px",
         background: sev.bg,
+        // S163 fix-pass A item 2: restore the left-hand mechanism-colour
+        // stripe (3 px) so the chip visually echoes the §3 test-card
+        // mechanism stripe (TestCardLayout's `borderLeft: 3px solid
+        // MECH_COLOR[mk]`). Same source token, same width — links a chip
+        // to its matching test card by colour. Other edges stay none.
         border: "none",
+        borderLeft: mechColor ? `3px solid ${mechColor}` : "none",
         borderRadius: CR.MD,
         color: sev.color,
         fontSize: FS.sm,
@@ -121,6 +127,16 @@ export function FindingChip({ finding, onActivate, showRegionNumber = false, isA
         fontWeight: FW.SEMI,
         cursor: "pointer",
         whiteSpace: "nowrap",
+        // S163 fix-pass A items 3+4: chip can shrink within a narrow
+        // flex container; overflow: hidden + textOverflow: ellipsis
+        // gracefully truncate the chip's tail at extreme-narrow widths
+        // rather than overflowing the lane row. At normal widths the
+        // chip sizes to its content (nowrap, no shrink needed) — these
+        // properties only fire below the layout breakpoint.
+        minWidth: 0,
+        maxWidth: "100%",
+        overflow: "hidden",
+        textOverflow: "ellipsis",
         // S163 fix-pass 1: active chip rings the chip with a thin
         // outline in the severity colour. Outline (rather than border)
         // avoids layout shift; the pulse-animation bus uses box-shadow

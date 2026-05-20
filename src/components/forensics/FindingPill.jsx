@@ -57,9 +57,13 @@ export function FindingPill({ finding, onActivate }) {
       title={test.displayName}
       style={{
         display: "inline-flex", alignItems: "center", gap: "6px",
-        padding: "3px 10px 3px 8px",
+        padding: "3px 10px 3px 7px",
         background: sev.bg,
+        // S163 fix-pass A item 2: mechanism-colour left stripe matches
+        // the §3 test-card chrome. Same MECH_COLOR token, same 3 px
+        // width — pills + chips both visually link to their §3 cards.
         border: "none",
+        borderLeft: mechColor ? `3px solid ${mechColor}` : "none",
         borderRadius: CR.MD,
         color: sev.color,
         fontSize: FS.sm,
@@ -67,6 +71,12 @@ export function FindingPill({ finding, onActivate }) {
         fontWeight: FW.SEMI,
         cursor: "pointer",
         whiteSpace: "nowrap",
+        // S163 fix-pass A items 3+4: pill shrinks within narrow lanes;
+        // ellipsis-truncates at extreme widths rather than overflowing.
+        minWidth: 0,
+        maxWidth: "100%",
+        overflow: "hidden",
+        textOverflow: "ellipsis",
       }}
     >
       <MechIcon mk={dimKey} size={mechIconSize(dimKey, ICON_SIZE)} color={mechColor} />

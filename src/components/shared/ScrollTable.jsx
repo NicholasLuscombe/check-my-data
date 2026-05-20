@@ -346,6 +346,13 @@ export function ScrollTable({
       // table width doesn't jump as content overflow toggles.
       overscrollBehavior: "contain",
       scrollbarGutter: "stable",
+      // S163 fix-pass A item 5: include padding + border inside the
+      // declared height so the scroller's actual rendered box matches
+      // the height prop. Without this, the 14 px paddingBottom + 2 px
+      // borders pushed the scroller 16 px past its parent's height,
+      // leaving the sibling vertical minimap (which sized to the parent
+      // height) visibly short at the bottom.
+      boxSizing: "border-box",
       ...(typeof height === "number" ? { height } : typeof height === "string" ? { maxHeight: height } : {}),
       border: `1px solid ${C.BORDER_L}`, borderRadius: CR.SM, background: C.WHITE,
     }}>

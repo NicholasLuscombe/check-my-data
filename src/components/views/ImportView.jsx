@@ -383,7 +383,13 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
     let left=FREEZE_COL_W.ROW_NUM;
     for(let i=0;i<n;i++){
       offsets.push(left);
-      const w=maxLens[i]>0?colWidthFromMaxLen(maxLens[i]):FREEZE_COL_W.ID_COL;
+      // Same max(content, header) logic the colgroup uses (item 6) —
+      // frozen cols are non-data, so they widen to fit their header
+      // when content is shorter ("Residue" header > "1"/"2" content).
+      const contentLen=maxLens[i]||0;
+      const headerLen=roles[i]!=="data"?(hdrs[i]?.length||0):0;
+      const effectiveLen=Math.max(contentLen,headerLen);
+      const w=effectiveLen>0?colWidthFromMaxLen(effectiveLen):FREEZE_COL_W.ID_COL;
       left+=w;
     }
     // Condition span freeze analysis
@@ -393,7 +399,7 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
       for(const sp of condSpans){const e=s+sp.len-1;spanFrozen.push(e<n);s+=sp.len;}
     }
     return{n,offsets,totalW:left,spanFrozen};
-  },[roles,condSpans,sum]);
+  },[roles,condSpans,sum,hdrs]);
 
   // Build column entries for ScrollTable. Per-column `width` derived
   // from summary.colMaxLen makes the column sized to its actual content
@@ -406,8 +412,21 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
     return hdrs.map((h,i)=>{
       let origIdx=i;
       for(const rc of removed){if(rc<=origIdx)origIdx++;}
-      const width=maxLens[i]>0?colWidthFromMaxLen(maxLens[i]):undefined;
-      return{letter:colToExcelLetter(origIdx),name:h,role:roles[i],width};
+      // S163 fix-pass A item 6: non-data column widths take the MAX of
+      // content and header length so identifier headers ("Residue",
+      // "GeneID") don't ellipsis-clip when their content (e.g. 1-2
+      // char residue numbers) is shorter than the header. Data columns
+      // keep the content-only sizing — there are many data columns
+      // (one per Rep × condition), their headers can wrap to multiple
+      // lines via whiteSpace:normal in ColumnHeaders, and over-widening
+      // many columns to fit long Rep header names would multiply the
+      // table width unhelpfully.
+      const role=roles[i];
+      const contentLen=maxLens[i]||0;
+      const headerLen=role!=="data"?(h?.length||0):0;
+      const effectiveLen=Math.max(contentLen,headerLen);
+      const width=effectiveLen>0?colWidthFromMaxLen(effectiveLen):undefined;
+      return{letter:colToExcelLetter(origIdx),name:h,role,width};
     });
   },[hdrs,roles,prepInfo,sum]);
 
