@@ -30,6 +30,7 @@
 import { C, FS, FW, FF, CR, SEV_VERDICT, MECH_COLOR } from "../../constants/tokens.js";
 import { MECHANISMS } from "../../constants/mechanisms.js";
 import { MechIcon, mechIconSize } from "../shared/MechIcon.jsx";
+import { IDENTITY_BORDER } from "../shared/heatmapColors.js";
 import { usePulseTrigger } from "./pulseContext.jsx";
 import { usePulseAnimation } from "./PulseStyle.jsx";
 
@@ -137,11 +138,18 @@ export function FindingChip({ finding, onActivate, showRegionNumber = false, isA
         maxWidth: "100%",
         overflow: "hidden",
         textOverflow: "ellipsis",
-        // S163 fix-pass 1: active chip rings the chip with a thin
-        // outline in the severity colour. Outline (rather than border)
-        // avoids layout shift; the pulse-animation bus uses box-shadow
-        // separately, so no clash.
-        outline: isActive ? `2px solid ${sev.sevColor}` : "none",
+        // S163 B2b W4: active chip rings in the deeper-purple
+        // IDENTITY_BORDER (same purple that paints the cell borders
+        // in the data block). Visually wires the chip to its
+        // highlight — purple ring above → purple region in the table
+        // — instead of the previous severity-colour ring that
+        // double-encoded severity (already carried by chip bg + tier
+        // word). The 3px mechanism-colour left stripe (fix-pass A,
+        // borderLeft above) is preserved as-is — it remains the
+        // chip↔§3-card mechanism connector. Outline (not border)
+        // avoids layout shift. Co-existence with the mechanism
+        // stripe is a noted visual-review item.
+        outline: isActive ? `2px solid ${IDENTITY_BORDER}` : "none",
         outlineOffset: isActive ? "1px" : 0,
       }}
     >

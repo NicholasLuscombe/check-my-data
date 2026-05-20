@@ -118,17 +118,32 @@ export function ForensicsBody({
     window.scrollTo({ top: Math.max(0, target), behavior: "smooth" });
   }, []);
 
-  // Active-region state. `activeRegionNumber` non-null →
-  // FindingDetailPanel filters the §2 data block to that region:
-  // both minimaps narrow shading to the active finding's tests; the
-  // table scrolls to the region's row range (via the imperative
-  // scrollToVisRow API on hotspotScrollRef); cells tint per
-  // buildHighlightSpec. The matching chip in StickySurface rings
-  // via its `isActive` prop.
-  // Writer: chip click via `onActivateTest` below (sets, or toggles
-  // back to null when re-clicking the active chip).
-  // Initial value null → no active chip, aggregated minimap view.
-  const [activeRegionNumber, setActiveRegionNumber] = useState(null);
+  // S163 B2b: Model B multi-select selection state.
+  //   mode: 'all' | 'subset'
+  //     - 'all'    — every finding contributes to the data-block
+  //                  overlay; chips / pills all render in active style.
+  //                  This is the panel-expand default ("show me
+  //                  everything").
+  //     - 'subset' — only `selected` contribute; `selected` may be
+  //                  empty (nothing highlighted; panel stays mounted).
+  //   selected: Set<regionNumber> — populated only in 'subset' mode.
+  //   lastAdded: regionNumber | null — drives panel chrome (caption
+  //                  + focus) and the scroll-on-add path.
+  //
+  // Transitions:
+  //   First click while mode === 'all'        → ISOLATE: subset = {clicked}.
+  //   Click while mode === 'subset', not in   → ADD: add to subset.
+  //   Click while mode === 'subset',     in   → REMOVE: drop from subset.
+  //   Show all                                → mode 'all',  selected.clear().
+  //   Clear all                               → mode 'subset', selected.clear().
+  //
+  // Writer: `onActivateTest` below for chip / pill clicks; `onShowAll`
+  // / `onClearAll` for the StickySurface controls.
+  const [selection, setSelection] = useState({
+    mode: "all",
+    selected: new Set(),
+    lastAdded: null,
+  });
 
   // S163 fix-pass 1: data-disclosure state. `dataExpanded` controls
   // whether the §2 sticky surface renders the inline data block
@@ -183,51 +198,71 @@ export function ForensicsBody({
     scrollApi.scrollToVisRow?.(centre);
   }, [visRowOf]);
 
-  // Sticky-surface activation. Receives the full finding so multi-test
-  // chips can expand every relevant test card (and all touched
-  // dimensions). For pills + single-test chips this collapses to the
-  // single-card / single-dim case.
+  // Sticky-surface activation under S163 B2b Model B multi-select.
   //
-  // S126b add-4: ensure the parent dimension wrapper is expanded
-  //              (otherwise the test card isn't even in the DOM).
-  // S126b add-6: also ensure the specific test card body is expanded
-  //              (otherwise the user lands on a collapsed card and
-  //              has to click again to see content).
-  // Double-rAF defers the scroll until after React commits both
-  // expansion-state writes and the browser paints the new layout —
-  // otherwise scrollIntoView lands on the pre-expansion position.
-  // Pulse animation is fired by the chip/pill itself via PulseProvider;
-  // it lands on the card the first time the card mounts (or replays if
-  // already mounted).
+  // State transitions on a chip / pill click (let N = clicked
+  // finding's regionNumber):
+  //   - mode 'all'     → ISOLATE: subset = {N}, lastAdded = N.
+  //                       (First click out of the all-on default
+  //                        narrows attention to the clicked finding.)
+  //   - mode 'subset':
+  //       - selected.has(N)   → REMOVE: subset \ {N}, lastAdded
+  //                              becomes the next-most-recent active
+  //                              finding (or null when subset emptied).
+  //                              NO scroll; the user is narrowing, not
+  //                              opening, attention.
+  //       - !selected.has(N)  → ADD: subset ∪ {N}, lastAdded = N.
+  //                              Scrolls §3 to that finding's card.
   //
-  // Chip / pill activation. Two paths through the state machine:
-  //   - Localised chip click on an INACTIVE chip → set activeRegionNumber,
-  //     expand dimension + card, auto-expand data block on first chip
-  //     click in session, scroll to first test card.
-  //   - Localised chip click on the CURRENTLY ACTIVE chip → write
-  //     activeRegionNumber back to null (toggle off). No re-scroll, no
-  //     auto-expand re-fire. The chip ring clears; the data block's
-  //     minimap unfilters and the table scrolls to row 1 unhighlighted.
-  //   - Pill click (no regionNumber) → expand dimension + card, scroll
-  //     to card; activeRegionNumber stays as-is (pills are not panel
-  //     writers).
-  //
-  // S163 fix-pass 1: auto-expand on first chip click. hasAutoExpanded
-  // ref guards against re-firing — once the data block opens on first
-  // click, the user owns the disclosure state from there.
+  // First chip / pill click in session also auto-expands the data
+  // block (hasAutoExpanded guards against re-fire so an explicit
+  // collapse holds across later activations). Dimension + test-card
+  // expand still fires on every activate path so the §3 card is ready
+  // when §3 scrolls to it.
   const onActivateTest = useCallback((finding) => {
     if (!finding) return;
     const tests = finding.tests || [];
     if (!tests.length) return;
-    // Toggle-off branch: re-clicking the currently active chip
-    // deactivates. No card scroll, no auto-expand re-fire.
-    if (finding.regionNumber != null && finding.regionNumber === activeRegionNumber) {
-      setActiveRegionNumber(null);
-      return;
-    }
-    // Expand every dimension touched by this finding (multi-test chips
-    // may span multiple dimensions in a future aggregator merge; today
-    // each test maps to one dimension).
+    if (finding.regionNumber == null) return;
+    const N = finding.regionNumber;
+
+    // Compute whether this click is an ADD (vs REMOVE). REMOVE = mode
+    // 'subset' AND the finding was already in selection. Everything
+    // else is an ADD (including the all-on → isolate transition).
+    const isRemove = selection.mode === "subset" && selection.selected.has(N);
+
+    // State update via functional setter so concurrent updates compose.
+    setSelection(prev => {
+      if (prev.mode === "all") {
+        // ISOLATE.
+        return { mode: "subset", selected: new Set([N]), lastAdded: N };
+      }
+      const next = new Set(prev.selected);
+      if (next.has(N)) {
+        // REMOVE.
+        next.delete(N);
+        // Demote lastAdded if it was this finding — pick any remaining
+        // active finding (Set iteration order is insertion order in
+        // modern JS; pop returns the most recent). lastAdded = null
+        // when the subset emptied.
+        const newLastAdded = (prev.lastAdded === N)
+          ? (next.size ? [...next].pop() : null)
+          : prev.lastAdded;
+        return { mode: "subset", selected: next, lastAdded: newLastAdded };
+      }
+      // ADD.
+      next.add(N);
+      return { mode: "subset", selected: next, lastAdded: N };
+    });
+
+    // REMOVE branch exits before card expand + scroll. Removing a
+    // chip narrows focus — no need to re-target §3 or open card
+    // bodies the user already had open.
+    if (isRemove) return;
+
+    // Expand every dimension touched by this finding (multi-test
+    // chips may span multiple dimensions in a future aggregator
+    // merge; today each test maps to one dimension).
     if (ensureCatExpanded) {
       const dims = new Set();
       for (const t of tests) {
@@ -240,39 +275,39 @@ export function ForensicsBody({
     if (ensureTestCardExpanded) {
       for (const t of tests) ensureTestCardExpanded(t.testId);
     }
-    // Activate the panel for localised findings. Dataset-wide findings
-    // (pills) carry no regionNumber and leave activeRegionNumber alone.
-    if (finding.regionNumber != null) {
-      setActiveRegionNumber(finding.regionNumber);
-      // First chip click in session — auto-expand the data block.
-      // hasAutoExpanded gates re-fire so explicit collapse stays
-      // collapsed across later chip clicks.
-      if (!hasAutoExpanded.current) {
-        hasAutoExpanded.current = true;
-        setDataExpanded(true);
-      }
-      // S163 virtualisation rework: scroll the data table to centre
-      // the active region's rowRange. Toggle-deactivate (re-click
-      // active chip) above exits early, so the user's scroll
-      // position survives the deactivation gesture.
-      // Defer via rAF so the dataExpanded state has committed and
-      // ScrollTable has mounted with its scroll container ref before
-      // the scroll-to-row call fires.
-      if (typeof requestAnimationFrame === "function") {
-        requestAnimationFrame(() => scrollToRegion(finding.region));
-      } else {
-        scrollToRegion(finding.region);
-      }
+    // First activation in session — auto-expand the data block.
+    if (!hasAutoExpanded.current) {
+      hasAutoExpanded.current = true;
+      setDataExpanded(true);
     }
-    // Scroll to the first test card. Double-rAF waits for both expand
-    // commits + browser paint before reading layout geometry.
+    // Scroll the data table to centre the added finding's rowRange
+    // (no-op for findings without rowRange — dataset-wide / column-
+    // local). Deferred via rAF so dataExpanded has committed.
+    if (typeof requestAnimationFrame === "function") {
+      requestAnimationFrame(() => scrollToRegion(finding.region));
+    } else {
+      scrollToRegion(finding.region);
+    }
+    // Scroll §3 to the added finding's first test card. Double-rAF
+    // waits for both expand commits + browser paint.
     const firstTestId = tests[0].testId;
     if (typeof requestAnimationFrame === "function") {
       requestAnimationFrame(() => requestAnimationFrame(() => scrollToCard(firstTestId)));
     } else {
       scrollToCard(firstTestId);
     }
-  }, [scrollToCard, ensureCatExpanded, ensureTestCardExpanded, activeRegionNumber, scrollToRegion]);
+  }, [scrollToCard, ensureCatExpanded, ensureTestCardExpanded, selection, scrollToRegion]);
+
+  // S163 B2b W2: Show all / Clear all writers.
+  // Show all  → mode 'all',    selected cleared, lastAdded null
+  //             (no specific focus when everything is showing).
+  // Clear all → mode 'subset', selected cleared, lastAdded null.
+  const onShowAll  = useCallback(() => {
+    setSelection({ mode: "all",    selected: new Set(), lastAdded: null });
+  }, []);
+  const onClearAll = useCallback(() => {
+    setSelection({ mode: "subset", selected: new Set(), lastAdded: null });
+  }, []);
 
   // Test-card severity-badge click. Routes the pulse back to the
   // finding's pill (global) or chip+region overlay (localised). The
@@ -289,14 +324,21 @@ export function ForensicsBody({
     trigger(...keys);
   }, [testToFinding, trigger]);
 
-  // S163 Phase 3b: derive the active finding from activeRegionNumber.
-  // The lookup matches against finding.regionNumber (localised findings
-  // only); when activeRegionNumber is null, activeFinding is null too,
-  // and FindingDetailPanel renders nothing.
-  const activeFinding = useMemo(() => {
-    if (activeRegionNumber == null) return null;
-    return findings.find(f => f.regionNumber === activeRegionNumber) || null;
-  }, [findings, activeRegionNumber]);
+  // S163 B2b: derive `activeFindings` (array) and `focusFinding`
+  // (single, the last-added) from selection state. `activeFindings`
+  // drives the data-block compositing in FindingDetailPanel /
+  // ExcerptTable; `focusFinding` drives the panel chrome (caption,
+  // per-test specialised builder key, auto-scroll target on add).
+  const activeFindings = useMemo(() => {
+    if (selection.mode === "all") return findings;
+    if (!selection.selected.size) return [];
+    return findings.filter(f => f.regionNumber != null && selection.selected.has(f.regionNumber));
+  }, [findings, selection]);
+
+  const focusFinding = useMemo(() => {
+    if (selection.lastAdded == null) return null;
+    return findings.find(f => f.regionNumber === selection.lastAdded) || null;
+  }, [findings, selection.lastAdded]);
 
   const catDescs = CATEGORY_SHORT_DESCRIPTIONS;
 
@@ -323,8 +365,11 @@ export function ForensicsBody({
       <StickySurface
         findings={findings}
         onActivateTest={onActivateTest}
-        activeRegionNumber={activeRegionNumber}
-        activeFinding={activeFinding}
+        selection={selection}
+        onShowAll={onShowAll}
+        onClearAll={onClearAll}
+        activeFindings={activeFindings}
+        focusFinding={focusFinding}
         heatmapProps={heatmapProps}
         dataExpanded={dataExpanded}
         onToggleDataExpanded={onToggleDataExpanded}

@@ -111,8 +111,20 @@ export function shouldRenderSticky(findings = []) {
 
 export function StickySurface({
   findings, onActivateTest,
-  activeRegionNumber = null,
-  activeFinding = null,
+  // S163 B2b: selection state replaces the single-scalar
+  // `activeRegionNumber`. Shape:
+  //   { mode: 'all' | 'subset', selected: Set<regionNumber>, lastAdded }
+  // - mode 'all'      → every finding contributes to the data-block
+  //                     overlay; chips/pills all render in active style.
+  // - mode 'subset'   → only `selected` contribute; chips/pills render
+  //                     active iff their regionNumber is in `selected`.
+  // - lastAdded       → drives panel chrome (caption + focus); null
+  //                     in all-on default and empty subset.
+  selection = { mode: 'all', selected: new Set(), lastAdded: null },
+  onShowAll = null,
+  onClearAll = null,
+  activeFindings = null,    // computed by ForensicsBody from selection + findings
+  focusFinding = null,      // last-added finding (drives panel chrome)
   heatmapProps = null,
   dataExpanded = false,
   onToggleDataExpanded = null,
@@ -131,6 +143,59 @@ export function StickySurface({
 
   const toggleId = useId();
   const dataReady = !!heatmapProps;
+
+  // S163 B2b: chip/pill active predicate folded over selection state.
+  //   mode 'all'    → every finding renders active.
+  //   mode 'subset' → only findings in selection.selected.
+  // Pills inherit the same predicate — dataset-wide pills participate
+  // in Model B per B2b (their whole-table treatment composites with
+  // localised fills in the data block).
+  const isFindingActive = (f) => {
+    if (f.regionNumber == null) return false;
+    if (selection.mode === "all") return true;
+    return selection.selected.has(f.regionNumber);
+  };
+
+  // S163 B2b W2: Show all / Clear all live alongside the lane chrome —
+  // two PERSISTENT controls (not one context-switching button) so
+  // direction can switch mid-investigation. Rendered only when there
+  // is at least one finding to act on, and only when at least one
+  // chip lane is mounted (no controls on the clean-state surface).
+  // Disabled state matches the current mode so the affordance reads
+  // as "you're already showing all" / "nothing to clear".
+  const showAllDisabled = selection.mode === "all";
+  const clearAllDisabled = selection.mode === "subset" && selection.selected.size === 0;
+  const controlBtnStyle = (disabled) => ({
+    background: "none",
+    border: "none",
+    padding: "2px 6px",
+    fontSize: FS.sm,
+    fontWeight: FW.NORM,
+    fontFamily: FF.UI,
+    color: disabled ? C.TEXT_3 : C.TEXT_2,
+    cursor: disabled ? "default" : "pointer",
+    textDecoration: disabled ? "none" : "underline",
+    textDecorationStyle: "dotted",
+    textUnderlineOffset: "3px",
+  });
+  const selectionControls = hasAnyChip ? (
+    <div style={{
+      display: "inline-flex", alignItems: "center", gap: "8px",
+      flexShrink: 0, marginLeft: "auto",
+    }}>
+      <button
+        onClick={() => !showAllDisabled && onShowAll?.()}
+        disabled={showAllDisabled}
+        style={controlBtnStyle(showAllDisabled)}
+      >Show all</button>
+      <span style={{ color: C.TEXT_3, fontSize: FS.sm }}>·</span>
+      <button
+        onClick={() => !clearAllDisabled && onClearAll?.()}
+        disabled={clearAllDisabled}
+        style={controlBtnStyle(clearAllDisabled)}
+      >Clear all</button>
+    </div>
+  ) : null;
 
   // S126b add-7b: rendered as a flat-top continuation of the
   // <Section flatBottom> sibling above. Same BG_ZONE bg + matching
@@ -178,15 +243,18 @@ export function StickySurface({
                 key={f.id}
                 finding={f}
                 onActivate={onActivateTest}
-                // S163 B2a: pills activate the panel for the dataset-
-                // wide locality tier. Ring uses the same active-id
-                // guard as chips below — defensively `!= null` (with
-                // numbering widened to all findings in B2a there is
-                // always an id, but the guard stays for parity).
-                isActive={f.regionNumber != null && f.regionNumber === activeRegionNumber}
+                // S163 B2b: pills participate in Model B alongside chips.
+                // Active iff selection.mode === 'all' OR
+                // selection.selected has the pill's regionNumber.
+                isActive={isFindingActive(f)}
               />
             ))}
           </div>
+          {/* Show all / Clear all anchored to the first lane row so the
+              controls live with the lane chrome rather than spawning a
+              new sticky row (no added vertical burden). When pills are
+              the only lane, this is the only place the controls render. */}
+          {selectionControls}
         </div>
       )}
       {localisedChips.length > 0 && (
@@ -202,16 +270,14 @@ export function StickySurface({
                 key={f.id}
                 finding={f}
                 onActivate={onActivateTest}
-                // S163 B1: require non-null regionNumber for the active
-                // ring. Column-only findings (Selective Noise Partitioning,
-                // locality === "column-local") carry regionNumber=null;
-                // without this guard the bare `=== activeRegionNumber`
-                // would resolve `null === null` to true and ring them as
-                // always-active when no other chip is selected.
-                isActive={f.regionNumber != null && f.regionNumber === activeRegionNumber}
+                isActive={isFindingActive(f)}
               />
             ))}
           </div>
+          {/* Show all / Clear all on the Localised lane row when the
+              pills lane is absent — otherwise the pills lane already
+              hosts the controls. */}
+          {pills.length === 0 && selectionControls}
         </div>
       )}
       {/* S163 B1: fallback chips are findings with locality === "unscoped"
@@ -231,10 +297,13 @@ export function StickySurface({
                 key={f.id}
                 finding={f}
                 onActivate={onActivateTest}
-                isActive={f.regionNumber != null && f.regionNumber === activeRegionNumber}
+                isActive={isFindingActive(f)}
               />
             ))}
           </div>
+          {/* Show all / Clear all on the Fallback lane row only when
+              neither pills nor localised chips ran before us. */}
+          {pills.length === 0 && localisedChips.length === 0 && selectionControls}
         </div>
       )}
 
@@ -267,15 +336,32 @@ export function StickySurface({
         </button>
       )}
 
-      {/* Data block — vertical minimap + ExcerptTable side-by-side
-          in compactMode. Mount is gated on the parent's
-          dataExpanded state. Filtering of the minimap + cell
-          highlights to the active region happens inside
-          FindingDetailPanel based on the `finding` prop. */}
-      {dataReady && dataExpanded && (
-        <div id={`${toggleId}-block`}>
+      {/* Data block — vertical minimap + ExcerptTable side-by-side in
+          compactMode. S163 B2b W6: always mounted via a max-height
+          transition rather than mount/unmount on dataExpanded. The
+          old conditional mount caused position:sticky reflow jank on
+          collapse (fix-pass A item 7 diagnosed-deferred). Wrapper
+          owns the transition; FindingDetailPanel renders inside it
+          unconditionally so the table + minimaps don't tear down /
+          rebuild on every collapse cycle. */}
+      {dataReady && (
+        <div
+          id={`${toggleId}-block`}
+          aria-hidden={!dataExpanded}
+          style={{
+            maxHeight: dataExpanded ? "600px" : "0px",
+            overflow: "hidden",
+            // Pointer events go through to children only when
+            // expanded; otherwise the collapsed panel can't capture
+            // clicks meant for siblings below.
+            pointerEvents: dataExpanded ? "auto" : "none",
+            transition: "max-height 220ms ease",
+          }}
+        >
           <FindingDetailPanel
-            finding={activeFinding}
+            activeFindings={activeFindings}
+            focusFinding={focusFinding}
+            selectionMode={selection.mode}
             heatmapProps={heatmapProps}
             hotspotScrollRef={hotspotScrollRef}
           />

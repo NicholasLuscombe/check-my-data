@@ -69,12 +69,26 @@ export function rscCellColor(intensity) {
 }
 
 // ── Empty spec (no highlighting) ────────────────────────────────────
-// S163 B2a: `localityRegion` carries the active finding's locality
-// dispatch (cell-band / row-band / column-band / whole-table). Built
-// once at spec time so renderCell does not re-derive per cell.
+// S163 B2a: `localityCompose` carries the multi-finding locality
+// dispatch (overlap counts + union border edges + whole-table flag).
+// Built once at spec time so renderCell does not re-derive per cell.
 // LOCALITY_WHOLE_TABLE_WASH is the wash applied across the data block
 // for the dataset-wide / unscoped tiers — re-exported here so the
 // renderer can paint without reaching back into heatmapColors.
+//
+// S163 B2b: `localityRegion` (single-finding shape) retired and
+// replaced by `localityCompose` (multi-finding shape). One active
+// finding is just the count=1 case of the compose object.
+const EMPTY_COMPOSE = Object.freeze({
+  hasWholeTable: false,
+  unionCells: new Set(),
+  unionRows: new Set(),
+  unionCols: new Set(),
+  countCells: new Map(),
+  countRows: new Map(),
+  countCols: new Map(),
+});
+
 const EMPTY_SPEC = Object.freeze({
   tintedVisCols: null,
   tintColor: null,
@@ -89,78 +103,100 @@ const EMPTY_SPEC = Object.freeze({
   dupGroupStyleMap: null,
   dupGroupTintMap: null,
   dupWithinRowMap: null,
-  localityRegion: null,
+  localityCompose: EMPTY_COMPOSE,
 });
 
 export { LOCALITY_WHOLE_TABLE_WASH };
 
 /**
- * Build a locality region for the active finding (S163 B2a W2 / W4).
- * Translates the finding's matrix-coord region into visible-coord sets
- * the renderer can hit-test cheaply, and tags the dispatch kind so the
- * renderer knows which extent + border treatment to apply.
+ * Build a multi-finding locality-compose object from a list of active
+ * findings (S163 B2b W3 / W4).
  *
- * Kinds:
- *   "cells"        — cell-local: each flagged cell gets fill + 4-sided
- *                     deeper-purple border.
- *   "row-band"     — row-local: every cell in flagged rows gets fill;
- *                     border on top + bottom edges of each contiguous run.
- *   "column-band"  — column-local: every cell in flagged cols gets fill;
- *                     border on left + right edges of each contiguous run.
- *   "whole-table"  — dataset-wide / unscoped: every data cell gets a
- *                     subtle uniform wash, no border.
+ * Returns:
+ *   hasWholeTable — true if any active finding is dataset-wide or unscoped.
+ *                   The renderer paints LOCALITY_WHOLE_TABLE_WASH on data
+ *                   cells whose localised count is zero (cells with at
+ *                   least one localised finding suppress the wash —
+ *                   localised fills composite over, never with, the wash).
+ *   unionCells / unionRows / unionCols — UNION of all active findings'
+ *                   visible-coord extents. The renderer draws the
+ *                   deeper-purple identity border at edges of these
+ *                   unions: cell-local cells get all four; row-band cells
+ *                   get top + bottom at run boundaries; column-band
+ *                   cells get left + right at run boundaries.
+ *                   Overlapping active regions produce a coincident
+ *                   union edge — interior boundaries don't paint.
+ *   countCells / countRows / countCols — per-axis ACTIVE-FINDING count.
+ *                   Sum across the three at a given cell = the total
+ *                   localised count on that cell, which keys into
+ *                   CONVERGENCE_RAMP for the fill intensity.
  *
- * Returns null when there is no active finding or the locality cannot be
- * classified — the renderer falls back to its no-active-finding path
- * (convergence density only).
+ * Cell-local findings contribute to unionCells + countCells (NOT to
+ * row / col unions or counts — the cell-local treatment is per-cell,
+ * not per-row / per-col, even if the cells happen to share rows).
+ * Row-local findings contribute to unionRows + countRows.
+ * Column-local findings contribute to unionCols + countCols.
+ * Whole-table findings only flip hasWholeTable; they don't paint
+ * borders or contribute to per-cell counts.
  */
-function buildLocalityRegion(finding, ctx) {
-  if (!finding) return null;
+function buildLocalityCompose(findings, ctx) {
+  if (!findings || !findings.length) return EMPTY_COMPOSE;
   const { rowMap, matColToVisCol, nVisRows } = ctx;
   const mapRow = (r) => (rowMap ? (rowMap[r] ?? r) : r);
   const mapCol = (c) => (matColToVisCol ? matColToVisCol[c] : c);
 
-  switch (finding.locality) {
-    case "cell-local": {
-      const visCells = new Set();
-      const visRows  = new Set();
-      const visCols  = new Set();
-      for (const [r, c] of finding.region?.cells || []) {
-        const vr = mapRow(r);
-        const vc = mapCol(c);
-        if (vr >= 0 && vr < nVisRows && vc != null) {
-          visCells.add(`${vr},${vc}`);
-          visRows.add(vr);
-          visCols.add(vc);
+  let hasWholeTable = false;
+  const unionCells = new Set();
+  const unionRows  = new Set();
+  const unionCols  = new Set();
+  const countCells = new Map();
+  const countRows  = new Map();
+  const countCols  = new Map();
+  const inc = (map, key) => map.set(key, (map.get(key) || 0) + 1);
+
+  for (const f of findings) {
+    switch (f.locality) {
+      case "cell-local": {
+        for (const [r, c] of f.region?.cells || []) {
+          const vr = mapRow(r);
+          const vc = mapCol(c);
+          if (vr >= 0 && vr < nVisRows && vc != null) {
+            const k = `${vr},${vc}`;
+            unionCells.add(k);
+            inc(countCells, k);
+          }
         }
+        break;
       }
-      if (!visCells.size) return null;
-      return { kind: "cells", visCells, visRows, visCols };
-    }
-    case "row-local": {
-      const visRows = new Set();
-      for (const r of finding.region?.rows || []) {
-        const vr = mapRow(r);
-        if (vr >= 0 && vr < nVisRows) visRows.add(vr);
+      case "row-local": {
+        for (const r of f.region?.rows || []) {
+          const vr = mapRow(r);
+          if (vr >= 0 && vr < nVisRows) {
+            unionRows.add(vr);
+            inc(countRows, vr);
+          }
+        }
+        break;
       }
-      if (!visRows.size) return null;
-      return { kind: "row-band", visRows };
-    }
-    case "column-local": {
-      const visCols = new Set();
-      for (const c of finding.region?.cols || []) {
-        const vc = mapCol(c);
-        if (vc != null) visCols.add(vc);
+      case "column-local": {
+        for (const c of f.region?.cols || []) {
+          const vc = mapCol(c);
+          if (vc != null) {
+            unionCols.add(vc);
+            inc(countCols, vc);
+          }
+        }
+        break;
       }
-      if (!visCols.size) return null;
-      return { kind: "column-band", visCols };
+      case "dataset-wide":
+      case "unscoped":
+        hasWholeTable = true;
+        break;
+      // No default — unknown localities contribute nothing.
     }
-    case "dataset-wide":
-    case "unscoped":
-      return { kind: "whole-table" };
-    default:
-      return null;
   }
+
+  return { hasWholeTable, unionCells, unionRows, unionCols, countCells, countRows, countCols };
 }
 
 // ── Shared IRC pair classification ──────────────────────────────────
@@ -484,29 +520,40 @@ const BUILDERS = {
 };
 
 /**
- * Build the highlight specification for the active test.
+ * Build the highlight specification for the active selection.
  *
- * @param {string|null} testKey - Active test name, or null for no highlight
+ * @param {string|null} testKey - Active test name (drives per-test
+ *                                specialised builders); typically the
+ *                                last-added finding's first testId in
+ *                                B2b multi-select.
  * @param {object[]|null} results - Test result array from engine
  * @param {object} ctx - Context: { dColMap, visColIndices, condPerCol,
  *                                    rowMap, nVisRows, matColToVisCol,
- *                                    groups, activeFinding? }
- *                       activeFinding: the active §2 finding object (S163
- *                       B2a). Read for finding.locality to dispatch the
- *                       table highlight extent — cell / row-band /
- *                       column-band / whole-table. When null, no locality
- *                       dispatch is layered.
+ *                                    groups, activeFindings? }
+ *                       activeFindings: array of active §2 findings
+ *                       (S163 B2b multi-select). Each finding's
+ *                       locality contributes to the spec's
+ *                       `localityCompose` per buildLocalityCompose.
+ *                       Empty array → no locality dispatch layered.
  * @returns {HighlightSpec}
  */
 export function buildHighlightSpec(testKey, results, ctx) {
-  // S163 B2a: locality dispatch needs to layer even on the empty-builder
-  // paths (no test key, no results). Compute the region first; the
+  // S163 B2a / B2b: locality dispatch layers even on the empty-builder
+  // paths (no test key, no results). Compute the compose first; the
   // builder-driven body still short-circuits to EMPTY_SPEC's fields when
   // there is nothing to paint test-specifically.
-  const localityRegion = buildLocalityRegion(ctx.activeFinding, ctx);
-  if (!testKey) return { ...EMPTY_SPEC, localityRegion };
-  if (!results) return { ...EMPTY_SPEC, localityRegion };
+  //
+  // `dimUncovered` is true when the user has expressed targeted interest
+  // (subset mode with ≥1 active finding) — cells outside the active
+  // coverage dim to focus attention. In all-on mode dimUncovered stays
+  // false even with findings active: the message is "show me everything",
+  // and dimming the few uncovered cells would contradict that.
+  const localityCompose = buildLocalityCompose(ctx.activeFindings, ctx);
+  const dimUncovered = !!ctx.dimUncovered;
+  const composed = { ...localityCompose, dimUncovered };
+  if (!testKey) return { ...EMPTY_SPEC, localityCompose: composed };
+  if (!results) return { ...EMPTY_SPEC, localityCompose: composed };
   const builder = BUILDERS[testKey] || buildGenericSpec;
   const spec = builder(results, ctx);
-  return { ...spec, localityRegion };
+  return { ...spec, localityCompose: composed };
 }

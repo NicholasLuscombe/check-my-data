@@ -10,6 +10,7 @@
 import { C, FS, FW, FF, CR, SEV_VERDICT, MECH_COLOR } from "../../constants/tokens.js";
 import { TEST_MECHANISM } from "../../constants/mechanisms.js";
 import { MechIcon, mechIconSize } from "../shared/MechIcon.jsx";
+import { IDENTITY_BORDER } from "../shared/heatmapColors.js";
 import { usePulseTrigger } from "./pulseContext.jsx";
 import { usePulseAnimation } from "./PulseStyle.jsx";
 
@@ -77,11 +78,13 @@ export function FindingPill({ finding, onActivate, isActive = false }) {
         maxWidth: "100%",
         overflow: "hidden",
         textOverflow: "ellipsis",
-        // S163 B2a: dataset-wide pill activates the panel (whole-table
-        // wash + caption). Active pill rings in the severity colour,
-        // matching FindingChip — outline (not border) avoids layout
-        // shift on activation.
-        outline: isActive ? `2px solid ${sev.sevColor}` : "none",
+        // S163 B2b W4: active pill rings in the deeper-purple
+        // IDENTITY_BORDER — same token chips use, same purple as the
+        // cell borders in the data block. Wires the pill visually to
+        // its whole-table wash + per-finding caption. Mechanism stripe
+        // (borderLeft above) preserved; see FindingChip for the
+        // mechanism-stripe / purple-ring co-existence note.
+        outline: isActive ? `2px solid ${IDENTITY_BORDER}` : "none",
         outlineOffset: isActive ? "1px" : 0,
       }}
     >

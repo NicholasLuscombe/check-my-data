@@ -114,7 +114,22 @@ function buildMatColToVisCol(visColIndices) {
 const DATA_BLOCK_HEIGHT = 250;
 
 export function FindingDetailPanel({
-  finding,
+  // S163 B2b: the panel now operates on multi-select state.
+  //   activeFindings  — array of currently-active findings (drives the
+  //                     data-block compositing via spec.localityCompose).
+  //   focusFinding    — the last-added finding; drives the panel chrome
+  //                     (caption + activeTestKey for any per-test
+  //                     specialised builder). null when the active set
+  //                     is empty (subset mode, no selection) or when
+  //                     none of the active findings is "last-added"
+  //                     (all-on mode at panel-expand time).
+  //   selectionMode   — 'all' | 'subset'. dimUncovered fires in subset
+  //                     mode with at least one selected finding;
+  //                     all-on suppresses dim so the message reads as
+  //                     "show me everything".
+  activeFindings = null,
+  focusFinding = null,
+  selectionMode = "all",
   heatmapProps = null,
   hotspotScrollRef = null,
 }) {
@@ -123,14 +138,23 @@ export function FindingDetailPanel({
     [heatmapProps?.convergence]
   );
 
-  // Single-test ID filter for the minimaps. Set is built from
-  // finding.tests when the chip is localised; otherwise null
-  // (no filter → aggregated overlap view).
+  // Test ID filter for the minimaps. In subset mode with at least one
+  // localised active finding, narrow to the union of those findings'
+  // test ids so the minimap shading reflects the active selection. In
+  // all-on mode (or empty subset), no filter — the minimaps show full
+  // dataset convergence density.
   const activeFindingTests = useMemo(() => {
-    if (!finding || !isLocalisedChip(finding)) return null;
-    const ids = (finding.tests || []).map(t => t.testId).filter(Boolean);
-    return ids.length ? new Set(ids) : null;
-  }, [finding]);
+    if (selectionMode !== "subset") return null;
+    if (!activeFindings || !activeFindings.length) return null;
+    const ids = new Set();
+    for (const f of activeFindings) {
+      if (!isLocalisedChip(f)) continue;
+      for (const t of f.tests || []) {
+        if (t.testId) ids.add(t.testId);
+      }
+    }
+    return ids.size ? ids : null;
+  }, [selectionMode, activeFindings]);
 
   const matColToVisCol = useMemo(
     () => buildMatColToVisCol(heatmapProps?.visColIndices),
@@ -177,10 +201,21 @@ export function FindingDetailPanel({
 
   if (!heatmapProps) return null;
 
-  const localised = finding && isLocalisedChip(finding);
+  // Focus drives the panel chrome: caption + region scroll + per-test
+  // specialised builder key (activeTestKey). The data block composites
+  // the FULL active selection, but only the last-added finding gets
+  // its caption / per-test paint highlighted — consistent with the
+  // scroll-on-add-only model and avoids stacking N captions when
+  // multiple findings are active.
+  const focusLocalised = focusFinding && isLocalisedChip(focusFinding);
   const nVisRows = heatmapProps.rawData?.length || 0;
   const nVisCols = heatmapProps.visColIndices?.length || 0;
-  const caption = guidanceCaption(finding);
+  const caption = guidanceCaption(focusFinding);
+  // dimUncovered: subset mode + at least one selection. Threaded to
+  // buildHighlightSpec via ExcerptTable's ctx so cells outside the
+  // active coverage demote when the user has narrowed focus, but
+  // stay full-strength when the message is "show me everything".
+  const dimUncovered = selectionMode === "subset" && (activeFindings?.length || 0) > 0;
 
   return (
     <div style={{
@@ -273,9 +308,20 @@ export function FindingDetailPanel({
             findings={heatmapProps.findings}
             colMaxLen={heatmapProps.colMaxLen}
             groupMarkerMap={groupMarkerMap}
-            region={localised ? finding.region : null}
-            activeTestKey={finding ? (finding.tests?.[0]?.testId || null) : null}
-            activeFinding={finding}
+            // region drives the auto-scroll-to-rowRange on mount. Use
+            // the focused finding so the panel lands on the last-added
+            // finding's region when a new chip joins the active set.
+            region={focusLocalised ? focusFinding.region : null}
+            // activeTestKey points the per-test specialised builders
+            // (RSC, IRC, LOESS, DupDet, Mahalanobis) at the focused
+            // finding — when those builders fire (modal-era / back-
+            // compat shim path), the focused finding's per-test colour
+            // wins. In the panel mount these builders degenerate to
+            // EMPTY_SPEC anyway (no `results` threaded), but threading
+            // a value here keeps the dim-uncovered predicate firing.
+            activeTestKey={focusFinding ? (focusFinding.tests?.[0]?.testId || null) : null}
+            activeFindings={activeFindings}
+            dimUncovered={dimUncovered}
             compactMode={true}
             onScrollContainerReady={onScrollContainerReady}
             hotspotScrollRef={hotspotScrollRef}

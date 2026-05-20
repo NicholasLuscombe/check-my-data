@@ -98,11 +98,19 @@ export const IDENTITY_BORDER = ACCENT.PURPLE.text;
 // so it reads as a wash, not an unintended density signal.
 export const LOCALITY_WHOLE_TABLE_WASH = "rgba(139, 92, 246, 0.08)";
 
-/** Get { color, opacity } for a convergence flag count (detail table cells) */
+/** Get { color, opacity } for a convergence flag count (detail table cells).
+ *  S163 B2b: floor lift — count=1 opacity 0.35 → 0.55, count=2 0.55 → 0.7,
+ *  count=3+ 0.75 → 0.85. The pre-B2b count=1 swatch sat too close to the
+ *  LOCALITY_WHOLE_TABLE_WASH (0.08 alpha) — a lone-test active finding on a
+ *  cell read as barely-tinted, indistinguishable from the wash. The lift
+ *  preserves the step-by-step gradient (count=1 still visibly lighter than
+ *  count=2, etc.) while pulling the bottom clear of the wash. Applies to
+ *  the no-active-finding resting state too — convergence density at count=1
+ *  was undersold pre-B2b. */
 export function convergenceRampStyle(count) {
   if (count <= 0) return null;
   const idx = Math.min(count, CONVERGENCE_RAMP.length - 1);
-  const opacity = count === 1 ? 0.35 : count === 2 ? 0.55 : 0.75;
+  const opacity = count === 1 ? 0.55 : count === 2 ? 0.7 : 0.85;
   return { color: CONVERGENCE_RAMP[idx], opacity };
 }
 

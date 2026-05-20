@@ -197,57 +197,51 @@ function IrcBracketStrip({ brackets, colEntries, hasMarker, tableRef, onHeightCh
   );
 }
 
-// ── Locality dispatch helpers (S163 B2a) ────────────────────────────
-// spec.localityRegion has kinds: "cells" | "row-band" | "column-band" |
-// "whole-table". The first three are extent claims about a specific
-// region; whole-table is the no-specific-region treatment for
-// dataset-wide / unscoped findings.
+// ── Locality dispatch helpers (S163 B2a / B2b) ──────────────────────
+// spec.localityCompose carries the multi-finding overlay information:
+//   - hasWholeTable: any active finding is dataset-wide / unscoped
+//   - unionCells / unionRows / unionCols: union extents for border edges
+//   - countCells / countRows / countCols: per-axis active-finding counts
+// The fill intensity at (ri, vi) reads the CONVERGENCE_RAMP at
+// `countCells + countRows + countCols` (overlapping localities
+// intensify); whole-table wash composites under localised fills only
+// on cells with zero localised count.
 
 const IDENTITY_BORDER_W = "1.5px";
 
-/** True when (ri, vi) is inside the active finding's locality region.
- *  Whole-table mode returns false here — the caller handles whole-table
- *  via a separate path (every data cell, no per-cell edge logic). */
-function isInLocalityRegion(loc, ri, vi) {
-  if (!loc) return false;
-  switch (loc.kind) {
-    case "cells":       return loc.visCells.has(`${ri},${vi}`);
-    case "row-band":    return loc.visRows.has(ri);
-    case "column-band": return loc.visCols.has(vi);
-    default:            return false;
-  }
+/** Identity-border edges at (ri, vi). Painted at the union boundary so
+ *  overlapping active findings collapse into a single outer outline —
+ *  not a per-finding stack. Cell-local cells contribute via unionCells
+ *  (4-sided per flagged cell); row-band cells via unionRows (top /
+ *  bottom at run boundaries); column-band cells via unionCols (left /
+ *  right at run boundaries). The three may layer (e.g. a cell-local
+ *  cell also inside a row-band gets all 4 from cell-local + same top /
+ *  bottom from row-band; result is still all 4). */
+function composeBorderEdges(compose, ri, vi) {
+  if (!compose) return null;
+  const key = `${ri},${vi}`;
+  const inCell = compose.unionCells.has(key);
+  const inRow  = compose.unionRows.has(ri);
+  const inCol  = compose.unionCols.has(vi);
+  if (!inCell && !inRow && !inCol) return null;
+  return {
+    top:    inCell || (inRow && !compose.unionRows.has(ri - 1)),
+    bottom: inCell || (inRow && !compose.unionRows.has(ri + 1)),
+    left:   inCell || (inCol && !compose.unionCols.has(vi - 1)),
+    right:  inCell || (inCol && !compose.unionCols.has(vi + 1)),
+  };
 }
 
-/** Edges of the active region at (ri, vi). cell-local cells get all 4
- *  edges (each flagged cell is its own micro-region). row-band cells
- *  get top / bottom only at run boundaries → continuous horizontal
- *  band. column-band cells get left / right only at run boundaries →
- *  continuous vertical band. */
-function localityBorderEdges(loc, ri, vi) {
-  if (!loc) return null;
-  if (loc.kind === "cells") {
-    if (!loc.visCells.has(`${ri},${vi}`)) return null;
-    return { top: true, bottom: true, left: true, right: true };
-  }
-  if (loc.kind === "row-band") {
-    if (!loc.visRows.has(ri)) return null;
-    return {
-      top:    !loc.visRows.has(ri - 1),
-      bottom: !loc.visRows.has(ri + 1),
-      left:   false,
-      right:  false,
-    };
-  }
-  if (loc.kind === "column-band") {
-    if (!loc.visCols.has(vi)) return null;
-    return {
-      top:    false,
-      bottom: false,
-      left:   !loc.visCols.has(vi - 1),
-      right:  !loc.visCols.has(vi + 1),
-    };
-  }
-  return null;
+/** Per-cell active localised-finding count. Sum across the three axis
+ *  maps — each active cell-local / row-local / column-local finding
+ *  contributes one to its respective map at the cells it covers.
+ *  Whole-table findings do NOT contribute here; their treatment is the
+ *  background wash on cells with zero localised count. */
+function composeCellCount(compose, ri, vi) {
+  if (!compose) return 0;
+  return (compose.countCells.get(`${ri},${vi}`) || 0)
+       + (compose.countRows.get(ri) || 0)
+       + (compose.countCols.get(vi) || 0);
 }
 
 // ── Coordinate helpers ──────────────────────────────────────────────
@@ -637,15 +631,23 @@ export function ExcerptTable({
   convergence, rawData, rowMap, colHeaders, visColIndices, dColMap, roles, coordCtx, condPerCol,
   activeTestKey = null, groupMarkerMap = null, middleContent = null, onScrollReady = null,
   results = null,
-  // S163 B2a: the active §2 finding (or null). Threaded so buildHighlightSpec
-  // can dispatch the table highlight extent on finding.locality —
-  // cell-local → individual cells, row-local → row-band, column-local →
-  // column-band, dataset-wide / unscoped → whole-table wash. The activeTestKey
-  // prop above continues to drive dimming and per-test specialised builders
-  // (IRC, RSC, LOESS, DupDet, Mahalanobis); the locality dispatch layers on
-  // top via the spec's `localityRegion` for the generic-builder paint extent
-  // and the deeper-purple identity border.
-  activeFinding = null,
+  // S163 B2b: the active §2 findings (multi-select). buildHighlightSpec
+  // composes per-finding locality dispatch into a unified
+  // `localityCompose` (overlap counts + union border edges + whole-table
+  // flag). Empty array → no locality dispatch layered.
+  //
+  // activeTestKey above continues to drive dimming and per-test
+  // specialised builders (IRC, RSC, LOESS, DupDet, Mahalanobis); the
+  // locality dispatch layers on top. In multi-select, activeTestKey is
+  // the last-added finding's first testId — keeps per-test builders
+  // pointed at the focused finding while compositing the data block
+  // across the full active set.
+  activeFindings = null,
+  // dimUncovered: subset mode with active findings → cells outside
+  // the active coverage demote to focus attention. Passed through
+  // to buildHighlightSpec via ctx; threaded onto spec.localityCompose
+  // for renderCell to consume.
+  dimUncovered = false,
   // Per-raw-column-index max formatted-string length (S163 A1.D3 final
   // pass) — feeds the content-aware column-width derivation. When
   // supplied, the colEntries below set a per-column `width` field that
@@ -860,9 +862,9 @@ export function ExcerptTable({
   const spec = useMemo(
     () => buildHighlightSpec(activeTestKey, results, {
       dColMap, visColIndices, condPerCol, rowMap, nVisRows, matColToVisCol, groups,
-      activeFinding,
+      activeFindings, dimUncovered,
     }),
-    [activeTestKey, results, dColMap, visColIndices, condPerCol, rowMap, nVisRows, matColToVisCol, groups, activeFinding]
+    [activeTestKey, results, dColMap, visColIndices, condPerCol, rowMap, nVisRows, matColToVisCol, groups, activeFindings, dimUncovered]
   );
 
   // Compute exact table width as sum of col widths (for tableLayout:fixed)
@@ -1372,25 +1374,48 @@ export function ExcerptTable({
                 ? convergenceCellBg(cell) : null;
               const hasHeat = heatBg && heatBg.backgroundColor;
 
-              // ── S163 B2a: locality dispatch ──
-              // spec.localityRegion describes the active finding's extent.
-              // - cells / row-band / column-band: cells in-region get a
-              //   deeper-purple IDENTITY_BORDER on the appropriate edges
-              //   (4-sided per flagged cell, top+bottom for row-band runs,
-              //   left+right for column-band runs). Fill comes from the
-              //   per-test specialised builder when one painted; else
-              //   from HIGHLIGHT_TINT via genericHighlight; else from the
-              //   convergence heat. The dim path (cells outside the
-              //   region) keeps existing behaviour.
-              // - whole-table: dataset-wide / unscoped finding. Every
-              //   data cell gets LOCALITY_WHOLE_TABLE_WASH and the dim
-              //   path is suppressed — the wash IS the "couldn't
-              //   isolate" treatment, no per-cell border.
-              const locality = spec.localityRegion;
-              const wholeTableWash = isData && locality?.kind === "whole-table";
-              const borderEdges = isData && locality && locality.kind !== "whole-table"
-                ? localityBorderEdges(locality, ri, vi)
+              // ── S163 B2b: multi-finding locality compositing ──
+              // spec.localityCompose carries the union / count info
+              // across the active selection. Three layers:
+              //
+              //   1. Localised fill: cellCount = sum of cell-local +
+              //      row-local + column-local active findings flagging
+              //      this cell. >0 → paint the convergence ramp keyed
+              //      on cellCount. Overlap intensifies — two findings
+              //      on one cell read a step deeper than one.
+              //   2. Whole-table wash: hasWholeTable && cellCount === 0
+              //      → paint LOCALITY_WHOLE_TABLE_WASH. Cells with
+              //      localised count > 0 never read the wash —
+              //      localised fill is always on top.
+              //   3. Identity border: deeper-purple inset shadow at the
+              //      UNION boundary across active localised findings
+              //      (computed in composeBorderEdges). Overlapping
+              //      regions coincide rather than stack.
+              const compose = spec.localityCompose;
+              const cellCount = isData ? composeCellCount(compose, ri, vi) : 0;
+              const localisedActive = cellCount > 0;
+              const wholeTableWash = isData && compose?.hasWholeTable && !localisedActive;
+              const localisedFillStyle = localisedActive ? convergenceRampStyle(cellCount) : null;
+              const localisedFill = localisedFillStyle
+                ? { backgroundColor: localisedFillStyle.color, opacity: localisedFillStyle.opacity }
                 : null;
+              const borderEdges = isData ? composeBorderEdges(compose, ri, vi) : null;
+
+              // S163 B2b: compose-driven dim. `dimmed` (computed above
+              // from spec.dimNonRelevant + activeTestKey + convergence
+              // grid) gates on a single test key; in multi-select that
+              // gating dilutes — the locality compose's
+              // `dimUncovered + cellCount` is the load-bearing
+              // predicate. When dimUncovered is true and this data
+              // cell has no active localised count AND no whole-table
+              // coverage, render dimmed; otherwise honour the locality
+              // fills below. The single-test `dimmed` predicate stays
+              // for back-compat on non-panel mounts (modal-era shim)
+              // where compose is empty.
+              const composeDim = isData
+                && compose?.dimUncovered
+                && !localisedActive
+                && !compose?.hasWholeTable;
 
               // Background priority stack
               const baseBg = specCellBg
@@ -1404,9 +1429,12 @@ export function ExcerptTable({
               // Changepoint border (LOESS)
               const isCpRow = spec.changepointVisRows?.includes(ri);
 
-              // Text color + weight
-              const textColor = wholeTableWash ? C.TEXT
-                : dimmed ? "#CCC"
+              // Text color + weight. S163 B2b: localised-active and
+              // whole-table-wash both render at C.TEXT (readable),
+              // composeDim and legacy `dimmed` both render at #CCC.
+              const isDimmedFinal = composeDim || (dimmed && !localisedActive && !wholeTableWash);
+              const textColor = (localisedActive || wholeTableWash) ? C.TEXT
+                : isDimmedFinal ? "#CCC"
                 : specCellText ? specCellText
                 : (cellHighlighted && !spec.boldRelevant) ? "#CCC"   // Mahalanobis-style
                 : (cellHighlighted && spec.boldRelevant) ? C.TEXT
@@ -1414,8 +1442,14 @@ export function ExcerptTable({
                 : ROLE_COLOR[col.role] || C.TEXT_3;
               const fontWeight = (cellHighlighted && spec.boldRelevant) ? FW.SEMI : undefined;
 
-              const finalBg = wholeTableWash ? LOCALITY_WHOLE_TABLE_WASH
-                : dimmed ? C.WHITE
+              // Background priority: localised fill > wash > dim >
+              // existing baseBg / heat. localisedFill has both color
+              // and opacity (from CONVERGENCE_RAMP via
+              // convergenceRampStyle), so it's spread as a
+              // backgroundColor + opacity tuple at the style level.
+              const finalBg = localisedActive ? localisedFill.backgroundColor
+                : wholeTableWash ? LOCALITY_WHOLE_TABLE_WASH
+                : isDimmedFinal ? C.WHITE
                 : hasHeat ? undefined
                 : baseBg;
               // Defensive content-min-width (S163 A1.D3 sign-clip fix).
@@ -1431,20 +1465,39 @@ export function ExcerptTable({
               const colW = colMaxLen && colMaxLen[colEntry.rawCI] > 0
                 ? colWidthFromMaxLen(colMaxLen[colEntry.rawCI])
                 : null;
-              // S163 B2a W4: deeper-purple identity border on the active
-              // finding's region. Per-edge so row-band / column-band
-              // appear as continuous bands. Applied LAST so it wins
-              // over the changepoint dashed border (LOESS still has its
-              // own row-band paint via spec.rowTint; on the rare overlap
-              // the identity border is the more load-bearing signal).
+              // S163 B2b STEP 0: identity border is a NO-LAYOUT
+              // mechanism — inset box-shadow per edge. B2a used
+              // content-box border properties, which consumed pixels
+              // off the cell's interior and clipped the last digit of
+              // values formatted to exact width (the ExcerptTable
+              // colgroup is shared with ImportView's preview, so
+              // widening columns is not an option). Inset shadows
+              // paint inside the border-box without affecting layout.
+              // Composed into ONE comma-separated boxShadow value so
+              // multi-edge findings (cell-local: all four; row-band
+              // top+bottom; column-band left+right) render in a single
+              // style declaration.
+              const identityShadowParts = [];
+              if (borderEdges?.top)    identityShadowParts.push(`inset 0  ${IDENTITY_BORDER_W} 0 0 ${IDENTITY_BORDER}`);
+              if (borderEdges?.bottom) identityShadowParts.push(`inset 0 -${IDENTITY_BORDER_W} 0 0 ${IDENTITY_BORDER}`);
+              if (borderEdges?.left)   identityShadowParts.push(`inset  ${IDENTITY_BORDER_W} 0 0 0 ${IDENTITY_BORDER}`);
+              if (borderEdges?.right)  identityShadowParts.push(`inset -${IDENTITY_BORDER_W} 0 0 0 ${IDENTITY_BORDER}`);
+              const identityShadow = identityShadowParts.length ? identityShadowParts.join(", ") : null;
               return {
                 content: displayVal,
                 style: {
                   ...base, color: textColor, background: finalBg,
+                  ...(localisedFill ? { opacity: localisedFill.opacity } : {}),
                   ...(fontWeight ? { fontWeight } : {}),
                   ...(hasHeat ? heatBg : {}),
                   ...(isCpRow ? { borderBottom: `2px dashed ${SIGNAL.RED.dot}` } : {}),
-                  ...(isFrozen ? { background: wholeTableWash ? LOCALITY_WHOLE_TABLE_WASH : dimmed ? C.WHITE : hasHeat ? heatBg.backgroundColor : baseBg } : {}),
+                  ...(isFrozen ? {
+                    background: localisedActive ? localisedFill.backgroundColor
+                      : wholeTableWash ? LOCALITY_WHOLE_TABLE_WASH
+                      : isDimmedFinal ? C.WHITE
+                      : hasHeat ? heatBg.backgroundColor
+                      : baseBg,
+                  } : {}),
                   // S163 A1.D3 density pass: tighten cell vertical padding
                   // inside the sticky-surface data block (compactMode) so
                   // body rows render at ~22 px (down from 26.5 px) and
@@ -1454,10 +1507,7 @@ export function ExcerptTable({
                   // DupDet excerpt, modal-era shim).
                   ...(compactMode ? { padding: COMPACT_CELL_PADDING } : {}),
                   ...(colW != null ? { minWidth: colW } : {}),
-                  ...(borderEdges?.top    ? { borderTop:    `${IDENTITY_BORDER_W} solid ${IDENTITY_BORDER}` } : {}),
-                  ...(borderEdges?.bottom ? { borderBottom: `${IDENTITY_BORDER_W} solid ${IDENTITY_BORDER}` } : {}),
-                  ...(borderEdges?.left   ? { borderLeft:   `${IDENTITY_BORDER_W} solid ${IDENTITY_BORDER}` } : {}),
-                  ...(borderEdges?.right  ? { borderRight:  `${IDENTITY_BORDER_W} solid ${IDENTITY_BORDER}` } : {}),
+                  ...(identityShadow ? { boxShadow: identityShadow } : {}),
                 },
               };
             }}
