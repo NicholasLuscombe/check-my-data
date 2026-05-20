@@ -1,38 +1,31 @@
-/* ── MinimapStripVertical — A1.D3 row-axis density strip (S163) ──
+/* ── MinimapStripVertical — A1.D3 row-axis density + viewport band (S163) ──
    Renders a vertical strip of per-vis-row flag-density shading driven
-   by the convergence grid, plus an active-window highlight band that
-   marks the currently-windowed row range in the bounded ExcerptTable
-   below.
+   by the convergence grid, plus a viewport-indicator band that tracks
+   the scroll position of the table to its right. Click + drag on the
+   strip writes scrollTop on the table, scrolling it to that position.
 
    S163 Phase 3a authored the component. Fix-pass 1 dropped the [N]
-   numeric label on region badges (became coloured squares). Fix-pass 2
-   retires the region anchor badges entirely (and the tick lines they
-   anchored to) — the chip ring in the lane row carries the active-
-   region cue, and the strip itself becomes the scrubber. Click +
-   drag on the strip moves the windowed range in the table.
+   numeric label on region badges. Fix-pass 2 turned the strip into a
+   scrubber (clientY → windowRowStart). The virtualisation rework
+   replaces the scrubber model with the bidirectional scrollTop ↔
+   viewport-band coordination that internal SegmentMinimap uses — the
+   table-coupled VS-Code-minimap idiom.
 
    Render contract:
-     - SVG viewBox `0 0 ${STRIP_W} ${nVisRows}`
-     - preserveAspectRatio="none" stretches the row axis to container
+     - SVG viewBox `0 0 ${STRIP_W} ${nVisRows}` with
+       preserveAspectRatio="none". Stretches the row axis to container
        height so 1 row = 1/nVisRows of container regardless of dataset
        row count.
-     - Per-vis-row rects span the strip width (x=0, width=STRIP_W) and
-       are 1 viewBox unit tall. Filled per buildPerVisRowMax via
-       convergenceMinimapStyle.
-     - Active-window highlight band: a translucent overlay rect at
-       [windowRowStart, windowRowStart + windowRowSize) on the row
-       axis. Spans the strip's full width.
-     - Click + drag on the strip area writes windowRowStart via the
-       parent's onWindowChange callback. clientY → fraction → row
-       index, clamped so the window stays inside [0, nVisRows -
-       windowRowSize].
+     - Per-vis-row rects filled per buildPerVisRowMax →
+       convergenceMinimapStyle. activeFindingTests Set narrows to a
+       single test when supplied.
+     - Viewport band: translucent rect at `[viewFrac[0]*stripH,
+       viewFrac[1]*stripH)` driven by tableRef.scrollTop /
+       scrollHeight + clientHeight / scrollHeight.
+     - Click + drag → tableRef.scrollTop = frac * scrollableH so the
+       click position lands at the viewport top. */
 
-   Shared row-axis helpers live in minimapDerivation.js (buildPerVisRowMax,
-   deriveOverlays). deriveOverlays is retained for future surfaces but
-   no longer consumed here — overlays render decisively retired from
-   this component. */
-
-import { useMemo, useCallback, useRef, useEffect } from "react";
+import { useMemo, useCallback, useRef, useState, useEffect } from "react";
 import { C, CR } from "../../constants/tokens.js";
 import { convergenceMinimapStyle } from "../shared/heatmapColors.js";
 import { buildPerVisRowMax } from "./minimapDerivation.js";
@@ -42,9 +35,7 @@ const STRIP_W = 32;
 export function MinimapStripVertical({
   convergence, rowMap, nVisRows,
   activeFindingTests = null,
-  windowRowStart = 0,
-  windowRowSize = null,
-  onWindowChange = null,
+  tableEl = null,
 }) {
   const grid = convergence?.grid || null;
   const perRow = useMemo(
@@ -54,33 +45,63 @@ export function MinimapStripVertical({
 
   const containerRef = useRef(null);
   const draggingRef = useRef(false);
+  const [viewFrac, setViewFrac] = useState([0, 1]);
 
-  // Convert a clientY to a windowRowStart value. Centres the window on
-  // the click position and clamps to stay within [0, nVisRows - windowRowSize].
-  const yToWindowStart = useCallback((clientY) => {
-    const el = containerRef.current;
-    if (!el || !onWindowChange || windowRowSize == null) return;
-    const rect = el.getBoundingClientRect();
-    if (rect.height <= 0) return;
-    const frac = Math.max(0, Math.min(1, (clientY - rect.top) / rect.height));
-    const stripH = Math.max(nVisRows, 1);
-    const centre = frac * stripH;
-    let start = Math.floor(centre - windowRowSize / 2);
-    const maxStart = Math.max(0, nVisRows - windowRowSize);
-    start = Math.max(0, Math.min(maxStart, start));
-    onWindowChange(start);
-  }, [onWindowChange, windowRowSize, nVisRows]);
-
-  const handleMouseDown = useCallback((e) => {
-    if (!onWindowChange) return;
-    draggingRef.current = true;
-    yToWindowStart(e.clientY);
-  }, [yToWindowStart, onWindowChange]);
+  // Track the table's scrollTop → viewport-band fraction. rAF-throttled
+  // so rapid scroll events don't trigger setState storms; mirrors
+  // ScrollTable's listener pattern.
+  const rafRef = useRef(null);
+  const updateViewFrac = useCallback(() => {
+    if (rafRef.current) return;
+    rafRef.current = requestAnimationFrame(() => {
+      rafRef.current = null;
+      if (!tableEl) return;
+      const scrollableH = tableEl.scrollHeight;
+      const viewportH = tableEl.clientHeight;
+      if (scrollableH <= 0 || viewportH <= 0 || scrollableH <= viewportH) {
+        setViewFrac([0, 1]);
+        return;
+      }
+      const scrollTop = Math.max(0, tableEl.scrollTop);
+      const start = scrollTop / scrollableH;
+      const end = Math.min(1, (scrollTop + viewportH) / scrollableH);
+      setViewFrac([start, end]);
+    });
+  }, [tableEl]);
 
   useEffect(() => {
-    if (!onWindowChange) return undefined;
+    if (!tableEl) return undefined;
+    tableEl.addEventListener("scroll", updateViewFrac, { passive: true });
+    updateViewFrac();
+    return () => {
+      tableEl.removeEventListener("scroll", updateViewFrac);
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    };
+  }, [tableEl, updateViewFrac]);
+
+  // Click / drag → set tableEl.scrollTop. Click position lands at the
+  // viewport top (not centred) so the gesture reads as "scroll to
+  // here" rather than "centre this". Matches SegmentMinimap precedent.
+  const scrollToY = useCallback((clientY) => {
+    const strip = containerRef.current;
+    if (!tableEl || !strip) return;
+    const rect = strip.getBoundingClientRect();
+    if (rect.height <= 0) return;
+    const frac = Math.max(0, Math.min(1, (clientY - rect.top) / rect.height));
+    const scrollableH = tableEl.scrollHeight;
+    tableEl.scrollTop = frac * scrollableH;
+  }, [tableEl]);
+
+  const handleMouseDown = useCallback((e) => {
+    if (!tableEl) return;
+    draggingRef.current = true;
+    scrollToY(e.clientY);
+  }, [scrollToY, tableEl]);
+
+  useEffect(() => {
+    if (!tableEl) return undefined;
     const onMove = (e) => {
-      if (draggingRef.current) yToWindowStart(e.clientY);
+      if (draggingRef.current) scrollToY(e.clientY);
     };
     const onUp = () => { draggingRef.current = false; };
     window.addEventListener("mousemove", onMove);
@@ -89,15 +110,13 @@ export function MinimapStripVertical({
       window.removeEventListener("mousemove", onMove);
       window.removeEventListener("mouseup", onUp);
     };
-  }, [yToWindowStart, onWindowChange]);
+  }, [scrollToY, tableEl]);
 
-  if (perRow.size === 0 && (windowRowSize == null || nVisRows === 0)) return null;
+  if (perRow.size === 0 && nVisRows === 0) return null;
 
   // Per-vis-row rect descriptors. ViewBox y = row index (1 row = 1
   // unit); preserveAspectRatio="none" stretches the row axis to
-  // container height. For 540-row datasets in a 320 px-tall panel
-  // the rows compress to ~0.6 px each — still visible as a vertical
-  // density profile.
+  // container height.
   const rects = [];
   for (const [ri, count] of perRow) {
     const rs = convergenceMinimapStyle(count);
@@ -106,9 +125,8 @@ export function MinimapStripVertical({
   }
 
   const stripH = Math.max(nVisRows, 1);
-  const hasWindow = windowRowSize != null && windowRowSize > 0;
-  const winStart = hasWindow ? Math.max(0, Math.min(nVisRows - 1, windowRowStart)) : 0;
-  const winEnd = hasWindow ? Math.min(nVisRows, winStart + windowRowSize) : 0;
+  const bandTopUnits = viewFrac[0] * stripH;
+  const bandHeightUnits = Math.max((viewFrac[1] - viewFrac[0]) * stripH, 1);
 
   return (
     <div
@@ -118,7 +136,7 @@ export function MinimapStripVertical({
         position: "relative",
         width: STRIP_W,
         height: "100%",
-        cursor: onWindowChange ? "pointer" : "default",
+        cursor: tableEl ? "pointer" : "default",
         userSelect: "none",
       }}
     >
@@ -142,20 +160,17 @@ export function MinimapStripVertical({
             opacity={opacity}
           />
         ))}
-        {/* Active-window highlight band — translucent overlay marking
-            the currently-rendered table window. Updates in real time
-            as the user scrubs. */}
-        {hasWindow && winEnd > winStart && (
-          <rect
-            x={0} y={winStart}
-            width={STRIP_W} height={winEnd - winStart}
-            fill={C.TEXT}
-            opacity={0.12}
-            stroke={C.TEXT_3}
-            strokeWidth={1}
-            vectorEffect="non-scaling-stroke"
-          />
-        )}
+        {/* Viewport-indicator band — translucent overlay tracking the
+            table's scrollTop. Updates in real time on scroll. */}
+        <rect
+          x={0} y={bandTopUnits}
+          width={STRIP_W} height={bandHeightUnits}
+          fill={C.TEXT}
+          opacity={0.12}
+          stroke={C.TEXT_3}
+          strokeWidth={1}
+          vectorEffect="non-scaling-stroke"
+        />
       </svg>
     </div>
   );

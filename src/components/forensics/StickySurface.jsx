@@ -111,21 +111,17 @@ export function StickySurface({
   activeRegionNumber = null,
   activeFinding = null,
   heatmapProps = null,
-  onActivateRegion = null,
   dataExpanded = false,
   onToggleDataExpanded = null,
   cleanStateLead = null,
   cleanStateTail = null,
-  // S163 fix-pass 2: scrubber window state. Threaded through to the
-  // inline FindingDetailPanel which forwards to MinimapStripVertical /
-  // MinimapStripHorizontal / ExcerptTable. Parent (ForensicsBody)
-  // owns the state so chip-click writers can snap the window.
-  windowRowStart = 0,
-  windowRowSize = null,
-  onWindowRowChange = null,
-  windowColStart = 0,
-  windowColSize = null,
-  onWindowColChange = null,
+  // S163 virtualisation rework: passes the panel's scroll-driving
+  // ref through. ForensicsBody owns the ref; chip-click writers call
+  // its scrollToVisRow API to scroll the data table to the active
+  // region. The panel-level minimaps inside FindingDetailPanel
+  // attach their viewport-band coordination through a sibling ref
+  // owned in FindingDetailPanel itself — that one stays panel-local.
+  hotspotScrollRef = null,
 }) {
   const { pills, localisedChips, fallbackChips } = pillsAndChips(findings);
   const hasAnyChip = pills.length > 0 || localisedChips.length > 0 || fallbackChips.length > 0;
@@ -222,13 +218,13 @@ export function StickySurface({
         </div>
       )}
 
-      {/* S163 fix-pass 1: Data toggle below the chip lanes. Currently
-          gated on hasAnyChip — clean fixtures don't render the
-          toggle. Fix-pass 2 attempted to always render but ExcerptTable
-          returns an empty fiber on convergence-empty datasets even
-          under windowed mode; the always-render-on-clean path needs
-          separate diagnosis. Deferred. */}
-      {dataReady && hasAnyChip && (
+      {/* S163 virtualisation rework: Data toggle renders for ALL
+          fixtures including clean ones. The fix-pass-1 `hasAnyChip`
+          gate retires — ExcerptTable's full-table semantic in
+          compactMode now renders rows regardless of convergence
+          state, so the clean-fixture empty-DOM bug is resolved at
+          the source. */}
+      {dataReady && (
         <button
           id={toggleId}
           onClick={() => onToggleDataExpanded?.()}
@@ -256,18 +252,12 @@ export function StickySurface({
           dataExpanded state. Filtering of the minimap + cell
           highlights to the active region happens inside
           FindingDetailPanel based on the `finding` prop. */}
-      {dataReady && hasAnyChip && dataExpanded && (
+      {dataReady && dataExpanded && (
         <div id={`${toggleId}-block`}>
           <FindingDetailPanel
             finding={activeFinding}
             heatmapProps={heatmapProps}
-            onActivateRegion={onActivateRegion}
-            windowRowStart={windowRowStart}
-            windowRowSize={windowRowSize}
-            onWindowRowChange={onWindowRowChange}
-            windowColStart={windowColStart}
-            windowColSize={windowColSize}
-            onWindowColChange={onWindowColChange}
+            hotspotScrollRef={hotspotScrollRef}
           />
         </div>
       )}

@@ -1,30 +1,27 @@
-/* ── MinimapStripHorizontal — A1.D3 column-axis density strip (S163) ──
+/* ── MinimapStripHorizontal — A1.D3 column-axis density + viewport band (S163) ──
    Column-axis sibling of MinimapStripVertical. Renders a horizontal
    strip of per-vis-col flag-density shading driven by the convergence
-   grid, plus an active-window highlight band that marks the currently
-   windowed column range in the bounded ExcerptTable below.
+   grid, plus a viewport-indicator band that tracks the scrollLeft of
+   the table below. Click + drag writes scrollLeft on the table.
 
-   Authored S163 fix-pass 2 as part of the windowed-render + scrubber
-   navigation reshape: the strip is the column-axis scrubber. Click +
-   drag moves the windowed range in the table.
+   Authored S163 fix-pass 2 as a scrubber (clientX → windowColStart).
+   The S163 virtualisation rework swaps the scrubber model for the
+   bidirectional scrollLeft ↔ viewport-band coordination mirroring
+   the internal ColMinimap pattern.
 
    Render contract:
-     - SVG viewBox `0 0 ${nVisCols} ${STRIP_H}`
-     - preserveAspectRatio="none" stretches the col axis to container
-       width so 1 col = 1/nVisCols of container regardless of dataset
-       col count.
-     - Per-vis-col rects span the strip height (y=0, height=STRIP_H)
-       and are 1 viewBox unit wide. Filled per buildPerVisColMax via
-       convergenceMinimapStyle.
-     - Active-window highlight band: a translucent overlay rect at
-       [windowColStart, windowColStart + windowColSize) on the col
-       axis. Spans the strip's full height.
-     - Click + drag on the strip area writes windowColStart via the
-       parent's onWindowChange callback. clientX → fraction → col
-       index, clamped so the window stays inside [0, nVisCols -
-       windowColSize]. */
+     - SVG viewBox `0 0 ${nVisCols} ${STRIP_H}` with
+       preserveAspectRatio="none". Stretches the col axis to container
+       width.
+     - Per-vis-col rects filled per buildPerVisColMax. filterTests
+       narrows to the active finding's tests when supplied.
+     - Viewport band: translucent rect at `[viewFrac[0]*stripW,
+       viewFrac[1]*stripW)` driven by tableRef.scrollLeft /
+       scrollWidth + clientWidth / scrollWidth.
+     - Click + drag → tableRef.scrollLeft = frac * scrollableW so the
+       click position lands at the viewport's left edge. */
 
-import { useMemo, useCallback, useRef, useEffect } from "react";
+import { useMemo, useCallback, useRef, useState, useEffect } from "react";
 import { C, CR } from "../../constants/tokens.js";
 import { convergenceMinimapStyle } from "../shared/heatmapColors.js";
 import { buildPerVisColMax } from "./minimapDerivation.js";
@@ -34,9 +31,7 @@ const STRIP_H = 18;
 export function MinimapStripHorizontal({
   convergence, matColToVisCol, nVisCols,
   activeFindingTests = null,
-  windowColStart = 0,
-  windowColSize = null,
-  onWindowChange = null,
+  tableEl = null,
 }) {
   const grid = convergence?.grid || null;
   const perCol = useMemo(
@@ -46,31 +41,57 @@ export function MinimapStripHorizontal({
 
   const containerRef = useRef(null);
   const draggingRef = useRef(false);
+  const [viewFrac, setViewFrac] = useState([0, 1]);
 
-  const xToWindowStart = useCallback((clientX) => {
-    const el = containerRef.current;
-    if (!el || !onWindowChange || windowColSize == null) return;
-    const rect = el.getBoundingClientRect();
-    if (rect.width <= 0) return;
-    const frac = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
-    const stripW = Math.max(nVisCols, 1);
-    const centre = frac * stripW;
-    let start = Math.floor(centre - windowColSize / 2);
-    const maxStart = Math.max(0, nVisCols - windowColSize);
-    start = Math.max(0, Math.min(maxStart, start));
-    onWindowChange(start);
-  }, [onWindowChange, windowColSize, nVisCols]);
-
-  const handleMouseDown = useCallback((e) => {
-    if (!onWindowChange) return;
-    draggingRef.current = true;
-    xToWindowStart(e.clientX);
-  }, [xToWindowStart, onWindowChange]);
+  const rafRef = useRef(null);
+  const updateViewFrac = useCallback(() => {
+    if (rafRef.current) return;
+    rafRef.current = requestAnimationFrame(() => {
+      rafRef.current = null;
+      if (!tableEl) return;
+      const scrollableW = tableEl.scrollWidth;
+      const viewportW = tableEl.clientWidth;
+      if (scrollableW <= 0 || viewportW <= 0 || scrollableW <= viewportW) {
+        setViewFrac([0, 1]);
+        return;
+      }
+      const scrollLeft = Math.max(0, tableEl.scrollLeft);
+      const start = scrollLeft / scrollableW;
+      const end = Math.min(1, (scrollLeft + viewportW) / scrollableW);
+      setViewFrac([start, end]);
+    });
+  }, [tableEl]);
 
   useEffect(() => {
-    if (!onWindowChange) return undefined;
+    if (!tableEl) return undefined;
+    tableEl.addEventListener("scroll", updateViewFrac, { passive: true });
+    updateViewFrac();
+    return () => {
+      tableEl.removeEventListener("scroll", updateViewFrac);
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    };
+  }, [tableEl, updateViewFrac]);
+
+  const scrollToX = useCallback((clientX) => {
+    const strip = containerRef.current;
+    if (!tableEl || !strip) return;
+    const rect = strip.getBoundingClientRect();
+    if (rect.width <= 0) return;
+    const frac = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+    const scrollableW = tableEl.scrollWidth;
+    tableEl.scrollLeft = frac * scrollableW;
+  }, [tableEl]);
+
+  const handleMouseDown = useCallback((e) => {
+    if (!tableEl) return;
+    draggingRef.current = true;
+    scrollToX(e.clientX);
+  }, [scrollToX, tableEl]);
+
+  useEffect(() => {
+    if (!tableEl) return undefined;
     const onMove = (e) => {
-      if (draggingRef.current) xToWindowStart(e.clientX);
+      if (draggingRef.current) scrollToX(e.clientX);
     };
     const onUp = () => { draggingRef.current = false; };
     window.addEventListener("mousemove", onMove);
@@ -79,9 +100,9 @@ export function MinimapStripHorizontal({
       window.removeEventListener("mousemove", onMove);
       window.removeEventListener("mouseup", onUp);
     };
-  }, [xToWindowStart, onWindowChange]);
+  }, [scrollToX, tableEl]);
 
-  if (perCol.size === 0 && (windowColSize == null || nVisCols === 0)) return null;
+  if (perCol.size === 0 && nVisCols === 0) return null;
 
   const rects = [];
   for (const [ci, count] of perCol) {
@@ -91,9 +112,8 @@ export function MinimapStripHorizontal({
   }
 
   const stripW = Math.max(nVisCols, 1);
-  const hasWindow = windowColSize != null && windowColSize > 0;
-  const winStart = hasWindow ? Math.max(0, Math.min(nVisCols - 1, windowColStart)) : 0;
-  const winEnd = hasWindow ? Math.min(nVisCols, winStart + windowColSize) : 0;
+  const bandLeftUnits = viewFrac[0] * stripW;
+  const bandWidthUnits = Math.max((viewFrac[1] - viewFrac[0]) * stripW, 1);
 
   return (
     <div
@@ -103,7 +123,7 @@ export function MinimapStripHorizontal({
         position: "relative",
         width: "100%",
         height: STRIP_H,
-        cursor: onWindowChange ? "pointer" : "default",
+        cursor: tableEl ? "pointer" : "default",
         userSelect: "none",
       }}
     >
@@ -127,20 +147,17 @@ export function MinimapStripHorizontal({
             opacity={opacity}
           />
         ))}
-        {/* Active-window highlight band — translucent overlay marking
-            the currently-rendered table column range. Updates in real
-            time as the user scrubs. */}
-        {hasWindow && winEnd > winStart && (
-          <rect
-            x={winStart} y={0}
-            width={winEnd - winStart} height={STRIP_H}
-            fill={C.TEXT}
-            opacity={0.12}
-            stroke={C.TEXT_3}
-            strokeWidth={1}
-            vectorEffect="non-scaling-stroke"
-          />
-        )}
+        {/* Viewport-indicator band — translucent overlay tracking the
+            table's scrollLeft. Updates in real time on scroll. */}
+        <rect
+          x={bandLeftUnits} y={0}
+          width={bandWidthUnits} height={STRIP_H}
+          fill={C.TEXT}
+          opacity={0.12}
+          stroke={C.TEXT_3}
+          strokeWidth={1}
+          vectorEffect="non-scaling-stroke"
+        />
       </svg>
     </div>
   );

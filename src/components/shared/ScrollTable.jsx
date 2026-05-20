@@ -316,6 +316,12 @@ export function ScrollTable({
   return (
     <div ref={scrollRef} style={{
       overflowY: "auto", overflowX: "auto", paddingBottom: 14,
+      // S163 virtualisation rework (W6): contain trackpad overscroll
+      // so a gesture that hits the table's scroll limit doesn't chain
+      // out to the page. Reserve a stable scrollbar gutter so the
+      // table width doesn't jump as content overflow toggles.
+      overscrollBehavior: "contain",
+      scrollbarGutter: "stable",
       ...(typeof height === "number" ? { height } : typeof height === "string" ? { maxHeight: height } : {}),
       border: `1px solid ${C.BORDER_L}`, borderRadius: CR.SM, background: C.WHITE,
     }}>

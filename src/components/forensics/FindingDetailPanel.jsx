@@ -1,35 +1,43 @@
 /* ── FindingDetailPanel — §2 sticky-surface data block (S163) ──
    Renders the active-region data view inside StickySurface — vertical
-   minimap + horizontal minimap + ExcerptTable in compactMode — when
+   minimap + horizontal minimap + full data table (compactMode) — when
    the parent's Data toggle is open. The parent (StickySurface) gates
    the mount; this component does not own `dataExpanded` state.
 
-   Layout (after fix-pass 2):
+   Layout (S163 virtualisation rework):
      ┌───────────────────────────────────────────┐
-     │            horizontal minimap             │  ← col-axis scrubber
+     │            horizontal minimap             │  ← scroll position band
      ├────┬──────────────────────────────────────┤
-     │ v  │ excerpt — windowed, no internal      │
-     │ m  │ scroll                               │
+     │ v  │ full table — real scroll, visible    │
+     │ m  │ scrollbars, virtualisation above     │
+     │    │ 500 rows. Cmd-F works below thresh.  │
      └────┴──────────────────────────────────────┘
 
-   The vertical minimap drives windowRowStart; the horizontal minimap
-   drives windowColStart. ExcerptTable in compactMode renders only the
-   sliced rows × columns inside those windows. Chip-click activation
-   in the chip lanes above writes windowRowStart + windowColStart to
-   centre the active region.
+   The vertical minimap reads the table's scrollTop; the horizontal
+   minimap reads its scrollLeft. Both render viewport-indicator bands.
+   Click + drag either minimap writes back to the table's
+   scrollTop / scrollLeft. The scroll container is height-bounded
+   (~320 px) — ScrollTable's internal overflow + virtualisation
+   handle whatever the dataset size requires.
+
+   Pre-rework (fix-pass 2): the minimaps were SCRUBBERS — clicked to
+   slice a 10-row × 8-col window into the table, no real scroll. The
+   virtualisation audit (SESSION163-VIRTUALISATION-AUDIT-SUMMARY.md)
+   ratified scroll-based navigation; this file is the consumer-side
+   of that lock.
 
    Two render modes (data-axis):
-     - finding === null: aggregated overlap view. Vertical + horizontal
-       minimaps show convergence shading from all findings; ExcerptTable
-       windowed at current scrubber position with no
-       region/activeTestKey props.
-     - finding !== null: single-region view. Minimaps filter to the
-       active finding's tests via `activeFindingTests`; ExcerptTable
-       receives region + activeTestKey for cell-tint highlighting.
-       Fallback findings (region.cells empty) fall through to the
-       aggregated view — they have no per-cell evidence to filter on. */
+     - finding === null: aggregated overlap view. Both minimaps show
+       full-dataset convergence shading; ExcerptTable scrolled to top
+       with no region/activeTestKey props.
+     - finding !== null: single-region view. Minimaps filter shading
+       to the active finding's tests via `activeFindingTests`;
+       ExcerptTable receives region + activeTestKey so cell-tint
+       highlighting fires. Fallback findings (region.cells empty)
+       fall through to the aggregated view — they have no per-cell
+       evidence to filter on. */
 
-import { useMemo } from "react";
+import { useMemo, useState, useCallback } from "react";
 import { GROUP_MARKERS, RANK_NUMS } from "../../constants/mechanisms.js";
 import { MinimapStripVertical } from "./MinimapStripVertical.jsx";
 import { MinimapStripHorizontal } from "./MinimapStripHorizontal.jsx";
@@ -43,10 +51,6 @@ function isLocalisedChip(finding) {
   return (finding?.region?.cells?.length || 0) > 0;
 }
 
-// Group-marker map derivation — DupDet exact-row groups + ConstOffset
-// offset pairs flow from convergence.groups through this map into
-// ExcerptTable via the optional `groupMarkerMap` prop, which renders
-// rank / marker tokens in the table's leading column.
 function buildGroupMarkerMap(convergence) {
   const groups = convergence?.groups || [];
   const map = new Map();
@@ -60,10 +64,9 @@ function buildGroupMarkerMap(convergence) {
   return map;
 }
 
-// Build a matCol → visCol indirection map from the visColIndices
-// array. visColIndices is the visible-col → matCol forward map; this
-// inverts it so the horizontal minimap can map convergence-grid
-// matCol keys to its strip-axis position.
+// Invert visColIndices into a matCol → visCol lookup. The horizontal
+// minimap uses it to position convergence-grid keys (matCol space)
+// on its strip-axis (visCol space).
 function buildMatColToVisCol(visColIndices) {
   const map = new Map();
   if (!visColIndices) return map;
@@ -73,16 +76,12 @@ function buildMatColToVisCol(visColIndices) {
   return map;
 }
 
+const DATA_BLOCK_HEIGHT = 320;
+
 export function FindingDetailPanel({
   finding,
   heatmapProps = null,
-  onActivateRegion = null,
-  windowRowStart = 0,
-  windowRowSize = null,
-  onWindowRowChange = null,
-  windowColStart = 0,
-  windowColSize = null,
-  onWindowColChange = null,
+  hotspotScrollRef = null,
 }) {
   const groupMarkerMap = useMemo(
     () => buildGroupMarkerMap(heatmapProps?.convergence),
@@ -103,6 +102,16 @@ export function FindingDetailPanel({
     [heatmapProps?.visColIndices]
   );
 
+  // Shared scroll-container DOM element. ExcerptTable announces its
+  // internal scroll container via `onScrollContainerReady` once
+  // mounted; both minimaps consume the element directly for
+  // viewport-band coordination + click/drag scroll writers.
+  // State (vs ref) so the minimaps re-render when the element
+  // arrives — a ref-mirror would lose the race with child effects
+  // that fire before ExcerptTable's announce callback.
+  const [scrollEl, setScrollEl] = useState(null);
+  const onScrollContainerReady = useCallback((el) => setScrollEl(el), []);
+
   if (!heatmapProps) return null;
 
   const localised = finding && isLocalisedChip(finding);
@@ -115,12 +124,11 @@ export function FindingDetailPanel({
       display: "flex",
       flexDirection: "column",
       gap: "6px",
-      maxHeight: "364px",
     }}>
-      {/* Horizontal minimap above the table — column-axis scrubber.
-          Aligned to the right of the vertical minimap's width so the
-          flag-density bars sit over the table body, not over the
-          frozen index/label columns. */}
+      {/* Horizontal minimap above the table — viewport band tracks
+          table.scrollLeft. Aligned to the right of the vertical
+          minimap's width so the flag-density bars sit over the table
+          body, not over the frozen index/label columns. */}
       <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
         <div style={{ flexShrink: 0, width: 32 }} />
         <div style={{ flex: 1, minWidth: 0 }}>
@@ -129,32 +137,31 @@ export function FindingDetailPanel({
             matColToVisCol={matColToVisCol}
             nVisCols={nVisCols}
             activeFindingTests={activeFindingTests}
-            windowColStart={windowColStart}
-            windowColSize={windowColSize}
-            onWindowChange={onWindowColChange}
+            tableEl={scrollEl}
           />
         </div>
       </div>
 
-      {/* Vertical minimap + table row */}
+      {/* Vertical minimap + scrollable table row. Total height
+          bounded so the sticky-surface budget is predictable.
+          ScrollTable's internal scroll + virtualisation handle
+          larger datasets within this budget. */}
       <div style={{
         display: "flex",
         gap: "10px",
         alignItems: "stretch",
-        maxHeight: "320px",
+        height: DATA_BLOCK_HEIGHT,
       }}>
-        <div style={{ flexShrink: 0, height: "320px" }}>
+        <div style={{ flexShrink: 0, height: DATA_BLOCK_HEIGHT }}>
           <MinimapStripVertical
             convergence={heatmapProps.convergence}
             rowMap={heatmapProps.rowMap}
             nVisRows={nVisRows}
             activeFindingTests={activeFindingTests}
-            windowRowStart={windowRowStart}
-            windowRowSize={windowRowSize}
-            onWindowChange={onWindowRowChange}
+            tableEl={scrollEl}
           />
         </div>
-        <div style={{ flex: 1, minWidth: 0, overflow: "hidden", maxHeight: "320px" }}>
+        <div style={{ flex: 1, minWidth: 0, height: DATA_BLOCK_HEIGHT }}>
           <ExcerptTable
             convergence={heatmapProps.convergence}
             rawData={heatmapProps.rawData}
@@ -170,10 +177,8 @@ export function FindingDetailPanel({
             region={localised ? finding.region : null}
             activeTestKey={localised ? (finding.tests?.[0]?.testId || null) : null}
             compactMode={true}
-            windowRowStart={windowRowStart}
-            windowRowSize={windowRowSize}
-            windowColStart={windowColStart}
-            windowColSize={windowColSize}
+            onScrollContainerReady={onScrollContainerReady}
+            hotspotScrollRef={hotspotScrollRef}
           />
         </div>
       </div>

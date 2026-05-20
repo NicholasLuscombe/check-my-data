@@ -598,22 +598,30 @@ export function ExcerptTable({
   // S163 fix-pass 1: when true, the component renders a tighter
   // layout suited to mounting inside the §2 sticky-surface data
   // block. Suppresses the caption, the left-of-table SegmentMinimap,
-  // and the below-table ColMinimap — the sticky surface's own
-  // MinimapStripVertical covers the row-density role, and the
-  // column-density strip is redundant inside a bounded surface.
-  // Default false preserves modal-era / back-compat-shim mount paths.
+  // the below-table ColMinimap, the convergence-ramp legend, and
+  // the hotspot list footer. Default false preserves modal-era /
+  // back-compat-shim mount paths at full chrome.
+  //
+  // S163 virtualisation rework: compactMode now emits the FULL data
+  // table (not the excerpt-narrowed flagged-rows-plus-context view).
+  // The rowSegments override below drops the visibleRowSet derivation
+  // in compactMode. ScrollTable's existing virtualisation
+  // (ROW_H=28, VIRT_THRESHOLD=500, VIRT_BUFFER=20) handles the large
+  // case automatically. The fix-pass-2 window-slice API retires —
+  // the panel-level minimaps in StickySurface flipped from
+  // scrubbers to scroll-position viewport-band indicators.
   compactMode = false,
-  // S163 fix-pass 2: windowed render. When all four window props
-  // are supplied (compactMode true), the table renders only rows in
-  // [windowRowStart, +windowRowSize) and only data columns in
-  // [windowColStart, +windowColSize). Leading non-data columns
-  // (label/ID/freeze) always render. No internal scroll on the table
-  // itself — the two minimap scrubbers in the sticky-surface chrome
-  // drive navigation across the dataset.
-  windowRowStart = 0,
-  windowRowSize = null,
-  windowColStart = 0,
-  windowColSize = null,
+  // S163 virtualisation rework: when supplied, fired with the
+  // internal scroll-container DOM element once on mount and with
+  // `null` on unmount. The panel-level MinimapStripVertical /
+  // Horizontal in StickySurface drive their viewport-band
+  // coordination + click/drag scrolling against this element. The
+  // callback form (vs a ref-mirror) sidesteps the effect-order race:
+  // child minimaps' scroll-listener effects fire before this
+  // ExcerptTable mirror effect, so a ref handoff would miss the
+  // first attachment. A callback that triggers parent setState
+  // re-renders the minimaps with the populated element.
+  onScrollContainerReady = null,
 }) {
   const { grid, hotspots, pattern, groups: rawGroups } = convergence;
   const nVisRows = rawData.length;
@@ -671,29 +679,14 @@ export function ExcerptTable({
 
   const fr = coordCtx?.fileRow || ((r) => r + 1);
 
-  // Column entries
-  const colEntries = useMemo(() => {
-    const all = visColIndices.map((rawCI, vi) => ({
-      vi, rawCI, role: roles[rawCI],
-      label: colHeaders[vi],
-    }));
-    // S163 fix-pass 2: windowed render in compactMode. Leading non-
-    // data columns (label / ID / freeze) always render; the data
-    // columns slice to [windowColStart, +windowColSize). The vi field
-    // on each entry preserves the original visible-column index so
-    // downstream cell-lookup paths (specCellBg, tintedVisCols,
-    // visGrid.get) continue to resolve correctly even though the
-    // rendered ci range is shorter.
-    if (compactMode && windowColSize != null && windowColSize > 0) {
-      let nFrz = 0;
-      while (nFrz < all.length && all[nFrz].role !== "data") nFrz++;
-      const dataStart = nFrz + Math.max(0, windowColStart);
-      const dataEnd = Math.min(all.length, dataStart + windowColSize);
-      if (dataEnd <= dataStart) return all.slice(0, nFrz);
-      return [...all.slice(0, nFrz), ...all.slice(dataStart, dataEnd)];
-    }
-    return all;
-  }, [visColIndices, roles, colHeaders, compactMode, windowColStart, windowColSize]);
+  // Column entries — full visible-column set in every mode. The
+  // S163 fix-pass-2 windowed column-slice retired with the
+  // virtualisation rework; columns flow through ScrollTable's
+  // horizontal scroll instead.
+  const colEntries = useMemo(() => visColIndices.map((rawCI, vi) => ({
+    vi, rawCI, role: roles[rawCI],
+    label: colHeaders[vi],
+  })), [visColIndices, roles, colHeaders]);
 
   // Condition spans for header
   const condSpans = useMemo(() => {
@@ -819,16 +812,27 @@ export function ExcerptTable({
   // gapBefore on first segment = rows skipped at the top.
   // gapAfter on last segment = rows skipped at the bottom.
   const rowSegments = useMemo(() => {
-    // S163 fix-pass 2: windowed-render override in compactMode.
-    // Replaces the excerpt-style segmented rendering with a simple
-    // contiguous slice of [windowRowStart, +windowRowSize). No gaps,
-    // no skip-row markers — the slice IS the rendered window.
-    if (compactMode && windowRowSize != null && windowRowSize > 0) {
-      const start = Math.max(0, Math.min(nVisRows, windowRowStart));
-      const end = Math.min(nVisRows, start + windowRowSize);
-      if (end <= start) return [];
+    // S163 virtualisation rework: full-table semantic in compactMode.
+    // Emit ALL rows as one segment. ScrollTable's existing hand-
+    // rolled virtualisation (ROW_H=28, VIRT_THRESHOLD=500,
+    // VIRT_BUFFER=20) handles large datasets above 500 rows. Below
+    // threshold the full table renders so native Cmd-F still works.
+    //
+    // Note: this drops the excerpt-style visibleRowSet derivation
+    // entirely in compactMode — the sticky-surface data block is a
+    // full-table view, navigated by minimap shading + chip-click
+    // scroll + cell highlighting. The excerpt-style gap-row markers
+    // ("N rows not shown") only fire in non-compact mounts
+    // (modal-era / back-compat shim).
+    //
+    // This also resolves the clean-fixture empty-DOM bug surfaced at
+    // fix-pass-2: an empty visibleRowSet no longer produces empty
+    // rowSegments because compactMode no longer consults
+    // visibleRowSet.
+    if (compactMode) {
+      if (nVisRows <= 0) return [];
       const rows = [];
-      for (let r = start; r < end; r++) rows.push(r);
+      for (let r = 0; r < nVisRows; r++) rows.push(r);
       return [{ rows, gapAfter: 0, gapBefore: 0 }];
     }
     const sorted = [...visibleRowSet].sort((a, b) => a - b);
@@ -853,7 +857,7 @@ export function ExcerptTable({
       segs[segs.length - 1].gapAfter = nVisRows - 1 - sorted[sorted.length - 1];
     }
     return segs;
-  }, [visibleRowSet, nVisRows, compactMode, windowRowStart, windowRowSize]);
+  }, [visibleRowSet, nVisRows, compactMode]);
 
   // Scroll to a specific row — virtualized tables use __scrollToRow (row may not be in DOM)
   const scrollToRow = useCallback((row) => {
@@ -923,6 +927,19 @@ export function ExcerptTable({
     };
   }, [hotspotScrollRef, scrollToHotspot, scrollToRow]);
 
+  // S163 virtualisation rework: announce the internal scroll-
+  // container DOM element to the parent so the panel-level minimaps
+  // in StickySurface can attach scroll listeners + drive
+  // scrollTop/scrollLeft. Callback (vs ref-mirror) means the
+  // parent's setState re-renders the minimaps with the populated
+  // element, bypassing the effect-order race where child minimap
+  // effects fire before this ExcerptTable effect.
+  useEffect(() => {
+    if (!onScrollContainerReady) return undefined;
+    onScrollContainerReady(tableRef.current);
+    return () => { onScrollContainerReady(null); };
+  }, [onScrollContainerReady]);
+
   // Auto-scroll on mount.
   //   S126c-b: when `region` prop is supplied, scroll to its rowRange[0]
   //     (mapped through rowMap) so the modal opens pre-zoomed to the
@@ -945,8 +962,16 @@ export function ExcerptTable({
     }
   }, [region, visHotspots.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Truly clean — no flagged cells and no groups
-  if ((pattern === "clean" || visGrid.size === 0) && !hasGroups) {
+  // Truly clean — no flagged cells and no groups. In compactMode the
+  // sticky-surface data block is a full-table view (S163 virtualisation
+  // rework), so the clean-fixture short-circuit only applies to non-
+  // compact mounts (modal-era / back-compat shim). The rowSegments
+  // memo above already emits all rows in compactMode regardless of
+  // convergence state — gating the null return on `!compactMode`
+  // honours that contract and resolves the large-fixture empty-DOM
+  // path (DS11/DS19 where visGrid.size === 0 after vis-coord remap
+  // despite a severity-3 dataset-level verdict).
+  if ((pattern === "clean" || visGrid.size === 0) && !hasGroups && !compactMode) {
     return null;
   }
 
@@ -1032,11 +1057,12 @@ export function ExcerptTable({
             headerTintColor={spec.tintColor}
             rowSegments={rowSegments}
             rawData={rawData}
-            // S163 fix-pass 2: in compactMode the table fits within
-            // the bounded data block (~320 px) without scrolling.
-            // Pass a numeric height equal to the wrapper budget so
-            // ScrollTable's container sits flush; the windowed
-            // rowSegments slice keeps content from overflowing.
+            // S163 virtualisation rework: in compactMode the sticky-
+            // surface data block budgets 320 px; ScrollTable's
+            // overflow:auto + virtualisation handle scroll across
+            // datasets of any size within that budget. Non-compact
+            // mounts (modal-era / back-compat shim) keep the prior
+            // TABLE_H=400 default.
             height={compactMode ? 320 : TABLE_H}
             tableRef={tableRef}
             theadRef={theadRef}

@@ -26,31 +26,30 @@
      - badge click on
        a test card      → pulse(card:test, pill or chip+region from
                           finding)
-     - region [N] badge → pulse(region:N, chip:N) + onActivateRegion
-                          (sets activeRegionNumber → panel re-renders
-                          for the new region; badge lives on the
-                          panel's internal MinimapStripVertical)
 
-   S163 lifecycle: `activeRegionNumber` is the §2 state and drives both
-   the panel content's inline mount inside StickySurface and the
-   per-chip `showRegionNumber` derivation. Initial value null → panel
-   content not auto-open on load.
-
-   S163 Phase 3e (rework, A1.D3): single sticky surface composes chip
-   lanes + active-region content. Pre-3e the panel had its own
-   position:sticky chrome and rendered as a separate sibling beneath
-   StickySurface; that produced two stacked sticky boundaries and a
-   "two clicks to see the table" friction surface. Phase 3e folds the
-   panel content back inside one sticky element.
+   S163 lifecycle: `activeRegionNumber` is the §2 state and drives
+   per-chip `isActive` (ring colour) in StickySurface plus the
+   filter on the panel's minimaps + cell tints. Initial value
+   null → no chip active on first load.
 
    S163 fix-pass 1: chrome retirements + permanent Data disclosure.
    Chip [N] prefix, status row, header row, ✕ button all retire;
-   chips ring when active and re-clicking the active chip deactivates
-   it (toggle). The Data ▼/▲ toggle becomes a permanent affordance
-   at the sticky-surface level, independent of activeRegionNumber.
-   First chip click in session auto-expands the data block; user
-   toggle persists thereafter (no re-auto-expand on subsequent
-   chip clicks). */
+   chips ring when active and re-clicking the active chip
+   deactivates it (toggle). The Data ▼/▲ toggle becomes a permanent
+   affordance at the sticky-surface level, independent of
+   activeRegionNumber. First chip click in session auto-expands the
+   data block; user toggle persists thereafter (no re-auto-expand on
+   subsequent chip clicks).
+
+   S163 virtualisation rework: ExcerptTable in compactMode now emits
+   the full data table and ScrollTable's existing hand-rolled
+   virtualisation (ROW_H=28, VIRT_THRESHOLD=500) handles large
+   datasets. Panel-level minimaps flipped from window-slicer
+   scrubbers to scroll-position viewport-band indicators. Chip
+   click scrolls the table to the active region via the imperative
+   scrollToVisRow API exposed through hotspotScrollRef.
+   Toggle-deactivate (re-click active chip) preserves the user's
+   current scroll position; only the chip ring clears. */
 
 import { useMemo, useState, useRef, useCallback } from "react";
 import { Section } from "../shared/Section.jsx";
@@ -120,13 +119,14 @@ export function ForensicsBody({
   }, []);
 
   // Active-region state. `activeRegionNumber` non-null →
-  // FindingDetailPanel filters the §2 data block to that region (the
-  // vertical minimap filters to the active finding's tests; the table
-  // scrolls to region and tints cells per buildHighlightSpec); the
-  // matching chip in StickySurface rings via its isActive prop.
-  // Writers: chip click via `onActivateTest` below (sets, or toggles
-  // back to null when re-clicking the active chip); panel-internal
-  // MinimapStripVertical [N] badge via `onActivateRegion` below.
+  // FindingDetailPanel filters the §2 data block to that region:
+  // both minimaps narrow shading to the active finding's tests; the
+  // table scrolls to the region's row range (via the imperative
+  // scrollToVisRow API on hotspotScrollRef); cells tint per
+  // buildHighlightSpec. The matching chip in StickySurface rings
+  // via its `isActive` prop.
+  // Writer: chip click via `onActivateTest` below (sets, or toggles
+  // back to null when re-clicking the active chip).
   // Initial value null → no active chip, aggregated minimap view.
   const [activeRegionNumber, setActiveRegionNumber] = useState(null);
 
@@ -146,18 +146,20 @@ export function ForensicsBody({
     setDataExpanded(v => !v);
   }, []);
 
-  // S163 fix-pass 2: scrubber window state. Both axes are owned here
-  // so chip-click writers can snap the window to centre the active
-  // region. windowRowSize / windowColSize are constants tuned to the
-  // data block's bounded height + cell metrics; the *Start values are
-  // the navigable state. Manual scrubber drags on either minimap
-  // call the corresponding writer.
-  const WINDOW_ROW_SIZE = 10;
-  const WINDOW_COL_SIZE = 8;
-  const [windowRowStart, setWindowRowStart] = useState(0);
-  const [windowColStart, setWindowColStart] = useState(0);
-  const onWindowRowChange = useCallback((start) => setWindowRowStart(start), []);
-  const onWindowColChange = useCallback((start) => setWindowColStart(start), []);
+  // S163 virtualisation rework: scroll-to-region via the table's
+  // imperative scroll API. The fix-pass-2 windowed-state machinery
+  // (WINDOW_ROW_SIZE / WINDOW_COL_SIZE constants, windowRowStart /
+  // windowColStart state, scrubber-based snap) retires. The
+  // FindingDetailPanel's ExcerptTable mounts with a shared
+  // hotspotScrollRef whose `scrollToVisRow(row)` writes scrollTop on
+  // the scroll container; ScrollTable's existing __scrollToRow
+  // handles the virtualised case (above 500 rows) by computing the
+  // target spacer offset rather than looking up a DOM ref.
+  //
+  // Toggle-deactivate (re-click active chip → setActiveRegionNumber
+  // null) exits BEFORE the scroll-to-region call, so the user's
+  // current scroll position survives the deactivation.
+  const hotspotScrollRef = useRef(null);
 
   // Map a matRow → visRow via rowMap, with identity fallback.
   const visRowOf = useCallback((matRow) => {
@@ -166,63 +168,20 @@ export function ForensicsBody({
     return rm[matRow] ?? matRow;
   }, [heatmapProps]);
 
-  // Map a matCol → visCol by linear scan over visColIndices.
-  const visColOf = useCallback((matCol) => {
-    const ids = heatmapProps?.visColIndices;
-    if (!ids) return matCol;
-    const i = ids.indexOf(matCol);
-    return i === -1 ? null : i;
-  }, [heatmapProps]);
-
-  // Centre the window on a centre row/col, clamped to the dataset
-  // bounds. Called from chip-click activation when a region is
-  // selected.
-  const snapWindowToRegion = useCallback((region) => {
-    if (!region) return;
-    const nVisRows = heatmapProps?.rawData?.length || 0;
-    const nVisCols = heatmapProps?.visColIndices?.length || 0;
-    // Row snap — midpoint of rowRange in vis-row space.
-    if (region.rowRange && Array.isArray(region.rowRange) && region.rowRange.length === 2) {
-      const visStart = visRowOf(region.rowRange[0]);
-      const visEnd = visRowOf(region.rowRange[1]);
-      if (Number.isFinite(visStart) && Number.isFinite(visEnd)) {
-        const centre = (visStart + visEnd) / 2;
-        let rowStart = Math.floor(centre - WINDOW_ROW_SIZE / 2);
-        const maxRowStart = Math.max(0, nVisRows - WINDOW_ROW_SIZE);
-        rowStart = Math.max(0, Math.min(maxRowStart, rowStart));
-        setWindowRowStart(rowStart);
-      }
-    }
-    // Col snap — midpoint of cell mat-cols in vis-col space. Only
-    // when region.cells carries per-cell coordinates; fallback chips
-    // (empty cells) leave windowColStart untouched.
-    if (region.cells && region.cells.length > 0) {
-      let minVis = Infinity;
-      let maxVis = -Infinity;
-      for (const [, mc] of region.cells) {
-        const v = visColOf(mc);
-        if (v == null) continue;
-        if (v < minVis) minVis = v;
-        if (v > maxVis) maxVis = v;
-      }
-      if (Number.isFinite(minVis) && Number.isFinite(maxVis)) {
-        // Subtract the leading frozen-column count so windowColStart
-        // is relative to the data-column range (matches what the
-        // horizontal minimap and ExcerptTable's compactMode slicing
-        // use as their axis).
-        const ids = heatmapProps?.visColIndices || [];
-        const roles = heatmapProps?.roles || [];
-        let nFrz = 0;
-        while (nFrz < ids.length && roles[ids[nFrz]] !== "data") nFrz++;
-        const centre = (minVis + maxVis) / 2 - nFrz;
-        let colStart = Math.floor(centre - WINDOW_COL_SIZE / 2);
-        const nDataCols = Math.max(0, nVisCols - nFrz);
-        const maxColStart = Math.max(0, nDataCols - WINDOW_COL_SIZE);
-        colStart = Math.max(0, Math.min(maxColStart, colStart));
-        setWindowColStart(colStart);
-      }
-    }
-  }, [heatmapProps, visRowOf, visColOf]);
+  // Scroll the §2 data table to centre the active region's row
+  // range. Called from chip-click activation. region.rowRange is in
+  // matrix-row space; map through rowMap to vis-row space and pick
+  // the midpoint of the range.
+  const scrollToRegion = useCallback((region) => {
+    const scrollApi = hotspotScrollRef.current;
+    if (!scrollApi || !region) return;
+    if (!region.rowRange || !Array.isArray(region.rowRange) || region.rowRange.length !== 2) return;
+    const visStart = visRowOf(region.rowRange[0]);
+    const visEnd = visRowOf(region.rowRange[1]);
+    if (!Number.isFinite(visStart) || !Number.isFinite(visEnd)) return;
+    const centre = Math.round((visStart + visEnd) / 2);
+    scrollApi.scrollToVisRow?.(centre);
+  }, [visRowOf]);
 
   // Sticky-surface activation. Receives the full finding so multi-test
   // chips can expand every relevant test card (and all touched
@@ -292,12 +251,18 @@ export function ForensicsBody({
         hasAutoExpanded.current = true;
         setDataExpanded(true);
       }
-      // S163 fix-pass 2: snap the scrubber window to centre the
-      // active region. Row snap always fires (rowRange is reliable);
-      // column snap fires only when region.cells carry per-cell
-      // coordinates. Toggle-deactivate (re-click active chip) above
-      // exits early so the window stays where the user scrubbed to.
-      snapWindowToRegion(finding.region);
+      // S163 virtualisation rework: scroll the data table to centre
+      // the active region's rowRange. Toggle-deactivate (re-click
+      // active chip) above exits early, so the user's scroll
+      // position survives the deactivation gesture.
+      // Defer via rAF so the dataExpanded state has committed and
+      // ScrollTable has mounted with its scroll container ref before
+      // the scroll-to-row call fires.
+      if (typeof requestAnimationFrame === "function") {
+        requestAnimationFrame(() => scrollToRegion(finding.region));
+      } else {
+        scrollToRegion(finding.region);
+      }
     }
     // Scroll to the first test card. Double-rAF waits for both expand
     // commits + browser paint before reading layout geometry.
@@ -307,7 +272,7 @@ export function ForensicsBody({
     } else {
       scrollToCard(firstTestId);
     }
-  }, [scrollToCard, ensureCatExpanded, ensureTestCardExpanded, activeRegionNumber, snapWindowToRegion]);
+  }, [scrollToCard, ensureCatExpanded, ensureTestCardExpanded, activeRegionNumber, scrollToRegion]);
 
   // Test-card severity-badge click. Routes the pulse back to the
   // finding's pill (global) or chip+region overlay (localised). The
@@ -323,18 +288,6 @@ export function ForensicsBody({
     }
     trigger(...keys);
   }, [testToFinding, trigger]);
-
-  // Region-badge click handler. Receives the overlay descriptor
-  // `{ regionNumber, severity, visRowStart, visRowEnd, tests }`
-  // computed by the panel-internal MinimapStripVertical from the
-  // focused finding. Sets active-region state → the §2 data block
-  // re-filters for that region. The chip:N + region:N pulse triggers
-  // are fired by MinimapStripVertical itself so this callback is
-  // purely the activate dispatch.
-  const onActivateRegion = useCallback((overlay) => {
-    if (!overlay || overlay.regionNumber == null) return;
-    setActiveRegionNumber(overlay.regionNumber);
-  }, []);
 
   // S163 Phase 3b: derive the active finding from activeRegionNumber.
   // The lookup matches against finding.regionNumber (localised findings
@@ -373,17 +326,11 @@ export function ForensicsBody({
         activeRegionNumber={activeRegionNumber}
         activeFinding={activeFinding}
         heatmapProps={heatmapProps}
-        onActivateRegion={onActivateRegion}
         dataExpanded={dataExpanded}
         onToggleDataExpanded={onToggleDataExpanded}
         cleanStateLead={CLEAN_STATE_LEAD}
         cleanStateTail={CLEAN_STATE_TAIL}
-        windowRowStart={windowRowStart}
-        windowRowSize={WINDOW_ROW_SIZE}
-        onWindowRowChange={onWindowRowChange}
-        windowColStart={windowColStart}
-        windowColSize={WINDOW_COL_SIZE}
-        onWindowColChange={onWindowColChange}
+        hotspotScrollRef={hotspotScrollRef}
       />
 
       {/* §3 DETAILED TEST RESULTS — dimension cards */}
