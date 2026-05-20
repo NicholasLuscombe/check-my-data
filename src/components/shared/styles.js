@@ -74,7 +74,14 @@ export const COMPACT_CELL_PADDING       = "2px 8px";  // body cells
 export const COMPACT_HEADER_PADDING_TIGHT = "2px 8px"; // letter row, condition span, role label row
 export const COMPACT_HEADER_NAME_INNER_TOP    = "2px 6px 1px"; // name <div> inside the name+chip <th>
 export const COMPACT_HEADER_NAME_INNER_BOTTOM = "1px 6px 2px"; // chip wrapper <div>
-export const COMPACT_ROW_H = 22;        // measured row height after compactMode body-padding tighten
+export const COMPACT_ROW_H = 22.5;      // measured row height after compactMode body-padding tighten
+// Exact rendered height — DPR=2 (Retina) renders 22.5 CSS px as 45
+// device px (integer), stable across rows. Verified via 20-row sample
+// on DS11: every per-row height + every consecutive-row offsetTop
+// delta + the 19-row span midpoint all = 22.5 exactly. The integer
+// 22 would compound 0.5 px of drift per row → ~750 px of misalignment
+// across DS11's 1499 rows, surfacing as scrollbar-thumb and minimap
+// viewport-band drift toward the bottom of the dataset.
 
 // ── Sticky frozen columns — shared by HotspotExcerpt and ImportView ──
 // Frozen column widths use COL_W for the # column and ID columns.
