@@ -53,6 +53,76 @@ export const COL_W = {
   MARKER:  24,        // group marker column (①②③)
 };
 
+// ── compactMode density overrides (S163 A1.D3 density pass) ──
+// The forensics §2 sticky-surface data block mounts ExcerptTable with
+// compactMode=true and a 320 px height budget. Default body cell padding
+// (4px 8px) gives a 26.5 px row; the 100 px header stack (letter +
+// condition + name+chip rows) eats most of the budget, leaving ~8 rows
+// visible. These overrides tighten the vertical rhythm for the
+// sticky-surface mount only — non-compact callers (ImportView, modal-era
+// shim) keep the default paddings via TD_NUM_CELL / TD_ID_CELL / the
+// inline header literals.
+//
+// Padding-only changes: font size, weight, and colour roles are
+// untouched per TYPOGRAPHY-SYSTEM.md (the lock is on the type scale, not
+// on spacing). The compactRowH constant is the measured rendered height
+// after the padding tighten — ScrollTable's virtualisation spacer math
+// reads it when compactMode is true so spacer pixels match actual row
+// height (no scrollbar-thumb / minimap-band drift on virtualised
+// fixtures like DS11/DS19).
+export const COMPACT_CELL_PADDING       = "2px 8px";  // body cells
+export const COMPACT_HEADER_PADDING_TIGHT = "2px 8px"; // letter row, condition span, role label row
+export const COMPACT_HEADER_NAME_INNER_TOP    = "2px 6px 1px"; // name <div> inside the name+chip <th>
+export const COMPACT_HEADER_NAME_INNER_BOTTOM = "1px 6px 2px"; // chip wrapper <div>
+export const COMPACT_ROW_H = 22.5;      // measured row height after compactMode body-padding tighten
+// Exact rendered height — DPR=2 (Retina) renders 22.5 CSS px as 45
+// device px (integer), stable across rows. Verified via 20-row sample
+// on DS11: every per-row height + every consecutive-row offsetTop
+// delta + the 19-row span midpoint all = 22.5 exactly. The integer
+// 22 would compound 0.5 px of drift per row → ~750 px of misalignment
+// across DS11's 1499 rows, surfacing as scrollbar-thumb and minimap
+// viewport-band drift toward the bottom of the dataset.
+
+// ── Content-aware column-width derivation (S163 A1.D3 final pass) ──
+// Width formula for a data column:
+//   colW = max(maxLen × DATA_CHAR_W + DATA_CELL_PADDING_H + DATA_CELL_BORDER_W,
+//              MIN_DATA_COL_W)
+// where maxLen is the longest formatted-value string in the column
+// (carried in summary.colMaxLen). Char advance width measured live on
+// the dev server: JetBrains Mono at 13 px with font-variant-numeric:
+// tabular-nums renders every character at exactly 7.8 CSS px (verified
+// across digits, dot, sign — stable to 0.005 px). Horizontal cell
+// padding is 8 px each side; left border is 1 px. MIN_DATA_COL_W is the
+// floor so a 1-2-char value column doesn't collapse below a legible
+// minimum.
+//
+// The width replaces COL_W.DATA / COL_W.ID_MIN / FREEZE_COL_W.ID_COL
+// for non-marker, non-#-column cols when supplied at the consumer's
+// column-build site. ScrollTable's colgroup picks col.width ?? the
+// role-keyed COL_W fallback — when col.width is provided, the role-
+// keyed constant is bypassed (a side-benefit: ImportView role-cycle
+// stops reflowing because the width no longer keys off role).
+//
+// Truncation-safety: the formula derives width from the column's
+// MAXIMUM value, so no data value ever ellipsis-clips. Forensic signal
+// in trailing decimals (precision consistency, last-digit) is
+// preserved.
+export const DATA_CHAR_W = 7.8;            // CSS px per char, JetBrains Mono 13px tabular
+export const DATA_CELL_PADDING_H = 16;     // 8px × 2 (2px 8px cell padding)
+export const DATA_CELL_BORDER_W = 1;       // 1px left border (right border absent on most cells)
+export const MIN_DATA_COL_W = 48;          // floor — fits ~4 chars + padding
+
+/**
+ * Per-column rendered width from a max-content-length scalar.
+ * Used by ImportView + ExcerptTable when building the `columns` prop;
+ * the colgroup in ScrollTable consumes the resulting `width` field per
+ * column.
+ */
+export function colWidthFromMaxLen(maxLen) {
+  const contentW = (maxLen || 0) * DATA_CHAR_W + DATA_CELL_PADDING_H + DATA_CELL_BORDER_W;
+  return Math.max(MIN_DATA_COL_W, Math.ceil(contentW));
+}
+
 // ── Sticky frozen columns — shared by HotspotExcerpt and ImportView ──
 // Frozen column widths use COL_W for the # column and ID columns.
 export const FREEZE_COL_W = { ROW_NUM: COL_W.ROW_NUM, ID_COL: 80 };

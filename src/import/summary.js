@@ -5,6 +5,25 @@ export function summarize(data,roles,condPerCol,zeroAsMissing) {
   const cI=roles.reduce((a,r,i)=>r==="condition"?[...a,i]:a,[]);
   let total=0,miss=0,ints=0,zeros=0;
   const nums=[],rawPrecStrs=[],textInData={};
+  // colMaxLen[ci] — max formatted-string length per column across every
+  // non-null cell, used by ImportView's table preview + the forensics
+  // ExcerptTable to derive content-aware column widths. Spans ALL roles
+  // (data / label / condition / ignore) so role-cycling on ImportView
+  // doesn't change the width — the width is purely a function of the
+  // longest value the column has ever held. Computed at import-scan
+  // time (one pass over the matrix that the summary loop already
+  // performs for data cells; extended here to scan every column).
+  // Indexed by full column index, not data-column index.
+  const nCols=data.length?data[0].length:0;
+  const colMaxLen=new Array(nCols).fill(0);
+  for(const row of data){
+    for(let ci=0;ci<nCols;ci++){
+      const v=row[ci];
+      if(v==null||v==="")continue;
+      const len=String(v).length;
+      if(len>colMaxLen[ci])colMaxLen[ci]=len;
+    }
+  }
   for(const row of data) for(const ci of dI){
     const v=row[ci];
     if(v==null||v===""){miss++;continue;}
@@ -30,5 +49,5 @@ export function summarize(data,roles,condPerCol,zeroAsMissing) {
   const hasRowConds=cI.length>0&&conds.size>0;
   const hasColConds=condPerCol&&condPerCol.some(c=>c);
   const condSource=hasColConds?"column":hasRowConds?"row":null;
-  return{nDC:dI.length,nR:data.length,total,miss,zeros,nText,textInData,intF:total?ints/total:0,nC:conds.size,cNames:[...conds].slice(0,20),mn,mx,span,prec,precTrailingZero,condSource};
+  return{nDC:dI.length,nR:data.length,total,miss,zeros,nText,textInData,intF:total?ints/total:0,nC:conds.size,cNames:[...conds].slice(0,20),mn,mx,span,prec,precTrailingZero,condSource,colMaxLen};
 }

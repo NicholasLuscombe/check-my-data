@@ -7,6 +7,7 @@
  */
 
 import { C } from "../constants/tokens.js";
+import { LOCALITY_WHOLE_TABLE_WASH } from "../components/shared/heatmapColors.js";
 
 // ── Test names ──────────────────────────────────────────────────────
 const RSC  = "Residual Spike Correlation";
@@ -51,8 +52,12 @@ export const DUP_WITHIN_ROW_PALETTE = [
 ];
 export const DUP_DIM_OPACITY = 0.35;
 
-// Generic click-to-highlight tint (warm orange, matches NOTED/amber)
-export const HIGHLIGHT_TINT = "rgba(245,158,11,0.20)";
+// Generic click-to-highlight tint. S163 B2a: amber → light purple to
+// match the §2 density axis (CONVERGENCE_RAMP is now purple too, so
+// active-finding cells read as a saturated step on the same axis
+// rather than a competing severity hue). ACCENT.PURPLE.color blended
+// at ~0.20 sits a touch above the count-1 swatch.
+export const HIGHLIGHT_TINT = "rgba(139, 92, 246, 0.22)";
 
 // RSC cell color ramp: SIGNAL.RED.bg → CC.THRESH
 export function rscCellColor(intensity) {
@@ -64,6 +69,26 @@ export function rscCellColor(intensity) {
 }
 
 // ── Empty spec (no highlighting) ────────────────────────────────────
+// S163 B2a: `localityCompose` carries the multi-finding locality
+// dispatch (overlap counts + union border edges + whole-table flag).
+// Built once at spec time so renderCell does not re-derive per cell.
+// LOCALITY_WHOLE_TABLE_WASH is the wash applied across the data block
+// for the dataset-wide / unscoped tiers — re-exported here so the
+// renderer can paint without reaching back into heatmapColors.
+//
+// S163 B2b: `localityRegion` (single-finding shape) retired and
+// replaced by `localityCompose` (multi-finding shape). One active
+// finding is just the count=1 case of the compose object.
+const EMPTY_COMPOSE = Object.freeze({
+  hasWholeTable: false,
+  unionCells: new Set(),
+  unionRows: new Set(),
+  unionCols: new Set(),
+  countCells: new Map(),
+  countRows: new Map(),
+  countCols: new Map(),
+});
+
 const EMPTY_SPEC = Object.freeze({
   tintedVisCols: null,
   tintColor: null,
@@ -78,7 +103,101 @@ const EMPTY_SPEC = Object.freeze({
   dupGroupStyleMap: null,
   dupGroupTintMap: null,
   dupWithinRowMap: null,
+  localityCompose: EMPTY_COMPOSE,
 });
+
+export { LOCALITY_WHOLE_TABLE_WASH };
+
+/**
+ * Build a multi-finding locality-compose object from a list of active
+ * findings (S163 B2b W3 / W4).
+ *
+ * Returns:
+ *   hasWholeTable — true if any active finding is dataset-wide or unscoped.
+ *                   The renderer paints LOCALITY_WHOLE_TABLE_WASH on data
+ *                   cells whose localised count is zero (cells with at
+ *                   least one localised finding suppress the wash —
+ *                   localised fills composite over, never with, the wash).
+ *   unionCells / unionRows / unionCols — UNION of all active findings'
+ *                   visible-coord extents. The renderer draws the
+ *                   deeper-purple identity border at edges of these
+ *                   unions: cell-local cells get all four; row-band cells
+ *                   get top + bottom at run boundaries; column-band
+ *                   cells get left + right at run boundaries.
+ *                   Overlapping active regions produce a coincident
+ *                   union edge — interior boundaries don't paint.
+ *   countCells / countRows / countCols — per-axis ACTIVE-FINDING count.
+ *                   Sum across the three at a given cell = the total
+ *                   localised count on that cell, which keys into
+ *                   CONVERGENCE_RAMP for the fill intensity.
+ *
+ * Cell-local findings contribute to unionCells + countCells (NOT to
+ * row / col unions or counts — the cell-local treatment is per-cell,
+ * not per-row / per-col, even if the cells happen to share rows).
+ * Row-local findings contribute to unionRows + countRows.
+ * Column-local findings contribute to unionCols + countCols.
+ * Whole-table findings only flip hasWholeTable; they don't paint
+ * borders or contribute to per-cell counts.
+ */
+function buildLocalityCompose(findings, ctx) {
+  if (!findings || !findings.length) return EMPTY_COMPOSE;
+  const { rowMap, matColToVisCol, nVisRows } = ctx;
+  const mapRow = (r) => (rowMap ? (rowMap[r] ?? r) : r);
+  const mapCol = (c) => (matColToVisCol ? matColToVisCol[c] : c);
+
+  let hasWholeTable = false;
+  const unionCells = new Set();
+  const unionRows  = new Set();
+  const unionCols  = new Set();
+  const countCells = new Map();
+  const countRows  = new Map();
+  const countCols  = new Map();
+  const inc = (map, key) => map.set(key, (map.get(key) || 0) + 1);
+
+  for (const f of findings) {
+    switch (f.locality) {
+      case "cell-local": {
+        for (const [r, c] of f.region?.cells || []) {
+          const vr = mapRow(r);
+          const vc = mapCol(c);
+          if (vr >= 0 && vr < nVisRows && vc != null) {
+            const k = `${vr},${vc}`;
+            unionCells.add(k);
+            inc(countCells, k);
+          }
+        }
+        break;
+      }
+      case "row-local": {
+        for (const r of f.region?.rows || []) {
+          const vr = mapRow(r);
+          if (vr >= 0 && vr < nVisRows) {
+            unionRows.add(vr);
+            inc(countRows, vr);
+          }
+        }
+        break;
+      }
+      case "column-local": {
+        for (const c of f.region?.cols || []) {
+          const vc = mapCol(c);
+          if (vc != null) {
+            unionCols.add(vc);
+            inc(countCols, vc);
+          }
+        }
+        break;
+      }
+      case "dataset-wide":
+      case "unscoped":
+        hasWholeTable = true;
+        break;
+      // No default — unknown localities contribute nothing.
+    }
+  }
+
+  return { hasWholeTable, unionCells, unionRows, unionCols, countCells, countRows, countCols };
+}
 
 // ── Shared IRC pair classification ──────────────────────────────────
 /**
@@ -401,16 +520,40 @@ const BUILDERS = {
 };
 
 /**
- * Build the highlight specification for the active test.
+ * Build the highlight specification for the active selection.
  *
- * @param {string|null} testKey - Active test name, or null for no highlight
+ * @param {string|null} testKey - Active test name (drives per-test
+ *                                specialised builders); typically the
+ *                                last-added finding's first testId in
+ *                                B2b multi-select.
  * @param {object[]|null} results - Test result array from engine
- * @param {object} ctx - Context: { dColMap, visColIndices, condPerCol, rowMap, nVisRows, matColToVisCol, groups }
+ * @param {object} ctx - Context: { dColMap, visColIndices, condPerCol,
+ *                                    rowMap, nVisRows, matColToVisCol,
+ *                                    groups, activeFindings? }
+ *                       activeFindings: array of active §2 findings
+ *                       (S163 B2b multi-select). Each finding's
+ *                       locality contributes to the spec's
+ *                       `localityCompose` per buildLocalityCompose.
+ *                       Empty array → no locality dispatch layered.
  * @returns {HighlightSpec}
  */
 export function buildHighlightSpec(testKey, results, ctx) {
-  if (!testKey) return EMPTY_SPEC;
-  if (!results) return EMPTY_SPEC;
+  // S163 B2a / B2b: locality dispatch layers even on the empty-builder
+  // paths (no test key, no results). Compute the compose first; the
+  // builder-driven body still short-circuits to EMPTY_SPEC's fields when
+  // there is nothing to paint test-specifically.
+  //
+  // `dimUncovered` is true when the user has expressed targeted interest
+  // (subset mode with ≥1 active finding) — cells outside the active
+  // coverage dim to focus attention. In all-on mode dimUncovered stays
+  // false even with findings active: the message is "show me everything",
+  // and dimming the few uncovered cells would contradict that.
+  const localityCompose = buildLocalityCompose(ctx.activeFindings, ctx);
+  const dimUncovered = !!ctx.dimUncovered;
+  const composed = { ...localityCompose, dimUncovered };
+  if (!testKey) return { ...EMPTY_SPEC, localityCompose: composed };
+  if (!results) return { ...EMPTY_SPEC, localityCompose: composed };
   const builder = BUILDERS[testKey] || buildGenericSpec;
-  return builder(results, ctx);
+  const spec = builder(results, ctx);
+  return { ...spec, localityCompose: composed };
 }

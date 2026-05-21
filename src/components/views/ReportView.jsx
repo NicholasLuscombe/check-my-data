@@ -947,6 +947,14 @@ export function ReportView({ results, importConfig, matrix, rowMap, onBack, onCh
           // (HotspotExcerpt, WhereToLookSection) can read finding-level
           // metadata without re-deriving from results.
           findings,
+          // Content-aware column widths — per raw-column-index max
+          // formatted-string length, computed at import time in
+          // summary.js. ExcerptTable threads these onto per-column
+          // `width` fields via colWidthFromMaxLen() so columns size to
+          // actual content (no forensic-precision truncation on wide
+          // values like "-0.595138"). Spans all roles, so role-state
+          // doesn't change widths.
+          colMaxLen: importConfig?.summary?.colMaxLen || null,
         };
 
         // Hotspot range formatter

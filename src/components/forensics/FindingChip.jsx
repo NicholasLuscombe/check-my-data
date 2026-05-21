@@ -30,6 +30,7 @@
 import { C, FS, FW, FF, CR, SEV_VERDICT, MECH_COLOR } from "../../constants/tokens.js";
 import { MECHANISMS } from "../../constants/mechanisms.js";
 import { MechIcon, mechIconSize } from "../shared/MechIcon.jsx";
+import { IDENTITY_BORDER } from "../shared/heatmapColors.js";
 import { usePulseTrigger } from "./pulseContext.jsx";
 import { usePulseAnimation } from "./PulseStyle.jsx";
 
@@ -67,7 +68,7 @@ function chipStyle(severity) {
 // "Moderate" / "Clear".
 const TIER_WORD = { HIGH: "High", MOD: "Moderate", LOW: "Clear" };
 
-export function FindingChip({ finding, onActivate, showRegionNumber = false }) {
+export function FindingChip({ finding, onActivate, showRegionNumber = false, isActive = false }) {
   const tests = finding.tests || [];
   const isSingleTest = tests.length === 1;
   // Single-test chips use the test display name in place of the
@@ -111,9 +112,15 @@ export function FindingChip({ finding, onActivate, showRegionNumber = false }) {
       title={tooltip}
       style={{
         display: "inline-flex", alignItems: "center", gap: "6px",
-        padding: "3px 10px 3px 8px",
+        padding: "3px 10px 3px 7px",
         background: sev.bg,
+        // S163 fix-pass A item 2: restore the left-hand mechanism-colour
+        // stripe (3 px) so the chip visually echoes the §3 test-card
+        // mechanism stripe (TestCardLayout's `borderLeft: 3px solid
+        // MECH_COLOR[mk]`). Same source token, same width — links a chip
+        // to its matching test card by colour. Other edges stay none.
         border: "none",
+        borderLeft: mechColor ? `3px solid ${mechColor}` : "none",
         borderRadius: CR.MD,
         color: sev.color,
         fontSize: FS.sm,
@@ -121,6 +128,29 @@ export function FindingChip({ finding, onActivate, showRegionNumber = false }) {
         fontWeight: FW.SEMI,
         cursor: "pointer",
         whiteSpace: "nowrap",
+        // S163 fix-pass A items 3+4: chip can shrink within a narrow
+        // flex container; overflow: hidden + textOverflow: ellipsis
+        // gracefully truncate the chip's tail at extreme-narrow widths
+        // rather than overflowing the lane row. At normal widths the
+        // chip sizes to its content (nowrap, no shrink needed) — these
+        // properties only fire below the layout breakpoint.
+        minWidth: 0,
+        maxWidth: "100%",
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        // S163 B2b W4: active chip rings in the deeper-purple
+        // IDENTITY_BORDER (same purple that paints the cell borders
+        // in the data block). Visually wires the chip to its
+        // highlight — purple ring above → purple region in the table
+        // — instead of the previous severity-colour ring that
+        // double-encoded severity (already carried by chip bg + tier
+        // word). The 3px mechanism-colour left stripe (fix-pass A,
+        // borderLeft above) is preserved as-is — it remains the
+        // chip↔§3-card mechanism connector. Outline (not border)
+        // avoids layout shift. Co-existence with the mechanism
+        // stripe is a noted visual-review item.
+        outline: isActive ? `2px solid ${IDENTITY_BORDER}` : "none",
+        outlineOffset: isActive ? "1px" : 0,
       }}
     >
       <MechIcon mk={dimKey} size={mechIconSize(dimKey, ICON_SIZE)} color={mechColor} opacity={isCleared ? CLEARED_OPACITY : 1} />

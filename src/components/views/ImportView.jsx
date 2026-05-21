@@ -16,7 +16,7 @@ import { FLAG_STYLES } from "../../constants/thresholds.js";
 import { ROLES, ROLE_KEYS, COND_COLORS } from "../../constants/roles.js";
 import { MECHANISMS, MECHANISM_ORDER, TEST_MECHANISM, DISPLAY_NAMES } from "../../constants/mechanisms.js";
 import { buildCondSpans, colToExcelLetter, originalFileRow } from "../shared/coordinates.js";
-import { COL_W, FREEZE_COL_W, FREEZE_Z, countFrozenCols } from "../shared/styles.js";
+import { COL_W, FREEZE_COL_W, FREEZE_Z, countFrozenCols, colWidthFromMaxLen } from "../shared/styles.js";
 import { ScrollTable } from "../shared/ScrollTable.jsx";
 
 export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onPendingFileConsumed }) {
@@ -369,12 +369,29 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
   const condSpans=useMemo(()=>buildCondSpans(condPerCol),[condPerCol]);
 
   // ── Frozen column computation — reactive to role changes ──
+  // Sums the SAME per-column widths the colgroup applies, so sticky-left
+  // offsets match the actual rendered column positions. Pre-fix used
+  // FREEZE_COL_W.ID_COL=80 unconditionally — diverged from content-aware
+  // widths and caused the sticky frozen cell to overlay the first non-
+  // frozen column's left edge (visible on data tables as a leading-char
+  // clip on values centred in the first data column).
   const freeze=useMemo(()=>{
     const n=countFrozenCols(roles);
     if(n===0) return null;
+    const maxLens=sum?.colMaxLen||[];
     const offsets=[0]; // index 0 = # col (left:0)
     let left=FREEZE_COL_W.ROW_NUM;
-    for(let i=0;i<n;i++){offsets.push(left);left+=FREEZE_COL_W.ID_COL;}
+    for(let i=0;i<n;i++){
+      offsets.push(left);
+      // Same max(content, header) logic the colgroup uses (item 6) —
+      // frozen cols are non-data, so they widen to fit their header
+      // when content is shorter ("Residue" header > "1"/"2" content).
+      const contentLen=maxLens[i]||0;
+      const headerLen=roles[i]!=="data"?(hdrs[i]?.length||0):0;
+      const effectiveLen=Math.max(contentLen,headerLen);
+      const w=effectiveLen>0?colWidthFromMaxLen(effectiveLen):FREEZE_COL_W.ID_COL;
+      left+=w;
+    }
     // Condition span freeze analysis
     const spanFrozen=[];
     if(condSpans.length>0){
@@ -382,17 +399,36 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
       for(const sp of condSpans){const e=s+sp.len-1;spanFrozen.push(e<n);s+=sp.len;}
     }
     return{n,offsets,totalW:left,spanFrozen};
-  },[roles,condSpans]);
+  },[roles,condSpans,sum,hdrs]);
 
-  // Build column entries for ScrollTable
+  // Build column entries for ScrollTable. Per-column `width` derived
+  // from summary.colMaxLen makes the column sized to its actual content
+  // — independent of role. Side-benefit: role-cycle (Data → Label →
+  // Cond → Skip) no longer reflows the column because the width no
+  // longer keys off role.
   const tableColumns=useMemo(()=>{
     const removed=prepInfo?.removedCols||[];
+    const maxLens=sum?.colMaxLen||[];
     return hdrs.map((h,i)=>{
       let origIdx=i;
       for(const rc of removed){if(rc<=origIdx)origIdx++;}
-      return{letter:colToExcelLetter(origIdx),name:h,role:roles[i]};
+      // S163 fix-pass A item 6: non-data column widths take the MAX of
+      // content and header length so identifier headers ("Residue",
+      // "GeneID") don't ellipsis-clip when their content (e.g. 1-2
+      // char residue numbers) is shorter than the header. Data columns
+      // keep the content-only sizing — there are many data columns
+      // (one per Rep × condition), their headers can wrap to multiple
+      // lines via whiteSpace:normal in ColumnHeaders, and over-widening
+      // many columns to fit long Rep header names would multiply the
+      // table width unhelpfully.
+      const role=roles[i];
+      const contentLen=maxLens[i]||0;
+      const headerLen=role!=="data"?(h?.length||0):0;
+      const effectiveLen=Math.max(contentLen,headerLen);
+      const width=effectiveLen>0?colWidthFromMaxLen(effectiveLen):undefined;
+      return{letter:colToExcelLetter(origIdx),name:h,role,width};
     });
-  },[hdrs,roles,prepInfo]);
+  },[hdrs,roles,prepInfo,sum]);
 
   // Auto-detect VST when data is available and dataType is not ordinal.
   // Runs eagerly so the selector card appears without needing to click Run first.

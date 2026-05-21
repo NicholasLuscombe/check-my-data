@@ -25,13 +25,12 @@ export const SECTION_HEADER_TYPOGRAPHY = {
   whiteSpace: "nowrap",
 };
 
-/** Lane-label typography — dimension-header peers in §2 (StickySurface)
- *  and in DeepLookModal. Sentence-case content-tier register, semibold,
- *  C.TEXT body colour. Sized at FS.base so the label outranks adjacent
- *  FindingChip / FindingPill content (FS.sm) without crossing into the
- *  sub-heading register (FS.md). S149 (C.6+C.7): extracted from the
- *  byte-identical local consts that lived in StickySurface and
- *  DeepLookModal so register changes land in one place.
+/** Lane-label typography — dimension-header peers in §2 (StickySurface).
+ *  Sentence-case content-tier register, semibold, C.TEXT body colour.
+ *  Sized at FS.base so the label outranks adjacent FindingChip /
+ *  FindingPill content (FS.sm) without crossing into the sub-heading
+ *  register (FS.md). S149 (C.6+C.7): extracted from byte-identical
+ *  local consts so register changes land in one place.
  *
  *  Layout-only properties (whiteSpace, flexShrink) stay at the consumer
  *  spread sites — they're layout, not typography. */
@@ -40,6 +39,23 @@ export const LANE_LABEL_TYPOGRAPHY = {
   fontSize: FS.base,
   fontWeight: FW.SEMI,
   color: C.TEXT,
+};
+
+/** §2 lane label strings — single source of truth for the three chip-lane
+ *  headers. S163 Phase 3d (A1.D3 close): extracted from inline literals in
+ *  StickySurface so future copy changes land in one place.
+ *
+ *  S163 B1: fallback label "Broadly flagged" → "Flagged, location unclear".
+ *  The lane now means: the test fired and is genuinely flagged, but the
+ *  per-row evidence to pin down WHERE did not materialise. Conceptually
+ *  distinct from "Dataset-wide" — there location is not-applicable by
+ *  nature; here a location conceptually exists but the tool couldn't
+ *  determine it. The new wording carries both halves: it IS a real
+ *  flag, and the WHERE is uncertain. */
+export const LANE_LABELS = {
+  pills: "Dataset-wide",
+  localised: "Localised",
+  fallback: "Flagged, location unclear",
 };
 
 /** Minimap callout typography — inline-bold-prefix-plus-body pattern used at

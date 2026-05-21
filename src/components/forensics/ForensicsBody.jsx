@@ -1,64 +1,70 @@
-/* ── ForensicsBody — Forensics document branch §2 + §3 chrome (S126b) ──
+/* ── ForensicsBody — Forensics document branch §2 + §3 chrome ──
    Owns:
-     - §2 WHAT WAS FOUND  — section header (normal scroll flow) + sticky
-                            pills+chips+minimap body. Sticky pins to
-                            viewport top once the section header scrolls
-                            past. Clean (no findings) renders an "all
-                            checks passed" line in place of the sticky.
+     - §2 WHAT WAS FOUND  — section header + sticky surface (StickySurface).
+                            The sticky surface composes chip lanes + the
+                            active-region FindingDetailPanel content as
+                            one sticky element. Clean (no findings)
+                            renders an "all checks passed" line in
+                            place of the chip lanes.
      - §3 DETAILED TEST RESULTS — dimension-grouped cards via
                                    ForensicsCategoryBlock (severity-
                                    descending order + CLEAR collapse).
-
-   S126b add-3 changes:
-     - §2 was the dimension-cards section; renamed to §3 DETAILED TEST
-       RESULTS and §2 now carries the sticky pills+chips as a numbered
-       section (deletion of old §3 WHERE TO LOOK happened in parallel).
-     - HotspotExcerpt mount removed — the minimap+table block returned
-       in S126c modal. `regionOverlays` + `hotspotScrollRef` plumbing
-       kept dormant for that future wiring.
-     - Section header for §2 lives outside the sticky container so it
-       scrolls away with the verdict banner; sticky body holds only the
-       lane rows, ~80–120px tall.
-
-   S126c-a recovery (per SESSION126b-SUMMARY §3(e) scoping
-   acknowledgment): the lightweight MinimapStrip is restored inline as
-   a sibling to the chip lane inside the sticky wrapper. The deeper
-   table excerpt still defers to S126c-b modal — that surface needs a
-   meaningful zoom location and breaks for spatially-diffuse findings.
-   `hotspotScrollRef` plumbing kept dormant; the modal mounts
-   ExcerptTable with that ref pre-wired.
 
    Why a child component: needs `usePulseTrigger` from PulseProvider.
    ReportView wraps the Forensics return in <PulseProvider>, then renders
    <ForensicsBody …/> here so chips/pills/test-card badge clicks all
    share the same pulse bus.
 
-   Click model (spec §1.7):
-     - chip click       → pulse(chip:N, region:N, card:<each>) + scroll card
+   Click model:
+     - chip click       → pulse(chip:N, region:N, card:<each>) + scroll
+                          card + activate region (chip click sets
+                          activeRegionNumber, which renders the panel
+                          content inline inside StickySurface)
      - pill click       → pulse(pill:test, card:test) + scroll card
+                          (no panel activation — writer scope is
+                          localised chips only)
      - badge click on
-       a test card      → pulse(card:test, pill or chip+region from finding)
-     - region [N] badge → pulse(region:N, chip:N) + onActivateRegion
-                          (S126c-b modal-open hook; null-stub today)
+       a test card      → pulse(card:test, pill or chip+region from
+                          finding)
 
-   The `region:N` pulse target now has a listener (MinimapStrip's
-   RegionBadge) — chip clicks reflect to the minimap visually.
-   Reverse direction (badge → chip) wired via the badge handler. */
+   S163 lifecycle: `activeRegionNumber` is the §2 state and drives
+   per-chip `isActive` (ring colour) in StickySurface plus the
+   filter on the panel's minimaps + cell tints. Initial value
+   null → no chip active on first load.
 
-import { useMemo, useRef, useState, useCallback } from "react";
-import { Section, MINIMAP_CALLOUT_TYPOGRAPHY } from "../shared/Section.jsx";
+   S163 fix-pass 1: chrome retirements + permanent Data disclosure.
+   Chip [N] prefix, status row, header row, ✕ button all retire;
+   chips ring when active and re-clicking the active chip
+   deactivates it (toggle). The Data ▼/▲ toggle becomes a permanent
+   affordance at the sticky-surface level, independent of
+   activeRegionNumber. First chip click in session auto-expands the
+   data block; user toggle persists thereafter (no re-auto-expand on
+   subsequent chip clicks).
+
+   S163 virtualisation rework: ExcerptTable in compactMode now emits
+   the full data table and ScrollTable's existing hand-rolled
+   virtualisation (ROW_H=28, VIRT_THRESHOLD=500) handles large
+   datasets. Panel-level minimaps flipped from window-slicer
+   scrubbers to scroll-position viewport-band indicators. Chip
+   click scrolls the table to the active region via the imperative
+   scrollToVisRow API exposed through hotspotScrollRef.
+   Toggle-deactivate (re-click active chip) preserves the user's
+   current scroll position; only the chip ring clears. */
+
+import { useMemo, useState, useRef, useCallback } from "react";
+import { Section } from "../shared/Section.jsx";
 import { MECHANISM_ORDER, TEST_MECHANISM } from "../../constants/mechanisms.js";
 import { CATEGORY_SHORT_DESCRIPTIONS } from "../../constants/descriptions.js";
-import { C, FW } from "../../constants/tokens.js";
-import { StickySurface, STICKY_SURFACE_SELECTOR, shouldRenderSticky } from "./StickySurface.jsx";
+import { C } from "../../constants/tokens.js";
+import { StickySurface, STICKY_SURFACE_SELECTOR } from "./StickySurface.jsx";
 import { ForensicsCategoryBlock } from "./ForensicsCategoryBlock.jsx";
-import { MinimapStrip } from "./MinimapStrip.jsx";
-import { DeepLookModal } from "./DeepLookModal.jsx";
 import { usePulseTrigger } from "./pulseContext.jsx";
 
 // S150-fix1: clean-state copy renders as bold sentence-lead + body
-// continuation, co-consuming MINIMAP_CALLOUT_TYPOGRAPHY. Body-prose
-// register lifts the empty-state from sub-body 13px to FS.base 16px.
+// continuation. Threaded through to StickySurface where it renders
+// above the Data toggle when no chips exist in any lane (S163
+// fix-pass 1 promoted clean-state rendering into the sticky surface
+// so the Data toggle is always available).
 const CLEAN_STATE_LEAD = "All checks passed";
 const CLEAN_STATE_TAIL = " — no patterns to flag.";
 
@@ -71,23 +77,17 @@ export function ForensicsBody({
   expandedCats, toggleCat, ensureCatExpanded,
   expandedTestEvidence, setExpandedTestEvidence, ensureTestCardExpanded,
   importConfig, rowMap,
-  // Dataset severity (0/1/2/3 from computeSeverity). Threaded through to
-  // StickySurface for the §2 severity-echo top row.
+  // Dataset severity (0/1/2/3 from computeSeverity). Threaded through
+  // for parity with sibling chrome — not consumed by §2 / §3 today.
   severity,
-  // S126c-b: full heatmap data bundle for the inline MinimapStrip (uses
-  // convergence + rawData) and the DeepLookModal's ExcerptTable mount
-  // (uses every field). Same shape ReportView builds for HotspotExcerptList
-  // — `{ convergence, rawData, rowMap, colHeaders, visColIndices, dColMap,
-  //     roles, coordCtx, condPerCol, findings }`.
+  // Full heatmap data bundle from ReportView. Same shape ReportView
+  // builds for HotspotExcerptList — `{ convergence, rawData, rowMap,
+  // colHeaders, visColIndices, dColMap, roles, coordCtx, condPerCol,
+  // findings }`. Passed through to FindingDetailPanel so the panel can
+  // mount MinimapStripVertical + ExcerptTable when Show data is open.
   heatmapProps = null,
 }) {
-  const convergence = heatmapProps?.convergence || null;
-  const rawData = heatmapProps?.rawData || null;
   const trigger = usePulseTrigger();
-  // Dormant under S126b add-3: the minimap+table that this ref drives
-  // exits inline render and returns in S126c modal. Plumbing kept so
-  // the modal mount can plug in without ForensicsBody changes.
-  const hotspotScrollRef = useRef(null);
 
   // Quick test-id → finding lookup for badge-click pulse routing.
   const testToFinding = useMemo(() => {
@@ -98,25 +98,14 @@ export function ForensicsBody({
     return m;
   }, [findings]);
 
-  const stickyVisible = shouldRenderSticky(findings);
-
-  // Scroll-to-card via the data-test-id attribute that ForensicsTestCard sets.
-  // CSS.escape handles test-id strings that contain spaces / parens / quotes.
-  //
-  // S133f-fix2: replaces scrollIntoView({block:"center"}) with offset-aware
-  // top-alignment. block:"center" centred the card on the viewport, which
-  // for cards taller than the viewport (Missing Data Patterns: per-column
-  // missing-rate plot + spatial heatmap; Block Covariance Anomaly with
-  // expanded Σ-pass heatmap) pushed the card title above the viewport
-  // top and landed the user at "Implications" / "What to look for". The
-  // new arithmetic reads the sticky surface's measured offsetHeight at
-  // scroll-time and lands the card title just below the pinned sticky:
-  //   target = window.scrollY + el.top - stickyHeight - BREATHING_MARGIN
-  // offsetHeight is read live (no caching) so the height tracks the
-  // sticky's lane composition (pills / localised / fallback / minimap).
-  // When no sticky surface is mounted (severity 0 path), stickyHeight
-  // falls through to 0 and the card lands BREATHING_MARGIN below
-  // viewport top.
+  // Scroll-to-card via the data-test-id attribute that ForensicsTestCard
+  // sets. CSS.escape handles test-id strings that contain spaces / parens
+  // / quotes. The arithmetic offsets the landing position past the §2
+  // sticky surface — its offsetHeight tracks the full surface
+  // composition (chip lanes plus, when a region is active, the inline
+  // FindingDetailPanel content). When no sticky surface is mounted
+  // (severity 0 path), height falls through to 0 and the card lands
+  // BREATHING_MARGIN below viewport top.
   const scrollToCard = useCallback((testId) => {
     if (typeof document === "undefined" || !testId) return;
     const sel = `[data-test-id="${(typeof CSS !== "undefined" && CSS.escape) ? CSS.escape(testId) : testId.replace(/"/g, '\\"')}"]`;
@@ -129,32 +118,170 @@ export function ForensicsBody({
     window.scrollTo({ top: Math.max(0, target), behavior: "smooth" });
   }, []);
 
-  // Sticky-surface activation. Receives the full finding so multi-test
-  // chips can expand every relevant test card (and all touched
-  // dimensions). For pills + single-test chips this collapses to the
-  // single-card / single-dim case.
+  // S163 B2e E2: selection state — click always toggles. The B2b
+  // Model B isolate-on-first-click special case retires: it was
+  // inconsistent ("3 on, click one" isolated, "2 on, click one"
+  // deselected — same gesture, opposite result, depending on a
+  // count the user wasn't tracking). Click now always toggles the
+  // clicked finding (active → inactive, inactive → active);
+  // default panel-expand state stays all-on (every finding active),
+  // only the meaning of the first click changes — it now peels one
+  // off, instead of isolating to one.
   //
-  // S126b add-4: ensure the parent dimension wrapper is expanded
-  //              (otherwise the test card isn't even in the DOM).
-  // S126b add-6: also ensure the specific test card body is expanded
-  //              (otherwise the user lands on a collapsed card and
-  //              has to click again to see content).
-  // Double-rAF defers the scroll until after React commits both
-  // expansion-state writes and the browser paints the new layout —
-  // otherwise scrollIntoView lands on the pre-expansion position.
-  // Pulse animation is fired by the chip/pill itself via PulseProvider;
-  // it lands on the card the first time the card mounts (or replays if
-  // already mounted).
+  // Representation: a single Set of active regionNumbers, plus
+  // lastAdded (which drives panel chrome + scroll-on-add). The
+  // mode='all' / 'subset' distinction is DERIVED from the Set size
+  // vs the universe of finding ids — kept as a derived value
+  // (`selectionMode` below) for the G1 default-all-on early-return
+  // in FindingDetailPanel and for dimUncovered. Primary state stops
+  // tracking mode explicitly.
   //
-  // Minimap-scroll path is dormant under add-3 (no inline minimap to
-  // scroll); restored in S126c modal.
+  // Sentinel: `selection === null` means "uninitialized" — treat as
+  // all-on without allocating a Set. This protects the G1 default-
+  // all-on early-return on initial render (and on any later reset
+  // via Show all, which DOES allocate a Set covering all ids — that
+  // path also resolves to mode='all' via the size comparison).
+  const allFindingIds = useMemo(() => {
+    const s = new Set();
+    for (const f of findings) if (f.regionNumber != null) s.add(f.regionNumber);
+    return s;
+  }, [findings]);
+
+  const [selection, setSelection] = useState(null);
+  // Derived: the active Set. When selection is null, treat as
+  // all-active (returns the allFindingIds Set without allocating
+  // a copy — read-only consumers).
+  const activeSelected = selection?.selected ?? allFindingIds;
+  const lastAdded = selection?.lastAdded ?? null;
+  // Derived: mode === 'all' iff the active Set covers every finding
+  // id. This is the only place 'all' vs 'subset' is computed — every
+  // consumer (StickySurface chip predicate, FindingDetailPanel G1
+  // early-return + dimUncovered) reads this derived value.
+  const selectionMode = activeSelected.size === allFindingIds.size ? "all" : "subset";
+
+  // S163 fix-pass 1: data-disclosure state. `dataExpanded` controls
+  // whether the §2 sticky surface renders the inline data block
+  // (vertical minimap + ExcerptTable). Independent of
+  // activeRegionNumber — the user can inspect the raw table even
+  // without an active chip. First chip click in session auto-expands
+  // via the hasAutoExpanded ref; subsequent chip clicks do not.
+  // User-toggle clicks on the Data ▼/▲ affordance flip the state
+  // and do not affect hasAutoExpanded (so an explicit collapse stays
+  // collapsed across later chip clicks).
+  const [dataExpanded, setDataExpanded] = useState(false);
+  const hasAutoExpanded = useRef(false);
+
+  const onToggleDataExpanded = useCallback(() => {
+    setDataExpanded(v => !v);
+  }, []);
+
+  // S163 virtualisation rework: scroll-to-region via the table's
+  // imperative scroll API. The fix-pass-2 windowed-state machinery
+  // (WINDOW_ROW_SIZE / WINDOW_COL_SIZE constants, windowRowStart /
+  // windowColStart state, scrubber-based snap) retires. The
+  // FindingDetailPanel's ExcerptTable mounts with a shared
+  // hotspotScrollRef whose `scrollToVisRow(row)` writes scrollTop on
+  // the scroll container; ScrollTable's existing __scrollToRow
+  // handles the virtualised case (above 500 rows) by computing the
+  // target spacer offset rather than looking up a DOM ref.
+  //
+  // Toggle-deactivate (re-click active chip → setActiveRegionNumber
+  // null) exits BEFORE the scroll-to-region call, so the user's
+  // current scroll position survives the deactivation.
+  const hotspotScrollRef = useRef(null);
+
+  // Map a matRow → visRow via rowMap, with identity fallback.
+  const visRowOf = useCallback((matRow) => {
+    const rm = heatmapProps?.rowMap;
+    if (!rm) return matRow;
+    return rm[matRow] ?? matRow;
+  }, [heatmapProps]);
+
+  // Scroll the §2 data table to centre the active region's row
+  // range. Called from chip-click activation. region.rowRange is in
+  // matrix-row space; map through rowMap to vis-row space and pick
+  // the midpoint of the range.
+  const scrollToRegion = useCallback((region) => {
+    const scrollApi = hotspotScrollRef.current;
+    if (!scrollApi || !region) return;
+    if (!region.rowRange || !Array.isArray(region.rowRange) || region.rowRange.length !== 2) return;
+    const visStart = visRowOf(region.rowRange[0]);
+    const visEnd = visRowOf(region.rowRange[1]);
+    if (!Number.isFinite(visStart) || !Number.isFinite(visEnd)) return;
+    const centre = Math.round((visStart + visEnd) / 2);
+    scrollApi.scrollToVisRow?.(centre);
+  }, [visRowOf]);
+
+  // S163 B2e E2: chip / pill click — ALWAYS toggles. Same gesture,
+  // same result, regardless of how many findings are currently
+  // active. The B2b isolate-on-first-click special case retires.
+  //
+  // State transitions (let N = clicked finding's regionNumber):
+  //   - activeSelected.has(N)    → REMOVE: drop N from the set.
+  //                                  lastAdded demotes to next-most-
+  //                                  recent active finding (or null
+  //                                  when the set empties). NO scroll;
+  //                                  removing narrows focus, doesn't
+  //                                  re-target §3.
+  //   - !activeSelected.has(N)   → ADD: insert N into the set.
+  //                                  lastAdded = N. Scrolls §3 to
+  //                                  that finding's card; expands
+  //                                  dimension + test card; auto-
+  //                                  expands the data block on first
+  //                                  activation.
+  //
+  // Default panel-expand state: every finding active (selection ===
+  // null → activeSelected reads allFindingIds without allocation).
+  // First click from default: peels one off → selectionMode flips
+  // to 'subset' since the Set is now smaller than allFindingIds.
+  //
+  // Path to "just this one" gesture retires: was "click chip from
+  // all-on" (which ISOLATED in B2b). Now requires "Clear all → click
+  // chip" (two clicks instead of one). Confirmed acceptable per the
+  // B2e revision: predictability over saving a click.
   const onActivateTest = useCallback((finding) => {
     if (!finding) return;
     const tests = finding.tests || [];
     if (!tests.length) return;
-    // Expand every dimension touched by this finding (multi-test chips
-    // may span multiple dimensions in a future aggregator merge; today
-    // each test maps to one dimension).
+    if (finding.regionNumber == null) return;
+    const N = finding.regionNumber;
+
+    // isRemove determined BEFORE the toggle. Used to gate the
+    // scroll-on-add path (REMOVE exits before scroll).
+    const isRemove = activeSelected.has(N);
+
+    // State update via functional setter so concurrent updates compose.
+    // First write (selection === null → fully active): the setter
+    // materialises the all-active baseline from `allFindingIds`, then
+    // applies the toggle. Subsequent writes operate on `prev.selected`.
+    setSelection(prev => {
+      const prevSelected = prev?.selected ?? allFindingIds;
+      const prevLastAdded = prev?.lastAdded ?? null;
+      const next = new Set(prevSelected);
+      let isAdd;
+      if (next.has(N)) {
+        next.delete(N);
+        isAdd = false;
+      } else {
+        next.add(N);
+        isAdd = true;
+      }
+      const newLastAdded = isAdd
+        ? N
+        : (prevLastAdded === N
+          // lastAdded was the just-removed finding — demote to the
+          // next-most-recent active (Set iteration order is insertion
+          // order; pop returns the most recent). null when set empties.
+          ? (next.size ? [...next].pop() : null)
+          : prevLastAdded);
+      return { selected: next, lastAdded: newLastAdded };
+    });
+
+    if (isRemove) return;  // No card expand / scroll on REMOVE.
+
+    // ADD path: dimension expand + test-card expand + auto-expand
+    // data block on first activation + scroll table to region +
+    // scroll §3 to the added finding's first card.
     if (ensureCatExpanded) {
       const dims = new Set();
       for (const t of tests) {
@@ -163,24 +290,44 @@ export function ForensicsBody({
       }
       for (const dim of dims) ensureCatExpanded(dim);
     }
-    // Expand every relevant test card body.
     if (ensureTestCardExpanded) {
       for (const t of tests) ensureTestCardExpanded(t.testId);
     }
-    // Scroll to the first test card. Double-rAF waits for both expand
-    // commits + browser paint before reading layout geometry.
+    if (!hasAutoExpanded.current) {
+      hasAutoExpanded.current = true;
+      setDataExpanded(true);
+    }
+    if (typeof requestAnimationFrame === "function") {
+      requestAnimationFrame(() => scrollToRegion(finding.region));
+    } else {
+      scrollToRegion(finding.region);
+    }
     const firstTestId = tests[0].testId;
     if (typeof requestAnimationFrame === "function") {
       requestAnimationFrame(() => requestAnimationFrame(() => scrollToCard(firstTestId)));
     } else {
       scrollToCard(firstTestId);
     }
-  }, [scrollToCard, ensureCatExpanded, ensureTestCardExpanded]);
+  }, [scrollToCard, ensureCatExpanded, ensureTestCardExpanded, activeSelected, allFindingIds, scrollToRegion]);
 
-  // Test-card severity-badge click. Routes the pulse back to the finding's
-  // pill (global) or chip+region overlay (localised). S126c-a wires the
-  // `region:N` listener via MinimapStrip's RegionBadge, so badge → chip
-  // → region pulse symmetry now lights up the inline minimap too.
+  // S163 B2b W2 / B2e E2: Show all / Clear all writers.
+  // Show all  → fully-active Set covering every finding id.
+  //             selectionMode resolves to 'all' (size === allIds.size).
+  // Clear all → empty Set. selectionMode resolves to 'subset'.
+  // Both clear lastAdded — no specific focus when the user has just
+  // bulk-modified the set.
+  const onShowAll  = useCallback(() => {
+    setSelection({ selected: new Set(allFindingIds), lastAdded: null });
+  }, [allFindingIds]);
+  const onClearAll = useCallback(() => {
+    setSelection({ selected: new Set(), lastAdded: null });
+  }, []);
+
+  // Test-card severity-badge click. Routes the pulse back to the
+  // finding's pill (global) or chip+region overlay (localised). The
+  // panel-internal MinimapStripVertical's RegionBadge listens on
+  // `region:N` so badge → chip → region pulse symmetry covers the
+  // panel minimap too.
   const onCardBadgeClick = useCallback((result) => {
     const f = testToFinding.get(result.name);
     const keys = [`card:${result.name}`];
@@ -191,80 +338,71 @@ export function ForensicsBody({
     trigger(...keys);
   }, [testToFinding, trigger]);
 
-  // S126c-b: deep-look modal state. `modalRegionNumber` non-null →
-  // DeepLookModal is mounted, focused on that regionNumber. The whole
-  // inline strip + each [N] badge are click targets that set this state.
-  const [modalRegionNumber, setModalRegionNumber] = useState(null);
+  // S163 B2b / B2e: derive `activeFindings` (array) and `focusFinding`
+  // (single, the last-added) from selection state. `activeFindings`
+  // drives the data-block compositing in FindingDetailPanel /
+  // ExcerptTable; `focusFinding` drives the panel chrome (caption,
+  // per-test specialised builder key, auto-scroll target on add).
+  //
+  // E2 update: activeFindings reads `selectionMode` to early-return
+  // the full `findings` array when mode='all' — protects the G1
+  // default-all-on byte-identical path (FindingDetailPanel's
+  // activeConvergence memo early-returns when activeFindings ===
+  // findings). When mode='subset', filter to the active set.
+  const activeFindings = useMemo(() => {
+    if (selectionMode === "all") return findings;
+    if (!activeSelected.size) return [];
+    return findings.filter(f => f.regionNumber != null && activeSelected.has(f.regionNumber));
+  }, [findings, selectionMode, activeSelected]);
 
-  // Region-badge / strip-area click handler. Receives the overlay
-  // descriptor `{ regionNumber, severity, visRowStart, visRowEnd, tests }`
-  // computed by MinimapStrip from the focused finding. Sets modal state
-  // → modal mount renders pre-zoomed to that region. The chip:N + region:N
-  // pulse triggers are fired by MinimapStrip itself (badge handler and
-  // strip-area handler both fire) so this callback is purely the
-  // modal-open dispatch.
-  const onActivateRegion = useCallback((overlay) => {
-    if (!overlay || overlay.regionNumber == null) return;
-    setModalRegionNumber(overlay.regionNumber);
-  }, []);
-
-  const onDismissModal = useCallback(() => setModalRegionNumber(null), []);
-
-  // Build the MinimapStrip slot once for the sticky surface. Mounting
-  // is conditional on the data being available (convergence + rawData
-  // come from ReportView, which builds them once via
-  // buildConvergenceFromFindings + importConfig.data); the component
-  // also self-guards via an internal "no shading and no overlays →
-  // return null" check, so passing it always is safe.
-  const minimapSlot = (convergence && rawData)
-    ? (
-      <MinimapStrip
-        convergence={convergence}
-        findings={findings}
-        rowMap={rowMap}
-        nVisRows={rawData.length}
-        onActivateRegion={onActivateRegion}
-      />
-    )
-    : null;
+  const focusFinding = useMemo(() => {
+    if (lastAdded == null) return null;
+    return findings.find(f => f.regionNumber === lastAdded) || null;
+  }, [findings, lastAdded]);
 
   const catDescs = CATEGORY_SHORT_DESCRIPTIONS;
 
   return (
     <>
-      {/* §2 WHAT WAS FOUND — Path B-2 (S126b add-7b): the section is
-          split into two DOM elements that merge visually into one card.
-          The Section header renders inside its own flat-bottom wrapper;
-          the StickySurface renders as a SECTION SIBLING in a flat-top
-          continuation wrapper. Both share BG_ZONE bg + matching radii
-          on the abutting edge, so the visual reads as one Section card.
-          Critically, StickySurface's DOM parent is the Fragment / outer
-          ReportView wrapper rather than the Section's BG_ZONE card —
-          this is what gives `position: sticky` enough vertical span to
-          pin past §3, §4, §5 (sticky is bound by its PARENT's bottom
-          edge, and §2's wrapper is only ~83px tall). Pre-add-7b sticky
-          was inside Section §2 → un-pinned at 83px scroll; now sticky
-          is sibling-of-§3-§4-§5 → pins through the entire report.
+      {/* §2 WHAT WAS FOUND — two DOM elements that merge visually
+          into one §2 surface. Section header in its own flat-bottom
+          wrapper; StickySurface as a flat-top continuation, sticky-
+          pinned to viewport top during §3 scroll. StickySurface owns
+          the lane render, the Data toggle, and (when expanded) the
+          active-region data block. Both DOM elements are Fragment
+          siblings of §3-§5 so the sticky surface's pin range spans
+          the whole report (sticky un-pins at its parent's bottom
+          edge; the parent is the ForensicsBody Fragment / ReportView
+          outer wrapper).
 
-          Clean state (severity = 0): no sticky, no continuation — §2
-          renders as a normal Section card with the clean-state copy
-          inside (full radii, full marginBottom). */}
-      {stickyVisible
-        ? <>
-            <Section number={2} title="What was found" flatBottom />
-            <StickySurface
-              findings={findings}
-              onActivateTest={onActivateTest}
-              minimapSlot={minimapSlot}
-            />
-          </>
-        : <Section number={2} title="What was found">
-            <div>
-              <span style={{ ...MINIMAP_CALLOUT_TYPOGRAPHY, fontWeight: FW.SEMI }}>{CLEAN_STATE_LEAD}</span>
-              <span style={MINIMAP_CALLOUT_TYPOGRAPHY}>{CLEAN_STATE_TAIL}</span>
-            </div>
-          </Section>
-      }
+          S163 fix-pass 1: StickySurface always renders in Forensics
+          mode, even when the dataset is fully clean. The Data toggle
+          is a permanent affordance — clean fixtures still let the
+          user inspect the raw table. Clean-state copy ("All checks
+          passed — no patterns to flag.") lives inside StickySurface
+          above the Data toggle when no chips exist. */}
+      <Section number={2} title="What was found" flatBottom />
+      <StickySurface
+        findings={findings}
+        onActivateTest={onActivateTest}
+        // S163 B2e E2: selection prop carries the derived mode +
+        // active set + lastAdded. StickySurface reads `mode` for
+        // Show all / Clear all disabled state, `selected` for the
+        // chip isActive predicate (`isFindingActive`). The shape
+        // matches the pre-B2e selection prop so StickySurface
+        // doesn't need a signature update.
+        selection={{ mode: selectionMode, selected: activeSelected, lastAdded }}
+        onShowAll={onShowAll}
+        onClearAll={onClearAll}
+        activeFindings={activeFindings}
+        focusFinding={focusFinding}
+        heatmapProps={heatmapProps}
+        dataExpanded={dataExpanded}
+        onToggleDataExpanded={onToggleDataExpanded}
+        cleanStateLead={CLEAN_STATE_LEAD}
+        cleanStateTail={CLEAN_STATE_TAIL}
+        hotspotScrollRef={hotspotScrollRef}
+      />
 
       {/* §3 DETAILED TEST RESULTS — dimension cards */}
       <Section number={3} title="Detailed test results">
@@ -295,21 +433,6 @@ export function ForensicsBody({
         })}
       </Section>
 
-      {/* S126c-b — DeepLookModal mount. Rendered as a Fragment sibling
-          (position:fixed inside the modal takes it out of document
-          flow). Sticky scope unchanged: StickySurface's parent extent
-          is unaffected by adding/removing a fixed-positioned sibling
-          → S126b add-7b pin range preserved on dismiss. */}
-      {modalRegionNumber != null && heatmapProps && (
-        <DeepLookModal
-          heatmapProps={heatmapProps}
-          results={results}
-          findings={findings}
-          initialRegionNumber={modalRegionNumber}
-          onDismiss={onDismissModal}
-          scrollToCardOutside={scrollToCard}
-        />
-      )}
     </>
   );
 }

@@ -1,152 +1,132 @@
-/* ── MinimapStripVertical — A1.D3 panel-internal row minimap (S163 Phase 3a) ──
-   Sibling to MinimapStrip.jsx, axis-rotated. Renders a vertical strip
-   of per-vis-row shading driven by convergence-grid flag counts, with
-   region [N] badges anchored at each numbered finding's first-row
-   position along the vertical axis.
+/* ── MinimapStripVertical — A1.D3 row-axis density + viewport band (S163) ──
+   Renders a vertical strip of per-vis-row flag-density shading driven
+   by the convergence grid, plus a viewport-indicator band that tracks
+   the scroll position of the table to its right. Click + drag on the
+   strip writes scrollTop on the table, scrolling it to that position.
+
+   S163 Phase 3a authored the component. Fix-pass 1 dropped the [N]
+   numeric label on region badges. Fix-pass 2 turned the strip into a
+   scrubber (clientY → windowRowStart). The virtualisation rework
+   replaces the scrubber model with the bidirectional scrollTop ↔
+   viewport-band coordination that internal SegmentMinimap uses — the
+   table-coupled VS-Code-minimap idiom.
 
    Render contract:
-     - SVG viewBox `0 0 ${STRIP_W} ${nVisRows}` — row axis on Y, strip
-       width on X. Mirror of MinimapStrip's axis assignment.
-     - preserveAspectRatio="none" stretches the row axis to container
-       height so 1 row = 1/nVisRows of container height regardless of
-       the dataset's row count.
-     - Per-vis-row rects span the strip width (x=0, width=STRIP_W) and
-       are 1 viewBox unit tall.
-     - Region [N] badges live in an HTML span layer to the right of the
-       SVG, vertically anchored by `top: ${visRowStart/nVisRows*100}%`.
-     - Click target maps clientY → vis-row fraction, finds the nearest
-       overlay, fires the same `chip:N + region:N` pulse pair as the
-       horizontal sibling, and invokes onActivateRegion(overlay).
+     - SVG viewBox `0 0 ${STRIP_W} ${nVisRows}` with
+       preserveAspectRatio="none". Stretches the row axis to container
+       height so 1 row = 1/nVisRows of container regardless of dataset
+       row count.
+     - Per-vis-row rects filled per buildPerVisRowMax →
+       convergenceMinimapStyle. The convergence grid is re-keyed on
+       the active selection upstream (FindingDetailPanel's
+       activeConvergence memo — S163 B2d G1), so this strip's
+       density automatically reflects the active findings.
+     - Viewport band: translucent rect at `[viewFrac[0]*stripH,
+       viewFrac[1]*stripH)` driven by tableRef.scrollTop /
+       scrollHeight + clientHeight / scrollHeight.
+     - Click + drag → tableRef.scrollTop = frac * scrollableH so the
+       click position lands at the viewport top. */
 
-   Caption + convergence ramp legend that live below the horizontal
-   MinimapStrip are NOT rendered here. The A1.D3 panel may surface them
-   at panel scope (Chat call during Phase 3c visual review) — keeping
-   them out of this component means the panel owns the decision.
-
-   No consumer mount in Phase 3a. The component must build clean; the
-   panel-side mount lands at Phase 3c.
-
-   Data-derivation helpers (buildPerVisRowMax, deriveOverlays) are
-   shared with the horizontal sibling via minimapDerivation.js. */
-
-import { useMemo, useCallback } from "react";
-import { C, FW, FF, CR, SEV_VERDICT } from "../../constants/tokens.js";
+import { useMemo, useCallback, useRef, useState, useEffect } from "react";
+import { C, CR } from "../../constants/tokens.js";
 import { convergenceMinimapStyle } from "../shared/heatmapColors.js";
-import { usePulseTrigger } from "./pulseContext.jsx";
-import { usePulseAnimation } from "./PulseStyle.jsx";
-import { buildPerVisRowMax, deriveOverlays } from "./minimapDerivation.js";
+import { buildPerVisRowMax } from "./minimapDerivation.js";
 
 const STRIP_W = 32;
-const BADGE_H = 18;
-const BADGE_GAP = 4;
-// Total component width = strip + gap + badge column. Height is
-// determined by the container; the SVG stretches to fill.
-const TOTAL_W = STRIP_W + BADGE_GAP + BADGE_H;
-
-const sevColor = (severity) =>
-  severity === "HIGH" ? SEV_VERDICT[3].color
-  : severity === "MOD" ? SEV_VERDICT[2].color
-  : SEV_VERDICT[0].color;
-
-// Region badge — HTML span absolutely positioned to the right of the
-// strip, vertically anchored to its row position. Mirror of
-// MinimapStrip's RegionBadge with the axis-swapped layout.
-function RegionBadge({ overlay, topPct, onActivate }) {
-  const color = sevColor(overlay.severity);
-  const ref = usePulseAnimation(`region:${overlay.regionNumber}`, color);
-  const trigger = usePulseTrigger();
-  const handleClick = (e) => {
-    e.stopPropagation();
-    // Symmetric pulse: badge → chip + region. Same bus targets as the
-    // horizontal sibling so chip/badge clicks pulse together regardless
-    // of which minimap surface is mounted.
-    trigger(`region:${overlay.regionNumber}`, `chip:${overlay.regionNumber}`);
-    onActivate?.(overlay);
-  };
-  const tooltip = overlay.tests.map(t => t.displayName).join(", ");
-  return (
-    <span
-      ref={ref}
-      onClick={handleClick}
-      title={tooltip}
-      style={{
-        position: "absolute",
-        // Anchor at the badge centre so a region at row 0 doesn't clip
-        // off the top edge. Shift by half BADGE_H to centre the pill on
-        // its row position.
-        top: `calc(${topPct}% - ${BADGE_H / 2}px)`,
-        left: STRIP_W + BADGE_GAP,
-        height: BADGE_H,
-        minWidth: BADGE_H,
-        padding: "0 6px",
-        background: color,
-        borderRadius: CR.SM,
-        color: C.WHITE,
-        // Chart annotation glyph — TYPOGRAPHY-SYSTEM.md §"What this system
-        // does NOT cover" carve-out (chart annotations are a separate sizing
-        // system). Hardcoded pending that system's land; do NOT promote to
-        // text-register tokens.
-        fontSize: "10px",
-        fontFamily: FF.UI,
-        fontWeight: FW.BOLD,
-        lineHeight: `${BADGE_H}px`,
-        textAlign: "center",
-        cursor: "pointer",
-        whiteSpace: "nowrap",
-        boxSizing: "border-box",
-        userSelect: "none",
-        zIndex: 1,
-      }}
-    >
-      {overlay.regionNumber}
-    </span>
-  );
-}
 
 export function MinimapStripVertical({
-  convergence, findings, rowMap, nVisRows,
-  onActivateRegion = null,
+  convergence, rowMap, nVisRows,
+  tableEl = null,
 }) {
   const grid = convergence?.grid || null;
   const perRow = useMemo(
     () => buildPerVisRowMax(grid, rowMap, nVisRows),
     [grid, rowMap, nVisRows]
   );
-  const overlays = useMemo(
-    () => deriveOverlays(findings, rowMap),
-    [findings, rowMap]
-  );
 
-  const trigger = usePulseTrigger();
+  const containerRef = useRef(null);
+  const draggingRef = useRef(false);
+  const [viewFrac, setViewFrac] = useState([0, 1]);
 
-  // Whole-strip click target. Same nearest-overlay-by-row-distance model
-  // as MinimapStrip, axis-flipped: read clientY (not clientX), divide by
-  // rect.height (not rect.width). RegionBadge clicks call
-  // stopPropagation so direct badge clicks bypass this handler.
-  const handleStripClick = useCallback((e) => {
-    if (!onActivateRegion || overlays.length === 0) return;
-    const rect = e.currentTarget.getBoundingClientRect();
+  // Track the table's scrollTop → viewport-band fraction. rAF-throttled
+  // so rapid scroll events don't trigger setState storms; mirrors
+  // ScrollTable's listener pattern.
+  const rafRef = useRef(null);
+  const updateViewFrac = useCallback(() => {
+    if (rafRef.current) return;
+    rafRef.current = requestAnimationFrame(() => {
+      rafRef.current = null;
+      if (!tableEl) return;
+      const scrollableH = tableEl.scrollHeight;
+      const viewportH = tableEl.clientHeight;
+      if (scrollableH <= 0 || viewportH <= 0 || scrollableH <= viewportH) {
+        setViewFrac([0, 1]);
+        return;
+      }
+      const scrollTop = Math.max(0, tableEl.scrollTop);
+      const start = scrollTop / scrollableH;
+      const end = Math.min(1, (scrollTop + viewportH) / scrollableH);
+      setViewFrac([start, end]);
+    });
+  }, [tableEl]);
+
+  useEffect(() => {
+    if (!tableEl) return undefined;
+    tableEl.addEventListener("scroll", updateViewFrac, { passive: true });
+    updateViewFrac();
+    return () => {
+      tableEl.removeEventListener("scroll", updateViewFrac);
+      // Null the ref after cancelling. Without this, the cancelled rAF
+      // ID stays in `rafRef.current` (truthy), and the next mount's
+      // `updateViewFrac()` short-circuits at its `if (rafRef.current)
+      // return;` guard — stranding viewFrac at its initial [0,1] state.
+      // React.StrictMode (src/main.jsx:6) double-invokes useEffect in
+      // dev, firing this exact race on every component mount.
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
+      }
+    };
+  }, [tableEl, updateViewFrac]);
+
+  // Click / drag → set tableEl.scrollTop. Click position lands at the
+  // viewport top (not centred) so the gesture reads as "scroll to
+  // here" rather than "centre this". Matches SegmentMinimap precedent.
+  const scrollToY = useCallback((clientY) => {
+    const strip = containerRef.current;
+    if (!tableEl || !strip) return;
+    const rect = strip.getBoundingClientRect();
     if (rect.height <= 0) return;
-    const clickFrac = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
-    const stripH = Math.max(nVisRows, 1);
-    const clickedVisRow = clickFrac * stripH;
-    let nearest = overlays[0];
-    let bestDist = Math.abs(nearest.visRowStart - clickedVisRow);
-    for (let i = 1; i < overlays.length; i++) {
-      const d = Math.abs(overlays[i].visRowStart - clickedVisRow);
-      if (d < bestDist) { bestDist = d; nearest = overlays[i]; }
-    }
-    trigger(`chip:${nearest.regionNumber}`, `region:${nearest.regionNumber}`);
-    onActivateRegion(nearest);
-  }, [overlays, onActivateRegion, nVisRows, trigger]);
+    const frac = Math.max(0, Math.min(1, (clientY - rect.top) / rect.height));
+    const scrollableH = tableEl.scrollHeight;
+    tableEl.scrollTop = frac * scrollableH;
+  }, [tableEl]);
 
-  if (perRow.size === 0 && overlays.length === 0) return null;
+  const handleMouseDown = useCallback((e) => {
+    if (!tableEl) return;
+    draggingRef.current = true;
+    scrollToY(e.clientY);
+  }, [scrollToY, tableEl]);
+
+  useEffect(() => {
+    if (!tableEl) return undefined;
+    const onMove = (e) => {
+      if (draggingRef.current) scrollToY(e.clientY);
+    };
+    const onUp = () => { draggingRef.current = false; };
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+    return () => {
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+    };
+  }, [scrollToY, tableEl]);
+
+  if (perRow.size === 0 && nVisRows === 0) return null;
 
   // Per-vis-row rect descriptors. ViewBox y = row index (1 row = 1
   // unit); preserveAspectRatio="none" stretches the row axis to
-  // container height. For 540-row datasets in a 400px-tall panel the
-  // rows compress to ~0.74px each — visible but tight; the
-  // convergence-grid shading still reads as a vertical density profile.
+  // container height.
   const rects = [];
   for (const [ri, count] of perRow) {
     const rs = convergenceMinimapStyle(count);
@@ -155,15 +135,19 @@ export function MinimapStripVertical({
   }
 
   const stripH = Math.max(nVisRows, 1);
+  const bandTopUnits = viewFrac[0] * stripH;
+  const bandHeightUnits = Math.max((viewFrac[1] - viewFrac[0]) * stripH, 1);
 
   return (
     <div
-      onClick={onActivateRegion && overlays.length > 0 ? handleStripClick : undefined}
+      ref={containerRef}
+      onMouseDown={handleMouseDown}
       style={{
         position: "relative",
-        width: TOTAL_W,
+        width: STRIP_W,
         height: "100%",
-        cursor: onActivateRegion && overlays.length > 0 ? "pointer" : "default",
+        cursor: tableEl ? "pointer" : "default",
+        userSelect: "none",
       }}
     >
       <svg
@@ -172,8 +156,6 @@ export function MinimapStripVertical({
         preserveAspectRatio="none"
         style={{
           display: "block",
-          position: "absolute",
-          left: 0, top: 0, bottom: 0,
           border: `1px solid ${C.BORDER_L}`,
           borderRadius: CR.SM,
           background: C.WHITE,
@@ -188,33 +170,18 @@ export function MinimapStripVertical({
             opacity={opacity}
           />
         ))}
-        {/* Region anchor markers — horizontal lines at each overlay's
-            first-row position, non-scaling-stroke so the line stays 2px
-            tall regardless of strip height. Ties the [N] badge to the
-            right to the matching row position on the strip. */}
-        {overlays.map(ov => (
-          <line
-            key={`tick-${ov.regionNumber}`}
-            x1={0} y1={ov.visRowStart}
-            x2={STRIP_W} y2={ov.visRowStart}
-            stroke={sevColor(ov.severity)}
-            strokeWidth={2}
-            vectorEffect="non-scaling-stroke"
-            opacity={0.6}
-          />
-        ))}
+        {/* Viewport-indicator band — translucent overlay tracking the
+            table's scrollTop. Updates in real time on scroll. */}
+        <rect
+          x={0} y={bandTopUnits}
+          width={STRIP_W} height={bandHeightUnits}
+          fill={C.TEXT}
+          opacity={0.12}
+          stroke={C.TEXT_3}
+          strokeWidth={1}
+          vectorEffect="non-scaling-stroke"
+        />
       </svg>
-      {overlays.map(ov => {
-        const topPct = (ov.visRowStart / stripH) * 100;
-        return (
-          <RegionBadge
-            key={ov.regionNumber}
-            overlay={ov}
-            topPct={topPct}
-            onActivate={onActivateRegion}
-          />
-        );
-      })}
     </div>
   );
 }

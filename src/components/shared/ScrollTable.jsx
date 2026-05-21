@@ -8,7 +8,7 @@
 
 import { Fragment, useRef, useMemo, useState, useCallback, useEffect } from "react";
 import { C, FS, FW, FF, CR } from "../../constants/tokens.js";
-import { TD_ID_CELL, COL_W, FREEZE_COL_W, FREEZE_Z } from "./styles.js";
+import { TD_ID_CELL, COL_W, FREEZE_COL_W, FREEZE_Z, COMPACT_ROW_H, COMPACT_CELL_PADDING } from "./styles.js";
 import { ColumnHeaders } from "./ColumnHeaders.jsx";
 
 const BB = { boxSizing: "border-box" };
@@ -32,7 +32,15 @@ export const blendOnto = (fg, baseBg) => {
 };
 
 // ── Virtualization constants ──
-const ROW_H = 28;           // estimated height per data/gap row (px)
+// ROW_H is now mode-aware: default (non-compact) callers render at the
+// historical 28 px row; the forensics §2 sticky-surface data block
+// (compactMode=true) tightens body padding to 2px 8px which measures
+// at 22 px (COMPACT_ROW_H). The virtualisation spacer math reads the
+// mode-appropriate value so spacer pixels match actual rendered row
+// height — without this, the scrollbar thumb size and minimap viewport
+// band drift on large fixtures (DS11 1499 rows ≈ 9 000 px spacer drift
+// pre-fix).
+const ROW_H_DEFAULT = 28;
 const VIRT_THRESHOLD = 500; // virtualize only when total data rows exceed this
 const VIRT_BUFFER = 20;     // extra rows rendered above/below viewport
 
@@ -72,7 +80,9 @@ export function ScrollTable({
   headerTintCols = null, headerTintColor = null,
   height = "360px", tableRef: externalRef = null, theadRef: externalTheadRef = null,
   rowRefs = null, children = null,
+  compactMode = false,
 }) {
+  const ROW_H = compactMode ? COMPACT_ROW_H : ROW_H_DEFAULT;
   const internalRef = useRef(null);
   const scrollRef = externalRef || internalRef;
   const internalTheadRef = useRef(null);
@@ -81,13 +91,21 @@ export function ScrollTable({
   const nFrz = freeze ? freeze.n : 0;
   const GAP_REPEAT = 5;
 
-  // Compute table width as sum of col widths
+  // Compute table width as sum of col widths.
+  // Per-column `col.width` (when supplied by the consumer's column-build
+  // site) takes precedence over the role-keyed COL_W fallback. The
+  // content-aware width pipeline routes through this: ImportView and
+  // ExcerptTable read summary.colMaxLen + colWidthFromMaxLen(), set
+  // col.width on each column, and the colgroup below + this width sum
+  // both honour the supplied value.
   const tableWidth = useMemo(() => {
     let w = COL_W.ROW_NUM + (hasMarker ? COL_W.MARKER : 0);
     for (let ci = 0; ci < columns.length; ci++) {
       const isFrozen = freeze && ci < nFrz;
       const isData = columns[ci].role === "data";
-      w += isFrozen ? FREEZE_COL_W.ID_COL : isData ? COL_W.DATA : COL_W.ID_MIN;
+      const supplied = columns[ci].width;
+      const fallback = isFrozen ? FREEZE_COL_W.ID_COL : isData ? COL_W.DATA : COL_W.ID_MIN;
+      w += supplied != null ? supplied : fallback;
     }
     return w;
   }, [columns, freeze, nFrz, hasMarker]);
@@ -215,6 +233,12 @@ export function ScrollTable({
           color: rowExtra.color || C.TEXT_3, fontWeight: rowExtra.fontWeight || FW.NORM,
           background: zebraBg, overflow: "hidden",
           ...(freeze ? { position: "sticky", left: 0, zIndex: FREEZE_Z.FROZEN_BODY } : {}),
+          // S163 A1.D3 density pass: the # column cell would otherwise
+          // keep TD_ID_CELL's 4px 8px padding and pin the row height at
+          // ~26.5 px even when data cells shrink. Compact mode applies
+          // the body-padding override here too so all cells in the row
+          // share the new ~22 px height.
+          ...(compactMode ? { padding: COMPACT_CELL_PADDING } : {}),
         }}>
           {renderRowNum(ri, row)}
         </td>
@@ -316,6 +340,19 @@ export function ScrollTable({
   return (
     <div ref={scrollRef} style={{
       overflowY: "auto", overflowX: "auto", paddingBottom: 14,
+      // S163 virtualisation rework (W6): contain trackpad overscroll
+      // so a gesture that hits the table's scroll limit doesn't chain
+      // out to the page. Reserve a stable scrollbar gutter so the
+      // table width doesn't jump as content overflow toggles.
+      overscrollBehavior: "contain",
+      scrollbarGutter: "stable",
+      // S163 fix-pass A item 5: include padding + border inside the
+      // declared height so the scroller's actual rendered box matches
+      // the height prop. Without this, the 14 px paddingBottom + 2 px
+      // borders pushed the scroller 16 px past its parent's height,
+      // leaving the sibling vertical minimap (which sized to the parent
+      // height) visibly short at the bottom.
+      boxSizing: "border-box",
       ...(typeof height === "number" ? { height } : typeof height === "string" ? { maxHeight: height } : {}),
       border: `1px solid ${C.BORDER_L}`, borderRadius: CR.SM, background: C.WHITE,
     }}>
@@ -329,7 +366,13 @@ export function ScrollTable({
           {columns.map((col, ci) => {
             const isFrozen = freeze && ci < nFrz;
             const isData = col.role === "data";
-            return <col key={ci} style={{ width: isFrozen ? FREEZE_COL_W.ID_COL : isData ? COL_W.DATA : COL_W.ID_MIN }} />;
+            // Per-column width override (content-aware path) takes
+            // precedence over the role-keyed COL_W fallback. When the
+            // consumer hasn't computed a width, fall through to the
+            // historical role-keyed constant.
+            const supplied = col.width;
+            const fallback = isFrozen ? FREEZE_COL_W.ID_COL : isData ? COL_W.DATA : COL_W.ID_MIN;
+            return <col key={ci} style={{ width: supplied != null ? supplied : fallback }} />;
           })}
         </colgroup>
 
@@ -347,6 +390,7 @@ export function ScrollTable({
           markerLeft={markerLeft}
           onColumnClick={onHeaderClick}
           theadRef={headRef}
+          compactMode={compactMode}
         />
 
         <tbody>

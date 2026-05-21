@@ -1,28 +1,24 @@
-/* ── ExcerptTable — deep-look table excerpt for spatial findings (S126c-b) ──
-   Mounted inside the click-to-zoom modal (DeepLookModal) as the deeper-
-   inspection surface beneath the modal's pill cluster + chip cluster +
-   full-resolution MinimapStrip. Internally still composes a vertical
-   row strip (table-coupled SegmentMinimap, with viewport indicator +
-   click-to-scroll) and a horizontal column-density strip (ColMinimap)
-   alongside the scrollable ScrollTable; that triad is the deep-look's
-   own visual chrome — distinct from the inline §2 MinimapStrip which
-   is a lightweight standalone spatial-nav surface that needs no table.
+/* ── ExcerptTable — deep-look table excerpt for spatial findings ──
+   Mounted inside FindingDetailPanel as the deeper-inspection surface
+   that renders when Show data is expanded. Internally composes a
+   vertical row strip (table-coupled SegmentMinimap, with viewport
+   indicator + click-to-scroll), a horizontal column-density strip
+   (ColMinimap), and the scrollable ScrollTable — the internal triad
+   is distinct from the panel-level MinimapStripVertical that the panel
+   itself renders to the left of this excerpt.
 
-   Decoupling rationale (S126c-a recovery + S126c-b decouple): the
-   minimap-and-table tangle that lived inside HotspotExcerpt pre-S126c-a
-   was split conceptually in S126c-a (inline MinimapStrip surfaced; this
-   component deferred to modal scope). S126c-b lands the physical
-   decouple: ExcerptTable is the canonical home of the table-excerpt
-   surface; views/HotspotExcerpt.jsx remains as a back-compat re-export
-   shim for the dormant WhereToLookSection consumer.
+   Pre-S163-Phase-3d this component mounted inside DeepLookModal; the
+   modal retired at A1.D3 close and FindingDetailPanel is the sole
+   consumer now. views/HotspotExcerpt.jsx remains as a back-compat
+   re-export shim for the dormant WhereToLookSection consumer.
 
    Layout:
      Left: SVG minimap of focused-row range coloured by convergence density.
      Right: Scrollable data table with heatmap cell shading.
      Below: Horizontal column-density minimap (when h-scroll active).
 
-   New `region` prop (S126c-b): when supplied, the table auto-scrolls
-   to `region.rowRange[0]` on mount so the modal opens pre-zoomed to the
+   `region` prop: when supplied, the table auto-scrolls to
+   `region.rowRange[0]` on mount so the panel opens pre-zoomed to the
    clicked region. Falls back to the existing scrollToHotspot(0)
    auto-scroll behaviour when `region` is null/absent (back-compat for
    the WhereToLookSection import path). */
@@ -31,19 +27,34 @@ import { useMemo, useState, useRef, useEffect, useLayoutEffect, useCallback, Fra
 import { C, FS, FW, FF, CR, SIGNAL, SEV_VERDICT, UI, MECH_COLOR } from "../../constants/tokens.js";
 import { MINIMAP_CALLOUT_TYPOGRAPHY } from "../shared/Section.jsx";
 import { MECHANISMS, TEST_MECHANISM, TEST_KEY_TO_NAME, RANK_NUMS } from "../../constants/mechanisms.js";
-import { ROLES, buildCondColorMap } from "../../constants/roles.js";
+import { buildCondColorMap } from "../../constants/roles.js";
 import { colToExcelLetter, shortColName, buildCondSpansForColumns } from "../shared/coordinates.js";
 import { convergenceCellBg, convergenceCellTextColor, convergenceRampStyle, convergenceMinimapStyle, CONVERGENCE_RAMP } from "../shared/heatmapColors.js";
-import { TD_NUM_CELL, TD_ID_CELL, COL_W, FREEZE_COL_W, FREEZE_Z, countFrozenCols } from "../shared/styles.js";
+import { TD_NUM_CELL, TD_ID_CELL, COL_W, FREEZE_COL_W, FREEZE_Z, countFrozenCols, COMPACT_CELL_PADDING, colWidthFromMaxLen } from "../shared/styles.js";
 import { ScrollTable, blendOnto } from "../shared/ScrollTable.jsx";
 
 const CONTEXT_ROWS = 2;
 const EDGE_THRESHOLD = 5; // extend to dataset edge rather than skipping ≤ this many rows
-// Cell text colors matching import table: label=purple, condition=gold, data=default
-const ROLE_COLOR = { label: ROLES.label.color, condition: UI.WARN.text, data: C.TEXT };
+// Cell text colours in the forensics ExcerptTable (S163 B2c F5).
+// `label` retired from `ROLES.label.color` (= ACCENT.PURPLE.color
+// #8B5CF6) to neutral `C.TEXT_2`. Purple is now the reserved signal
+// colour for the convergence / findings axis (ramp + identity border
+// + whole-table wash); permanently-purple identifier columns trained
+// the eye that purple ≠ signal, and compounded with the dataset-wide
+// wash to produce a "leftover purple" reading in subset states where
+// only a whole-table finding is active (the B2b deselect-residue
+// observation — D1 ⊂ F5 per the B2c diagnosis). ImportView preview
+// still uses `ROLES.label.color` for the role-cycle chip
+// identification — that's a separate surface where purple is the
+// role token, not the signal token.
+//
+// `condition` keeps `UI.WARN.text` (gold) — gold isn't on the
+// signal axis, no clash. `data` keeps `C.TEXT`.
+const ROLE_COLOR = { label: C.TEXT_2, condition: UI.WARN.text, data: C.TEXT };
 
 // ── Highlight dispatch — all click-to-highlight logic centralized ──
-import { buildHighlightSpec, IRC_TINT, DUP_DIM_OPACITY, HIGHLIGHT_TINT } from "../../analysis/buildHighlightSpec.js";
+import { buildHighlightSpec, IRC_TINT, DUP_DIM_OPACITY, HIGHLIGHT_TINT, LOCALITY_WHOLE_TABLE_WASH } from "../../analysis/buildHighlightSpec.js";
+import { IDENTITY_BORDER } from "../shared/heatmapColors.js";
 
 // ── S126b: pulse-target context for region overlays on the minimap ──
 import { usePulseTick } from "./pulseContext.jsx";
@@ -198,6 +209,53 @@ function IrcBracketStrip({ brackets, colEntries, hasMarker, tableRef, onHeightCh
       )}
     </div>
   );
+}
+
+// ── Locality dispatch helpers (S163 B2a / B2b) ──────────────────────
+// spec.localityCompose carries the multi-finding overlay information:
+//   - hasWholeTable: any active finding is dataset-wide / unscoped
+//   - unionCells / unionRows / unionCols: union extents for border edges
+//   - countCells / countRows / countCols: per-axis active-finding counts
+// The fill intensity at (ri, vi) reads the CONVERGENCE_RAMP at
+// `countCells + countRows + countCols` (overlapping localities
+// intensify); whole-table wash composites under localised fills only
+// on cells with zero localised count.
+
+const IDENTITY_BORDER_W = "1.5px";
+
+/** Identity-border edges at (ri, vi). Painted at the union boundary so
+ *  overlapping active findings collapse into a single outer outline —
+ *  not a per-finding stack. Cell-local cells contribute via unionCells
+ *  (4-sided per flagged cell); row-band cells via unionRows (top /
+ *  bottom at run boundaries); column-band cells via unionCols (left /
+ *  right at run boundaries). The three may layer (e.g. a cell-local
+ *  cell also inside a row-band gets all 4 from cell-local + same top /
+ *  bottom from row-band; result is still all 4). */
+function composeBorderEdges(compose, ri, vi) {
+  if (!compose) return null;
+  const key = `${ri},${vi}`;
+  const inCell = compose.unionCells.has(key);
+  const inRow  = compose.unionRows.has(ri);
+  const inCol  = compose.unionCols.has(vi);
+  if (!inCell && !inRow && !inCol) return null;
+  return {
+    top:    inCell || (inRow && !compose.unionRows.has(ri - 1)),
+    bottom: inCell || (inRow && !compose.unionRows.has(ri + 1)),
+    left:   inCell || (inCol && !compose.unionCols.has(vi - 1)),
+    right:  inCell || (inCol && !compose.unionCols.has(vi + 1)),
+  };
+}
+
+/** Per-cell active localised-finding count. Sum across the three axis
+ *  maps — each active cell-local / row-local / column-local finding
+ *  contributes one to its respective map at the cells it covers.
+ *  Whole-table findings do NOT contribute here; their treatment is the
+ *  background wash on cells with zero localised count. */
+function composeCellCount(compose, ri, vi) {
+  if (!compose) return 0;
+  return (compose.countCells.get(`${ri},${vi}`) || 0)
+       + (compose.countRows.get(ri) || 0)
+       + (compose.countCols.get(vi) || 0);
 }
 
 // ── Coordinate helpers ──────────────────────────────────────────────
@@ -587,6 +645,29 @@ export function ExcerptTable({
   convergence, rawData, rowMap, colHeaders, visColIndices, dColMap, roles, coordCtx, condPerCol,
   activeTestKey = null, groupMarkerMap = null, middleContent = null, onScrollReady = null,
   results = null,
+  // S163 B2b: the active §2 findings (multi-select). buildHighlightSpec
+  // composes per-finding locality dispatch into a unified
+  // `localityCompose` (overlap counts + union border edges + whole-table
+  // flag). Empty array → no locality dispatch layered.
+  //
+  // activeTestKey above continues to drive dimming and per-test
+  // specialised builders (IRC, RSC, LOESS, DupDet, Mahalanobis); the
+  // locality dispatch layers on top. In multi-select, activeTestKey is
+  // the last-added finding's first testId — keeps per-test builders
+  // pointed at the focused finding while compositing the data block
+  // across the full active set.
+  activeFindings = null,
+  // dimUncovered: subset mode with active findings → cells outside
+  // the active coverage demote to focus attention. Passed through
+  // to buildHighlightSpec via ctx; threaded onto spec.localityCompose
+  // for renderCell to consume.
+  dimUncovered = false,
+  // Per-raw-column-index max formatted-string length (S163 A1.D3 final
+  // pass) — feeds the content-aware column-width derivation. When
+  // supplied, the colEntries below set a per-column `width` field that
+  // ScrollTable's colgroup consumes in preference to the role-keyed
+  // COL_W fallback.
+  colMaxLen = null,
   // S126b sticky-surface props (optional). regionOverlays paints region-N
   // badges on the row minimap; onRegionActivate is fired on overlay click;
   // hotspotScrollRef receives { scrollToHotspot, scrollToVisRow } so that
@@ -599,6 +680,33 @@ export function ExcerptTable({
   // (per `findings.js` schema). Fall back to the existing scrollToHotspot(0)
   // auto-scroll when `region` is null.
   region = null,
+  // S163 fix-pass 1: when true, the component renders a tighter
+  // layout suited to mounting inside the §2 sticky-surface data
+  // block. Suppresses the caption, the left-of-table SegmentMinimap,
+  // the below-table ColMinimap, the convergence-ramp legend, and
+  // the hotspot list footer. Default false preserves modal-era /
+  // back-compat-shim mount paths at full chrome.
+  //
+  // S163 virtualisation rework: compactMode now emits the FULL data
+  // table (not the excerpt-narrowed flagged-rows-plus-context view).
+  // The rowSegments override below drops the visibleRowSet derivation
+  // in compactMode. ScrollTable's existing virtualisation
+  // (ROW_H=28, VIRT_THRESHOLD=500, VIRT_BUFFER=20) handles the large
+  // case automatically. The fix-pass-2 window-slice API retires —
+  // the panel-level minimaps in StickySurface flipped from
+  // scrubbers to scroll-position viewport-band indicators.
+  compactMode = false,
+  // S163 virtualisation rework: when supplied, fired with the
+  // internal scroll-container DOM element once on mount and with
+  // `null` on unmount. The panel-level MinimapStripVertical /
+  // Horizontal in StickySurface drive their viewport-band
+  // coordination + click/drag scrolling against this element. The
+  // callback form (vs a ref-mirror) sidesteps the effect-order race:
+  // child minimaps' scroll-listener effects fire before this
+  // ExcerptTable mirror effect, so a ref handoff would miss the
+  // first attachment. A callback that triggers parent setState
+  // re-renders the minimaps with the populated element.
+  onScrollContainerReady = null,
 }) {
   const { grid, hotspots, pattern, groups: rawGroups } = convergence;
   const nVisRows = rawData.length;
@@ -656,7 +764,10 @@ export function ExcerptTable({
 
   const fr = coordCtx?.fileRow || ((r) => r + 1);
 
-  // Column entries
+  // Column entries — full visible-column set in every mode. The
+  // S163 fix-pass-2 windowed column-slice retired with the
+  // virtualisation rework; columns flow through ScrollTable's
+  // horizontal scroll instead.
   const colEntries = useMemo(() => visColIndices.map((rawCI, vi) => ({
     vi, rawCI, role: roles[rawCI],
     label: colHeaders[vi],
@@ -685,6 +796,27 @@ export function ExcerptTable({
 
   // ── Frozen column computation ──
   // Freeze # col + marker col (if groups) + all consecutive non-DATA columns from the left.
+  //
+  // CRITICAL CORRECTNESS: the cumulative `left` offsets MUST match the
+  // actual rendered widths the colgroup applies (per `col.width` from
+  // colMaxLen, or the role-keyed fallback). Pre-fix, this loop summed
+  // FREEZE_COL_W.ID_COL=80 per frozen column unconditionally — diverging
+  // from the colgroup whenever content-aware widths differ from 80.
+  //
+  // The divergence stranded sticky cells at incorrect `left:` positions.
+  // On DS22 (ID width 56, Condition width 88 from content-aware), the
+  // pre-fix offsets[2] = 42 + 80 = 122 instead of the correct 42 + 56 =
+  // 98 → Condition stuck at x=122 instead of its natural-flow x=98,
+  // overlaying the first non-frozen data column (Rep1) by 24 px on its
+  // left edge. The visible result on negative values like "-0.595138"
+  // (9 chars, centered in 88 px cell): the leading "-" + "0" hidden
+  // behind the sticky Condition cell, ".595138" the only visible
+  // remnant — silent sign flip on a forensics surface.
+  //
+  // Fix: sum the same per-column widths the colgroup uses. Per-column
+  // content-aware width via colMaxLen → colWidthFromMaxLen when
+  // supplied; falls back to FREEZE_COL_W.ID_COL otherwise (the historical
+  // 80 px behaviour for pre-colMaxLen mounts).
   const freeze = useMemo(() => {
     const colRoles = colEntries.map(c => c.role);
     const n = countFrozenCols(colRoles);
@@ -696,7 +828,18 @@ export function ExcerptTable({
     let left = FREEZE_COL_W.ROW_NUM + markerW;
     for (let i = 0; i < n; i++) {
       offsets.push(left);
-      left += FREEZE_COL_W.ID_COL;
+      const colEntry = colEntries[i];
+      const rawCI = colEntry.rawCI;
+      // Same max(content, header) logic the colgroup uses for non-data
+      // columns (item 6) — frozen columns are always non-data. If the
+      // colgroup width changes, the offset must change to match, or
+      // sticky cells overlay adjacent columns (the sign-clip bug
+      // pattern from the prior fix-pass).
+      const contentLen = colMaxLen && colMaxLen[rawCI] > 0 ? colMaxLen[rawCI] : 0;
+      const headerLen = colEntry.role !== "data" ? (colEntry.label?.length || 0) : 0;
+      const effectiveLen = Math.max(contentLen, headerLen);
+      const supplied = effectiveLen > 0 ? colWidthFromMaxLen(effectiveLen) : null;
+      left += supplied != null ? supplied : FREEZE_COL_W.ID_COL;
     }
     // Condition span analysis: which spans are entirely within frozen zone
     const spanFrozen = [];
@@ -709,7 +852,7 @@ export function ExcerptTable({
       }
     }
     return { n, offsets, totalW: left, spanFrozen };
-  }, [colEntries, condSpans, hasGroups]);
+  }, [colEntries, condSpans, hasGroups, colMaxLen]);
 
   // Map visible rows → groups (remap matrix rows via rowMap)
   const rowGroupMap = useMemo(() => {
@@ -733,8 +876,9 @@ export function ExcerptTable({
   const spec = useMemo(
     () => buildHighlightSpec(activeTestKey, results, {
       dColMap, visColIndices, condPerCol, rowMap, nVisRows, matColToVisCol, groups,
+      activeFindings, dimUncovered,
     }),
-    [activeTestKey, results, dColMap, visColIndices, condPerCol, rowMap, nVisRows, matColToVisCol, groups]
+    [activeTestKey, results, dColMap, visColIndices, condPerCol, rowMap, nVisRows, matColToVisCol, groups, activeFindings, dimUncovered]
   );
 
   // Compute exact table width as sum of col widths (for tableLayout:fixed)
@@ -786,6 +930,29 @@ export function ExcerptTable({
   // gapBefore on first segment = rows skipped at the top.
   // gapAfter on last segment = rows skipped at the bottom.
   const rowSegments = useMemo(() => {
+    // S163 virtualisation rework: full-table semantic in compactMode.
+    // Emit ALL rows as one segment. ScrollTable's existing hand-
+    // rolled virtualisation (ROW_H=28, VIRT_THRESHOLD=500,
+    // VIRT_BUFFER=20) handles large datasets above 500 rows. Below
+    // threshold the full table renders so native Cmd-F still works.
+    //
+    // Note: this drops the excerpt-style visibleRowSet derivation
+    // entirely in compactMode — the sticky-surface data block is a
+    // full-table view, navigated by minimap shading + chip-click
+    // scroll + cell highlighting. The excerpt-style gap-row markers
+    // ("N rows not shown") only fire in non-compact mounts
+    // (modal-era / back-compat shim).
+    //
+    // This also resolves the clean-fixture empty-DOM bug surfaced at
+    // fix-pass-2: an empty visibleRowSet no longer produces empty
+    // rowSegments because compactMode no longer consults
+    // visibleRowSet.
+    if (compactMode) {
+      if (nVisRows <= 0) return [];
+      const rows = [];
+      for (let r = 0; r < nVisRows; r++) rows.push(r);
+      return [{ rows, gapAfter: 0, gapBefore: 0 }];
+    }
     const sorted = [...visibleRowSet].sort((a, b) => a - b);
     if (!sorted.length) return [];
     const segs = [];
@@ -808,7 +975,7 @@ export function ExcerptTable({
       segs[segs.length - 1].gapAfter = nVisRows - 1 - sorted[sorted.length - 1];
     }
     return segs;
-  }, [visibleRowSet, nVisRows]);
+  }, [visibleRowSet, nVisRows, compactMode]);
 
   // Scroll to a specific row — virtualized tables use __scrollToRow (row may not be in DOM)
   const scrollToRow = useCallback((row) => {
@@ -878,6 +1045,19 @@ export function ExcerptTable({
     };
   }, [hotspotScrollRef, scrollToHotspot, scrollToRow]);
 
+  // S163 virtualisation rework: announce the internal scroll-
+  // container DOM element to the parent so the panel-level minimaps
+  // in StickySurface can attach scroll listeners + drive
+  // scrollTop/scrollLeft. Callback (vs ref-mirror) means the
+  // parent's setState re-renders the minimaps with the populated
+  // element, bypassing the effect-order race where child minimap
+  // effects fire before this ExcerptTable effect.
+  useEffect(() => {
+    if (!onScrollContainerReady) return undefined;
+    onScrollContainerReady(tableRef.current);
+    return () => { onScrollContainerReady(null); };
+  }, [onScrollContainerReady]);
+
   // Auto-scroll on mount.
   //   S126c-b: when `region` prop is supplied, scroll to its rowRange[0]
   //     (mapped through rowMap) so the modal opens pre-zoomed to the
@@ -900,8 +1080,16 @@ export function ExcerptTable({
     }
   }, [region, visHotspots.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Truly clean — no flagged cells and no groups
-  if ((pattern === "clean" || visGrid.size === 0) && !hasGroups) {
+  // Truly clean — no flagged cells and no groups. In compactMode the
+  // sticky-surface data block is a full-table view (S163 virtualisation
+  // rework), so the clean-fixture short-circuit only applies to non-
+  // compact mounts (modal-era / back-compat shim). The rowSegments
+  // memo above already emits all rows in compactMode regardless of
+  // convergence state — gating the null return on `!compactMode`
+  // honours that contract and resolves the large-fixture empty-DOM
+  // path (DS11/DS19 where visGrid.size === 0 after vis-coord remap
+  // despite a severity-3 dataset-level verdict).
+  if ((pattern === "clean" || visGrid.size === 0) && !hasGroups && !compactMode) {
     return null;
   }
 
@@ -942,7 +1130,7 @@ export function ExcerptTable({
   return (
     <div>
       {/* Where flags are concentrated — heatmap + density minimaps caption */}
-      {hasDataRows && (
+      {hasDataRows && !compactMode && (
         <div style={{ marginBottom: 6, lineHeight: 1.5 }}>
           <span style={{ ...MINIMAP_CALLOUT_TYPOGRAPHY, fontWeight: FW.SEMI }}>Where flags are concentrated.</span>{" "}
           <span style={MINIMAP_CALLOUT_TYPOGRAPHY}>
@@ -954,7 +1142,7 @@ export function ExcerptTable({
       )}
       {/* Minimap + scrollable data table side by side — only when there are data rows */}
       {hasDataRows && <><div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
-        {needsVScroll && (
+        {needsVScroll && !compactMode && (
           <div style={{ paddingTop: headerZoneH }}>
             <SegmentMinimap visGrid={visGrid} rowSegments={rowSegments}
               height={Math.max(TABLE_H - headerH, 100)} tableRef={tableRef} headerH={headerH}
@@ -977,7 +1165,23 @@ export function ExcerptTable({
               hasMarker={hasGroups} tableRef={tableRef} />
           ) */}
           <ScrollTable
-            columns={colEntries.map(col => ({ letter: colToExcelLetter(coordCtx?.origColMap?.[col.rawCI] ?? col.rawCI), name: col.label, role: col.role }))}
+            columns={colEntries.map(col => {
+              // S163 fix-pass A item 6: identifier columns (label /
+              // condition / ignore) widen to max(content, header) so
+              // their header text ("Residue", "GeneID") doesn't
+              // ellipsis-clip when their content is shorter. Data
+              // columns keep content-only sizing (header wraps to
+              // multiple lines via whiteSpace:normal in ColumnHeaders).
+              const contentLen = colMaxLen && colMaxLen[col.rawCI] > 0 ? colMaxLen[col.rawCI] : 0;
+              const headerLen = col.role !== "data" ? (col.label?.length || 0) : 0;
+              const effectiveLen = Math.max(contentLen, headerLen);
+              return {
+                letter: colToExcelLetter(coordCtx?.origColMap?.[col.rawCI] ?? col.rawCI),
+                name: col.label,
+                role: col.role,
+                width: effectiveLen > 0 ? colWidthFromMaxLen(effectiveLen) : undefined,
+              };
+            })}
             condSpans={condSpans}
             condColorMap={condColorMap}
             freeze={freeze}
@@ -987,10 +1191,20 @@ export function ExcerptTable({
             headerTintColor={spec.tintColor}
             rowSegments={rowSegments}
             rawData={rawData}
-            height={TABLE_H}
+            // S163 virtualisation rework + final-pass density:
+            // compactMode budgets ~250 px so the §3 test card below
+            // gets materially more room than the prior 320 px state.
+            // ScrollTable's overflow:auto + virtualisation handle
+            // scroll across datasets of any size within that budget.
+            // Non-compact mounts (modal-era / back-compat shim) keep
+            // the prior TABLE_H=400 default. The literal here is
+            // mirrored from FindingDetailPanel.DATA_BLOCK_HEIGHT — if
+            // either changes, both must change together.
+            height={compactMode ? 250 : TABLE_H}
             tableRef={tableRef}
             theadRef={theadRef}
             rowRefs={rowRefs}
+            compactMode={compactMode}
             renderRowNum={(ri) => fr(ri)}
             renderRowExtra={(ri) => {
               const inHotspot = hasHotspots && visHotspots.some(h => ri >= h.rowStart && ri <= h.rowEnd);
@@ -1174,6 +1388,71 @@ export function ExcerptTable({
                 ? convergenceCellBg(cell) : null;
               const hasHeat = heatBg && heatBg.backgroundColor;
 
+              // ── S163 B2b: multi-finding locality compositing ──
+              // spec.localityCompose carries the union / count info
+              // across the active selection. Three layers:
+              //
+              //   1. Localised fill: cellCount = sum of cell-local +
+              //      row-local + column-local active findings flagging
+              //      this cell. >0 → paint the convergence ramp keyed
+              //      on cellCount. Overlap intensifies — two findings
+              //      on one cell read a step deeper than one.
+              //   2. Whole-table wash: hasWholeTable && cellCount === 0
+              //      → paint LOCALITY_WHOLE_TABLE_WASH. Cells with
+              //      localised count > 0 never read the wash —
+              //      localised fill is always on top.
+              //   3. Identity border: deeper-purple inset shadow at the
+              //      UNION boundary across active localised findings
+              //      (computed in composeBorderEdges). Overlapping
+              //      regions coincide rather than stack.
+              const compose = spec.localityCompose;
+              const cellCount = isData ? composeCellCount(compose, ri, vi) : 0;
+              const localisedActive = cellCount > 0;
+              const wholeTableWash = isData && compose?.hasWholeTable && !localisedActive;
+              const localisedFillStyle = localisedActive ? convergenceRampStyle(cellCount) : null;
+              const localisedFill = localisedFillStyle
+                ? { backgroundColor: localisedFillStyle.color, opacity: localisedFillStyle.opacity }
+                : null;
+              const borderEdges = isData ? composeBorderEdges(compose, ri, vi) : null;
+
+              // S163 B2b: compose-driven dim. `dimmed` (computed above
+              // from spec.dimNonRelevant + activeTestKey + convergence
+              // grid) gates on a single test key; in multi-select that
+              // gating dilutes — the locality compose's
+              // `dimUncovered + cellCount` is the load-bearing
+              // predicate. When dimUncovered is true and this data
+              // cell has no active localised count AND no whole-table
+              // coverage, render dimmed; otherwise honour the locality
+              // fills below. The single-test `dimmed` predicate stays
+              // for back-compat on non-panel mounts (modal-era shim)
+              // where compose is empty.
+              //
+              // S163 B2c defensive invariant (D1 close): the
+              // "subset mode + only a whole-table finding active"
+              // render state MUST stay clean — every data cell
+              // gets exactly the wash, no dim. Two gates enforce
+              // this together:
+              //   1. composeDim's `!compose.hasWholeTable` clause
+              //      suppresses compose-driven dim whenever any
+              //      active finding contributes the whole-table
+              //      treatment.
+              //   2. isDimmedFinal's `!wholeTableWash` clause (below)
+              //      suppresses the legacy single-test `dimmed` for
+              //      the same reason.
+              // If a future refactor restructures either gate,
+              // re-trace D1's path (subset = {dataset-wide finding},
+              // localised counts all zero, hasWholeTable true) and
+              // confirm the cell renders LOCALITY_WHOLE_TABLE_WASH
+              // bg + C.TEXT text, no #CCC dim overlay. The original
+              // D1 symptom — "leftover" purple — was an unrelated
+              // role-colour clash (F5), not this gating chain, but
+              // re-introducing dim here would compound the same
+              // visual confusion under a different cause.
+              const composeDim = isData
+                && compose?.dimUncovered
+                && !localisedActive
+                && !compose?.hasWholeTable;
+
               // Background priority stack
               const baseBg = specCellBg
                 || withinRowTint
@@ -1186,8 +1465,12 @@ export function ExcerptTable({
               // Changepoint border (LOESS)
               const isCpRow = spec.changepointVisRows?.includes(ri);
 
-              // Text color + weight
-              const textColor = dimmed ? "#CCC"
+              // Text color + weight. S163 B2b: localised-active and
+              // whole-table-wash both render at C.TEXT (readable),
+              // composeDim and legacy `dimmed` both render at #CCC.
+              const isDimmedFinal = composeDim || (dimmed && !localisedActive && !wholeTableWash);
+              const textColor = (localisedActive || wholeTableWash) ? C.TEXT
+                : isDimmedFinal ? "#CCC"
                 : specCellText ? specCellText
                 : (cellHighlighted && !spec.boldRelevant) ? "#CCC"   // Mahalanobis-style
                 : (cellHighlighted && spec.boldRelevant) ? C.TEXT
@@ -1195,15 +1478,72 @@ export function ExcerptTable({
                 : ROLE_COLOR[col.role] || C.TEXT_3;
               const fontWeight = (cellHighlighted && spec.boldRelevant) ? FW.SEMI : undefined;
 
-              const finalBg = dimmed ? C.WHITE : hasHeat ? undefined : baseBg;
+              // Background priority: localised fill > wash > dim >
+              // existing baseBg / heat. localisedFill has both color
+              // and opacity (from CONVERGENCE_RAMP via
+              // convergenceRampStyle), so it's spread as a
+              // backgroundColor + opacity tuple at the style level.
+              const finalBg = localisedActive ? localisedFill.backgroundColor
+                : wholeTableWash ? LOCALITY_WHOLE_TABLE_WASH
+                : isDimmedFinal ? C.WHITE
+                : hasHeat ? undefined
+                : baseBg;
+              // Defensive content-min-width (S163 A1.D3 sign-clip fix).
+              // The sticky-overlap bug above was the root cause of the
+              // first-data-column leading-char clip on negative values;
+              // this min-width is a safety net so even if a future
+              // layout regression mis-sizes a column, the data cell can
+              // never be narrower than its content needs. min-width on
+              // a tableLayout:fixed `<td>` only applies in the rare path
+              // where the cell's actual width drops below content (e.g.
+              // flex-distribution edge cases); when colgroup width >=
+              // content, this is a no-op.
+              const colW = colMaxLen && colMaxLen[colEntry.rawCI] > 0
+                ? colWidthFromMaxLen(colMaxLen[colEntry.rawCI])
+                : null;
+              // S163 B2b STEP 0: identity border is a NO-LAYOUT
+              // mechanism — inset box-shadow per edge. B2a used
+              // content-box border properties, which consumed pixels
+              // off the cell's interior and clipped the last digit of
+              // values formatted to exact width (the ExcerptTable
+              // colgroup is shared with ImportView's preview, so
+              // widening columns is not an option). Inset shadows
+              // paint inside the border-box without affecting layout.
+              // Composed into ONE comma-separated boxShadow value so
+              // multi-edge findings (cell-local: all four; row-band
+              // top+bottom; column-band left+right) render in a single
+              // style declaration.
+              const identityShadowParts = [];
+              if (borderEdges?.top)    identityShadowParts.push(`inset 0  ${IDENTITY_BORDER_W} 0 0 ${IDENTITY_BORDER}`);
+              if (borderEdges?.bottom) identityShadowParts.push(`inset 0 -${IDENTITY_BORDER_W} 0 0 ${IDENTITY_BORDER}`);
+              if (borderEdges?.left)   identityShadowParts.push(`inset  ${IDENTITY_BORDER_W} 0 0 0 ${IDENTITY_BORDER}`);
+              if (borderEdges?.right)  identityShadowParts.push(`inset -${IDENTITY_BORDER_W} 0 0 0 ${IDENTITY_BORDER}`);
+              const identityShadow = identityShadowParts.length ? identityShadowParts.join(", ") : null;
               return {
                 content: displayVal,
                 style: {
                   ...base, color: textColor, background: finalBg,
+                  ...(localisedFill ? { opacity: localisedFill.opacity } : {}),
                   ...(fontWeight ? { fontWeight } : {}),
                   ...(hasHeat ? heatBg : {}),
                   ...(isCpRow ? { borderBottom: `2px dashed ${SIGNAL.RED.dot}` } : {}),
-                  ...(isFrozen ? { background: dimmed ? C.WHITE : hasHeat ? heatBg.backgroundColor : baseBg } : {}),
+                  ...(isFrozen ? {
+                    background: localisedActive ? localisedFill.backgroundColor
+                      : wholeTableWash ? LOCALITY_WHOLE_TABLE_WASH
+                      : isDimmedFinal ? C.WHITE
+                      : hasHeat ? heatBg.backgroundColor
+                      : baseBg,
+                  } : {}),
+                  // S163 A1.D3 density pass: tighten cell vertical padding
+                  // inside the sticky-surface data block (compactMode) so
+                  // body rows render at ~22 px (down from 26.5 px) and
+                  // ~12-13 rows fit in the 320 px budget instead of ~8.
+                  // The shared TD_NUM_CELL / TD_ID_CELL constants stay at
+                  // 4px 8px for all other consumers (ImportView preview,
+                  // DupDet excerpt, modal-era shim).
+                  ...(compactMode ? { padding: COMPACT_CELL_PADDING } : {}),
+                  ...(colW != null ? { minWidth: colW } : {}),
+                  ...(identityShadow ? { boxShadow: identityShadow } : {}),
                 },
               };
             }}
@@ -1212,7 +1552,7 @@ export function ExcerptTable({
       </div>
 
       {/* Horizontal column minimap — L-shape below table, right of vertical minimap corner */}
-      {needsHScroll && (
+      {needsHScroll && !compactMode && (
         <div style={{ display: "flex", gap: 8, marginTop: 4 }}>
           {/* Corner spacer (aligns with vertical minimap) */}
           {needsVScroll && (
@@ -1224,8 +1564,12 @@ export function ExcerptTable({
           </div>
         </div>
       )}
-      {/* Convergence colour-ramp legend — shared by cells, row minimap, column minimap */}
-      <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 8, fontSize: FS.xs, color: C.TEXT_3, flexWrap: "wrap" }}>
+      {/* Convergence colour-ramp legend — shared by cells, row minimap, column minimap.
+          Retired under compactMode (S163 fix-pass 2): the active-test
+          SEV tint carries the signal users need, and the cross-flag
+          gradation is no longer surfaced in the inline sticky-surface
+          data block. */}
+      {!compactMode && (<div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 8, fontSize: FS.xs, color: C.TEXT_3, flexWrap: "wrap" }}>
         <span style={{ color: C.TEXT_3 }}>Tests flagging each cell:</span>
         {CONVERGENCE_RAMP.slice(1).map((color, i) => {
           const count = i + 1;
@@ -1243,18 +1587,24 @@ export function ExcerptTable({
             </span>
           );
         })}
-      </div>
+      </div>)}
       </>}
 
-      {/* No-data-rows fallback — groups/global findings exist but no cells flagged in heatmap */}
-      {!hasDataRows && (
+      {/* No-data-rows fallback — groups/global findings exist but no cells flagged in heatmap.
+          Retired under compactMode (S163 fix-pass 2): the vertical minimap
+          shading + chip click navigation carry the same signal. */}
+      {!hasDataRows && !compactMode && (
         <div style={{ padding: "16px 0", color: C.TEXT_3, fontSize: FS.base }}>
           No spatially localised hotspots detected. Flags are from dataset-wide statistical tests rather than localised regions.
         </div>
       )}
 
-      {/* Findings below table: middleContent (layered) or simple fallback */}
-      {middleContent ? middleContent : (
+      {/* Findings below table: middleContent (layered) or simple fallback.
+          Retired under compactMode (S163 fix-pass 2): the hotspot list
+          footer + middleContent slot belong to the legacy modal /
+          excerpt mount paths. The sticky-surface data block doesn't
+          rerender these. */}
+      {!compactMode && (middleContent ? middleContent : (
         <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 4 }}>
           {/* Simple mode: convergence hotspots (multi-row numbered, single-row collapsed) */}
           {hasHotspots && (() => {
@@ -1315,7 +1665,7 @@ export function ExcerptTable({
             </div>
           )}
         </div>
-      )}
+      ))}
     </div>
   );
 }

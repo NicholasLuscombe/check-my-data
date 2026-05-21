@@ -10,6 +10,7 @@
 import { C, FS, FW, FF, CR, SEV_VERDICT, MECH_COLOR } from "../../constants/tokens.js";
 import { TEST_MECHANISM } from "../../constants/mechanisms.js";
 import { MechIcon, mechIconSize } from "../shared/MechIcon.jsx";
+import { IDENTITY_BORDER } from "../shared/heatmapColors.js";
 import { usePulseTrigger } from "./pulseContext.jsx";
 import { usePulseAnimation } from "./PulseStyle.jsx";
 
@@ -31,7 +32,7 @@ function severityStyle(severity) {
 // D1 sentence-case tier word.
 const TIER_WORD = { HIGH: "High", MOD: "Moderate", LOW: "Clear" };
 
-export function FindingPill({ finding, onActivate }) {
+export function FindingPill({ finding, onActivate, isActive = false }) {
   const test = finding.tests[0];
   const dimKey = TEST_MECHANISM[test.testId];
   const mechColor = MECH_COLOR[dimKey];
@@ -57,9 +58,13 @@ export function FindingPill({ finding, onActivate }) {
       title={test.displayName}
       style={{
         display: "inline-flex", alignItems: "center", gap: "6px",
-        padding: "3px 10px 3px 8px",
+        padding: "3px 10px 3px 7px",
         background: sev.bg,
+        // S163 fix-pass A item 2: mechanism-colour left stripe matches
+        // the §3 test-card chrome. Same MECH_COLOR token, same 3 px
+        // width — pills + chips both visually link to their §3 cards.
         border: "none",
+        borderLeft: mechColor ? `3px solid ${mechColor}` : "none",
         borderRadius: CR.MD,
         color: sev.color,
         fontSize: FS.sm,
@@ -67,6 +72,20 @@ export function FindingPill({ finding, onActivate }) {
         fontWeight: FW.SEMI,
         cursor: "pointer",
         whiteSpace: "nowrap",
+        // S163 fix-pass A items 3+4: pill shrinks within narrow lanes;
+        // ellipsis-truncates at extreme widths rather than overflowing.
+        minWidth: 0,
+        maxWidth: "100%",
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        // S163 B2b W4: active pill rings in the deeper-purple
+        // IDENTITY_BORDER — same token chips use, same purple as the
+        // cell borders in the data block. Wires the pill visually to
+        // its whole-table wash + per-finding caption. Mechanism stripe
+        // (borderLeft above) preserved; see FindingChip for the
+        // mechanism-stripe / purple-ring co-existence note.
+        outline: isActive ? `2px solid ${IDENTITY_BORDER}` : "none",
+        outlineOffset: isActive ? "1px" : 0,
       }}
     >
       <MechIcon mk={dimKey} size={mechIconSize(dimKey, ICON_SIZE)} color={mechColor} />

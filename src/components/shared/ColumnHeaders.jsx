@@ -12,7 +12,8 @@ import { useRef, useState, useLayoutEffect } from "react";
 import { C, CC, FW, FF, FS, CR } from "../../constants/tokens.js";
 import { FLAG_STYLES } from "../../constants/thresholds.js";
 import { ROLES } from "../../constants/roles.js";
-import { TH_EVIDENCE, COL_W, FREEZE_COL_W, FREEZE_Z } from "./styles.js";
+import { TH_EVIDENCE, COL_W, FREEZE_COL_W, FREEZE_Z,
+  COMPACT_HEADER_PADDING_TIGHT, COMPACT_HEADER_NAME_INNER_TOP, COMPACT_HEADER_NAME_INNER_BOTTOM } from "./styles.js";
 import { shortColName } from "./coordinates.js";
 
 const BB = { boxSizing: "border-box" };
@@ -44,11 +45,26 @@ export function ColumnHeaders({
   freeze = null, hasMarker = false, markerLeft = 0, onColumnClick = null,
   headerTintCols = null, headerTintColor = null,
   theadRef = null,
+  // S163 A1.D3 density pass. When true (forensics §2 sticky-surface
+  // data block via ExcerptTable + ScrollTable), all four header rows
+  // tighten vertical padding via the COMPACT_HEADER_* constants in
+  // styles.js. Font sizes / weights / colour roles untouched — pure
+  // spacing override. Non-compact callers (ImportView, DupDet, modal
+  // shim) leave compactMode default-false and render at the historical
+  // header paddings.
+  compactMode = false,
 }) {
   const vc = visCols;
   const hl = new Set(highlightCols);
   const hasCondRow = condSpans && condSpans.length > 0;
   const nFrz = freeze ? freeze.n : 0;
+
+  // Padding overrides applied when compactMode is true. The defaults are
+  // baked into TH_EVIDENCE (6px 8px) plus the per-site literals further
+  // down; the override object spreads AFTER those defaults inside each
+  // <th> style block so it wins. The two name-row inner <div>s (name +
+  // chip wrapper) read their own constants below.
+  const compactPad = compactMode ? { padding: COMPACT_HEADER_PADDING_TIGHT } : null;
 
   // Sticky top offsets measured from actual rendered row heights
   const lettersRef = useRef(null);
@@ -97,16 +113,16 @@ export function ColumnHeaders({
         <tr ref={lettersRef} style={{ background: C.BG }}>
           <th style={{ ...BB, ...TH_EVIDENCE, fontSize: FS.xs, borderBottom: "none", borderRight: `1px solid ${C.BORDER_L}`,
             color: C.TEXT_3, background: C.BG, overflow: "hidden",
-            ...stickyRow(letterTop, 6), ...cornerStyle("header") }} />
+            ...stickyRow(letterTop, 6), ...cornerStyle("header"), ...compactPad }} />
           {hasMarker && <th style={{ ...BB, ...TH_EVIDENCE, fontSize: FS.xs, borderBottom: "none",
             borderRight: `1px solid ${C.BORDER_L}`,
             color: C.TEXT_3, background: C.BG, overflow: "hidden", width: COL_W.MARKER,
-            ...stickyRow(letterTop, 6), ...markerStyle() }} />}
+            ...stickyRow(letterTop, 6), ...markerStyle(), ...compactPad }} />}
           {columns.map((col, ci) => {
             if (vc && !vc.keep.has(ci)) {
               if (ellL) return null;
               ellL = true;
-              return <th key="ell" style={{ ...BB, ...TH_EVIDENCE, fontSize: FS.xs, borderBottom: "none", color: C.BORDER, background: C.BG, ...stickyRow(letterTop, 6) }}>⋯</th>;
+              return <th key="ell" style={{ ...BB, ...TH_EVIDENCE, fontSize: FS.xs, borderBottom: "none", color: C.BORDER, background: C.BG, ...stickyRow(letterTop, 6), ...compactPad }}>⋯</th>;
             }
             ellL = false;
             const isHl = hl.has(ci);
@@ -117,6 +133,7 @@ export function ColumnHeaders({
               ...nonFrzBorderLeft(ci),
               ...stickyRow(letterTop, 6), ...frozenStyle(ci, "header"),
               ...(isLastFrz(ci) ? freezeBorder : {}),
+              ...compactPad,
             }}>{col.letter}</th>;
           })}
         </tr>
@@ -127,11 +144,11 @@ export function ColumnHeaders({
         <tr ref={condRef} style={{ background: C.BG }}>
           <th style={{ ...BB, ...TH_EVIDENCE, fontSize: FS.xs, borderBottom: "none", borderRight: `1px solid ${C.BORDER_L}`,
             background: C.BG, overflow: "hidden",
-            ...stickyRow(condTop, 5), ...cornerStyle("header") }}>{condRowNum ?? ""}</th>
+            ...stickyRow(condTop, 5), ...cornerStyle("header"), ...compactPad }}>{condRowNum ?? ""}</th>
           {hasMarker && <th style={{ ...BB, ...TH_EVIDENCE, fontSize: FS.xs, borderBottom: "none",
             borderRight: `1px solid ${C.BORDER_L}`,
             background: C.BG, overflow: "hidden", width: COL_W.MARKER,
-            ...stickyRow(condTop, 5), ...markerStyle() }} />}
+            ...stickyRow(condTop, 5), ...markerStyle(), ...compactPad }} />}
           {(() => {
             if (!vc) {
               let spanStart = 0;
@@ -155,6 +172,7 @@ export function ColumnHeaders({
                     ...stickyRow(condTop, 5),
                     ...(isFrz ? { position: "sticky", left: spanLeft, zIndex: FREEZE_Z.FROZEN_HEADER } : {}),
                     ...(isLastFrzSpan(spanEnd) ? freezeBorder : {}),
+                    ...compactPad,
                   }}>{sp.name || ""}</th>
                 );
               });
@@ -188,6 +206,7 @@ export function ColumnHeaders({
                   color: g.name ? (ccm?.text || C.TEXT_2) : C.BORDER,
                   background: g.name ? (ccm?.bg || C.BORDER_L) : C.BG,
                   ...stickyRow(condTop, 5),
+                  ...compactPad,
                 }}>{g.name || ""}</th>
               );
             });
@@ -203,19 +222,21 @@ export function ColumnHeaders({
           overflow: "hidden",
           ...(showRoleBadge ? { borderBottom: "none", boxShadow: `inset 0 -2px 0 ${C.BORDER}` } : {}),
           ...stickyRow(nameTop, 4), ...cornerStyle("header"),
+          ...compactPad,
         }}>{nameRowNum ?? (showRoleBadge ? "#" : "Row")}</th>
         {hasMarker && <th style={{ ...BB, ...TH_EVIDENCE, fontSize: FS.xs,
           padding: "4px 2px", background: showRoleBadge ? C.WHITE : C.BG_L,
           overflow: "hidden", width: COL_W.MARKER, borderRight: `1px solid ${C.BORDER_L}`,
           ...(showRoleBadge ? { borderBottom: "none", boxShadow: `inset 0 -2px 0 ${C.BORDER}` } : {}),
           ...stickyRow(nameTop, 4), ...markerStyle(),
+          ...compactPad,
         }} />}
         {columns.map((col, ci) => {
           if (vc && !vc.keep.has(ci)) {
             if (ellN) return null;
             ellN = true;
             return <th key="ell" style={{ ...BB, ...TH_EVIDENCE, padding: "8px 8px 6px", color: C.TEXT_3, background: showRoleBadge ? C.WHITE : C.BG_L,
-              ...stickyRow(nameTop, 4) }}>⋯{vc.omitted} cols</th>;
+              ...stickyRow(nameTop, 4), ...compactPad }}>⋯{vc.omitted} cols</th>;
           }
           ellN = false;
           const isHl = hl.has(ci);
@@ -225,6 +246,13 @@ export function ColumnHeaders({
             // Import/hotspot style: role-colored bg, RoleBadge, clickable
             const r = ROLES[col.role] || ROLES.data;
             const isData = col.role === "data";
+            // Inner-div padding override drives the biggest single
+            // density gain — the name <div> + chip wrapper <div> stack
+            // vertically inside the outer <th padding: 0>, producing
+            // a 49 px row at the default literals. The compact
+            // overrides reclaim ~14 px from this row alone.
+            const nameInnerPad = compactMode ? COMPACT_HEADER_NAME_INNER_TOP : "5px 6px 2px";
+            const chipInnerPad = compactMode ? COMPACT_HEADER_NAME_INNER_BOTTOM : "2px 6px 5px";
             return (
               <th key={ci} onClick={onColumnClick ? () => onColumnClick(ci) : undefined}
                 style={{ ...BB, padding: 0, background: r.bg,
@@ -235,14 +263,26 @@ export function ColumnHeaders({
                   ...stickyRow(nameTop, 4), ...frozenStyle(ci, "header"),
                   ...(isLastFrz(ci) ? freezeBorder : {}),
                 }}>
-                <div style={{ padding: "5px 6px 2px", fontSize: FS.xs, fontWeight: FW.SEMI, color: C.TEXT,
+                <div style={{ padding: nameInnerPad, fontSize: FS.xs, fontWeight: FW.SEMI, color: C.TEXT,
                   whiteSpace: isData ? "normal" : "nowrap", wordBreak: isData ? "break-word" : undefined,
                   overflow: "hidden", textOverflow: "ellipsis" }}>{displayName}</div>
-                <div style={{ padding: "2px 6px 5px" }}>
-                  <span style={{ display: "inline-block", background: C.WHITE, color: r.color,
-                    borderRadius: CR.S2, padding: "2px 6px", fontSize: FS.xs, fontFamily: FF.UI,
-                    fontWeight: FW.MED, userSelect: "none" }}>{r.chipLabel || r.label}</span>
-                </div>
+                {/* Role chip — kept on the ImportView preview (the
+                    chip + cell-tint together teach the colour key in
+                    context, and the chip carries the clickable role-
+                    cycle affordance) but retired under compactMode
+                    (S163 A1.D3 final pass). In the forensics §2 panel
+                    the chip is informational only: roles are already
+                    decided at import, the column-letter row + cell
+                    tint + label colour all carry the role distinction
+                    visually, and the chip's 49 px stacked-div overhead
+                    is the biggest single header-row budget item. */}
+                {!compactMode && (
+                  <div style={{ padding: chipInnerPad }}>
+                    <span style={{ display: "inline-block", background: C.WHITE, color: r.color,
+                      borderRadius: CR.S2, padding: "2px 6px", fontSize: FS.xs, fontFamily: FF.UI,
+                      fontWeight: FW.MED, userSelect: "none" }}>{r.chipLabel || r.label}</span>
+                  </div>
+                )}
               </th>
             );
           }
@@ -254,6 +294,7 @@ export function ColumnHeaders({
             color: nameColor, background: isHl ? FLAG_STYLES.HIGH.bg : C.BG_L,
             overflow: "hidden",
             ...stickyRow(nameTop, 4), ...frozenStyle(ci, "header"),
+            ...compactPad,
           }}>{displayName}</th>;
         })}
       </tr>
