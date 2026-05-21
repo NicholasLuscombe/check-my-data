@@ -187,6 +187,17 @@ and pills.
 | `FLAG_STYLES.{HIGH,MOD,LOW}.text` | `src/constants/thresholds.js` (not read in this audit) | flagged cell text colour, ImportView err box text |
 | `HEADLINE_COLOR[flag]` | `src/constants/thresholds.js` | per-flag headline colour on test cards |
 
+### 1.12b Section-divider token (`SECTION_DIVIDER` in `src/constants/tokens.js`)
+
+Border-rule token (not strictly typography — a coloured line, no text properties), placed next to `C.*` so token consumers can find it. Used standalone (not as the rule flanking a centred section title — that rail uses `C.BORDER` hairlines via `SectionHeader`).
+
+| Token | File:line | Resolved | Used at |
+|---|---|---|---|
+| `SECTION_DIVIDER.color` | `tokens.js` next to `C.*` | `#64748B` (slate-500) | §2 sticky-surface bottom border (single consumer) |
+| `SECTION_DIVIDER.width` | same | `"3px"` | same |
+
+Heavier than the `C.BORDER` (slate-300) hairline by both colour contrast and thickness. Reads as a real section-break rule against the `C.BG_ZONE` backdrop when the §2 sticky surface pins to viewport top and §3 cards slide up beneath it. Flagged for consolidation if a second site needs the same register.
+
 ### 1.13 Global CSS in `index.html`
 
 Loaded with the page; applies to all `<th>` and `<td>` not overridden by inline style.
