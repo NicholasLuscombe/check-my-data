@@ -89,15 +89,20 @@ axes, no cross-talk).
 
 Quaternary level (`C.TEXT_4`) retires — too pale to earn a level.
 
-Plus three semantic colour groups (unchanged from current system):
+Plus three semantic colour groups:
 
 - **Tier colours** (`SEV_VERDICT[s].color`) — green/amber/orange/red. Used
   only on tier-signalling text. Single saturation level — retire `.text`
   secondary saturation per inventory finding.
 - **Interactive** — single brand colour for clickable text (links, action
   text). Defined separately, not part of text-colour hierarchy.
-- **Mechanism colours** — chip stripes only, no text usage (per existing
-  pattern).
+- **Mechanism colours** — cluster identifier across chrome (cluster header
+  borders, card stripes), inline text (§1 verdict-card cluster names in the
+  count sentence, §3 card cluster-name breadcrumb above the test-name line),
+  and inline glyphs (MechIcon component across §1 verdict-card opener, §2
+  chips, §3 cluster headers, §3 card breadcrumbs — see Composition rule 7
+  for the colour-on-chrome semantics). Hue identifies the mechanism cluster
+  regardless of element type.
 
 ## Case rules
 
@@ -118,7 +123,7 @@ hyphen. They retain this casing in any context — list, sentence-start,
 mid-sentence, prose. They do not switch to sentence case mid-sentence.
 
 Examples:
-- Cluster: `Copy, paste, edit`, `Cross-replicate comparisons`, `Unusual digits`
+- Cluster: `Copy, paste, edit`, `Cross-replicate comparisons`, `Cross-condition comparisons`, `Unusual digits`
 - Test: `Noise predictability`, `Inter-replicate correlation`, `Row-order randomness`
 
 Rationale: these labels are named statistical categories, not descriptive
@@ -145,7 +150,10 @@ Exceptions to sentence case (apply also within name-cased labels):
   (`Inhibitor_A`), column headers, file names — never re-cased.
 - **Developer namespace identifiers** are not user-facing chrome and are
   exempt from these rules: engine-dispatch keys (`r.name`), region-divider
-  comments, internal registry keys, debugging strings.
+  comments, internal registry keys, debugging strings. The `group` engine
+  key for the Cross-condition comparisons cluster is the canonical
+  display/engine split (S132g) — engine identifier stays `group`, display
+  label is `Cross-condition comparisons` post-S157-fix3.
 
 ## Line-heights
 
@@ -186,6 +194,19 @@ ALL CAPS-with-tracking centring retires (no longer used).
    live in `src/constants/tokens.js`. `Section.jsx`, `ImportView.jsx FS`,
    `styles.js` inline definitions, `index.html` `<th>`/`<td>` rules — all
    retire or reference back to tokens.js.
+7. **Word colour follows scale, not chrome.** Inline words take a coloured
+   hue in one of two cases. **Chrome reinforcement** — word and chrome
+   share a semantic scale, so the word takes the chrome's hue (tier word
+   inside tier-tinted chip — both on the SEV scale, word in SEV colour).
+   **Word's own scale** — word encodes a scale the chrome doesn't (cluster
+   names in MECH_COLOR inside a SEV-coded verdict card — MECH is the
+   word's own scale, not borrowed from chrome). When neither applies,
+   the word stays plain (tier-count words "4 moderate findings" inside
+   an SEV-coded verdict card stay plain — colouring them at SEV would
+   compete with the card's dataset-level SEV signal). The same rule
+   governs glyph colour: MechIcon renders in MECH_COLOR because mechanism
+   is the glyph's own scale, not borrowed from any chrome context it sits
+   in.
 
 ## Tables
 
@@ -281,7 +302,7 @@ For meta-content: frame-setting notes, trust statements, status indicators.
 
 ## Register inventory — applied to chrome surfaces
 
-25 distinct (size, weight, colour, family) tuples on chrome.
+27 distinct (size, weight, colour, family) tuples on chrome.
 
 | Role | Size | Weight | Colour | Family |
 |------|------|--------|--------|--------|
@@ -313,21 +334,25 @@ For meta-content: frame-setting notes, trust statements, status indicators.
 | Mini-card sub-section label | sm | Semibold | C.TEXT_3 | sans |
 | Severity label | xs | Semibold | tier | sans |
 | Severity badge | xs | Semibold | tier | sans |
-| Pattern pill/chip | sm | Semibold | tier | sans |
+| Pattern pill/chip — test name | sm | Semibold | C.TEXT | sans |
+| Tier word — chip suffix / cluster header right word | base | Regular | tier | sans |
+| Cluster name — verdict count sentence (§1) | base | Regular | MECH | sans |
+| Cluster name — card breadcrumb (§3) | sm | Regular | MECH | sans |
 | State chip | xs | Medium | token | sans |
 | Identity chip | xs | Regular | tinted | sans |
 | Marker pill | xs | Semibold | accent | sans |
 
-32 roles, 25 distinct tuples. Down from ~40 in pre-system inventory.
+35 roles, 27 distinct tuples. Down from ~40 in pre-system inventory.
 
 Notes on chrome-shape vs typography register:
 
-- **Severity label** is a bare-text register — no bounded chrome. Consumed by TestCardLayout per-test verdict (`FLAGGED`/`Noted`/`Clear`) and ExcelMetaCard inline tier-coloured tags. Distinct from Severity badge (below) which is bounded.
+- **Severity label** is a bare-text register — no bounded chrome. Consumed by TestCardLayout per-test verdict ("High"/"Moderate"/"Clear" sentence-case post S156 D1) and ExcelMetaCard inline tier-coloured tags. Distinct from Severity badge (below) which is bounded.
 - **Severity badge** is bounded chrome (bg + border + padding + borderRadius). Canonical (currently sole) consumer is BatchView per-file severity in the tabular results column. Both rows share the same typography tuple (xs Semibold tier sans); the difference is chrome shape.
-- **Pattern pill/chip** is bounded chrome at the larger sm size. FindingPill + FindingChip on the §2 dataset-wide / localised pattern surface. Tier-coloured per SEV_VERDICT[s].color, with optional mech-stripe (4px inset boxShadow) as a second axis.
+- **Pattern pill/chip** is bounded chrome at the larger sm size. FindingPill + FindingChip on the §2 dataset-wide / localised / broadly-flagged pattern surfaces. Post-S156-fix1 + S157 chrome composition: chip background is light SEV_VERDICT[severity] tint (tier signal on chrome, not text); MechIcon at chip-leading position in MECH_COLOR[mk] at 16px (mechanism cluster identifier — replaces the pre-S157 MECH_COLOR 5px left-edge inset boxShadow stripe entirely); test-name text plain colour (C.TEXT); tier suffix in SEV_VERDICT colour at plain weight via the new Tier word — chip suffix tuple. Cleared-tier chips render MechIcon at 0.4 opacity, no SEV background tint. Three text registers stacked horizontally on the chip, preceded by the icon: [icon] test name (sm Semibold C.TEXT sans) [separator ·, inherits test-name register] [tier word suffix (base Regular tier sans)].
 - **State chip** is bounded chrome with no border. xs Medium with the colour wired to a `BADGE.*` token slot (`BADGE.AUTO` teal, `BADGE.REQUIRED` gold, `BADGE.SET_ME` neutral). Also the canonical register for the column-header role chip (DATA / LABEL / COND / SKIP — colour wired to `ROLES[role].color`). Colour axis is "token" rather than "tier" because state chips encode workflow chrome, not severity.
 - **Identity chip** is bounded chrome with no border, FW.NORM weight. Lighter weight signals an identity tag with no editorial claim — currently consumed by ImportView Zone 1 condition chips (one per condition name in `s.cNames`). Colour wired to `condColorMap[c]` from the 8-entry `COND_COLORS` palette.
 - **Marker pill** is bounded chrome with border. xs Semibold accent (currently gold via `BADGE.PROMOTED`, distinct from severity tier axis). Consumed by MiniCard_Kurtosis + ConditionTable "differs between conditions — promoted" badge — semantic marker for a cross-condition finding, not a severity.
+- **MechIcon component** (S157) is a glyph register, not a text register — not enumerated as a typography tuple. Inline SVG, viewBox `0 0 24 24`, five mechanism-keyed path constants. Renders at 14px (§1 verdict count sentence inline + §3 card breadcrumb), 16px (§2 chip + pill), 20px (§3 cluster header). The `digits` icon (ti-123 letterforms) takes a +2px per-icon size compensation via `mechIconSize(mk, baseSize)` because its glyph geometry occupies less of the bounding box than the other four mechanism icons; net effect is the digits icon renders at 16/18/22px across the three scales for visual parity with the others. Colour: MECH_COLOR[mk]. Opacity: 1 on flagged/noted/at-cluster-with-flags renders; 0.4 on cleared-tier per S157-fix1+S156-fix5 inheritance.
 
 ### Chip-family weight rule
 
@@ -336,9 +361,11 @@ A deliberate weight axis runs through the chip-shape family. Match the weight to
 - **Regular (FW.NORM)** — identity tag. A condition name, a user-supplied label, anything that names but does not claim. Identity chip register.
 - **Medium (FW.MED)** — state/role indicator. AUTO / SET ME / REQUIRED / column-role chips. Workflow chrome, not editorial. State chip register.
 - **Semibold (FW.SEMI)** — severity or load-bearing finding. Severity labels (bare text), Severity badges (bounded), Pattern pills/chips, Marker pills. Claim-carrying weight.
-- **Bold (FW.BOLD)** retires from chip-family entirely. Bold remains reserved for the Verdict headline carve-out (per § Weights rule, line 73).
+- **Bold (FW.BOLD)** retires from chip-family entirely. Bold remains reserved for the Verdict headline carve-out (per § Weights rule above).
 
-Prior versions of this doc cited "18 roles, 13 distinct tuples". Recount at S138 close (post-Phase C.2 surface migration) found the actual table contained more tuples than the summary line claimed. Whether this was original miscount at S134 lock or drift since lock is undetermined from available evidence; the numbers above reflect the current table as the source of truth going forward. Column title (verdict §1) role added during S138-fix4 as a co-consumer of the Sub-heading tuple — no new tuple introduced. Primary banner headline + sub-line roles added during S148 as co-consumers of the Button and Footnote tuples respectively — no new tuples introduced. Lane label (§2 StickySurface + DeepLookModal) and Modal sub-context roles added during S149 (C.6+C.7 combined) — Lane label shares the `base Semibold C.TEXT` tuple with Tab (active); Modal sub-context shares `sm Regular C.TEXT_2` with Footnote/reference. Both are role-additions only, no new tuples. Mini-card sub-section label added during S150 (C.8) — `sm Semibold C.TEXT_3` is a genuinely new tuple, 35+ consumer sites via shared `SUB_HEAD` in `src/components/shared/styles.js`. Status badge + Pattern pill/chip added during S151 (C.9) — surfaced by S150-fix1 status badge tuple finding; genuine role distinction at xs (bare-text Severity label sites — TestCardLayout per-test verdict + ~8-10 ExcelMetaCard inline tier-text spans + bounded FlagBadge prior to its S152 retire) vs sm (2 pattern surface chips — FindingPill + FindingChip). Option (a) two-row split chosen over option (b) consolidation to preserve §2 dataset-wide pattern surface prominence (sm) vs §3 per-row status indicator density (xs). Tier-coloured (red/amber/green per `SEV_VERDICT[s].color`) on both rows. S152 badge-family pass: Status badge row renamed to Severity label (bare-text register, name now matches consumption); three new bounded-chrome rows added (Severity badge, State chip, Identity chip) plus one new accent-axis row (Marker pill); chip-family weight rule landed as a system rule alongside the existing letter-spacing retire-to-zero rule; FlagBadge bounded shape retired with sole consumer ExcelMetaCard now consuming the Severity label register via bare-text render; BatchView severity badge became the canonical Severity badge consumer (FW.BOLD → FW.SEMI, hex-math → SEV_VERDICT, letterSpacing 0.05em retired).
+### Inventory audit trail
+
+Prior versions of this doc cited "18 roles, 13 distinct tuples". Recount at S138 close (post-Phase C.2 surface migration) found the actual table contained more tuples than the summary line claimed. Whether this was original miscount at S134 lock or drift since lock is undetermined from available evidence; the numbers above reflect the current table as the source of truth going forward. Column title (verdict §1) role added during S138-fix4 as a co-consumer of the Sub-heading tuple — no new tuple introduced. Primary banner headline + sub-line roles added during S148 as co-consumers of the Button and Footnote tuples respectively — no new tuples introduced. Lane label (§2 StickySurface + DeepLookModal) and Modal sub-context roles added during S149 (C.6+C.7 combined) — Lane label shares the `base Semibold C.TEXT` tuple with Tab (active); Modal sub-context shares `sm Regular C.TEXT_2` with Footnote/reference. Both are role-additions only, no new tuples. Mini-card sub-section label added during S150 (C.8) — `sm Semibold C.TEXT_3` is a genuinely new tuple, 35+ consumer sites via shared `SUB_HEAD` in `src/components/shared/styles.js`. Status badge + Pattern pill/chip added during S151 (C.9) — surfaced by S150-fix1 status badge tuple finding; genuine role distinction at xs (bare-text Severity label sites — TestCardLayout per-test verdict + ~8-10 ExcelMetaCard inline tier-text spans + bounded FlagBadge prior to its S152 retire) vs sm (2 pattern surface chips — FindingPill + FindingChip). Option (a) two-row split chosen over option (b) consolidation to preserve §2 dataset-wide pattern surface prominence (sm) vs §3 per-row status indicator density (xs). Tier-coloured (red/amber/green per `SEV_VERDICT[s].color`) on both rows. S152 badge-family pass: Status badge row renamed to Severity label (bare-text register, name now matches consumption); three new bounded-chrome rows added (Severity badge, State chip, Identity chip) plus one new accent-axis row (Marker pill); chip-family weight rule landed as a system rule alongside the existing letter-spacing retire-to-zero rule; FlagBadge bounded shape retired with sole consumer ExcelMetaCard now consuming the Severity label register via bare-text render; BatchView severity badge became the canonical Severity badge consumer (FW.BOLD → FW.SEMI, hex-math → SEV_VERDICT, letterSpacing 0.05em retired). S156-fix arc additions (post-A1.D0c-bis chrome lock): three new tuples introduced for mechanism + tier handle visibility — Tier word at chip suffix and §3 cluster header right-side word (base Regular tier sans, plain-weight reinforcement-of-chrome treatment per Composition rule 7), Cluster name in §1 verdict count sentence (base Regular MECH sans, mechanism's own scale inside dataset-severity-coded card chrome), and Cluster name in §3 card breadcrumb (sm Regular MECH sans, S156-fix5 addition above test-name line). `MECH` introduced as a new colour-tag convention for mechanism-text usage. Pattern pill/chip register split: chip test-name moves from sm Semibold tier sans (retires) to sm Semibold C.TEXT sans (co-consumer of existing Aside callout bullet lead tuple — plain colour on chip text post-fix1, tier signal now on chip background chrome). Pre-S156 tuple count was 25; net delta is +3 new tuples − 1 retired = 27 tuples post-S156-fix, across 35 roles. S157 arc (mechanism iconography): MechIcon glyph component introduced (inline SVG, mechanism-keyed); no new typography tuples — glyphs are decoration, not text — but mechanism colour-on-glyph treatment is governed by Composition rule 7 (word colour follows scale extended to glyph colour). Pre-S157 chip stripe (5px left-inset boxShadow per S156-fix1) retires entirely; MechIcon at chip-leading position replaces it as the mechanism handle. Pattern pill/chip explanatory note updated accordingly.
 
 ## Implementation notes — for Phase B and Phase C
 
@@ -376,7 +403,11 @@ fixture set.
 ## What this system does NOT cover
 
 - Spacing tokens (margins, paddings) — separate system
-- Iconography — separate system
+- Iconography — captured at the chrome-composition level in this doc for
+  surfaces where icons participate in inline text layouts (MechIcon in
+  cluster-naming chrome). Glyph-system semantics (icon registry, viewBox
+  conventions, stroke-width consistency across glyph families) live with
+  the MechIcon component, not in this doc.
 - Plot / chart typography — separate system, may inherit base values from
   this spec but governs its own register set per chart type
 - Surface-level chrome (borders, shadows, backgrounds beyond aside callout
@@ -390,17 +421,18 @@ fixture set.
   no "I picked something that looked right" decisions land
 - This doc updates only via deliberate revision; ad-hoc edits during chrome
   sessions are not allowed
-- Inventory drift (creep beyond current 18 tuples on chrome) flagged in
+- Inventory drift (creep beyond current 27 tuples on chrome) flagged in
   the next typography audit and reconciled
 
-## Locked at end of Session A
+## Locked at end of Session A (with subsequent revisions per session log)
 
 Locks: voice profile · two-face Inter + JetBrains Mono · 6-step 1.25 scale ·
 4 weights · 3 text colours · sentence case throughout · 1.55/1.4/1.3
 line-heights · convention alignment (left default, right numerics, centre
 frame-setters) · paired-fact identity row pattern (colour split) · aside
 callout pattern (3 semantic sub-types) · table sizing (size to content,
-centre when narrow) · 18-tuple chrome register inventory (recounted at
-S138 close — prior "13" was either original miscount or pre-S138 drift) ·
-single colour hierarchy across families · 5 token definition sites
-collapse to 1.
+centre when narrow) · 27-tuple chrome register inventory (post-S156-fix
+recount; prior counts 13/18/25 reflect inventory-evolution audit trail,
+not drift) · single colour hierarchy across families · 5 token definition
+sites collapse to 1 · word colour follows scale not chrome (Composition rule
+7 added post-S156-fix1; extended to MechIcon glyph colour post-S157).
