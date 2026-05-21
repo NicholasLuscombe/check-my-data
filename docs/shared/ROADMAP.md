@@ -1,10 +1,20 @@
-# Check My Data — Feature Roadmap (v0.7 → v1.0)
+# Check My Data — Feature Roadmap (v0.7 → v1.0) — ARCHIVED
 
-**Goal:** Transform v0.7 (modularised, validated, documented) into v1.0 (reliable tool for research integrity officers and journal editors). Focus: eliminate systematic FP classes, add tests for fabrication mechanisms currently missed, improve investigative output.
-
-> This file was originally V06-PLAN.md. The v0.6 → v0.7 professionalisation (monolith decomposition, error handling, JSDoc, architecture docs) is now complete — see `.claude/plan.md` for that work. The items below are the remaining **feature work** for v1.0.
+> **This doc is archived as historical record (post-S162b).** It represents the v0.7 → v1.0 feature plan as authored S20–S96. Most items have landed; the v0.7 → v1.0 milestone is substantially complete. **Active work is no longer organised against this document.**
 >
-> Post-S95 note (S96 audit): Items 1–7 below are the original v0.7 → v1.0 feature items. Since S94, active implementation work is organised around **Tracks A–H** in `METHODOLOGY-MAP.md`. Items and Tracks are two views of the same programme — Items are user-facing features; Tracks are the internal implementation structure. See "Implementation Order" at the end of this file for current priority.
+> Current source-of-truth surfaces:
+> - **Active v1.0 work (in-progress, blockers, polish backlog):** `STATUS.md`
+> - **v1.x post-release work:** `docs/shared/V1X-FUTURE-WORK.md` — absorbs Track F (extended scope, §3), Track G (large-N effect-size gates, §5.4), Item 5 (assay-aware severity weighting, §5.5), and Item 6c (LOESS recursive binary segmentation, §5.6). Track H (long-format fix) cross-references STATUS parked #12 instead.
+> - **Methodology framework + gap audit:** `METHODOLOGY-MAP.md`
+> - **Per-test implementation reference:** `METHODOLOGY.md`
+>
+> Treat completed-item markers below as historical attestation, not current state. The text describes design intent at the time of writing; the actual built behaviour may have evolved since.
+
+**Original goal:** Transform v0.7 (modularised, validated, documented) into v1.0 (reliable tool for research integrity officers and journal editors). Focus: eliminate systematic FP classes, add tests for fabrication mechanisms currently missed, improve investigative output.
+
+> Originally V06-PLAN.md. The v0.6 → v0.7 professionalisation (monolith decomposition, error handling, JSDoc, architecture docs) completed at v0.7 — see `.claude/plan.md`. The items below were the **feature work** for v0.7 → v1.0.
+>
+> Post-S95 note (S96 audit): Items 1–7 below were the original v0.7 → v1.0 feature items. Since S94, active implementation work organised around **Tracks A–H** in `METHODOLOGY-MAP.md`. Items and Tracks were two views of the same programme — Items are user-facing features; Tracks are the internal implementation structure. See "Implementation Order" at the end of this file for the priority sequence at S96.
 
 ---
 
