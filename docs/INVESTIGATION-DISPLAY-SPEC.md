@@ -470,176 +470,31 @@ Verdict card with severity-coloured header and border:
 
 **Excel forensics** (`.xlsx` with findings only): ExcelMetaCard below verdict card.
 
-**2 · WHAT WAS FOUND** — Findings strip + persistent docked data panel
+**2 · WHAT WAS FOUND**
 
-A1.D3 (S163) collapsed the prior pre-A1.D3 §2 (category test cards) + §3 (WHERE TO LOOK minimap + table) + the DeepLookModal overlay into one §2 surface. The chip-strip and the data view sit in one persistent docked panel below §2's section header; test cards moved out to a new §3. The reader can keep raw data on screen while reading a §3 test card. The DeepLookModal component retires entirely (file + consumers).
-
-The surface composes:
-
-```
-+---------------------------------------------------------------+
-| 2 · WHAT WAS FOUND                                            |
-| Dataset-wide  [pill] [pill]                                   |
-| Localised     [chip] [chip] [chip]                            |
-| Flagged, location unclear  [chip]                             |
-| ▸ Data table                              Show all · Clear all|
-| Last-digit frequencies applies across the whole dataset — …   |
-| ┌─────────────────────────────────────────────────────────┐   |
-| │ █▒░ horizontal density strip (data cols only)          │   |
-| ├──┬──────────────────────────────────────────────────────┤   |
-| │▓│ scrollable data table — locality fills, identity     │   |
-| │▒│ borders, whole-table wash compositing                │   |
-| │ │                                                       │   |
-| └──┴──────────────────────────────────────────────────────┘   |
-+═══════════════════════════════════════════════════════════════+  ← 3px SECTION_DIVIDER (slate-500)
-```
-
-The whole surface is the single sticky element, pinned to viewport top through §3–§5 scroll. The data panel is collapsible via the `▸ Data table` disclosure; chip lanes + the guidance caption + Show all / Clear all stay visible regardless of collapse state.
-
-#### 2.1 Lanes — three rows above the data toggle
-
-Three chip / pill lanes, partitioned by `finding.locality`:
-
-| Lane | Locality tiers | Glyph |
-|---|---|---|
-| Dataset-wide | `dataset-wide` | `FindingPill` |
-| Localised | `cell-local`, `row-local`, `column-local` | `FindingChip` |
-| Flagged, location unclear | `unscoped` | `FindingChip` |
-
-Each row renders only when at least one finding falls in its tier. Lane labels are `LANE_LABELS` exported from `Section.jsx`. Pills and chips both activate the panel — pills-activate ratified at B2a; the pre-implementation spec's "chip-only, pills scroll-only" is **superseded**. Pills do not carry the `[N]` region prefix (no spatial scope). Chips also do not carry `[N]` (fix-pass 1 retired the prefix — the active chip's ring + the data block's filtered minimap + the region-zoomed table carry the same information).
-
-Each chip / pill renders with a 3 px mechanism-colour left stripe (`MECH_COLOR[dim]`) linking it visually to its §3 test-card sibling.
-
-#### 2.2 Selection model — click always toggles
-
-Click on any chip or pill **always toggles** the clicked finding (active → inactive, inactive → active). Default-on-panel-expand is **all-active** (every finding contributes). The pre-implementation Model B "all-on → first click isolates" rule is **superseded** — at B2e the same gesture stopped meaning different things depending on how many findings were active.
-
-| Predicate | Effect |
-|---|---|
-| `selection === null` (initial / Show all) | All active; selection mode resolves to `'all'` via `activeSelected.size === allFindingIds.size` |
-| Click N, `N ∈ activeSelected` | REMOVE — drop N from the set; lastAdded demotes to next-most-recent (or null when the set empties); NO scroll |
-| Click N, `N ∉ activeSelected` | ADD — insert N; lastAdded = N; scroll §3 to the finding's first test card; expand dimension + test card; auto-expand data block on first activation |
-| `Show all` | Selection = full set; lastAdded = null |
-| `Clear all` | Selection = empty set; lastAdded = null |
-
-`Show all` and `Clear all` live on the Data toggle row (right-aligned). They are two persistent controls, not a single context-switching button — direction can switch mid-investigation. Disabled state mirrors the current mode (`Show all` disabled when mode = `'all'`; `Clear all` disabled when subset is already empty).
-
-Reaching "just this one" from default-all-on now takes two clicks (`Clear all` → click chip). Predictability over saving a click — locked at B2e.
-
-State lives in `ForensicsBody`: `selection = { selected: Set<regionNumber>, lastAdded }`. Sentinel `null` means uninitialised (treated as all-active without allocating a Set). `selectionMode` is derived from set size vs universe size, not stored.
-
-#### 2.3 Locality-driven encoding — single dispatch axis
-
-`finding.locality` (set once in `findings.js:classifyLocality`, dispatched once in `buildHighlightSpec`) drives the data-block highlight extent. Five tiers:
-
-| Tier | Extent | Border |
-|---|---|---|
-| `cell-local` | individual cells fill | 4-edge identity border per cell |
-| `row-local` | row-band fills across all data cols | top + bottom identity-border edges at run boundaries |
-| `column-local` | column-band fills across all rows | left + right identity-border edges at run boundaries |
-| `dataset-wide` | whole-table wash (`LOCALITY_WHOLE_TABLE_WASH = rgba(139,92,246,0.08)`) | no border |
-| `unscoped` | whole-table wash (same wash) | no border |
-
-Encoding properties:
-
-- **Fill colour is convergence count, not severity.** When multiple active findings touch the same cell (cell ∩ row ∩ column union counts), the per-cell intensity reads through `convergenceRampStyle(count)` on a purple ramp (purple-200 → purple-700, opacities 0.55 / 0.7 / 0.85). Overlap intensifies. Severity continues to live on the chip / pill chrome (background tint + tier word) and the §3 card status badge — never on the data block.
-- **Identity border is `IDENTITY_BORDER = #4C1D95` (purple-900).** Lifted beyond the ramp top stop (`CONVERGENCE_RAMP[5+]` = purple-700) so the border reads as unambiguously deeper than the densest fill at any overlap level. Rendered via `box-shadow: inset` per edge — no layout consumption, so the shared colgroup (with ImportView preview) is unaffected.
-- **Whole-table wash composites UNDER localised fills.** Cells with localised count > 0 never paint the wash. When a dataset-wide pill and a cell-local chip are both active, the cell-local cells render their convergence fill; everywhere else paints the wash.
-- **Subset-mode dim**: when selection is subset AND ≥1 finding is selected, cells outside the active coverage demote to `#CCC` text on `C.WHITE` background. Suppressed in `all` mode (the message is "show me everything") and on whole-table-wash cells (the wash IS the coverage signal — dim there would compete).
-
-Encoding dispatch is single-source: `buildHighlightSpec.buildLocalityCompose(activeFindings, ctx)` is the only locality switch. ExcerptTable's renderCell consumes `localityCompose` (with `hasWholeTable`, `unionCells / unionRows / unionCols`, `countCells / countRows / countCols`, `dimUncovered`) and never re-derives locality from `findings[]`.
-
-#### 2.4 `activeConvergence` — single rebuild on selection change
-
-`FindingDetailPanel` maintains an `activeConvergence` memo that rebuilds the convergence grid from the active finding set on every selection change. **`mode === 'all'` early-returns the original `heatmapProps.convergence` object — no recompute, no allocation.** Protects batch-parity at rest and keeps the resting-state grid byte-identical to pre-A1.D3.
-
-`activeConvergence` threads to:
-- ExcerptTable cell-fill (the `convergenceCellBg` legacy resting-state heat layer reads it via `visGrid`).
-- MinimapStripVertical density (row-axis).
-- MinimapStripHorizontal density (column-axis).
-
-All three consumers read the re-keyed grid. There is no redundant filter prop (`activeFindingTests` was retired at B2d — the grid IS the filter source).
-
-#### 2.5 Guidance caption — three cases
-
-Rendered between the Data toggle row and the (collapsible) data block, OUTSIDE the collapse wrapper so it persists when the data table folds. Dispatched by `(finding.locality, TEST_RAW_VISIBILITY[testId])`:
-
-| Locality | rawVisibility | Caption |
-|---|---|---|
-| `dataset-wide` / `unscoped` | (either) | "{DisplayName} applies across the whole dataset — see the test card for the evidence." (and the `unscoped` variant: "… flagged the data but couldn't isolate specific rows. See the test card for the statistical detail.") |
-| `cell-local` / `row-local` / `column-local` | `visible` | "{DisplayName}: the flagged cells show the pattern directly — compare the highlighted values." |
-| `cell-local` / `row-local` / `column-local` | `statistical` | "{DisplayName}: this pattern is statistical — it won't be visible in the individual values. See the test card." |
-
-The dataset-wide / unscoped branch takes precedence over the visible / statistical split: when there are no flagged cells (whole-table wash only), "look at the cells but they're unreadable" is the wrong framing — the wash signals "applies everywhere; evidence in the test card".
-
-The caption names `focusFinding` (last-added). When multiple findings are active, the caption tracks the last activation — consistent with the scroll-on-add-only model. No caption at rest (no active finding).
-
-#### 2.6 Data block — minimaps + table
-
-When `dataExpanded` is true, the panel mounts:
-
-- **Horizontal density strip** above the table. Spans the DATA-COLUMN region only, proportional (flex-grow) alignment to the table's stretched colgroup. Identifier columns never carry strip coverage. Density bars at the matrix-col positions reading from `activeConvergence.grid`. Viewport-band indicator overlays the strip when the table actually scrolls horizontally; suppressed (band-only-no-band) when the table fits in the viewport.
-- **Vertical minimap** to the left of the table. Same density model on the row axis, with a vertical viewport-band indicator. Mounted only when the table actually scrolls vertically. Click + drag writes back to `tableEl.scrollTop`.
-- **Scrollable data table** via `ExcerptTable` mounted with `compactMode={true}`. Full-table semantic — every row in the matrix renders. `ScrollTable`'s built-in virtualisation (`ROW_H=22.5`, `VIRT_THRESHOLD=500`) bounds DOM size on large fixtures while keeping native Cmd-F working below threshold. Cell tints follow §2.3.
-
-Total block height bounded at 250 px. `ExcerptTable.compactMode` suppresses its own internal SegmentMinimap / ColMinimap / caption / convergence-ramp legend / hotspot list footer — the panel-level minimaps replace them at one resolution higher.
-
-#### 2.7 Collapse — `overflow-anchor: none` is required
-
-The data block uses a max-height transition (0 ↔ 600 px, 220 ms ease) — always mounted, never torn down. **`<body style="overflow-anchor: none">` in `index.html` is REQUIRED.** Do not remove this declaration without understanding why it exists.
-
-Failure mode: when the data panel collapses (max-height transitions to 0), the document shrinks by ~284 px. Browser CSS scroll anchoring auto-adjusts `scrollY` to keep visible content stable. In states where the panel landed close to the sticky's natural-flow position (most reliably the dataset-wide-only active state), the adjustment moved `scrollY` UP by ~284 px, un-pinning the sticky from `top: 0` and rendering it at its natural-flow position ~98 px below viewport top — the "folds down" symptom. Disabling scroll anchoring keeps `scrollY` stable; the sticky stays pinned; §3 cards slide up into the vacated space — the user's mental model.
-
-The site is a static forensics report; there is no chat-like dynamic content where keeping visible items stable is a UX win. The trade-off favours scroll-stability over content-anchor stability.
-
-#### 2.8 §2↔§3 boundary
-
-`SECTION_DIVIDER` token (slate-500 `#64748B`, 3 px) on the sticky surface's bottom edge. Heavier than the `C.BORDER` hairline; reads as a real section break against the `C.BG_ZONE` backdrop when the sticky pins at viewport top and §3 cards slide up behind it. Pairs with a ~29 px `marginBottom` to keep §3 content from touching the divider.
-
-The token lives at `src/constants/tokens.js` next to `C.*` (alongside the C-palette primitives). Flagged for consolidation if a second "section-break-weight rule rendered standalone, not framing a centred title" site lands; currently a single-consumer token.
-
-#### 2.9 What survives, what retires
-
-**Retires entirely (file + consumers):**
-- `DeepLookModal.jsx` — modal overlay surface (retired at Phase 3d).
-- `data-finding-detail-panel` selector (Phase 3e — `data-sticky-surface` is the canonical marker).
-- Chip `[N]` prefix (fix-pass 1 — replaced by ring + filtered minimap).
-- Status row + header row + ✕ button on the panel (fix-pass 1 — chip click activates AND deactivates).
-- MinimapStripVertical badge dots + tick lines + convergence-ramp legend + hotspot list footer (fix-pass 2, all gated on `compactMode`).
-- Horizontal `MinimapStrip` mount in §2 (Phase 3d; file kept for HotspotExcerpt.jsx back-compat shim).
-- B2a/B2b's single-region `activeRegionNumber` scalar + isolate-on-first-click special case (B2b → B2e).
-
-**New surfaces:**
-- `FindingDetailPanel.jsx` — owns the docked-panel composition.
-- `MinimapStripVertical.jsx` + `MinimapStripHorizontal.jsx` — viewport-band minimaps with click-to-scroll.
-- `findings.js:classifyLocality` — single source of truth for the five locality tiers.
-- `buildHighlightSpec.js:buildLocalityCompose` — single locality dispatch into `localityCompose`.
-- `TEST_RAW_VISIBILITY` map in `mechanisms.js` — 8th entry on the test-onboarding checklist.
-- `SECTION_DIVIDER` token in `tokens.js`.
-
----
-
-**3 · DETAILED TEST RESULTS**
-
-All five categories in fixed order (`MECHANISM_ORDER`). `ForensicsCategoryBlock` per category — sub-tests sorted severity-descending (HIGH → MOD → LOW) with stable order within tier; LOW (= "CLEAR") collapses to a one-line `N tests CLEAR — A, B, C` summary with click-to-expand. Pre-A1.D3 used the shared `CategoryRow` for all three modes; A1.D3 split the Forensics-mode rendering off because the sticky chip / pill click bus needs to address each test card directly.
+All five categories in fixed order (MECHANISM_ORDER). CategoryRow, mode="full".
 
 Each category:
-- Category header: grey background, sidebar (header only), ⚠/✓ icon + name + `(N tests)` + `— description` + expand chevron.
-- Divider line between categories.
+- Category header: grey background, sidebar (header only), ⚠/✓ icon + name + `(N tests)` + `— description` + expand chevron
+- Divider line between categories
 
 On category expand:
 - **Test cards (TestCardLayout) visible directly.** Each white card shows:
-  - Test name (semibold) · description (regular) → status text + p-value (right-aligned, coloured).
-  - Right-side ▸/▾ chevron on flagged / noted cards only.
-- **Flagged / noted tests auto-expand** showing:
-  - Method description (body font, matches QC category description style).
-  - Evidence content directly (charts via PlotLayout, tables via EvidenceTable) — inside the white card, no grey sub-container.
-  - Summary footer below evidence.
-- **Clear tests:** compact white card, expandable by click.
+  - Test name (semibold) · description (regular) → status text + p-value (right-aligned, coloured)
+  - Right-side ▸/▾ chevron on flagged/noted cards only
+- **Flagged/noted tests auto-expand** showing:
+  - Method description (body font, matches QC category description style)
+  - Evidence content directly (charts via PlotLayout, tables via EvidenceTable) — inside the white card, no grey sub-container
+  - Summary footer below evidence
+- **Clear tests:** compact white card, expandable by click
 
-Each test card carries a `data-test-id="{r.name}"` outer-div attribute so the §2 chip / pill / Show-all click bus can scroll the card into view (`scrollToCard` reads the §2 sticky's `offsetHeight` for the landing offset).
+**3 · WHERE TO LOOK** (severity > 0 only)
 
-Each test card also carries a 3 px mechanism-colour left stripe (`MECH_COLOR[dim]`) — same colour as the matching chip / pill in §2's lanes. Same colour, two surfaces, one mental model.
+Unified minimap + scrollable detail table component (`HotspotExcerpt.jsx`):
+- **Left panel (~40px):** SVG minimap of full dataset. Coloured by convergence density. Hotspot regions marked with red bracket annotations. Clickable.
+- **Right panel:** Scrollable data table (~400px height) showing all rows with heatmap cell shading. Sticky header row.
+- **Below (wide datasets only):** Horizontal ColMinimap for column density.
+- **Below:** Clickable hotspot list. Clicking a label scrolls the detail table to that region.
 
 **4 · INVESTIGATE FURTHER**
 
@@ -663,9 +518,7 @@ AI consultation prompt + Excel download. See Guidance System § Tier 3 below.
 | Severity dots | ✅ | ✅ | ✅ |
 | Data profile | ✅ | ✅ | ✅ |
 | Excel forensics | ❌ | ❌ | ✅ |
-| Category component | CategoryRow (mode="qc") | CategoryRow (mode="review") | ForensicsCategoryBlock (in §3) |
-| Section 2 | What was checked (category rows) | What was found (categories + simplified evidence) | What was found (chip lanes + persistent docked data panel) |
-| Section 3 | What next | Hotspot list + expandable excerpts | Detailed test results (dimension cards) |
+| Category component | CategoryRow (mode="qc") | CategoryRow (mode="review") | CategoryRow (mode="full") |
 | Category sidebar | Header only | Header only | Header only |
 | Test presentation | TestCardLayout (white cards) | TestCardLayout (white cards) | TestCardLayout (white cards) |
 | Test details gate | Behind "Show technical details" | Visible directly | Visible directly |
@@ -673,8 +526,9 @@ AI consultation prompt + Excel download. See Guidance System § Tier 3 below.
 | Method description | ❌ | ❌ | ✅ (body font, inside card) |
 | Evidence on expand | None | Simplified (subtitle + key stat) | Full (charts, tables, data) |
 | Auto-expand flagged | No | No | Yes |
-| Section 4 | (none) | What to ask (investigation Qs) | Investigate further (AI prompt) |
-| Section 5 | — | — | Test coverage / methodology |
+| Section 3 | Hidden | Hotspot list + expandable excerpts | Minimap + interactive detail table |
+| Section 4 | What next (process) | What to ask (investigation Qs) | Investigate further (AI prompt) |
+| Section 5 | — | — | Methodology |
 | P-values | ❌ | ❌ | ✅ |
 
 **Mental model:** QC answers "is something wrong?" Peer Review answers "where is it wrong and what to ask?" Forensics answers "what exactly is wrong and how do I know?"
