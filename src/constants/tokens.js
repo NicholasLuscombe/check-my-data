@@ -15,6 +15,26 @@ export const C = {
   BG_ZONE:  "#EDF0F5",  // zone panel backgrounds (import page, report sections)
 };
 
+// Section-divider treatment — heavier than the C.BORDER hairline used
+// for SectionHeader's flanking 1px rules. Used at the §2 sticky
+// surface bottom (and any future site that needs a section-break-
+// weight rule rendered standalone, not framing a centred title).
+//
+// S163 B2e E4: introduced as a dedicated token after B2c F3's
+// 2px-C.BORDER nudge AND B2d G4's borderBottom-retirement both
+// failed Nick's eye — doubling a hairline is still a hairline, and
+// "let §3's SectionHeader carry it" doesn't hold when the user
+// scrolls past §3's SectionHeader and §3 cards bleed up to the §2
+// sticky bottom with no boundary. Slate-500 (#64748B) at 3 px reads
+// as a real section break against the C.BG_ZONE backdrop.
+// Flagged for the typography system: this token may consolidate with
+// other "section-break-weight rule" sites (currently only one) at
+// the next type-system pass.
+export const SECTION_DIVIDER = {
+  color: "#64748B",  // slate-500 — heavier contrast than C.BORDER
+  width: "3px",
+};
+
 // 2. SIGNAL — red / amber / green severity hues.
 //    Each has 4 shades: text (dark), dot (vivid), bg (tint), border (light).
 export const SIGNAL = {

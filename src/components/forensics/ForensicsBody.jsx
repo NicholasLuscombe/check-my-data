@@ -118,32 +118,46 @@ export function ForensicsBody({
     window.scrollTo({ top: Math.max(0, target), behavior: "smooth" });
   }, []);
 
-  // S163 B2b: Model B multi-select selection state.
-  //   mode: 'all' | 'subset'
-  //     - 'all'    — every finding contributes to the data-block
-  //                  overlay; chips / pills all render in active style.
-  //                  This is the panel-expand default ("show me
-  //                  everything").
-  //     - 'subset' — only `selected` contribute; `selected` may be
-  //                  empty (nothing highlighted; panel stays mounted).
-  //   selected: Set<regionNumber> — populated only in 'subset' mode.
-  //   lastAdded: regionNumber | null — drives panel chrome (caption
-  //                  + focus) and the scroll-on-add path.
+  // S163 B2e E2: selection state — click always toggles. The B2b
+  // Model B isolate-on-first-click special case retires: it was
+  // inconsistent ("3 on, click one" isolated, "2 on, click one"
+  // deselected — same gesture, opposite result, depending on a
+  // count the user wasn't tracking). Click now always toggles the
+  // clicked finding (active → inactive, inactive → active);
+  // default panel-expand state stays all-on (every finding active),
+  // only the meaning of the first click changes — it now peels one
+  // off, instead of isolating to one.
   //
-  // Transitions:
-  //   First click while mode === 'all'        → ISOLATE: subset = {clicked}.
-  //   Click while mode === 'subset', not in   → ADD: add to subset.
-  //   Click while mode === 'subset',     in   → REMOVE: drop from subset.
-  //   Show all                                → mode 'all',  selected.clear().
-  //   Clear all                               → mode 'subset', selected.clear().
+  // Representation: a single Set of active regionNumbers, plus
+  // lastAdded (which drives panel chrome + scroll-on-add). The
+  // mode='all' / 'subset' distinction is DERIVED from the Set size
+  // vs the universe of finding ids — kept as a derived value
+  // (`selectionMode` below) for the G1 default-all-on early-return
+  // in FindingDetailPanel and for dimUncovered. Primary state stops
+  // tracking mode explicitly.
   //
-  // Writer: `onActivateTest` below for chip / pill clicks; `onShowAll`
-  // / `onClearAll` for the StickySurface controls.
-  const [selection, setSelection] = useState({
-    mode: "all",
-    selected: new Set(),
-    lastAdded: null,
-  });
+  // Sentinel: `selection === null` means "uninitialized" — treat as
+  // all-on without allocating a Set. This protects the G1 default-
+  // all-on early-return on initial render (and on any later reset
+  // via Show all, which DOES allocate a Set covering all ids — that
+  // path also resolves to mode='all' via the size comparison).
+  const allFindingIds = useMemo(() => {
+    const s = new Set();
+    for (const f of findings) if (f.regionNumber != null) s.add(f.regionNumber);
+    return s;
+  }, [findings]);
+
+  const [selection, setSelection] = useState(null);
+  // Derived: the active Set. When selection is null, treat as
+  // all-active (returns the allFindingIds Set without allocating
+  // a copy — read-only consumers).
+  const activeSelected = selection?.selected ?? allFindingIds;
+  const lastAdded = selection?.lastAdded ?? null;
+  // Derived: mode === 'all' iff the active Set covers every finding
+  // id. This is the only place 'all' vs 'subset' is computed — every
+  // consumer (StickySurface chip predicate, FindingDetailPanel G1
+  // early-return + dimUncovered) reads this derived value.
+  const selectionMode = activeSelected.size === allFindingIds.size ? "all" : "subset";
 
   // S163 fix-pass 1: data-disclosure state. `dataExpanded` controls
   // whether the §2 sticky surface renders the inline data block
@@ -198,27 +212,33 @@ export function ForensicsBody({
     scrollApi.scrollToVisRow?.(centre);
   }, [visRowOf]);
 
-  // Sticky-surface activation under S163 B2b Model B multi-select.
+  // S163 B2e E2: chip / pill click — ALWAYS toggles. Same gesture,
+  // same result, regardless of how many findings are currently
+  // active. The B2b isolate-on-first-click special case retires.
   //
-  // State transitions on a chip / pill click (let N = clicked
-  // finding's regionNumber):
-  //   - mode 'all'     → ISOLATE: subset = {N}, lastAdded = N.
-  //                       (First click out of the all-on default
-  //                        narrows attention to the clicked finding.)
-  //   - mode 'subset':
-  //       - selected.has(N)   → REMOVE: subset \ {N}, lastAdded
-  //                              becomes the next-most-recent active
-  //                              finding (or null when subset emptied).
-  //                              NO scroll; the user is narrowing, not
-  //                              opening, attention.
-  //       - !selected.has(N)  → ADD: subset ∪ {N}, lastAdded = N.
-  //                              Scrolls §3 to that finding's card.
+  // State transitions (let N = clicked finding's regionNumber):
+  //   - activeSelected.has(N)    → REMOVE: drop N from the set.
+  //                                  lastAdded demotes to next-most-
+  //                                  recent active finding (or null
+  //                                  when the set empties). NO scroll;
+  //                                  removing narrows focus, doesn't
+  //                                  re-target §3.
+  //   - !activeSelected.has(N)   → ADD: insert N into the set.
+  //                                  lastAdded = N. Scrolls §3 to
+  //                                  that finding's card; expands
+  //                                  dimension + test card; auto-
+  //                                  expands the data block on first
+  //                                  activation.
   //
-  // First chip / pill click in session also auto-expands the data
-  // block (hasAutoExpanded guards against re-fire so an explicit
-  // collapse holds across later activations). Dimension + test-card
-  // expand still fires on every activate path so the §3 card is ready
-  // when §3 scrolls to it.
+  // Default panel-expand state: every finding active (selection ===
+  // null → activeSelected reads allFindingIds without allocation).
+  // First click from default: peels one off → selectionMode flips
+  // to 'subset' since the Set is now smaller than allFindingIds.
+  //
+  // Path to "just this one" gesture retires: was "click chip from
+  // all-on" (which ISOLATED in B2b). Now requires "Clear all → click
+  // chip" (two clicks instead of one). Confirmed acceptable per the
+  // B2e revision: predictability over saving a click.
   const onActivateTest = useCallback((finding) => {
     if (!finding) return;
     const tests = finding.tests || [];
@@ -226,43 +246,42 @@ export function ForensicsBody({
     if (finding.regionNumber == null) return;
     const N = finding.regionNumber;
 
-    // Compute whether this click is an ADD (vs REMOVE). REMOVE = mode
-    // 'subset' AND the finding was already in selection. Everything
-    // else is an ADD (including the all-on → isolate transition).
-    const isRemove = selection.mode === "subset" && selection.selected.has(N);
+    // isRemove determined BEFORE the toggle. Used to gate the
+    // scroll-on-add path (REMOVE exits before scroll).
+    const isRemove = activeSelected.has(N);
 
     // State update via functional setter so concurrent updates compose.
+    // First write (selection === null → fully active): the setter
+    // materialises the all-active baseline from `allFindingIds`, then
+    // applies the toggle. Subsequent writes operate on `prev.selected`.
     setSelection(prev => {
-      if (prev.mode === "all") {
-        // ISOLATE.
-        return { mode: "subset", selected: new Set([N]), lastAdded: N };
-      }
-      const next = new Set(prev.selected);
+      const prevSelected = prev?.selected ?? allFindingIds;
+      const prevLastAdded = prev?.lastAdded ?? null;
+      const next = new Set(prevSelected);
+      let isAdd;
       if (next.has(N)) {
-        // REMOVE.
         next.delete(N);
-        // Demote lastAdded if it was this finding — pick any remaining
-        // active finding (Set iteration order is insertion order in
-        // modern JS; pop returns the most recent). lastAdded = null
-        // when the subset emptied.
-        const newLastAdded = (prev.lastAdded === N)
-          ? (next.size ? [...next].pop() : null)
-          : prev.lastAdded;
-        return { mode: "subset", selected: next, lastAdded: newLastAdded };
+        isAdd = false;
+      } else {
+        next.add(N);
+        isAdd = true;
       }
-      // ADD.
-      next.add(N);
-      return { mode: "subset", selected: next, lastAdded: N };
+      const newLastAdded = isAdd
+        ? N
+        : (prevLastAdded === N
+          // lastAdded was the just-removed finding — demote to the
+          // next-most-recent active (Set iteration order is insertion
+          // order; pop returns the most recent). null when set empties.
+          ? (next.size ? [...next].pop() : null)
+          : prevLastAdded);
+      return { selected: next, lastAdded: newLastAdded };
     });
 
-    // REMOVE branch exits before card expand + scroll. Removing a
-    // chip narrows focus — no need to re-target §3 or open card
-    // bodies the user already had open.
-    if (isRemove) return;
+    if (isRemove) return;  // No card expand / scroll on REMOVE.
 
-    // Expand every dimension touched by this finding (multi-test
-    // chips may span multiple dimensions in a future aggregator
-    // merge; today each test maps to one dimension).
+    // ADD path: dimension expand + test-card expand + auto-expand
+    // data block on first activation + scroll table to region +
+    // scroll §3 to the added finding's first card.
     if (ensureCatExpanded) {
       const dims = new Set();
       for (const t of tests) {
@@ -271,42 +290,37 @@ export function ForensicsBody({
       }
       for (const dim of dims) ensureCatExpanded(dim);
     }
-    // Expand every relevant test card body.
     if (ensureTestCardExpanded) {
       for (const t of tests) ensureTestCardExpanded(t.testId);
     }
-    // First activation in session — auto-expand the data block.
     if (!hasAutoExpanded.current) {
       hasAutoExpanded.current = true;
       setDataExpanded(true);
     }
-    // Scroll the data table to centre the added finding's rowRange
-    // (no-op for findings without rowRange — dataset-wide / column-
-    // local). Deferred via rAF so dataExpanded has committed.
     if (typeof requestAnimationFrame === "function") {
       requestAnimationFrame(() => scrollToRegion(finding.region));
     } else {
       scrollToRegion(finding.region);
     }
-    // Scroll §3 to the added finding's first test card. Double-rAF
-    // waits for both expand commits + browser paint.
     const firstTestId = tests[0].testId;
     if (typeof requestAnimationFrame === "function") {
       requestAnimationFrame(() => requestAnimationFrame(() => scrollToCard(firstTestId)));
     } else {
       scrollToCard(firstTestId);
     }
-  }, [scrollToCard, ensureCatExpanded, ensureTestCardExpanded, selection, scrollToRegion]);
+  }, [scrollToCard, ensureCatExpanded, ensureTestCardExpanded, activeSelected, allFindingIds, scrollToRegion]);
 
-  // S163 B2b W2: Show all / Clear all writers.
-  // Show all  → mode 'all',    selected cleared, lastAdded null
-  //             (no specific focus when everything is showing).
-  // Clear all → mode 'subset', selected cleared, lastAdded null.
+  // S163 B2b W2 / B2e E2: Show all / Clear all writers.
+  // Show all  → fully-active Set covering every finding id.
+  //             selectionMode resolves to 'all' (size === allIds.size).
+  // Clear all → empty Set. selectionMode resolves to 'subset'.
+  // Both clear lastAdded — no specific focus when the user has just
+  // bulk-modified the set.
   const onShowAll  = useCallback(() => {
-    setSelection({ mode: "all",    selected: new Set(), lastAdded: null });
-  }, []);
+    setSelection({ selected: new Set(allFindingIds), lastAdded: null });
+  }, [allFindingIds]);
   const onClearAll = useCallback(() => {
-    setSelection({ mode: "subset", selected: new Set(), lastAdded: null });
+    setSelection({ selected: new Set(), lastAdded: null });
   }, []);
 
   // Test-card severity-badge click. Routes the pulse back to the
@@ -324,21 +338,27 @@ export function ForensicsBody({
     trigger(...keys);
   }, [testToFinding, trigger]);
 
-  // S163 B2b: derive `activeFindings` (array) and `focusFinding`
+  // S163 B2b / B2e: derive `activeFindings` (array) and `focusFinding`
   // (single, the last-added) from selection state. `activeFindings`
   // drives the data-block compositing in FindingDetailPanel /
   // ExcerptTable; `focusFinding` drives the panel chrome (caption,
   // per-test specialised builder key, auto-scroll target on add).
+  //
+  // E2 update: activeFindings reads `selectionMode` to early-return
+  // the full `findings` array when mode='all' — protects the G1
+  // default-all-on byte-identical path (FindingDetailPanel's
+  // activeConvergence memo early-returns when activeFindings ===
+  // findings). When mode='subset', filter to the active set.
   const activeFindings = useMemo(() => {
-    if (selection.mode === "all") return findings;
-    if (!selection.selected.size) return [];
-    return findings.filter(f => f.regionNumber != null && selection.selected.has(f.regionNumber));
-  }, [findings, selection]);
+    if (selectionMode === "all") return findings;
+    if (!activeSelected.size) return [];
+    return findings.filter(f => f.regionNumber != null && activeSelected.has(f.regionNumber));
+  }, [findings, selectionMode, activeSelected]);
 
   const focusFinding = useMemo(() => {
-    if (selection.lastAdded == null) return null;
-    return findings.find(f => f.regionNumber === selection.lastAdded) || null;
-  }, [findings, selection.lastAdded]);
+    if (lastAdded == null) return null;
+    return findings.find(f => f.regionNumber === lastAdded) || null;
+  }, [findings, lastAdded]);
 
   const catDescs = CATEGORY_SHORT_DESCRIPTIONS;
 
@@ -365,7 +385,13 @@ export function ForensicsBody({
       <StickySurface
         findings={findings}
         onActivateTest={onActivateTest}
-        selection={selection}
+        // S163 B2e E2: selection prop carries the derived mode +
+        // active set + lastAdded. StickySurface reads `mode` for
+        // Show all / Clear all disabled state, `selected` for the
+        // chip isActive predicate (`isFindingActive`). The shape
+        // matches the pre-B2e selection prop so StickySurface
+        // doesn't need a signature update.
+        selection={{ mode: selectionMode, selected: activeSelected, lastAdded }}
         onShowAll={onShowAll}
         onClearAll={onClearAll}
         activeFindings={activeFindings}

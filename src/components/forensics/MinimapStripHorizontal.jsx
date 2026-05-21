@@ -43,6 +43,21 @@ export function MinimapStripHorizontal({
   const containerRef = useRef(null);
   const draggingRef = useRef(false);
   const [viewFrac, setViewFrac] = useState([0, 1]);
+  // S163 B2e E3: track whether the table actually overflows horizontally.
+  // Pre-E3 the viewport band painted unconditionally — on a non-
+  // overflowing table (DS04 width fits in clientWidth) the band
+  // covered the full strip width with a dark translucent fill that
+  // visually MERGED with the density bars below, reading as a
+  // single uniform purple bar with a hard stop. Density bars are
+  // information (must render whenever flags exist — per B2c F4);
+  // the viewport band is navigation (only meaningful when the
+  // table actually horizontally scrolls). Gate the band rect on
+  // this flag. Mirrors the role-split the vertical strip's band
+  // already implements via its `viewFrac` returning [0, 1] on the
+  // non-overflow early-return — the vertical strip didn't surface
+  // a band-vs-density conflation because its band is a tall thin
+  // rect that's less visually competing with row-position density.
+  const [hasOverflow, setHasOverflow] = useState(false);
 
   const rafRef = useRef(null);
   const updateViewFrac = useCallback(() => {
@@ -54,12 +69,14 @@ export function MinimapStripHorizontal({
       const viewportW = tableEl.clientWidth;
       if (scrollableW <= 0 || viewportW <= 0 || scrollableW <= viewportW) {
         setViewFrac([0, 1]);
+        setHasOverflow(false);
         return;
       }
       const scrollLeft = Math.max(0, tableEl.scrollLeft);
       const start = scrollLeft / scrollableW;
       const end = Math.min(1, (scrollLeft + viewportW) / scrollableW);
       setViewFrac([start, end]);
+      setHasOverflow(true);
     });
   }, [tableEl]);
 
@@ -125,12 +142,15 @@ export function MinimapStripHorizontal({
   return (
     <div
       ref={containerRef}
-      onMouseDown={handleMouseDown}
+      onMouseDown={hasOverflow ? handleMouseDown : undefined}
       style={{
         position: "relative",
         width: "100%",
         height: STRIP_H,
-        cursor: tableEl ? "pointer" : "default",
+        // S163 B2e E3: click-to-scroll only meaningful when the
+        // table actually horizontally scrolls. Cursor + click
+        // handler retire on non-overflow.
+        cursor: (tableEl && hasOverflow) ? "pointer" : "default",
         userSelect: "none",
       }}
     >
@@ -154,17 +174,25 @@ export function MinimapStripHorizontal({
             opacity={opacity}
           />
         ))}
-        {/* Viewport-indicator band — translucent overlay tracking the
-            table's scrollLeft. Updates in real time on scroll. */}
-        <rect
-          x={bandLeftUnits} y={0}
-          width={bandWidthUnits} height={STRIP_H}
-          fill={C.TEXT}
-          opacity={0.12}
-          stroke={C.TEXT_3}
-          strokeWidth={1}
-          vectorEffect="non-scaling-stroke"
-        />
+        {/* Viewport-indicator band — translucent overlay tracking
+            the table's scrollLeft. S163 B2e E3: gated on hasOverflow
+            so the band only paints when the table actually
+            horizontally scrolls. On a non-overflowing table the
+            band would otherwise span the full strip and visually
+            merge with the density bars below into a single uniform
+            bar (DS04 reproduction). Density bars remain
+            unconditional (per B2c F4); only the band is gated. */}
+        {hasOverflow && (
+          <rect
+            x={bandLeftUnits} y={0}
+            width={bandWidthUnits} height={STRIP_H}
+            fill={C.TEXT}
+            opacity={0.12}
+            stroke={C.TEXT_3}
+            strokeWidth={1}
+            vectorEffect="non-scaling-stroke"
+          />
+        )}
       </svg>
     </div>
   );

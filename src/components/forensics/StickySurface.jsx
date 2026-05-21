@@ -25,7 +25,7 @@
    chrome and promotes the Data toggle to a permanent affordance. */
 
 import { useId } from "react";
-import { C, CR, FS, FW, FF } from "../../constants/tokens.js";
+import { C, CR, FS, FW, FF, SECTION_DIVIDER } from "../../constants/tokens.js";
 import { MECHANISMS } from "../../constants/mechanisms.js";
 import { LANE_LABEL_TYPOGRAPHY, LANE_LABELS, MINIMAP_CALLOUT_TYPOGRAPHY } from "../shared/Section.jsx";
 import { FindingPill } from "./FindingPill.jsx";
@@ -219,20 +219,29 @@ export function StickySurface({
       // against the §2 section header above (which now uses
       // `flatBottom` to abut the sticky's flat top).
       padding: "12px 20px 16px 20px",
-      marginBottom: "12px",
-      // S163 B2d G4: borderBottom retired. The §2↔§3 boundary is
-      // the §3 SectionHeader's flanking-rule + centred-title strip
-      // (`Section.jsx:76` SectionHeader — two `flex:1 height:1px
-      // background:C.BORDER` rules with "3 · Detailed test results"
-      // between them). B2c F3 had bumped this borderBottom 1 → 2 px
-      // on C.BORDER — Nick observed that doubling a hairline is
-      // still a hairline, and that the standalone bottom border
-      // visually competes with the §3 SectionHeader's own rules a
-      // few pixels below. Removing the borderBottom lets the §3
-      // SectionHeader carry the section break alone — same chrome
-      // every numbered section uses. The 12 px marginBottom + the
-      // §3 SectionHeader's own marginBottom: 12 px give clear
-      // breathing room without a competing rule.
+      // S163 B2e E4: marginBottom lifted 12 → 24 px so the gap
+      // between the §2 sticky surface and §3 cards stays visible
+      // even when the §3 SectionHeader has scrolled past the §2
+      // sticky bottom (the failure mode B2d's G4 missed — when
+      // scrolled deeply with §2 pinned, §3 cards bleed up to the
+      // §2 sticky bottom with the section-header rule no longer
+      // in view). 24 px reads as a real section gap regardless of
+      // §3 SectionHeader visibility.
+      marginBottom: "24px",
+      // S163 B2e E4: section-break divider on the §2 sticky bottom.
+      // Pre-B2e history:
+      //   - pre-B2c: 1 px solid `#E5E5E5` literal — hairline.
+      //   - B2c F3: 2 px solid C.BORDER — still read as hairline.
+      //   - B2d G4: removed entirely; bet on §3 SectionHeader.
+      //     Failed when scrolled past §3 header (§3 cards bleed up
+      //     to flush against §2 sticky bottom).
+      // Now: 3 px solid SECTION_DIVIDER.color (slate-500 / #64748B)
+      // — a real section-break-weight rule defined as its own token
+      // in tokens.js, not inlined. Always visible regardless of
+      // scroll position because it lives on the sticky surface
+      // itself. Pairs with the 24 px marginBottom above to keep §3
+      // content from touching the divider.
+      borderBottom: `${SECTION_DIVIDER.width} solid ${SECTION_DIVIDER.color}`,
     }}>
       {/* S163 fix-pass 1: clean-state copy when no chips in any lane.
           Replaces the pre-fix-pass standalone Section card that wrapped
