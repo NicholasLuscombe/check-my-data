@@ -411,7 +411,11 @@ fixture set.
 - Plot / chart typography — separate system, may inherit base values from
   this spec but governs its own register set per chart type
 - Surface-level chrome (borders, shadows, backgrounds beyond aside callout
-  panels) — separate system
+  panels) — separate system. Rule-weight border tokens used standalone
+  (not flanking centred section titles) — e.g. `SECTION_DIVIDER`
+  (slate-500, 3 px, used at the §2 sticky-surface bottom edge per A1.D3 /
+  S163) — live in `tokens.js` next to `C.*` and are inventoried in
+  TYPOGRAPHY-INVENTORY.md §1.12b.
 
 ## Maintenance discipline
 
