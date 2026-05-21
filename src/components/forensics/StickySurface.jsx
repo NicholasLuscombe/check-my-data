@@ -30,7 +30,7 @@ import { MECHANISMS } from "../../constants/mechanisms.js";
 import { LANE_LABEL_TYPOGRAPHY, LANE_LABELS, MINIMAP_CALLOUT_TYPOGRAPHY } from "../shared/Section.jsx";
 import { FindingPill } from "./FindingPill.jsx";
 import { FindingChip } from "./FindingChip.jsx";
-import { FindingDetailPanel } from "./FindingDetailPanel.jsx";
+import { FindingDetailPanel, guidanceCaption } from "./FindingDetailPanel.jsx";
 
 const STICKY_TOP = 0;
 
@@ -219,15 +219,17 @@ export function StickySurface({
       // against the §2 section header above (which now uses
       // `flatBottom` to abut the sticky's flat top).
       padding: "12px 20px 16px 20px",
-      // S163 B2e E4: marginBottom lifted 12 → 24 px so the gap
-      // between the §2 sticky surface and §3 cards stays visible
-      // even when the §3 SectionHeader has scrolled past the §2
-      // sticky bottom (the failure mode B2d's G4 missed — when
-      // scrolled deeply with §2 pinned, §3 cards bleed up to the
-      // §2 sticky bottom with the section-header rule no longer
-      // in view). 24 px reads as a real section gap regardless of
-      // §3 SectionHeader visibility.
-      marginBottom: "24px",
+      // S163 B2e E4 + B2f C3: marginBottom carries the breathing room
+      // below the SECTION_DIVIDER rule on the §2 sticky bottom. B2e
+      // lifted from 12 → 24 px so the divider has clear gap from §3
+      // cards (the failure mode B2d's G4 missed — scrolled deeply
+      // with §2 pinned, §3 cards bleed up to the §2 sticky bottom
+      // with §3's SectionHeader rule no longer in view). B2f C3 adds
+      // 5 px more (24 → 29 px) so the divider rule itself has a hint
+      // of breathing room below it, separating its line from §3's
+      // first content. Nick judged the divider clean at B2e; this is
+      // a nicety to soften the line→content edge.
+      marginBottom: "29px",
       // S163 B2e E4: section-break divider on the §2 sticky bottom.
       // Pre-B2e history:
       //   - pre-B2c: 1 px solid `#E5E5E5` literal — hairline.
@@ -370,6 +372,26 @@ export function StickySurface({
             <span>Data table</span>
           </button>
           {selectionControls}
+        </div>
+      )}
+
+      {/* S163 B2f C2: guidance caption renders OUTSIDE the max-height
+          wrapper below — caption is chrome / status (names the active
+          finding) and must persist when the data table is collapsed.
+          Pre-B2f the caption lived inside FindingDetailPanel, folding
+          with the data block; per B2f the collapse target is "table +
+          minimap ONLY". Rendered only when focusFinding resolves to
+          a caption string. Token: shared
+          MINIMAP_CALLOUT_TYPOGRAPHY (same register the strip caption
+          uses on the deep-look modal). */}
+      {focusFinding && guidanceCaption(focusFinding) && (
+        <div style={{
+          ...MINIMAP_CALLOUT_TYPOGRAPHY,
+          fontWeight: FW.NORM,
+          lineHeight: 1.5,
+          marginTop: "10px",
+        }}>
+          {guidanceCaption(focusFinding)}
         </div>
       )}
 

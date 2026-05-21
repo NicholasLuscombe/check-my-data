@@ -39,8 +39,8 @@
 
 import { useMemo, useState, useCallback, useLayoutEffect } from "react";
 import { GROUP_MARKERS, RANK_NUMS, TEST_RAW_VISIBILITY, DISPLAY_NAMES } from "../../constants/mechanisms.js";
-import { FW } from "../../constants/tokens.js";
-import { MINIMAP_CALLOUT_TYPOGRAPHY } from "../shared/Section.jsx";
+// FW + MINIMAP_CALLOUT_TYPOGRAPHY imports retired in B2f C2 alongside the
+// caption render lift — StickySurface owns those now.
 import { buildConvergenceGridFromFindings } from "../../analysis/convergence.js";
 import { MinimapStripVertical } from "./MinimapStripVertical.jsx";
 import { MinimapStripHorizontal } from "./MinimapStripHorizontal.jsx";
@@ -51,6 +51,14 @@ import { ExcerptTable } from "./ExcerptTable.jsx";
 // finding's locality, then picks the matching one-liner. The caption
 // reinforces what the highlight extent already shows visually — the
 // visual leads; this is the plain-English handshake.
+//
+// S163 B2f C2: exported so StickySurface can render it OUTSIDE the
+// max-height collapse wrapper. Pre-B2f the caption rendered inside
+// FindingDetailPanel — when the panel folded, the caption folded with
+// it. Per B2f the collapse target is "table+minimap ONLY"; caption is
+// chrome / status and must persist when the data table is collapsed.
+// FindingDetailPanel stops rendering the caption itself; StickySurface
+// renders it as a non-collapsing sibling of the data block wrapper.
 //
 // Wording locked to four plain cases (S163 B2c F7 added the
 // whole-table branch):
@@ -81,7 +89,7 @@ import { ExcerptTable } from "./ExcerptTable.jsx";
 //
 // Pre-active-finding state: no caption row at all (returns null) so the
 // sticky surface stays as light as before at rest.
-function guidanceCaption(finding) {
+export function guidanceCaption(finding) {
   if (!finding) return null;
   const testName = finding.tests?.[0]?.testId;
   const displayName = (testName && DISPLAY_NAMES[testName]) || testName || "This finding";
@@ -119,15 +127,35 @@ function buildGroupMarkerMap(convergence) {
   return map;
 }
 
-// Invert visColIndices into a matCol → visCol lookup. The horizontal
-// minimap uses it to position convergence-grid keys (matCol space)
-// on its strip-axis (visCol space).
-function buildMatColToVisCol(visColIndices) {
+// Build a matCol → visCol lookup for the horizontal minimap. The
+// convergence grid keys cells in MATRIX coords (data-only — for DS04,
+// matCol 0/1/2 are Ct_1/Ct_2/Ct_3); the strip's x-axis is in VIS coords
+// (all visible cols, including identifier columns — for DS04, visCol
+// 0/1/2 are ID/Target/Group, visCol 3/4/5 are the data cols).
+//
+// S163 B2f C1b: the pre-B2f implementation built an identity map from
+// `visColIndices[vi] → vi` — i.e. it treated `visColIndices` values as
+// matCols. That works only when raw col index == matrix col index,
+// which is the special case where no non-data columns precede the data
+// columns. For DS04 (ID + Target + Group + Ct_1 + Ct_2 + Ct_3) the
+// data cols start at raw col 3, but the matrix is 0-indexed over only
+// the 3 data cols. The identity map placed grid lookups for matCol 0
+// onto visCol 0 — the ID column — and the horizontal density strip
+// rendered its bars over the identifier columns, not the flagged data
+// columns. That was the "solid purple block on the left half" symptom
+// that resisted B2c F4 and B2e E3 (both fixed different layers — the
+// band rect — while the mapping bug stayed live).
+//
+// Correct mapping: walk `dColMap` (matCol → rawCol), then look up
+// rawCol's position in `visColIndices` to get visCol. Mirrors the
+// ExcerptTable.jsx:673 path which has always had it right.
+function buildMatColToVisCol(visColIndices, dColMap) {
   const map = new Map();
-  if (!visColIndices) return map;
-  for (let vi = 0; vi < visColIndices.length; vi++) {
-    map.set(visColIndices[vi], vi);
-  }
+  if (!visColIndices || !dColMap) return map;
+  dColMap.forEach((rawCI, matCI) => {
+    const visIdx = visColIndices.indexOf(rawCI);
+    if (visIdx >= 0) map.set(matCI, visIdx);
+  });
   return map;
 }
 
@@ -204,8 +232,8 @@ export function FindingDetailPanel({
   }, [selectionMode, activeFindings, heatmapProps?.convergence]);
 
   const matColToVisCol = useMemo(
-    () => buildMatColToVisCol(heatmapProps?.visColIndices),
-    [heatmapProps?.visColIndices]
+    () => buildMatColToVisCol(heatmapProps?.visColIndices, heatmapProps?.dColMap),
+    [heatmapProps?.visColIndices, heatmapProps?.dColMap]
   );
 
   // Shared scroll-container DOM element. ExcerptTable announces its
@@ -257,7 +285,9 @@ export function FindingDetailPanel({
   const focusLocalised = focusFinding && isLocalisedChip(focusFinding);
   const nVisRows = heatmapProps.rawData?.length || 0;
   const nVisCols = heatmapProps.visColIndices?.length || 0;
-  const caption = guidanceCaption(focusFinding);
+  // S163 B2f C2: caption rendering moved out of this component.
+  // StickySurface now renders the caption above the max-height
+  // collapse wrapper so it persists when the data table is folded.
   // dimUncovered: subset mode + at least one selection. Threaded to
   // buildHighlightSpec via ExcerptTable's ctx so cells outside the
   // active coverage demote when the user has narrowed focus, but
@@ -271,19 +301,12 @@ export function FindingDetailPanel({
       flexDirection: "column",
       gap: "6px",
     }}>
-      {/* S163 B2a W3: active-finding guidance caption. Reinforces the
-          visual extent the table is painting. Rendered ONLY when a
-          finding is active — at rest the sticky surface keeps its
-          pre-B2a vertical footprint (no permanent status row). */}
-      {caption && (
-        <div style={{
-          ...MINIMAP_CALLOUT_TYPOGRAPHY,
-          fontWeight: FW.NORM,
-          lineHeight: 1.5,
-        }}>
-          {caption}
-        </div>
-      )}
+      {/* S163 B2f C2: caption render lifted out — StickySurface now
+          renders the caption above the max-height collapse wrapper
+          so it persists when the data table is folded. The caption
+          is chrome / status (it names the active finding); the
+          collapse target is "table + minimap ONLY" per the C2 strict
+          reading. */}
 
       {/* Horizontal strip above the table. S163 B2c F4: the
           `overflow.horizontal &&` gate retires. The strip carries
