@@ -211,13 +211,27 @@ export function StickySurface({
       zIndex: 20,
       background: C.BG_ZONE,
       borderRadius: `0 0 ${CR.LG} ${CR.LG}`,
-      padding: "0 20px 16px 20px",
+      // S163 B2c F2: top padding lifted 0 → 12 px so the first
+      // chip lane has clearance from the sticky surface's upper
+      // edge. Pre-B2c the lane sat flush against the top of the
+      // sticky box, and when the surface pinned to the viewport
+      // top, chips touched the upper visual edge — crowded
+      // against the §2 section header above (which now uses
+      // `flatBottom` to abut the sticky's flat top).
+      padding: "12px 20px 16px 20px",
       marginBottom: "12px",
       // S163 fix-pass 2: hairline bottom border replaces the prior
       // drop-shadow. The shadow read as ambient haze; a hairline
-      // reads as a clean "surface ends here" cue with less visual
-      // weight against the BG_ZONE backdrop.
-      borderBottom: `1px solid #E5E5E5`,
+      // reads as a clean "surface ends here" cue.
+      //
+      // S163 B2c F3: literal `#E5E5E5` retires to the `C.BORDER`
+      // primary-border token (slate-300 / `#CBD5E1`); thickness 1 → 2
+      // px. The §2↔§3 boundary read too faint at the prior weight —
+      // the sticky surface and the §3 test-card stack merged
+      // visually under fast scroll. A heavier rule using the
+      // existing primary-border token makes the section break
+      // unambiguous without inventing a colour literal.
+      borderBottom: `2px solid ${C.BORDER}`,
     }}>
       {/* S163 fix-pass 1: clean-state copy when no chips in any lane.
           Replaces the pre-fix-pass standalone Section card that wrapped
@@ -250,11 +264,10 @@ export function StickySurface({
               />
             ))}
           </div>
-          {/* Show all / Clear all anchored to the first lane row so the
-              controls live with the lane chrome rather than spawning a
-              new sticky row (no added vertical burden). When pills are
-              the only lane, this is the only place the controls render. */}
-          {selectionControls}
+          {/* S163 B2c F1: Show all / Clear all relocated off the
+              lane chrome onto the Data table toggle row below.
+              Selection controls drive the table overlay, so they
+              belong with the table toggle, not the chip lanes. */}
         </div>
       )}
       {localisedChips.length > 0 && (
@@ -274,10 +287,6 @@ export function StickySurface({
               />
             ))}
           </div>
-          {/* Show all / Clear all on the Localised lane row when the
-              pills lane is absent — otherwise the pills lane already
-              hosts the controls. */}
-          {pills.length === 0 && selectionControls}
         </div>
       )}
       {/* S163 B1: fallback chips are findings with locality === "unscoped"
@@ -301,9 +310,6 @@ export function StickySurface({
               />
             ))}
           </div>
-          {/* Show all / Clear all on the Fallback lane row only when
-              neither pills nor localised chips ran before us. */}
-          {pills.length === 0 && localisedChips.length === 0 && selectionControls}
         </div>
       )}
 
@@ -312,28 +318,41 @@ export function StickySurface({
           gate retires — ExcerptTable's full-table semantic in
           compactMode now renders rows regardless of convergence
           state, so the clean-fixture empty-DOM bug is resolved at
-          the source. */}
+          the source.
+
+          S163 B2c F1: Show all / Clear all live on this row, right-
+          aligned. The controls drive the table overlay, so they
+          belong with the table toggle. They render whether the
+          table is expanded or collapsed (selection drives the chip
+          rings too — useful even when the data block is folded). */}
       {dataReady && (
-        <button
-          id={toggleId}
-          onClick={() => onToggleDataExpanded?.()}
-          aria-expanded={dataExpanded}
-          aria-controls={`${toggleId}-block`}
-          style={{
-            marginTop: "10px",
-            background: "none", border: "none",
-            padding: 0,
-            fontSize: FS.sm,
-            fontWeight: FW.NORM,
-            fontFamily: FF.UI,
-            color: C.TEXT_2,
-            cursor: "pointer",
-            display: "inline-flex", alignItems: "center", gap: "4px",
-          }}
-        >
-          <span>Data table</span>
-          <span style={{ fontSize: "10px" }}>{dataExpanded ? "▲" : "▼"}</span>
-        </button>
+        <div style={{
+          marginTop: "10px",
+          display: "flex",
+          alignItems: "center",
+          gap: "10px",
+        }}>
+          <button
+            id={toggleId}
+            onClick={() => onToggleDataExpanded?.()}
+            aria-expanded={dataExpanded}
+            aria-controls={`${toggleId}-block`}
+            style={{
+              background: "none", border: "none",
+              padding: 0,
+              fontSize: FS.sm,
+              fontWeight: FW.NORM,
+              fontFamily: FF.UI,
+              color: C.TEXT_2,
+              cursor: "pointer",
+              display: "inline-flex", alignItems: "center", gap: "4px",
+            }}
+          >
+            <span>Data table</span>
+            <span style={{ fontSize: "10px" }}>{dataExpanded ? "▲" : "▼"}</span>
+          </button>
+          {selectionControls}
+        </div>
       )}
 
       {/* Data block — vertical minimap + ExcerptTable side-by-side in

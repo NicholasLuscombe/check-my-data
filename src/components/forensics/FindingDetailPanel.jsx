@@ -51,15 +51,31 @@ import { ExcerptTable } from "./ExcerptTable.jsx";
 // reinforces what the highlight extent already shows visually — the
 // visual leads; this is the plain-English handshake.
 //
-// Wording locked to three plain cases:
+// Wording locked to four plain cases (S163 B2c F7 added the
+// whole-table branch):
+//   dataset-wide — applies across the whole dataset; no specific cells
+//                  to point at. The evidence lives in the test card.
 //   unscoped     — flagged but couldn't isolate a position
 //   visible      — pattern is in the cells themselves
 //   statistical  — pattern is computed, not eyeballable
+//
+// The dataset-wide / unscoped branch takes precedence over the
+// visible / statistical split: when the locality is whole-table, the
+// table treatment is the wash (no flagged cells) — the
+// "look at the cells but they're unreadable" statistical caption is
+// wrong because there ARE no flagged cells to look at. Pre-B2c the
+// statistical caption fired by default on dataset-wide findings via
+// TEST_RAW_VISIBILITY's "statistical" classification; B2c splits the
+// two so dataset-wide gets a positive "see the test card for the
+// evidence" framing instead.
 //
 // Pre-active-finding state: no caption row at all (returns null) so the
 // sticky surface stays as light as before at rest.
 function guidanceCaption(finding) {
   if (!finding) return null;
+  if (finding.locality === "dataset-wide") {
+    return "This applies across the whole dataset — see the test card for the evidence.";
+  }
   if (finding.locality === "unscoped") {
     return "This test flagged the data but couldn't isolate specific rows. See the test card for the statistical detail.";
   }
@@ -238,34 +254,38 @@ export function FindingDetailPanel({
         </div>
       )}
 
-      {/* Horizontal minimap above the table — viewport band tracks
-          table.scrollLeft. Aligned to the right of the vertical
-          minimap's width so the flag-density bars sit over the table
-          body, not over the frozen index/label columns. Rendered only
-          when the column axis actually overflows; narrow fixtures
-          where all columns fit within the visible width skip the strip
-          entirely (no reserved space — the whole row drops out). */}
-      {overflow.horizontal && (
-        <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
-          {/* Left spacer matches the vertical minimap's width (32 px)
-              when it's rendered, so the horizontal strip's flag-
-              density bars sit over the table body — not over the
-              frozen # / Label columns. When the vertical minimap is
-              suppressed (small fixture, no row overflow), the spacer
-              also retires so the horizontal strip starts at the
-              table's actual left edge. */}
-          {overflow.vertical && <div style={{ flexShrink: 0, width: 32 }} />}
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <MinimapStripHorizontal
-              convergence={heatmapProps.convergence}
-              matColToVisCol={matColToVisCol}
-              nVisCols={nVisCols}
-              activeFindingTests={activeFindingTests}
-              tableEl={scrollEl}
-            />
-          </div>
+      {/* Horizontal strip above the table. S163 B2c F4: the
+          `overflow.horizontal &&` gate retires. The strip carries
+          flag DENSITY (information, not navigation) — it must
+          render whenever there are flags to show, independent of
+          whether the column axis overflows. The
+          `MinimapStripHorizontal.jsx:111` internal null-return
+          (`perCol.size === 0 && nVisCols === 0`) is the single
+          source of truth for "nothing to draw" — a second gate
+          here would be redundant and a future stale-logic hazard.
+          The viewport-band rendering is a no-op when scrollWidth
+          equals clientWidth (band spans the full strip = visually
+          inert) — the band logic stays for the actual-overflow
+          case regardless. */}
+      <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+        {/* Left spacer matches the vertical minimap's width (32 px)
+            when it's rendered, so the horizontal strip's flag-
+            density bars sit over the table body — not over the
+            frozen # / Label columns. When the vertical minimap is
+            suppressed (small fixture, no row overflow), the spacer
+            also retires so the horizontal strip starts at the
+            table's actual left edge. */}
+        {overflow.vertical && <div style={{ flexShrink: 0, width: 32 }} />}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <MinimapStripHorizontal
+            convergence={heatmapProps.convergence}
+            matColToVisCol={matColToVisCol}
+            nVisCols={nVisCols}
+            activeFindingTests={activeFindingTests}
+            tableEl={scrollEl}
+          />
         </div>
-      )}
+      </div>
 
       {/* Vertical minimap + scrollable table row. Total height
           bounded so the sticky-surface budget is predictable.

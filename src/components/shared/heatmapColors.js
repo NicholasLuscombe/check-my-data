@@ -88,7 +88,19 @@ export const CONVERGENCE_RAMP = [
 // (S163 B2a W4). Monochromatic with the density ramp — same purple axis,
 // saturated edge against the lighter fills. Read by ExcerptTable's
 // renderCell when an active finding is set.
-export const IDENTITY_BORDER = ACCENT.PURPLE.text;
+//
+// S163 B2c F6: IDENTITY_BORDER lifted one step deeper, from purple-700
+// (`ACCENT.PURPLE.text` = #6D28D9 — the ramp's top shade) to purple-900
+// (#4C1D95). Pre-B2c the border and the ramp top were both #6D28D9, so
+// at maximum convergence (CONVERGENCE_RAMP[5+] at 0.85 opacity) the
+// border vanished into the fill. Purple-900 sits beyond the ramp's top
+// stop and reads as unambiguously deeper than the densest cell fill,
+// preserving the "fill lighter, border deeper" monochromatic identity
+// at any overlap level. ACCENT.PURPLE doesn't carry a 900-step shade,
+// so this value is defined directly here — the token IS the source for
+// this slot. Call sites continue to consume IDENTITY_BORDER; no inline
+// hexes downstream.
+export const IDENTITY_BORDER = "#4C1D95";
 
 // Whole-table wash for dataset-wide / unscoped active findings (S163
 // B2a W2). A finding that classifies as dataset-wide or unscoped has

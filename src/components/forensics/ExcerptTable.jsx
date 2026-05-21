@@ -27,7 +27,7 @@ import { useMemo, useState, useRef, useEffect, useLayoutEffect, useCallback, Fra
 import { C, FS, FW, FF, CR, SIGNAL, SEV_VERDICT, UI, MECH_COLOR } from "../../constants/tokens.js";
 import { MINIMAP_CALLOUT_TYPOGRAPHY } from "../shared/Section.jsx";
 import { MECHANISMS, TEST_MECHANISM, TEST_KEY_TO_NAME, RANK_NUMS } from "../../constants/mechanisms.js";
-import { ROLES, buildCondColorMap } from "../../constants/roles.js";
+import { buildCondColorMap } from "../../constants/roles.js";
 import { colToExcelLetter, shortColName, buildCondSpansForColumns } from "../shared/coordinates.js";
 import { convergenceCellBg, convergenceCellTextColor, convergenceRampStyle, convergenceMinimapStyle, CONVERGENCE_RAMP } from "../shared/heatmapColors.js";
 import { TD_NUM_CELL, TD_ID_CELL, COL_W, FREEZE_COL_W, FREEZE_Z, countFrozenCols, COMPACT_CELL_PADDING, colWidthFromMaxLen } from "../shared/styles.js";
@@ -35,8 +35,22 @@ import { ScrollTable, blendOnto } from "../shared/ScrollTable.jsx";
 
 const CONTEXT_ROWS = 2;
 const EDGE_THRESHOLD = 5; // extend to dataset edge rather than skipping ≤ this many rows
-// Cell text colors matching import table: label=purple, condition=gold, data=default
-const ROLE_COLOR = { label: ROLES.label.color, condition: UI.WARN.text, data: C.TEXT };
+// Cell text colours in the forensics ExcerptTable (S163 B2c F5).
+// `label` retired from `ROLES.label.color` (= ACCENT.PURPLE.color
+// #8B5CF6) to neutral `C.TEXT_2`. Purple is now the reserved signal
+// colour for the convergence / findings axis (ramp + identity border
+// + whole-table wash); permanently-purple identifier columns trained
+// the eye that purple ≠ signal, and compounded with the dataset-wide
+// wash to produce a "leftover purple" reading in subset states where
+// only a whole-table finding is active (the B2b deselect-residue
+// observation — D1 ⊂ F5 per the B2c diagnosis). ImportView preview
+// still uses `ROLES.label.color` for the role-cycle chip
+// identification — that's a separate surface where purple is the
+// role token, not the signal token.
+//
+// `condition` keeps `UI.WARN.text` (gold) — gold isn't on the
+// signal axis, no clash. `data` keeps `C.TEXT`.
+const ROLE_COLOR = { label: C.TEXT_2, condition: UI.WARN.text, data: C.TEXT };
 
 // ── Highlight dispatch — all click-to-highlight logic centralized ──
 import { buildHighlightSpec, IRC_TINT, DUP_DIM_OPACITY, HIGHLIGHT_TINT, LOCALITY_WHOLE_TABLE_WASH } from "../../analysis/buildHighlightSpec.js";
@@ -1412,6 +1426,28 @@ export function ExcerptTable({
               // fills below. The single-test `dimmed` predicate stays
               // for back-compat on non-panel mounts (modal-era shim)
               // where compose is empty.
+              //
+              // S163 B2c defensive invariant (D1 close): the
+              // "subset mode + only a whole-table finding active"
+              // render state MUST stay clean — every data cell
+              // gets exactly the wash, no dim. Two gates enforce
+              // this together:
+              //   1. composeDim's `!compose.hasWholeTable` clause
+              //      suppresses compose-driven dim whenever any
+              //      active finding contributes the whole-table
+              //      treatment.
+              //   2. isDimmedFinal's `!wholeTableWash` clause (below)
+              //      suppresses the legacy single-test `dimmed` for
+              //      the same reason.
+              // If a future refactor restructures either gate,
+              // re-trace D1's path (subset = {dataset-wide finding},
+              // localised counts all zero, hasWholeTable true) and
+              // confirm the cell renders LOCALITY_WHOLE_TABLE_WASH
+              // bg + C.TEXT text, no #CCC dim overlay. The original
+              // D1 symptom — "leftover" purple — was an unrelated
+              // role-colour clash (F5), not this gating chain, but
+              // re-introducing dim here would compound the same
+              // visual confusion under a different cause.
               const composeDim = isData
                 && compose?.dimUncovered
                 && !localisedActive
