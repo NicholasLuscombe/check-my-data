@@ -42,6 +42,12 @@ import { GROUP_MARKERS, RANK_NUMS, TEST_RAW_VISIBILITY, DISPLAY_NAMES } from "..
 // FW + MINIMAP_CALLOUT_TYPOGRAPHY imports retired in B2f C2 alongside the
 // caption render lift — StickySurface owns those now.
 import { buildConvergenceGridFromFindings } from "../../analysis/convergence.js";
+// S163 B2g D2: shared col-width constants used to position the horizontal
+// strip over the data-cols region only (left-aligned to the first data
+// column in the table below). Same constants the ScrollTable colgroup
+// reads — single source of truth so the strip + table column widths
+// stay in lockstep.
+import { COL_W, FREEZE_COL_W, colWidthFromMaxLen } from "../shared/styles.js";
 import { MinimapStripVertical } from "./MinimapStripVertical.jsx";
 import { MinimapStripHorizontal } from "./MinimapStripHorizontal.jsx";
 import { ExcerptTable } from "./ExcerptTable.jsx";
@@ -236,6 +242,56 @@ export function FindingDetailPanel({
     [heatmapProps?.visColIndices, heatmapProps?.dColMap]
   );
 
+  // S163 B2g D2: horizontal strip geometry — natural widths for the
+  // frozen-region (# col + frozen identifier cols + marker col when
+  // groups exist) and the data-cols total. The strip wrapper uses
+  // these as flex-grow values (NOT absolute pixel widths) so the
+  // strip stretches in lockstep with the table when the table's
+  // `minWidth: 100%` distributes extra space across its colgroup.
+  //
+  // Mirrors ExcerptTable's `effectiveLen = max(contentLen, headerLen)`
+  // rule for frozen non-data cols (ExcerptTable.jsx:838-841) so the
+  // natural-width ratio matches the table's colgroup's natural-width
+  // ratio. Data cols use contentLen only (matches ExcerptTable's
+  // data-col colgroup logic). When the table's natural sum is less
+  // than the parent width, both surfaces' "extra space" gets
+  // distributed proportionally — flex-grow on the strip wrapper does
+  // the same partition the browser does on the table's tableLayout:
+  // fixed + minWidth: 100% colgroup.
+  //
+  // Pre-B2g the strip was `flex: 1` and spanned the full table width
+  // (frozen + data); the post-B2g initial impl used absolute pixel
+  // widths from natural sums, which left the strip ~286 px to the
+  // left of Ct_1 on DS04 (scale factor 2.26× from the table's
+  // stretching). Flex-grow proportional layout fixes this without
+  // a ResizeObserver: the browser keeps the strip and table aligned
+  // by construction.
+  const stripGeometry = useMemo(() => {
+    if (!heatmapProps?.visColIndices || !heatmapProps?.roles) return { frozenW: 0, dataW: 0, nDataCols: 0 };
+    const { visColIndices, roles, colMaxLen, colHeaders, convergence } = heatmapProps;
+    const hasGroups = (convergence?.groups?.length || 0) > 0;
+    let frozenW = COL_W.ROW_NUM;  // # col
+    if (hasGroups) frozenW += COL_W.MARKER;
+    let dataW = 0;
+    let nDataCols = 0;
+    let seenData = false;
+    for (const rawCI of visColIndices) {
+      const role = roles[rawCI];
+      const isData = role === "data";
+      if (isData) { seenData = true; nDataCols += 1; }
+      const contentLen = colMaxLen?.[rawCI] || 0;
+      // Mirror ExcerptTable.jsx:838-841: frozen non-data cols size
+      // by max(content, header); data cols size by content alone.
+      const headerLen = (!isData && colHeaders?.[rawCI]) ? colHeaders[rawCI].length : 0;
+      const effectiveLen = Math.max(contentLen, headerLen);
+      const supplied = effectiveLen > 0 ? colWidthFromMaxLen(effectiveLen) : null;
+      const w = supplied != null ? supplied : (isData ? COL_W.DATA : FREEZE_COL_W.ID_COL);
+      if (isData) dataW += w;
+      else if (!seenData) frozenW += w;
+    }
+    return { frozenW, dataW, nDataCols };
+  }, [heatmapProps]);
+
   // Shared scroll-container DOM element. ExcerptTable announces its
   // internal scroll container via `onScrollContainerReady` once
   // mounted; both minimaps consume the element directly for
@@ -330,7 +386,27 @@ export function FindingDetailPanel({
             also retires so the horizontal strip starts at the
             table's actual left edge. */}
         {overflow.vertical && <div style={{ flexShrink: 0, width: 32 }} />}
-        <div style={{ flex: 1, minWidth: 0 }}>
+        {/* S163 B2g D2: strip spans DATA-COLUMN region ONLY, left-
+            aligned to the first data column. The strip-row is split
+            into two flex-grow children that partition the available
+            space proportionally to the natural column widths the
+            table's colgroup uses:
+              (i)  frozen-cols spacer — `flex-grow: frozenW` covers
+                   the # col + frozen identifier cols + optional
+                   MARKER col;
+              (ii) strip wrapper — `flex-grow: dataW` covers the
+                   data cols.
+            With `flexBasis: 0` both share ALL the row's free space
+            in the ratio frozenW : dataW. The table's tableLayout:
+            fixed + minWidth:100% partitions extra space the same
+            way across its colgroup, so the strip's right edge sits
+            at the last data col's right edge and density bars sit
+            over the data cols they measure.
+            `matColToVisCol={null}` makes buildPerVisColMax use
+            identity lookup; matrix col coords map 1:1 to data-col
+            positions in the strip's nDataCols-wide viewBox. */}
+        <div style={{ flexGrow: stripGeometry.frozenW, flexShrink: 0, flexBasis: 0 }} />
+        <div style={{ flexGrow: stripGeometry.dataW, flexShrink: 0, flexBasis: 0, minWidth: 0 }}>
           {/* S163 B2d G1: read `activeConvergence`, NOT the raw
               heatmapProps.convergence. The grid is now re-keyed on
               the active selection (rebuild on subset mode change;
@@ -340,8 +416,8 @@ export function FindingDetailPanel({
               gate hazard. */}
           <MinimapStripHorizontal
             convergence={activeConvergence}
-            matColToVisCol={matColToVisCol}
-            nVisCols={nVisCols}
+            matColToVisCol={null}
+            nVisCols={stripGeometry.nDataCols}
             tableEl={scrollEl}
           />
         </div>

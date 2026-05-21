@@ -8,7 +8,30 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" />
   </head>
-  <body style="margin:0">
+  <body style="margin:0; overflow-anchor:none">
+    <!--
+      S163 B2g D1b: overflow-anchor:none disables CSS scroll anchoring
+      on the document. Pre-B2g, when the §2 sticky surface's data
+      block collapsed (max-height transition 284→0px), the browser's
+      scroll-anchoring heuristic auto-adjusted scrollY to keep
+      visible content stable. That adjustment moved scrollY UP by
+      ~284px in states where the sticky's natural-flow position was
+      barely past scrollY (most reliably reproduced with the dataset-
+      wide finding active, where the auto-scroll-to-card landed the
+      page just past the sticky's natural Y). The result: sticky
+      un-pinned from top:0 and rendered at its natural-flow position
+      ~98px below viewport top — the "folds down" symptom Nick saw
+      across three prior fix attempts (B2d, B2e, B2f).
+
+      Disabling scroll anchoring is correct for this surface: the
+      site is a static forensics report (no chat-like dynamic
+      content where keeping visible items stable is a UX win). When
+      the user clicks "collapse Data table", their mental model is
+      "the data block goes away; §3 below appears in its place" —
+      no-anchoring delivers exactly that. The sticky stays pinned
+      because scrollY doesn't move; §3 cards slide up into the
+      vacated space.
+    -->
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
