@@ -220,18 +220,19 @@ export function StickySurface({
       // `flatBottom` to abut the sticky's flat top).
       padding: "12px 20px 16px 20px",
       marginBottom: "12px",
-      // S163 fix-pass 2: hairline bottom border replaces the prior
-      // drop-shadow. The shadow read as ambient haze; a hairline
-      // reads as a clean "surface ends here" cue.
-      //
-      // S163 B2c F3: literal `#E5E5E5` retires to the `C.BORDER`
-      // primary-border token (slate-300 / `#CBD5E1`); thickness 1 → 2
-      // px. The §2↔§3 boundary read too faint at the prior weight —
-      // the sticky surface and the §3 test-card stack merged
-      // visually under fast scroll. A heavier rule using the
-      // existing primary-border token makes the section break
-      // unambiguous without inventing a colour literal.
-      borderBottom: `2px solid ${C.BORDER}`,
+      // S163 B2d G4: borderBottom retired. The §2↔§3 boundary is
+      // the §3 SectionHeader's flanking-rule + centred-title strip
+      // (`Section.jsx:76` SectionHeader — two `flex:1 height:1px
+      // background:C.BORDER` rules with "3 · Detailed test results"
+      // between them). B2c F3 had bumped this borderBottom 1 → 2 px
+      // on C.BORDER — Nick observed that doubling a hairline is
+      // still a hairline, and that the standalone bottom border
+      // visually competes with the §3 SectionHeader's own rules a
+      // few pixels below. Removing the borderBottom lets the §3
+      // SectionHeader carry the section break alone — same chrome
+      // every numbered section uses. The 12 px marginBottom + the
+      // §3 SectionHeader's own marginBottom: 12 px give clear
+      // breathing room without a competing rule.
     }}>
       {/* S163 fix-pass 1: clean-state copy when no chips in any lane.
           Replaces the pre-fix-pass standalone Section card that wrapped
@@ -332,6 +333,14 @@ export function StickySurface({
           alignItems: "center",
           gap: "10px",
         }}>
+          {/* S163 B2d G3: Data table toggle matches the §5 "Test
+              battery details" expandable register — same font size
+              (FS.base), weight (FW.MED), colour (C.TEXT), arrow on
+              the LEFT with ▸/▾ glyphs. Pre-B2d this was a smaller
+              FS.sm FW.NORM C.TEXT_2 toggle with the arrow on the
+              right — visually subordinate to the chip lanes above.
+              Matching §5 reads the toggle as a section-peer
+              disclosure, which it is. */}
           <button
             id={toggleId}
             onClick={() => onToggleDataExpanded?.()}
@@ -340,16 +349,16 @@ export function StickySurface({
             style={{
               background: "none", border: "none",
               padding: 0,
-              fontSize: FS.sm,
-              fontWeight: FW.NORM,
+              fontSize: FS.base,
+              fontWeight: FW.MED,
               fontFamily: FF.UI,
-              color: C.TEXT_2,
+              color: C.TEXT,
               cursor: "pointer",
               display: "inline-flex", alignItems: "center", gap: "4px",
             }}
           >
+            <span>{dataExpanded ? "▾" : "▸"}</span>
             <span>Data table</span>
-            <span style={{ fontSize: "10px" }}>{dataExpanded ? "▲" : "▼"}</span>
           </button>
           {selectionControls}
         </div>

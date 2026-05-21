@@ -13,8 +13,10 @@
      - SVG viewBox `0 0 ${nVisCols} ${STRIP_H}` with
        preserveAspectRatio="none". Stretches the col axis to container
        width.
-     - Per-vis-col rects filled per buildPerVisColMax. filterTests
-       narrows to the active finding's tests when supplied.
+     - Per-vis-col rects filled per buildPerVisColMax. The
+       convergence grid is re-keyed on the active selection upstream
+       (FindingDetailPanel's activeConvergence memo — S163 B2d G1),
+       so this strip's density automatically reflects active findings.
      - Viewport band: translucent rect at `[viewFrac[0]*stripW,
        viewFrac[1]*stripW)` driven by tableRef.scrollLeft /
        scrollWidth + clientWidth / scrollWidth.
@@ -30,13 +32,12 @@ const STRIP_H = 18;
 
 export function MinimapStripHorizontal({
   convergence, matColToVisCol, nVisCols,
-  activeFindingTests = null,
   tableEl = null,
 }) {
   const grid = convergence?.grid || null;
   const perCol = useMemo(
-    () => buildPerVisColMax(grid, matColToVisCol, nVisCols, activeFindingTests),
-    [grid, matColToVisCol, nVisCols, activeFindingTests]
+    () => buildPerVisColMax(grid, matColToVisCol, nVisCols),
+    [grid, matColToVisCol, nVisCols]
   );
 
   const containerRef = useRef(null);

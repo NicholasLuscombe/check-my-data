@@ -20,37 +20,27 @@
  * the [0, nVisRows) range are dropped (defensive against rowMap entries
  * that filter rows out of the display).
  *
- * When `filterTests` is supplied (a Set of test-name strings), the
- * cell's effective flag count is the size of the intersection between
- * `cell.tests` and `filterTests`. Cells with no overlap drop out of
- * the per-row max. This is the "filtered minimap" mode used by the
- * §2 vertical minimap when a chip is active — the strip shows only
- * the active finding's tests, not the aggregate across all tests.
+ * S163 B2d G1: the `filterTests` per-test filter param retires. The
+ * convergence grid is now re-keyed on the active selection upstream
+ * (FindingDetailPanel's `activeConvergence` memo); the grid IS the
+ * filter source, and a redundant filter param at the consumer was a
+ * stale-gate hazard (per the guardrail banked from B2c's
+ * `overflow.horizontal` issue — don't keep null-passed live params).
  *
- * @param {Map<string, {count:number, tests:string[]}>|null} grid - convergence.grid
+ * @param {Map<string, {count:number, tests:string[]}>|null} grid - convergence.grid (already filtered to active selection upstream)
  * @param {number[]|null} rowMap - matRow → visRow indirection (identity fallback when null/undefined)
  * @param {number} nVisRows - visible row count, used as upper bound
- * @param {Set<string>|null} [filterTests] - when non-null, restrict to cells whose tests overlap this set; count = overlap size
  * @returns {Map<number, number>} visRow → max flag count across cells in that row
  */
-export function buildPerVisRowMax(grid, rowMap, nVisRows, filterTests = null) {
+export function buildPerVisRowMax(grid, rowMap, nVisRows) {
   const map = new Map();
   if (!grid) return map;
   for (const [key, cell] of grid) {
     const [mr] = key.split(",").map(Number);
     const visRow = rowMap ? (rowMap[mr] ?? mr) : mr;
     if (visRow < 0 || visRow >= nVisRows) continue;
-    let count = cell.count;
-    if (filterTests) {
-      let overlap = 0;
-      for (const t of cell.tests || []) {
-        if (filterTests.has(t)) overlap++;
-      }
-      if (overlap === 0) continue;
-      count = overlap;
-    }
     const cur = map.get(visRow) || 0;
-    if (count > cur) map.set(visRow, count);
+    if (cell.count > cur) map.set(visRow, cell.count);
   }
   return map;
 }
@@ -63,18 +53,15 @@ export function buildPerVisRowMax(grid, rowMap, nVisRows, filterTests = null) {
  * maps matrix-col to vis-col space. Cols outside [0, nVisCols) drop out
  * (defensive against entries that filter cols out of the display).
  *
- * `filterTests` parameter behaves identically to buildPerVisRowMax —
- * when non-null, the cell's effective flag count is the size of the
- * intersection between `cell.tests` and `filterTests`. Cells with no
- * overlap drop out of the per-col max.
+ * S163 B2d G1: `filterTests` retired (see buildPerVisRowMax above for
+ * the rationale — single-source-of-truth grid filtering upstream).
  *
- * @param {Map<string, {count:number, tests:string[]}>|null} grid - convergence.grid
+ * @param {Map<string, {count:number, tests:string[]}>|null} grid - convergence.grid (already filtered to active selection upstream)
  * @param {Map<number, number>|object|null} matColToVisCol - matCol → visCol map (or array-like indirection)
  * @param {number} nVisCols - visible col count, used as upper bound
- * @param {Set<string>|null} [filterTests] - when non-null, restrict to cells whose tests overlap this set; count = overlap size
  * @returns {Map<number, number>} visCol → max flag count across cells in that col
  */
-export function buildPerVisColMax(grid, matColToVisCol, nVisCols, filterTests = null) {
+export function buildPerVisColMax(grid, matColToVisCol, nVisCols) {
   const map = new Map();
   if (!grid) return map;
   const lookup = (mc) => {
@@ -89,17 +76,8 @@ export function buildPerVisColMax(grid, matColToVisCol, nVisCols, filterTests = 
     const [, mc] = key.split(",").map(Number);
     const visCol = lookup(mc);
     if (visCol < 0 || visCol >= nVisCols) continue;
-    let count = cell.count;
-    if (filterTests) {
-      let overlap = 0;
-      for (const t of cell.tests || []) {
-        if (filterTests.has(t)) overlap++;
-      }
-      if (overlap === 0) continue;
-      count = overlap;
-    }
     const cur = map.get(visCol) || 0;
-    if (count > cur) map.set(visCol, count);
+    if (cell.count > cur) map.set(visCol, cell.count);
   }
   return map;
 }

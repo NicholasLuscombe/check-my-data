@@ -17,8 +17,10 @@
        height so 1 row = 1/nVisRows of container regardless of dataset
        row count.
      - Per-vis-row rects filled per buildPerVisRowMax →
-       convergenceMinimapStyle. activeFindingTests Set narrows to a
-       single test when supplied.
+       convergenceMinimapStyle. The convergence grid is re-keyed on
+       the active selection upstream (FindingDetailPanel's
+       activeConvergence memo — S163 B2d G1), so this strip's
+       density automatically reflects the active findings.
      - Viewport band: translucent rect at `[viewFrac[0]*stripH,
        viewFrac[1]*stripH)` driven by tableRef.scrollTop /
        scrollHeight + clientHeight / scrollHeight.
@@ -34,13 +36,12 @@ const STRIP_W = 32;
 
 export function MinimapStripVertical({
   convergence, rowMap, nVisRows,
-  activeFindingTests = null,
   tableEl = null,
 }) {
   const grid = convergence?.grid || null;
   const perRow = useMemo(
-    () => buildPerVisRowMax(grid, rowMap, nVisRows, activeFindingTests),
-    [grid, rowMap, nVisRows, activeFindingTests]
+    () => buildPerVisRowMax(grid, rowMap, nVisRows),
+    [grid, rowMap, nVisRows]
   );
 
   const containerRef = useRef(null);

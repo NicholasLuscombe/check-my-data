@@ -38,9 +38,10 @@
        evidence to filter on. */
 
 import { useMemo, useState, useCallback, useLayoutEffect } from "react";
-import { GROUP_MARKERS, RANK_NUMS, TEST_RAW_VISIBILITY } from "../../constants/mechanisms.js";
+import { GROUP_MARKERS, RANK_NUMS, TEST_RAW_VISIBILITY, DISPLAY_NAMES } from "../../constants/mechanisms.js";
 import { FW } from "../../constants/tokens.js";
 import { MINIMAP_CALLOUT_TYPOGRAPHY } from "../shared/Section.jsx";
+import { buildConvergenceGridFromFindings } from "../../analysis/convergence.js";
 import { MinimapStripVertical } from "./MinimapStripVertical.jsx";
 import { MinimapStripHorizontal } from "./MinimapStripHorizontal.jsx";
 import { ExcerptTable } from "./ExcerptTable.jsx";
@@ -69,22 +70,32 @@ import { ExcerptTable } from "./ExcerptTable.jsx";
 // two so dataset-wide gets a positive "see the test card for the
 // evidence" framing instead.
 //
+// S163 B2d G5: caption names its finding inline. Pre-B2d the four
+// caption strings were generic ("This applies across the whole
+// dataset...") — readers couldn't tell which finding the caption
+// referred to when multiple chips were active and the lastAdded was
+// the implicit subject. Naming the finding makes each caption self-
+// evidently specific: "<display name> applies across the whole
+// dataset...". Falls back to "This pattern" when display name
+// resolution fails (defensive against missing DISPLAY_NAMES entry).
+//
 // Pre-active-finding state: no caption row at all (returns null) so the
 // sticky surface stays as light as before at rest.
 function guidanceCaption(finding) {
   if (!finding) return null;
+  const testName = finding.tests?.[0]?.testId;
+  const displayName = (testName && DISPLAY_NAMES[testName]) || testName || "This finding";
   if (finding.locality === "dataset-wide") {
-    return "This applies across the whole dataset — see the test card for the evidence.";
+    return `${displayName} applies across the whole dataset — see the test card for the evidence.`;
   }
   if (finding.locality === "unscoped") {
-    return "This test flagged the data but couldn't isolate specific rows. See the test card for the statistical detail.";
+    return `${displayName} flagged the data but couldn't isolate specific rows. See the test card for the statistical detail.`;
   }
-  const testName = finding.tests?.[0]?.testId;
   const visibility = TEST_RAW_VISIBILITY[testName];
   if (visibility === "visible") {
-    return "The flagged cells show the pattern directly — compare the highlighted values.";
+    return `${displayName}: the flagged cells show the pattern directly — compare the highlighted values.`;
   }
-  return "This pattern is statistical — it won't be visible in the individual values. See the test card.";
+  return `${displayName}: this pattern is statistical — it won't be visible in the individual values. See the test card.`;
 }
 
 // Chip-class predicate. Localised chips carry per-cell evidence
@@ -154,23 +165,43 @@ export function FindingDetailPanel({
     [heatmapProps?.convergence]
   );
 
-  // Test ID filter for the minimaps. In subset mode with at least one
-  // localised active finding, narrow to the union of those findings'
-  // test ids so the minimap shading reflects the active selection. In
-  // all-on mode (or empty subset), no filter — the minimaps show full
-  // dataset convergence density.
-  const activeFindingTests = useMemo(() => {
-    if (selectionMode !== "subset") return null;
-    if (!activeFindings || !activeFindings.length) return null;
-    const ids = new Set();
-    for (const f of activeFindings) {
-      if (!isLocalisedChip(f)) continue;
-      for (const t of f.tests || []) {
-        if (t.testId) ids.add(t.testId);
-      }
-    }
-    return ids.size ? ids : null;
-  }, [selectionMode, activeFindings]);
+  // S163 B2d G1: re-key the convergence grid on the active selection.
+  // Pre-B2d, `heatmapProps.convergence` was built once from ALL findings
+  // in ReportView and threaded immutably to the three panel consumers
+  // (ExcerptTable cell-fill heat, MinimapStripVertical density,
+  // MinimapStripHorizontal density). Selection state updated cleanly
+  // via B2b Model B; the grid the render reads did not — three symptoms
+  // share that one root: stale cell fill on deselect, stale minimap
+  // density on Clear all, horizontal-strip / cell-fill mismatch under
+  // subset selection.
+  //
+  // The fix derives an `activeConvergence` that rebuilds the grid from
+  // `activeFindings` (the load-bearing slice of selection state), keeps
+  // every other field on the convergence object from the original
+  // (`hotspots`, `pattern`, `groups`, `nRows`, `nCols` describe the
+  // dataset's full forensic state, not the active selection — they
+  // continue to come from `heatmapProps.convergence`), and threads
+  // `activeConvergence` to the three consumers in place of the raw
+  // convergence.
+  //
+  // Guardrail 1 — `mode='all'` early-return PRESERVED. The default
+  // resting state (every finding active) early-returns the original
+  // convergence object as-is — no recompute, no allocation. This is
+  // what keeps the 22-fixture batch parity intact: at mode='all', the
+  // rendered grid is byte-identical to the pre-B2d grid.
+  const activeConvergence = useMemo(() => {
+    if (!heatmapProps?.convergence) return heatmapProps?.convergence ?? null;
+    // mode='all' → resting state. Reuse the original grid; no allocation.
+    if (selectionMode === "all") return heatmapProps.convergence;
+    // mode='subset' (selected may be empty or populated) →
+    // rebuild the grid from active findings. Empty active set yields
+    // an empty grid (no cells touched), which is what makes Clear all
+    // visibly clear.
+    const nRows = heatmapProps.convergence.nRows ?? 0;
+    const nCols = heatmapProps.convergence.nCols ?? 0;
+    const activeGrid = buildConvergenceGridFromFindings(activeFindings || [], nRows, nCols);
+    return { ...heatmapProps.convergence, grid: activeGrid };
+  }, [selectionMode, activeFindings, heatmapProps?.convergence]);
 
   const matColToVisCol = useMemo(
     () => buildMatColToVisCol(heatmapProps?.visColIndices),
@@ -277,11 +308,17 @@ export function FindingDetailPanel({
             table's actual left edge. */}
         {overflow.vertical && <div style={{ flexShrink: 0, width: 32 }} />}
         <div style={{ flex: 1, minWidth: 0 }}>
+          {/* S163 B2d G1: read `activeConvergence`, NOT the raw
+              heatmapProps.convergence. The grid is now re-keyed on
+              the active selection (rebuild on subset mode change;
+              the same object on mode='all'); `activeFindingTests`
+              retired per guardrail 3 — the grid IS the filter
+              source, a redundant filter param would be a stale-
+              gate hazard. */}
           <MinimapStripHorizontal
-            convergence={heatmapProps.convergence}
+            convergence={activeConvergence}
             matColToVisCol={matColToVisCol}
             nVisCols={nVisCols}
-            activeFindingTests={activeFindingTests}
             tableEl={scrollEl}
           />
         </div>
@@ -305,18 +342,24 @@ export function FindingDetailPanel({
             this column simply disappearing shifts the table left. */}
         {overflow.vertical && (
           <div style={{ flexShrink: 0, height: DATA_BLOCK_HEIGHT }}>
+            {/* S163 B2d G1: read activeConvergence; activeFindingTests prop retires. */}
             <MinimapStripVertical
-              convergence={heatmapProps.convergence}
+              convergence={activeConvergence}
               rowMap={heatmapProps.rowMap}
               nVisRows={nVisRows}
-              activeFindingTests={activeFindingTests}
               tableEl={scrollEl}
             />
           </div>
         )}
         <div style={{ flex: 1, minWidth: 0, height: DATA_BLOCK_HEIGHT }}>
+          {/* S163 B2d G1: read activeConvergence; the cell-fill heat
+              path in ExcerptTable's renderCell reads
+              `cell = visGrid.get(...)` where visGrid is the remap of
+              this convergence's grid. Re-keying the grid on the active
+              selection means cells outside that selection get no
+              heat fill — clears the deselect residue at source. */}
           <ExcerptTable
-            convergence={heatmapProps.convergence}
+            convergence={activeConvergence}
             rawData={heatmapProps.rawData}
             rowMap={heatmapProps.rowMap}
             colHeaders={heatmapProps.colHeaders}
