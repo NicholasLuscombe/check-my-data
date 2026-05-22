@@ -19,8 +19,18 @@ export function MiniCard_RowMean({ result, importConfig, rowMap }) {
 // Condition label for the best sequence
 const bestLabel = result.bestSequence?.replace(/^Cond:\s*/, "") || null;
 
-// Coordinate mapping for original file row numbers
-const { fileRow } = makeRowMapper(importConfig, rowMap);
+// Coordinate mapping for original file row numbers.
+// `toFileRow` for 1-indexed matrix-row strings (bestWindowRows range);
+// `fileRow` for 0-indexed data-row indices (RowMeanTrendPlot's `rowIdxs`).
+const { fileRow, toFileRow } = makeRowMapper(importConfig, rowMap);
+// Producer would emit `bestWindowRows` as a 1-indexed matrix-row range
+// "X–Y"; convert both endpoints so the inline footer note matches the §2
+// highlight's `#` column. (Dead path under current rowMeanRuns.js, which
+// does not emit `bestWindowRows`; conversion is defence-in-depth.)
+const bestWindowRowsParts = String(result.bestWindowRows || "").match(/(\d+)\D+(\d+)/);
+const bestWindowRowsDisplay = bestWindowRowsParts
+  ? `${toFileRow(parseInt(bestWindowRowsParts[1]))}–${toFileRow(parseInt(bestWindowRowsParts[2]))}`
+  : result.bestWindowRows;
 
 // Row means trend plot (preferred) or null if data not available
 const hasRowMeans = result.bestRowMeans?.length > 0 && result.bestGrandMean != null;
@@ -49,7 +59,7 @@ return (
   <MiniCardLayout result={result}
     footer={<>
       {result.firstPairSigns?.length||"?"} rows · {(result.firstPairRuns||1) - 1} crossings (expected <span style={{color:CC.EXP_SOFT}}>{(result.firstPairExp||1) - 1}</span>)
-      {result.bestWindowRows && ` · anomaly: rows ${result.bestWindowRows}`}
+      {result.bestWindowRows && ` · anomaly: rows ${bestWindowRowsDisplay}`}
       {" · " + fmtPBadge(result.primaryP)}
     </>}
     lookFor="Long stretches where row means stay on the same side of the grand mean suggest sequential construction. Bold segments in the chart mark crossings — few crossings means the fabricator anchored each row's mean to the previous one. Compare the faint regions against the raw data: are the values suspiciously smooth or trending?"

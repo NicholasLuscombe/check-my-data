@@ -9,12 +9,15 @@ import { PlotLayout } from "../shared/PlotLayout.jsx";
 import { ChartLegend } from "../shared/ChartLegend.jsx";
 import { EvidenceTable } from "../shared/EvidenceTable.jsx";
 import { classifyIrcPairs } from "../../analysis/buildHighlightSpec.js";
-import { shortColName } from "../shared/coordinates.js";
+import { shortColName, makeRowMapper } from "../shared/coordinates.js";
 import { fmtPBadge } from "../../constants/thresholds.js";
 import { SUB_HEAD } from "../shared/styles.js";
 
 
 export function MiniCard_InterReplicateCorrelation({ result, importConfig, rowMap }) {
+  // Producer emits 1-indexed matrix rows in w.startRow/w.endRow; render file
+  // rows so the card matches the §2 highlight's `#` column.
+  const { toFileRow } = makeRowMapper(importConfig, rowMap);
   const details = result.details || [];
   const sub = result.subDetails || [];
   const name = result.name;
@@ -159,8 +162,8 @@ return (
         <EvidenceTable
           columns={condNames.length > 1 ? ["Condition", "Columns", "Rows", "Observed r", "Expected r"] : ["Columns", "Rows", "Observed r", "Expected r"]}
           rows={topWins.map(w => condNames.length > 1
-            ? [condCell(w.condition), pairLabel(w.pair, w.condition), `${w.startRow}\u2013${w.endRow}`, w.rWin, w.baseline]
-            : [pairLabel(w.pair, w.condition || "All data"), `${w.startRow}\u2013${w.endRow}`, w.rWin, w.baseline]
+            ? [condCell(w.condition), pairLabel(w.pair, w.condition), `${toFileRow(w.startRow)}\u2013${toFileRow(w.endRow)}`, w.rWin, w.baseline]
+            : [pairLabel(w.pair, w.condition || "All data"), `${toFileRow(w.startRow)}\u2013${toFileRow(w.endRow)}`, w.rWin, w.baseline]
           )}
           identifierColumns={condNames.length > 1 ? 3 : 2}
         />

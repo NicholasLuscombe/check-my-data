@@ -8,9 +8,13 @@ import { PlotLayout } from "../shared/PlotLayout.jsx";
 
 import { ChartLegend } from "../shared/ChartLegend.jsx";
 import { PlotSVG } from "../plots/PlotSVG.jsx";
+import { makeRowMapper } from "../shared/coordinates.js";
 import { SUB_HEAD } from "../shared/styles.js";
 
 export function MiniCard_WithinRowVariance({ result, importConfig, rowMap }) {
+  // Producer emits 1-indexed matrix rows in d.Row; render file rows so the
+  // card matches the §2 highlight's `#` column.
+  const { toFileRow } = makeRowMapper(importConfig, rowMap);
   const nOut = result.nOutliers || 0;
   const nSmooth = (result.flaggedRows || []).filter(r => r.direction === "too smooth").length;
   const nNoisy = nOut - nSmooth;
@@ -89,7 +93,7 @@ export function MiniCard_WithinRowVariance({ result, importConfig, rowMap }) {
             identifierColumns={1}
             compact
             rows={rows.slice(0,20).map(d => [
-              {value: d.Row, style:{fontWeight:FW.BOLD}},
+              {value: toFileRow(d.Row), style:{fontWeight:FW.BOLD}},
               {value: d.z, style:{fontWeight:FW.BOLD}},
               {value: d.Direction, style:{fontFamily:FF.UI}},
               d.SD,

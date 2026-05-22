@@ -7,6 +7,7 @@ import { PlotLayout } from "../shared/PlotLayout.jsx";
 import { HBarPlot } from "../plots/HBarPlot.jsx";
 import { EvidenceTable } from "../shared/EvidenceTable.jsx";
 import { buildCondColorMap } from "../../constants/roles.js";
+import { makeRowMapper } from "../shared/coordinates.js";
 import { SUB_HEAD } from "../shared/styles.js";
 
 export function MiniCard_ConstantOffset({ result, importConfig, rowMap }) {
@@ -16,6 +17,13 @@ export function MiniCard_ConstantOffset({ result, importConfig, rowMap }) {
   const expBlocks = parseFloat(result.expectedByChance) || 0;
   const condColorMap = buildCondColorMap(importConfig?.condPerCol);
   const condCell = (name) => { const color = condColorMap[name]?.text; return color ? {value: name, style: {color}} : name; };
+  // Producer emits 1-indexed matrix rows in d.positions ("35–36"); render
+  // file rows so the card matches the §2 highlight's `#` column.
+  const { toFileRow } = makeRowMapper(importConfig, rowMap);
+  const positionsToFileRows = (s) => {
+    const m = String(s).match(/(\d+)\D+(\d+)/);
+    return m ? `${toFileRow(parseInt(m[1]))}–${toFileRow(parseInt(m[2]))}` : s;
+  };
 
   // Bar chart for multi-condition (aggregated) datasets
   let barChart = null;
@@ -61,8 +69,8 @@ export function MiniCard_ConstantOffset({ result, importConfig, rowMap }) {
           <EvidenceTable
             columns={isAgg ? ["Condition", "Replicate pair", "Rows", "Offset"] : ["Replicate pair", "Rows", "Offset"]}
             rows={blockEntries.map(d => isAgg
-              ? [condCell(d.group), d.pair, d.positions, fmtOffset(d.diff)]
-              : [d.pair, d.positions, fmtOffset(d.diff)]
+              ? [condCell(d.group), d.pair, positionsToFileRows(d.positions), fmtOffset(d.diff)]
+              : [d.pair, positionsToFileRows(d.positions), fmtOffset(d.diff)]
             )}
             identifierColumns={isAgg ? 3 : 2}
           />
