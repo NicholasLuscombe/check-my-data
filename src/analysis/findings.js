@@ -218,12 +218,24 @@ export function buildFindings(results, nRows, nCols, opts = {}) {
     const severity = SEV_FROM_FLAG[r.flag] || "LOW";
     const summary = keyFinding(r, toFileRow) || `${r.name}: flagged.`;
 
+    // S166 B2: Row-Mean Runs encodes its driving condition in
+    // r.bestSequence as "Cond: {name}" (rowMeanRuns.js:190). Surface the
+    // bare name on the test entry so guidanceCaption can frame the
+    // row-local caption around the condition rather than fall to the
+    // generic statistical fall-through. Field stays null for tests that
+    // don't carry a single driving condition.
+    let conditionName = null;
+    if (r.name === "Row-Mean Runs" && typeof r.bestSequence === "string"
+        && r.bestSequence.startsWith("Cond: ")) {
+      conditionName = r.bestSequence.slice("Cond: ".length);
+    }
     const test = {
       testId:     r.name,
       displayName: DISPLAY_NAMES[r.name] || r.name,
       pValue:     r.primaryP ?? null,
       effectSize: r.effectSize ?? null,
       adjP:       r.adjP ?? null,
+      conditionName,
     };
 
     let region = null;

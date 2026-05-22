@@ -861,6 +861,13 @@ function autocorrelation(r /*, ctx */) {
   const nPairs = r.nPairs;
   const lagTable = Array.isArray(r.lagTable) ? r.lagTable : [];
   const higherLagPromoted = !!r.higherLagPromoted;
+  // S166 A2: read the producer's `higherLagWasDecisive` to distinguish
+  // "higher-lag bumped a LOW result to MODERATE" (real promotion) from
+  // "higher-lag corroborates an already-flagged lag-1" (no promotion).
+  // Pre-S166 the composer asserted promotion on every HIGH card whose
+  // (i)∧(ii)∧(iii) trio fired on lags 2–5, even though the flag was
+  // never moved by it.
+  const higherLagWasDecisive = !!r.higherLagWasDecisive;
 
   const evidenceLines = [];
   evidenceLines.push(
@@ -871,7 +878,10 @@ function autocorrelation(r /*, ctx */) {
     const promoted = lagTable.filter(l => l.isPromotionTrigger);
     if (promoted.length > 0) {
       const frags = promoted.map(l => `lag ${l.lag} (pooled r = ${l.pooledR}, ${l.pairsSig} of ${l.pairsTotal} pairs significant)`);
-      evidenceLines.push(`Higher-lag promotion to MODERATE: ${frags.join(", ")}.`);
+      const headline = higherLagWasDecisive
+        ? "Higher-lag promotion to MODERATE"
+        : "Higher-lag corroboration of lag-1";
+      evidenceLines.push(`${headline}: ${frags.join(", ")}.`);
     }
   }
   return { location: "Global", evidenceLines };

@@ -149,10 +149,10 @@ export const TEST_DESCRIPTIONS = {
   "Row-Mean Runs": "Row averages trend unexpectedly",
   "Regional Noise Homogeneity": "Variability changes in patches",
   "Missing Data Pattern": "Missing values cluster spatially",
-  "Autocorrelation": "Adjacent noise values too predictable",
+  "Autocorrelation": "Values follow on too predictably from the one before",
   "Windowed Autocorrelation": "Localised serial structure in replicate differences.",
   "Excess Kurtosis": "Noise distribution too flat or too peaked",
-  "Runs Test": "Noise values not randomly ordered",
+  "Runs Test": "The order of values isn't random",
   "Noise Scaling With Measurement Size": "Spread doesn't scale with magnitude",
   "Within-Row Variance": "Some rows unusually uniform",
   "Entropy / Zipf Analysis": "Too many or too few distinct values",
@@ -285,3 +285,21 @@ export const TEST_RAW_VISIBILITY = {
   // Other
   "Missing Data Pattern":                "visible",
 };
+
+// S166 B1: tests whose forensic verdict is constructively pooled — the
+// flag is a property of the aggregate (pooled mean-z, pooled mean r, etc.)
+// distributed across replicate pairs with no per-pair attribution by
+// design. When such a test lands in the §2 `unscoped` lane (region.raw
+// empty because there's no per-unit localisation to emit), the generic
+// "couldn't isolate specific rows" caption reads as found-nothing —
+// caption dispatch in FindingDetailPanel overrides to an affirming
+// "distributed across pairs" framing for members of this set.
+//
+// Membership is static — pooled-by-design is an architectural property
+// of the test, not a per-fixture outcome. Per S165's note, Runs Test
+// pooled is the canonical case: whole-table wash is the correct floor
+// because per-pair attribution does not exist; the §2 caption should
+// say so rather than imply localisation failed.
+export const POOLED_BY_DESIGN = new Set([
+  "Runs Test",
+]);
