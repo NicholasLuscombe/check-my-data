@@ -107,18 +107,31 @@ export function extractCellFlags(result, nRows, nCols) {
 
   if (name === 'Inter-Replicate Correlation') {
     const dets = resultDetails(result);
-    for (const d of dets.filter(d => d.source === 'window' || d.startRow != null)) {
-      if (d.startRow != null && d.endRow != null) {
+    // Two-arm gate (A2 fix #2):
+    //   • Windowed entries (source==='window') → row-and-col paint over the
+    //     window. cols use matCol1/matCol2, NOT parsePairCols(d.pair) —
+    //     d.pair is 1-indexed WITHIN the condition's data-column slice, so
+    //     parsing it as a matrix-col index paints non-Control windows into
+    //     Control's column band (A2 fix #1).
+    //   • Dataset-level suspicious entries (d.suspicious === true) → column-
+    //     local paint across all rows. The `suspicious` flag is precomputed
+    //     by the producer (interReplicateCorrelation.js:156) encoding
+    //     METHODOLOGY §2.5: !highSNR && adjP < ALPHA.FLAG && excess >
+    //     minExcess. Non-suspicious dataset-level entries are NOT painted.
+    for (const d of dets) {
+      const isWindow = d.source === 'window' && d.startRow != null && d.endRow != null;
+      const isSuspiciousDatasetLevel = d.source !== 'window' && d.suspicious === true;
+      if (!isWindow && !isSuspiciousDatasetLevel) continue;
+      const cols = (d.matCol1 != null && d.matCol2 != null)
+        ? [d.matCol1, d.matCol2]
+        : (d.pair ? parsePairCols(d.pair) : null);
+      if (isWindow) {
         const rows = [];
         for (let r = d.startRow - 1; r <= d.endRow - 1; r++) rows.push(r);
-        // d.pair is 1-indexed WITHIN the condition's data-column slice, NOT a
-        // global matrix-col index — parsePairCols would map Inhibitor_A's
-        // "2–3" to Control's cols [1,2]. Producer ships 0-indexed matrix cols
-        // on every windowed entry; use those when present.
-        const cols = (d.matCol1 != null && d.matCol2 != null)
-          ? [d.matCol1, d.matCol2]
-          : (d.pair ? parsePairCols(d.pair) : null);
         if (rows.length) push(rows, cols);
+      } else {
+        // Suspicious dataset-level: column-local, all rows.
+        push(null, cols);
       }
     }
   }
