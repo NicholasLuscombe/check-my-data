@@ -84,12 +84,20 @@ export function MiniCard_Autocorrelation({ result, importConfig, rowMap }) {
             {mainChart}
           </PlotLayout>
           {legendItems && <ChartLegend items={legendItems} />}
-          {/* Plot caption (S166 A1): name the marker as the verdict.
-              Per-pair / per-condition lines are distribution texture; the
-              pooled-mean marker and its CI carry the verdict. */}
+          {/* Plot caption (S166 A1; S166 fix-2 FIX 2: adapt to actual
+              line count). The plot renders one line per perGroupDecay
+              entry, falling back to a single "All data" line when no
+              per-condition decay is available. Caption text follows the
+              same branch so the wording matches what's actually drawn —
+              pre-fix the caption asserted "per-condition" even on the
+              single-line fallback, contradicting the legend. The pooled-
+              mean marker and its CI carry the verdict regardless. */}
           {hasDecay && (
             <div style={{...SUB_HEAD, marginTop: "6px", marginBottom: 0, color: C.TEXT_3, fontWeight: FW.NORM}}>
-              Lines are per-condition lag-k means; dots are per-lag values. The mean ± 95% CI marker at lag 1 carries the verdict — average serial correlation across pairs is reliably above zero when the interval excludes the dashed reference.
+              {(result.perGroupDecay?.length || 0) > 1
+                ? "Lines are per-condition lag-k means"
+                : "The line shows lag-k means across pairs"}
+              ; dots are per-lag values. The mean ± 95% CI marker at lag 1 carries the verdict — average serial correlation across pairs is reliably above zero when the interval excludes the dashed reference.
             </div>
           )}
         </>

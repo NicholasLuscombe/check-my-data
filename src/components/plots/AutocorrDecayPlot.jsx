@@ -33,22 +33,41 @@ export function AutocorrDecayPlot({ perGroupDecay, singleCurve, condColorMap, ve
   const CW=W-PL-PR, CH=H-PT-PB;
   const LAGS=10;
 
-  // Auto-scale y-axis to data range, always include ±0.2 minimum.
-  // Verdict-marker bounds participate so the CI whisker is never clipped.
+  // Data-aware y-axis (S166 fix-2 FIX 1). Symmetric around zero so the
+  // r = 0 reference is always on-axis, the CI marker's relation to zero
+  // reads as a directional gap, and per-condition lines + the verdict
+  // marker + its CI bounds all participate in the fit (no clipping of
+  // the whisker). MIN_HALF_SPAN floor stops near-zero-but-significant
+  // CIs (DS21: pooled mean 0.0628, CI [0.0355, 0.0900]) from collapsing
+  // against the reference line — the floor leaves visible breathing
+  // space between the whisker's near end and r = 0. Floor is a MINIMUM:
+  // wider-r fixtures (METHODOLOGY §2.1 records r up to ~0.8 for strong
+  // fabrication) expand the axis above it via the fit. Tick step adapts
+  // to span so the near-zero case gets useful sub-divisions instead of
+  // a single tick per half-axis.
   const markerVals = verdictMarker
-    ? [verdictMarker.value, ...(verdictMarker.ci || [])]
+    ? [verdictMarker.value, ...(Array.isArray(verdictMarker.ci) ? verdictMarker.ci : [])]
     : [];
-  const allVals = curves.flatMap(c=>c.curve).concat(markerVals);
-  const dataMin = Math.min(...allVals, -0.2);
-  const dataMax = Math.max(...allVals, 0.2);
-  const pad = (dataMax - dataMin) * 0.12;
-  const YMIN = Math.floor((dataMin - pad) * 5) / 5;  // round down to nearest 0.2
-  const YMAX = Math.ceil((dataMax + pad) * 5) / 5;   // round up to nearest 0.2
+  const fitVals = curves.flatMap(c => c.curve).concat(markerVals)
+    .filter(v => Number.isFinite(v));
+  const rawHalfSpan = fitVals.length ? Math.max(...fitVals.map(v => Math.abs(v))) : 0;
+  const paddedHalfSpan = rawHalfSpan * 1.15;   // ~15% padding above the fit
+  const MIN_HALF_SPAN = 0.12;                  // floor — see comment above
+  const fitHalfSpan = Math.max(paddedHalfSpan, MIN_HALF_SPAN);
+  // Tick step keyed to span: 0.05 for tight (near-zero) ranges, 0.1 for
+  // medium, 0.2 for wide. Keeps tick density readable at every scale.
+  const tickStep = fitHalfSpan <= 0.25 ? 0.05 : fitHalfSpan <= 0.6 ? 0.1 : 0.2;
+  // Round half-span UP to the next tick-step multiple so axis bounds
+  // land on a tick value (and r = 0 always appears as a tick).
+  const niceHalfSpan = Math.ceil(fitHalfSpan / tickStep) * tickStep;
+  const YMIN = -niceHalfSpan, YMAX = niceHalfSpan;
   function xs(lag){ return PL+(lag-1)/(LAGS-1)*CW; }
   function ys(v){ return PT+CH-(v-YMIN)/(YMAX-YMIN)*CH; }
-  // Generate ticks at 0.2 intervals
-  const yTicks=[];
-  for(let v=YMIN;v<=YMAX+0.01;v+=0.2) yTicks.push(Math.round(v*10)/10);
+  const tickDp = tickStep < 0.1 ? 2 : 1;
+  const yTicks = [];
+  for (let v = YMIN; v <= YMAX + 1e-9; v += tickStep) {
+    yTicks.push(Math.round(v * 1000) / 1000);  // kill float drift
+  }
 
   return (
     <PlotSVG W={W} H={H}>
@@ -59,7 +78,7 @@ export function AutocorrDecayPlot({ perGroupDecay, singleCurve, condColorMap, ve
             stroke={v===0?C.BORDER:C.BORDER_L} strokeWidth={v===0?1:0.7}
             strokeDasharray={v===0?"4,3":""}/>
           <text x={PL-4} y={ys(v)+3.5} fontSize={CF.LABEL} fill={C.TEXT_3}
-            textAnchor="end" fontFamily={FF.MONO}>{v.toFixed(1)}</text>
+            textAnchor="end" fontFamily={FF.MONO}>{v.toFixed(tickDp)}</text>
         </g>
       ))}
       {/* group lines */}

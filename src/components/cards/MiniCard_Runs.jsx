@@ -70,10 +70,12 @@ function PooledZMarker({ value, ci }) {
             textAnchor="middle" fontFamily={FF.MONO}>{t}</text>
         </g>
       ))}
-      <text x={PL + CW / 2} y={H - 3} fontSize={CF.LABEL} fill={C.TEXT_3}
-        textAnchor="middle" fontFamily={FF.UI}>
-        Pooled mean run-count z across replicate pairs
-      </text>
+      {/* S166 fix-2 FIX 3: axis title removed (was overlapping the tick
+          labels — both rendered at the same horizontal band, y≈57-58).
+          The plot section header above ("Verdict: pooled mean-z across
+          pairs") already names the statistic, and the "z = 0"
+          annotation labels the reference, so a third axis-title row was
+          redundant. */}
     </PlotSVG>
   );
 }
