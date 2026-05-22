@@ -209,7 +209,10 @@ export function testRowMeanRuns(matrix, condCtx, rng) {
       ...windowSig.slice(0, 20).map(w => ({ ...w, source: "window" })),
       ...sequences.map(s => ({
         sequence: s.label, runs: s.runs, expected: s.expected.toFixed(1),
-        z: s.z.toFixed(3), p: s.p.toFixed(4), n: s.n
+        z: s.z.toFixed(3), p: s.p.toFixed(4), n: s.n,
+        // 0-indexed matrix-row indices of the condition's row slice — read by
+        // extractCellFlags to paint the flagged sequence's row band (A2 fix #4).
+        rowIdxs: s.rowIdxs,
       }))
     ]
   };

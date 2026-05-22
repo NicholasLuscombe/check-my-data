@@ -3,7 +3,7 @@
 // See INVESTIGATION-DISPLAY-SPEC.md v3.0 §Convergence Layer.
 // See docs/LOCALISATION-AUDIT.md for per-test output format reference.
 
-import { FLAG_RANK } from '../constants/thresholds.js';
+import { FLAG_RANK, ALPHA } from '../constants/thresholds.js';
 import { TEST_MECHANISM } from '../constants/mechanisms.js';
 
 // ── Helpers ──────────────────────────────────────────────────────────
@@ -107,12 +107,31 @@ export function extractCellFlags(result, nRows, nCols) {
 
   if (name === 'Inter-Replicate Correlation') {
     const dets = resultDetails(result);
-    for (const d of dets.filter(d => d.source === 'window' || d.startRow != null)) {
-      if (d.startRow != null && d.endRow != null) {
+    // Two-arm gate (A2 fix #2):
+    //   • Windowed entries (source==='window') → row-and-col paint over the
+    //     window. cols use matCol1/matCol2, NOT parsePairCols(d.pair) —
+    //     d.pair is 1-indexed WITHIN the condition's data-column slice, so
+    //     parsing it as a matrix-col index paints non-Control windows into
+    //     Control's column band (A2 fix #1).
+    //   • Dataset-level suspicious entries (d.suspicious === true) → column-
+    //     local paint across all rows. The `suspicious` flag is precomputed
+    //     by the producer (interReplicateCorrelation.js:156) encoding
+    //     METHODOLOGY §2.5: !highSNR && adjP < ALPHA.FLAG && excess >
+    //     minExcess. Non-suspicious dataset-level entries are NOT painted.
+    for (const d of dets) {
+      const isWindow = d.source === 'window' && d.startRow != null && d.endRow != null;
+      const isSuspiciousDatasetLevel = d.source !== 'window' && d.suspicious === true;
+      if (!isWindow && !isSuspiciousDatasetLevel) continue;
+      const cols = (d.matCol1 != null && d.matCol2 != null)
+        ? [d.matCol1, d.matCol2]
+        : (d.pair ? parsePairCols(d.pair) : null);
+      if (isWindow) {
         const rows = [];
         for (let r = d.startRow - 1; r <= d.endRow - 1; r++) rows.push(r);
-        const cols = d.pair ? parsePairCols(d.pair) : null;
         if (rows.length) push(rows, cols);
+      } else {
+        // Suspicious dataset-level: column-local, all rows.
+        push(null, cols);
       }
     }
   }
@@ -164,7 +183,20 @@ export function extractCellFlags(result, nRows, nCols) {
       if (rows.length) push(rows, null);
     }
     const dets = resultDetails(result);
-    for (const d of dets.filter(d => d.source === 'window' && d.startRow != null)) {
+    // A2 fix #4: admit per-condition sequence entries when their p-value drives
+    // the flag (parseFloat(d.p) < ALPHA.FLAG). The producer emits `rowIdxs` as
+    // 0-indexed matrix-row indices of the condition's row slice
+    // (rowMeanRuns.js:213); emit row-local (rows = condition rows, cols = null)
+    // so aggregateRegions expands to rows × all-data-cols — a full-width band on
+    // the flagged condition's row slice. DS21 is row-grouped, so conditions are
+    // row partitions, not column partitions; the location IS row-local.
+    for (const d of dets) {
+      if (d.source === 'window' && d.startRow == null) continue;
+      if (d.source !== 'window' && (parseFloat(d.p) >= ALPHA.FLAG || !d.rowIdxs?.length)) continue;
+      if (d.source !== 'window') {
+        push([...d.rowIdxs], null);
+        continue;
+      }
       const rows = [];
       for (let r = d.startRow - 1; r <= d.endRow - 1; r++) rows.push(r);
       if (rows.length) push(rows, null);
