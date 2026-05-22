@@ -111,7 +111,13 @@ export function extractCellFlags(result, nRows, nCols) {
       if (d.startRow != null && d.endRow != null) {
         const rows = [];
         for (let r = d.startRow - 1; r <= d.endRow - 1; r++) rows.push(r);
-        const cols = d.pair ? parsePairCols(d.pair) : null;
+        // d.pair is 1-indexed WITHIN the condition's data-column slice, NOT a
+        // global matrix-col index — parsePairCols would map Inhibitor_A's
+        // "2–3" to Control's cols [1,2]. Producer ships 0-indexed matrix cols
+        // on every windowed entry; use those when present.
+        const cols = (d.matCol1 != null && d.matCol2 != null)
+          ? [d.matCol1, d.matCol2]
+          : (d.pair ? parsePairCols(d.pair) : null);
         if (rows.length) push(rows, cols);
       }
     }
