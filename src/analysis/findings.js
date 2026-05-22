@@ -169,11 +169,18 @@ function classifyLocality(finding, isGlobal) {
   if (isGlobal) return "dataset-wide";
   const raw = finding.region?.raw || [];
   if (raw.length === 0) return "unscoped";
+  // Length-based predicates: the canonical "absent axis" convention is
+  // `null` (LOESS, Mahalanobis, Within-Row Variance, Selective Noise all
+  // push null). Truthiness alone misclassifies the accidental `cols: []`
+  // emit (ConstOffset's failed parsePairCols, RSC's row-grouped
+  // _groupCols) as cell-local when it is genuinely row-only.
   let hasCellLocal = false, hasRowLocal = false, hasColLocal = false;
   for (const { rows, cols } of raw) {
-    if (rows && cols) hasCellLocal = true;
-    else if (rows && !cols) hasRowLocal = true;
-    else if (!rows && cols) hasColLocal = true;
+    const hasRows = rows?.length > 0;
+    const hasCols = cols?.length > 0;
+    if (hasRows && hasCols) hasCellLocal = true;
+    else if (hasRows && !hasCols) hasRowLocal = true;
+    else if (!hasRows && hasCols) hasColLocal = true;
   }
   if (hasCellLocal) return "cell-local";
   if (hasRowLocal)  return "row-local";
