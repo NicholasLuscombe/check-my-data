@@ -125,19 +125,21 @@ export function MiniCard_Runs({ result, importConfig, rowMap }) {
   const negLabel = "Second column higher";
 
   // Evidence table data — all pairs.
-  // S166 A7: prepend a "Condition" column so the DS02 "no indication
-  // which condition" gap is closed. Under the aggregator path every row
-  // here is the worst group (the aggregator's worst.result spread at
-  // aggregation.js:292-299); the column is constant (worstGroup name)
-  // but explicit — readers see which condition's pairs they're reading
-  // rather than inferring it. On the non-aggregated row-grouped path
-  // (DS21 Runs Test), the column reads "—" (no per-condition framing).
+  // S166 A7 post-fix: condition column is guarded on worstGroup
+  // truthiness. Aggregator path \u2192 render the column (constant within a
+  // single card, but explicit). Whole-matrix path \u2192 omit the column
+  // entirely (DS21 Runs is genuinely pooled across the whole table;
+  // naming a condition there would contradict the \u00a72 POOLED_BY_DESIGN
+  // caption). identifierColumns drops in lockstep so it covers only
+  // the leading text columns actually rendered (EvidenceTable
+  // convention: identifierColumns covers ALL leading text columns).
   const allStats = result.allPairStats || [];
-  const condCell = worstGroup
-    ? { value: worstGroup, style: { fontFamily: FF.UI } }
-    : { value: "\u2014", style: { fontFamily: FF.UI, color: C.TEXT_3 } };
+  const condColumns = worstGroup
+    ? ["Condition", "Pair", "Runs", "Expected", "z", "p", "Finding"]
+    : ["Pair", "Runs", "Expected", "z", "p", "Finding"];
+  const condIdentifierColumns = worstGroup ? 2 : 1;
   const etRows = allStats.map(p => [
-    condCell,
+    ...(worstGroup ? [{ value: worstGroup, style: { fontFamily: FF.UI } }] : []),
     { value: `${repName(p.col1)}\u2013${repName(p.col2)}`, style: { fontFamily: FF.UI } },
     p.runs,
     p.expected,
@@ -159,7 +161,7 @@ export function MiniCard_Runs({ result, importConfig, rowMap }) {
     {" · within-condition pooled " + pStr}
     {hasWindowed && ` · scan p ${fmtPOp(scanPNum)} (${result.windowSigCount} window${result.windowSigCount!==1?"s":""})`}
   </>) : (<>
-    {result.nPairs} pair{result.nPairs !== 1 ? "s" : ""} tested · {runsDir} · mean z = {pooledMeanZ.toFixed(2)}
+    {result.nPairs} pair{result.nPairs !== 1 ? "s" : ""} · {runsDir} · mean z = {pooledMeanZ.toFixed(2)}
     {" · pooled " + pStr}
     {hasWindowed && ` · scan p\u202f${fmtPOp(scanPNum)} (${result.windowSigCount} window${result.windowSigCount!==1?"s":""})`}
   </>);
@@ -219,9 +221,9 @@ export function MiniCard_Runs({ result, importConfig, rowMap }) {
         <div style={{marginTop:"8px"}}>
           <div style={SUB_HEAD}>All replicate pairs</div>
           <EvidenceTable
-            columns={["Condition", "Pair", "Runs", "Expected", "z", "p", "Finding"]}
+            columns={condColumns}
             rows={etRows}
-            identifierColumns={2}
+            identifierColumns={condIdentifierColumns}
           />
         </div>
       )}
