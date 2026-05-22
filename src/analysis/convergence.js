@@ -3,7 +3,7 @@
 // See INVESTIGATION-DISPLAY-SPEC.md v3.0 §Convergence Layer.
 // See docs/LOCALISATION-AUDIT.md for per-test output format reference.
 
-import { FLAG_RANK } from '../constants/thresholds.js';
+import { FLAG_RANK, ALPHA } from '../constants/thresholds.js';
 import { TEST_MECHANISM } from '../constants/mechanisms.js';
 
 // ── Helpers ──────────────────────────────────────────────────────────
@@ -183,7 +183,20 @@ export function extractCellFlags(result, nRows, nCols) {
       if (rows.length) push(rows, null);
     }
     const dets = resultDetails(result);
-    for (const d of dets.filter(d => d.source === 'window' && d.startRow != null)) {
+    // A2 fix #4: admit per-condition sequence entries when their p-value drives
+    // the flag (parseFloat(d.p) < ALPHA.FLAG). The producer emits `rowIdxs` as
+    // 0-indexed matrix-row indices of the condition's row slice
+    // (rowMeanRuns.js:213); emit row-local (rows = condition rows, cols = null)
+    // so aggregateRegions expands to rows × all-data-cols — a full-width band on
+    // the flagged condition's row slice. DS21 is row-grouped, so conditions are
+    // row partitions, not column partitions; the location IS row-local.
+    for (const d of dets) {
+      if (d.source === 'window' && d.startRow == null) continue;
+      if (d.source !== 'window' && (parseFloat(d.p) >= ALPHA.FLAG || !d.rowIdxs?.length)) continue;
+      if (d.source !== 'window') {
+        push([...d.rowIdxs], null);
+        continue;
+      }
       const rows = [];
       for (let r = d.startRow - 1; r <= d.endRow - 1; r++) rows.push(r);
       if (rows.length) push(rows, null);
