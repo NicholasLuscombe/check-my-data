@@ -29,16 +29,15 @@ function forwardFillSigns(signs) {
   return filled;
 }
 
-// ── Count contiguous same-colour blocks in a filled array ────────
-function countBlocks(filled) {
-  if (!filled.length) return 0;
-  let blocks = 1;
-  for (let i = 1; i < filled.length; i++) {
-    if (filled[i] !== filled[i - 1]) blocks++;
-  }
-  return blocks;
-}
-
+// S166 A5: the pre-S166 deterministic "expected" simulated strip retires.
+// It was constructed by partitioning (nPlus, nMinus) into the rounded
+// expected number of runs and ordering alternately — not an H₀ draw, and
+// drawn beside real strips it invited single-unit comparison ("does the
+// real strip look like the expected one") that contradicts the aggregate-
+// verdict thesis: the test fires on a pooled mean-z across pairs with no
+// single pair driving the result. The verdict-marker plot above the
+// strips (MiniCard_Runs.jsx) carries the pooled statistic explicitly.
+// buildSimulatedSigns / buildSimStrip / randomPartition are removed.
 export function SignStripPlot({ groupSignSeqs, singleSeq, singleRuns, singleExp,
   fileRow, firstFileRow, lastFileRow, defaultRowLabel="R1–R2" }) {
   const rows = groupSignSeqs?.length
@@ -57,35 +56,15 @@ export function SignStripPlot({ groupSignSeqs, singleSeq, singleRuns, singleExp,
   if (!filledRows.some(r => r.filled.length >= 2)) return null;
 
   const ROW_H = 17, GAP = 6, LABEL_W = 86, ANN_W = 70;
-  const SIM_GAP = 4;    // between top strip and simulated strip
-  const SEP_GAP = 18;   // between headline unit and remaining strips
   const PT = 4, PB = 30;
   const W = CP.W_LG;
   const STRIP_W = W - LABEL_W - ANN_W;
 
-  // ── Simulated strip for top pair only ──────────────────────────
-  const topFilled = filledRows[0]?.filled || [];
-  const topExpected = filledRows[0]?.expected;
-  const topName = filledRows[0]?.group || "";
-  const simSigns = buildSimStrip(topFilled, topExpected);
-  const simRunCount = simSigns ? countBlocks(simSigns) : 0;
-  const hasSimStrip = simSigns != null;
-
-  // Layout: strip 0 → sim strip (SIM_GAP) → SEP_GAP → remaining strips (GAP)
-  const simY = hasSimStrip ? PT + ROW_H + SIM_GAP : 0;
-  const restStartY = hasSimStrip
-    ? simY + ROW_H + SEP_GAP
-    : PT + ROW_H + SEP_GAP;
-
   function rowY(ri) {
-    if (ri === 0) return PT;
-    return restStartY + (ri - 1) * (ROW_H + GAP);
+    return PT + ri * (ROW_H + GAP);
   }
 
-  const totalH = (filledRows.length > 1
-    ? rowY(filledRows.length - 1) + ROW_H
-    : (hasSimStrip ? simY + ROW_H : PT + ROW_H)
-  ) + PB;
+  const totalH = rowY(filledRows.length - 1) + ROW_H + PB;
 
   // ── Render one rect per position, full strip width ─────────────
   function renderStrip(filled, y, opacity = 0.80) {
@@ -151,17 +130,6 @@ export function SignStripPlot({ groupSignSeqs, singleSeq, singleRuns, singleExp,
         );
       })}
 
-      {/* Simulated strip — top pair expected, reduced opacity */}
-      {hasSimStrip && (
-        <g>
-          <text x={LABEL_W - 5} y={simY + ROW_H * 0.62} fontSize={CF.LABEL} fill={C.TEXT_3}
-            textAnchor="end" fontFamily={FF.MONO}>{shortName(topName)} expected</text>
-          {renderStrip(simSigns, simY, 0.4)}
-          <text x={LABEL_W + STRIP_W + 6} y={simY + ROW_H * 0.7} fontSize={CF.LABEL}
-            fill={C.TEXT_3} fontFamily={FF.MONO}>{simRunCount} runs</text>
-        </g>
-      )}
-
       {/* X-axis */}
       <line x1={LABEL_W} y1={axisY} x2={LABEL_W + STRIP_W} y2={axisY}
         stroke={C.BORDER} strokeWidth={CS.GRID.w}/>
@@ -180,65 +148,6 @@ export function SignStripPlot({ groupSignSeqs, singleSeq, singleRuns, singleExp,
         textAnchor="middle" fontFamily={FF.UI}>Row</text>
     </PlotSVG>
   );
-}
-
-// ── Partition integer n into k positive integers summing to n ─────
-function randomPartition(n, k, rng) {
-  if (k <= 0) return [];
-  if (k === 1) return [n];
-  if (k >= n) return Array(n).fill(1); // all-ones (can't do k > n positive parts)
-  const cuts = new Set();
-  let guard = 0;
-  while (cuts.size < k - 1 && guard < 10000) {
-    cuts.add(Math.floor(rng() * (n - 1)) + 1);
-    guard++;
-  }
-  const sorted = [0, ...Array.from(cuts).sort((a, b) => a - b), n];
-  return sorted.slice(1).map((v, i) => v - sorted[i]);
-}
-
-// ── Construct a sign array with exactly targetRuns runs ──────────
-function buildSimulatedSigns(nPlus, nMinus, targetRuns, rng) {
-  const majorSign = nPlus >= nMinus ? 1 : -1;
-  const majorN = Math.max(nPlus, nMinus);
-  const minorN = Math.min(nPlus, nMinus);
-  // Clamp runs so each sign has enough values for its partition
-  const majorRuns = Math.min(Math.ceil(targetRuns / 2), majorN);
-  const minorRuns = Math.min(Math.floor(targetRuns / 2), minorN);
-
-  const majorLengths = randomPartition(majorN, majorRuns, rng);
-  const minorLengths = randomPartition(minorN, minorRuns, rng);
-
-  const result = [];
-  for (let i = 0; i < Math.max(majorRuns, minorRuns); i++) {
-    if (i < majorRuns) {
-      for (let j = 0; j < majorLengths[i]; j++) result.push(majorSign);
-    }
-    if (i < minorRuns) {
-      for (let j = 0; j < minorLengths[i]; j++) result.push(-majorSign);
-    }
-  }
-  return result;
-}
-
-// ── Build simulated strip for top pair ───────────────────────────
-function buildSimStrip(filledSigns, expected) {
-  if (!filledSigns.length || !expected) return null;
-  const nPlus = filledSigns.filter(s => s === 1).length;
-  const nMinus = filledSigns.filter(s => s === -1).length;
-  const targetRuns = Math.round(expected);
-  if (targetRuns < 2 || nPlus < 1 || nMinus < 1) return null;
-
-  // Lightweight Mulberry32 seeded deterministically
-  let state = ((filledSigns.length * 2654435761) ^ (expected * 2246822519)) | 0;
-  function rng() {
-    state |= 0; state = (state + 0x6D2B79F5) | 0;
-    let t = Math.imul(state ^ (state >>> 15), 1 | state);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  }
-
-  return buildSimulatedSigns(nPlus, nMinus, targetRuns, rng);
 }
 
 function niceStep(range, targetTicks) {

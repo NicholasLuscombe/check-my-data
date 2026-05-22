@@ -289,11 +289,16 @@ async function aggregatePerGroup(testFn, groups, parentCondCtx) {
     fisherChi:fisherChi.toFixed(2), fisherDF:validPs.length*2, fisherP:fisherP.toFixed(4),
     // Propagate test-specific metrics from the worst-flagged group so that
     // display code and copy-summary can read them at the top level.
+    // S166 A6/A7: also surface the worst group's NAME as `worstGroup` so
+    // condition-grouped MiniCards (Runs Test footer / "All replicate pairs"
+    // table) can name the condition whose data the spread carries — closes
+    // the DS02 "pooled" mislabel where the worst group's metrics were
+    // top-level without identification.
     ...(() => {
       const worst = [...applicable].sort((a,b) => flagRankOf(b.flag)-flagRankOf(a.flag))[0];
       if(!worst) return {};
       const skip = new Set(["name","category","flag","description","details","interpretation"]);
-      const out = {};
+      const out = { worstGroup: worst.group };
       for(const [k,v] of Object.entries(worst.result)) { if(!skip.has(k)) out[k]=v; }
       return out;
     })(),

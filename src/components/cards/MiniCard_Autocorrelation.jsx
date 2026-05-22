@@ -1,6 +1,6 @@
 /* ── MiniCard: Autocorrelation ── */
 
-import { C, CC, FW, CHART, SIGNAL } from "../../constants/tokens.js";
+import { C, FW, CHART, SIGNAL } from "../../constants/tokens.js";
 import { fmtP } from "../../constants/thresholds.js";
 import { MiniCardLayout } from "../shared/CardLayout.jsx";
 import { EvidenceTable } from "../shared/EvidenceTable.jsx";
@@ -19,25 +19,42 @@ export function MiniCard_Autocorrelation({ result, importConfig, rowMap }) {
   const condColorMap = buildCondColorMap(importConfig?.condPerCol);
   const meanR1 = typeof result.pooledMeanR1 === "number" ? result.pooledMeanR1 : parseFloat(result.pooledMeanR1);
 
+  // ── Verdict marker (S166 A1) ──
+  // The producer's pooled lag-1 mean + 95% CI from the one-sample t on
+  // allR1 (autocorrelation.js). The plot draws it at lag 1; the CI's
+  // exclusion of zero is the verdict in visual form.
+  const verdictMarker = Number.isFinite(meanR1) ? {
+    value: meanR1,
+    ci: Array.isArray(result.pooledR1CI95) ? result.pooledR1CI95 : null,
+    lag: 1,
+  } : null;
+
   // ── Chart ──
   const hasDecay = result.perGroupDecay?.length || result.decayCurve;
   let mainChart = null;
   if (result.perGroupDecay?.length) {
-    mainChart = <AutocorrDecayPlot perGroupDecay={result.perGroupDecay} condColorMap={condColorMap} />;
+    mainChart = <AutocorrDecayPlot perGroupDecay={result.perGroupDecay} condColorMap={condColorMap} verdictMarker={verdictMarker} />;
   } else if (result.decayCurve) {
-    mainChart = <AutocorrDecayPlot singleCurve={result.decayCurve} condColorMap={condColorMap} />;
+    mainChart = <AutocorrDecayPlot singleCurve={result.decayCurve} condColorMap={condColorMap} verdictMarker={verdictMarker} />;
   } else {
     const pairData = sub.length ? sub : details;
     if (pairData.length && pairData[0].lag1 !== undefined) {
+      // S166 A1: ±0.15 reference band dropped (stale v0.3 effect-size floor
+      // removed by METHODOLOGY §2.1 v0.4). The DotStrip fallback keeps the
+      // r=0 reference line via refMin=refMax=0; per-pair dots are texture,
+      // verdict-marker would attach here in a future pass (the decayCurve
+      // branch above is the dominant path).
       mainChart = (
-        <DotStrip items={pairData} valueKey="lag1" refMin={-0.15} refMax={0.15}
-          refLabel="≈ 0 (independent)" xlabel="Lag-1 autocorrelation of inter-replicate differences"
+        <DotStrip items={pairData} valueKey="lag1" refMin={0} refMax={0}
+          refLabel="0 (independent)" xlabel="Lag-1 autocorrelation of inter-replicate differences"
           colorKey="significant" />
       );
     }
   }
 
-  // ── Legend items — line swatches for conditions + average, square for expected range ──
+  // ── Legend items — per-condition lines, r=0 reference, and the verdict
+  //    marker (pooled lag-1 mean ± 95% CI). The pre-S166 "Expected range"
+  //    swatch retires alongside the ±0.15 rectangle. ──
   const legendItems = hasDecay ? [
     ...(result.perGroupDecay || [{ group: "All data" }]).map((c, ci) => ({
       color: condColorMap[c.group]?.border || CHART.SERIES[ci % CHART.SERIES.length],
@@ -45,8 +62,8 @@ export function MiniCard_Autocorrelation({ result, importConfig, rowMap }) {
       opacity: 0.7,
       swatchType: "line",
     })),
-    { color: C.TEXT, label: "Average (tested)", swatchType: "line" },
-    { color: CC.EXP, label: "Expected range" },
+    { color: C.TEXT, label: "Mean ± 95% CI at lag 1 (verdict)", swatchType: "dot" },
+    { color: C.BORDER, label: "r = 0 (independent)", swatchType: "line", dashed: true },
   ] : null;
 
   // ── Footer ──
@@ -57,7 +74,7 @@ export function MiniCard_Autocorrelation({ result, importConfig, rowMap }) {
   return (
     <MiniCardLayout result={result}
       footer={footer}
-      lookFor={result.effectSizeClass === "strong" ? "Strong autocorrelation means that knowing one row's noise lets you predict the next — a hallmark of manually constructed sequences. Ask for the original instrument output files and compare the row ordering against the submitted data. Check whether the autocorrelation is concentrated in specific conditions by comparing the per-condition lines in the decay chart." : "Moderate autocorrelation can arise from several sources. Check whether the data was sorted or re-ordered before submission — this can break the natural measurement sequence and introduce artificial patterns. Compare against a fresh export from the instrument to rule out post-processing artefacts."}
+      lookFor={result.effectSizeClass === "strong" ? "Autocorrelation this size means that knowing one row's noise lets you predict the next — a hallmark of manually constructed sequences. Ask for the original instrument output files and compare the row ordering against the submitted data. Check whether the autocorrelation is concentrated in specific conditions by comparing the per-condition lines in the decay chart." : "Autocorrelation like this can arise from several sources. Check whether the data was sorted or re-ordered before submission — this can break the natural measurement sequence and introduce artificial patterns. Compare against a fresh export from the instrument to rule out post-processing artefacts."}
       implications="Correlated consecutive noise can result from time-dependent biological processes — for example, temperature drift or reagent degradation affecting adjacent samples. It can also indicate that values were generated using a formula that links each row to its neighbours rather than recording independent measurements.">
 
       {mainChart && (
@@ -67,6 +84,14 @@ export function MiniCard_Autocorrelation({ result, importConfig, rowMap }) {
             {mainChart}
           </PlotLayout>
           {legendItems && <ChartLegend items={legendItems} />}
+          {/* Plot caption (S166 A1): name the marker as the verdict.
+              Per-pair / per-condition lines are distribution texture; the
+              pooled-mean marker and its CI carry the verdict. */}
+          {hasDecay && (
+            <div style={{...SUB_HEAD, marginTop: "6px", marginBottom: 0, color: C.TEXT_3, fontWeight: FW.NORM}}>
+              Lines are per-condition lag-k means; dots are per-lag values. The mean ± 95% CI marker at lag 1 carries the verdict — average serial correlation across pairs is reliably above zero when the interval excludes the dashed reference.
+            </div>
+          )}
         </>
       )}
 
@@ -78,13 +103,25 @@ export function MiniCard_Autocorrelation({ result, importConfig, rowMap }) {
           const pairsStr = r.pairsSig == null ? "—" : `${r.pairsSig}/${r.pairsTotal}`;
           return [cell(r.lag), cell(r.pooledR), cell(fmtP(r.rawP)), cell(fmtP(r.rawAdjP)), cell(pairsStr)];
         });
+        // S166 A2: condition the "promoted to MODERATE" string on the
+        // producer's `higherLagWasDecisive` boolean — true only when
+        // higher-lag evidence actually moved the flag (lag-1 was LOW).
+        // The legacy `higherLagPromoted` field stays set whenever the
+        // (i)∧(ii)∧(iii) trio fires on any lag 2–5, even on HIGH cards
+        // where lag-1 already drove the verdict; reading it for the
+        // footer string produced a false "promoted" claim. When the
+        // structure is present but lag-1 was already flagged, the new
+        // string acknowledges corroboration without claiming promotion.
+        const footerText = result.higherLagWasDecisive
+          ? "Higher-lag (2–5) serial structure survives pooled BH-FDR at α = 0.001 AND ≥ 2 pairs corroborate per-pair — sub-unit evidence promoted this test to MODERATE."
+          : result.higherLagPromoted
+            ? "Higher-lag (2–5) serial structure survives pooled BH-FDR at α = 0.001 AND ≥ 2 pairs corroborate per-pair — corroborating the lag-1 finding."
+            : "Lag 1 is the primary statistic; lags 2–5 are sub-unit evidence (promotion requires pooled adj p < 0.001 plus ≥ 2 pairs at per-pair adj p < 0.05).";
         return (
           <>
             <div style={{...SUB_HEAD, marginTop: "12px"}}>Pooled autocorrelation by lag</div>
             <EvidenceTable columns={cols} rows={rows} identifierColumns={1} compact
-              footerText={result.higherLagPromoted
-                ? "Higher-lag (2–5) serial structure survives pooled BH-FDR at α = 0.001 AND ≥ 2 pairs corroborate per-pair — sub-unit evidence promoted this test to MODERATE."
-                : "Lag 1 is the primary statistic; lags 2–5 are sub-unit evidence (promotion requires pooled adj p < 0.001 plus ≥ 2 pairs at per-pair adj p < 0.05)."} />
+              footerText={footerText} />
           </>
         );
       })()}

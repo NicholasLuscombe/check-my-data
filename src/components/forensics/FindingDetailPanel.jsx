@@ -38,7 +38,7 @@
        evidence to filter on. */
 
 import { useMemo, useState, useCallback, useLayoutEffect } from "react";
-import { GROUP_MARKERS, RANK_NUMS, TEST_RAW_VISIBILITY, DISPLAY_NAMES } from "../../constants/mechanisms.js";
+import { GROUP_MARKERS, RANK_NUMS, TEST_RAW_VISIBILITY, DISPLAY_NAMES, POOLED_BY_DESIGN } from "../../constants/mechanisms.js";
 // FW + MINIMAP_CALLOUT_TYPOGRAPHY imports retired in B2f C2 alongside the
 // caption render lift — StickySurface owns those now.
 import { buildConvergenceGridFromFindings } from "../../analysis/convergence.js";
@@ -98,12 +98,37 @@ import { ExcerptTable } from "./ExcerptTable.jsx";
 export function guidanceCaption(finding) {
   if (!finding) return null;
   const testName = finding.tests?.[0]?.testId;
+  const conditionName = finding.tests?.[0]?.conditionName || null;
   const displayName = (testName && DISPLAY_NAMES[testName]) || testName || "This finding";
   if (finding.locality === "dataset-wide") {
     return `${displayName} applies across the whole dataset — see the test card for the evidence.`;
   }
   if (finding.locality === "unscoped") {
+    // S166 B1: honest-unscoped-pooled split. Tests whose verdict is
+    // constructively pooled across replicate pairs (Runs Test today) land
+    // here by-design — there is no per-pair attribution to emit, so the
+    // generic "couldn't isolate specific rows" reads as found-nothing.
+    // Per POOLED_BY_DESIGN membership, emit an affirming caption that
+    // names the distributed-across-pairs character of the verdict
+    // instead. Non-member unscoped findings keep the existing string.
+    if (POOLED_BY_DESIGN.has(testName)) {
+      return `${displayName} flagged a pattern distributed across the replicate pairs — no single pair drives it. See the test card for the statistical detail.`;
+    }
     return `${displayName} flagged the data but couldn't isolate specific rows. See the test card for the statistical detail.`;
+  }
+  // S166 B2: Row-Mean Runs row-local override. The producer's flagged
+  // sequence covers an entire condition's row slice (rowMeanRuns.js:213
+  // → row-local via convergence.js:180-204), so framing the caption
+  // around the condition is more accurate than the generic statistical
+  // fall-through. conditionName arrives on the finding's test entry via
+  // findings.js (extracted from r.bestSequence). When unavailable (e.g.
+  // bestSequence shape changes upstream), fall back to an affirming
+  // generic — never the bare "this pattern is statistical" string.
+  if (testName === "Row-Mean Runs") {
+    if (conditionName) {
+      return `${conditionName}'s row-mean sequence trends non-randomly — the whole condition is implicated. See the test card.`;
+    }
+    return `Row-mean patterns flagged a non-random sequence within one condition's rows. See the test card.`;
   }
   const visibility = TEST_RAW_VISIBILITY[testName];
   if (visibility === "visible") {

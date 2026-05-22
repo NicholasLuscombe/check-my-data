@@ -1,4 +1,4 @@
-import { mean, acfAtLag, zToP, bhFDR, oneSampleT } from "../stats/primitives.js";
+import { mean, acfAtLag, zToP, bhFDR, oneSampleT, stddev } from "../stats/primitives.js";
 import { flagFromP, flagRankOf, ALPHA, EFFECT_SIZE } from "../constants/thresholds.js";
 
 /* 5. Autocorrelation */
@@ -53,6 +53,15 @@ export function testAutocorrelation(matrix) {
   // More powerful than proportion heuristic, especially for small nC.
   const pooled=allR1.length>=2?oneSampleT(allR1):{t:0,df:0,p:1};
   const pooledMeanR1=allR1.length?mean(allR1):0;
+  // S166 A1: additive 95% CI on the pooled lag-1 mean for the plot's verdict
+  // marker. Normal-approximation interval (mean ± 1.96·SE) — consistent with
+  // oneSampleT's df>30 z-approximation branch. CI's exclusion of zero IS the
+  // pooled-t verdict in visual form. Empty array when n<2 (no interval defined).
+  const pooledR1SD = allR1.length >= 2 ? stddev(allR1) : 0;
+  const pooledR1SE = allR1.length >= 2 ? pooledR1SD / Math.sqrt(allR1.length) : 0;
+  const pooledR1CI95 = allR1.length >= 2
+    ? [pooledMeanR1 - 1.96 * pooledR1SE, pooledMeanR1 + 1.96 * pooledR1SE]
+    : null;
   // Flag: pooled t-test p-value with effect-size gate at large N .
   // At N > 500, genomic autocorrelation (co-regulated neighboring genes) produces
   // r₁ ≈ 0.10–0.15 with extreme significance. Require |mean r₁| ≥ 0.25 for
@@ -70,6 +79,12 @@ export function testAutocorrelation(matrix) {
   const anyPairFlagged = acfAdjPs.some(p => p < ALPHA.FLAG);
   const pairPromotedFlag = anyPairFlagged ? "MODERATE" : "LOW";
   let flag = flagRankOf(pairPromotedFlag) > flagRankOf(pooledFlag) ? pairPromotedFlag : pooledFlag;
+  // Capture flag BEFORE the higher-lag conditional bump so consumers can tell
+  // when higher-lag evidence was the decisive promoter vs corroborative noise
+  // alongside an already-flagged lag-1. S166 A2: the legacy `higherLagPromoted`
+  // boolean is set independent of whether the bump actually moved the flag;
+  // the footer copy that reads it falsely claims promotion on HIGH cards.
+  const flagBeforeHigherLag = flag;
 
   // ── Higher-lag sub-unit evidence (lags 2–5) ────────────────────────
   // Pooled one-sample t per lag; BH-FDR across the 5 pooled p-values.
@@ -123,6 +138,12 @@ export function testAutocorrelation(matrix) {
   }
   const higherLagPromoted = HIGHER_LAGS.some(k => triggeredByLag[k]);
   if (flag === "LOW" && higherLagPromoted) flag = "MODERATE";
+  // S166 A2: true iff higher-lag evidence was the decisive promoter (lag-1 was
+  // LOW and the bump moved it to MODERATE). The legacy `higherLagPromoted` flag
+  // also fires when lag-1 already flagged at MOD/HIGH — leading the MiniCard
+  // footer + findingComposers to falsely assert "promoted to MODERATE" on a
+  // HIGH card. Footer copy conditions on this new boolean instead.
+  const higherLagWasDecisive = higherLagPromoted && flagBeforeHigherLag === "LOW";
 
   const lagTable = [1, ...HIGHER_LAGS].map((k, i) => ({
     lag: k,
@@ -143,6 +164,7 @@ export function testAutocorrelation(matrix) {
     pooledT:pooled.t.toFixed(3), pooledP:pooled.p.toFixed(4),
     primaryP: Math.min(pooled.p, ...(anyPairFlagged ? acfAdjPs.filter(p=>p<ALPHA.FLAG) : [1])),
     effectSizeClass,
-    lagTable, higherLagPromoted,
+    pooledR1SD, pooledR1SE, pooledR1CI95,
+    lagTable, higherLagPromoted, higherLagWasDecisive,
     decayCurve, flag, details:res.slice(0,15) };
 }
