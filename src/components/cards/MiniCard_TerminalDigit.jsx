@@ -20,7 +20,9 @@ return (
   <MiniCardLayout result={result}
     implications={implications}
     footer={<>
-      {nVals} values tested · χ²={chi} · df={result.df||"?"} · {fmtPBadge(result.primaryP)}
+      {nVals} values tested · χ²={chi} · df={result.df||"?"}
+      {result.flag !== "LOW" && result.flag !== "N/A" && " · last digits not uniform"}
+      {" · "}{fmtPBadge(result.primaryP)}
       {result.trailingZeroWarning && <span style={{color:C.TEXT_3,fontFamily:FF.UI}}> · 9-digit test (digit 0 excluded)</span>}
     </>}
     lookFor="Check which digits are over- or under-represented. Humans tend to favour digits 0 and 5 (rounding) and avoid extremes like 0 and 9 at the end. If the dataset has trailing-zero suppression, focus on digits 1–9. A non-uniform pattern across multiple digits is stronger evidence than a single digit being slightly off.">

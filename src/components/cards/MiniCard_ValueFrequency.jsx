@@ -8,9 +8,14 @@ import { SUB_HEAD } from "../shared/styles.js";
 export function MiniCard_ValueFrequency({ result, importConfig, rowMap }) {
   const details = result.details || [];
   const passCounts = `${result.nSpikesPass1 || 0} full · ${result.nSpikesPass2 || 0} digit`;
+  const nSpikes = (result.nSpikesPass1 || 0) + (result.nSpikesPass2 || 0);
   return (
     <MiniCardLayout result={result}
-      footer={`${result.nValues||"?"} values · ${passCounts} · ${fmtPBadge(result.primaryP)}`}
+      footer={<>
+        {result.nValues||"?"} values · {passCounts}
+        {nSpikes > 0 && ` · ${nSpikes} value${nSpikes !== 1 ? "s" : ""} over-represented`}
+        {" · "}{fmtPBadge(result.primaryP)}
+      </>}
       lookFor="Check whether the over-represented values are round numbers (10, 50, 100) or follow a numpad pattern (12, 23, 34). For digit-pass spikes, look at whether the same fractional substring repeats across otherwise-unrelated rows — template-copied fabrication. Cross-reference with the terminal digit test — if both flag, the evidence for manual entry is stronger. Look at where these values appear in the dataset: are they clustered in specific rows or conditions?"
       implications="Individual values that spike above their neighbours can reflect natural modes in the data — for example, a detection limit that many samples hit. They can also indicate keyboard-entry patterns, where certain values are typed more often due to motor habits or cognitive biases. Spikes at adjacent numpad values (e.g. 67 and 78) are particularly characteristic of manual entry. A digit-substring spike (same fractional digits across differing integer parts) is characteristic of template-copied fabrication.">
 
