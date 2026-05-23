@@ -153,7 +153,10 @@ return (
         const totalBlockRows = structuralBlocks.reduce((s, b) => s + b.height, 0);
         summaryParts.push(`${structuralBlocks.length} copied block${structuralBlocks.length!==1?"s":""} (${totalBlockRows} rows)`);
       }
-      if (hasRowDups) summaryParts.push(`${nDupRows} duplicated row${nDupRows!==1?"s":""} in ${rowGroups.length} group${rowGroups.length!==1?"s":""}`);
+      if (hasRowDups) {
+        const rowsInvolved = rowGroups.reduce((s,g) => s + g.count, 0);
+        summaryParts.push(`${rowGroups.length} duplicate group${rowGroups.length!==1?"s":""} · ${rowsInvolved} row${rowsInvolved!==1?"s":""} · ${nDupRows} ${nDupRows!==1?"are copies":"is a copy"} of ${rowGroups.length!==1?"earlier rows":"an earlier row"}`);
+      }
       const totalItems = structuralBlocks.length + (hasRowDups?1:0);
       return (
       <EvidenceBlock label="Duplicated blocks of data" detail={summaryParts.join("; ")}>
@@ -280,7 +283,10 @@ return (
       const wrVc = getVisibleCols([], [...allCmKeys]);
       return (
       <EvidenceBlock label="Duplicate values within a row"
-        detail={`${wrTotal} coincidences (${wrExp.toFixed(0)} expected)`}>
+        detail={<>
+          {`${wrTotal} duplicate pair${wrTotal!==1?"s":""} within a row (${wrExp.toFixed(0)} expected)`}
+          <div style={{fontSize:FS.sm,color:C.TEXT_3,marginTop:"2px"}}>Colours mark separate groups of within-row duplicates.</div>
+        </>}>
         <table style={{borderCollapse:"separate",borderSpacing:"0",fontFamily:FF.UI,width:"100%"}}>
           <ColumnHeaders columns={colDefs} visCols={mapVisCols(wrVc)} condSpans={condSpans} condRowNum={_condRowNum} nameRowNum={_nameRowNum}/>
           <tbody>
