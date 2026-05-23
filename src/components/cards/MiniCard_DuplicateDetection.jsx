@@ -155,7 +155,7 @@ return (
       }
       if (hasRowDups) {
         const rowsInvolved = rowGroups.reduce((s,g) => s + g.count, 0);
-        summaryParts.push(`${rowGroups.length} duplicate group${rowGroups.length!==1?"s":""} · ${rowsInvolved} row${rowsInvolved!==1?"s":""} · ${nDupRows} ${nDupRows!==1?"are":"is"} a copy of an earlier row`);
+        summaryParts.push(`${rowGroups.length} duplicate group${rowGroups.length!==1?"s":""} · ${rowsInvolved} row${rowsInvolved!==1?"s":""} · ${nDupRows} ${nDupRows!==1?"are copies":"is a copy"} of ${rowGroups.length!==1?"earlier rows":"an earlier row"}`);
       }
       const totalItems = structuralBlocks.length + (hasRowDups?1:0);
       return (
