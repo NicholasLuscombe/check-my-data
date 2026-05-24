@@ -22,7 +22,7 @@ const { extractAnalysisInputs, runFullAnalysis } = await import('../src/analysis
 const { computeSeverity } = await import('../src/analysis/severity.js');
 const { detectVST } = await import('../src/stats/vst.js');
 const { inferRoles } = await import('../src/import/roles.js');
-const { detectAssay } = await import('../src/constants/assays.js');
+const { detectAssay, ASSAY_DATATYPE_MAP } = await import('../src/constants/assays.js');
 const { forwardFill, preprocessRaw, detectHeaderRows } = await import('../src/import/parser.js');
 const { detectLongFormat } = await import('../src/import/longFormat.js');
 const { suggestRowSemantics } = await import('../src/import/rowSemantics.js');
@@ -43,7 +43,10 @@ const EXPECTED = {
   '12a-uniform-mixture-clean.csv':      { severity: 0, assay: 'general' },
   '12b-uniform-mixture-fabricated.csv':  { severity: 1, assay: 'general' },
   '13-vfstest-cellcountest.csv':  { severity: 2, assay: 'cell_count' },
-  '14-crctest-survey.csv':        { severity: 3, assay: 'survey' },
+  // S172 methodology call: single-mechanism (copy-paste dup rows), single
+  // flagged dim (DupDet HIGH); WRV redundant non-independent signal, correctly
+  // N/A on ordinal. See TEST-GROUND-TRUTH DS14.
+  '14-crctest-survey.csv':        { severity: 2, assay: 'survey' },
   '15-missing-carlisle.csv':      { severity: 3, assay: 'general' },
   '16-densitometry-carlisle-overbalanced.csv': { severity: 2, assay: 'densitometry' },
   '17-densitometry-carlisle-clean.csv':        { severity: 0, assay: 'densitometry' },
@@ -119,8 +122,12 @@ for (const [file, expected] of Object.entries(EXPECTED)) {
   // Detect VST
   const vst = detectVST(matrix, assay);
 
-  // Determine data type
-  const dataType = assay === 'survey' ? 'survey' : (assay === 'cell_count' ? 'count' : 'continuous');
+  // Determine data type via the canonical resolver (S172). Prior to S172 this
+  // was a hand-rolled ternary that emitted 'survey' for the survey assay; the
+  // UI / BatchView path used ASSAY_DATATYPE_MAP which emits 'ordinal'. The
+  // divergence bypassed DATATYPE_SKIP['ordinal'] in the harness only, running
+  // 11 extra tests on DS14 and lifting batch severity 2 → 3.
+  const dataType = ASSAY_DATATYPE_MAP[assay] || 'continuous';
 
   // S118 Track H — Row Semantics Gate. Auto-suggest from detectLongFormat()
   // (long-format detection on raw post-preprocessing rows, mirroring the UI
