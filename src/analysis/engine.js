@@ -92,6 +92,14 @@ import { testCrossConditionConsistency } from '../tests/crossConditionConsistenc
 // ── tick — yield to the UI between tests ───────────────────────────
 const tick = () => new Promise(r => requestAnimationFrame(() => setTimeout(r, 0)));
 
+// ── PERF — opt-in per-test timing instrument ───────────────────────
+// Gate: process.env.PERF === '1' (Node). Browser unaffected (process undef).
+// When enabled, runFullAnalysis attaches `_perfTimings` (array of
+// `{name, ms}`) and `_perfMeta` (capture date) to the returned results
+// array. Logic-neutral — wraps existing dispatch calls in performance.now()
+// only. No reordering, no arithmetic change.
+const PERF_ENABLED = (typeof process !== 'undefined' && process.env && process.env.PERF === '1');
+
 // ── extractAnalysisInputs ──────────────────────────────────────────
 // Builds the numeric matrix, raw-string matrix, column groups,
 // row-level conditions, and filtered indices from imported data.
@@ -461,10 +469,12 @@ export async function runFullAnalysis(matrix, rawMatrix, condCtx, assay, onProgr
   ];
 
   const results = [];
+  const perfTimings = PERF_ENABLED ? [] : null;
   for (let i = 0; i < tests.length; i++) {
     const [name, fn] = tests[i];
     if (onProgress) onProgress(`${i+1}/${tests.length} — ${name}`);
     await tick();
+    const tStart = PERF_ENABLED ? performance.now() : 0;
     try {
       results.push(await fn());
     } catch (err) {
@@ -477,7 +487,12 @@ export async function runFullAnalysis(matrix, rawMatrix, condCtx, assay, onProgr
         error: true,
       });
     }
+    if (PERF_ENABLED) perfTimings.push({ name, ms: performance.now() - tStart });
     await tick();
+  }
+  if (PERF_ENABLED) {
+    results._perfTimings = perfTimings;
+    results._perfMeta = { capturedAt: new Date().toISOString() };
   }
   // Post-process: pivot-aware Selective Noise caveat
   // When data arrives via long-format pivot, columns = experimental groups, not

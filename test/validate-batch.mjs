@@ -1,7 +1,17 @@
 // Quick Node.js batch validation — checks all 17 CSV datasets produce expected severity scores.
 // Polyfills browser APIs that the analysis engine uses.
-import { readFileSync } from 'fs';
+//
+// PERF=1 mode: in addition to severity validation, records per-test
+// wallclock per fixture (from engine.js's PERF instrument) and Blocked
+// Mahalanobis exceedance metadata (from blockedMahalanobis.js's
+// _perfExceedances field). Prints per-test totals sorted descending, the
+// per-fixture × per-test matrix for the three heaviest fixtures, and a BM
+// parity table for DS21/DS22/DS15. Writes a JSON sidecar at
+// test/perf-out/<label>.json (label defaults to git SHA, override with
+// PERF_LABEL=<name>) so PRE/POST runs can be diffed offline.
+import { readFileSync, writeFileSync, mkdirSync } from 'fs';
 import { join } from 'path';
+import { execSync } from 'child_process';
 
 // Polyfill requestAnimationFrame for Node.js
 globalThis.requestAnimationFrame = (cb) => setTimeout(cb, 0);
@@ -70,6 +80,11 @@ const EXPECTED = {
   '22-covariance-block.csv': { severity: 2, assay: 'general' },
 };
 
+const PERF = process.env.PERF === '1';
+const PERF_LABEL = process.env.PERF_LABEL || null;
+const perfPerFixture = PERF ? {} : null;
+const batchStart = PERF ? performance.now() : 0;
+
 let passed = 0, failed = 0, pending = 0;
 
 for (const [file, expected] of Object.entries(EXPECTED)) {
@@ -137,8 +152,95 @@ for (const [file, expected] of Object.entries(EXPECTED)) {
     console.log(`${mark} ${file}: severity=${severity} (expected=${expected.severity})${!ok && flags ? ' [' + flags + ']' : ''}`);
     if (ok) passed++; else failed++;
   }
+
+  if (PERF) {
+    const timings = results._perfTimings || [];
+    const bm = results.find(r => r.name === 'Blocked Mahalanobis');
+    const bmExceed = bm && bm._perfExceedances ? bm._perfExceedances : null;
+    let bmPrimaryExceed = null;
+    if (bmExceed && bmExceed.length) {
+      // Primary unit = arg-min(adjP); if ties, the lowest-index unit wins
+      // (Math.min behaviour). We mirror that with reduce for an explicit
+      // tie-break.
+      const primary = bmExceed.reduce((best, u) => (u.adjP < best.adjP ? u : best), bmExceed[0]);
+      bmPrimaryExceed = { ...primary };
+    }
+    perfPerFixture[file] = {
+      timings,
+      bmPrimaryP: bm ? bm.primaryP : null,
+      bmFlag: bm ? bm.flag : null,
+      bmNPerm: bm ? bm.nPerm : null,
+      bmExceedances: bmExceed,
+      bmPrimaryExceed,
+    };
+  }
 }
 
 const pendingSuffix = pending ? ` (+ ${pending} pending)` : '';
 console.log(`\n${passed}/${passed + failed} passed${pendingSuffix}` + (failed ? ` — ${failed} FAILED` : ' — all clear'));
+
+if (PERF) {
+  const batchMs = performance.now() - batchStart;
+  let sha = 'unknown';
+  try {
+    sha = execSync('git rev-parse --short HEAD', { encoding: 'utf-8' }).trim();
+  } catch {}
+  const label = PERF_LABEL || sha;
+  const nodeVersion = process.version;
+  const platform = `${process.platform} ${process.arch}`;
+  const capturedAt = new Date().toISOString();
+
+  // ── Per-test totals across all fixtures, sorted descending ──
+  const perTestTotal = {};
+  for (const [file, p] of Object.entries(perfPerFixture)) {
+    for (const t of p.timings) {
+      perTestTotal[t.name] = (perTestTotal[t.name] || 0) + t.ms;
+    }
+  }
+  const perTestRanked = Object.entries(perTestTotal)
+    .sort((a, b) => b[1] - a[1])
+    .map(([name, ms]) => ({ name, totalMs: ms }));
+
+  // ── Per-fixture totals, sorted descending ──
+  const perFixtureTotal = Object.entries(perfPerFixture)
+    .map(([file, p]) => ({ file, totalMs: p.timings.reduce((s, t) => s + t.ms, 0) }))
+    .sort((a, b) => b.totalMs - a.totalMs);
+
+  console.log('\n── PERF: batch ' + label + ' (' + nodeVersion + ', ' + platform + ') ──');
+  console.log(`Total wallclock: ${(batchMs / 1000).toFixed(2)}s`);
+  console.log('\nPer-test totals across 22 fixtures (ms, descending):');
+  for (const t of perTestRanked) {
+    console.log(`  ${t.totalMs.toFixed(0).padStart(8)}  ${t.name}`);
+  }
+  console.log('\nPer-fixture totals (ms, descending):');
+  for (const f of perFixtureTotal) {
+    console.log(`  ${f.totalMs.toFixed(0).padStart(8)}  ${f.file}`);
+  }
+  console.log('\nBM parity (DS21/DS22/DS15):');
+  for (const file of ['21-localised-ar.csv', '22-covariance-block.csv', '15-missing-carlisle.csv']) {
+    const p = perfPerFixture[file];
+    if (!p) { console.log(`  ${file}: not in batch`); continue; }
+    const bmT = p.timings.find(t => t.name === 'Blocked Mahalanobis');
+    const exc = p.bmPrimaryExceed
+      ? `pass=${p.bmPrimaryExceed.pass} cond=${p.bmPrimaryExceed.condition} exceed=${p.bmPrimaryExceed.exceed} rawP=${p.bmPrimaryExceed.rawP.toFixed(6)} adjP=${p.bmPrimaryExceed.adjP.toFixed(6)}`
+      : '(none)';
+    const totExc = p.bmExceedances ? p.bmExceedances.reduce((s, u) => s + u.exceed, 0) : 0;
+    console.log(`  ${file}: BM=${bmT?.ms.toFixed(0)}ms primaryP=${p.bmPrimaryP} flag=${p.bmFlag} nPerm=${p.bmNPerm}`);
+    console.log(`    primary: ${exc}`);
+    console.log(`    sumExceed across ${p.bmExceedances?.length || 0} units = ${totExc}`);
+  }
+
+  // ── Sidecar JSON for offline diff ──
+  const outDir = 'test/perf-out';
+  try { mkdirSync(outDir, { recursive: true }); } catch {}
+  const sidecar = {
+    label, sha, nodeVersion, platform, capturedAt,
+    batchMs, perTestRanked, perFixtureTotal,
+    perFixture: perfPerFixture,
+  };
+  const outPath = join(outDir, `${label}.json`);
+  writeFileSync(outPath, JSON.stringify(sidecar, null, 2));
+  console.log(`\nSidecar written: ${outPath}`);
+}
+
 process.exit(failed > 0 ? 1 : 0);

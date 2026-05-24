@@ -629,6 +629,20 @@ export async function testBlockedMahalanobis(matrix, condCtx, rng, dataType = 'c
     interpretation = `Flagged at primaryP = ${primaryP.toFixed(4)}.`;
   }
 
+  // _perfExceedances: additive parity-check metadata for the S169-perf
+  // baseline (engine.js PERF=1 instrument). One entry per (pass × condition)
+  // unit with the raw exceedance counter that produced rawP. Logic-neutral —
+  // not consumed by any display, aggregation, or severity path. Used by
+  // test/validate-batch.mjs to confirm draw-sequence parity across the
+  // S169 async-yield boundary (pre vs post must be byte-identical).
+  const _perfExceedances = units.map(u => ({
+    pass: u.pass,
+    condition: u.condition,
+    exceed: u.pass === 'mu' ? u.ws.exceedTsq : u.ws.exceedR,
+    rawP: u.rawP,
+    adjP: u.adjP,
+  }));
+
   return {
     name: NAME, category: CAT,
     description: "Looks for contiguous row blocks whose cross-replicate covariance or mean diverges from the rest of the condition. Two passes scan each sliding window — the μ-pass tests block-vs-complement mean separation via Hotelling T² with Ledoit-Wolf-shrunk pooled covariance; the Σ-pass tests block-vs-complement covariance inflation via λ_max(Σ̂_B · Σ̂_{\\B}^{-1}) with independently shrunk covariances. Factor-model value injection, block copy-paste with noise perturbation, and unrecorded localised batch effects all leave signatures this card picks up — complementary to §2.6 Mahalanobis Row Outlier which tests individual rows against a global (μ, Σ).",
@@ -641,6 +655,7 @@ export async function testBlockedMahalanobis(matrix, condCtx, rng, dataType = 'c
     interpretation,
     details,
     conditionNames: applicable.map(ws => ws.name),
+    _perfExceedances,
   };
 }
 

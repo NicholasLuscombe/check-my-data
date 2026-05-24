@@ -51,3 +51,6 @@ docs/shared/CHECK-MY-DATA-TEST-CHEATSHEET.md
 
 # Diagnostic output redirects (cleanup convenience)
 output.txtmnt/
+
+# Perf instrument sidecars (engine.js PERF=1 + validate-batch.mjs)
+test/perf-out/
