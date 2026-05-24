@@ -58,7 +58,7 @@ if (flaggedNames.length === 1) {
   }
 }
 
-const footerText = <>{cds.length} columns · variance ratio {ratio.toFixed(1)}× · noise differs {ratio.toFixed(1)}× across columns · Bartlett χ²={result.bartlettChi} · df={result.df} · {fmtPBadge(result.primaryP)}</>;
+const footerText = <>{cds.length} columns · variance ratio {ratio.toFixed(1)}× · Bartlett χ²={result.bartlettChi} · df={result.df} · {fmtPBadge(result.primaryP)}</>;
 const lookForText = outlierDir === "quieter"
   ? `${outlierName || "One column"} has less noise than the others — this can happen when a column's values were smoothed, averaged, or manually adjusted. Compare the flagged column's raw values against the instrument output file. Check whether the quiet column's values are rounder or less variable than the others at similar signal levels.`
   : `${outlierName || "One column"} has more noise than the others — this can happen when noise was added to one column to disguise data concerns, or when that column was measured under different conditions. Check whether the noisy column corresponds to a different instrument, operator, or date.`;

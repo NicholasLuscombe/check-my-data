@@ -12,9 +12,9 @@ const se=parseFloat(result.slopeSE)||0;
 const assayLabel = result.assay === "general" ? "this measurement type" : (ASSAYS.find(a=>a.v===result.assay)?.l || result.assay).toLowerCase();
 const expSlope = parseFloat(result.expectedSlope)||0;
 const slopeClause = obs > expSlope
-  ? ` · noise grows with signal (${obs.toFixed(2)} vs ${result.expectedSlope||"?"})`
+  ? ` · noise grows with signal`
   : obs < expSlope
-    ? ` · noise flatter than expected (${obs.toFixed(2)} vs ${result.expectedSlope||"?"})`
+    ? ` · noise flatter than expected`
     : "";
 return (
 
