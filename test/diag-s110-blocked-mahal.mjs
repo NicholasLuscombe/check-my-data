@@ -46,7 +46,7 @@ const DATASETS = [
   { file: '22-covariance-block.csv',             assay: 'general' },
 ];
 
-function runFixture(file, assay) {
+async function runFixture(file, assay) {
   const csv = readFileSync(join(FIXTURES, file), 'utf-8');
   const parsed = Papa.default.parse(csv, { skipEmptyLines: true });
   let raw = parsed.data;
@@ -79,14 +79,14 @@ function runFixture(file, assay) {
   const m = hasVST ? vstMatrix : matrix;
   const ctx = hasVST ? vstCondCtx : condCtx;
   const rng = createPRNG(matrix);
-  return testBlockedMahalanobis(m, ctx, rng, dataType);
+  return await testBlockedMahalanobis(m, ctx, rng, dataType);
 }
 
 // ── (a) DS22 detailed per-block table ──
 console.log('='.repeat(72));
 console.log('DS22 — covariance-block fixture (Blocked Mahalanobis primary target)');
 console.log('='.repeat(72));
-const ds22 = runFixture('22-covariance-block.csv', 'general');
+const ds22 = await runFixture('22-covariance-block.csv', 'general');
 if (ds22.flag === 'N/A') {
   console.log(`DS22: N/A — ${ds22.description || ds22.reason}`);
 } else {
@@ -119,7 +119,7 @@ console.log('Fixture                                       flag       primaryP  
 console.log('-'.repeat(95));
 const regressions = [];
 for (const { file, assay } of DATASETS) {
-  const r = runFixture(file, assay);
+  const r = await runFixture(file, assay);
   const flag = (r.flag || 'N/A').padEnd(9);
   const pp = r.primaryP != null ? r.primaryP.toFixed(6).padEnd(12) : '—'.padEnd(12);
   const w = r.windowSize != null ? String(r.windowSize).padEnd(4) : '—'.padEnd(4);

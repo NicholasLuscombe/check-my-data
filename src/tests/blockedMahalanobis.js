@@ -372,8 +372,22 @@ function scanCondition(rows, windows, p, scratch, perWindowOut) {
  * @param {string} [dataType='continuous']
  * @returns {object} Standard test-result object with primaryP + details.
  * @see METHODOLOGY.md §"2.6b Blocked Mahalanobis"
+ *
+ * S169 — async + chunked permutation loop. The permutation kernel runs ~10s
+ * of CPU in Node and ~30-60s in a browser on DS21/DS22-shape fixtures (200
+ * rows × 8 reps × 2 conds × 4999 perms). Previously the loop ran
+ * synchronously, holding the main thread long enough to trip "page
+ * unresponsive." Yielding every PERM_CHUNK iterations via setTimeout(0)
+ * preserves rng draw order (the engine dispatches tests sequentially via
+ * await fn() — see engine.js:455-460), so batch parity is bit-exact.
+ * onPermProgress, if supplied, is called once per chunk with the fraction
+ * b / N_PERM ∈ [0, 1], enabling a determinate sub-progress display under
+ * "Running statistical tests" without changing arithmetic.
  */
-export function testBlockedMahalanobis(matrix, condCtx, rng, dataType = 'continuous') {
+const PERM_CHUNK = 50;
+const yieldToHost = () => new Promise(r => setTimeout(r, 0));
+
+export async function testBlockedMahalanobis(matrix, condCtx, rng, dataType = 'continuous', onPermProgress = null) {
   const NAME = "Blocked Mahalanobis";
   const CAT = "replicate";
 
@@ -533,6 +547,14 @@ export function testBlockedMahalanobis(matrix, condCtx, rng, dataType = 'continu
       if (minFloorAdjP > ALPHA.NOTE) {
         earlyExit = true;
       }
+    }
+    // S169 — yield to host every PERM_CHUNK iterations. Arithmetic-free:
+    // rng has already advanced for this iteration (shuffle ran ALWAYS above),
+    // and the next iteration's draws are deterministic regardless of when
+    // the host resumes us. Bit-exact parity with the pre-S169 sync loop.
+    if ((b + 1) % PERM_CHUNK === 0 && b + 1 < N_PERM) {
+      if (onPermProgress) onPermProgress((b + 1) / N_PERM);
+      await yieldToHost();
     }
   }
 

@@ -113,7 +113,7 @@ console.log('\n' + '-'.repeat(72));
 console.log('Part (ii) + (iii) — DS15 argmax Σ-pass block + observed R vs null');
 console.log('-'.repeat(72));
 const rng = createPRNG(matrix);
-const r = testBlockedMahalanobis(matrix, condCtx, rng, 'continuous');
+const r = await testBlockedMahalanobis(matrix, condCtx, rng, 'continuous');
 console.log(`flag=${r.flag}, primaryP=${r.primaryP}, nConditions=${r.nConditions}, nUnits=${r.nUnits}, W=${r.windowSize}, stride=${r.stride}, B_perm=${r.nPerm}`);
 console.log(`interpretation: ${r.interpretation}`);
 console.log('\nDetails (all):');

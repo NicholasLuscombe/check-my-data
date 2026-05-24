@@ -380,7 +380,7 @@ export async function runFullAnalysis(matrix, rawMatrix, condCtx, assay, onProgr
       }
       return tagVST(await runPairVST(m => testMahalanobisOutlier(m, assay)));
     }],
-    ["Blocked Mahalanobis", () => {
+    ["Blocked Mahalanobis", async () => {
       // S110 Track E (a): block-localised covariance/mean anomaly detection.
       // Sibling of §2.6 Mahalanobis Row Outlier; targets the gap where a
       // factor-model injection or block copy-paste leaves row-level D² within
@@ -391,12 +391,21 @@ export async function runFullAnalysis(matrix, rawMatrix, condCtx, assay, onProgr
       // VST routing: runs on the post-VST matrix, same as §2.6 Mahalanobis.
       // S118 Track H: genomics auto-routes to rowSemantics='arbitrary' at
       // import; the rsSkip lane subsumes the previous ad-hoc assay check.
+      // S169: testBlockedMahalanobis is async and yields between permutation
+      // chunks. The dispatch loop already awaits fn() at engine.js:460, so
+      // an async wrapper is transparent. onPermProgress threads the per-chunk
+      // fraction back through the same onProgress hook used for the
+      // top-level test progress, with a "(perms NN%)" suffix.
       const csBM = condSkip("Blocked Mahalanobis","replicate"); if (csBM) return csBM;
       const dtBM = dtSkip("Blocked Mahalanobis","replicate"); if (dtBM) return dtBM;
       const rsBM = rsSkip("Blocked Mahalanobis","replicate"); if (rsBM) return rsBM;
       const m = hasVST ? vstMatrix : matrix;
       const ctx = hasVST ? vstCondCtx : condCtx;
-      const r = testBlockedMahalanobis(m, ctx, rng, dataType);
+      const bmIndex = tests.findIndex(t => t[0] === "Blocked Mahalanobis");
+      const onPermProgress = onProgress
+        ? (frac) => onProgress(`${bmIndex+1}/${tests.length} — Blocked Mahalanobis (perms ${Math.round(frac*100)}%)`)
+        : null;
+      const r = await testBlockedMahalanobis(m, ctx, rng, dataType, onPermProgress);
       if (hasVST) r.vstTransform = vstType;
       return r;
     }],
