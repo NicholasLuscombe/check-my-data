@@ -19,7 +19,9 @@ return (
 
   <MiniCardLayout result={result}
     footer={<>
-      {result.nValues||"?"} values tested · χ²={result.chiSquared||"?"} · df={result.df||"?"} · {fmtPBadge(result.primaryP)}
+      {result.nValues||"?"} values tested · χ²={result.chiSquared||"?"} · df={result.df||"?"}
+      {result.flag !== "LOW" && result.flag !== "N/A" && (isSecond ? " · second digits off Benford" : " · leading digits off Benford")}
+      {" · "}{fmtPBadge(result.primaryP)}
     </>}
     lookFor={isSecond ? "Look for excess 0s and 5s (rounding signature) or deficit of certain digits. Second-digit Benford is most powerful for detecting fabrication in large datasets — small deviations become significant with enough data." : "Check whether smaller digits (1–3) are depleted or larger digits (7–9) are inflated compared to Benford's law. This pattern suggests values were chosen from a narrow range or generated uniformly rather than arising from natural processes." }
     implications={isSecond

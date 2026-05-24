@@ -274,26 +274,32 @@ White card wrapper for individual test results. Mode-aware rendering. Carries cl
 └─────────────────────────────────────────────────────────┘
 ```
 
-**Expanded:**
+**Expanded (Forensics mode):**
 ```
 ┌ white card · 3px MECH stripe ───────────────────────────┐
 │ [icon] Cross-replicate comparisons                      │
 │ Test Name · subtitle                   Moderate p=0.018 ▾│
 │                                                         │
-│ [Method description — Forensics mode only]              │
+│ [footer — one-line result, PROMOTED]                    │
 │                                                         │
 │ [children — evidence content]                           │
 │                                                         │
-│ [footer — summary line]                                 │
+│ ▸ How this test works                                   │
+│ ▸ Implications                                          │
+│ ▸ What to look for                                      │
 └─────────────────────────────────────────────────────────┘
 ```
 
 The breadcrumb line above test name renders in `sm Regular MECH sans` typography (cluster-name breadcrumb tuple), prefixed with a 14px MechIcon (+2 for digits) in MECH_COLOR[mk]. On cleared-tier cards (severity LOW), both breadcrumb text and icon render at 0.4 opacity per the consistent cleared-state treatment.
 
+The expanded-body order is set by `MiniCardLayout` in `src/components/shared/CardLayout.jsx` (S168). Footer (the test-specific one-line result) sits ABOVE evidence so the verdict reads first; disclosure stack (How it works / Implications / What to look for) drops BELOW evidence so power users see numbers before exposition. Disclosures are Forensics-only — Peer Review never mounts `MiniCardLayout` (the review branch in `CategoryRow.jsx` routes children to a finding-string `<div>` instead).
+
+Disclosure gates are intentionally asymmetric (not unified): "How this test works" is descriptive — it shows on any expanded Forensics card with a `TEST_METHODS` entry, flagged or not. "Implications" and "What to look for" are finding-specific — they render only when the test fired (`flag !== "LOW"` and `flag !== "N/A"`). The asymmetry exists because the method description carries general orientation regardless of result, while implications and look-for clauses describe what the flagged signal means.
+
 **Mode-aware rendering:**
-- **QC:** Test name + status only. No subtitle, no method, no p-value, no breadcrumb. Not individually expandable.
-- **Peer Review:** Test name + subtitle + status (no p-value). Breadcrumb visible (post-S156-fix5). Expandable. No method line. Simplified evidence as children.
-- **Forensics:** Test name + subtitle + status + p-value. Breadcrumb visible. Expandable. Method line shown. Full evidence as children. Flagged/noted auto-expand.
+- **QC:** Test name + status only. No subtitle, no disclosures, no p-value, no breadcrumb. Not individually expandable.
+- **Peer Review:** Test name + subtitle + status (no p-value). Breadcrumb visible (post-S156-fix5). Expandable. No disclosure blocks. Simplified evidence as children.
+- **Forensics:** Test name + subtitle + status + p-value. Breadcrumb visible. Expandable. Full evidence as children + three-block disclosure stack below evidence (How this test works / Implications / What to look for). Flagged/noted auto-expand.
 
 **Header remains in exactly the same position on expand/collapse** — no layout shift.
 
@@ -719,10 +725,13 @@ Cluster rows (ClusterRow, mode="full"), all five clusters in fixed `MECHANISM_OR
 - Right-side ▸/▾ chevron on flagged/noted cards only
 - Cleared-tier cards: 0.4 opacity on breadcrumb (icon + text), reduced visual prominence
 
-**Flagged/noted tests auto-expand** showing:
-- Method description (Forensics mode only): body font, matches QC category description style. Lives inside the white card, no grey sub-container.
-- Evidence content directly: charts via PlotLayout, tables via EvidenceTable. Inside the white card, no grey sub-container.
-- Summary footer below evidence (test-specific sentence summarising the finding)
+**Flagged/noted tests auto-expand** showing (top-to-bottom, post-S168 reorder):
+- One-line result footer (PROMOTED to top): test-specific summary that reads as the result — typically `scope · stat · finding-clause · p`. Forensics-mode test cards carry a finding-clause in the footer (e.g. "positive autocorrelation", "block mean shift in Inhibitor_A", "leading digits off Benford") so the headline conveys WHAT was found, not just numbers.
+- Evidence content: charts via PlotLayout, tables via EvidenceTable. Inside the white card, no grey sub-container.
+- Three-block disclosure stack (Forensics-only, collapsible, collapsed by default):
+  - ▸ How this test works (descriptive — shown on any expanded card with a `TEST_METHODS` entry)
+  - ▸ Implications (finding-specific — gated on `flag !== "LOW"`)
+  - ▸ What to look for (finding-specific — gated on `flag !== "LOW"`)
 
 **Clear tests within a flagged cluster** render in compact form, click-expandable to show evidence. Cleared tests within an all-cleared cluster route to the cluster-level CLEAR-strip rather than rendering as cards (see parked CLEAR-strip-expandability item in STATUS.md).
 

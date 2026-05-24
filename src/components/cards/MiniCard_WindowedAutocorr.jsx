@@ -64,7 +64,8 @@ export function MiniCard_WindowedAutocorr({ result, importConfig, rowMap }) {
     );
   }
 
-  const footer = `${result.nPairs} pair${result.nPairs !== 1 ? "s" : ""} \u00B7 ${result.nWindowsTotal} windows (size ${result.windowSize}, stride ${result.stride}) \u00B7 B=${result.nPerm} \u00B7 ${fmtPBadge(result.primaryP)}`;
+  const driverClause = (result.flag !== "LOW" && result.flag !== "N/A") ? " \u00B7 localised serial structure" : "";
+  const footer = `${result.nPairs} pair${result.nPairs !== 1 ? "s" : ""} \u00B7 ${result.nWindowsTotal} windows (size ${result.windowSize}, stride ${result.stride}) \u00B7 B=${result.nPerm}${driverClause} \u00B7 ${fmtPBadge(result.primaryP)}`;
 
   return (
     <MiniCardLayout result={result}

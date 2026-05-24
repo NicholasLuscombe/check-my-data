@@ -79,7 +79,16 @@ export function MiniCard_BlockedMahalanobis({ result, importConfig, rowMap }) {
   }
 
   const passLabel = `W=${result.windowSize}, stride=${result.stride}`;
-  const footer = `${result.nConditions || 0} condition${result.nConditions === 1 ? "" : "s"} · ${result.nWindowsTotal || 0} windows (${passLabel}) · B=${result.nPerm} · ${fmtPBadge(result.primaryP)}`;
+  // S168: driver clause from details[0] — already sorted adj-p asc by the
+  // producer (blockedMahalanobis.js), so details[0] is the winning unit.
+  // Σ-pass → covariance anomaly; μ-pass → block mean shift.
+  const driverBest = (result.flag !== "LOW" && result.flag !== "N/A" && details[0]) ? details[0] : null;
+  const driverClause = driverBest
+    ? (driverBest.passKey === 'sigma'
+        ? ` · covariance anomaly in ${driverBest.condition}`
+        : ` · block mean shift in ${driverBest.condition}`)
+    : "";
+  const footer = `${result.nConditions || 0} condition${result.nConditions === 1 ? "" : "s"} · ${result.nWindowsTotal || 0} windows (${passLabel})${driverClause} · B=${result.nPerm} · ${fmtPBadge(result.primaryP)}`;
 
   return (
     <MiniCardLayout result={result}

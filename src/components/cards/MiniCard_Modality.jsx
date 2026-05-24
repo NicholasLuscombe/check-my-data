@@ -37,6 +37,7 @@ export function MiniCard_Modality({ result, importConfig, rowMap }) {
       footer={<>
         {result.nTested} column{result.nTested !== 1 ? "s" : ""} tested
         {" · "}{nFlagged} flagged
+        {nFlagged > 0 && ` · ${nFlagged} column${nFlagged !== 1 ? "s" : ""} multi-modal`}
         {result.fewColumnsNote && ` · ${result.fewColumnsNote}`}
         {" · " + fmtPBadge(result.primaryP)}
       </>}

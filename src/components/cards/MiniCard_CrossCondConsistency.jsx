@@ -64,9 +64,19 @@ export function MiniCard_CrossCondConsistency({ result }) {
   const primaryP = result.primaryP;
   const pStr = primaryP != null ? fmtPBadge(primaryP) : "p —";
   const nRan = result.nUnitsRan || 0;
+  // S168: driver clause from result.top — already computed by the producer
+  // (crossConditionConsistency.js topInfo). similar → too similar;
+  // different → diverge. Gate on flag and top presence.
+  const top = result.top;
+  const driverClause = (result.flag !== "LOW" && result.flag !== "N/A" && top)
+    ? (top.direction === "similar"
+        ? `conditions too similar on ${top.property}`
+        : `conditions diverge on ${top.property}`)
+    : null;
   const footerPieces = [
     `${result.nConditions || "?"} conditions · ${result.nPairs || 0} pair${result.nPairs === 1 ? "" : "s"} · ${result.nProperties || 0} properties`,
     `${nRan} unit${nRan === 1 ? "" : "s"} ran · ${result.nFlagged || 0} flagged`,
+    ...(driverClause ? [driverClause] : []),
     `B=${result.B || "?"}`,
     pStr,
   ];

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { C, FS, FW, FF, CR } from "../../constants/tokens.js";
+import { TEST_METHODS } from "../../constants/mechanisms.js";
 import { BANNER_STYLES } from "./styles.js";
 
 // S150 (C.8 / B3): fontSize lifted 11px -> FS.sm 14px. Chrome shape
@@ -31,10 +32,20 @@ const TOGGLE_TEXT = { fontSize: FS.sm, color: C.TEXT, cursor: "pointer", fontWei
 const TOGGLE_CHEVRON = { fontSize: "14px", marginRight: "4px" };
 
 // Shared layout for all standard MiniCard components.
-// Enforces uniform structure (Forensics mode, flagged tests):
-//   ▸ Implications (collapsible, collapsed) -> ▸ What to look for (collapsible, collapsed)
-//   -> [evidence] -> Footer.
+// Enforces uniform structure (Forensics mode, expanded tests):
+//   Footer (one-line result) -> [evidence] -> ▸ How this test works
+//   -> ▸ Implications -> ▸ What to look for.
 // Edit here to change card layout for all 25 standard tests at once.
+//
+// S168 (A2 cross-cluster reorder): footer promoted to TOP as the one-line
+// result. The "How this test works" disclosure relocated here from
+// TestCardLayout so all three disclosure blocks live in one wrapper. Gates
+// preserved (not unified): How-it-works is ungated except for the
+// TEST_METHODS entry check (descriptive — true regardless of flag);
+// Implications + What-to-look-for stay `isFlagged`-gated (finding-specific
+// — only meaningful when the test fired). PR mode never mounts this
+// component (CategoryRow review branch routes children to a finding-string
+// div), so the relocated How-it-works remains Forensics-only by inheritance.
 //
 // S150 (C.8 / A2): headline and desc retired. Pre-S150, MiniCardLayout
 // accepted headline + desc props and wrapped them in CardHeadline / CardDesc.
@@ -43,11 +54,32 @@ const TOGGLE_CHEVRON = { fontSize: "14px", marginRight: "4px" };
 // paths never reached the screen. Retired with the wrapping components and
 // the HEADLINE_COLOR per-tier text colour that fed CardHeadline.
 export function MiniCardLayout({ result, lookFor, footer, children, implications }) {
+  const [methodOpen, setMethodOpen] = useState(false);
   const [implOpen, setImplOpen] = useState(false);
   const [lookForOpen, setLookForOpen] = useState(false);
   const isFlagged = result.flag !== "LOW" && result.flag !== "N/A";
+  const methodText = TEST_METHODS[result.name];
   return (
     <>
+      {footer && (
+        <div style={{marginBottom:"8px"}}>
+          <CardFooter>{footer}</CardFooter>
+        </div>
+      )}
+      {children}
+      {methodText && (
+        <div style={{marginTop:"8px",marginBottom:"8px"}}>
+          <div onClick={() => setMethodOpen(o => !o)} style={TOGGLE_TEXT}>
+            <span style={TOGGLE_CHEVRON}>{methodOpen ? "▾" : "▸"}</span>
+            How this test works
+          </div>
+          {methodOpen && (
+            <div style={{padding:"8px 12px",margin:"4px 0 0 0",background:C.BG_L,border:`1px solid ${C.BORDER_L}`,borderRadius:CR.MD,fontSize:FS.base,fontFamily:FF.UI,color:C.TEXT,lineHeight:"1.6"}}>
+              {methodText}
+            </div>
+          )}
+        </div>
+      )}
       {isFlagged && implications && (
         <div style={{marginBottom:"8px"}}>
           <div onClick={() => setImplOpen(o => !o)} style={TOGGLE_TEXT}>
@@ -74,8 +106,6 @@ export function MiniCardLayout({ result, lookFor, footer, children, implications
           )}
         </div>
       )}
-      {children}
-      {footer && <CardFooter>{footer}</CardFooter>}
     </>
   );
 }
