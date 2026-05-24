@@ -35,6 +35,7 @@ dist-ssr
 # Dev workflow files (dual-Claude internal collaboration)
 CLAUDE.md
 STATUS.md
+BANKED.md
 project-instructions.md
 
 # Session history and audit logs (internal dev record).

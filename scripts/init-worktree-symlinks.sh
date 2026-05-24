@@ -12,6 +12,7 @@
 # Targets (each pointing at the main-checkout copy):
 #   CLAUDE.md
 #   STATUS.md
+#   BANKED.md
 #   project-instructions.md
 #   docs/sessions                              (whole directory)
 #   docs/shared/project-instructions.md        (second copy)
@@ -67,6 +68,7 @@ link_if_missing() {
 # Single files at the worktree root.
 link_if_missing CLAUDE.md
 link_if_missing STATUS.md
+link_if_missing BANKED.md
 link_if_missing project-instructions.md
 
 # Whole directory: session archives.
