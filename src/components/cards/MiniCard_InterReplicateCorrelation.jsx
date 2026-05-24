@@ -102,7 +102,7 @@ const cellTxt = (p) => p?.suspicious ? C.WHITE : C.TEXT;
 // Legend items
 const legend = [
   { color: TIER_COLOR.LOW, label: "Expected" },
-  { color: TIER_COLOR.MID, label: "Elevated condition" },
+  { color: TIER_COLOR.MID, label: "Elevated replicates" },
 ];
 if (nSusp > 0) legend.push({ color: TIER_COLOR.HIGH, label: "Highly correlated (outlier pair)" });
 
@@ -113,6 +113,26 @@ const topWins = [...wins].sort((a, b) => {
   return (a.condition || "").localeCompare(b.condition || "");
 });
 
+// S171 B2: footer finding-clause — names the visible driver(s).
+//   • elevatedConds (multi-condition only, condMeanZ > overall + 1·SD)
+//   • windowed-scan entries (wins; source: 'window')
+// Wires existing signals — no recomputation. Composed inline so the
+// promoted top-of-card result line reads as a finding, not bare stats.
+const findingParts = [];
+if (elevatedConds.size > 0) {
+  findingParts.push(`${[...elevatedConds].join(", ")} replicates track closely`);
+}
+if (wins.length > 0) {
+  const winCondSet = new Set(wins.map(w => w.condition).filter(Boolean));
+  const winScope = condNames.length <= 1
+    ? `${wins.length} localised window${wins.length !== 1 ? "s" : ""}`
+    : winCondSet.size === condNames.length
+      ? "localised windows in all conditions"
+      : `localised windows in ${[...winCondSet].join(", ")}`;
+  findingParts.push(winScope);
+}
+const findingClause = findingParts.join("; ");
+
 return (
 
   <MiniCardLayout result={result}
@@ -120,6 +140,7 @@ return (
       {n} column pair{n!==1?"s":""} tested · mean r = {result.meanR||"?"}
       {icc != null && ` · ICC-predicted ${icc.toFixed(2)}`}
       {nSusp > 0 && ` · ${nSusp} suspicious`}
+      {findingClause && ` · ${findingClause}`}
       {wins.length > 0 && ` · scan ${fmtPBadge(result.primaryP)}`}
       {wins.length === 0 && ` · ${fmtPBadge(result.primaryP)}`}
     </>}
@@ -158,7 +179,7 @@ return (
     <ChartLegend items={legend} />
     {topWins.length > 0 && (
       <div style={{marginTop:"12px"}}>
-        <div style={SUB_HEAD}>High-correlation windows</div>
+        <div style={SUB_HEAD}>Highly correlated row windows</div>
         <EvidenceTable
           columns={condNames.length > 1 ? ["Condition", "Columns", "Rows", "Observed r", "Expected r"] : ["Columns", "Rows", "Observed r", "Expected r"]}
           rows={topWins.map(w => condNames.length > 1
