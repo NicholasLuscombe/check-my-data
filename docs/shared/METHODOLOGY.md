@@ -914,7 +914,7 @@ Evidence table reports the active threshold value and which gate is operative (`
 |---|---|---|---|---|---|
 | DS22 (covariance block, K/N=0.15) | 7 | 200 | N/A under VST-log routing on N(0,1) data; MOD under raw-matrix routing (parked VST audit) | — | — |
 | DS21 (localised AR ρ=0.92) | 8 | 200 | N/A under VST-log routing | — | — |
-| DS15 (missing-carlisle) | 6 | 66 Control (52 Treatment below 60 floor) | MODERATE (primaryP=0.0048, Σ-pass Control rows 1–40) | 0.0048 | See TEST-GROUND-TRUTH DS15 entry — under-investigation status |
+| DS15 (missing-carlisle) | 6 | 66 Control (52 Treatment below 60 floor) | MODERATE (primaryP=0.0040, Σ-pass Control rows 1–40) | 0.0040 | See TEST-GROUND-TRUTH DS15. S110 landing 0.0048; now 0.0040 (post-S111 permutation drift, severity unchanged) |
 | DS07, DS08, DS09, DS10, DS12a, DS12b, DS16, DS17, DS20 | — | — | LOW | various | — |
 | Count-data and low-N fixtures | — | — | N/A via gates | — | — |
 
