@@ -46,7 +46,11 @@ export const DATATYPE_SKIP = {
     "Column Goodness-of-Fit":      "Not applicable to ordinal data — discrete ordinal scales do not fit {Normal, Poisson, NB} families.",
     "Modality Test":               "Not applicable to ordinal data — Hartigan dip is not meaningful on sparse discrete support.",
   },
-  count: {},
+  count: {
+    "Entropy / Zipf Analysis":     "Not applicable to count data — bootstrap null requires a single parametric family (Normal/Poisson/NB) that does not describe real count marginals.",
+    "Column Goodness-of-Fit":      "Not applicable to count data — count marginals are not described by a single family from {Normal, Poisson, NB} with a valid null.",
+    "Modality Test":               "Not applicable to count data — dip-statistic null assumes a unimodal continuous distribution incompatible with discrete count support.",
+  },
   continuous: {},
 };
 
