@@ -67,16 +67,22 @@ const EXPECTED = {
   // Pre-S99: severity 0 (direction-blind gate demoted the forensic-similar
   // signal on P3 KS). S99 fix (per-direction similarity gate at R=0.5) lifts
   // Cross-Cond Consistency to MODERATE (primaryP=0.006) → severity 1.
-  // S107: Column GoF landed; col1 shape mismatch flags MODERATE (A² ratio 5.01
+  // S107: Column GoF landed; col1 shape mismatch flagged MODERATE (A² ratio 5.01
   // against moment-matched Normal at N=1200, direction "high"). Two MOD flags
-  // across two families (Cross-Cond Consistency + Column GoF) → severity 3.
-  // This is a sensitivity gain on a fabricated fixture, not a regression.
+  // across two families → severity 3.
   //
-  // S177 Phase 0 — Column GoF is the contested cell (item 29 pooled-mixture
-  // artifact). Deliberately undeclared here; the pooled-clean cross-shape
-  // assertion below pins the class until A1 lands and adjudicates the
-  // EXPECTED 3→1 + GT line-32 revision in lockstep.
-  '19-inheritance-fabricated.csv': { severity: 3, assay: 'general', flags: {
+  // S179 A1: GoF MODERATE on DS19 was a condition-pooling artifact (item 29).
+  // GoF dispatched as a bare full-matrix call fit one distribution to the
+  // pooled Control+Treatment `value` column; Treatment = Control + σ=0.02·MAD
+  // jitter made the mixture ECDF spike on near-duplicates while each
+  // condition alone is clean. A1 routes the trio per-condition via
+  // aggregatePerGroup(condCtx.rowGroups()); GoF now fits the 600-row Control
+  // and 600-row Treatment slices independently, each clean (LOW, p=0.078
+  // post-fix). Cross-Cond Consistency Stage 1 — per-condition by construction,
+  // the genuine inheritance detector — remains sole real channel (MOD),
+  // returning DS19 to the single-channel ceiling of 1. See GT line 32 + Accepted
+  // deltas (S179) and SESSION179-SUMMARY.md.
+  '19-inheritance-fabricated.csv': { severity: 1, assay: 'general', flags: {
     'Cross-Condition Consistency': ['MODERATE', 'HIGH'],    // GT line 32, the real channel
   } },
   // S108 new fixtures (fixture-gen workstream):
