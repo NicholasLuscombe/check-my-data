@@ -11,7 +11,7 @@ This table is the canonical ground-truth reference. One row per fixture, one sen
 
 | ID   | Filename                               | Severity | What it tests                                                                                                                           |
 |------|----------------------------------------|----------|-----------------------------------------------------------------------------------------------------------------------------------------|
-| DS01 | `01-densitometry-clean.csv`            | 1        | Clean densitometry; within-row column swap (rows 8–14, Inhibitor_B Rep1↔Rep2). Should not be mistaken for fabrication.                  |
+| DS01 | `01-densitometry-clean.csv`            | 0        | Clean densitometry; within-row column swap (rows 8–14, Inhibitor_B Rep1↔Rep2). Should not be mistaken for fabrication. (S109: 1→0, directional Kurtosis suppression — see Accepted deltas.)  |
 | DS02 | `02-densitometry-fabricated.csv`       | 3        | Rescaled-copy fabrication (Inhibitor_A = Control × 0.58); localised block copy; localised near-linear replicate dependence.             |
 | DS03 | `03-qpcr-clean.csv`                    | 0        | Clean qPCR. Additive Gaussian noise on realistic Ct range.                                                                              |
 | DS04 | `04-qpcr-fabricated.csv`               | 3        | qPCR fabrication with repeated digit patterns, terminal-digit uniformity violation, and row-mean block shifts.                          |
