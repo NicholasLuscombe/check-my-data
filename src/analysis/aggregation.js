@@ -129,6 +129,9 @@ async function aggregatePerGroup(testFn, groups, parentCondCtx) {
     "Windowed Autocorrelation",
     "Blocked Mahalanobis",
     "Mahalanobis Row Outlier",
+    "Column Goodness-of-Fit",
+    "Entropy / Zipf Analysis",
+    "Modality Test",
   ]);
   const proto=applicable[0].result;
   const useFisher = applicable.length >= 2 && !FISHER_EXEMPT.has(proto.name);
