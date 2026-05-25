@@ -420,9 +420,30 @@ export async function runFullAnalysis(matrix, rawMatrix, condCtx, assay, onProgr
     // --- Cross-Replicate Comparisons + Distribution Shapes ---
     ["Noise Scaling With Measurement Size",   () => condSkip("Noise Scaling With Measurement Size","instrument") || dtSkip("Noise Scaling With Measurement Size","instrument") || testMeanVariance(matrix, assay)],
     ["Kurtosis",                     async () => condSkip("Kurtosis","distributional") || dtSkip("Kurtosis","distributional") || tagVST(await runPairVST((m, childCtx) => testKurtosis(m, childCtx, rng), condCtx))],
-    ["Entropy / Zipf Analysis",      () => dtSkip("Entropy / Zipf Analysis","noise") || testEntropy(matrix, rng, dataType)],
-    ["Column Goodness-of-Fit",       () => dtSkip("Column Goodness-of-Fit","shapes") || testColumnGof(matrix, rng, dataType)],
-    ["Modality Test",                () => dtSkip("Modality Test","shapes") || testModality(matrix, rng, dataType)],
+    // S179 A1: distribution-shape trio per-condition routing. Mirrors the
+    // Mahalanobis Row Outlier S127 Path 1 shape — when condCtx.rowGroups()
+    // returns ≥2 row-groups each ≥3 rows, dispatch per-condition via
+    // aggregatePerGroup so per-column fits operate on within-condition row
+    // subsets, not on the pooled mixture. Pooled fallback covers
+    // single-condition / no-row-groups / column-grouped fixtures.
+    ["Entropy / Zipf Analysis",      async () => {
+      const dt = dtSkip("Entropy / Zipf Analysis","noise"); if (dt) return dt;
+      const rg = condCtx?.rowGroups();
+      if (rg) return await aggregatePerGroup(m => testEntropy(m, rng, dataType), rg);
+      return testEntropy(matrix, rng, dataType);
+    }],
+    ["Column Goodness-of-Fit",       async () => {
+      const dt = dtSkip("Column Goodness-of-Fit","shapes"); if (dt) return dt;
+      const rg = condCtx?.rowGroups();
+      if (rg) return await aggregatePerGroup(m => testColumnGof(m, rng, dataType), rg);
+      return testColumnGof(matrix, rng, dataType);
+    }],
+    ["Modality Test",                async () => {
+      const dt = dtSkip("Modality Test","shapes"); if (dt) return dt;
+      const rg = condCtx?.rowGroups();
+      if (rg) return await aggregatePerGroup(m => testModality(m, rng, dataType), rg);
+      return testModality(matrix, rng, dataType);
+    }],
     // S118 Track H: §2.1 NOT rsSkip-gated — Tier 2 effect-size floor
     // |mean r| ≥ 0.25 at N ≥ 500 renders arbitrary-order co-regulation
     // background inert (r ≈ 0.10–0.15); fabrication-grade r continues to
