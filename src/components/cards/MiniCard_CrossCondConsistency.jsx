@@ -8,10 +8,15 @@
    Amber-highlight invariant (must be preserved across any edits to this
    file or the driver):
 
-       row.amber  ⇔  adj-p < ALPHA.FLAG
+       row.amber  ⇔  adj-p < ALPHA.NOTE
                   ∧  effect-size gate passed
                   ∧  not degenerate
                   ∧  direction ∈ property.forensicDirections
+
+   The amber bar sits at ALPHA.NOTE (MODERATE) because BH-FDR adj-p at
+   B=999 permutations cannot reach ALPHA.FLAG (HIGH) — see METHODOLOGY
+   §1.9 ¶8. The card's `nAmber` footer count and the legend threshold
+   both key on this band.
 
    Per-direction effect-size gate (S99)
    ------------------------------------
@@ -25,11 +30,10 @@
    "Observed" / "Null median" columns let the investigator read the ratio.
 
    Non-forensic-direction pairs are shown in the evidence table for
-   transparency but never amber-highlighted. Their Flag column reads
-   "informational" in a muted colour so the user can see the statistical
-   signal exists without mistaking it for a forensic finding. LOW rows
-   (forensic or not) show as LOW. Skipped / degenerate rows sink to the
-   bottom. */
+   transparency but never amber-highlighted. Such rows render in a muted
+   colour so the user can see the statistical signal exists without
+   mistaking it for a forensic finding. Skipped / degenerate rows sink to
+   the bottom. */
 
 import { C, FS, FW, FF, SIGNAL } from "../../constants/tokens.js";
 import { fmtP, fmtPBadge, ALPHA } from "../../constants/thresholds.js";
@@ -60,28 +64,6 @@ const IMPLICATIONS =
 export function MiniCard_CrossCondConsistency({ result }) {
   const details = result.details || [];
 
-  // ── Footer ─────────────────────────────────────────────────────
-  const primaryP = result.primaryP;
-  const pStr = primaryP != null ? fmtPBadge(primaryP) : "p —";
-  const nRan = result.nUnitsRan || 0;
-  // S168: driver clause from result.top — already computed by the producer
-  // (crossConditionConsistency.js topInfo). similar → too similar;
-  // different → diverge. Gate on flag and top presence.
-  const top = result.top;
-  const driverClause = (result.flag !== "LOW" && result.flag !== "N/A" && top)
-    ? (top.direction === "similar"
-        ? `conditions too similar on ${top.property}`
-        : `conditions diverge on ${top.property}`)
-    : null;
-  const footerPieces = [
-    `${result.nConditions || "?"} conditions · ${result.nPairs || 0} pair${result.nPairs === 1 ? "" : "s"} · ${result.nProperties || 0} properties`,
-    `${nRan} unit${nRan === 1 ? "" : "s"} ran · ${result.nFlagged || 0} flagged`,
-    ...(driverClause ? [driverClause] : []),
-    `B=${result.B || "?"}`,
-    pStr,
-  ];
-  const footer = footerPieces.join(" · ");
-
   // ── Evidence-table row ordering ─────────────────────────────────
   //   1) Amber rows (forensic-direction + flag-level + gate-passed) by adj-p asc
   //   2) Forensic-direction LOW rows by adj-p asc
@@ -97,8 +79,39 @@ export function MiniCard_CrossCondConsistency({ result }) {
   const forensicLow = running.filter(d => d.forensic && !isAmberRow(d)).sort(byAdjP);
   const informational = running.filter(d => !d.forensic).sort(byAdjP);
   const ordered = [...amber, ...forensicLow, ...informational, ...skipped];
+  // nAmber: count surfaced in the footer. Derived from the same predicate
+  // that tints rows amber, so footer / table / verdict agree. Engine's
+  // result.nFlagged keys on ALPHA.FLAG (HIGH-only) and reads 0 here because
+  // BH-FDR at B=999 cannot reach that band — use card-side count instead.
+  const nAmber = amber.length;
+
+  // ── Footer ─────────────────────────────────────────────────────
+  const primaryP = result.primaryP;
+  const pStr = primaryP != null ? fmtPBadge(primaryP) : "p —";
+  const nRan = result.nUnitsRan || 0;
+  // S168: driver clause from result.top — already computed by the producer
+  // (crossConditionConsistency.js topInfo). similar → too similar;
+  // different → diverge. Gate on flag and top presence.
+  const top = result.top;
+  const driverClause = (result.flag !== "LOW" && result.flag !== "N/A" && top)
+    ? (top.direction === "similar"
+        ? `conditions too similar on ${top.property}`
+        : `conditions diverge on ${top.property}`)
+    : null;
+  const footerPieces = [
+    `${result.nConditions || "?"} conditions · ${result.nPairs || 0} pair${result.nPairs === 1 ? "" : "s"} · ${result.nProperties || 0} properties`,
+    `${nRan} unit${nRan === 1 ? "" : "s"} ran · ${nAmber} flagged`,
+    ...(driverClause ? [driverClause] : []),
+    `B=${result.B || "?"}`,
+    pStr,
+  ];
+  const footer = footerPieces.join(" · ");
 
   // ── Table shape ─────────────────────────────────────────────────
+  // Flag column retired (S175): for forensic rows the amber tint encodes
+  // the flag tier, and the muted-text styling on informational rows
+  // distinguishes them from forensic-LOW. Dropping the column also
+  // resolves the right-edge clip on narrow viewports.
   const columns = [
     { label: "Property", align: "left" },
     { label: "Pair",     align: "left" },
@@ -106,7 +119,6 @@ export function MiniCard_CrossCondConsistency({ result }) {
     { label: "Null median" },
     { label: "Direction" },
     { label: "adj-p" },
-    { label: "Flag" },
   ];
 
   const AMBER_BG       = SIGNAL.AMBER.bg;
@@ -120,20 +132,6 @@ export function MiniCard_CrossCondConsistency({ result }) {
     else if (d.ran && !d.forensic) cellStyle = { color: INFORMATIONAL_COLOR };
     const cell = (v) => cellStyle ? { value: v, style: cellStyle } : v;
 
-    // Flag label derivation
-    let flagLabel;
-    if (!d.ran) {
-      flagLabel = d.unitFlag; // "N/A" or "degenerate"
-    } else if (!d.forensic) {
-      flagLabel = "informational";
-    } else if (!d.gatePassed && (d.unitFlag === "HIGH" || d.unitFlag === "MODERATE")) {
-      // Technically unreachable: unit-flag derivation in the driver already
-      // demotes gate-failed units to LOW. Kept for defensive clarity.
-      flagLabel = `${d.unitFlag} (below effect gate)`;
-    } else {
-      flagLabel = d.unitFlag; // HIGH / MODERATE / LOW
-    }
-
     const directionLabel = d.ran
       ? (d.fallback ? `${d.direction} (fallback)` : d.direction)
       : d.reason || "—";
@@ -145,7 +143,6 @@ export function MiniCard_CrossCondConsistency({ result }) {
       cell(d.nullMedian),
       cell(directionLabel),
       cell(d.ran && d.adjP != null ? fmtP(d.adjP) : "—"),
-      cell(flagLabel),
     ];
   });
 
@@ -175,7 +172,7 @@ export function MiniCard_CrossCondConsistency({ result }) {
             maxHeight={260}
           />
           <div style={legendStyle}>
-            Amber-tinted rows meet the forensic criterion: adj-p &lt; {fmtP(ALPHA.FLAG)} AND
+            Amber-tinted rows meet the forensic criterion: adj-p &lt; {fmtP(ALPHA.NOTE)} AND
             the effect-size gate passes AND the direction is forensically actionable for
             that property (for Stage 1 properties, only "too similar" is actionable —
             honest conditions legitimately differ on span / MAD / CDF). Rows in muted
@@ -183,7 +180,10 @@ export function MiniCard_CrossCondConsistency({ result }) {
             different"), shown for transparency but not contributing to the flag.
             "Null median" is the median of the permutation distribution; "Direction"
             indicates which tail the observed distance sits in (similar = below median,
-            different = above).
+            different = above). HIGH (adj-p &lt; {fmtP(ALPHA.FLAG)}) is unreachable for
+            this framework at B={result.B || "?"} permutations — see METHODOLOGY §1.9 ¶8
+            (permutation-arithmetic limitation), so MODERATE is the strongest tier this
+            test can report.
           </div>
         </>
       )}

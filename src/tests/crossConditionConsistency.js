@@ -821,6 +821,6 @@ function _fmtStat(d) {
   if (d == null || !isFinite(d)) return "—";
   if (d === 0) return "0";
   const abs = Math.abs(d);
-  if (abs < 1e-3 || abs >= 1000) return d.toExponential(2);
+  if (abs >= 1000) return d.toExponential(2);
   return d.toPrecision(3);
 }

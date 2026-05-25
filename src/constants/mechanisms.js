@@ -138,7 +138,7 @@ export const TEST_DESCRIPTIONS = {
   "Exact Duplicate Detection": "Rows, blocks, or column segments copied",
   "Constant-Offset Blocks": "Values shifted by a fixed amount",
   "Inter-Replicate Correlation": "Replicates track too closely",
-  "Residual Spike Correlation": "Same rows anomalous across conditions",
+  "Residual Spike Correlation": "The same rows are noisy in every condition.",
   "Terminal Digit Uniformity": "Unexpected last digit pattern",
   "Benford's Law (First Digit)": "Unexpected leading digit pattern",
   "Benford's Law (Second Digit)": "Unexpected second digit pattern",

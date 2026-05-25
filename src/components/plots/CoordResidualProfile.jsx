@@ -246,7 +246,7 @@ export function CoordResidualProfile({ allProfiles, nRows, pairDetails, condColo
           </div>
           <PlotLayout>
             <CorrMatrixSVG
-              labels={matShortNames}
+              labels={[...matShortNames].reverse()}
               getValue={(rowL, colL) => {
                 const rn = condNames[matShortNames.indexOf(rowL)];
                 const cn = condNames[matShortNames.indexOf(colL)];
@@ -256,7 +256,7 @@ export function CoordResidualProfile({ allProfiles, nRows, pairDetails, condColo
               cellBg={v => v != null ? rhoColor(v) : C.BORDER_L}
               cellText={v => rhoTextColor(v)}
               cellBold={v => v != null && v >= 0.4}
-              labelColors={matLabelColors}
+              labelColors={[...matLabelColors].reverse()}
             />
           </PlotLayout>
           {/* ρ tier legend — on card, outside PlotLayout */}

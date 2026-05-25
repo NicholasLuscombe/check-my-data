@@ -1,7 +1,7 @@
 /* ── MiniCard: Carlisle Baseline Balance ── */
 
 import { C, CC, CF, FS, FW, FF, SIGNAL } from "../../constants/tokens.js";
-import { fmtP, fmtPOp } from "../../constants/thresholds.js";
+import { fmtP, fmtPBadge } from "../../constants/thresholds.js";
 import { MiniCardLayout } from "../shared/CardLayout.jsx";
 import { DataTable } from "../shared/DataTable.jsx";
 
@@ -56,8 +56,7 @@ export function MiniCard_CarlisleBalance({ result, importConfig, rowMap }) {
       footer={<>
         {nFeatures} features tested
         {` · ${nExcess}/${nFeatures} with p>0.95 (expected ${expected})`}
-        {` · binomP\u202f${fmtPOp(result.binomP)}`}
-        {` · KS D=${result.ksD} p\u202f${fmtPOp(result.ksP)}`}
+        {` · ${fmtPBadge(result.primaryP)}`}
       </>}
       lookFor="If most p-values cluster near 1.0, the conditions are suspiciously identical — as if someone fabricated the data to ensure perfect balance. In clinical trials, this is a hallmark of Carlisle-type fabrication. If p-values cluster near 0, allocation may not be random."
       implications="Groups that match more closely than random assignment predicts can occasionally occur by chance, particularly with small sample sizes or when stratified randomisation was used. Consistently near-perfect balance across many features, however, is unlikely under genuine random assignment and may indicate that group allocations were adjusted after the data was observed.">
@@ -69,20 +68,18 @@ export function MiniCard_CarlisleBalance({ result, importConfig, rowMap }) {
         <div style={{fontSize:FS.sm,fontFamily:FF.UI,color:C.TEXT_2,marginTop:"4px"}}>
           Bar height = count of features per p-value bin. Dashed line = expected under uniform.
           {direction === "too balanced" && " Highlighted bar = excess p-values near 1.0 (too balanced)."}
+          {` Distributional-shape statistic for this plot: KS D = ${result.ksD}, ${fmtPBadge(result.ksP)}.`}
         </div>
       </>}
 
       {details.length > 0 && (
         <div style={{ marginTop: "8px" }}>
           <div style={SUB_HEAD}>Per-feature ANOVA results</div>
-          <DataTable data={details} maxRows={20} compact identifierColumns={1} columns={[
+          <DataTable data={details} maxRows={20} compact identifierColumns={1} totalCount={nFeatures} columns={[
             { header: "Feature", bold: true, render: d => d.Feature },
             { header: "ANOVA p", render: d => d["ANOVA p"] },
             { header: "Condition means", render: d => d.Means },
           ]} />
-          {details.length >= 20 && <div style={{ fontFamily: FF.UI, fontSize: FS.xs, color: C.TEXT_3, marginTop: "3px" }}>
-            …and {nFeatures - 20} more features
-          </div>}
         </div>
       )}
 
