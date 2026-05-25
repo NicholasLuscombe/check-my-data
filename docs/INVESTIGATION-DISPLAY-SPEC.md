@@ -98,7 +98,7 @@ Display order: fixed (`MECHANISM_ORDER: copied → digits → shapes → replica
 
 Engine identifier `group` stays — display label is `Cross-Condition Comparisons` (S157-fix3 rename). The S132g engine-identifier-stays / display-label-moves convention governs.
 
-### Test-to-Category Mapping (22 principled + 1 interim)
+### Test-to-Category Mapping (23 principled + 1 interim)
 
 Display names shown are the strings users see in test cards.
 
@@ -106,7 +106,7 @@ Display names shown are the strings users see in test cards.
 |------|----------|------------|-------|
 | Duplicated Data (DupDet) | **Copy, Paste, Edit** | ✅ | Row / block / column-segment highlights |
 | Duplicated and Offset (ConstOffset) | **Copy, Paste, Edit** | ✅ | Row-pair × column highlights |
-| Correlated Residuals (RSC) | **Copy, Paste, Edit** | ✅ | Top-K row highlights |
+| Correlated Residuals (RSC) ‡ | **Copy, Paste, Edit** | ✅ | Top-K row highlights |
 | First-Digit Frequencies (Benford 1st) | **Unusual Digits** | ❌ | Global |
 | Second-Digit Frequencies (Benford 2nd) | **Unusual Digits** | ❌ | Global |
 | Last-Digit Frequencies (TDU) | **Unusual Digits** | ❌ | Global |
@@ -127,8 +127,11 @@ Display names shown are the strings users see in test cards.
 | Missing Data Pattern† | **Cross-Replicate Comparisons** | ✅ | Block highlights |
 | Cross-Cond Rank (CCR) | **Cross-Condition Comparisons** | ❌ | Global |
 | Carlisle Balance | **Cross-Condition Comparisons** | ❌ | Global |
+| Cross-Condition Consistency (CCC) | **Cross-Condition Comparisons** | ❌ | Global |
 
 **† Missing Data Pattern — interim placement.** This test detects structural missingness patterns rather than replicate-value variation, so the category description ("Replicate values don't vary like usual experiments") doesn't strictly apply. Parked for re-homing when File Integrity (Dim VI) category lands, or for scope-restriction to cross-condition missingness for a Dim IV home.
+
+**‡ Correlated Residuals (RSC) — cross-condition by scope, Dim I by mechanism.** RSC compares residuals *across conditions*, so a reader scanning by scope might expect it under Cross-Condition Comparisons. It sits in Copy, Paste, Edit because category follows the fabrication *mechanism* — coordinated editing, the same rows edited across groups — and scope is orthogonal to dimension (METHODOLOGY-MAP §Scope). The cross-condition correlation is *how* the editing is detected, not *what* it is. This is the sole scope-vs-placement divergence in the battery (audit-confirmed S175: all 26 other tests' scope matches their §3 cluster).
 
 **S95 Track C changes:**
 - Constant-Response Concentration (CRC) removed entirely (engine + UI + exports + docs). Zero detections across 18 validation datasets + 4 real-world cases; scale-group fragmentation on real survey data prevented firing. METHODOLOGY-MAP S94 decision.
