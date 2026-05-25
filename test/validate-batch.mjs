@@ -55,7 +55,9 @@ const EXPECTED = {
   '15-missing-carlisle.csv':      { severity: 3, assay: 'general', flags: {
     'Missing Data Pattern':       ['HIGH'],                 // GT line 29, structural HIGH
     'Blocked Mahalanobis':        ['MODERATE', 'HIGH'],     // FISHER_EXEMPT → widened
-    'Baseline Balance':           ['MODERATE', 'HIGH'],     // Carlisle over-balancing fixture
+    // Baseline Balance retracted post-Phase 0: GT composes DS15 severity as
+    // Missing Data + Mahalanobis + Kurtosis; Baseline Balance LOW here is
+    // correct engine behaviour. Its real positive anchor is DS16.
   } },
   '16-densitometry-carlisle-overbalanced.csv': { severity: 2, assay: 'densitometry', flags: {
     'Baseline Balance':           ['MODERATE', 'HIGH'],     // GT line 30, pure Carlisle over-balancing
