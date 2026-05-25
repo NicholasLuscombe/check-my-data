@@ -38,8 +38,13 @@ const EXPECTED = {
   '07-elisa-clean.csv':           { severity: 0, assay: 'elisa' },
   '08-elisa-fabricated.csv':      { severity: 3, assay: 'elisa' },
   '09-proteomics-clean.csv':      { severity: 0, assay: 'proteomics' },
-  '10-proteomics-fabricated.csv': { severity: 3, assay: 'proteomics' },
-  '11-rnaseq-multicondition.csv': { severity: 3, assay: 'genomics' },
+  '10-proteomics-fabricated.csv': { severity: 3, assay: 'proteomics', flags: {
+    'Column Goodness-of-Fit': ['MODERATE', 'HIGH'],     // S176 anchor MOD, AD ratio 105×
+  } },
+  '11-rnaseq-multicondition.csv': { severity: 3, assay: 'genomics', flags: {
+    'Autocorrelation':              ['HIGH'],                    // p≈0 self-gating canonical positive
+    'Residual Spike Correlation':   ['MODERATE', 'HIGH'],        // RSC MOD on shared row-noise across cond
+  } },
   '12a-uniform-mixture-clean.csv':      { severity: 0, assay: 'general' },
   '12b-uniform-mixture-fabricated.csv':  { severity: 1, assay: 'general' },
   '13-vfstest-cellcountest.csv':  { severity: 2, assay: 'cell_count' },
@@ -47,8 +52,14 @@ const EXPECTED = {
   // flagged dim (DupDet HIGH); WRV redundant non-independent signal, correctly
   // N/A on ordinal. See TEST-GROUND-TRUTH DS14.
   '14-crctest-survey.csv':        { severity: 2, assay: 'survey' },
-  '15-missing-carlisle.csv':      { severity: 3, assay: 'general' },
-  '16-densitometry-carlisle-overbalanced.csv': { severity: 2, assay: 'densitometry' },
+  '15-missing-carlisle.csv':      { severity: 3, assay: 'general', flags: {
+    'Missing Data Pattern':       ['HIGH'],                 // GT line 29, structural HIGH
+    'Blocked Mahalanobis':        ['MODERATE', 'HIGH'],     // FISHER_EXEMPT → widened
+    'Baseline Balance':           ['MODERATE', 'HIGH'],     // Carlisle over-balancing fixture
+  } },
+  '16-densitometry-carlisle-overbalanced.csv': { severity: 2, assay: 'densitometry', flags: {
+    'Baseline Balance':           ['MODERATE', 'HIGH'],     // GT line 30, pure Carlisle over-balancing
+  } },
   '17-densitometry-carlisle-clean.csv':        { severity: 0, assay: 'densitometry' },
   // DS19: inheritance fabrication calibration fixture (S98 Part B).
   // Pre-S99: severity 0 (direction-blind gate demoted the forensic-similar
@@ -58,12 +69,21 @@ const EXPECTED = {
   // against moment-matched Normal at N=1200, direction "high"). Two MOD flags
   // across two families (Cross-Cond Consistency + Column GoF) → severity 3.
   // This is a sensitivity gain on a fabricated fixture, not a regression.
-  '19-inheritance-fabricated.csv': { severity: 3, assay: 'general' },
+  //
+  // S177 Phase 0 — Column GoF is the contested cell (item 29 pooled-mixture
+  // artifact). Deliberately undeclared here; the pooled-clean cross-shape
+  // assertion below pins the class until A1 lands and adjudicates the
+  // EXPECTED 3→1 + GT line-32 revision in lockstep.
+  '19-inheritance-fabricated.csv': { severity: 3, assay: 'general', flags: {
+    'Cross-Condition Consistency': ['MODERATE', 'HIGH'],    // GT line 32, the real channel
+  } },
   // S108 new fixtures (fixture-gen workstream):
   // DS20: bimodal-fab gradient. Primary target Modality; expected severity 3
   //   via cross-dim convergence (Modality + Column GoF + IRC/cross-rep
   //   collateral on Rep1-3 vs Rep4-8 distributional mismatch).
-  '20-bimodal-fab.csv': { severity: 3, assay: 'general' },
+  '20-bimodal-fab.csv': { severity: 3, assay: 'general', flags: {
+    'Column Goodness-of-Fit': ['MODERATE', 'HIGH'],         // GT line 33, calibration gradient cols 4–7
+  } },
   // DS21: localised AR(1) in Control only. Primary targets Windowed Autocorr
   //   (Dim III) + Cross-Cond Consistency Stage 2 (Dim IV).
   //   S111 — signed-data gate on detectVST reroutes DS21 (posFrac 50.2%,
@@ -72,7 +92,13 @@ const EXPECTED = {
   //   from real AR-injection drivers. Previous Kurtosis HIGH (VST-induced
   //   artefact on positive-half log-transformed cells) drops to LOW.
   //   Severity 2 → 3 per S111 Phase 2 forecast; GT entry updated.
-  '21-localised-ar.csv': { severity: 3, assay: 'general' },
+  '21-localised-ar.csv': { severity: 3, assay: 'general', flags: {
+    'Autocorrelation':            ['HIGH'],                  // lag-1 HIGH p=2.5e-8, rock-solid
+    'Runs Test':                  ['MODERATE', 'HIGH'],      // HIGH p=0.0004, widened (near HIGH/MOD line)
+    'Row-Mean Runs':              ['MODERATE', 'HIGH'],      // HIGH p=0.0007, widened
+    'Blocked Mahalanobis':        ['MODERATE', 'HIGH'],      // HIGH, FISHER_EXEMPT → widened
+    'Regional Noise Homogeneity': ['MODERATE', 'HIGH'],      // MOD p=0.002
+  } },
   // DS22: covariance-block fabrication. S111 — signed-data gate reroutes
   //   DS22 (posFrac 50.5%, negFrac 49.5%) from log to raw, matching §2.6b's
   //   raw-diagnostic output. Severity held at 2; attribution restructured
@@ -80,7 +106,11 @@ const EXPECTED = {
   //   Mahalanobis MOD + Autocorrelation MOD convergent. Blocked Mahal
   //   attribution gap (S110 parked) cleared; K/N=0.15 detection ceiling
   //   holds per METHODOLOGY §2.6b.
-  '22-covariance-block.csv': { severity: 2, assay: 'general' },
+  '22-covariance-block.csv': { severity: 2, assay: 'general', flags: {
+    'Runs Test':                  ['MODERATE', 'HIGH'],     // HIGH p=0.0002, widened
+    'Blocked Mahalanobis':        ['MODERATE', 'HIGH'],     // MOD, FISHER_EXEMPT → widened
+    'Autocorrelation':            ['MODERATE', 'HIGH'],     // MOD p=0.0012
+  } },
 };
 
 const PERF = process.env.PERF === '1';
@@ -147,7 +177,27 @@ for (const [file, expected] of Object.entries(EXPECTED)) {
   // Compute severity
   const { severity } = computeSeverity(results);
 
-  const ok = severity === expected.severity;
+  // S177 Phase 0 — per-test flag assertion (positives-only cells declared in
+  // EXPECTED[file].flags). Allow-set semantics: each entry is the set of
+  // tier strings the test's r.flag must land in; HIGH|MODERATE|LOW|N/A
+  // (the producer vocabulary — no CLEAR / N-A). Declared cells are
+  // ground-truth-derived (TEST-GROUND-TRUTH.md), not snapshotted from
+  // output. A non-resolving key (typo or producer rename) silently never
+  // asserts; the bind-at-source name binding above guards against that.
+  const cellMisses = [];
+  if (expected.flags) {
+    const resultsByName = new Map(results.map(r => [r.name, r]));
+    for (const [name, allow] of Object.entries(expected.flags)) {
+      const r = resultsByName.get(name);
+      if (!r) {
+        cellMisses.push(`${name}: result not present (unresolved name binding?)`);
+      } else if (!allow.includes(r.flag)) {
+        cellMisses.push(`${name}: got ${r.flag}, expected ∈ [${allow.join(', ')}]`);
+      }
+    }
+  }
+  const cellsOk = cellMisses.length === 0;
+  const ok = severity === expected.severity && cellsOk;
   const flags = results.filter(r => r.flag === 'HIGH' || r.flag === 'MODERATE').map(r => `${r.name}:${r.flag}`).join(', ');
   if (expected.pending) {
     // Pending-verification lane: fabricated fixture with no applicable active
@@ -156,7 +206,12 @@ for (const [file, expected] of Object.entries(EXPECTED)) {
     pending++;
   } else {
     const mark = ok ? '✓' : '✗';
-    console.log(`${mark} ${file}: severity=${severity} (expected=${expected.severity})${!ok && flags ? ' [' + flags + ']' : ''}`);
+    const sevSuffix = severity === expected.severity ? '' : ` (expected=${expected.severity})`;
+    const sevLine = `${mark} ${file}: severity=${severity}${sevSuffix}${!ok && flags ? ' [' + flags + ']' : ''}`;
+    console.log(sevLine);
+    if (!cellsOk) {
+      for (const m of cellMisses) console.log(`    ↳ per-test miss — ${m}`);
+    }
     if (ok) passed++; else failed++;
   }
 
@@ -181,6 +236,78 @@ for (const [file, expected] of Object.entries(EXPECTED)) {
       bmPrimaryExceed,
     };
   }
+}
+
+// ── S177 Phase 0 — cross-shape pooled-column expected-fail (DS01) ─────────
+// Item-29 acceptance test in waiting. Reproduces S176: DS01 wide DATA cells
+// pooled into a single column should, after A1 routes per-condition shape
+// tests through the condition layer, leave the trio
+//   {Column Goodness-of-Fit, Entropy / Zipf Analysis, Modality Test}
+// CLEAR (each ∈ {N/A, LOW}) on the pooled column. Today the trio still fires
+// MOD/HIGH on the pooled mixture (item 29 pooled-mixture artifact) — that
+// is the defect this pass is built to assert against once A1 lands. Until
+// then it rides the pending lane (◦) so the batch stays 22/22.
+//
+// Construction: pool all DATA-column values from DS01's wide matrix into a
+// single column (no pivot — pivot splits back to columns, stays green;
+// pooling is the contamination path). Reads the cached DS01 data + roles
+// from the earlier wide-pipeline pass (re-read is fine if missing).
+{
+  const file = '01-densitometry-clean.csv';
+  const csv = readFileSync(join(FIXTURES, file), 'utf-8');
+  const parsed = Papa.default.parse(csv, { skipEmptyLines: true });
+  const pp = preprocessRaw(parsed.data);
+  const raw = pp.rows;
+  const headerRows = detectHeaderRows(raw);
+  let condPerCol = null;
+  if (headerRows >= 2) condPerCol = forwardFill(raw[0]);
+  const headers = raw[headerRows - 1];
+  const data = raw.slice(headerRows);
+  const roles = inferRoles(data, headers, condPerCol);
+  const dataColIdxs = roles.map((r, i) => r === 'data' ? i : -1).filter(i => i >= 0);
+  const dataColHeaders = dataColIdxs.map(i => headers[i]);
+
+  // Pool every DATA-col cell across all rows into a single column.
+  const pooledRows = [];
+  for (const row of data) {
+    for (const ci of dataColIdxs) {
+      const v = row[ci];
+      if (v == null || v === '') continue;
+      const n = Number(v);
+      if (!isNaN(n)) pooledRows.push([n]);
+    }
+  }
+
+  // Synthetic single-col fixture: 1 DATA column, no conditions.
+  const pooledData = pooledRows;
+  const pooledRoles = ['data'];
+  const { matrix, rawMatrix, condCtx } = extractAnalysisInputs({
+    data: pooledData, roles: pooledRoles, condPerCol: null, zeroAsMissing: false
+  });
+  const assay = 'densitometry';
+  const vst = detectVST(matrix, assay);
+  const dataType = ASSAY_DATATYPE_MAP[assay] || 'continuous';
+  const rowSemantics = 'ordered';
+
+  const pooledResults = await runFullAnalysis(
+    matrix, rawMatrix, condCtx, assay, null, vst, {}, dataType, rowSemantics
+  );
+
+  const trioNames = ['Column Goodness-of-Fit', 'Entropy / Zipf Analysis', 'Modality Test'];
+  const allow = ['N/A', 'LOW'];
+  const trio = trioNames.map(n => {
+    const r = pooledResults.find(x => x.name === n);
+    return r ? { name: n, flag: r.flag } : { name: n, flag: '?' };
+  });
+  const violations = trio.filter(t => !allow.includes(t.flag));
+  const note = 'item 29 — pooled-mixture artifact; flips to required on A1';
+  const trioLine = trio.map(t => `${t.name}:${t.flag}`).join(', ');
+  console.log(
+    `◦ ${file} (pooled, ${pooledRows.length} cells from cols [${dataColHeaders.join(', ')}]): ` +
+    `trio [${trioLine}] (pending — ${note})` +
+    (violations.length ? ` — ${violations.length} of 3 still > LOW (defect intact)` : ' — trio already CLEAR (defect resolved? clear pending)')
+  );
+  pending++;
 }
 
 const pendingSuffix = pending ? ` (+ ${pending} pending)` : '';
