@@ -70,6 +70,15 @@ git push origin main
 echo "==> Removing worktree at $WORKTREE_PATH."
 git worktree remove "$WORKTREE_PATH"
 
+# git worktree remove clears the admin entry but leaves the directory
+# non-empty when a per-worktree .claude/settings.local.json exists
+# (created by the SessionStart init-worktree-symlinks hook). Clear the
+# shell so .claude/worktrees/ stops accumulating residue across promotes.
+# Safe because git worktree remove (above) already verified no
+# uncommitted tracked work; only gitignored per-worktree state remains.
+echo "==> Clearing residue at $WORKTREE_PATH."
+rm -rf "$WORKTREE_PATH"
+
 echo "==> Deleting branch $BRANCH."
 if ! git branch -d "$BRANCH" 2>/dev/null; then
   echo "    -d refused; falling back to -D (branch is merged, safe)."
