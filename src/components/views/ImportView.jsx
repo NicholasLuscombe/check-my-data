@@ -277,6 +277,11 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
     setLongFormatModal(null);
     const pivoted=pivotLongToWide(dataRows,headers,{measureCol,condCol,idCol});
     setRawRows(pivoted);setHeaderRows(1);applyHeaders(pivoted,1);
+    // Pivot output: every numeric column IS a per-condition data column by construction.
+    // Condition identity travels via colRelationship='conditions' (set below) — not
+    // per-column roles. Override inferRoles' keyword-regex (roles.js:14) which would
+    // otherwise stamp Control / Treatment / etc. as 'condition', collapsing data cols to 0.
+    setRoles(prev => prev.map(r => r === 'condition' ? 'data' : r));
     // Pivoted data: columns came from condition values → they ARE conditions, not replicates
     setColRelationship('conditions');setColRelAutoSet(true);
     // Re-run assay detection on original pre-pivot headers — pivoted headers are
@@ -298,6 +303,8 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
     setPivotConfig(prev=>({...prev,measureCol:newMeasureCol}));
     const pivoted=pivotLongToWide(originalDataRows,originalHeaders,{measureCol:newMeasureCol,condCol,idCol});
     setRawRows(pivoted);setHeaderRows(1);applyHeaders(pivoted,1);
+    // Same condition-keyword override as confirmPivot — see comment there.
+    setRoles(prev => prev.map(r => r === 'condition' ? 'data' : r));
     // Re-detect assay on original headers (same as confirmPivot)
     const det=detectAssay(fileNameRef.current, originalHeaders);
     if(det&&(det.confidence==="high"||det.confidence==="low")){setAssay(det.assay);setAssayAutoDetected(det.confidence==="high");setAssaySuggestion(det.confidence==="low"?det.assay:null);const _dt=ASSAY_DATATYPE_MAP[det.assay]||'continuous';setDataType(_dt);}
