@@ -121,7 +121,7 @@ Two coverage facts surfaced and are accepted, not regressions:
 
 ---
 
-## Phase 2 — per-cluster correctness pass. ACTIVE.
+## Phase 2 — per-cluster correctness pass. DONE (S183).
 
 Cluster by cluster (A2 rhythm, on correctness): each test flags for the right reason
 on positives, stays clean across shapes. Adjudicates the deferred per-test cells —
@@ -187,3 +187,47 @@ DS02 / DS08 / DS12b / DS14 declared (S182, above); DS04 GoF/Modality definitivel
 per the A1 coverage loss; DS06 / DS13 trio N/A per Finding 2 (as are DS05 / DS11). The
 per-test gate now asserts every documented positive channel across the fabricated
 batch.
+
+**S183 — firing-inventory close.** A read-only sweep enumerated every MOD/HIGH
+firing across all positive fixtures against the declared cells: **17 undeclared
+firings** surfaced. All 17 adjudicated as **true detections** — GT-credited channels
+sitting unasserted, or DS08-Benford-pattern confirmations with the matched clean
+counterpart silent. The four on probe-gated item-32 tests cleared on mechanism
+evidence: DS06 Noise Scaling right-reason on single-condition count (the VST-circularity
+concern is structurally inapplicable — the test reads raw input by design); DS06
+Mahalanobis a real one-row outlier, not the S127c heavy-tailed-null signature
+(nOut = 1, a row survives BH-FDR α=0.001; clean DS05 has zero); DS10 LOESS + Regional
+Noise condition-internal by a three-way slice probe (both localise onto the
+ProteinID 80–120 fab range within each per-condition slice, not the row-200 condition
+boundary), not pooled-boundary artefacts. **Zero contamination, zero clean-side false
+positives** — the seven clean fixtures fired nothing.
+
+The finding was the *inverse* of the premise: not wrong-reason flags hiding in a
+correct total, but GT-credited right-reason channels sitting **undeclared** —
+including two severity-load-bearing HIGH flags (DS11 Benford Second Digit, DS20
+Selective Noise Partitioning) and the named primary targets of DS04 (Terminal Digit
+Uniformity) and DS13 (Value-Frequency Spike). This is lookup drift behind a
+fast-moving engine: per-test cells only existed from Phase 0 (S177), while verdicts
+held throughout, so prose-documented channels accreted without matching assertions.
+
+Closed three ways: (1) declared the true detections (DS04 ×3, DS06 ×3, DS10 ×4,
+DS11 ×1, DS13 ×1, DS15 ×1, DS20 ×2); (2) acknowledged the two incidental one-row
+Mahalanobis firings (DS06, DS08) in a new `expected.acknowledged` map — real, but
+downstream consequences, not GT-credited primary channels; (3) added the
+**completeness gate** — every MOD/HIGH firing on a positive must now be either
+declared in `expected.flags` or listed in `expected.acknowledged`, and every clean
+fixture must fire nothing, else the batch fails. The lookup is now a closed contract:
+the engine can no longer move a channel without the gate noticing. The CLAUDE.md
+convention adds the forward rule — a tiered channel named in GT prose must carry a
+cell, and a new detector that fires on any positive lands a cell or an acknowledged
+entry in the same change.
+
+**Item 32 (probe-gated four) refined, not retired.** S183 upgraded the evidentiary
+basis from latent-untested to demonstrated-true-positive-no-artifact for three of the
+four (Noise Scaling on single-condition count; LOESS + Regional Noise on row-grouped
+multi-condition). The probe-gate discipline held — there was no artefact to fix. Still
+un-probed: Noise Scaling's own column-grouped multi-condition contamination axis
+(DS06 was single-condition), and Within-Row Variance (no firing, fully latent). Both
+remain fixture-gated.
+
+Audit complete; STATUS item 28 closed.
