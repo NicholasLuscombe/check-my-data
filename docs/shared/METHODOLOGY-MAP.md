@@ -1,8 +1,10 @@
 # Methodology Map
 
-**Status:** v4.7 (S129)
+**Status:** v4.8 (S180)
 **Owner:** Chat
 **Companion to:** `METHODOLOGY.md`
+
+2026-05-26 (S179–S180 — Distribution-shape trio (Shannon Entropy §3.6, Column GoF §3.7, Modality §3.8) routing corrections. **A1 (S179):** trio routes per-condition via `aggregatePerGroup(condCtx.rowGroups())` with pooled fallback on multi-condition row-grouped data; DS19 trio-flag count corrected 3→1. **Finding 1 (S180, `d79cacc`):** trio added to `FISHER_EXEMPT` (exempt set 4→7) — per-group `primaryP` is floor-truncated by the B=999 bootstrap, non-uniform under H₀, so cross-group Fisher's was promoting floor-clamped MODERATE slices to spurious HIGH (DS11 χ²≈37.3; DS20 χ²=19.85); aggregator now falls back to worstGroup. **Finding 2 (S180, `16ace4e`):** trio routes to N/A on count data via `dtSkip` (`DATATYPE_SKIP.count`, joining ordinal) — a count column marginal is a mixture of per-unit NBs (RNA-seq = pooled per-gene NBs), not any single family, so the single-family-fit null is misspecified; count distribution-shape forensics is carried instead by §4.1 Mean-Variance (β≈2 genomics) and §2.2 Excess Kurtosis (replicate-difference shape, mixture-robust). DS20 GoF honest tier corrected HIGH→MODERATE per-condition (the post-A1 HIGH was the Finding-1 Fisher artifact, not un-masking). Batch 22/22, severity byte-identical throughout. See METHODOLOGY.md §3.6/§3.7/§3.8, STATUS.md, SESSION179/180-SUMMARY.)
 
 2026-04-23 (S118 — Track H Row Semantics Gate landed. Import-stage flag `rowSemantics ∈ {ordered, arbitrary}` declares whether row index carries forensic meaning; auto-suggest at import (long-format detected → arbitrary; genomics → arbitrary; instrument assays → ordered; general/proteomics/survey → user-required). Five sequential tests N/A under `arbitrary` via the engine's `rsSkip` dispatch lane (sibling to `condSkip` and `dtSkip`): §2.3 Runs, §2.4 Row-Mean Runs, §2.6b Blocked Mahalanobis, §2.7 LOESS, §4.2 Regional Noise. Two sub-unit suppressions inside the test functions: §2.5 IRC windowed permutation scan, §4.3 Within-Row Variance windowed scan; global statistics in both tests continue to run. Three sequential tests intentionally NOT gated: §1.2 Constant-Offset (row-shuffle perm null self-handles), §2.1 Autocorrelation (Tier 2 effect-size floor `|mean r| ≥ 0.25` at N≥500 self-handles), §2.1b Windowed Autocorrelation (within-pair row-shuffle perm null self-handles) — null-construction-aware policy. DS11 (RNA-seq + AR(1) generator leakage) Autocorrelation HIGH preserved; severity 3 unchanged. Pre-S118 ad-hoc `assay === 'genomics'` skips on §2.6b/§2.7/§4.2 retired (subsumed by gate). BatchView pre-S118 SKIP-on-long-format replaced by auto-route to `arbitrary`. Module count 172 → 173 (`src/import/rowSemantics.js`). Batch 22/22. See METHODOLOGY.md §"Row Semantics Gate" + per-test row-semantics notes, STATUS.md §S118, SESSION118-SUMMARY.md.)
 
@@ -244,6 +246,8 @@ Status: **Dim IV coverage complete for v1.0 on replicate-bearing archetypes.** C
 | Bimodality / multimodality | Modality Test | Per-column (global) |
 
 All three tests are per-column. Per-condition pooled variants (pool replicate values within a condition) are a possible extension but per-condition sample sizes may be too small for bootstrap nulls.
+
+All three are N/A on the ordinal and count data types (engine `dtSkip`): ordinal item scales are not interchangeable, and count column marginals are mixtures of per-unit families with no single-family null (S180 Finding 2). Count distribution-shape forensics is carried instead by §4.1 Mean-Variance Relationship and §2.2 Excess Kurtosis.
 
 Cross-condition comparison of these properties (does condition A's entropy differ from condition B's?) lives in Dim IV (consistency framework), not Dim V.
 

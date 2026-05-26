@@ -246,20 +246,30 @@ for (const [file, expected] of Object.entries(EXPECTED)) {
   }
 }
 
-// ── S177 Phase 0 — cross-shape pooled-column expected-fail (DS01) ─────────
-// Item-29 acceptance test in waiting. Reproduces S176: DS01 wide DATA cells
-// pooled into a single column should, after A1 routes per-condition shape
-// tests through the condition layer, leave the trio
-//   {Column Goodness-of-Fit, Entropy / Zipf Analysis, Modality Test}
-// CLEAR (each ∈ {N/A, LOW}) on the pooled column. Today the trio still fires
-// MOD/HIGH on the pooled mixture (item 29 pooled-mixture artifact) — that
-// is the defect this pass is built to assert against once A1 lands. Until
-// then it rides the pending lane (◦) so the batch stays 22/22.
+// ── S181 — DS01 cross-shape invariance (long-form with conditions) ──────
+// Active assertion (replaces the S177 Phase 0 pending block). What this
+// proves: when DS01's DATA cells are pooled into ONE data column but
+// presented WITH a row-level condition column, A1's per-condition routing
+// (engine.js trio dispatch via condCtx.rowGroups()) lands the distribution-
+// shape trio on each condition slice independently, and every slice
+// clears — Column Goodness-of-Fit, Entropy / Zipf Analysis, Modality Test
+// each ∈ {N/A, LOW} at the aggregate. CLEAR = {N/A, LOW}, not "LOW only":
+// the Inhibitor_B slice trips the §3.7 |γ₁| > 1.5 family pre-skip on this
+// fixture (lowest-base condition, right-tailed log-normal-like residual),
+// returning N/A per-column; that is a passing applicability outcome, not
+// a failure.
 //
-// Construction: pool all DATA-column values from DS01's wide matrix into a
-// single column (no pivot — pivot splits back to columns, stays green;
-// pooling is the contamination path). Reads the cached DS01 data + roles
-// from the earlier wide-pipeline pass (re-read is fine if missing).
+// Contrast (not asserted, kept as comment to ground the test's purpose):
+// the SAME pool with NO condition column (an unlabelled mixture) fires
+// GoF MODERATE p≈0.004 — that is correct behaviour, not a defect to
+// suppress, because an unlabelled multi-condition mixture genuinely is
+// wrong-shape against any single-family fit. The shape-invariance
+// property this assertion guards is: presenting the mixture WITH its
+// conditions, the engine's per-condition routing absorbs the
+// between-condition mean differences and the trio fits within-condition
+// shape only. Regression target: a future change that bypasses A1
+// (e.g. a refactor that drops the rowGroups() guard or routes the trio
+// pooled when conditions are present) would break this.
 {
   const file = '01-densitometry-clean.csv';
   const csv = readFileSync(join(FIXTURES, file), 'utf-8');
@@ -267,55 +277,68 @@ for (const [file, expected] of Object.entries(EXPECTED)) {
   const pp = preprocessRaw(parsed.data);
   const raw = pp.rows;
   const headerRows = detectHeaderRows(raw);
-  let condPerCol = null;
-  if (headerRows >= 2) condPerCol = forwardFill(raw[0]);
+  let nativeCondPerCol = null;
+  if (headerRows >= 2) nativeCondPerCol = forwardFill(raw[0]);
   const headers = raw[headerRows - 1];
   const data = raw.slice(headerRows);
-  const roles = inferRoles(data, headers, condPerCol);
-  const dataColIdxs = roles.map((r, i) => r === 'data' ? i : -1).filter(i => i >= 0);
-  const dataColHeaders = dataColIdxs.map(i => headers[i]);
+  const nativeRoles = inferRoles(data, headers, nativeCondPerCol);
+  const dataColIdxs = nativeRoles.map((r, i) => r === 'data' ? i : -1).filter(i => i >= 0);
 
-  // Pool every DATA-col cell across all rows into a single column.
-  const pooledRows = [];
+  // Build a long-form 2-col matrix: [value, condLabel] per cell. The
+  // condition label comes from the DATA col the cell originated from in
+  // the native wide layout.
+  const longRows = [];
   for (const row of data) {
     for (const ci of dataColIdxs) {
       const v = row[ci];
       if (v == null || v === '') continue;
       const n = Number(v);
-      if (!isNaN(n)) pooledRows.push([n]);
+      if (isNaN(n)) continue;
+      const condLabel = nativeCondPerCol ? nativeCondPerCol[ci] : null;
+      longRows.push([n, condLabel]);
     }
   }
 
-  // Synthetic single-col fixture: 1 DATA column, no conditions.
-  const pooledData = pooledRows;
-  const pooledRoles = ['data'];
+  const longRoles = ['data', 'condition'];
   const { matrix, rawMatrix, condCtx } = extractAnalysisInputs({
-    data: pooledData, roles: pooledRoles, condPerCol: null, zeroAsMissing: false
+    data: longRows, roles: longRoles, condPerCol: null, zeroAsMissing: false,
   });
   const assay = 'densitometry';
   const vst = detectVST(matrix, assay);
   const dataType = ASSAY_DATATYPE_MAP[assay] || 'continuous';
   const rowSemantics = 'ordered';
 
-  const pooledResults = await runFullAnalysis(
+  const longResults = await runFullAnalysis(
     matrix, rawMatrix, condCtx, assay, null, vst, {}, dataType, rowSemantics
   );
+
+  // Precondition: rowGroups() must return 3 groups (the routing surface
+  // A1 dispatches through). If it returns null the trio falls back to the
+  // pooled full-matrix path and the test loses its meaning.
+  const rg = condCtx.rowGroups();
+  const rgOk = Array.isArray(rg) && rg.length === 3;
 
   const trioNames = ['Column Goodness-of-Fit', 'Entropy / Zipf Analysis', 'Modality Test'];
   const allow = ['N/A', 'LOW'];
   const trio = trioNames.map(n => {
-    const r = pooledResults.find(x => x.name === n);
+    const r = longResults.find(x => x.name === n);
     return r ? { name: n, flag: r.flag } : { name: n, flag: '?' };
   });
-  const violations = trio.filter(t => !allow.includes(t.flag));
-  const note = 'item 29 — pooled-mixture artifact; flips to required on A1';
+  const trioViolations = trio.filter(t => !allow.includes(t.flag));
+  const ok = rgOk && trioViolations.length === 0;
+  const mark = ok ? '✓' : '✗';
   const trioLine = trio.map(t => `${t.name}:${t.flag}`).join(', ');
-  console.log(
-    `◦ ${file} (pooled, ${pooledRows.length} cells from cols [${dataColHeaders.join(', ')}]): ` +
-    `trio [${trioLine}] (pending — ${note})` +
-    (violations.length ? ` — ${violations.length} of 3 still > LOW (defect intact)` : ' — trio already CLEAR (defect resolved? clear pending)')
-  );
-  pending++;
+  const rgLabel = rgOk
+    ? `rowGroups=${rg.map(g => `${g.name}(n=${g.rowIndices.length})`).join(',')}`
+    : `rowGroups=${rg === null ? 'null' : (Array.isArray(rg) ? `${rg.length} groups` : 'unexpected')} (expected 3)`;
+  console.log(`${mark} ${file} (long-form, ${longRows.length} cells + COND col): ${rgLabel}; trio [${trioLine}]`);
+  if (!ok) {
+    if (!rgOk) console.log(`    ↳ routing precondition failed — A1 per-condition path not engaged`);
+    for (const v of trioViolations) {
+      console.log(`    ↳ ${v.name} flag=${v.flag}, expected ∈ [${allow.join(', ')}]`);
+    }
+  }
+  if (ok) passed++; else failed++;
 }
 
 const pendingSuffix = pending ? ` (+ ${pending} pending)` : '';
