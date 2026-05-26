@@ -15,6 +15,8 @@ import { fmtP, fmtPBadge } from "../../constants/thresholds.js";
 import { MiniCardLayout } from "../shared/CardLayout.jsx";
 import { DataTable } from "../shared/DataTable.jsx";
 import { SUB_HEAD } from "../shared/styles.js";
+import { ColumnStatBar } from "../plots/ColumnStatBar.jsx";
+import { DIP_GATE } from "../../tests/modality.js";
 
 export function MiniCard_Modality({ result, importConfig, rowMap }) {
   const nFlagged = result.nFlagged || 0;
@@ -26,11 +28,19 @@ export function MiniCard_Modality({ result, importConfig, rowMap }) {
     ? flaggedColLabels.join(", ")
     : "flagged columns";
 
-  const implications = nFlagged > 0
-    ? `Values in ${flaggedColStr} are non-unimodal — the distribution shows multiple peaks or a dip exceeding the uniform-reference ceiling. Hartigan's dip statistic exceeding the uniform null is a strong fingerprint of mixture fabrication: two genuinely different sources (different cohorts, batches, or instrument runs) combined and presented as a single declared condition. Examine the column histograms for two or more peaks separated by a clear gap.`
-    : `No columns produced multi-modal evidence above the uniform-reference null.`;
+  // Implications copy renders only when the card is flagged (gated by
+  // MiniCardLayout on isFlagged), so the only meaningful branch is the
+  // nFlagged > 0 one.
+  const implications = `Values in ${flaggedColStr} are non-unimodal — the distribution shows multiple peaks or a dip exceeding the uniform-reference ceiling. Hartigan's dip statistic exceeding the uniform null is a strong fingerprint of mixture fabrication: two genuinely different sources (different cohorts, batches, or instrument runs) combined and presented as a single declared condition. Examine the column histograms for two or more peaks separated by a clear gap.`;
 
   const rows = (result.details || []).slice(0, 20);
+
+  // Per-column bar items: all tested columns, flagged + unflagged.
+  const barItems = (result.colDips || []).map(c => ({
+    colLabel: `Col ${c.col}`,
+    value: c.dip,
+    flagged: !!c.flagged,
+  }));
 
   return (
     <MiniCardLayout result={result}
@@ -43,6 +53,12 @@ export function MiniCard_Modality({ result, importConfig, rowMap }) {
       </>}
       lookFor="Flagged columns have a Hartigan dip statistic exceeding the uniform-reference null — a unimodal distribution cannot produce dip values that high. Examine the column histogram: look for two or more peaks separated by a clear gap, or for asymmetry consistent with mixing two distributions of different mean or scale."
       implications={implications}>
+
+      {barItems.length > 0 && (
+        <ColumnStatBar items={barItems} cardFlag={result.flag}
+          refValue={DIP_GATE} refLabel="Multimodality threshold"
+          valueAxisLabel="Dip statistic" />
+      )}
 
       {rows.length > 0 && (
         <div style={{ marginTop: "8px" }}>

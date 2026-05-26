@@ -14,6 +14,7 @@ import { fmtP, fmtPBadge } from "../../constants/thresholds.js";
 import { MiniCardLayout } from "../shared/CardLayout.jsx";
 import { DataTable } from "../shared/DataTable.jsx";
 import { SUB_HEAD } from "../shared/styles.js";
+import { ColumnStatBar } from "../plots/ColumnStatBar.jsx";
 
 // Family slugs come from the producer in lowercase ("normal" / "poisson"
 // / "nb"). Render with their conventional statistics formatting.
@@ -57,6 +58,13 @@ export function MiniCard_ColumnGoF({ result, importConfig, rowMap }) {
   // Details table (flagged columns)
   const rows = (result.details || []).slice(0, 20);
 
+  // Per-column bar items: all tested columns, flagged + unflagged.
+  const barItems = (result.colRatios || []).map(c => ({
+    colLabel: `Col ${c.col}`,
+    value: c.ratio,
+    flagged: !!c.flagged,
+  }));
+
   return (
     <MiniCardLayout result={result}
       footer={<>
@@ -67,6 +75,12 @@ export function MiniCard_ColumnGoF({ result, importConfig, rowMap }) {
       </>}
       lookFor="Mismatch columns ('shape doesn't fit') deviate from the reference family — examine their histograms for heavy/light tails, multiple modes, or unusual clustering. Too-tight columns fit suspiciously well: examine for too-regular spacing or values that look generated rather than measured. Both directions warrant cross-checking against the original instrument output."
       implications={implications}>
+
+      {barItems.length > 0 && (
+        <ColumnStatBar items={barItems} cardFlag={result.flag}
+          refValue={1} refLabel="Null median (ratio = 1)"
+          valueAxisLabel="A² ratio" />
+      )}
 
       {rows.length > 0 && (
         <div style={{ marginTop: "8px" }}>

@@ -5,6 +5,7 @@ import { fmtP, fmtPBadge } from "../../constants/thresholds.js";
 import { MiniCardLayout } from "../shared/CardLayout.jsx";
 import { DataTable } from "../shared/DataTable.jsx";
 import { SUB_HEAD } from "../shared/styles.js";
+import { ColumnStatBar } from "../plots/ColumnStatBar.jsx";
 
 
 export function MiniCard_Entropy({ result, importConfig, rowMap }) {
@@ -23,6 +24,13 @@ export function MiniCard_Entropy({ result, importConfig, rowMap }) {
   // Details table (flagged columns)
   const rows = (result.details || []).slice(0, 20);
 
+  // Per-column bar items: all tested columns, flagged + unflagged.
+  const barItems = (result.colRatios || []).map(c => ({
+    colLabel: `Col ${c.col}`,
+    value: c.ratio,
+    flagged: !!c.flagged,
+  }));
+
   return (
     <MiniCardLayout result={result}
       footer={<>
@@ -33,6 +41,12 @@ export function MiniCard_Entropy({ result, importConfig, rowMap }) {
       </>}
       lookFor="Low-entropy columns suggest values were drawn from a restricted set — too few distinct values for what's expected. High-entropy columns suggest over-randomisation — values were spread too uniformly to look 'real'. Check whether flagged columns correspond to key results or treatment groups."
       implications={entropyImplications}>
+
+      {barItems.length > 0 && (
+        <ColumnStatBar items={barItems} cardFlag={result.flag}
+          refValue={1} refLabel="Expected (ratio = 1)"
+          valueAxisLabel="Entropy ratio" />
+      )}
 
       {rows.length > 0 && (
         <div style={{ marginTop: "8px" }}>

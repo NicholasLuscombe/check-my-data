@@ -50,7 +50,7 @@ import { flagFromP } from "../constants/thresholds.js";
 
 const NAME = "Modality Test";
 const CAT  = "shapes";
-const DIP_GATE = 0.04;            // effect-size gate per §3.8 step 6
+export const DIP_GATE = 0.04;     // effect-size gate per §3.8 step 6
 // γ₁ > 1.5 pre-skip is NOT applied to Modality (S107 calibration decision):
 // Modality's uniform-reference null is family-agnostic by design, so the skew
 // pre-skip that protects §3.7's parametric fit is philosophically mismatched.
