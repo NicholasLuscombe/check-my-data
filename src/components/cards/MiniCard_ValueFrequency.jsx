@@ -59,9 +59,15 @@ export function MiniCard_ValueFrequency({ result, importConfig, rowMap }) {
     ? <>{nValues} values screened · no values over-represented · {fmtPBadge(result.primaryP)}</>
     : <>{nValues} values screened · {nSpikes} over-represented across {nCells} cell{nCells === 1 ? "" : "s"} · {fmtPBadge(result.primaryP)}</>;
 
-  // Column order: Value · Pass · Rows · Cells · Observed · Expected · Ratio · Adj P
+  // Column order: Value · Pass · Rows · Observed · Expected · Ratio · Adj P
   // Leading text cols (identifier): Value, Pass, Rows → identifierColumns=3.
-  // Trailing numeric cols (mono): Cells, Observed, Expected, Ratio, Adj P.
+  // Trailing numeric cols (mono): Observed, Expected, Ratio, Adj P.
+  // Per-row cell count is duplicative of Observed by construction (full-value:
+  // occurrences == flagged cells; digit-substring: substring matches ==
+  // flagged cells), so no separate "Cells" column. Aggregate cell spread
+  // still surfaces in the footer's "across N cells" segment.
+  // Width hints sum to ~635px to fit typical Forensics card-body widths.
+  // EvidenceTable wrapper's overflow:auto handles narrow viewports.
   return (
     <MiniCardLayout result={result}
       footer={footerText}
@@ -77,19 +83,22 @@ export function MiniCard_ValueFrequency({ result, importConfig, rowMap }) {
         <div style={SUB_HEAD}>Over-represented values</div>
         <EvidenceTable
           columns={[
-            {label:"Value"}, {label:"Pass"}, {label:"Rows"}, {label:"Cells"},
-            {label:"Observed"}, {label:"Expected"}, {label:"Ratio"}, {label:"Adj P"},
+            {label:"Value",    width:"85px"},
+            {label:"Pass",     width:"110px"},
+            {label:"Rows",     width:"170px"},
+            {label:"Observed", width:"75px"},
+            {label:"Expected", width:"75px"},
+            {label:"Ratio",    width:"65px"},
+            {label:"Adj P",    width:"85px"},
           ]}
           identifierColumns={3}
           rows={details.map(d => {
             const g = cellsByKey.get(spikeKeyFromDetail(d));
-            const cellCount = g ? g.count : 0;
             const rowList = g ? compactRowList([...g.rows]) : "—";
             return [
               {value:d.value, style:{fontWeight:FW.BOLD}},
               d.pass === "digit" ? "digit substring" : "full value",
               rowList,
-              cellCount,
               d.observed,
               d.expected,
               d.ratio,
