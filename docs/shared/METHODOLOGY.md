@@ -608,6 +608,34 @@ Column-grouped layouts where each DATA column is its own condition (e.g., DS19 i
 
 ---
 
+### 1.10 Baseline Balance (Carlisle)
+
+**Source:** Carlisle, J.B. (2017) — "too balanced" between-group baselines as a forensic tail. Realises the principled-null Carlisle test flagged as the successor to the removed Fold-Change Distribution Outlier (§1.6).
+
+**Forensic target.** Honest random allocation produces between-condition differences that vary feature to feature; the per-feature significance test of those differences yields p-values that are uniform on (0, 1) under H₀. A fabricator who tunes groups to look matched compresses those differences, pushing the p-distribution toward 1.0 — the "too balanced" signature. The test looks for an excess of near-1 p-values, not for any single imbalanced feature.
+
+**Procedure:**
+1. Per feature, one-way ANOVA F across the condition groups → p-value via `regIncBeta`. Under honest allocation these feature p-values are U(0, 1).
+2. **Routing branches on `condCtx.type`:**
+   - **Row-grouped** → features are the **DATA columns**, conditions are the COND row groups. Gate: ≥5 columns.
+   - **Column-grouped** → features are the **rows**, conditions are the COND column groups. Gate: ≥10 rows.
+   - Otherwise N/A.
+3. Two compound statistics on the feature p-distribution: **(a)** a binomial upper-tail test on `nExcess = #{p > 0.95}` against `expectedExcess = nFeatures × 0.05` (normal approximation, continuity-corrected); **(b)** a Kolmogorov–Smirnov D of the p-distribution against U(0, 1). `primaryP = min(binomP, ksP)`.
+4. **Effect-size gate.** Demote to LOW unless `nExcess / nFeatures ≥ 0.50`. With few features, sampling variation alone produces one or two high p-values; genuine fabricated balance pushes *most* features near 1.0.
+5. **Genuine-difference skip.** If more than half the features are significant (`nSig / nFeatures > 0.50` at p < 0.05) the conditions are genuinely different — return N/A, the balance test is not applicable.
+
+**Flag:** from `primaryP` via the standard ladder (p < 0.001 → HIGH, p < 0.01 → MODERATE), subject to the effect-size gate.
+
+**Input routing.** Runs on the **raw** matrix (not VST'd) — the test is on the distribution of allocation p-values, not on the value scale.
+
+**Missing-value handling.** Pairwise per (condition × feature): each ANOVA group is `filter(v != null)` over its own cells. Partial-null rows are retained and contribute to whatever features they have values in; there is no listwise complete-case construction and no per-row exclusion. Asymmetric missing-rates between conditions are absorbed as unequal group `n_i` in the per-feature ANOVA.
+
+**Known limitation — feature-count on row-grouped data (S182).** In the row-grouped branch the features are the DATA columns, so a fixture with few columns yields few feature p-values and the effect-size gate (`excessFrac ≥ 0.50`) requires a large fraction of those columns to be over-balanced before the test clears LOW. DS15 (`15-missing-carlisle.csv`, row-grouped, 6 DATA columns) is the canonical case: its ANOVA-filtered over-balancing does not present as a flat 6-column p-distribution, so Baseline Balance reads LOW correctly — the over-balance signal is a covariance / registered-property signature carried by Blocked Mahalanobis (§2.6b, Σ-pass Control rows 1–40) and the Cross-Condition Consistency framework (§1.9), not a mean-balance one. The column-grouped branch is unaffected and is the positive anchor: DS16 (`16-densitometry-carlisle-overbalanced.csv`, pure over-balancing, 60 row-features) fires HIGH with binomP = 0, KS-D = 0.75, 48 of 60 features over-balanced. No Baseline Balance cell is declared in the validation batch.
+
+**Minimum data:** ≥2 conditions; row-grouped ≥5 DATA columns, column-grouped ≥10 rows; ≥5 testable features overall; per-feature ≥3 values per group (row-grouped) or ≥2 (column-grouped).
+
+---
+
 ## 2. Distributional Tests on Inter-Replicate Differences
 
 ### 2.1 Autocorrelation of Differences (Lags 1–5)
