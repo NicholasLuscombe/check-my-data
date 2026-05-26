@@ -50,8 +50,13 @@ function fmtTick(v) {
  *   condition while the table below shows all conditions. Surfaces a scope caption so a column
  *   marked "skipped" in the bar but flagged in the table reads as two views, not a contradiction.
  *   Full condition-aware bar is parked (item 46).
+ * @param {string} [props.skippedClause] - reader-friendly clause appended after "Col N skipped — "
+ *   in the caption. Cards author this per-test (different gates skip for different reasons —
+ *   ColumnGoF's family-set coverage vs Modality's uniform-reference null). Falls back to an
+ *   auto-trim of the producer reason (strips "Pre-skip: γ₁=…, γ₂=… —" diagnostic prefix) when
+ *   not supplied.
  */
-export function ColumnStatBar({ items, skipped, cardFlag, refValue, refLabel, valueAxisLabel, isAggregated }) {
+export function ColumnStatBar({ items, skipped, cardFlag, refValue, refLabel, valueAxisLabel, isAggregated, skippedClause }) {
   if (!items?.length && !skipped?.length) return null;
 
   const flaggedColor = SEV_VERDICT[FLAG_RANK[cardFlag] ?? 0].color;
@@ -167,48 +172,58 @@ export function ColumnStatBar({ items, skipped, cardFlag, refValue, refLabel, va
           )}
         </PlotSVG>
 
-        {/* Caption row — reference legend (left), skipped count (right when present).
-            Captions sit below the SVG so they never collide with bars. */}
-        {(refLabel || slotsSkipped.length > 0) && (
+        {/* Caption stack — full-width vertical blocks, one per item, top to
+            bottom: reference-line label, skipped-cols line, scope line (when
+            aggregated). No horizontal column split; each line wraps cleanly
+            on its own row, no interleaving. */}
+        {(refLabel || slotsSkipped.length > 0 || isAggregated) && (
           <div style={{
-            display: "flex", justifyContent: "space-between", alignItems: "baseline",
             marginTop: "6px", paddingLeft: `${PL}px`, paddingRight: `${PR}px`,
             fontSize: FS.xs, fontFamily: FF.UI, color: C.TEXT_3,
+            display: "flex", flexDirection: "column", gap: "3px",
           }}>
             {refLabel && (
-              <span>
+              <div>
                 <svg width="22" height="6" style={{ verticalAlign: "middle", marginRight: "4px" }}>
                   <line x1="0" y1="3" x2="22" y2="3" stroke={C.TEXT_3}
                     strokeWidth={CS.REF.w} strokeDasharray={CS.REF.dash} opacity={CS.REF.opacity} />
                 </svg>
                 {refLabel}
-              </span>
+              </div>
             )}
             {slotsSkipped.length > 0 && (
-              <span>
-                {slotsSkipped.length} skipped (
-                {[...new Set(slotsSkipped.map(s => s.reason))].slice(0, 2).join("; ")}
-                )
-              </span>
+              <div>{composeSkippedLine(slotsSkipped, skippedClause)}</div>
             )}
-          </div>
-        )}
-
-        {/* Per-condition scope caption — surfaces that bars and table show
-            different scopes (bar = one slice, table = all slices), so a
-            column marked "skipped" in the bar and flagged in the table reads
-            as two views rather than a contradiction. Single-condition cards
-            have no mismatch to explain → no caption. Item 46 will fold this
-            into a condition-aware bar. */}
-        {isAggregated && (
-          <div style={{
-            marginTop: "4px", paddingLeft: `${PL}px`, paddingRight: `${PR}px`,
-            fontSize: FS.xs, fontFamily: FF.UI, color: C.TEXT_3, fontStyle: "italic",
-          }}>
-            Bar shows a single condition; full per-condition detail in the table below.
+            {isAggregated && (
+              <div style={{ fontStyle: "italic" }}>
+                Bar shows a single condition; full per-condition detail in the table below.
+              </div>
+            )}
           </div>
         )}
       </div>
     </PlotLayout>
   );
+}
+
+/** Compose the skipped-cols caption line. Bar owns the col-list prefix
+    ("Col N skipped" / "Cols 8, 11 skipped" / "4 columns skipped"); the
+    suffix is the card-supplied skippedClause when provided, else an
+    auto-trim of the producer reason (strip "Pre-skip: γ…—" diagnostic
+    prefix; flatten leftover nested parens). Caps inline col list at 3. */
+function composeSkippedLine(slots, skippedClause) {
+  const cols = slots.map(s => s.col).filter(c => c != null);
+  let prefix;
+  if (cols.length === 1) prefix = `Col ${cols[0]} skipped`;
+  else if (cols.length <= 3) prefix = `Cols ${cols.join(", ")} skipped`;
+  else prefix = `${cols.length} columns skipped`;
+  let suffix = skippedClause;
+  if (!suffix) {
+    // Fallback — strip diagnostic prefix and flatten nested parens from the
+    // most common producer reason (one variant per shape-family pre-skip).
+    const reasons = [...new Set(slots.map(s => s.reason || ""))].filter(Boolean);
+    const reason = reasons[0] || "";
+    suffix = reason.replace(/^Pre-skip:[^—]*—\s*/, "").replace(/\(([^()]*)\)/g, "$1").trim();
+  }
+  return suffix ? `${prefix} — ${suffix}` : prefix;
 }

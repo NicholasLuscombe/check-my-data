@@ -90,7 +90,8 @@ export function MiniCard_ColumnGoF({ result, importConfig, rowMap }) {
         <ColumnStatBar items={barItems} skipped={skippedItems} cardFlag={result.flag}
           isAggregated={isAgg}
           refValue={1} refLabel="Null median (ratio = 1)"
-          valueAxisLabel="A² ratio" />
+          valueAxisLabel="A² ratio"
+          skippedClause="near-uniform shape outside the {Normal, Poisson, NB} family (v1.1: LogNormal, Gamma)" />
       )}
 
       {isAgg && sub.length > 0 && (() => {

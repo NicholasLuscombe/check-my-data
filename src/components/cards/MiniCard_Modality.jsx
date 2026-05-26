@@ -68,7 +68,8 @@ export function MiniCard_Modality({ result, importConfig, rowMap }) {
         <ColumnStatBar items={barItems} skipped={skippedItems} cardFlag={result.flag}
           isAggregated={isAgg}
           refValue={DIP_GATE} refLabel="Multimodality threshold"
-          valueAxisLabel="Dip statistic" />
+          valueAxisLabel="Dip statistic"
+          skippedClause="near-uniform shape would dominate the uniform-reference null" />
       )}
 
       {isAgg && sub.length > 0 && (() => {
