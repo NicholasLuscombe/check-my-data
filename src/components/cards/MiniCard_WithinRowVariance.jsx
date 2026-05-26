@@ -62,8 +62,15 @@ export function MiniCard_WithinRowVariance({ result, importConfig, rowMap }) {
     );
   }
 
-  // Details table
-  const rows = (result.details || []).slice(0, 20);
+  // Per-condition routing path: aggregator rebuilds `details` as the
+  // per-group summary, so the table binds to `subDetails` (per-row evidence
+  // prefixed with `group`) when aggregated. The aggregator already
+  // dataset-remaps `d.Row` for row-keyed tests, so toFileRow continues to
+  // work on subDetails. Matches MiniCard_Mahalanobis precedent.
+  const isAgg = result.groupsAssessed !== undefined;
+  const sub = result.subDetails || [];
+  const tableSource = isAgg ? sub : (result.details || []);
+  const rows = tableSource.slice(0, 20);
 
   return (
     <MiniCardLayout result={result}
@@ -89,16 +96,21 @@ export function MiniCard_WithinRowVariance({ result, importConfig, rowMap }) {
         <div style={{ marginTop: "8px" }}>
           <div style={SUB_HEAD}>Outlier rows</div>
           <EvidenceTable
-            columns={[{label:"Row"},{label:"z"},{label:"Direction"},{label:"SD"},{label:"Expected"}]}
-            identifierColumns={1}
+            columns={isAgg
+              ? [{label:"Condition"},{label:"Row"},{label:"z"},{label:"Direction"},{label:"SD"},{label:"Expected"}]
+              : [{label:"Row"},{label:"z"},{label:"Direction"},{label:"SD"},{label:"Expected"}]}
+            identifierColumns={isAgg ? 2 : 1}
             compact
-            rows={rows.slice(0,20).map(d => [
-              {value: toFileRow(d.Row), style:{fontWeight:FW.BOLD}},
-              {value: d.z, style:{fontWeight:FW.BOLD}},
-              {value: d.Direction, style:{fontFamily:FF.UI}},
-              d.SD,
-              d.Expected,
-            ])}
+            rows={rows.slice(0,20).map(d => {
+              const base = [
+                {value: toFileRow(d.Row), style:{fontWeight:FW.BOLD}},
+                {value: d.z, style:{fontWeight:FW.BOLD}},
+                {value: d.Direction, style:{fontFamily:FF.UI}},
+                d.SD,
+                d.Expected,
+              ];
+              return isAgg ? [{value: d.group, style:{fontFamily:FF.UI}}, ...base] : base;
+            })}
             footerText={nOut > 20 ? `Showing 20 of ${nOut}.` : undefined}
           />
         </div>

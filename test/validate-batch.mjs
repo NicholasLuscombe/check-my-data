@@ -119,9 +119,13 @@ const EXPECTED = {
     'Cross-Condition Consistency': ['MODERATE', 'HIGH'],    // GT line 32, the real channel
   } },
   // S108 new fixtures (fixture-gen workstream):
-  // DS20: bimodal-fab gradient. Primary target Modality; expected severity 3
-  //   via cross-dim convergence (Modality + Column GoF + IRC/cross-rep
-  //   collateral on Rep1-3 vs Rep4-8 distributional mismatch).
+  // DS20: bimodal-fab gradient. Modality is structurally un-exerciseable on
+  //   DS20 at N=300 — the γ₂ pre-skip × dip-magnitude gate at the v2 mixture
+  //   separations holds it at LOW. Not a routing artefact; per-condition
+  //   routing leaves it unchanged. No positive-anchor fixture for Modality
+  //   exists in the current suite. Expected severity 3 lands via Column GoF
+  //   (Dim V, the live primary channel — DS20 MOD per-condition) plus Dim III
+  //   collateral (Selective Noise, Autocorrelation).
   '20-bimodal-fab.csv': { severity: 3, assay: 'general', flags: {
     'Column Goodness-of-Fit':         ['MODERATE', 'HIGH'],   // GT line 33, calibration gradient cols 4–7
     'Selective Noise Partitioning':   ['HIGH'],               // p≈0; GT-named Dim III collateral (S183 Phase 2)

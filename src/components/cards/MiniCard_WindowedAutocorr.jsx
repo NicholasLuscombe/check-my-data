@@ -12,7 +12,16 @@ import { SUB_HEAD } from "../shared/styles.js";
 
 
 export function MiniCard_WindowedAutocorr({ result, importConfig, rowMap }) {
+  // Per-condition routing path: aggregator rebuilds `details` as the
+  // per-group summary, so the table binds to `subDetails` (per-row
+  // evidence, prefixed with `group`) when aggregated. The strip stays
+  // on `details` and renders nothing under aggregation (no per-row keys
+  // in the per-group summary) — defensive landing pending a fixture
+  // that fires per-condition. Matches MiniCard_Mahalanobis precedent.
+  const isAgg = result.groupsAssessed !== undefined;
   const details = result.details || [];
+  const sub = result.subDetails || [];
+  const tableSource = isAgg ? sub : details;
   const { toFileRow } = makeRowMapper(importConfig, rowMap);
 
   // ── Position strip ── reuse RegionalNoiseStrip.
@@ -45,18 +54,28 @@ export function MiniCard_WindowedAutocorr({ result, importConfig, rowMap }) {
   }
 
   // ── Evidence table ──
+  // Note: under aggregation, the producer's startRow/endRow are relative to
+  // the per-condition slice — toFileRow remap would be incorrect without
+  // slice context. The aggregator does not propagate slice-row indices for
+  // non-`Row`-keyed fields. WindowedAutocorr does not fire per-condition on
+  // any current fixture, so the table-binding fix lands defensive; the row
+  // remap would need attention if the test ever flags per-condition.
   let table = null;
-  if (details.length) {
-    const rows = details.slice(0, 20).map(d => {
+  if (tableSource.length) {
+    const rows = tableSource.slice(0, 20).map(d => {
       const sig = d.significant;
       const cell = v => sig ? { value: v, style: { color: SIGNAL.AMBER.text, fontWeight: FW.SEMI } } : v;
       const rowsLabel = `${toFileRow(d.startRow)}\u2013${toFileRow(d.endRow)}`;
-      return [cell(d.pair), cell(rowsLabel), cell(d.r), cell(fmtP(d.rawP)), cell(fmtP(d.adjP))];
+      const base = [cell(d.pair), cell(rowsLabel), cell(d.r), cell(fmtP(d.rawP)), cell(fmtP(d.adjP))];
+      return isAgg ? [cell(d.group), ...base] : base;
     });
+    const cols = isAgg
+      ? [{label:"Condition"}, {label:"Pair"}, {label:"Rows"}, {label:"r"}, {label:"p"}, {label:"adj p"}]
+      : [{label:"Pair"}, {label:"Rows"}, {label:"r"}, {label:"p"}, {label:"adj p"}];
     table = (
       <EvidenceTable
-        columns={[{label:"Pair"}, {label:"Rows"}, {label:"r"}, {label:"p"}, {label:"adj p"}]}
-        rows={rows} identifierColumns={2} compact
+        columns={cols}
+        rows={rows} identifierColumns={isAgg ? 3 : 2} compact
         footerText={result.flag === "LOW"
           ? "All windows are consistent with independent noise in each pair (BH-FDR at α = 0.05)."
           : "Rows with adj-p < 0.05 are highlighted. Sorted by adj-p ascending (most localised first)."}
