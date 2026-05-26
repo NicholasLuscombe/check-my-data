@@ -45,8 +45,13 @@ function fmtTick(v) {
  * @param {number} props.refValue - reference line value (e.g. 1.0 for ratios, DIP_GATE for modality)
  * @param {string} props.refLabel - reference line caption (rendered as figure caption, not on the line)
  * @param {string} props.valueAxisLabel - y-axis label
+ * @param {boolean} [props.isAggregated] - true when card is per-condition routed; bars come from
+ *   the worst-flagged slice's colRatios via the aggregator's spread, so the bar reflects ONE
+ *   condition while the table below shows all conditions. Surfaces a scope caption so a column
+ *   marked "skipped" in the bar but flagged in the table reads as two views, not a contradiction.
+ *   Full condition-aware bar is parked (item 46).
  */
-export function ColumnStatBar({ items, skipped, cardFlag, refValue, refLabel, valueAxisLabel }) {
+export function ColumnStatBar({ items, skipped, cardFlag, refValue, refLabel, valueAxisLabel, isAggregated }) {
   if (!items?.length && !skipped?.length) return null;
 
   const flaggedColor = SEV_VERDICT[FLAG_RANK[cardFlag] ?? 0].color;
@@ -186,6 +191,21 @@ export function ColumnStatBar({ items, skipped, cardFlag, refValue, refLabel, va
                 )
               </span>
             )}
+          </div>
+        )}
+
+        {/* Per-condition scope caption — surfaces that bars and table show
+            different scopes (bar = one slice, table = all slices), so a
+            column marked "skipped" in the bar and flagged in the table reads
+            as two views rather than a contradiction. Single-condition cards
+            have no mismatch to explain → no caption. Item 46 will fold this
+            into a condition-aware bar. */}
+        {isAggregated && (
+          <div style={{
+            marginTop: "4px", paddingLeft: `${PL}px`, paddingRight: `${PR}px`,
+            fontSize: FS.xs, fontFamily: FF.UI, color: C.TEXT_3, fontStyle: "italic",
+          }}>
+            Bar shows a single condition; full per-condition detail in the table below.
           </div>
         )}
       </div>

@@ -88,6 +88,7 @@ export function MiniCard_ColumnGoF({ result, importConfig, rowMap }) {
 
       {(barItems.length > 0 || skippedItems.length > 0) && (
         <ColumnStatBar items={barItems} skipped={skippedItems} cardFlag={result.flag}
+          isAggregated={isAgg}
           refValue={1} refLabel="Null median (ratio = 1)"
           valueAxisLabel="A² ratio" />
       )}

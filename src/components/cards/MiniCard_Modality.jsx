@@ -66,6 +66,7 @@ export function MiniCard_Modality({ result, importConfig, rowMap }) {
 
       {(barItems.length > 0 || skippedItems.length > 0) && (
         <ColumnStatBar items={barItems} skipped={skippedItems} cardFlag={result.flag}
+          isAggregated={isAgg}
           refValue={DIP_GATE} refLabel="Multimodality threshold"
           valueAxisLabel="Dip statistic" />
       )}

@@ -52,6 +52,7 @@ export function MiniCard_Entropy({ result, importConfig, rowMap }) {
 
       {barItems.length > 0 && (
         <ColumnStatBar items={barItems} cardFlag={result.flag}
+          isAggregated={isAgg}
           refValue={1} refLabel="Expected (ratio = 1)"
           valueAxisLabel="Entropy ratio" />
       )}
