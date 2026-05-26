@@ -97,7 +97,31 @@ equality, where pooling cannot fabricate identity.
 
 ---
 
-## Phase 2 — per-cluster correctness pass. PENDING.
+## A1 — distribution-shape trio per-condition routing. DONE (S179).
+
+Phase 1 scoped A1 to the trio only (Column Goodness-of-Fit, Entropy / Zipf, Modality).
+S179 landed the per-condition routing: each dispatches via
+`aggregatePerGroup(condCtx.rowGroups())` with a pooled fallback when no condition layer
+is present. DS19's trio-flag count corrected 3 → 1 — the pre-A1 pooled flagging was
+reading mixture structure across conditions, not within-condition fabrication.
+
+Two coverage facts surfaced and are accepted, not regressions:
+
+- **Per-condition coverage loss (S179).** On continuous multi-condition fixtures a
+  per-slice routes to N/A when the slice falls below the test's applicability floor or
+  hits the §3.7 `|γ₁| > 1.5` family pre-skip. On small fixtures (DS04: GoF + Modality
+  LOW → N/A) this drops pooled flags that read mixture structure rather than
+  within-condition fabrication — accepted per the S127 reasoning. The S177 per-test
+  gate forces adjudication of any drop on a *declared* positive.
+- **Trio N/A on count (S180, Finding 2).** GoF / Entropy / Modality route to N/A on
+  count via `DATATYPE_SKIP`: a count column pools per-row units (per-gene NB means
+  spanning orders of magnitude) into a mixture marginal, so marginal goodness-of-fit
+  tests the wrong aggregation unit. Count distribution-shape forensics is carried by
+  the per-gene mean-variance law (§4.1) and predicted-σ kurtosis (§2.2), not the trio.
+
+---
+
+## Phase 2 — per-cluster correctness pass. ACTIVE.
 
 Cluster by cluster (A2 rhythm, on correctness): each test flags for the right reason
 on positives, stays clean across shapes. Adjudicates the deferred per-test cells —
@@ -109,3 +133,57 @@ Also carries the DS15 Baseline Balance / missingness methodology question (STATU
 ANOVA-filtered balancing a Mahalanobis/Missing-Data signature rather than a
 mean-balance one? No DS15 Baseline Balance cell is declared in the batch; this is a
 methodology lead, not a regression.
+
+**Progress (S180–S182).**
+
+- **DS11 promotion DONE (S180).** Finding 1: the trio is FISHER_EXEMPT — per-condition
+  routing yields non-uniform per-slice `primaryP` under H₀, so Fisher's combination
+  over-promotes; the trio joined the exempt set (`d79cacc`). Finding 2: trio N/A on
+  count (`16ace4e`, the A1 coverage fact above). DS20 GoF corrected HIGH → MODERATE
+  under Finding 1 — the Fisher-combination HIGH was a combination artefact, not a tier.
+- **DS01 cross-shape DONE (S181, item 34 closed).** The wired `pending` assertion
+  asserted a property A1 cannot structurally deliver: a pooled column with no condition
+  layer → `rowGroups()` null → the per-condition path is unreachable, so the assertion
+  could never flip to pass. Reconstructed as an active shape-invariance assertion — the
+  same pool *with* a condition column clears the trio per-condition. Batch dropped its
+  only pending → 23/23.
+- **DS11 attribution corrected in GT (S181).** Engine output is 2 HIGH (Benford Second
+  Digit + Autocorrelation) across 3 dimensions; the prior S118 note undercounted (1
+  HIGH / 2 dims). Residual Spike Correlation MODERATE is corroborating breadth, not
+  severity-load-bearing (severity holds at 3 via `high ≥ 2`).
+- **DS15 Baseline Balance adjudicated (S182, item 31 closed).** The Phase 2 methodology
+  question above resolves to hypothesis 2: Baseline Balance is correctly LOW on DS15,
+  not under-calling. A read-only confirmed the instrument works — DS16 (pure
+  over-balancing, no missingness) fires the same test HIGH (binomP = 0, KS-D = 0.75, 48
+  of 60 features over-balanced). DS15 is row-grouped with only 6 DATA-column features
+  and an `excessFrac ≥ 0.50` effect-size gate, so its over-balance signal sits
+  structurally below the test's reach. The signal is carried instead by Blocked
+  Mahalanobis MODERATE (the Σ-pass Control-rows-1–40 covariance signature) and
+  Cross-Condition Consistency MODERATE. Missing-value handling is pairwise per
+  (condition × column) with no listwise drop, so missingness is not masking. No engine
+  change.
+- **Deferred-cell sweep DONE (S182).** The four live deferred cells declared in
+  `expected.flags`, GT-derived from a read-only and batch-green on first run (no
+  force-greening): DS02 — Inter-Replicate Correlation + Residual Spike Correlation +
+  Autocorrelation + Runs Test (the rescaled-copy + near-linear replicate-dependence
+  mechanisms); DS08 — Selective Noise Partitioning + LOESS + Inter-Replicate
+  Correlation + Constant-Offset Blocks + Benford 1st (noise reduction + multiplicative
+  offset); DS12b — LOESS (the severity-1 within-column shift, sole MOD channel); DS14 —
+  Exact Duplicate Detection (the copy-paste constant rows, strict HIGH). Allow-sets
+  widened `['MODERATE','HIGH']` except the two p≈0 channels (DS08 Benford, DS14 DupDet)
+  at strict `['HIGH']`. Mahalanobis Row Outlier on DS08 left undeclared — incidental
+  single-row, not a GT-credited mechanism.
+- **DS08 Benford 1st — new true detection surfaced (S182).** The sweep flagged Benford
+  1st HIGH (primaryP ≈ 0) on DS08, which the stated GT mechanism did not predict. A
+  follow-up read-only adjudicated it against the clean ELISA counterpart DS07 (same
+  assay/shape/range, both clearing the span ≥ 1.5 Benford gate): DS07 stays LOW
+  (MAD 0.025, leading-1 near-Benford), DS08 goes HIGH (MAD 0.041, leading-1 19% vs 30%
+  + digit-4 surplus). Fabrication-linked, not a range/applicability artefact — credited
+  in GT (S182) and declared as a cell. This is the audit working as intended: a genuine
+  detection the severity-only gate would never have isolated.
+
+**Remaining deferred cells.** None outstanding. The original seven reconcile fully:
+DS02 / DS08 / DS12b / DS14 declared (S182, above); DS04 GoF/Modality definitively N/A
+per the A1 coverage loss; DS06 / DS13 trio N/A per Finding 2 (as are DS05 / DS11). The
+per-test gate now asserts every documented positive channel across the fabricated
+batch.
