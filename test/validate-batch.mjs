@@ -30,13 +30,24 @@ const { suggestRowSemantics } = await import('../src/import/rowSemantics.js');
 const FIXTURES = 'test/fixtures';
 const EXPECTED = {
   '01-densitometry-clean.csv':    { severity: 0, assay: 'densitometry' },  // clean-fixture severity 0 post-S109 directional suppression; S82 Kurtosis borderline flip reverted
-  '02-densitometry-fabricated.csv': { severity: 3, assay: 'densitometry' },
+  '02-densitometry-fabricated.csv': { severity: 3, assay: 'densitometry', flags: {
+    'Inter-Replicate Correlation': ['MODERATE', 'HIGH'],   // rescaled-copy near-linear replicate dep.
+    'Residual Spike Correlation':  ['MODERATE', 'HIGH'],   // FISHER_EXEMPT, shared row-noise across cond
+    'Autocorrelation':             ['MODERATE', 'HIGH'],   // near-linear serial structure (lag-1)
+    'Runs Test':                   ['MODERATE', 'HIGH'],   // sign-clustering from serial structure
+  } },
   '03-qpcr-clean.csv':            { severity: 0, assay: 'qpcr' },
   '04-qpcr-fabricated.csv':       { severity: 3, assay: 'qpcr' },
   '05-cellcount-clean.csv':       { severity: 0, assay: 'cell_count' },  // GT revised to 0 at S95 (DupDet 4-way BH-FDR fix); EXPECTED alignment deferred to S109.6
   '06-cellcount-fabricated.csv':  { severity: 3, assay: 'cell_count' },
   '07-elisa-clean.csv':           { severity: 0, assay: 'elisa' },
-  '08-elisa-fabricated.csv':      { severity: 3, assay: 'elisa' },
+  '08-elisa-fabricated.csv':      { severity: 3, assay: 'elisa', flags: {
+    'Selective Noise Partitioning':  ['MODERATE', 'HIGH'], // plate-localised noise reduction direct readout
+    'LOESS Residual Analysis':       ['MODERATE', 'HIGH'], // CUSUM changepoint row 32, smoother window 37–56
+    'Inter-Replicate Correlation':   ['MODERATE', 'HIGH'], // multiplicative offset inflates within-pair r
+    'Constant-Offset Blocks':        ['MODERATE', 'HIGH'], // multiplicative offset → additive under log
+    "Benford's Law (First Digit)":   ['HIGH'],             // primaryP≈0; leading-1 deficit, see GT S182
+  } },
   '09-proteomics-clean.csv':      { severity: 0, assay: 'proteomics' },
   '10-proteomics-fabricated.csv': { severity: 3, assay: 'proteomics', flags: {
     'Column Goodness-of-Fit': ['MODERATE', 'HIGH'],     // S176 anchor MOD, AD ratio 105×
@@ -46,18 +57,24 @@ const EXPECTED = {
     'Residual Spike Correlation':   ['MODERATE', 'HIGH'],        // RSC MOD on shared row-noise across cond
   } },
   '12a-uniform-mixture-clean.csv':      { severity: 0, assay: 'general' },
-  '12b-uniform-mixture-fabricated.csv':  { severity: 1, assay: 'general' },
+  '12b-uniform-mixture-fabricated.csv':  { severity: 1, assay: 'general', flags: {
+    'LOESS Residual Analysis': ['MODERATE', 'HIGH'],       // CUSUM changepoint row 196 = Genuine/Fabricated boundary
+  } },
   '13-vfstest-cellcountest.csv':  { severity: 2, assay: 'cell_count' },
   // S172 methodology call: single-mechanism (copy-paste dup rows), single
   // flagged dim (DupDet HIGH); WRV redundant non-independent signal, correctly
   // N/A on ordinal. See TEST-GROUND-TRUTH DS14.
-  '14-crctest-survey.csv':        { severity: 2, assay: 'survey' },
+  '14-crctest-survey.csv':        { severity: 2, assay: 'survey', flags: {
+    'Exact Duplicate Detection': ['HIGH'],                 // primaryP≈0; 27 constant-across-item copy-paste rows
+  } },
   '15-missing-carlisle.csv':      { severity: 3, assay: 'general', flags: {
     'Missing Data Pattern':       ['HIGH'],                 // GT line 29, structural HIGH
     'Blocked Mahalanobis':        ['MODERATE', 'HIGH'],     // FISHER_EXEMPT → widened
     // Baseline Balance retracted post-Phase 0: GT composes DS15 severity as
-    // Missing Data + Mahalanobis + Kurtosis; Baseline Balance LOW here is
-    // correct engine behaviour. Its real positive anchor is DS16.
+    // Missing Data + Blocked Mahalanobis + Cross-Condition Consistency (S182
+    // attribution correction; Excess Kurtosis is LOW/informational, not a
+    // severity channel). Baseline Balance LOW here is correct engine
+    // behaviour. Its real positive anchor is DS16.
   } },
   '16-densitometry-carlisle-overbalanced.csv': { severity: 2, assay: 'densitometry', flags: {
     'Baseline Balance':           ['MODERATE', 'HIGH'],     // GT line 30, pure Carlisle over-balancing
