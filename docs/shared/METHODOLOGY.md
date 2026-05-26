@@ -33,7 +33,7 @@ This consistency gives the convergence escalation rule a rigorous interpretation
 | Permutation | Constant-Offset Blocks, Windowed ICC scan, Windowed Runs scan, Regional Noise scan, Residual Spike Correlation, LOESS Residual Analysis | No distributional assumptions; correct at any N; handles spatial autocorrelation |
 | Simulation | Kurtosis + Anderson-Darling, Benford's Law (1st and 2nd digit) | Exact calibration for complex statistics where closed-form nulls are unavailable |
 | Conditional / Binomial | Duplicate Detection, Value-Frequency Spike, Within-Row Variance, Decimal Precision | Exact or approximate test against data-derived null probabilities |
-| Parametric bootstrap | Shannon Entropy Analysis | Generates reference distribution from fitted model; handles degenerate permutation case; well-motivated for counts (Poisson/NB), approximate for continuous (Normal) |
+| Parametric bootstrap | Shannon Entropy Analysis | Generates reference distribution from fitted model; handles degenerate permutation case; approximate null on continuous data (Normal moment-match, effect-size-gated). Count → N/A (mixture marginal, no single-family null — see §3.6) |
 | Parametric (z/t/χ²) | Selective Noise, Autocorrelation, Runs, Row-Mean Runs, Terminal Digit, IRC (winsorized Pearson + Fisher z), Mean-Variance, Cross-Condition Rank | Standard inference when parametric assumptions are met; well-understood operating characteristics |
 
 When a parametric test is known to be overpowered at large N (i.e. it tests an approximation rather than an exact null), two complementary solutions are used: (1) a more appropriate null model where available (permutation, simulation, block-robust SE), and (2) calibrated effect-size gates where the null itself is an approximation that no real data satisfies exactly (see Tier 2 thresholds).
@@ -684,6 +684,8 @@ DS21 v2 (ρ = 0.92, 80-row injection at N = 200 per condition, 5 fab reps on ind
 
 **Source:** Simonsohn (2013), ibid. DeCarlo, L.T. (1997). On the meaning and use of kurtosis. *Psychological Methods*, 2(3), 292–307. Anderson, T.W. & Darling, D.A. (1952). Asymptotic theory of certain "goodness of fit" criteria based on stochastic processes. *Annals of Mathematical Statistics*, 23(2), 193–212.
 
+**Count distribution-shape role.** On count data, where the marginal-shape trio (§3.6 / §3.7 / §3.8) is N/A because column marginals are mixtures of per-unit families, the predicted-σ normalisation here carries distribution-shape forensics — the per-gene mean cancels in the replicate difference, so the statistic is mixture-robust (S180).
+
 **Procedure (v0.6, fixes 105, 140–141, 144–145, 156):**
 1. For each replicate pair, compute the difference series.
 2. **Predicted-σ normalisation (Item 3):** Fit log(variance) = β × log(mean) + α across all rows. Predict σ̂(μᵢ) = √exp(α + β × log(μᵢ)) per row. Normalise differences by σ̂ instead of per-row SD. This breaks the studentization dependency at small n_rep (n=3: per-row SD bounds d/σ near ±√2, making both observed and null equally platykurtic → test blind). Falls back to per-row SD when mean-variance fit is unavailable (<5 valid points or <50% row coverage).
@@ -1187,7 +1189,9 @@ specifically. Parked — see STATUS parked #20.
 **Source:** Novel. Tests whether the number of distinct values in each column is consistent with the expected entropy of the column's generating distribution. Addresses the deferred v0.5 Zipf/value-frequency test, whose within-column permutation null was degenerate (shuffling within a column preserves identical value frequencies, producing zero variation in the test statistic).
 
 **Procedure (v0.8, S10):**
-1. **Applicability gate:** Skip ordinal data type entirely (→ N/A). Require ≥20 observations per column.
+1. **Applicability gate:** Skip ordinal data type entirely (→ N/A). Skip count data entirely (→ N/A). Require ≥20 observations per column.
+     - **Why count is N/A.** A count column pools many per-row units — in genomics, thousands of genes, each ~Negative Binomial with means spanning orders of magnitude — so the column marginal is a *mixture* of NBs, not itself any single family. Marginal goodness-of-fit (and the value-frequency and modality variants) therefore test the wrong aggregation unit: there is no valid single-family null. The NB structure that *is* testable lives per gene and is interrogated via the mean-variance law (§4.1 Mean-Variance Relationship, expected slope β≈2 for genomics) and via the predicted-σ normalisation of replicate differences (§2.2 Excess Kurtosis, which cancels the per-gene mean and so is mixture-robust). Count distribution-shape forensics is carried by those channels; this trio is N/A on count for the same reason it is N/A on ordinal — the instrument does not apply to the data type. (S180 Finding 2; empirical basis: DS11 per-condition marginals fit no single NB — two conditions lighter, one ≈3× heavier than the MoM-NB kurtosis prediction.)
+     - **Per-condition dispatch (S179):** on multi-condition row-grouped data (`condCtx.rowGroups()` non-null — ≥2 groups each ≥3 rows), the test is dispatched per condition via `aggregatePerGroup`, fitting the parametric model within each condition slice rather than on the pooled mixture; a pooled fit conflates between-condition mean shifts with the within-condition value-frequency concentration that is the forensic target. Single-condition / no-row-group / column-grouped data uses the pooled full-matrix path. The ≥20-obs floor applies per slice — slices below it return N/A (accepted coverage loss on small multi-condition fixtures, S127 reasoning).
 2. **Shannon entropy:** For each DATA column, compute H = −Σ pᵥ log₂(pᵥ), where pᵥ = count(v) / N for each distinct value v.
 3. **Modal precision detection:** Determine the modal decimal precision of the column using the existing `decimalPrecision.js` infrastructure.
 4. **Parametric model fit:** Moment-match a generative model to the column:
@@ -1208,16 +1212,16 @@ specifically. Parked — see STATUS parked #20.
 8. **Effect-size gate:** The entropy ratio (H_obs / median(H_null)) must deviate ≥15% from 1.0 (i.e., ratio ≤ 0.85 or ≥ 1.15) for a flag above LOW. See Tier 2 documentation below.
 9. **Test-level result:** primaryP = minimum BH-adjusted p across columns. Flag determined by standard α thresholds (HIGH at p < 0.001, MODERATE at p < 0.01) subject to the effect-size gate.
 
-**Why parametric bootstrap, not permutation:** The test asks "does this column have the expected number of distinct values given its distribution?" Permutation within a column preserves the exact value frequencies, making the null degenerate — every permutation yields identical entropy. The parametric bootstrap generates fresh samples from a fitted distribution, providing a proper reference distribution for entropy. This is a Tier 1 null for count data (Poisson/NB are well-motivated generative models) and an approximate null for continuous data (Normal is a convenience, not a physical model). The effect-size gate (Tier 2) compensates for model misspecification on continuous data.
+**Why parametric bootstrap, not permutation:** The test asks "does this column have the expected number of distinct values given its distribution?" Permutation within a column preserves the exact value frequencies, making the null degenerate — every permutation yields identical entropy. The parametric bootstrap generates fresh samples from a fitted distribution, providing a proper reference distribution for entropy. On continuous data — the only data type this test now runs on (count → N/A at dispatch; see applicability gate) — the Normal model is a moment-matched approximation, not a physical model, and the effect-size gate (Tier 2) compensates for the resulting model misspecification.
 
 **Known limitations:**
-- The Normal model for continuous data is a moment-matched approximation. Skewed, heavy-tailed, or multimodal distributions produce systematically different entropy from Normal, causing marginal p-values even on clean data. The 15% ratio gate suppresses these false positives but reduces sensitivity to subtle fabrication (ratios between 0.85–1.15 are undetectable). The test is most reliable on count data where Poisson/NB are well-motivated generative models.
+- The Normal model for continuous data is a moment-matched approximation. Skewed, heavy-tailed, or multimodal distributions produce systematically different entropy from Normal, causing marginal p-values even on clean data. The 15% ratio gate suppresses these false positives but reduces sensitivity to subtle fabrication (ratios between 0.85–1.15 are undetectable).
 - Precision detection uses modal precision. Columns with mixed precision (e.g., some values at 1dp, others at 3dp) may produce bootstrap nulls with incorrect discretisation.
 - At small N (20–50), the bootstrap distribution of entropy has high variance, reducing power.
 
 **Forensic value:** Hand-typed fabricated data tends to reuse favourite values, producing fewer distinct values than expected (low entropy). Conversely, RNG-padded data with overly uniform spacing produces more distinct values than instrument-recorded data (high entropy). The test complements Value-Frequency Spike Detection (§3.5), which catches individual point spikes, by assessing the overall distributional shape of value frequencies.
 
-**Minimum data:** ≥20 observations per column, continuous or count data type.
+**Minimum data:** ≥20 observations per column, continuous data type (count → N/A; see applicability gate).
 
 ### 3.7 Column Goodness-of-Fit (v1.0, S106 spec)
 
@@ -1225,7 +1229,8 @@ specifically. Parked — see STATUS parked #20.
 
 **Procedure (v1.0, S106):**
 
-1. **Applicability gate:** Skip ordinal data type entirely (→ N/A). Require ≥30 observations per column. Require ≥10 distinct values (AD is degenerate at low cardinality).
+1. **Applicability gate:** Skip ordinal data type entirely (→ N/A). Skip count data entirely (→ N/A — see §3.6 applicability gate: count column marginals are mixtures of per-unit NBs, not any single family, so the single-family AD null is misspecified; per-gene NB structure is carried by §4.1 Mean-Variance and §2.2 Excess Kurtosis). Require ≥30 observations per column. Require ≥10 distinct values (AD is degenerate at low cardinality).
+     - **Per-condition dispatch (S179):** on multi-condition row-grouped data (`condCtx.rowGroups()` non-null), the test routes per condition via `aggregatePerGroup`, so the family fit, γ-pre-skip, and AD² refit-bootstrap all operate within each condition slice. A pooled fit on a multi-condition mixture can sit above the γ₂ floor while being materially bowed/bimodal, calibrating AD² against the wrong family; per-condition routing fits the shape each condition actually has. Single-condition / no-row-group / column-grouped data uses the pooled full-matrix path. The ≥30-obs / ≥10-distinct floors apply per slice (accepted coverage loss on small fixtures, S127 reasoning).
 2. **Column-level family routing** (inherited from §3.6 step 4, with one extension):
    - Count data (dp = 0, integer): Poisson if var/mean ≤ 1.5, Negative Binomial otherwise — moment-matched as in §3.6.
    - Continuous data: Normal(μ̂, σ̂) — moment-matched.
@@ -1257,7 +1262,7 @@ specifically. Parked — see STATUS parked #20.
 
 **Forensic value:** Hand-typed fabricated data preserves rough mean and variance but typically misses the tail shape of the claimed family — either too short (no extreme values) or too long (anchoring on memorable values). Copy-paste from a different-shape source produces systematic CDF deviations that §3.6 misses when distinct-value counts happen to align. RNG padding produces AD near the bootstrap median — "too-good" fits are as forensic as poor fits, and the two-sided gate captures both.
 
-**Minimum data:** ≥30 observations per column, continuous or count data type, ≥10 distinct values, |γ₁| ≤ 1.5, γ₂ ≥ −1.2 universal; γ₂ ≥ −0.8 additionally required at N ≥ 100.
+**Minimum data:** ≥30 observations per column, continuous data type (count → N/A; see applicability gate), ≥10 distinct values, |γ₁| ≤ 1.5, γ₂ ≥ −1.2 universal; γ₂ ≥ −0.8 additionally required at N ≥ 100.
 
 ---
 
@@ -1267,7 +1272,8 @@ specifically. Parked — see STATUS parked #20.
 
 **Procedure (v1.0, S106):**
 
-1. **Applicability gate:** Skip ordinal data type (→ N/A). Require ≥50 observations per column (Hartigan dip is low-power below this floor). Require ≥15 distinct values (dip is not meaningful on sparse discrete support). Apply the γ₂ hybrid pre-skip from §3.7 step 2 (γ₂ < −1.2 universal; γ₂ < −0.8 at N ≥ 100) — near-uniform columns produce meaningless adj-p ≈ 1 against a uniform-reference null. **Do not apply §3.7's |γ₁| > 1.5 pre-skip:** the uniform-reference null is family-agnostic by design, so log-normal-like columns are legitimate Modality inputs (a log-normal with a secondary mode remains a valid forensic target).
+1. **Applicability gate:** Skip ordinal data type (→ N/A). Skip count data (→ N/A — see §3.6 applicability gate: count marginals are mixtures with no single-family null; discrete count support is also incompatible with the dip-statistic's unimodal-continuous null). Require ≥50 observations per column (Hartigan dip is low-power below this floor). Require ≥15 distinct values (dip is not meaningful on sparse discrete support). Apply the γ₂ hybrid pre-skip from §3.7 step 2 (γ₂ < −1.2 universal; γ₂ < −0.8 at N ≥ 100) — near-uniform columns produce meaningless adj-p ≈ 1 against a uniform-reference null. **Do not apply §3.7's |γ₁| > 1.5 pre-skip:** the uniform-reference null is family-agnostic by design, so log-normal-like columns are legitimate Modality inputs (a log-normal with a secondary mode remains a valid forensic target).
+     - **Per-condition dispatch (S179):** on multi-condition row-grouped data (`condCtx.rowGroups()` non-null), the dip is computed per condition via `aggregatePerGroup` — the strongest case of the three for stratification. A pooled column mixing two within-condition unimodal distributions with distinct means produces a bimodal ECDF, so the pooled dip fires on the between-condition mean difference rather than within-condition bimodality (the actual forensic target — mixture-of-sources fabrication inside one declared condition). The contamination is at the statistic level, not the null calibration. Single-condition / no-row-group / column-grouped data uses the pooled full-matrix path. The ≥50-obs / ≥15-distinct floors apply per slice (highest of the three; small multi-condition fixtures will frequently N/A every slice — accepted, S127 reasoning).
 2. **Dip statistic:** For each applicable column, compute Hartigan's dip statistic D_N — the supremum distance between the empirical CDF and the closest unimodal CDF, via the greatest-convex-minorant / least-concave-majorant construction. Use the O(N log N) implementation (Hartigan 1985 dip algorithm; standard implementations available in R `diptest` and Python `diptest`).
 3. **Uniform-reference bootstrap null (B = 999).** For each iteration, draw N i.i.d. Uniform(min(x), max(x)) samples and compute D_N on the synthetic sample. The uniform distribution is the unimodal ceiling — its dip is the supremum over all unimodal distributions with the same sample size — so p against uniform rules out all unimodal alternatives.
 4. **One-sided p-value:**
@@ -1292,7 +1298,7 @@ Forensics prefers the conservative choice. Real biological columns are rarely un
 
 **Forensic value:** Bimodality is a strong fingerprint of mixture fabrication — a fabricator combining two sources (two actual experiments, two synthesis runs, two copy-paste origins) into one declared condition. Where §3.6 and §3.7 probe how a single-distribution claim matches the data, §3.8 probes whether the single-distribution claim itself is valid. Patterns that specifically flag here and nowhere else: copy-paste from two sources within one condition; shift-and-merge of a legitimate condition with a biased subset; blocks of near-constant values interleaved with real data.
 
-**Minimum data:** ≥50 observations per column, ≥15 distinct values, continuous or count data type.
+**Minimum data:** ≥50 observations per column, ≥15 distinct values, continuous data type (count → N/A; see applicability gate).
 
 ---
 
@@ -1301,6 +1307,8 @@ Forensics prefers the conservative choice. Real biological columns are rarely un
 ### 4.1 Mean-Variance Relationship
 
 **Source:** General assay validation methodology; Carlisle (2017) discusses expected variance properties.
+
+**Count distribution-shape role.** This is the channel that carries distribution-shape forensics on count data: the marginal-shape trio (§3.6 / §3.7 / §3.8) is N/A on count (mixture marginals), so the per-gene mean-variance law (expected β≈2 for genomics) is the count distribution-shape instrument (S180).
 
 **Procedure (v0.4):**
 1. Compute mean and variance of replicates within each row.
