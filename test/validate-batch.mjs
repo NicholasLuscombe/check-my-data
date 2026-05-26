@@ -37,9 +37,17 @@ const EXPECTED = {
     'Runs Test':                   ['MODERATE', 'HIGH'],   // sign-clustering from serial structure
   } },
   '03-qpcr-clean.csv':            { severity: 0, assay: 'qpcr' },
-  '04-qpcr-fabricated.csv':       { severity: 3, assay: 'qpcr' },
+  '04-qpcr-fabricated.csv':       { severity: 3, assay: 'qpcr', flags: {
+    'Terminal Digit Uniformity':    ['HIGH'],                // p≈4.5e-7; GT-named target (S183 Phase 2)
+    'Exact Duplicate Detection':    ['HIGH'],                // p≈1.7e-6; repeated-digit/value mechanism
+    'Value-Frequency Spike':        ['MODERATE', 'HIGH'],    // p≈1e-3; repeated-value concentration near MOD/HIGH boundary
+  } },
   '05-cellcount-clean.csv':       { severity: 0, assay: 'cell_count' },  // GT revised to 0 at S95 (DupDet 4-way BH-FDR fix); EXPECTED alignment deferred to S109.6
-  '06-cellcount-fabricated.csv':  { severity: 3, assay: 'cell_count' },
+  '06-cellcount-fabricated.csv':  { severity: 3, assay: 'cell_count', flags: {
+    'Noise Scaling With Measurement Size': ['HIGH'],         // p≈1.5e-5; Poisson-variance violation (slope 0.12 vs 1.0); VST-legitimacy detector on raw input (S183 Phase 2)
+    'Exact Duplicate Detection':           ['HIGH'],         // p≈5.7e-25
+    'Value-Frequency Spike':               ['MODERATE', 'HIGH'], // p≈9.5e-3; near MOD/HIGH boundary
+  } },
   '07-elisa-clean.csv':           { severity: 0, assay: 'elisa' },
   '08-elisa-fabricated.csv':      { severity: 3, assay: 'elisa', flags: {
     'Selective Noise Partitioning':  ['MODERATE', 'HIGH'], // plate-localised noise reduction direct readout
@@ -50,17 +58,24 @@ const EXPECTED = {
   } },
   '09-proteomics-clean.csv':      { severity: 0, assay: 'proteomics' },
   '10-proteomics-fabricated.csv': { severity: 3, assay: 'proteomics', flags: {
-    'Column Goodness-of-Fit': ['MODERATE', 'HIGH'],     // S176 anchor MOD, AD ratio 105×
+    'Column Goodness-of-Fit':       ['MODERATE', 'HIGH'],   // S176 anchor MOD, AD ratio 105×
+    "Benford's Law (Second Digit)": ['HIGH'],               // p≈0; planted 2nd-digit avoidance of 0 (METHODOLOGY §1103) (S183 Phase 2)
+    'Exact Duplicate Detection':    ['HIGH'],               // p≈0
+    'LOESS Residual Analysis':      ['MODERATE', 'HIGH'],   // p≈2e-3; CUSUM CP at row 159 = fab onset; survives MOD on both per-condition slices (S183)
+    'Regional Noise Homogeneity':   ['MODERATE', 'HIGH'],   // p≈4e-3; bestWindow inside fab range, both per-slice runs localise to fab P0080–P0120 (S183)
   } },
   '11-rnaseq-multicondition.csv': { severity: 3, assay: 'genomics', flags: {
     'Autocorrelation':              ['HIGH'],                    // p≈0 self-gating canonical positive
     'Residual Spike Correlation':   ['MODERATE', 'HIGH'],        // RSC MOD on shared row-noise across cond
+    "Benford's Law (Second Digit)": ['HIGH'],                    // p≈0; GT-named severity-load-bearing HIGH (METHODOLOGY §1103) (S183 Phase 2)
   } },
   '12a-uniform-mixture-clean.csv':      { severity: 0, assay: 'general' },
   '12b-uniform-mixture-fabricated.csv':  { severity: 1, assay: 'general', flags: {
     'LOESS Residual Analysis': ['MODERATE', 'HIGH'],       // CUSUM changepoint row 196 = Genuine/Fabricated boundary
   } },
-  '13-vfstest-cellcountest.csv':  { severity: 2, assay: 'cell_count' },
+  '13-vfstest-cellcountest.csv':  { severity: 2, assay: 'cell_count', flags: {
+    'Value-Frequency Spike':       ['HIGH'],                     // p≈1.6e-6; VFS sensitivity-fixture target (S183 Phase 2)
+  } },
   // S172 methodology call: single-mechanism (copy-paste dup rows), single
   // flagged dim (DupDet HIGH); WRV redundant non-independent signal, correctly
   // N/A on ordinal. See TEST-GROUND-TRUTH DS14.
@@ -68,8 +83,9 @@ const EXPECTED = {
     'Exact Duplicate Detection': ['HIGH'],                 // primaryP≈0; 27 constant-across-item copy-paste rows
   } },
   '15-missing-carlisle.csv':      { severity: 3, assay: 'general', flags: {
-    'Missing Data Pattern':       ['HIGH'],                 // GT line 29, structural HIGH
-    'Blocked Mahalanobis':        ['MODERATE', 'HIGH'],     // FISHER_EXEMPT → widened
+    'Missing Data Pattern':         ['HIGH'],                 // GT line 29, structural HIGH
+    'Blocked Mahalanobis':          ['MODERATE', 'HIGH'],     // FISHER_EXEMPT → widened
+    'Cross-Condition Consistency':  ['MODERATE', 'HIGH'],     // p≈9e-3; GT-named severity channel (S182), declared S183 Phase 2
     // Baseline Balance retracted post-Phase 0: GT composes DS15 severity as
     // Missing Data + Blocked Mahalanobis + Cross-Condition Consistency (S182
     // attribution correction; Excess Kurtosis is LOW/informational, not a
@@ -107,7 +123,9 @@ const EXPECTED = {
   //   via cross-dim convergence (Modality + Column GoF + IRC/cross-rep
   //   collateral on Rep1-3 vs Rep4-8 distributional mismatch).
   '20-bimodal-fab.csv': { severity: 3, assay: 'general', flags: {
-    'Column Goodness-of-Fit': ['MODERATE', 'HIGH'],         // GT line 33, calibration gradient cols 4–7
+    'Column Goodness-of-Fit':         ['MODERATE', 'HIGH'],   // GT line 33, calibration gradient cols 4–7
+    'Selective Noise Partitioning':   ['HIGH'],               // p≈0; GT-named Dim III collateral (S183 Phase 2)
+    'Autocorrelation':                ['MODERATE', 'HIGH'],   // p≈1.7e-3; GT-named Dim III collateral, near MOD/HIGH boundary (S183)
   } },
   // DS21: localised AR(1) in Control only. Primary targets Windowed Autocorr
   //   (Dim III) + Cross-Cond Consistency Stage 2 (Dim IV).
@@ -136,6 +154,22 @@ const EXPECTED = {
     'Blocked Mahalanobis':        ['MODERATE', 'HIGH'],     // MOD, FISHER_EXEMPT → widened
     'Autocorrelation':            ['MODERATE', 'HIGH'],     // MOD p=0.0012
   } },
+};
+
+// S183 Phase 2 — adjudicated incidental firings. A MOD/HIGH result that is
+// genuine (real anomaly, not a false positive) but downstream of a primary
+// channel rather than the GT-named target lives here with a short reason.
+// The completeness gate counts entries here as accounted, so the gate does
+// not trip on a known-and-explained side-effect firing. New entries require
+// an adjudication record in the session log naming the primary channel
+// that the firing is downstream of.
+const ACKNOWLEDGED = {
+  '06-cellcount-fabricated.csv': {
+    'Mahalanobis Row Outlier': "incidental 1-row outlier downstream of the Poisson-variance manipulation; primary channel is Noise Scaling (S183 Phase 2)",
+  },
+  '08-elisa-fabricated.csv': {
+    'Mahalanobis Row Outlier': "incidental 1-row outlier downstream of the localised noise suppression; primary channels SNP/LOESS/IRC/Const-Offset/Benford (S182 disposition, recorded S183 Phase 2)",
+  },
 };
 
 const PERF = process.env.PERF === '1';
@@ -222,7 +256,36 @@ for (const [file, expected] of Object.entries(EXPECTED)) {
     }
   }
   const cellsOk = cellMisses.length === 0;
-  const ok = severity === expected.severity && cellsOk;
+
+  // S183 Phase 2 — completeness gate. The allow-set check above catches a
+  // declared channel that goes quiet or fires the wrong tier; this gate
+  // catches the other half — a MOD/HIGH firing that no cell or
+  // ACKNOWLEDGED entry accounts for. On a positive fixture (severity ≥ 1)
+  // every MOD/HIGH must be in expected.flags (tier-asserted) or
+  // ACKNOWLEDGED[file] (named-and-reasoned). On a clean fixture
+  // (severity === 0) any MOD/HIGH is a false positive.
+  const ackForFile = ACKNOWLEDGED[file] || {};
+  const firingNames = results
+    .filter(r => r.flag === 'MODERATE' || r.flag === 'HIGH')
+    .map(r => r.name);
+  const completenessMisses = [];
+  if (expected.severity === 0) {
+    if (firingNames.length > 0) {
+      completenessMisses.push(`clean fixture fired ${firingNames.join(', ')} — false positive`);
+    }
+  } else {
+    const accountedNames = new Set([
+      ...Object.keys(expected.flags || {}),
+      ...Object.keys(ackForFile),
+    ]);
+    const undeclared = firingNames.filter(n => !accountedNames.has(n));
+    if (undeclared.length > 0) {
+      completenessMisses.push(`undeclared MOD/HIGH firing(s): ${undeclared.join(', ')} — declare a cell in expected.flags or add to ACKNOWLEDGED with a reason`);
+    }
+  }
+  const completenessOk = completenessMisses.length === 0;
+
+  const ok = severity === expected.severity && cellsOk && completenessOk;
   const flags = results.filter(r => r.flag === 'HIGH' || r.flag === 'MODERATE').map(r => `${r.name}:${r.flag}`).join(', ');
   if (expected.pending) {
     // Pending-verification lane: fabricated fixture with no applicable active
@@ -236,6 +299,9 @@ for (const [file, expected] of Object.entries(EXPECTED)) {
     console.log(sevLine);
     if (!cellsOk) {
       for (const m of cellMisses) console.log(`    ↳ per-test miss — ${m}`);
+    }
+    if (!completenessOk) {
+      for (const m of completenessMisses) console.log(`    ↳ completeness gate — ${m}`);
     }
     if (ok) passed++; else failed++;
   }
