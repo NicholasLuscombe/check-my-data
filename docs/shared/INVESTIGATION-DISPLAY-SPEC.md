@@ -701,7 +701,7 @@ The token lives at `src/constants/tokens.js` next to `C.*`. Flagged for consolid
 **New surfaces:**
 - `FindingDetailPanel.jsx` — owns the docked-panel composition.
 - `MinimapStripVertical.jsx` + `MinimapStripHorizontal.jsx` — viewport-band minimaps with click-to-scroll.
-- `findings.js:classifyLocality` — single source of truth for the five locality tiers.
+- `findings.js:classifyLocality` (lines 168–189) — single source of truth for the five locality tiers.
 - `buildHighlightSpec.js:buildLocalityCompose` — single locality dispatch into `localityCompose`.
 - `TEST_RAW_VISIBILITY` map in `mechanisms.js` — 8th entry on the test-onboarding checklist.
 - `SECTION_DIVIDER` token in `tokens.js`.

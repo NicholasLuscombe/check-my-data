@@ -13,7 +13,7 @@ This doc owns the v1.x view. The v1.0 surfaces stay authoritative for their doma
 | Surface | Scope | Status |
 |---|---|---|
 | Methodology gaps (forensics framework) | 6 dimension-attributed coverage gaps | Mirrored from METHODOLOGY-MAP §Gap audit |
-| Test additions (post-v1.0 forensics) | Rectangular Blocked Mahalanobis; coherence-cleanup residue | New scope, this doc |
+| Test additions (post-v1.0 forensics) | Rectangular Blocked Mahalanobis; genuine-block detection; coherence-cleanup residue | New scope, this doc |
 | Variance-estimator unification | Catalogue + scoped sub-refactors | Extends ROADMAP Track F |
 | AI Screening mode | Five new tests + mode toggle + reweighting | Restored from S125 chat history |
 | Calibration audits banked | Permutation B=9999; severity-formula diversity metric; Modality plot upgrade | Mirrored from STATUS parked items |
@@ -64,7 +64,19 @@ New tests not in the methodology-framework gap list above. Surface as the batter
 
 **Priority:** Adjacent to AI Screening mode value — catches AI block-insert patterns that the current battery misses. Bank for v1.x.
 
-### 2.2 Coherence-cleanup residue from Track A
+### 2.2 Blocked Mahalanobis genuine-block detection
+
+**What:** Replace the fixed-window sliding scan (W = 30, stride = 10) with changepoint / variable-extent block detection, so the flagged block reflects the *true* boundaries of the anomalous (μ, Σ) region rather than whichever fixed 30-row window caught the most signal.
+
+**Why:** The current scan reports *where* an anomaly sits but not its real *extent* — the flagged window is a fixed-width artefact of the stride, not the boundaries of the fabricated block. Surfaced S187 (DS21 Blocked Mahalanobis): the card reports a 30-row window because that's the scan resolution, not because the block is 30 rows.
+
+**Statistic sketch:** changepoint detection on the windowed (μ, Σ) scan statistic (WBS or PELT, as in §5.6's LOESS treatment) to locate the entry/exit of the anomalous regime; report the detected block boundaries with the joint-distribution statistic over the detected extent.
+
+**Relationship:** sits with §2.1 (rectangular Blocked Mahalanobis) — §2.1 generalises the *column* axis (subset of columns), this generalises the *row* axis (true extent vs fixed window). Both are Blocked-Mahalanobis extensions; decide at implementation whether they share a card.
+
+**Priority:** Bank for v1.x. (STATUS parked #50.)
+
+### 2.3 Coherence-cleanup residue from Track A
 
 Track A (METHODOLOGY-MAP §Inconsistencies to fix) listed coherence cleanups, some of which may not have landed in the v1.0 push. To audit against current source before v1.x scope:
 - Mahalanobis Bonferroni → BH-FDR (per-row p-value correction)
@@ -264,13 +276,26 @@ Track C's dimension-based severity formula caps one-dimension fabrications at se
 
 STATUS parked #7. Current Modality plot is the Hartigan dip number; replacement is a per-column histogram with peaks marked. UI refinement, not methodology change. Lands in any Modality-card-touching session.
 
-### 5.4 Large-N effect-size gate audit
+### 5.4 Large-N effect-size gate audit — PROMOTED to v1.0 blocker (S187)
 
-Lifted from ROADMAP Track G (archived). Six tests currently lack calibrated effect-size gates at N ≥ 500: First-Digit Frequencies, Last-Digit Frequencies, Runs, Row-Mean Runs, Decimal Places, Mean-Variance. At large N, the p-value floor crashes toward zero on minor structural deviations that aren't forensically meaningful, producing low-severity flag noise on otherwise-clean fixtures. The fix is a per-test effect-size threshold below which the p-value alone does not promote severity — same shape as the existing Tier 2 gates on Bartlett (variance ratio), Mahalanobis (distance), and Carlisle (KS distance).
+**Status: v1.0 blocker, tracked in STATUS.md §v1.0 blockers.** Retained here for the methodology detail; STATUS holds the current-state line. Promoted S187 on the trust argument — the tier vocabulary ("High") is a cross-test evidence-strength claim, and if it doesn't trigger at matched reliability across tests, the abstraction misleads exactly where reviewers rely on it.
 
-**Approach:** Chat analysis to identify the right effect-size metric per test (e.g. for First-Digit Frequencies, MAD vs χ²-statistic-normalised-by-N; for Runs, observed-vs-expected runs ratio in absolute units). Calibrate the threshold against the 22-fixture batch (clean fixtures should not flag; fabricated fixtures should). Code calibration after spec lands.
+**Framing.** The tiers are already *defined* as false-positive rates (HIGH p < 0.001 = <1/1000 clean datasets; MODERATE p < 0.01 = <1/100), unified across the battery by design. FISHER_EXEMPT membership and the Tier-2 effect-size gates are the machinery that *enforces* that definition where a raw p-value would be non-uniform under H₀ — not evidence of miscalibration. The convergence-escalation rule (2× MODERATE → HIGH) already depends on tiers being FP rates, so FP-equivalence is foundational, not optional. Two gaps stand between "defined-as" and "demonstrated-as":
 
-**Effort:** Chat analysis ~1 session per test, calibration ~1 session for all six in a batch pass.
+1. **Six tests lack calibrated effect-size gates at N ≥ 500** — First-Digit Frequencies, Last-Digit Frequencies, Runs, Row-Mean Runs, Decimal Places, Mean-Variance. At large N the p-value floor crashes toward zero on forensically-trivial deviations, so these over-trigger on clean data — a real FP-equivalence violation localised to these tests and the large-N regime. Fix: a per-test effect-size threshold below which p alone does not promote severity — same shape as the existing Tier-2 gates on Bartlett (variance ratio), Mahalanobis (distance), Carlisle (KS distance).
+2. **The tiers have never been empirically measured against a null set.** The design defines them as FP rates and the enforcement machinery exists, but no null-simulation has confirmed each test's HIGH/MODERATE actually fires at ≤0.1% / ≤1% under H₀.
+
+**Scope (both halves required for the blocker to close):**
+- Close the six gates (per-test effect-size metric + calibration against the batch — see Approach below).
+- Build a **null-set FP-verification harness**: run each test against many clean/null datasets, measure HIGH and MODERATE trigger rates, confirm they hit the stated FP targets, fix any test that misses. This is new infrastructure, but it's the evidence base the review paper needs regardless of the gate work, so it's not gold-plating.
+
+**First step (read-only, sizes the job before any fix):** enumerate, per test, the exact tier-promotion rule and whether it has an effect-size gate / is FISHER_EXEMPT / neither. That inventory shows how many tests sit in the "naked p-value at large N" bucket vs already-gated. Open hypothesis the harness tests first: the uniform-null + standard-adj-p tests may already be roughly FP-matched, with only the FISHER_EXEMPT set diverging — in which case the job narrows to bringing the exempt set onto the same FP footing.
+
+**Cross-ref:** verdict-legibility synthesis thread (TESTCARD-FINDINGS) — the same read-only inventory feeds the per-card "expose the promotion basis" display work; interim display wording must NOT assert cross-test FP-equivalence until this blocker closes.
+
+**Approach:** Chat analysis to identify the right effect-size metric per test (e.g. for First-Digit Frequencies, MAD vs χ²-statistic-normalised-by-N; for Runs, observed-vs-expected runs ratio in absolute units). Calibrate the threshold against the batch (clean fixtures should not flag; fabricated fixtures should). Code calibration after spec lands.
+
+**Effort:** the six gates ~ as before (Chat analysis ~1 session per test, calibration ~1 session in a batch pass); the null-set harness is additional new infrastructure (harness build + per-test FP measurement + any re-tuning).
 
 ### 5.5 Assay-aware severity weighting
 
@@ -327,7 +352,7 @@ When updating these surfaces, edit the source-of-truth first and mirror here.
 | Permutation B = 9999 (§5.1) | STATUS parked #8 | Mirror |
 | Severity-formula diversity metric (§5.2) | This doc | Primary scope; pairs with §5.5 |
 | Modality plot upgrade (§5.3) | STATUS parked #7 | Mirror |
-| Large-N effect-size gate audit (§5.4) | This doc | Primary scope; absorbed from ROADMAP Track G |
+| Large-N effect-size gate audit / tier FP-equivalence (§5.4) | STATUS.md §v1.0 blockers | Mirror + methodology detail. Promoted v1.0 blocker S187 (ROADMAP Track G origin). |
 | Assay-aware severity weighting (§5.5) | This doc | Primary scope; absorbed from ROADMAP Item 5 |
 | LOESS recursive binary segmentation (§5.6) | This doc | Primary scope; absorbed from ROADMAP Item 6c |
 | Terminal Digit directional statistic (§5.7) | This doc | Primary scope; absorbed from ROADMAP Item 6a |
