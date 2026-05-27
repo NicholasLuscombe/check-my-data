@@ -186,8 +186,7 @@ ALL CAPS-with-tracking centring retires (no longer used).
    different register than its parent unless it's carrying a distinct semantic
    role. Register inheritance enforced through the system, not patched
    per-surface.
-3. **Mono register only on data.** Numbers in tables, identifiers, code,
-   p-values, row indices, column letters. Never on prose.
+3. **Mono register only on data or copyable artefacts.** Numbers in tables, identifiers, code, p-values, row indices, column letters. Also: literal text the user copies verbatim (consultation prompts, exported snippets). Never on decorative or prose-only mono.
 4. **No more than two registers stacked vertically within one block.**
 5. **No hardcoded pixel literals.** All sizes through tokens.
 6. **Five token definition sites collapse to one.** All typography tokens
