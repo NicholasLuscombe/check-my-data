@@ -204,10 +204,16 @@ export function extractCellFlags(result, nRows, nCols) {
   }
 
   if (name === 'Regional Noise Homogeneity') {
-    if (result.bestWindowRows && result.bestWindowRows !== '—') {
-      const rows = parseRowRange(result.bestWindowRows);
-      const col = result.bestAnomCol !== undefined && result.bestAnomCol !== '—'
-        ? [parseInt(result.bestAnomCol) - 1] : null;
+    // Loop the producer's flagged-window set: regionalNoise.js emits top
+    // windows with maxRatio ≥ 0.5 × obsScanStat when flagged HIGH/MOD. The
+    // outer flag guard (MODERATE/HIGH only) already excludes the LOW-mode
+    // "top 5" display details, so no per-window filter is needed here.
+    const dets = resultDetails(result);
+    for (const d of dets) {
+      if (!d.rows || d.rows === '—') continue;
+      const rows = parseRowRange(d.rows);
+      const col = d.anomCol !== undefined && d.anomCol !== '—'
+        ? [parseInt(d.anomCol) - 1] : null;
       if (rows.length) push(rows, col);
     }
   }
