@@ -203,7 +203,11 @@ export function testRegionalNoise(matrix, rng) {
     anomCol: w.anomCol >= 0 ? w.anomCol + 1 : "—",
     direction: w.direction || "anomalous",
     windowSD: Math.sqrt(w.winVar).toFixed(3),
-    globalSD: Math.sqrt(w.globVar).toFixed(3)
+    globalSD: Math.sqrt(w.globVar).toFixed(3),
+    // Single-sourced SD ratio (raw): sqrt of the variance ratio. Both the
+    // footer and the evidence table read this one value and format identically,
+    // avoiding the double-rounding that diverged 4.37× vs 4.38× (Fix S192).
+    sdRatio: Math.sqrt(w.maxRatio)
   }));
 
   return {
@@ -213,6 +217,7 @@ export function testRegionalNoise(matrix, rng) {
     scanP, nPerm: N_PERM, nRows: validRows.length,
     bestWindowRows: bestWin ? `${bestWin.startRow}–${bestWin.endRow}` : "—",
     bestVarRatio: bestRatio.toFixed(2) + "×",
+    bestSDRatio: Math.sqrt(bestRatio),
     bestAnomCol: bestAnomCol >= 0 ? bestAnomCol + 1 : "—",
     usedPredictedSigma: !!usePredicted,
     primaryP: scanP,

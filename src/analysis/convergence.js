@@ -21,9 +21,11 @@ function parseRowRange(s) {
   return rows;
 }
 
-/** Parse pair string "1–2" → [0, 1] (1-based → 0-based col indices) */
+/** Parse pair string "1–2" or "R1–R2" → [0, 1] (1-based → 0-based col indices).
+ *  The optional R prefix lets the parser read the "R1–R2" label that
+ *  Constant-Offset emits for display while bare-digit strings parse unchanged. */
 function parsePairCols(s) {
-  const m = String(s).match(/(\d+)\s*[–\-]\s*(\d+)/);
+  const m = String(s).match(/R?(\d+)\s*[–\-]\s*R?(\d+)/i);
   return m ? [parseInt(m[1]) - 1, parseInt(m[2]) - 1] : [];
 }
 
@@ -152,14 +154,18 @@ export function extractCellFlags(result, nRows, nCols) {
 
   // ── Cross-Replicate Comparisons category ──
 
-  if (name === 'Selective Noise Partitioning' && result.colDetails?.length) {
-    // Column-level test — flag max/min variance columns across all rows
-    const maxCol = result.colDetails.reduce((best, d) => (!best || parseFloat(d.residualStd) > parseFloat(best.residualStd)) ? d : best, null);
-    const minCol = result.colDetails.reduce((best, d) => (!best || parseFloat(d.residualStd) < parseFloat(best.residualStd)) ? d : best, null);
-    if (maxCol && minCol) {
-      const cols = [...new Set([parseInt(maxCol.col) - 1, parseInt(minCol.col) - 1])];
-      push(null, cols);
-    }
+  if (name === 'Selective Noise Partitioning' && result.perColumnResults?.length) {
+    // §2 highlight asserts localisation: emit only the columns the per-column
+    // one-vs-rest Levene inference actually flagged. If nothing localised, emit
+    // nothing — no fall back to a descriptive max/min residual-SD pair (the card
+    // body's residualStd table still shows that spread). Locked S192.
+    // perColumnResults[].col is 1-indexed (selectiveNoise.js _perColumnLevene),
+    // mapped to the 0-indexed matrix column the same way colDetails was.
+    const cols = result.perColumnResults
+      .filter(d => d.flagged && d.col != null)
+      .map(d => parseInt(d.col) - 1)
+      .filter(c => c >= 0 && c < nCols);
+    if (cols.length) push(null, [...new Set(cols)]);
   }
 
   if (name === 'LOESS Residual Analysis') {
@@ -545,16 +551,26 @@ function finalizeConvergence(grid, allResults, nRows, nCols) {
   groups.sort((a, b) => Math.min(...a.rows) - Math.min(...b.rows));
   for (let i = 0; i < groups.length; i++) groups[i].id = i;
 
-  // Annotate grid cells with group membership
+  // Annotate grid cells with group membership.
+  // ConstOffset groups carry a `pair` ("R1–R2") → scope the annotation to that
+  // pair's columns (Fix S192). Groups without a pair (block-copy duplicate
+  // groups) stay all-column, which is correct for them. parsePairCols returns
+  // 0-indexed matrix cols, same as the extractCellFlags ConstOffset branch.
+  const annotateGroupCell = (r, c, gid) => {
+    if (c < 0 || c >= nCols) return;
+    const cell = grid.get(`${r},${c}`);
+    if (cell) {
+      if (!cell.groupIds) cell.groupIds = [];
+      if (!cell.groupIds.includes(gid)) cell.groupIds.push(gid);
+    }
+  };
   for (const g of groups) {
+    const pairCols = g.pair ? parsePairCols(g.pair) : null;
     for (const r of g.rows) {
-      for (let c = 0; c < nCols; c++) {
-        const k = `${r},${c}`;
-        const cell = grid.get(k);
-        if (cell) {
-          if (!cell.groupIds) cell.groupIds = [];
-          if (!cell.groupIds.includes(g.id)) cell.groupIds.push(g.id);
-        }
+      if (pairCols && pairCols.length) {
+        for (const c of pairCols) annotateGroupCell(r, c, g.id);
+      } else {
+        for (let c = 0; c < nCols; c++) annotateGroupCell(r, c, g.id);
       }
     }
   }
