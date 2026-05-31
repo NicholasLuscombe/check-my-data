@@ -39,10 +39,16 @@ export function MiniCard_RegionalNoise({ result, importConfig, rowMap }) {
   const bestRows = result.bestWindowRows || "—";
   const bestCol = result.bestAnomCol || "—";
   const bestVarRatio = result.bestVarRatio || "—";
-  const bestSDRatio = (() => {
-    const v = parseFloat(bestVarRatio);
-    return isNaN(v) ? "—" : Math.sqrt(v).toFixed(2) + "×";
-  })();
+  // Single-sourced SD ratio (Fix S192): the producer computes sqrt(variance
+  // ratio) once (result.bestSDRatio / detail.sdRatio) so the footer and the
+  // evidence table never diverge by double-rounding. Fall back to the legacy
+  // sqrt(bestVarRatio) only if the producer field is absent.
+  const bestSDRatio = Number.isFinite(result.bestSDRatio)
+    ? result.bestSDRatio.toFixed(2) + "×"
+    : (() => {
+        const v = parseFloat(bestVarRatio);
+        return isNaN(v) ? "—" : Math.sqrt(v).toFixed(2) + "×";
+      })();
 
   const bestRowsParts = String(bestRows).match(/(\d+)\D+(\d+)/);
   const bestRowsDisplay = bestRowsParts
@@ -82,11 +88,17 @@ export function MiniCard_RegionalNoise({ result, importConfig, rowMap }) {
                 const colNum = parseInt(d.anomCol);
                 const colDisplay = colNum > 0 ? cn(colNum) : d.anomCol;
                 const dir = d.direction === "reduced" ? "Quieter" : d.direction === "elevated" ? "Noisier" : "Anomalous";
-                // Compute SD ratio from the SD values (not variance ratio)
-                const wSD = parseFloat(d.windowSD), gSD = parseFloat(d.globalSD);
-                const sdRatio = (wSD > 0 && gSD > 0)
-                  ? (dir === "Quieter" ? (gSD / wSD).toFixed(2) + "×" : (wSD / gSD).toFixed(2) + "×")
-                  : d.ratio;
+                // Single-sourced SD ratio (Fix S192): read the producer's raw
+                // sdRatio = sqrt(variance ratio) and format identically to the
+                // footer. Fall back to the legacy SD-division only if absent.
+                const sdRatio = Number.isFinite(d.sdRatio)
+                  ? d.sdRatio.toFixed(2) + "×"
+                  : (() => {
+                      const wSD = parseFloat(d.windowSD), gSD = parseFloat(d.globalSD);
+                      return (wSD > 0 && gSD > 0)
+                        ? (dir === "Quieter" ? (gSD / wSD).toFixed(2) + "×" : (wSD / gSD).toFixed(2) + "×")
+                        : d.ratio;
+                    })();
                 return [
                   rowsDisplay,
                   { value: colDisplay, style: { fontFamily: FF.UI } },

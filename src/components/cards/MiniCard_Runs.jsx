@@ -160,11 +160,11 @@ export function MiniCard_Runs({ result, importConfig, rowMap }) {
   const pStr = fmtPBadge(result.primaryP);
   const footerContent = worstGroup ? (<>
     {worstGroup}: {result.nPairs} pair{result.nPairs !== 1 ? "s" : ""} · {runsDir} · mean z = {pooledMeanZ.toFixed(2)}
-    {" · within-condition pooled " + pStr}
+    {" · within-condition best " + pStr}
     {hasWindowed && ` · scan p ${fmtPOp(scanPNum)} (${result.windowSigCount} window${result.windowSigCount!==1?"s":""})`}
   </>) : (<>
     {result.nPairs} pair{result.nPairs !== 1 ? "s" : ""} · {runsDir} · mean z = {pooledMeanZ.toFixed(2)}
-    {" · pooled " + pStr}
+    {" · best " + pStr}
     {hasWindowed && ` · scan p\u202f${fmtPOp(scanPNum)} (${result.windowSigCount} window${result.windowSigCount!==1?"s":""})`}
   </>);
 

@@ -199,6 +199,7 @@ export function testSelectiveNoise(matrix, condCtx) {
     return {
       name: NAME, category: CAT, flag: overallFlag, primaryP: minAdjP,
       description: DESC,
+      nRows: matrix.length,
       maxMinVarianceRatio: pooled ? pooled.ratio.toFixed(3) : "—",
       bartlettChi: pooled ? pooled.bartlett.toFixed(3) : "—",
       df: pooled ? pooled.df : 0,
@@ -233,6 +234,7 @@ export function testSelectiveNoise(matrix, condCtx) {
   return {
     name: NAME, category: CAT, flag, primaryP: b.pBartlett,
     description: DESC,
+    nRows: matrix.length,
     maxMinVarianceRatio: b.ratio.toFixed(3),
     bartlettChi: b.bartlett.toFixed(3), df: b.df, pBartlett: b.pBartlett.toFixed(4),
     colDetails: b.colVars.map(c => ({ col: c.col, residualStd: c.std, n: c.n })),
