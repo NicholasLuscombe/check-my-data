@@ -270,9 +270,25 @@ The sweep surfaced battery-wide themes that item-46's five axes don't cover. Ite
 - **p-formatting.** Keep real p-values (not a uniform "< 0.0001" bucket); standardise format — "< 0.0001" only below floor, exact value above. Possibly Axis 1 caption/format.
 - **§2 chip-surface items** — not axis candidates; routed out. The two behavioural bugs (deselect flashes colour; deselect-then-reselect doesn't reapply table-wide colouring) → STATUS Known bugs. The "applies across the whole dataset" callout-too-large-when-compressed → BANKED Chip/card chrome (responsive polish). Sibling to the existing BANKED deselected-chip resting-state item.
 
+### add-8 unscoped findings — modal-table wash (RESOLVED S193)
+
+**Originally posed (S192e):** add-8 "unscoped-but-numbered" findings (flag-less chip, `region.cells: []`, full `rows`, `locality "unscoped"`, built by the fallback site `findings.js:298`) produced contradictory §2 signals — the modal data table washed every cell (keyed on `compose.hasWholeTable`, set for `locality === "unscoped"|"dataset-wide"`) while the minimap rendered empty (gates on `region.cells.length`). The wash was specified for *genuinely dataset-wide* findings; the add-8 work populated the same tier with a second, semantically opposite population (unscoped because no cell localisation, not because the whole dataset is implicated). For that population the whole-table wash read as over-highlighting against an empty minimap.
+
+**Decision (S193): split the tier.** `dataset-wide` and `unscoped` are distinct. `dataset-wide` washes (a true "applies everywhere" claim, sets `hasWholeTable`). `unscoped` produces **no table treatment** — no wash, no dim — and sets a separate `hasUnscoped` flag; the caption carries the message ("flagged the data but couldn't isolate specific rows — see the test card"). The invariant decides it: highlight = localisation claim, and an unscoped finding makes no localisation claim. The minimap was already correct (empty); the fix made the table agree with it.
+
+**Fix landed (S193), two sites + doc:**
+- `buildHighlightSpec.js:192` — split `case "unscoped"` off the `case "dataset-wide"` wash fall-through into the new `hasUnscoped` flag (added to `EMPTY_COMPOSE`, the local, and the return).
+- `ExcerptTable.jsx` `composeDim` (:1454) + `isDimmedFinal` mirror (:1471) — added `&& !compose?.hasUnscoped` so an unscoped-active selection renders neither wash nor dim (without this, dropping the wash would have flipped `composeDim` true and greyed the table — a different false claim).
+
+Verified live on DS21 (Runs chip → table at rest, no wash, no dim, caption fires). Batch 23/23, no EXPECTED change. Regression guard: `test/diag-s193-add8-locality.mjs`.
+
+**Premise correction.** S192e said this affected all four add-8 cards equally (Selective Noise, IRC, Mahalanobis Row Outlier, Runs). It does not: only **Runs** classifies `unscoped` on its fixtures (DS21 HIGH, DS02 MOD — the `POOLED_BY_DESIGN` case). The other three localise on their cited fixtures — Selective Noise column-local (DS08), IRC column-local (DS08), Mahalanobis row-local (DS08) — so the wash never applied to them. The fix is **tier-wide** (keys on `locality === "unscoped"`, card-agnostic), so they are *covered* if a future fixture puts them in the unscoped tier, but only Runs was *witnessed* in the changed state.
+
+**Residual:** #42 (the original S129 per-window evidence emission — emit the actual flagged region instead of the synthetic full-dataset rowRange) is the un-resolved part, narrowed; the modal/minimap wash facet is closed. #6 (Selective Noise column-local-no-chip) was de-merged from this tension — see its per-card note above. The **selected-unscoped chip legibility** question (does a silent table on a selected chip read as intended?) was decided S193 not to special-case — folded into the Tier-2 reachability selected-state affordance pass (STATUS v1.0 blockers; BANKED chip/chrome).
+
 ## Open source questions (S187 — for the next read-only Code trip)
 
-- Runs Test: is the per-pair `p` column raw or BH-adjusted, and is pooled p Stouffer or Fisher? (Two p-regimes on the card; copy fix depends on the answer.)
+- Runs Test: is the per-pair `p` column raw or BH-adjusted, and is pooled p Stouffer or Fisher? (Two p-regimes on the card; copy fix depends on the answer.) **Partly resolved S192d:** the HIGH verdict is `flagFromP(pooled.p)` and `primaryP = min(pooled.p, scanP, bestPairP, bestWindowP)`; the footer badge was relabelled "pooled" → "best p" to match (S192 Fix 3). The raw-vs-BH question on the per-pair column proper is still open for the copy pass.
 - Row-Mean Runs: what is the faint blue/lavender plotted element absent from the legend?
 - (Fold into `S187-READONLY-expansion-affordance-audit.md`'s next run, or a fresh read-only at S188.)
 
@@ -281,7 +297,10 @@ The sweep surfaced battery-wide themes that item-46's five axes don't cover. Ite
 Empty until the sweep runs. Append per-card findings under the owning category.
 
 ### Copy, Paste, Edit
-*(none yet)*
+**DS08 (S192 — Tier-1 fix outcome, not a full sweep pass).**
+
+#### Duplicated and offset (Constant-Offset Blocks) · DS08 M/H
+- **§2 over-paint fixed at the parser, not the group path (S192 Fix 2 → S192c).** The all-columns highlight was a pre-existing `parsePairCols` format miss: the parser matched only bare digits and returned `[]` on the producer's R-prefixed `"R1–R2"` label, so every consumer defaulted to all-columns. Widened the regex (`convergence.js:25`) to accept the R prefix; the producer's display label is unchanged. Verified DS08: highlight scopes to the offset pair's two columns, minimap + top strip populate. The `finalizeConvergence` `g.pair` honouring (original Fix 2) is also in place but was not the operative cause.
 
 ### Unusual Digits
 *(none yet — VFS cell-level card landed S185; sweep re-inspects)*
@@ -313,6 +332,9 @@ Empty until the sweep runs. Append per-card findings under the owning category.
 - `z`: keep but demote — bridge to p, but the Finding column is what a non-statistician reads. (design decision)
 - **Open source question:** is the per-pair `p` column raw or BH-adjusted, and is pooled p Stouffer or Fisher? Two p-regimes on one card. → §Open source questions.
 - Table all-pairs (28, padded) → table-row-inclusion theme (homeless).
+- **Footer relabel landed (S192 Fix 3).** Badge "pooled" → "best p" (and "within-condition pooled p" → "within-condition best p"), matching that the value is `primaryP = min(pooled.p, scanP, bestPairP, bestWindowP)`. `pooledP` is not exposed on the result, so relabel (not rebind) was the available fix. Verified DS21.
+- **Body subhead "Verdict: pooled mean-z across pairs" confirmed honest (S192d).** The HIGH call is driven by `flagFromP(pooled.p)`; the mean-z plot is the effect-size face of that same one-sample-t. Latent edge banked: if a window/pair sub-unit ever drove `primaryP` below `pooled.p`, footer ("best p") and subhead ("pooled mean-z") could describe different values — not triggered by any current fixture.
+- **Unscoped §2 render fixed (S193) — the one card witnessed in the unscoped tier.** Runs is the only add-8 card that demonstrably reaches `unscoped` in the 22-set (DS21 HIGH, DS02 MOD). Post-split, selecting the Runs chip leaves the data table at rest (no wash, no dim) with the caption "flagged a pattern distributed across the replicate pairs — no single pair drives it. See the test card." Verified live on DS21. The lane label "Flagged, location unclear" and the caption read coherently together. See the resolved cross-card block in §Pending an axis home.
 
 #### Row-mean patterns (Row-Mean Runs) · DS21 M/H
 - **Self-correction (S187):** this is NOT a diff test — it averages each row across replicates and counts crossings of the condition mean. "Row averages" in the subhead is *correct*; "trend unexpectedly" is the vague part. Do NOT write a blanket "subhead should say replicate-difference" rule — wrong for this card.
@@ -343,7 +365,15 @@ Empty until the sweep runs. Append per-card findings under the owning category.
 - **Bug (confirmed by S187 read-only trace):** §2 highlight drops the second flagged window (Rep6 102–116). `convergence.js` Regional-Noise `extractCellFlags` branch reads only scalar `bestWindowRows`/`bestAnomCol`, never loops `result.details[]`. Single-site (8/9 windowed tests loop; downstream compose/aggregator handle N regions). Fix prompt: `S188-REGIONALNOISE-MULTIWINDOW-FIX.md`. (bug, fix known)
 - Table shows only the 2 flagged windows (no padding) = the *right* behaviour → table-row-inclusion positive anchor (Blocked Mahalanobis should match THIS).
 - **Secondary bug:** footer 4.37× vs table 4.38× = double-rounding on the same SD-ratio value across two render paths (`MiniCard_RegionalNoise.jsx`). Fix = single-source the SD ratio. (bug)
+  - **FIXED (S192 Fix 4).** Footer and table now read one raw producer value (`bestSDRatio`/`sdRatio = sqrt(...)`), formatted identically. Verified DS21: both read 4.37×. Note banked: `keyFindingTemplates.js:396` (Review-mode finding string) surfaces `sdRatio` from a separate variable — third surface, same double-rounding class, out of S192 scope.
+- **§2 multi-window highlight drop FIXED (S188 `8dd2105`).** The earlier bug — §2 dropped the second flagged window (Rep6 102–116) because the Regional-Noise `extractCellFlags` branch read only scalar `bestWindowRows`/`bestAnomCol` — is resolved; the branch now loops `result.details[]` like the other 8/9 windowed tests.
 - Cleared-tests strip renders cleanly, truncates, expandable ✓ (preview of the S189 cleared-state pass).
+
+#### Distribution of noise across columns (Selective Noise Partitioning) · DS08 M/H
+*(S192 Tier-1 fix outcome, not a full sweep pass.)*
+- **§2 field-swap landed and verified (S192 Fix 1).** `extractCellFlags` now reads `perColumnResults[].flagged`, not `colDetails[].residualStd`. No-localisation → no column highlight; the descriptive max/min-SD spread stays in the card body. Verified DS08: lands in "Flagged, location unclear," no column paint. The locked localisation invariant (highlight = localisation claim) now holds for this card.
+- **Open — descriptive header vs table (sweep finding, minor).** The card header reads "variance ratio 2.5× (Plate3 quieter)" but the per-column table's worst column is Plate3 at 0.65× (≈1.54× inverted). Header descriptive figure disagrees with the table. Not a highlight bug. Resolve in the per-card content pass (the "content / no redundancy" checklist axis). Also in STATUS Known bugs.
+- **Not the unscoped wash tension (de-merged S193).** S192e bundled the col-only-no-chip question (#6) into the add-8 unscoped wash tension. That was a mis-merge: on DS08 Selective Noise is **column-local**, not unscoped, so the wash never applied to it. #6 is a distinct question — whether a column-level test that fires but emits no §2 chip is behaving correctly (the locked localisation invariant says yes: no-localisation → no-chip). It shares the "no localisation → no highlight" principle with the S193 unscoped split but sits at a different tier (column-local vs unscoped). #6 stays parked on its own terms; it is not closed by the S193 fix.
 
 #### LOW folds (S187) — Windowed autocorrelation, Cross-condition consistency P5
 - **LOW/cleared cards don't expand.** Product decision (S187): they SHOULD expand to method + evidence (How-this-works + the plot/table showing *why* it's clear), withholding finding-specific blocks (Implications / What-to-look-for). Source-check pending (`S187-READONLY-expansion-affordance-audit.md` Part 1). → carry to S189 cleared-state pass + affordance theme (homeless).
