@@ -473,7 +473,7 @@ Per-card findings live under the owning category section below; pass-level frami
 
 **Resolved (S190 pass):**
 - **Pending-verification — IRC §2 modal-highlight (DS02):** RESOLVED positive. IRC's §2 path iterates over all flagged windows (the windows table carries every per-pair window). Separate code path from Regional Noise; A2-fixed; no under-emission. Contrasts with RSC (below), which under-emits — IRC is the reference implementation for the RSC fix.
-- **Part 1 (read-only audit) — LOW/cleared expansion, empirical half (DS01):** confirmed firsthand — cleared cards do not expand past the verdict line (family → "N tests cleared" strip → individual cleared cards showing only micro-label + name + one-liner + Clear verdict; no method/evidence reachable). Q3 (why — wholesale suppression vs empty-content) remains the source half for Code's trace.
+- **Part 1 (read-only audit) — LOW/cleared expansion, empirical half (DS01):** confirmed firsthand — cleared cards do not expand past the verdict line (family → "N tests cleared" strip → individual cleared cards showing only micro-label + name + one-liner + Clear verdict; no method/evidence reachable). Q3 (why) answered S191: wholesale chrome suppression — two stacked gates (`ForensicsCategoryBlock` mounts the cleared/LOW stub `expanded={false} onToggle={undefined}`; `TestCardLayout` sets `expandable = hasEvidence && mode !== "qc"` with `hasEvidence = isFl || isNt`). The `MiniCardLayout` inner gating the spec describes is accurate but unreachable. Fix = enable expansion (the outer mount), not surface an existing path.
 - **Part 2 (read-only audit) — affordance behaviour, empirical half (DS02):** confirmed firsthand. §2 Data table = triangle toggle. §3 family header = whole-row click + far-right chevron, expands downward, flagged children auto-expand / cleared children stay folded. §3 test card = name+header click, p-pill flashes flag-boundary orange on toggle + far-right chevron. §3 disclosure blocks = triangle toggles. §5 Test battery details = triangle. §4 no expandable controls. **Inconsistency confirmed:** triangle (§2/§3-disclosure/§5) vs chevron+pill-flash (§3 family/card) — same job, different signal, varying click target. Component/file mapping is Code's half.
 - **Tier-contrast legibility (Noise predictability + Row-order randomness, DS02 Mod vs DS21 High/MH):** checked informally, no legibility problem — cards read consistently across severities; differ by verdict badge. Retires the "should we do a manual tier-contrast" synthesis sub-question.
 
@@ -994,7 +994,7 @@ Per-card findings live under the owning category section below; pass-level frami
   S187 product decision is unmet across the clean half of the battery, and feeds the
   affordance-discoverability v1.0 blocker (the evidence layer is unreachable exactly
   where a reviewer most needs to verify cleanliness rather than trust it). Source
-  half (wholesale suppression vs empty-content) still awaits Code's Part-1 return.
+  half answered S191: wholesale chrome suppression (the two stacked gates above), not empty-content. The fix is the outer mount.
   The compact cleared-card layout itself reads cleanly — the defect is purely that
   expansion stops at the verdict. (DS17, DS03/07/09)
 - WAC `startRow`/`endRow` row-remap caveat (Axis 2 pre-existing item) — not advanced; the fold couldn't be opened to inspect.
