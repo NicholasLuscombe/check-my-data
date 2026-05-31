@@ -20,14 +20,10 @@ import { MechIcon, mechIconSize } from "./MechIcon.jsx";
  *   card body. Omitted callers fall through to the legacy 1px C.BORDER_L
  *   left edge.
  * @param {function} [props.onToggle] - click handler for expand/collapse
- * @param {function} [props.onSeverityBadgeClick] - S126b: badge-only click
- *   (forensics pulse). Receives the click event; caller must stopPropagation.
- *   When set, the badge becomes interactive without overriding the row's
- *   expand/collapse onToggle.
  * @param {string|JSX.Element} [props.footer] - summary line below evidence
  * @param {JSX.Element} [props.children] - evidence content (EvidenceTable, plots, etc.)
  */
-export function TestCardLayout({ result, mode, mk, expanded, onToggle, onSeverityBadgeClick, footer, children }) {
+export function TestCardLayout({ result, mode, mk, expanded, onToggle, footer, children }) {
   const fl = result.flag || "LOW";
   const isFl = fl === "HIGH" || fl === "FLAGGED";
   const isNt = fl === "MODERATE" || fl === "NOTED";
@@ -90,6 +86,9 @@ export function TestCardLayout({ result, mode, mk, expanded, onToggle, onSeverit
         onClick={expandable ? onToggle : undefined}
       >
         <span style={{ display: "flex", alignItems: "center", gap: "4px", overflow: "hidden", minWidth: 0 }}>
+          {/* S195: disclosure glyph leads the test name (left/leading),
+              matching the CardLayout disclosure pattern. */}
+          {expandable && <span style={{ color: C.TEXT_3, fontSize: FS.base, flexShrink: 0 }}>{expanded ? "▾" : "▸"}</span>}
           <span style={{ fontSize: FS.base, fontWeight: FW.SEMI, color: C.TEXT, whiteSpace: "nowrap" }}>
             {DISPLAY_NAMES[result.name] || result.name}
           </span>
@@ -99,17 +98,17 @@ export function TestCardLayout({ result, mode, mk, expanded, onToggle, onSeverit
             </span>
           )}
         </span>
+        {/* S195: verdict pill is inert text — no onClick, no pointer cursor.
+            The whole header row owns expand/collapse; the pill sits alone
+            on the right. */}
         <div style={{ display: "flex", gap: "8px", alignItems: "center", flexShrink: 0, marginLeft: "8px" }}>
           <span
-            onClick={onSeverityBadgeClick}
             style={{
               fontWeight: FW.SEMI, fontSize: FS.xs, color: flColor,
-              cursor: onSeverityBadgeClick ? "pointer" : undefined,
             }}
           >
             {flLabel}{showPValue && fl !== "LOW" && result.primaryP != null ? ` ${fmtPBadge(result.primaryP)}` : ""}
           </span>
-          {expandable && <span style={{ color: C.TEXT_3, fontSize: FS.base }}>{expanded ? "▾" : "▸"}</span>}
         </div>
       </div>
 
