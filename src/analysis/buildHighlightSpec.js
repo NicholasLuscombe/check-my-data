@@ -81,6 +81,7 @@ export function rscCellColor(intensity) {
 // finding is just the count=1 case of the compose object.
 const EMPTY_COMPOSE = Object.freeze({
   hasWholeTable: false,
+  hasUnscoped: false,
   unionCells: new Set(),
   unionRows: new Set(),
   unionCols: new Set(),
@@ -113,11 +114,16 @@ export { LOCALITY_WHOLE_TABLE_WASH };
  * findings (S163 B2b W3 / W4).
  *
  * Returns:
- *   hasWholeTable — true if any active finding is dataset-wide or unscoped.
+ *   hasWholeTable — true if any active finding is dataset-wide.
  *                   The renderer paints LOCALITY_WHOLE_TABLE_WASH on data
  *                   cells whose localised count is zero (cells with at
  *                   least one localised finding suppress the wash —
  *                   localised fills composite over, never with, the wash).
+ *   hasUnscoped   — true if any active finding is unscoped (S193 add-8):
+ *                   a localised test that fired but isolated no location.
+ *                   Carries NO table treatment (no wash, no dim) — the
+ *                   data block stays at rest and the caption alone
+ *                   reports it.
  *   unionCells / unionRows / unionCols — UNION of all active findings'
  *                   visible-coord extents. The renderer draws the
  *                   deeper-purple identity border at edges of these
@@ -146,6 +152,7 @@ function buildLocalityCompose(findings, ctx) {
   const mapCol = (c) => (matColToVisCol ? matColToVisCol[c] : c);
 
   let hasWholeTable = false;
+  let hasUnscoped = false;
   const unionCells = new Set();
   const unionRows  = new Set();
   const unionCols  = new Set();
@@ -189,14 +196,21 @@ function buildLocalityCompose(findings, ctx) {
         break;
       }
       case "dataset-wide":
-      case "unscoped":
         hasWholeTable = true;
+        break;
+      case "unscoped":
+        // S193 add-8: unscoped findings (localised test fired but the
+        // location could not be isolated) flip hasUnscoped, NOT
+        // hasWholeTable. Any table treatment (wash OR dim) would be a
+        // false localisation claim; the caption carries the message and
+        // the data block stays at rest. dataset-wide keeps the wash.
+        hasUnscoped = true;
         break;
       // No default — unknown localities contribute nothing.
     }
   }
 
-  return { hasWholeTable, unionCells, unionRows, unionCols, countCells, countRows, countCols };
+  return { hasWholeTable, hasUnscoped, unionCells, unionRows, unionCols, countCells, countRows, countCols };
 }
 
 // ── Shared IRC pair classification ──────────────────────────────────
