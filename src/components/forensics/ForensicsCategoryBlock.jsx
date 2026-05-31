@@ -137,17 +137,27 @@ export function ForensicsCategoryBlock({
             {clearTests.length > 0 && clearOpen && (
               <>
                 <ClearSummaryRow tests={clearTests} onExpand={() => setClearOpen(false)} expanded />
-                {clearTests.map(r => (
-                  <ForensicsTestCard
-                    key={r.name}
-                    result={r}
-                    mk={mk}
-                    expanded={false}
-                    onToggle={undefined}
-                    importConfig={importConfig}
-                    rowMap={rowMap}
-                  />
-                ))}
+                {clearTests.map(r => {
+                  // S196: cleared/LOW cards mount COLLAPSED by default
+                  // (defaultOpen=false) but are now expandable via the same
+                  // ReportView-owned expandedTestEvidence map the flagged
+                  // cards use — keyed by r.name, test-name-agnostic.
+                  const defaultOpen = false;
+                  const isOpen = r.name in (expandedTestEvidence || {})
+                    ? expandedTestEvidence[r.name]
+                    : defaultOpen;
+                  return (
+                    <ForensicsTestCard
+                      key={r.name}
+                      result={r}
+                      mk={mk}
+                      expanded={!!isOpen}
+                      onToggle={(e) => { e.stopPropagation(); onToggleTestEvidence?.(r.name, defaultOpen); }}
+                      importConfig={importConfig}
+                      rowMap={rowMap}
+                    />
+                  );
+                })}
               </>
             )}
           </div>

@@ -88,6 +88,11 @@ export function MiniCard_CrossCondConsistency({ result }) {
   // ── Footer ─────────────────────────────────────────────────────
   const primaryP = result.primaryP;
   const pStr = primaryP != null ? fmtPBadge(primaryP) : "p —";
+  // S197 cleared-footer: with no amber-flagged unit on a cleared result, the
+  // min-adjP describes a forensic-direction-neutralised unit and carries no
+  // verdict meaning — the "0 flagged" count IS the verdict. Drop the trailing
+  // p-badge in that state; flagged tiers keep it.
+  const showP = !(nAmber === 0 && (result.flag === "LOW" || result.flag === "N/A"));
   const nRan = result.nUnitsRan || 0;
   // S168: driver clause from result.top — already computed by the producer
   // (crossConditionConsistency.js topInfo). similar → too similar;
@@ -103,7 +108,7 @@ export function MiniCard_CrossCondConsistency({ result }) {
     `${nRan} unit${nRan === 1 ? "" : "s"} ran · ${nAmber} flagged`,
     ...(driverClause ? [driverClause] : []),
     `B=${result.B || "?"}`,
-    pStr,
+    ...(showP ? [pStr] : []),
   ];
   const footer = footerPieces.join(" · ");
 

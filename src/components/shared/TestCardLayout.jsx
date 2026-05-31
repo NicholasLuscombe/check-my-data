@@ -38,7 +38,12 @@ export function TestCardLayout({ result, mode, mk, expanded, onToggle, footer, c
 
   const showSubtitle = mode !== "qc";
   const showPValue = mode === "full";
-  const expandable = hasEvidence && mode !== "qc";
+  // S196: cleared/LOW cards are expandable too (Tier-2 reachability mount).
+  // hasEvidence still admits flagged tiers; `|| fl === "LOW"` adds the
+  // cleared/LOW tier without admitting N/A (fl === "N/A" stays out). Inner
+  // section gating in MiniCardLayout (Implications / What-to-look-for on
+  // isFlagged) is untouched — those stay withheld on cleared cards.
+  const expandable = (hasEvidence || fl === "LOW") && mode !== "qc";
 
   // S156-fix3: optional mechanism stripe on the card's left edge. Width
   // matches the ClusterRow header stripe (3px) so the user reads a
