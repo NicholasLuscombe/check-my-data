@@ -1451,7 +1451,15 @@ export function ExcerptTable({
               const composeDim = isData
                 && compose?.dimUncovered
                 && !localisedActive
-                && !compose?.hasWholeTable;
+                && !compose?.hasWholeTable
+                // S193 add-8: an active unscoped finding suppresses the
+                // dim the same way dataset-wide does. Unscoped localised
+                // nothing, so neither wash NOR #CCC dim applies; the data
+                // block renders at rest and the caption carries the
+                // message. Read the compose flag, not hasWholeTable —
+                // unscoped no longer sets hasWholeTable (it sets
+                // hasUnscoped). dataset-wide D1 invariant unchanged.
+                && !compose?.hasUnscoped;
 
               // Background priority stack
               const baseBg = specCellBg
@@ -1468,7 +1476,7 @@ export function ExcerptTable({
               // Text color + weight. S163 B2b: localised-active and
               // whole-table-wash both render at C.TEXT (readable),
               // composeDim and legacy `dimmed` both render at #CCC.
-              const isDimmedFinal = composeDim || (dimmed && !localisedActive && !wholeTableWash);
+              const isDimmedFinal = composeDim || (dimmed && !localisedActive && !wholeTableWash && !compose?.hasUnscoped);
               const textColor = (localisedActive || wholeTableWash) ? C.TEXT
                 : isDimmedFinal ? "#CCC"
                 : specCellText ? specCellText
