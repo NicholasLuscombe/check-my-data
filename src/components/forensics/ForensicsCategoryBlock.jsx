@@ -35,11 +35,10 @@ function pulseColorForFlag(flag) {
 /**
  * Single forensics test card. Wraps TestCardLayout in an outer div that:
  *   - exposes data-test-id so chip / pill click handlers can scroll to it,
- *   - listens to its own pulse tick from the shared PulseProvider,
- *   - intercepts severity-badge click to fire the symmetric pulse via
- *     onBadgeClick(result) — does not touch the existing onToggle path.
+ *   - listens to its own pulse tick from the shared PulseProvider (fired
+ *     by §2 chip / pill activation — see FindingChip / FindingPill).
  */
-function ForensicsTestCard({ result, mk, expanded, onToggle, importConfig, rowMap, onBadgeClick }) {
+function ForensicsTestCard({ result, mk, expanded, onToggle, importConfig, rowMap }) {
   const pulseColor = pulseColorForFlag(result.flag);
   const ref = usePulseAnimation(`card:${result.name}`, pulseColor);
   const evidenceChildren = expanded ? (
@@ -55,7 +54,6 @@ function ForensicsTestCard({ result, mk, expanded, onToggle, importConfig, rowMa
         result={result} mode="full" mk={mk}
         expanded={expanded}
         onToggle={onToggle}
-        onSeverityBadgeClick={onBadgeClick ? (e) => { e.stopPropagation(); onBadgeClick(result); } : undefined}
       >
         {evidenceChildren}
       </TestCardLayout>
@@ -77,14 +75,12 @@ function ForensicsTestCard({ result, mk, expanded, onToggle, importConfig, rowMa
  * @param {function} props.onToggleTestEvidence - (testName, defaultOpen) => void
  * @param {object} props.importConfig - passed to TestCard
  * @param {object} props.rowMap - passed to TestCard
- * @param {function} [props.onCardBadgeClick] - (result) => void; pulses chip/pill/region
  */
 export function ForensicsCategoryBlock({
   mk, label, isFlagged, hasHigh, description, testResults,
   isExpanded, onToggle,
   expandedTestEvidence, onToggleTestEvidence,
   importConfig, rowMap,
-  onCardBadgeClick,
 }) {
   const flagColor = hasHigh ? SEV_VERDICT[3].color : isFlagged ? SEV_VERDICT[2].color : SEV_VERDICT[0].color;
 
@@ -131,7 +127,6 @@ export function ForensicsCategoryBlock({
                   onToggle={(e) => { e.stopPropagation(); onToggleTestEvidence?.(r.name, defaultOpen); }}
                   importConfig={importConfig}
                   rowMap={rowMap}
-                  onBadgeClick={onCardBadgeClick}
                 />
               );
             })}
@@ -151,7 +146,6 @@ export function ForensicsCategoryBlock({
                     onToggle={undefined}
                     importConfig={importConfig}
                     rowMap={rowMap}
-                    onBadgeClick={onCardBadgeClick}
                   />
                 ))}
               </>
@@ -180,6 +174,10 @@ function ClearSummaryRow({ tests, onExpand, expanded = false }) {
         display: "flex", alignItems: "center", gap: "6px",
       }}
     >
+      {/* S195: disclosure glyph leads the row (left/leading); the ✓
+          stays as the status mark, so reading order is [▸ ✓ "N cleared"].
+          Spacing comes from the row's gap:6px. */}
+      <span style={{ color: C.TEXT_3, flexShrink: 0 }}>{expanded ? "▾" : "▸"}</span>
       <span style={{ color: SEV_VERDICT[0].color, fontSize: FS.base }}>✓</span>
       {/* S156 (A1.D0c-bis D4 lock): ALL CAPS "CLEAR" retired; sentence-case
           past-tense "cleared" verb matches the post-S137 canon. */}
@@ -188,7 +186,6 @@ function ClearSummaryRow({ tests, onExpand, expanded = false }) {
       <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", minWidth: 0 }}>
         {names}
       </span>
-      <span style={{ marginLeft: "auto", color: C.TEXT_3 }}>{expanded ? "▾" : "▸"}</span>
     </div>
   );
 }

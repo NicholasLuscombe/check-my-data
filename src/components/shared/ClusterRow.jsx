@@ -70,6 +70,16 @@ export function ClusterRow({
         style={{ display: "flex", alignItems: "center", gap: "8px", cursor: isExpandable ? "pointer" : "default" }}
         onClick={isExpandable ? onToggle : undefined}
       >
+        {/* S195: disclosure glyph leads the row (left/leading), matching
+            the CardLayout disclosure pattern (glyph then label). Spacing
+            comes from the row's gap:8px, so no marginRight is added.
+            Icon-glyph carve-out per TYPOGRAPHY-SYSTEM.md §"What this
+            system does NOT cover". */}
+        {isExpandable && (
+          <span style={{ color: C.TEXT_2, fontSize: "14px", flexShrink: 0 }}>
+            {isExpanded ? "▾" : "▸"}
+          </span>
+        )}
         {/* S157: cluster-identity icon at the row's leading position.
             20px to match the cluster-header text weight; MECH_COLOR
             hue carried through MechIcon's default colour resolution
@@ -92,14 +102,6 @@ export function ClusterRow({
         <span style={{ fontSize: FS.base, fontWeight: FW.NORM, color: wordColor, marginLeft: "auto", flexShrink: 0 }}>
           {wordText}
         </span>
-        {isExpandable && (
-          /* Chevron glyph — icon-glyph carve-out per TYPOGRAPHY-SYSTEM.md
-             §"What this system does NOT cover". Hardcoded literal pending
-             icon-sizing system. */
-          <span style={{ color: C.TEXT_2, fontSize: "14px", flexShrink: 0 }}>
-            {isExpanded ? "▾" : "▸"}
-          </span>
-        )}
       </div>
     </div>
   );
