@@ -55,8 +55,13 @@ export function MiniCard_CarlisleBalance({ result, importConfig, rowMap }) {
     <MiniCardLayout result={result}
       footer={<>
         {nFeatures} features tested
-        {` · ${nExcess}/${nFeatures} with p>0.95 (expected ${expected})`}
-        {` · ${fmtPBadge(result.primaryP)}`}
+        {/* S197 cleared-footer: badge shows binomP — the too-balanced
+            binomial the clear gate (excessFrac < 0.50) keys on — not
+            primaryP (= ksP, a non-forensic distributional-shape side-
+            statistic that misreads as the verdict p on a cleared card).
+            KS stays in the plot caption below. */}
+        {` · ${nExcess}/${nFeatures} over-balanced (expected ${expected})`}
+        {` · ${fmtPBadge(result.binomP)}`}
       </>}
       lookFor="If most p-values cluster near 1.0, the conditions are suspiciously identical — as if someone fabricated the data to ensure perfect balance. In clinical trials, this is a hallmark of Carlisle-type fabrication. If p-values cluster near 0, allocation may not be random."
       implications="Groups that match more closely than random assignment predicts can occasionally occur by chance, particularly with small sample sizes or when stratified randomisation was used. Consistently near-perfect balance across many features, however, is unlikely under genuine random assignment and may indicate that group allocations were adjusted after the data was observed.">

@@ -62,7 +62,13 @@ if (flaggedNames.length === 1) {
 // quieter / anomalous). Wires the existing outlierName + outlierDir computed
 // above for the lookFor copy — no recomputation. Parenthetical omitted when
 // neither could be resolved (cds.length < 2 with no per-column results).
-const outlierClause = outlierName && outlierDir ? ` (${outlierName} ${outlierDir})` : "";
+// S197 cleared-footer (3a): suppress the outlier-naming parenthetical on a
+// cleared/LOW (or N/A) result — naming a noisier/quieter column labels it as
+// if anomalous on a card that cleared. Flagged tiers keep the clause. (3b: the
+// displayed p stays primaryP — on column-grouped / no-condition fixtures that
+// is pooled Bartlett, not the gate's cut; pending Chat decision.)
+const isCleared = result.flag === "LOW" || result.flag === "N/A";
+const outlierClause = (!isCleared && outlierName && outlierDir) ? ` (${outlierName} ${outlierDir})` : "";
 const footerText = <>{cds.length} columns · variance ratio {ratio.toFixed(1)}×{outlierClause} · Bartlett χ²={result.bartlettChi} · df={result.df} · {fmtPBadge(result.primaryP)}</>;
 const lookForText = outlierDir === "quieter"
   ? `${outlierName || "One column"} has less noise than the others — this can happen when a column's values were smoothed, averaged, or manually adjusted. Compare the flagged column's raw values against the instrument output file. Check whether the quiet column's values are rounder or less variable than the others at similar signal levels.`
