@@ -225,7 +225,7 @@ The mid clause is suppressed on LOW → `"195 values tested · χ²=19.409 · df
 body **data-gated only** (`if(!details.length) return null;` `:13`) — the digit-frequency
 `VBarPlot` **always renders on LOW** (`:31-45`). How-this-works: **shown** (`mechanisms.js:182`).
 
-**Design verdict:** _(Chat)_
+**Design verdict (Class 1 — borderline-LOW, NO CHANGE).** `pMAD = 0.045`, MAD = 0.0251 just over the conformity line, held LOW because `mad ≥ 0.015` didn't trip a higher tier. This is genuinely borderline — "didn't reach flagging threshold," not a false clean. The footer is already honest descriptive stats (`195 values · χ²=19.409 · df=8 · p=0.045`); the "off Benford" clause is already flag-gated and suppressed on LOW (audit `:223`), so the retained `MADConformity = "Nonconforming"` does NOT leak into the footer. The only friction is the verdict pill reading "Clear" beside `p = 0.045` — a borderline-LOW verdict-vocabulary question, which is the S196-banked verdict-word work, out of this scope. **No footer change.** Banked: borderline-LOW verdict vocabulary (separate from this pass).
 
 ---
 
@@ -663,7 +663,7 @@ names a noisier/quieter column when `cds.length>=2` → `"4 columns · variance 
 !=="LOW" && …}` (`:103`) → **withheld on LOW**. Early-return `return pivotBanner` only when neither agg
 nor `colDetails` (`:132`, not hit). How-this-works: **shown** (`mechanisms.js:191`).
 
-**Design verdict:** _(Chat)_
+**Design verdict (Class 1 — small-p-but-cleared + Class 3 contamination).** Two problems converge. (1) Footer prints `primaryP = 0.027` (pooled Bartlett) while a per-condition stratified BH-FDR / effect-size gate held LOW. (2) On LOW the `outlierClause` falls to a **legacy heuristic** (`:44-58`) that still names a noisier/quieter column even when nothing flagged — Class-3 "worst-finding on a clean card." **Footer change:** drop the legacy outlier clause on LOW (it names a column as if anomalous on a cleared card); keep the structural stats and state the verdict → `"4 columns · max variance ratio 2.7× · no condition flagged · p = 0.027"`. **Source-check before editing (fold into the implementation prompt):** confirm whether the displayed `primaryP` on a multi-condition fixture is the pooled Bartlett (`:235`) or the stratified `minAdjP` (`:200`). The runtime dump shows `primaryP = 0.02733 = pBartlett` exactly, so this fixture took the single-run path; if a multi-condition fixture shows `minAdjP`, the p is already the gate's honest cut and only the legacy-column-naming needs removing. The `NoiseSpreadPlot` (no flag gate) renders on LOW unchanged.
 
 ---
 
@@ -817,7 +817,7 @@ B=4999 · p=0.01"`. Evidence body: position strip gated on `details.filter(signi
 with `footerText="All windows are consistent with a single condition-wide covariance / mean structure."`
 (`:74-76`), no amber rows. No early-return. How-this-works: **shown** (`mechanisms.js:225`).
 
-**Design verdict:** _(Chat)_
+**Design verdict (Class 1 — borderline-LOW, NO CHANGE).** `primaryP = 0.01`, FISHER_EXEMPT, just above α. Footer is honest descriptive stats (`3 conditions · 12 windows · B=4999 · p=0.01`); driver-clause already flag-gated off on LOW. `p = 0.01` cleared is defensible for a FISHER_EXEMPT test — the exemption exists precisely because its p isn't uniformly calibrated under H₀. Same conclusion as Benford 1st: the only friction is the verdict-pill-beside-small-p, which is the banked verdict-vocabulary item. **No footer change.** Banked: borderline-LOW verdict vocabulary.
 
 ---
 
@@ -847,7 +847,7 @@ surfacing the KS cut even on LOW `" Distributional-shape statistic for this plot
 {fmtPBadge(ksP)}."` (`:71`); per-feature table `{details.length>0}` (`:75`, always built) → **renders on
 LOW**. No early-return. How-this-works: **shown** (`mechanisms.js:227`).
 
-**Design verdict:** _(Chat)_
+**Design verdict (Class 1 — small-p-but-cleared).** Footer prints `primaryP = ksP = 0.0001`, but the gate that cleared this card (`excessFrac < 0.50`) keyed on the **too-balanced binomial**, not the KS cut. Honest verdict quantity is `binomP` (here 0.62): `nExcess`/`expectedExcess` already say "3 of 3 expected," and `binomP = 0.62` confirms benign. `ksP = 0.0001` is a distributional-shape side-statistic the gate correctly judged non-forensic — must not be the headline p on a clean card. **Footer change:** pass `binomP` (not `primaryP`) to the badge on this card → `"60 features tested · 3/60 over-balanced (expected 3) · p = 0.62"`. KS stays in the plot caption (already there, `:71`). No structural change; histogram + table render on LOW unchanged.
 
 ---
 
@@ -877,7 +877,7 @@ property×pair table gated `{result.flag!=="N/A" && rows.length>0}` (`:165`, **n
 grid table renders on LOW** (all units, no amber tint; legend `:174-187`). No early-return. How-this-works:
 **shown** (`mechanisms.js:229`).
 
-**Design verdict:** _(Chat)_
+**Design verdict (Class 1 — small-p-but-cleared).** Footer already shows the honest quantity: `0 flagged`. The `p = 0.036` is the misleading appendage — it's the min-adjP of a unit the forensic-direction filter neutralised, so it describes a non-forensic difference. With `nFlagged = 0` the p has no verdict meaning. **Footer change:** suppress the p-badge when `nFlagged === 0` on LOW → `"3 conditions · 3 pairs · 7 properties · 18 units ran · 0 flagged · B=999"`. The "0 flagged" IS the verdict; there is nothing forensic to surface, so the absence of a flag count is the complete statement. (More opinionated than the others — chosen over surfacing a "why cleared" because there is no forensic cut to point at.) No structural change; the property×pair grid table renders on LOW unchanged.
 
 ---
 
