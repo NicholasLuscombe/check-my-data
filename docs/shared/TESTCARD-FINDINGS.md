@@ -49,8 +49,16 @@ Digits category), not a top-level section.
 > in the EXPECTED allow-set). The **display name** is the `DISPLAY_NAMES` value
 > — *what renders on the card and what the sweep matches on screen*. Several
 > display names differ sharply from the canonical name (e.g. Mahalanobis Row
-> Outlier → "Unusual rows"; Autocorrelation → "Noise predictability"). The sweep
+> Outlier → "Unusual rows"; Autocorrelation → "Noise correlation"). The sweep
 > running order keys on the **display name**.
+>
+> **Display names refreshed to the S200 stage-1 set (`bd536a4`)** in the roster
+> table below. The sweep-findings prose and coverage matrix further down still
+> use the **pre-S200 display names** that were on screen when each finding was
+> logged (e.g. "Noise predictability", "Repeated digits", "Correlated residuals")
+> — that is deliberate: the findings are a historical record keyed to what the
+> card said at sweep time. Use the canonical-name column to bridge old prose to
+> new titles. A future sweep re-keys to current names.
 
 ---
 
@@ -64,46 +72,46 @@ documented splits.
 
 | Canonical test name | Display (on-screen) | Localises | Scope |
 |---|---|---|---|
-| Exact Duplicate Detection | **Duplicated data** | ✅ | Row / block / column-segment |
-| Constant-Offset Blocks | **Duplicated and offset** | ✅ | Row-pair × column |
-| Residual Spike Correlation | **Correlated residuals** | ✅ | Top-K row |
+| Exact Duplicate Detection | **Duplicated Data** | ✅ | Row / block / column-segment |
+| Constant-Offset Blocks | **Offset copies** | ✅ | Row-pair × column |
+| Residual Spike Correlation | **Shared noisy rows** | ✅ | Top-K row |
 
 ### 2. Unusual Digits — `digits` (5)
 
 | Canonical test name | Display (on-screen) | Localises | Scope |
 |---|---|---|---|
-| Benford's Law (First Digit) | **First-digit frequencies** | ❌ | Global |
-| Benford's Law (Second Digit) | **Second-digit frequencies** | ❌ | Global |
-| Terminal Digit Uniformity | **Last-digit frequencies** | ❌ | Global |
-| Decimal Precision Consistency | **Decimal places** | ❌ | Global |
-| Value-Frequency Spike | **Repeated digits** | ✅ | **Cell** (sole cell-level test) |
+| Benford's Law (First Digit) | **First-Digit Frequencies** | ❌ | Global |
+| Benford's Law (Second Digit) | **Second-Digit Frequencies** | ❌ | Global |
+| Terminal Digit Uniformity | **Last-Digit Frequencies** | ❌ | Global |
+| Decimal Precision Consistency | **Decimal precision** | ❌ | Global |
+| Value-Frequency Spike | **Over-used numbers** | ✅ | **Cell** (sole cell-level test) |
 
 ### 3. Distribution Shapes — `shapes` (3) — *the trio*
 
 | Canonical test name | Display (on-screen) | Localises | Scope |
 |---|---|---|---|
-| Entropy / Zipf Analysis | **Value entropy** | ❌ | Global (column-level detail) |
-| Column Goodness-of-Fit | **Column shape fit** | ❌ | Global (column-level detail) |
-| Modality Test | **Column modality** | ❌ | Global (column-level detail) |
+| Entropy / Zipf Analysis | **Distinct numbers** | ❌ | Global (column-level detail) |
+| Column Goodness-of-Fit | **Column Goodness-of-Fit** | ❌ | Global (column-level detail) |
+| Modality Test | **Number of peaks** | ❌ | Global (column-level detail) |
 
 ### 4. Cross-Replicate Comparisons — `replicate` (14)
 
 | Canonical test name | Display (on-screen) | Localises | Scope |
 |---|---|---|---|
-| Inter-Replicate Correlation | **Inter-replicate correlation** | ✅ | Window |
-| Excess Kurtosis | **Replicate noise shape** | ❌ | Global / condition |
-| Autocorrelation | **Noise predictability** | ❌ | Global |
-| Windowed Autocorrelation | **Windowed autocorrelation** | ✅ | Window |
-| Runs Test | **Row-order randomness** | ✅ | Window |
+| Inter-Replicate Correlation | **Inter-Replicate Correlation** | ✅ | Window |
+| Excess Kurtosis | **Noise distribution** | ❌ | Global / condition |
+| Autocorrelation | **Noise correlation** | ❌ | Global |
+| Windowed Autocorrelation | **Local noise correlation** | ✅ | Window |
+| Runs Test | **Noise sign-pattern** | ✅ | Window |
 | Row-Mean Runs | **Row-mean patterns** | ✅ | Window |
 | Noise Scaling With Measurement Size | **Noise scaling** | ❌ | Global |
-| Within-Row Variance | **Row variance scan** | ✅ | Row |
-| Selective Noise Partitioning | **Distribution of noise across columns** | ✅ | Column |
-| Regional Noise Homogeneity | **Regional noise** | ✅ | Window × column block |
-| LOESS Residual Analysis | **Noise consistency** | ✅ | Changepoint + window |
+| Within-Row Variance | **Within-row noise** | ✅ | Row |
+| Selective Noise Partitioning | **Column-to-column noise** | ✅ | Column |
+| Regional Noise Homogeneity | **Region-to-region noise** | ✅ | Window × column block |
+| LOESS Residual Analysis | **Noise level trend** | ✅ | Changepoint + window |
 | Mahalanobis Row Outlier | **Unusual rows** | ✅ | Outlier row |
-| Blocked Mahalanobis | **Block covariance anomaly** | ✅ | Block (window × Σ) |
-| Missing Data Pattern † | **Missing data patterns** | ✅ | Block |
+| Blocked Mahalanobis | **Shifted blocks** | ✅ | Block (window × Σ) |
+| Missing Data Pattern † | **Missing-data pattern** | ✅ | Block |
 
 † Interim placement (category description doesn't strictly apply — re-home when
 File Integrity / Dim VI lands, or scope-restrict to cross-condition missingness).
@@ -112,9 +120,9 @@ File Integrity / Dim VI lands, or scope-restrict to cross-condition missingness)
 
 | Canonical test name | Display (on-screen) | Localises | Scope |
 |---|---|---|---|
-| Cross-Condition Rank Correlation | **Cross-condition similarity** | ❌ | Global |
-| Baseline Balance | **Condition balance** | ❌ | Global |
-| Cross-Condition Consistency | **Cross-condition consistency** | ❌ | Global |
+| Cross-Condition Rank Correlation | **Cross-Condition Rank Correlation** | ❌ | Global |
+| Baseline Balance | **Baseline Balance** | ❌ | Global |
+| Cross-Condition Consistency | **Overall condition similarity** | ❌ | Global |
 
 **Roster count:** 3 + 5 + 3 + 14 + 3 = **28** ✓ (source-confirmed S186).
 

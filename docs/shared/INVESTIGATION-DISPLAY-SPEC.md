@@ -356,16 +356,108 @@ No element is owned twice; none is unowned. A finding about *what a plot title s
 
 **The sub-header/footer arc — the two cells this Tier-4 pass executes.**
 
-- **Sub-header → ORIENT, one static string per test, state-neutral.** States the property the test examines; names no mechanism; asserts no anomaly. Resolves S197 (no longer asserts on a cleared card) and S190 (no longer over/under-claims the fired case) *because it stops being a verdict surface.* Illustrative grammar (final set authored against the read-only audit):
-  - "Whether rows or blocks repeat" (Duplicated data)
-  - "Whether values are offset copies" (Duplicated and offset)
-  - "Whether the same rows are noisy across conditions" (Correlated residuals)
-  - "Whether noise differs across columns" (Selective noise)
-- **Footer → VERDICT, the sole concluding surface.** Specific fired mechanism when flagged (S190's "name what fired," here where it is state-appropriate); "no X found" + scope + p when cleared (Class-2 pattern, Duplicate Detection landed S198). Drops any count the adjacent heading already states (say-it-once).
+- **Sub-header → ORIENT, one static string per test, state-neutral.** States the property the test examines; names no mechanism; asserts no anomaly. Resolves S197 (no longer asserts on a cleared card) and S190 (no longer over/under-claims the fired case) *because it stops being a verdict surface.* The final set (all 27 cards, with titles and footers co-designed) is the **Card text budget** section below — authored S199 against the read-only audit. The illustrative grammar that scoped the arc used a "Whether…" frame; S199 superseded it with direct questions (see the budget's grammar rules).
+- **Footer → VERDICT, the sole concluding surface.** Specific finding when flagged (S190's "name what fired," state-appropriate here); "no X found" when cleared (Class-2 pattern, Duplicate Detection landed S198). Plain finding only — no bare statistics (→ How-this-works), no "· p =" tail (the status badge carries tier+p), no motive. Drops any count an adjacent heading already states (say-it-once).
 
 Staged execution, each its own dispatch off promoted main: **(1)** sub-header neutralisation — battery-wide string swap, no state gate, highest leverage / lowest risk; **(2)** footer↔heading redundancy — replace-not-append on the known S168 sites (Modality, Selective Noise, Noise Scaling) plus any the audit surfaces.
 
 **Audit (read-only, runs against this map once locked).** Per card, verbatim + `file:line`: sub-header string and where defined (single registry vs per-card); footer string (flagged + cleared where reachable); plot heading; table heading; any inline coloured span in a heading. No edits. Inventory matched to the assignment table → stage-1 string set + redundancy site list. Plot/table heading + colour-span findings are *recorded for their owning axes*, not fixed by this arc — the audit feeds the whole map; this arc consumes only its two cells.
+
+### Card text budget (all 27 cards — S199)
+
+The settled design the sub-header/footer arc executes against. Authored S199 against the S198 read-only audit plus per-test methodology source-verification. Fixes the two ORIENT surfaces this arc owns — **title** (`DISPLAY_NAMES`) and **sub-header** (`TEST_DESCRIPTIONS`) — and the VERDICT surface (**footer**, per-card). Plot/table headings (other axes) appear only in the hand-off list where this arc's renames collide with them.
+
+**Grammar rules (apply to all 27):**
+
+1. **Direct questions** ("Are…", "Do…", "How many…"). "Whether" retired — a question is already verdict-free.
+2. **"Numbers" over vague "values"** for raw-number tests; "values" only where it is the needed referent.
+3. **"Correlate" is plain enough** — use it, not paraphrases ("track", "follows on", "carries over").
+4. **Register split.** *Opaque* jargon (kurtosis, modality, entropy, Mahalanobis, LOESS) → rename to plain; *familiar-technical* (correlation terms, goodness-of-fit, Benford, rank correlation) → keep as the title anchor, sub-header translates beneath. (Established on #10 — "Column Goodness-of-Fit" kept.)
+5. **Operand at the right tier.** The cluster header holds the shared operand (e.g. "cross-replicate noise"); each title carries only its *distinguishing axis*; the sub-header carries the *property*.
+6. **Comparison-naming** ("column-to-column", "region-to-region") where the test pits like against like; *not* where it is one-unit-odd (within-row) or along-sequence (noise level trend).
+7. **Footer = VERDICT, plain finding only.** No bare statistics (χ², ρ, slope, κ, Bartlett → How-this-works); no "· p =" tail (the status badge carries tier + p); no invented values (placeholders); no motive.
+8. **Conflatable siblings** carry an explicit sibling-contrast in How-this-works. Cases: #3/#14/#16 (position / magnitude-correlation / sign); #25/#26/#27 (order / balance / multi-property).
+
+**Cluster 1 — Copy, Paste, Edit** *(header operand: the numbers, copied — structure/arrangement)*
+
+| # | title | sub-header | footer flag (target) | footer clear |
+|---|---|---|---|---|
+| 1 | Duplicated Data | Are the same rows or blocks repeated? | {N} repeated blocks — rows {range} reappear at {range} | no duplicates found |
+| 2 | Offset copies | Are numbers copied and shifted by a constant? | {N} offset copies — block reappears shifted by a constant | no offset copies found |
+| 3 | Shared noisy rows | Are the same rows the noisiest in every condition? | the {N} noisiest rows are the same in every condition | no shared noisy rows |
+
+**Cluster 2 — Unusual Digits** *(header operand: the digits of the numbers)*
+
+| # | title | sub-header | footer flag | footer clear |
+|---|---|---|---|---|
+| 4 | First-Digit Frequencies | How are the leading digits distributed? | leading digits depart from the expected pattern | leading digits as expected |
+| 5 | Second-Digit Frequencies | How are the second digits distributed? | second digits depart from the expected pattern | second digits as expected |
+| 6 | Last-Digit Frequencies | How are the last digits distributed? | last digits are not evenly spread | last digits evenly spread |
+| 7 | Decimal precision | Do the numbers share a consistent precision? | mixed precision — {N} levels, suggesting more than one source | consistent precision throughout |
+| 8 | Over-used numbers | Does any number or digit combination recur more than chance allows? | {value} appears {N}× / {digits} recurs across {N} numbers | no number over-represented |
+
+#8 is a two-pass test (whole-value spikes + recurring fractional digit combinations). "Over-used" (frequency) separates it from #1 Duplicated (structure).
+
+**Cluster 3 — Distribution Shapes** *(header operand: the numbers in each column)*
+
+| # | title | sub-header | footer flag | footer clear |
+|---|---|---|---|---|
+| 9 | Distinct numbers | How many distinct numbers does each column have? | {N} columns have too few or too many distinct numbers | value variety normal across columns |
+| 10 | Column Goodness-of-Fit | Do the values in each column follow an expected shape? | {N} columns don't fit their expected shape | all columns fit their expected shape |
+| 11 | Number of peaks | How many peaks do a column's values cluster around? | {N} columns have more than one peak | all columns single-peaked |
+
+**Cluster 4 — Cross-Replicate Comparisons** *(header operand: **cross-replicate noise** — how much replicates of the same measurement disagree. Each title carries only its distinguishing axis; How-this-works defines "noise" once.)*
+
+| # | title | sub-header | footer flag | footer clear |
+|---|---|---|---|---|
+| 12 | Inter-Replicate Correlation | How closely do replicates correlate with each other? | replicates correlate more closely than expected | replicates correlate as expected |
+| 13 | Noise distribution | What is the distribution of the noise between replicates? | noise distribution too peaked and narrow / too flat and wide | noise distribution as expected |
+| 14 | Noise correlation | Does the noise correlate from one row to the next? | noise correlates from one row to the next | noise independent row to row |
+| 15 | Local noise correlation | Does the noise correlate within any short stretch of rows? | noise correlates within rows {range} | no localised noise correlation |
+| 16 | Noise sign-pattern | Does the noise flip between positive and negative at random? | noise signs clump — too few changes / alternate too regularly | noise signs flip as expected |
+| 16a | Row-mean patterns | Do the row averages run in streaks? | row averages run in streaks rather than alternating | row averages alternate as expected |
+| 17 | Noise scaling | Does the noise scale the way this assay should? | noise scaling doesn't match this assay | noise scales as expected for this assay |
+| 18 | Within-row noise | Are any rows' replicates unusually uniform? | {N} rows unusually uniform across their replicates | no rows with unusual spread |
+| 19 | Column-to-column noise | Is the noise even from column to column? | one column noisier than the rest / {N} columns differ in noise | noise even across columns |
+| 20 | Noise level trend | Does the noise change partway through the dataset? | noise level changes partway through | noise level steady throughout |
+| 21 | Region-to-region noise | Is the noise even across regions of the data? | one region noisier than the rest — rows {range} | noise even across regions |
+| 22 | Unusual rows | Do any rows have an unusual combination of values? | {N} rows have an unusual combination of values | no unusual rows |
+| 23 | Shifted blocks | Do any blocks of data show coordinated shifts in values? | rows {range} shift together as a block | no shifted blocks |
+| 24 | Missing-data pattern | Where are the missing values? | missing values concentrated in {column/region} | (never clears) |
+
+#14/#15 are a localised twin pair (banked merge candidate, IRC-style). #16a Row-mean patterns runs a runs test on the *sequence of row means* — streaks of above/below-average rows rather than random alternation; distinct from #16 Noise sign-pattern (signs of residuals) and #20 Noise level trend (drift in noise magnitude). #17: the finding is mismatch with the assay's expected slope (qPCR ≈ 0, densitometry ≈ 2), not absolute flatness. #18 is inter-replicate (a row's own replicates), one row at a time — not cross-condition.
+
+Cluster 4 is 14 cards (#12–#24 plus #16a Row-mean patterns); the #16a label avoids renumbering rows referenced elsewhere in this section.
+
+**Cluster 5 — Cross-Condition Comparisons** *(header operand: condition-level properties of the values. Three distinct axes, not three flavours of "similarity": #25 = same ORDER · #26 = differences too SMALL · #27 = alike in EVERY respect.)*
+
+| # | title | sub-header | footer flag | footer clear |
+|---|---|---|---|---|
+| 25 | Cross-Condition Rank Correlation | Do conditions rank their rows in the same order? | conditions rank their rows more alike than typical | (never clears — informational) |
+| 26 | Baseline Balance | Are the differences between conditions suspiciously small? | differences between conditions smaller than chance across most features | balance as expected |
+| 27 | Overall condition similarity | Are any two conditions alike across many different measures at once? | two conditions alike across {N} of {M} measures | conditions differ normally |
+
+#25 flags ρ *above* the biological null 0.85 (not ρ ≈ 1 — "non-identical but significant" is valid); capped at MODERATE (corroborating only). #26 measures *differences being too small*, not "matching"; "conditions" not "groups". #27 is a three-stage framework (pool / residual / structural-invariant) on one card.
+
+**Plot/table-heading hand-off list** (other arcs own these surfaces):
+
+*Arc-induced — the S199 renames create these; folded into the stage-1 dispatch (fix-what-you-break-in-the-same-commit). **All landed S200 `bd536a4` except #23 (held — no collision).***
+
+- #19 plot "Residual spread by column" → **"Spread by column"** (DONE, `bd536a4`).
+- #22 plot "Mahalanobis distance by row" → **"Distance by row"** (de-Mahalanobis; DONE, `bd536a4`).
+- #23 plot "Flagged blocks by pass and condition" — RESOLVED no collision (S200): title "Shifted blocks" (what-found) and the plot heading (how-displayed, "by pass and condition") share only "blocks"; correct division of labour. Held unedited in stage-1.
+- #16 plot "Verdict: pooled mean-z across pairs" → **"Pooled mean-z across pairs"** ("Verdict:" was a VERDICT word on an ORIENT surface; DONE, `bd536a4`). The comment at `MiniCard_Runs.jsx:75` that quoted the old heading was updated in the same commit.
+- #21 plot "Regional noise scan" → **"Noise by region"** (echoed new title "Region-to-region noise"; surfaced by the S200 consumer check, not the S199 budget; DONE, `bd536a4`).
+- #25 plot "Cross-condition rank correlation" → **"ρ by condition pair"** (restated the kept familiar-technical title; DONE, `bd536a4`).
+- #13 plot "Noise shape distribution" → **"Distribution shape"** (echoed new title "Noise distribution"; DONE, `bd536a4`).
+
+*Pre-existing — engine jargon, normal hand-off to the table content-adaptiveness axis, no urgency:*
+
+- #19 table "Per-column variance test"; #15 table "Windows by adj-p"; #23 table "Blocks by adj-p"; #26 table "Per-feature ANOVA results" — each names a statistic, not what the table shows.
+
+**Execution sequence** (STATUS Next priorities #1): (a) read-only consumer check (`DISPLAY_NAMES` consumers, heading-collision count, 27-vs-28 key count, RSC plot completeness); (b) stage-1 swap — title + sub-header registries + the ~4 induced collision headings, one file (`mechanisms.js`) plus the headings; (c) stage-2 — per-card footers to the VERDICT grammar; (d) How-this-works (EXPOUND) audit — read-only first, then author the sibling cross-references.
+
+**"Your ear" choices — RESOLVED S200:** #2 → **"Offset copies"** (noun phrase, matches the footer; landed in stage-1); #18 → **kept one-sided** ("unusually uniform" — the test only flags the too-smooth direction, a two-sided sub-header would over-promise); #24 → **kept "Where are the missing values?"** ("fall" is faintly euphemistic); #27 → **kept "Overall condition similarity"** ("every respect" overstates; the test flags alike-across-many-measures, not literally every one — the sub-header carries the precision).
 
 ### EvidenceTable
 
