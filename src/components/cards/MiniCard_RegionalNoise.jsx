@@ -66,7 +66,7 @@ export function MiniCard_RegionalNoise({ result, importConfig, rowMap }) {
         const windowData = isAgg ? sub : details;
         if (!windowData.length) return null;
         return <>
-          <div style={SUB_HEAD}>Regional noise scan</div>
+          <div style={SUB_HEAD}>Noise by region</div>
           <PlotLayout>
             <RegionalNoiseStrip details={windowData} nRows={result.nRows}
               colNames={colNames} toFileRow={toFileRow} />

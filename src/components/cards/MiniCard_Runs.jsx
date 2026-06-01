@@ -72,7 +72,7 @@ function PooledZMarker({ value, ci }) {
       ))}
       {/* S166 fix-2 FIX 3: axis title removed (was overlapping the tick
           labels — both rendered at the same horizontal band, y≈57-58).
-          The plot section header above ("Verdict: pooled mean-z across
+          The plot section header above ("Pooled mean-z across
           pairs") already names the statistic, and the "z = 0"
           annotation labels the reference, so a third axis-title row was
           redundant. */}
@@ -181,7 +181,7 @@ export function MiniCard_Runs({ result, importConfig, rowMap }) {
           defined) or under the windowed-driver branch where the per-pair
           marker isn't the headline. */}
       {Number.isFinite(pooledMeanZ) && Array.isArray(result.pooledZCI95) && (<>
-        <div style={SUB_HEAD}>Verdict: pooled mean-z across pairs</div>
+        <div style={SUB_HEAD}>Pooled mean-z across pairs</div>
         <PlotLayout>
           <PooledZMarker value={pooledMeanZ} ci={result.pooledZCI95} />
         </PlotLayout>

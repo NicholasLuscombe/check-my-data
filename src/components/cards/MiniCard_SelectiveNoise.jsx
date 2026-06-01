@@ -95,7 +95,7 @@ if(result.colDetails?.length) {
     <MiniCardLayout result={result}
       footer={footerText} lookFor={lookForText} implications={implicationsText}>
       {pivotBanner}
-      <div style={SUB_HEAD}>Residual spread by column</div>
+      <div style={SUB_HEAD}>Spread by column</div>
       <PlotLayout>
           <NoiseSpreadPlot colDetails={labelledCols}
             flaggedCols={flaggedCols.size > 0 ? flaggedCols : undefined}

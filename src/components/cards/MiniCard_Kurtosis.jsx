@@ -50,7 +50,7 @@ export function MiniCard_Kurtosis({ result, importConfig, rowMap }) {
 
       {/* ── Global distribution chart ── */}
       {normDiffs?.length ? <>
-        <div style={SUB_HEAD}>Noise shape distribution</div>
+        <div style={SUB_HEAD}>Distribution shape</div>
         <PlotLayout>
           <KurtosisDistPlot normDiffs={normDiffs} simDiffs={result.simDiffs}
             pooledKurtosis={pk} simKurtosis={result.simKurtosis} flag={result.flag}/>
