@@ -4,7 +4,7 @@
    BH-adjusted p. Optional position strip shows where flagged blocks sit. */
 
 import { C, SIGNAL, FW } from "../../constants/tokens.js";
-import { fmtP, fmtPBadge } from "../../constants/thresholds.js";
+import { fmtP } from "../../constants/thresholds.js";
 import { MiniCardLayout } from "../shared/CardLayout.jsx";
 import { EvidenceTable } from "../shared/EvidenceTable.jsx";
 import { PlotLayout } from "../shared/PlotLayout.jsx";
@@ -78,17 +78,12 @@ export function MiniCard_BlockedMahalanobis({ result, importConfig, rowMap }) {
     );
   }
 
-  const passLabel = `W=${result.windowSize}, stride=${result.stride}`;
-  // S168: driver clause from details[0] — already sorted adj-p asc by the
-  // producer (blockedMahalanobis.js), so details[0] is the winning unit.
-  // Σ-pass → covariance anomaly; μ-pass → block mean shift.
+  // S168: winning unit from details[0] — already sorted adj-p asc by the
+  // producer (blockedMahalanobis.js). Names the flagged block’s row range.
   const driverBest = (result.flag !== "LOW" && result.flag !== "N/A" && details[0]) ? details[0] : null;
-  const driverClause = driverBest
-    ? (driverBest.passKey === 'sigma'
-        ? ` · covariance anomaly in ${driverBest.condition}`
-        : ` · block mean shift in ${driverBest.condition}`)
-    : "";
-  const footer = `${result.nConditions || 0} condition${result.nConditions === 1 ? "" : "s"} · ${result.nWindowsTotal || 0} windows (${passLabel})${driverClause} · B=${result.nPerm} · ${fmtPBadge(result.primaryP)}`;
+  const footer = driverBest
+    ? `rows ${toFileRow(driverBest.startRow)}\u2013${toFileRow(driverBest.endRow)} shift together as a block`
+    : "no shifted blocks";
 
   return (
     <MiniCardLayout result={result}

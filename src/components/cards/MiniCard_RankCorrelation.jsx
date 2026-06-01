@@ -1,7 +1,6 @@
 /* ── MiniCard: Rank Correlation ── */
 
 import { C, FW, FF } from "../../constants/tokens.js";
-import { fmtP } from "../../constants/thresholds.js";
 import { TIER_COLOR } from "../shared/heatmapColors.js";
 import { buildCondColorMap } from "../../constants/roles.js";
 import { MiniCardLayout, CardBanner } from "../shared/CardLayout.jsx";
@@ -14,7 +13,6 @@ export function MiniCard_RankCorrelation({ result, importConfig, rowMap }) {
   const details = result.details || [];
   if (!details.length) return null;
 
-  const nSusp = result.nSuspicious || 0;
   const nPairs = result.nConditionPairs || details.length;
 
   // ── Build condition names and ρ lookup from pair details ──
@@ -50,10 +48,8 @@ export function MiniCard_RankCorrelation({ result, importConfig, rowMap }) {
     { color: TIER_COLOR.MID, label: "Suspicious" },
   ];
 
-  // ── Footer ──
-  const primaryP = result.primaryP;
-  const pStr = primaryP != null ? fmtP(primaryP) : "—";
-  const footer = `${nPairs} condition pair${nPairs !== 1 ? "s" : ""} · mean ρ = ${result.meanRho || "?"} · ${nSusp} suspicious · p ${pStr.startsWith("<") ? pStr : "= " + pStr}`;
+  // ── Footer ── never clears (always more-alike-than-typical when shown).
+  const footer = "conditions rank their rows more alike than typical";
 
 
   return (

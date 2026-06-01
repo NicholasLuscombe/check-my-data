@@ -2,7 +2,6 @@ import { MiniCardLayout } from "../shared/CardLayout.jsx";
 import { PlotLayout } from "../shared/PlotLayout.jsx";
 import { VBarPlot } from "../plots/VBarPlot.jsx";
 import { CHART, FW, FF, C, CC } from "../../constants/tokens.js";
-import { fmtPBadge } from "../../constants/thresholds.js";
 import { SUB_HEAD } from "../shared/styles.js";
 
 
@@ -26,11 +25,9 @@ export function MiniCard_DecimalPrecision({ result, importConfig, rowMap }) {
   return (
     <MiniCardLayout result={result}
       implications={implications}
-      footer={<>
-        {result.nDecimalValues || "?"} values · {details.length} precision levels · max {maxDp} dp
-        {hasGap && " · precision gaps (mixed-source)"}
-        {" · "}{result.primaryP != null ? fmtPBadge(result.primaryP) : "structural test (no p-value)"}
-      </>}
+      footer={result.flag !== "LOW" && result.flag !== "N/A"
+        ? `mixed precision — ${details.length} levels, suggesting more than one source`
+        : "consistent precision throughout"}
       lookFor={hasGap ? "A precision gap (e.g. values at 1dp and 3dp but none at 2dp) is impossible from a single instrument. It suggests values were transcribed from different sources or manually constructed with inconsistent rounding." : "Check whether the spread of precision levels is consistent with the stated instrument. A single instrument should produce values at one fixed precision (which then gets trailing-zero-stripped by Excel into 1–2 adjacent levels)."}>
 
       <div style={SUB_HEAD}>Precision distribution</div>

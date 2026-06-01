@@ -36,7 +36,7 @@
    the bottom. */
 
 import { C, FS, FW, FF, SIGNAL } from "../../constants/tokens.js";
-import { fmtP, fmtPBadge, ALPHA } from "../../constants/thresholds.js";
+import { fmtP, ALPHA } from "../../constants/thresholds.js";
 import { MiniCardLayout } from "../shared/CardLayout.jsx";
 import { EvidenceTable } from "../shared/EvidenceTable.jsx";
 import { SUB_HEAD } from "../shared/styles.js";
@@ -86,31 +86,10 @@ export function MiniCard_CrossCondConsistency({ result }) {
   const nAmber = amber.length;
 
   // ── Footer ─────────────────────────────────────────────────────
-  const primaryP = result.primaryP;
-  const pStr = primaryP != null ? fmtPBadge(primaryP) : "p —";
-  // S197 cleared-footer: with no amber-flagged unit on a cleared result, the
-  // min-adjP describes a forensic-direction-neutralised unit and carries no
-  // verdict meaning — the "0 flagged" count IS the verdict. Drop the trailing
-  // p-badge in that state; flagged tiers keep it.
-  const showP = !(nAmber === 0 && (result.flag === "LOW" || result.flag === "N/A"));
   const nRan = result.nUnitsRan || 0;
-  // S168: driver clause from result.top — already computed by the producer
-  // (crossConditionConsistency.js topInfo). similar → too similar;
-  // different → diverge. Gate on flag and top presence.
-  const top = result.top;
-  const driverClause = (result.flag !== "LOW" && result.flag !== "N/A" && top)
-    ? (top.direction === "similar"
-        ? `conditions too similar on ${top.property}`
-        : `conditions diverge on ${top.property}`)
-    : null;
-  const footerPieces = [
-    `${result.nConditions || "?"} conditions · ${result.nPairs || 0} pair${result.nPairs === 1 ? "" : "s"} · ${result.nProperties || 0} properties`,
-    `${nRan} unit${nRan === 1 ? "" : "s"} ran · ${nAmber} flagged`,
-    ...(driverClause ? [driverClause] : []),
-    `B=${result.B || "?"}`,
-    ...(showP ? [pStr] : []),
-  ];
-  const footer = footerPieces.join(" · ");
+  const footer = (result.flag !== "LOW" && result.flag !== "N/A")
+    ? `two conditions alike across ${nAmber} of ${nRan} measures`
+    : "conditions differ normally";
 
   // ── Table shape ─────────────────────────────────────────────────
   // Flag column retired (S175): for forensic rows the amber tint encodes

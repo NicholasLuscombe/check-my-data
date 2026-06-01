@@ -67,9 +67,9 @@ export function MiniCard_Autocorrelation({ result, importConfig, rowMap }) {
   ] : null;
 
   // ── Footer ──
-  const pStr = fmtP(result.primaryP);
-  const acDir = isNaN(meanR1) ? "" : meanR1 > 0 ? " · positive autocorrelation" : " · negative autocorrelation";
-  const footer = `${result.nPairs} pair${result.nPairs !== 1 ? "s" : ""} tested${acDir} · mean |r| = ${isNaN(meanR1) ? "—" : Math.abs(meanR1).toFixed(3)} · p ${pStr.startsWith("<") ? pStr : "= " + pStr}`;
+  const footer = (result.flag !== "LOW" && result.flag !== "N/A")
+    ? "noise correlates from one row to the next"
+    : "noise independent row to row";
 
   return (
     <MiniCardLayout result={result}

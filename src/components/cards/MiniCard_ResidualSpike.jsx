@@ -1,6 +1,5 @@
 import { MiniCardLayout } from "../shared/CardLayout.jsx";
 import { CoordResidualProfile } from "../plots/CoordResidualProfile.jsx";
-import { fmtP } from "../../constants/thresholds.js";
 import { buildCondColorMap } from "../../constants/roles.js";
 import { SUB_HEAD } from "../shared/styles.js";
 
@@ -11,8 +10,6 @@ const RHO_DISPLAY_THRESHOLD = 0.3;
 export function MiniCard_ResidualSpike({ result, importConfig, rowMap }) {
   const condColorMap = buildCondColorMap(importConfig?.condPerCol);
   const overlapN = result.nOverlap || 0;
-  const expN = parseFloat(result.expectedOverlap) || 0;
-  const permPNum = typeof result.permP === "string" ? parseFloat(result.permP) : (result.permP ?? 1);
 
   // Find ρ of the best overlap pair
   const bestPairRho = getBestPairRho(result);
@@ -24,7 +21,9 @@ export function MiniCard_ResidualSpike({ result, importConfig, rowMap }) {
 
   return (
     <MiniCardLayout result={result}
-      footer={`${result.nGroups} conditions · ${overlapN} rows with coordinated noise (${expN.toFixed(1)} expected) · permutation p = ${fmtP(permPNum)}`}
+      footer={result.flag !== "LOW" && result.flag !== "N/A"
+        ? `the ${overlapN} noisiest rows are the same in every condition`
+        : "no shared noisy rows"}
       lookFor={lookFor}
       implications="Rows that are noisy in one condition and noisy in others can reflect genuine biological covariates — for example, an outlier sample that affects all measurements. They can also indicate that specific rows were edited across multiple conditions, leaving correlated residual patterns even if the edits differ in magnitude.">
 

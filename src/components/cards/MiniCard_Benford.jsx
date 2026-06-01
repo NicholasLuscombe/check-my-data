@@ -3,7 +3,6 @@ import { PlotLayout } from "../shared/PlotLayout.jsx";
 import { ChartLegend } from "../shared/ChartLegend.jsx";
 import { VBarPlot } from "../plots/VBarPlot.jsx";
 import { CC } from "../../constants/tokens.js";
-import { fmtPBadge } from "../../constants/thresholds.js";
 import { SUB_HEAD } from "../shared/styles.js";
 
 
@@ -18,11 +17,9 @@ const items=details.map(d=>({...d,
 return (
 
   <MiniCardLayout result={result}
-    footer={<>
-      {result.nValues||"?"} values tested · χ²={result.chiSquared||"?"} · df={result.df||"?"}
-      {result.flag !== "LOW" && result.flag !== "N/A" && (isSecond ? " · second digits off Benford" : " · leading digits off Benford")}
-      {" · "}{fmtPBadge(result.primaryP)}
-    </>}
+    footer={result.flag !== "LOW" && result.flag !== "N/A"
+      ? (isSecond ? "second digits depart from the expected pattern" : "leading digits depart from the expected pattern")
+      : (isSecond ? "second digits as expected" : "leading digits as expected")}
     lookFor={isSecond ? "Look for excess 0s and 5s (rounding signature) or deficit of certain digits. Second-digit Benford is most powerful for detecting fabrication in large datasets — small deviations become significant with enough data." : "Check whether smaller digits (1–3) are depleted or larger digits (7–9) are inflated compared to Benford's law. This pattern suggests values were chosen from a narrow range or generated uniformly rather than arising from natural processes." }
     implications={isSecond
       ? "As with first digits, second-digit deviations can arise from narrow-range or bounded-scale data. Second-digit analysis can also catch subtler patterns that first-digit analysis misses — the second-digit distribution is less widely known and less likely to be corrected if values have been manually adjusted."

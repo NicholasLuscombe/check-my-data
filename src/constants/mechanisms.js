@@ -146,7 +146,7 @@ export const TEST_DESCRIPTIONS = {
   "Value-Frequency Spike": "Does any number or digit combination recur more than chance allows?",
   "Selective Noise Partitioning": "Is the noise even from column to column?",
   "LOESS Residual Analysis": "Does the noise change partway through the dataset?",
-  "Row-Mean Runs": "Row averages trend unexpectedly",
+  "Row-Mean Runs": "Do the row averages run in streaks?",
   "Regional Noise Homogeneity": "Is the noise even across regions of the data?",
   "Missing Data Pattern": "Where are the missing values?",
   "Autocorrelation": "Does the noise correlate from one row to the next?",
