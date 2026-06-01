@@ -306,6 +306,67 @@ Disclosure gates are intentionally asymmetric (not unified): "How this test work
 
 **Header remains in exactly the same position on expand/collapse** — no layout shift.
 
+### Card information-architecture map (the three-jobs contract)
+
+The card's information-architecture contract — the backstop every per-card copy/display finding routes through. The item-46 design axes (Plot consistency, Per-condition, Standalone-crop, Table content-adaptiveness, Engine-internal-language) and the Tier-4 copy arcs are **cells of this map, not parallel tracks.**
+
+**Why it exists.** The S168 redundancy calls, the S190 sub-header findings, the S197 cleared mismatch, and the engine-internal-language leaks are one problem surfacing on different surfaces in different sessions, each historically fixed locally. Local fixes leave seams (footer↔heading redundancy, state-mismatch) and the seams reappear as new findings. This map ends that by assigning every card element exactly one *job*, so any future finding routes to one owner without fresh adjudication.
+
+**The three jobs.** Under the design principle ("is something wrong, and where?", answered at mode-appropriate depth), every element on a card does exactly one of three:
+
+1. **ORIENT** — *"What is this?"* Labels a surface. State-neutral, verdict-free.
+2. **VERDICT** — *"What was found?"* States the result. Lives on **exactly one surface.** Specific when flagged, "nothing found" when cleared. Nothing else on the card concludes.
+3. **EXPOUND** — *"What does it mean / how does it work?"* Methodology, implications, follow-up. One click away (disclosure), never in an always-visible label.
+
+**The single rule:** each element does one job; the verdict job is held by one surface only; orientation and exposition never conclude.
+
+**Assignment table.** Every surface, its job, its owning arc. The job is fixed by this map; execution is the arc's.
+
+| Surface | Job | Owning arc | State-varies? |
+|---|---|---|---|
+| Category breadcrumb | ORIENT | settled (TestCardLayout) | opacity only (0.4 cleared) |
+| **Sub-header descriptor** | **ORIENT** | **Sub-header/footer arc (Tier-4)** | **no — one static string** |
+| **Footer / result line** | **VERDICT** | **Sub-header/footer arc (Tier-4)** | **yes — finding vs "none found"** |
+| Plot heading | ORIENT | Axis 1 (plot consistency) | no |
+| Plot caption | EXPOUND | Caption-density arc | no |
+| Table heading | ORIENT | Table content-adaptiveness axis | no |
+| Table columns/rows | ORIENT (structure) | Table content-adaptiveness axis | content-adaptive |
+| §2 guidance caption | EXPOUND (locality) | settled (S193 locality tiers) | by locality tier |
+| How this test works | EXPOUND | Engine-internal-language axis | no (always shown) |
+| Implications | EXPOUND | settled (gated `flag !== LOW`) | withheld when cleared |
+| What to look for | EXPOUND | settled (gated `flag !== LOW`) | withheld when cleared |
+
+No element is owned twice; none is unowned. A finding about *what a plot title says* → Axis 1; *which table rows show* → content-adaptiveness; *methodology in a caption* → engine-language / caption arc; *the sub-header asserting an anomaly, or the footer repeating a count* → the sub-header/footer arc.
+
+**Cross-cutting rules (apply within every cell, so the seams between cells close).**
+
+- **Say it once.** If two surfaces would state the same fact, the ORIENT surface keeps the label and the VERDICT surface states the result — never both. (S167/S168 redundancy calls. Canonical: "Noise by column" heading + "noise differs 3.2× across columns" footer — not "across columns" twice.) The rule governs the *boundary between cells*; each owner trims its own side.
+- **One colour per label (S71 font-split rule).** ORIENT surfaces are single-colour (`C.TEXT_1`), no coloured spans; the evidence below carries the highlight. A red column-name in a heading is redundant with the marked cell.
+- **Verdict-free orientation.** ORIENT surfaces never conclude — not by asserting an anomaly (S197 cleared mismatch), not by naming the fired mechanism (S190). The mechanism is the footer's job.
+- **Plain language on always-visible surfaces.** Engine internals (W=30, χ²/df, §1.9 ¶8) are EXPOUND and belong in How-this-works, never in an ORIENT label or the VERDICT line.
+
+**How the item-46 axes map in** (re-seated as cells, not retired):
+
+- **Axis 1 (plot consistency)** — owns ORIENT for plot headings + the plot visual (null-band, strip idiom, spatial-minimap, axis-label overlap). Plot *caption* is EXPOUND (caption arc).
+- **Axis 2 (per-condition presentation)** — a modifier, not a surface: governs how ORIENT/VERDICT/EXPOUND each render when a test runs per-condition.
+- **Axis 3 (standalone-crop chrome)** — a coherence check *across* the map: an evidence visual must carry its own ORIENT + VERDICT when cropped out of card chrome. (Re-seated from peer-axis to cross-check — S198.)
+- **Table content-adaptiveness** — owns ORIENT (structure) for tables: which columns/rows justify themselves, truncation disclosure.
+- **Engine-internal-language** — owns the EXPOUND boundary battery-wide: keeps methodology out of ORIENT/VERDICT surfaces.
+- **Affordance discoverability** — DONE (S195–S197). Was the reachability layer *beneath* the map (a surface must be reachable before its copy matters). Reachability first, then content.
+
+**The sub-header/footer arc — the two cells this Tier-4 pass executes.**
+
+- **Sub-header → ORIENT, one static string per test, state-neutral.** States the property the test examines; names no mechanism; asserts no anomaly. Resolves S197 (no longer asserts on a cleared card) and S190 (no longer over/under-claims the fired case) *because it stops being a verdict surface.* Illustrative grammar (final set authored against the read-only audit):
+  - "Whether rows or blocks repeat" (Duplicated data)
+  - "Whether values are offset copies" (Duplicated and offset)
+  - "Whether the same rows are noisy across conditions" (Correlated residuals)
+  - "Whether noise differs across columns" (Selective noise)
+- **Footer → VERDICT, the sole concluding surface.** Specific fired mechanism when flagged (S190's "name what fired," here where it is state-appropriate); "no X found" + scope + p when cleared (Class-2 pattern, Duplicate Detection landed S198). Drops any count the adjacent heading already states (say-it-once).
+
+Staged execution, each its own dispatch off promoted main: **(1)** sub-header neutralisation — battery-wide string swap, no state gate, highest leverage / lowest risk; **(2)** footer↔heading redundancy — replace-not-append on the known S168 sites (Modality, Selective Noise, Noise Scaling) plus any the audit surfaces.
+
+**Audit (read-only, runs against this map once locked).** Per card, verbatim + `file:line`: sub-header string and where defined (single registry vs per-card); footer string (flagged + cleared where reachable); plot heading; table heading; any inline coloured span in a heading. No edits. Inventory matched to the assignment table → stage-1 string set + redundancy site list. Plot/table heading + colour-span findings are *recorded for their owning axes*, not fixed by this arc — the audit feeds the whole map; this arc consumes only its two cells.
+
 ### EvidenceTable
 
 Single source of truth for results/statistics tables (e.g. VFS over-represented values, Mahalanobis outlier rows, Kurtosis condition table). Font split baked in (see Font System). `identifierColumns` prop controls how many leading columns use sans-serif.
