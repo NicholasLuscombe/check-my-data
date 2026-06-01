@@ -53,7 +53,7 @@ export function MiniCard_Mahalanobis({ result, importConfig, rowMap }) {
 
       {result.plateNote && <CardBanner type="caution">{result.plateNote}</CardBanner>}
       {(hasAllCond || hasSinglePlot) && (<>
-        <div style={SUB_HEAD}>Mahalanobis distance by row</div>
+        <div style={SUB_HEAD}>Distance by row</div>
         <PlotLayout>
           <MahalanobisDistPlot
             allCondD2={hasAllCond ? result.allCondD2 : undefined}

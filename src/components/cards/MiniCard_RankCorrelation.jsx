@@ -71,7 +71,7 @@ export function MiniCard_RankCorrelation({ result, importConfig, rowMap }) {
 
       {hasMatrix && (
         <>
-          <div style={SUB_HEAD}>Cross-condition rank correlation</div>
+          <div style={SUB_HEAD}>ρ by condition pair</div>
           <PlotLayout>
             <CorrMatrixSVG
               labels={condNames}

@@ -26,7 +26,7 @@
 
 import { useId } from "react";
 import { C, CR, FS, FW, FF, SECTION_DIVIDER } from "../../constants/tokens.js";
-import { MECHANISMS } from "../../constants/mechanisms.js";
+import { MECHANISM_ORDER, TEST_MECHANISM } from "../../constants/mechanisms.js";
 import { LANE_LABEL_TYPOGRAPHY, LANE_LABELS, MINIMAP_CALLOUT_TYPOGRAPHY } from "../shared/Section.jsx";
 import { FindingPill } from "./FindingPill.jsx";
 import { FindingChip } from "./FindingChip.jsx";
@@ -44,24 +44,28 @@ export const STICKY_SURFACE_SELECTOR = '[data-sticky-surface="forensics"]';
 // LANE_LABEL_TYPOGRAPHY (Section.jsx). Spread both at each consumer site.
 const LANE_LABEL_LAYOUT = { whiteSpace: "nowrap", flexShrink: 0 };
 
-// Severity-descending sort with alphabetical fallback within the tier.
-// Pills are always single-test (HIGH/MOD globals) so the sort key is the
-// test displayName. Chips today are also single-test but the comparator
-// reads the chip-render label (test displayName for single-test, dim
-// label for multi-test) so future multi-test chips sort consistently
-// with what's drawn on screen.
+// Severity-descending sort, then canonical cluster + within-cluster card
+// order as the within-tier tiebreaker — the MECHANISM_ORDER arrangement
+// §2/§3 read in. S200: keyed on canonical position (dimension + the test's
+// index in TEST_MECHANISM), NOT the display label, so retitling a card
+// (DISPLAY_NAMES) never reorders the chip/pill lanes.
 const SEV_RANK = { HIGH: 3, MOD: 2, LOW: 1 };
 const sevRank = (sev) => SEV_RANK[sev] || 0;
-const pillSortKey = (f) => f.tests?.[0]?.displayName || "";
-const chipSortKey = (f) => {
-  if ((f.tests?.length || 0) === 1) return f.tests[0]?.displayName || "";
-  const dim = f.dimensions?.[0];
-  return MECHANISMS[dim]?.label || dim || "";
+const TEST_ORDER = Object.keys(TEST_MECHANISM);
+const clusterIdx = (f) => {
+  const i = MECHANISM_ORDER.indexOf(f.dimensions?.[0]);
+  return i < 0 ? MECHANISM_ORDER.length : i;
 };
-const compareBy = (getKey) => (a, b) => {
+const cardIdx = (f) => {
+  const i = TEST_ORDER.indexOf(f.tests?.[0]?.testId);
+  return i < 0 ? TEST_ORDER.length : i;
+};
+const compareCanonical = (a, b) => {
   const sr = sevRank(b.severity) - sevRank(a.severity);
   if (sr !== 0) return sr;
-  return getKey(a).localeCompare(getKey(b));
+  const ci = clusterIdx(a) - clusterIdx(b);
+  if (ci !== 0) return ci;
+  return cardIdx(a) - cardIdx(b);
 };
 
 /**
@@ -92,9 +96,9 @@ export function pillsAndChips(findings = []) {
       localisedChips.push(f);
     }
   }
-  pills.sort(compareBy(pillSortKey));
-  localisedChips.sort(compareBy(chipSortKey));
-  fallbackChips.sort(compareBy(chipSortKey));
+  pills.sort(compareCanonical);
+  localisedChips.sort(compareCanonical);
+  fallbackChips.sort(compareCanonical);
   return { pills, localisedChips, fallbackChips };
 }
 
