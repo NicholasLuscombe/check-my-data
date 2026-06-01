@@ -53,6 +53,14 @@ const nDataRows = rawData?.length || "?";
 const nDataCols = dataColMap.length;
 const nColPairs = nDataCols * (nDataCols - 1) / 2;
 const footerParts = [`${nDataRows} rows · ${nColPairs} column pairs`];
+// Lead with the cleared result, not just scope — mirrors VFS's nSpikes===0 footer.
+// Aggregate verdict across all four sub-signals: true only when every one is flat zero on a LOW.
+const noDuplicates = result.flag === "LOW"
+  && result.collisionObs === 0
+  && result.duplicateRows === 0
+  && wrTotal === 0
+  && blocks.length === 0;
+if (noDuplicates) footerParts.push("no duplicates found");
 if (structuralBlocks.length > 0) footerParts.push(`${structuralBlocks.length} block${structuralBlocks.length!==1?"s":""} (${nDupRows} duplicated row${nDupRows!==1?"s":""})`);
 if (hasWithinRow) footerParts.push(`${wrTotal} within-row (${wrExp.toFixed(0)} expected)`);
 footerParts.push(fmtPBadge(result.primaryP));
