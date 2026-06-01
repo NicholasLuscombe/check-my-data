@@ -7,7 +7,7 @@ import { ChartLegend } from "../shared/ChartLegend.jsx";
 import { SignStripPlot } from "../plots/SignStripPlot.jsx";
 import { PlotSVG } from "../plots/PlotSVG.jsx";
 import { C, CC, CP, CS, CF, FW, FF } from "../../constants/tokens.js";
-import { fmtP, fmtPBadge, fmtPOp } from "../../constants/thresholds.js";
+import { fmtP } from "../../constants/thresholds.js";
 import { shortColName, makeRowMapper } from "../shared/coordinates.js";
 import { SUB_HEAD } from "../shared/styles.js";
 
@@ -150,23 +150,12 @@ export function MiniCard_Runs({ result, importConfig, rowMap }) {
     { value: parseFloat(p.z) < -1.96 ? "Fewer than expected" : parseFloat(p.z) > 1.96 ? "More than expected" : "As expected", style: { fontFamily: FF.UI } },
   ]);
 
-  // Footer (S166 A6).
-  // Aggregator path: name the worst group whose data populates nPairs /
-  // pooledMeanZ / "pooled p" — pre-S166 "pooled" read as cross-condition,
-  // but the aggregator's worst.result spread carries worst-group-only
-  // metrics. Within-condition pooled is the honest description here.
-  // Non-aggregated path: keep the cross-pair pooled framing (no group).
-  const runsDir = pooledMeanZ < 0 ? "too few runs" : "too many runs";
-  const pStr = fmtPBadge(result.primaryP);
-  const footerContent = worstGroup ? (<>
-    {worstGroup}: {result.nPairs} pair{result.nPairs !== 1 ? "s" : ""} · {runsDir} · mean z = {pooledMeanZ.toFixed(2)}
-    {" · within-condition best " + pStr}
-    {hasWindowed && ` · scan p ${fmtPOp(scanPNum)} (${result.windowSigCount} window${result.windowSigCount!==1?"s":""})`}
-  </>) : (<>
-    {result.nPairs} pair{result.nPairs !== 1 ? "s" : ""} · {runsDir} · mean z = {pooledMeanZ.toFixed(2)}
-    {" · best " + pStr}
-    {hasWindowed && ` · scan p\u202f${fmtPOp(scanPNum)} (${result.windowSigCount} window${result.windowSigCount!==1?"s":""})`}
-  </>);
+  // Footer: plain finding. When flagged, the pooled mean-z sign picks the
+  // direction (clumping vs over-alternation); the worstGroup / no-group
+  // branch collapses to the same clause.
+  const footerContent = (result.flag !== "LOW" && result.flag !== "N/A")
+    ? (pooledMeanZ < 0 ? "noise signs clump — too few changes" : "noise signs alternate too regularly")
+    : "noise signs flip as expected";
 
   return (
     <MiniCardLayout result={result}

@@ -1,7 +1,7 @@
 /* ── MiniCard: Windowed Autocorrelation ── */
 
 import { C, SIGNAL, FW } from "../../constants/tokens.js";
-import { fmtP, fmtPBadge } from "../../constants/thresholds.js";
+import { fmtP } from "../../constants/thresholds.js";
 import { MiniCardLayout } from "../shared/CardLayout.jsx";
 import { EvidenceTable } from "../shared/EvidenceTable.jsx";
 import { PlotLayout } from "../shared/PlotLayout.jsx";
@@ -83,8 +83,17 @@ export function MiniCard_WindowedAutocorr({ result, importConfig, rowMap }) {
     );
   }
 
-  const driverClause = (result.flag !== "LOW" && result.flag !== "N/A") ? " \u00B7 localised serial structure" : "";
-  const footer = `${result.nPairs} pair${result.nPairs !== 1 ? "s" : ""} \u00B7 ${result.nWindowsTotal} windows (size ${result.windowSize}, stride ${result.stride}) \u00B7 B=${result.nPerm}${driverClause} \u00B7 ${fmtPBadge(result.primaryP)}`;
+  // Footer: plain finding. When flagged, name the row range of the most
+  // significant window (details pre-sorted adj-p ascending by the producer).
+  const sigWins = details.filter(d => d.significant);
+  const flaggedRange = sigWins.length
+    ? `${toFileRow(sigWins[0].startRow)}\u2013${toFileRow(sigWins[0].endRow)}`
+    : null;
+  const footer = (result.flag === "LOW" || result.flag === "N/A")
+    ? "no localised noise correlation"
+    : flaggedRange
+      ? `noise correlates within rows ${flaggedRange}`
+      : "noise correlates within a localised window";
 
   return (
     <MiniCardLayout result={result}

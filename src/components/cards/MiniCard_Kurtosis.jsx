@@ -1,7 +1,6 @@
 /* ── MiniCard: Kurtosis ── */
 
 import { C, CC, FS, FW, FF, M, CP, CS, CF, CR, SIGNAL, BADGE } from "../../constants/tokens.js";
-import { fmtPBadge } from "../../constants/thresholds.js";
 import { MiniCardLayout } from "../shared/CardLayout.jsx";
 import { buildCondColorMap } from "../../constants/roles.js";
 import { EvidenceTable } from "../shared/EvidenceTable.jsx";
@@ -26,7 +25,6 @@ export function MiniCard_Kurtosis({ result, importConfig, rowMap }) {
   // Direction from kurtDeviation (observed - simulated): negative = platykurtic, positive = leptokurtic
   const kDev = result.kurtDeviation != null ? Number(result.kurtDeviation) : null;
   const isPlat = kDev != null ? kDev < 0 : (pk != null && pk < -0.5);
-  const isLepto = kDev != null ? kDev > 0 : (pk != null && pk > 0.5);
 
   // ── Chart legend ──
   const legendItems = [
@@ -36,13 +34,9 @@ export function MiniCard_Kurtosis({ result, importConfig, rowMap }) {
 
   return (
     <MiniCardLayout result={result}
-      footer={<>
-        {result.nPairs} replicate pair{result.nPairs !== 1 ? "s" : ""} tested
-        {isPlat ? " · too uniform (platykurtic)" : isLepto ? " · too peaked (leptokurtic)" : ""}
-        {kDev != null && ` · κDev = ${kDev.toFixed(2)}`}
-        {" · "}{typeof result.pooledP === 'number' ? fmtPBadge(result.pooledP) : `p\u202f=\u202f${result.pooledP}`}
-        {result.adNote ? ` · ${result.adNote}` : ""}
-      </>}
+      footer={result.flag !== "LOW" && result.flag !== "N/A"
+        ? (isPlat ? "noise distribution too flat and wide" : "noise distribution too peaked and narrow")
+        : "noise distribution as expected"}
       lookFor={isPlat ? "This pattern is not visible by scanning individual cells — each value looks plausible on its own, but replicate differences are more evenly spaced than real instruments produce. Ask the authors for the original instrument output files and compare them against the submitted dataset. Check whether data was rounded, averaged, or manually adjusted before upload." : "Replicate differences cluster too tightly around zero with occasional large jumps — suggesting data from mixed sources or selective editing of outliers. Check whether the large-jump rows correspond to key experimental results, and whether different conditions show different noise patterns." }
       implications={isPlat
         ? "Noise that is flatter than expected — evenly spread without the central peak of a bell curve — is unusual for instrument noise and can indicate values generated from a uniform distribution rather than measured."

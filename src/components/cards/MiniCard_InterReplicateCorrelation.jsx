@@ -10,7 +10,6 @@ import { ChartLegend } from "../shared/ChartLegend.jsx";
 import { EvidenceTable } from "../shared/EvidenceTable.jsx";
 import { classifyIrcPairs } from "../../analysis/buildHighlightSpec.js";
 import { shortColName, makeRowMapper } from "../shared/coordinates.js";
-import { fmtPBadge } from "../../constants/thresholds.js";
 import { SUB_HEAD } from "../shared/styles.js";
 
 
@@ -25,8 +24,6 @@ export function MiniCard_InterReplicateCorrelation({ result, importConfig, rowMa
 const pairDetails=(details||[]).filter(d=>!d.source); // exclude windowed entries
 const rVals=pairDetails.map(d=>parseFloat(d.r)).filter(v=>!isNaN(v));
 if(!rVals.length) return null;
-const icc=result.iccPredicted!=="n/a"?parseFloat(result.iccPredicted):null;
-const n=pairDetails.length;
 const nSusp = result.nSuspicious || 0;
 const wins=(details||[]).filter(d=>d.source==="window");
 
@@ -113,37 +110,12 @@ const topWins = [...wins].sort((a, b) => {
   return (a.condition || "").localeCompare(b.condition || "");
 });
 
-// S171 B2: footer finding-clause — names the visible driver(s).
-//   • elevatedConds (multi-condition only, condMeanZ > overall + 1·SD)
-//   • windowed-scan entries (wins; source: 'window')
-// Wires existing signals — no recomputation. Composed inline so the
-// promoted top-of-card result line reads as a finding, not bare stats.
-const findingParts = [];
-if (elevatedConds.size > 0) {
-  findingParts.push(`${[...elevatedConds].join(", ")} replicates track closely`);
-}
-if (wins.length > 0) {
-  const winCondSet = new Set(wins.map(w => w.condition).filter(Boolean));
-  const winScope = condNames.length <= 1
-    ? `${wins.length} localised window${wins.length !== 1 ? "s" : ""}`
-    : winCondSet.size === condNames.length
-      ? "localised windows in all conditions"
-      : `localised windows in ${[...winCondSet].join(", ")}`;
-  findingParts.push(winScope);
-}
-const findingClause = findingParts.join("; ");
-
 return (
 
   <MiniCardLayout result={result}
-    footer={<>
-      {n} column pair{n!==1?"s":""} tested · mean r = {result.meanR||"?"}
-      {icc != null && ` · ICC-predicted ${icc.toFixed(2)}`}
-      {nSusp > 0 && ` · ${nSusp} suspicious`}
-      {findingClause && ` · ${findingClause}`}
-      {wins.length > 0 && ` · scan ${fmtPBadge(result.primaryP)}`}
-      {wins.length === 0 && ` · ${fmtPBadge(result.primaryP)}`}
-    </>}
+    footer={result.flag !== "LOW" && result.flag !== "N/A"
+      ? "replicates correlate more closely than expected"
+      : "replicates correlate as expected"}
     lookFor={wins.length > 0 ? "The windowed scan found a stretch of rows where replicates agree more closely than elsewhere. Check whether those rows correspond to a particular experimental group or were added later. Ask for the raw instrument output to verify that the submitted replicates are distinct measurements." : "One or more replicate pairs correlate more strongly than the dataset's signal-to-noise ratio predicts. Check whether those columns might be copies or near-copies of each other. Compare the original instrument files against the submitted data to confirm independent measurements." }
     implications="Replicates that track each other unusually closely can reflect a high signal-to-noise ratio experiment where the true biological signal dominates random noise. They can also indicate that one replicate was derived from another — for example, by copying a column and adding small perturbations.">
 

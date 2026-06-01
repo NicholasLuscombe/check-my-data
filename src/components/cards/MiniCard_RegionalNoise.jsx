@@ -6,7 +6,7 @@ import { PlotLayout } from "../shared/PlotLayout.jsx";
 import { ChartLegend } from "../shared/ChartLegend.jsx";
 import { RegionalNoiseStrip } from "../plots/RegionalNoiseStrip.jsx";
 import { C, CC, FW, FF } from "../../constants/tokens.js";
-import { fmtP, fmtPBadge } from "../../constants/thresholds.js";
+import { fmtP } from "../../constants/thresholds.js";
 import { makeRowMapper } from "../shared/coordinates.js";
 import { SUB_HEAD } from "../shared/styles.js";
 
@@ -39,16 +39,6 @@ export function MiniCard_RegionalNoise({ result, importConfig, rowMap }) {
   const bestRows = result.bestWindowRows || "—";
   const bestCol = result.bestAnomCol || "—";
   const bestVarRatio = result.bestVarRatio || "—";
-  // Single-sourced SD ratio (Fix S192): the producer computes sqrt(variance
-  // ratio) once (result.bestSDRatio / detail.sdRatio) so the footer and the
-  // evidence table never diverge by double-rounding. Fall back to the legacy
-  // sqrt(bestVarRatio) only if the producer field is absent.
-  const bestSDRatio = Number.isFinite(result.bestSDRatio)
-    ? result.bestSDRatio.toFixed(2) + "×"
-    : (() => {
-        const v = parseFloat(bestVarRatio);
-        return isNaN(v) ? "—" : Math.sqrt(v).toFixed(2) + "×";
-      })();
 
   const bestRowsParts = String(bestRows).match(/(\d+)\D+(\d+)/);
   const bestRowsDisplay = bestRowsParts
@@ -58,7 +48,9 @@ export function MiniCard_RegionalNoise({ result, importConfig, rowMap }) {
 
   return (
     <MiniCardLayout result={result}
-      footer={`${result.nWindows||"?"} windows scanned · worst: ${bestColName} rows ${bestRowsDisplay} (${(details[0]?.direction) || "anomalous"}, SD ratio ${bestSDRatio}) · scan ${fmtPBadge(result.primaryP)}`}
+      footer={result.flag !== "LOW" && result.flag !== "N/A"
+        ? `one region noisier than the rest — rows ${bestRowsDisplay}`
+        : "noise even across regions"}
       lookFor={`${bestColName} in rows ${bestRowsDisplay} has unusually ${parseFloat(bestVarRatio) > 1 ? "high" : "low"} noise compared to its own average. Examine that column in that region — are the values smoother, rounder, or more variable than the rest of the column? If multiple windows flag the same column, that column may have been selectively edited in those rows.`}
       implications="A region that is noisier or quieter than the column average can result from plate edge effects, batch boundaries, or changes in sample quality across the run. It can also indicate that a stretch of values in one column was smoothed or replaced while the rest was left intact.">
 
