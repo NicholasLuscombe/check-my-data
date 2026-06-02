@@ -2,7 +2,7 @@ import { MiniCardLayout, CardBanner } from "../shared/CardLayout.jsx";
 import { FW } from "../../constants/tokens.js";
 import { EvidenceTable } from "../shared/EvidenceTable.jsx";
 
-import { fmtP, fmtPBadge } from "../../constants/thresholds.js";
+import { fmtP } from "../../constants/thresholds.js";
 import { SUB_HEAD } from "../shared/styles.js";
 import { makeRowMapper } from "../shared/coordinates.js";
 
@@ -39,9 +39,7 @@ function compactRowList(fileRows) {
 export function MiniCard_ValueFrequency({ result, importConfig, rowMap }) {
   const details = result.details || [];
   const spikeCells = result._spikeCells || [];
-  const nValues = result.nValues || 0;
   const nSpikes = result.nSpikes || 0;
-  const nCells  = spikeCells.length;
 
   const { fileRow } = makeRowMapper(importConfig, rowMap);
 
@@ -56,8 +54,10 @@ export function MiniCard_ValueFrequency({ result, importConfig, rowMap }) {
   }
 
   const footerText = nSpikes === 0
-    ? <>{nValues} values screened · no values over-represented · {fmtPBadge(result.primaryP)}</>
-    : <>{nValues} values screened · {nSpikes} over-represented across {nCells} cell{nCells === 1 ? "" : "s"} · {fmtPBadge(result.primaryP)}</>;
+    ? "no number over-represented"
+    : result.drivingPass === "digit"
+      ? `${nSpikes} digit combination${nSpikes !== 1 ? "s" : ""} recur${nSpikes !== 1 ? "" : "s"} more often than chance allows`
+      : `${nSpikes} number${nSpikes !== 1 ? "s" : ""} appear${nSpikes !== 1 ? "" : "s"} more often than chance allows`;
 
   // Column order: Value · Pass · Rows · Observed · Expected · Ratio · Adj P
   // Leading text cols (identifier): Value, Pass, Rows → identifierColumns=3.

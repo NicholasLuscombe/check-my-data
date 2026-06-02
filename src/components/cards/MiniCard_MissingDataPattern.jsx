@@ -1,7 +1,6 @@
 /* ── MiniCard: Missing Data Pattern ── */
 
 import { C, CC, FW, FF, CF, CP, CS, SIGNAL } from "../../constants/tokens.js";
-import { fmtPBadge } from "../../constants/thresholds.js";
 import { MiniCardLayout } from "../shared/CardLayout.jsx";
 import { PlotLayout } from "../shared/PlotLayout.jsx";
 import { ChartLegend } from "../shared/ChartLegend.jsx";
@@ -13,10 +12,6 @@ import { SUB_HEAD } from "../shared/styles.js";
 const MISSING_FILL = "rgba(239, 68, 68, 0.45)";
 
 export function MiniCard_MissingDataPattern({ result, importConfig, rowMap }) {
-  const nPairwise = result.nPairwiseHits || 0;
-  const nCond = result.nCondHits || 0;
-  const nBlock = result.nBlockHits || 0;
-
   // Column setup
   const hdrs = importConfig?.hdrs || [];
   const roles = importConfig?.roles || [];
@@ -106,13 +101,15 @@ export function MiniCard_MissingDataPattern({ result, importConfig, rowMap }) {
 
   return (
     <MiniCardLayout result={result}
-      footer={<>
-        {result.nMissing} missing cells ({result.missRate})
-        {nPairwise > 0 && ` · ${nPairwise} pairwise`}
-        {nCond > 0 && ` · ${nCond} condition-dependent`}
-        {nBlock > 0 && ` · ${nBlock} block${nBlock !== 1 ? "s" : ""}`}
-        {" · " + fmtPBadge(result.primaryP)}
-      </>}
+      footer={(() => {
+        const blocks = result.blockHits || [];
+        const b = blocks.length
+          ? blocks.reduce((m, x) => (x.adjP < m.adjP ? x : m), blocks[0])
+          : null;
+        return b
+          ? `missing values concentrated in rows ${fileRow(b.startRow - 1)}–${fileRow(b.endRow - 1)}`
+          : "missing values scattered across the data";
+      })()}
       lookFor="Check if missing data clusters in specific conditions, rows, or column groups. Block missingness — where a rectangular region is entirely empty — is a strong indicator of selective deletion. If missingness is condition-dependent (e.g., more missing in the treatment group), this may indicate data was removed to change results."
       implications="Missing values that cluster spatially can result from systematic instrument failures — for example, a plate reader losing signal in adjacent wells, or a sample batch that failed processing. They can also indicate selective deletion, where inconvenient values were removed rather than reported.">
 

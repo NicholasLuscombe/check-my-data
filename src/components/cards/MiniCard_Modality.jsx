@@ -11,7 +11,7 @@
    badge. */
 
 import { C, FS, FF } from "../../constants/tokens.js";
-import { fmtP, fmtPBadge } from "../../constants/thresholds.js";
+import { fmtP } from "../../constants/thresholds.js";
 import { MiniCardLayout } from "../shared/CardLayout.jsx";
 import { DataTable } from "../shared/DataTable.jsx";
 import { EvidenceTable } from "../shared/EvidenceTable.jsx";
@@ -54,13 +54,11 @@ export function MiniCard_Modality({ result, importConfig, rowMap }) {
 
   return (
     <MiniCardLayout result={result}
-      footer={<>
-        {result.nTested} column{result.nTested !== 1 ? "s" : ""} tested
-        {" · "}{nFlagged} flagged
-        {nFlagged > 0 && ` · ${nFlagged} column${nFlagged !== 1 ? "s" : ""} multi-modal`}
-        {result.fewColumnsNote && ` · ${result.fewColumnsNote}`}
-        {" · " + fmtPBadge(result.primaryP)}
-      </>}
+      footer={nFlagged > 0
+        ? (nFlagged === 1
+            ? "1 column has more than one peak"
+            : `${nFlagged} columns have more than one peak`)
+        : "all columns single-peaked"}
       lookFor="Flagged columns have a Hartigan dip statistic exceeding the uniform-reference null — a unimodal distribution cannot produce dip values that high. Examine the column histogram: look for two or more peaks separated by a clear gap, or for asymmetry consistent with mixing two distributions of different mean or scale."
       implications={implications}>
 

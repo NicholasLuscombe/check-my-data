@@ -10,7 +10,7 @@
    card body rendered nothing under the title + verdict badge. */
 
 import { C, FS, FF } from "../../constants/tokens.js";
-import { fmtP, fmtPBadge } from "../../constants/thresholds.js";
+import { fmtP } from "../../constants/thresholds.js";
 import { MiniCardLayout } from "../shared/CardLayout.jsx";
 import { DataTable } from "../shared/DataTable.jsx";
 import { EvidenceTable } from "../shared/EvidenceTable.jsx";
@@ -77,12 +77,11 @@ export function MiniCard_ColumnGoF({ result, importConfig, rowMap }) {
 
   return (
     <MiniCardLayout result={result}
-      footer={<>
-        {result.nTested} column{result.nTested !== 1 ? "s" : ""} tested
-        {" · "}{nFlagged} flagged ({nHigh} mismatch, {nLow} too-tight)
-        {result.fewColumnsNote && ` · ${result.fewColumnsNote}`}
-        {" · " + fmtPBadge(result.primaryP)}
-      </>}
+      footer={nFlagged > 0
+        ? (nFlagged === 1
+            ? "1 column doesn't fit its expected shape"
+            : `${nFlagged} columns don't fit their expected shape`)
+        : "all columns fit their expected shape"}
       lookFor="Mismatch columns ('shape doesn't fit') deviate from the reference family — examine their histograms for heavy/light tails, multiple modes, or unusual clustering. Too-tight columns fit suspiciously well: examine for too-regular spacing or values that look generated rather than measured. Both directions warrant cross-checking against the original instrument output."
       implications={implications}>
 
