@@ -57,22 +57,15 @@ if (flaggedNames.length === 1) {
   }
 }
 
-// S171 B3: name which column is the outlier and its direction (noisier /
-// quieter / anomalous). Wires the existing outlierName + outlierDir computed
-// above for the lookFor copy — no recomputation. Parenthetical omitted when
-// neither could be resolved (cds.length < 2 with no per-column results).
-// S197 cleared-footer (3a): suppress the outlier-naming parenthetical on a
-// cleared/LOW (or N/A) result — naming a noisier/quieter column labels it as
-// if anomalous on a card that cleared. Flagged tiers keep the clause. (3b: the
-// displayed p stays primaryP — on column-grouped / no-condition fixtures that
-// is pooled Bartlett, not the gate's cut; pending Chat decision.)
+// outlierName / outlierDir (computed above) now feed only the lookFor copy
+// below — the footer no longer names a column. The footer-register sweep
+// (S209) retired the per-column naming: the flag derives from the omnibus
+// Bartlett statistic, not the display-only per-column Levene, so a named
+// column could fire on a global-only result the engine never localised.
 const isCleared = result.flag === "LOW" || result.flag === "N/A";
-const nNoisyCols = flaggedCols.size;
 const footerText = isCleared
-  ? "noise even across columns"
-  : nNoisyCols > 1
-    ? `${nNoisyCols} columns differ in noise`
-    : `one column ${outlierDir || "noisier"} than the rest`;
+  ? "noise levels are even across columns"
+  : "noise levels differ across columns more than expected";
 const lookForText = outlierDir === "quieter"
   ? `${outlierName || "One column"} has less noise than the others — this can happen when a column's values were smoothed, averaged, or manually adjusted. Compare the flagged column's raw values against the instrument output file. Check whether the quiet column's values are rounder or less variable than the others at similar signal levels.`
   : `${outlierName || "One column"} has more noise than the others — this can happen when noise was added to one column to disguise data concerns, or when that column was measured under different conditions. Check whether the noisy column corresponds to a different instrument, operator, or date.`;
@@ -107,7 +100,7 @@ if(result.colDetails?.length) {
       <ChartLegend items={[
         { color: CC.OBS, label: "Normal column", swatchType: "line" },
         { color: CC.WARN, label: "Flagged column", swatchType: "line" },
-        ...(result.flag !== "LOW" ? [{ color: C.BORDER, label: "Median spread", opacity: 0.25 }] : []),
+        ...(result.flag !== "LOW" ? [{ color: C.BORDER, label: "Expected", opacity: 0.25 }] : []),
       ]} />
       {perCol.length > 0 && result.flag !== "LOW" && result.flag !== "N/A" && (
         <div style={{marginTop:"8px"}}>

@@ -27,7 +27,7 @@ by whether the test localises to a countable set of flagged things.
 | "1 row has an unusual combination of values" | Unusual rows (Mahalanobis) | count-led |
 | "leading digits depart from the expected pattern" | First-Digit Frequencies | property-fragment |
 | "second digits depart from the expected pattern" | Second-Digit Frequencies | property-fragment |
-| "one column quieter than the rest" | Column-to-column noise | property-fragment |
+| "noise levels differ across columns more than expected" | Column-to-column noise | property-fragment (confirmed S209; reworded from "one column quieter than the rest") |
 | "replicates correlate more closely than expected" | Inter-Replicate Correlation | property-fragment |
 | "balance as expected" | Baseline Balance (cleared) | property-fragment |
 | "conditions differ normally" | Overall condition similarity (cleared) | property-fragment |
@@ -172,14 +172,37 @@ A footer that violates its test's category is the fix target. The rule respects 
 already there; it does not flatten the registers into one, and does not default
 ambiguous cases by cardinality.
 
-**One classification deferred to source (S208).** "one column quieter than the rest"
-(Column-to-column noise) is currently property-fragment and is the rule's sharpest edge
+**One classification deferred to source — CLOSED S209, confirmed property-fragment.**
+"one column quieter than the rest" (Column-to-column noise) was the rule's sharpest edge
 (all six models flagged it; Gemini/Grok leaned reclassify-count-led, the other four held
-property-fragment). The deletion test is soft here, so it routes to a two-part
-source-check: (a) is the engine per-column binary classification or a relative/omnibus
-spread comparison; (b) does the card's evidence table isolate the flagged column or only
-render the cross-column spread plot. Engine + affordance should agree. See the read-only
-prompt. The sweep does not classify this footer until source reports back.
+property-fragment; deletion test soft). The two-part read-only
+(`S209-RO-COLNOISE-CLASSIFICATION.md`) settled it three independent ways, all agreeing:
+(a) **engine is relative/omnibus** — the flag fires from Bartlett's χ² for variance
+homogeneity across all columns (single-run; BH-combined per-condition Bartlett otherwise);
+the per-column one-vs-rest Levene that would name a column is "display-only, does not
+affect flag." The firing statistic names no column. (b) **affordance does not isolate** —
+the card renders cross-column spread (HBar ratio plot / NoiseSpreadPlot + whole-set summary
+table), no per-column isolation; on the aggregated path no per-column table at all. (c)
+**rule 8 is independently decisive** — a flagged column is NOT always present: the test
+fires MOD/HIGH on a global Bartlett signal while the per-column Levene flags zero columns,
+so it localises sometimes and fires global-only other times. Any one holds the line; all
+three agree → **property-fragment, settled.**
+
+**Footer reworded as a byproduct (S209).** The source-check surfaced a truth-of-claim
+fault, not just a register one: the old footer "one column quieter than the rest" is
+composed card-side and fires even in the zero-Levene-flag case via a max/min heuristic —
+it names a column on global-only firings the engine never localised (same Axis-1 class as
+the DS08 table-vs-descriptive mismatch). Rule 8's "always available" cuts both ways: if the
+localisation isn't always real, the copy must not always claim it. Reworded to a genuinely
+global fragment that is true across the whole output range:
+
+- **Flagged:** "noise levels differ across columns more than expected"
+- **Cleared:** "noise levels are even across columns" (property-cleared sibling, rule 5/7)
+
+Names no column, true whether or not the Levene localises, expectation anchor explicit
+(matches the "Expected" legend-vocab lock). Retires the DS08-class over-assertion for this
+test as a byproduct of the register pass rather than parking it to the Axis-1 queue. Code
+applies the string in sweep step 7.
 
 ---
 

@@ -87,8 +87,11 @@ export function MiniCard_CrossCondConsistency({ result }) {
 
   // ── Footer ─────────────────────────────────────────────────────
   const nRan = result.nUnitsRan || 0;
+  const topDir = result.top?.direction;
   const footer = (result.flag !== "LOW" && result.flag !== "N/A")
-    ? `two conditions alike across ${nAmber} of ${nRan} measures`
+    ? (topDir === "different"
+        ? `two conditions diverge across ${nAmber} of ${nRan} measures`
+        : `two conditions alike across ${nAmber} of ${nRan} measures`)
     : "conditions differ normally";
 
   // ── Table shape ─────────────────────────────────────────────────
@@ -102,7 +105,7 @@ export function MiniCard_CrossCondConsistency({ result }) {
     { label: "Observed" },
     { label: "Null median" },
     { label: "Direction" },
-    { label: "adj-p" },
+    { label: "Adj. p" },
   ];
 
   const AMBER_BG       = SIGNAL.AMBER.bg;
