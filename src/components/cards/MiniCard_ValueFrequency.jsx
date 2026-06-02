@@ -89,7 +89,7 @@ export function MiniCard_ValueFrequency({ result, importConfig, rowMap }) {
             {label:"Observed", width:"75px"},
             {label:"Expected", width:"75px"},
             {label:"Ratio",    width:"65px"},
-            {label:"Adj P",    width:"85px"},
+            {label:"Adj. p",    width:"85px"},
           ]}
           identifierColumns={3}
           rows={details.map(d => {

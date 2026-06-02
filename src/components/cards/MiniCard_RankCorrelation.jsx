@@ -48,8 +48,12 @@ export function MiniCard_RankCorrelation({ result, importConfig, rowMap }) {
     { color: TIER_COLOR.MID, label: "Suspicious" },
   ];
 
-  // ── Footer ── never clears (always more-alike-than-typical when shown).
-  const footer = "conditions rank their rows more alike than typical";
+  // ── Footer ── cleared branch added (S209): the test returns LOW
+  // (rankCorrelation.js flagRankCap maps LOW→LOW), so the card can render
+  // in a non-flagged state.
+  const footer = (result.flag !== "LOW" && result.flag !== "N/A")
+    ? "conditions rank their rows more alike than typical"
+    : "conditions rank their rows as expected";
 
 
   return (
