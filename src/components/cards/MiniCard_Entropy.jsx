@@ -1,7 +1,7 @@
 /* ── MiniCard: Entropy / Zipf Analysis ── */
 
 import { C, FS, FW, FF } from "../../constants/tokens.js";
-import { fmtP, fmtPBadge } from "../../constants/thresholds.js";
+import { fmtP } from "../../constants/thresholds.js";
 import { MiniCardLayout } from "../shared/CardLayout.jsx";
 import { DataTable } from "../shared/DataTable.jsx";
 import { EvidenceTable } from "../shared/EvidenceTable.jsx";
@@ -41,12 +41,11 @@ export function MiniCard_Entropy({ result, importConfig, rowMap }) {
 
   return (
     <MiniCardLayout result={result}
-      footer={<>
-        {result.nTested} column{result.nTested !== 1 ? "s" : ""} tested
-        {" · "}{nFlagged} flagged ({nLow} low, {nHigh} high)
-        {result.fewColumnsNote && ` · ${result.fewColumnsNote}`}
-        {" · " + fmtPBadge(result.primaryP)}
-      </>}
+      footer={nFlagged > 0
+        ? (nFlagged === 1
+            ? "1 column has too few or too many distinct numbers"
+            : `${nFlagged} columns have too few or too many distinct numbers`)
+        : "value variety normal across columns"}
       lookFor="Low-entropy columns suggest values were drawn from a restricted set — too few distinct values for what's expected. High-entropy columns suggest over-randomisation — values were spread too uniformly to look 'real'. Check whether flagged columns correspond to key results or treatment groups."
       implications={entropyImplications}>
 

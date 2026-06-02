@@ -2,7 +2,7 @@
 
 import { C, CC, FS, FW, FF, M, CP, CR, SIGNAL, DUP_GROUP_PALETTE } from "../../constants/tokens.js";
 import { SUB_HEAD, TD_NUM_CELL, TD_ID_CELL } from "../shared/styles.js";
-import { FLAG_STYLES, fmtPBadge } from "../../constants/thresholds.js";
+import { FLAG_STYLES } from "../../constants/thresholds.js";
 import { MiniCardLayout } from "../shared/CardLayout.jsx";
 import { ColumnHeaders } from "../shared/ColumnHeaders.jsx";
 import { colToExcelLetter, buildOriginalColMap, buildCondSpansForColumns, makeRowMapper } from "../shared/coordinates.js";
@@ -18,7 +18,6 @@ const wrExp = parseFloat(result.withinRowExpected) || 0;
 const withinDups = result.withinRowLocs || [];
 const blocks = result.blockCopies || [];
 const rowGroups = result.rowDupGroupList || [];
-const hasWithinRow = wrTotal > 0 && wrTotal > wrExp * 1.5;
 const hasRowDups = rowGroups.length > 0;
 // Separate block types: multi-row or partial-width blocks vs full-row single-row pairs
 // Full-row height=1 blocks are better shown via rowGroups (multi-way clustering)
@@ -49,22 +48,24 @@ const colName = (matIdx) => hdrs[dataColMap[matIdx]] || `Column ${matIdx+1}`;
 const nDupRows = rowGroups.reduce((s,g) => s + g.count - 1, 0);
 
 // ── Footer ──
-const nDataRows = rawData?.length || "?";
-const nDataCols = dataColMap.length;
-const nColPairs = nDataCols * (nDataCols - 1) / 2;
-const footerParts = [`${nDataRows} rows · ${nColPairs} column pairs`];
-// Lead with the cleared result, not just scope — mirrors VFS's nSpikes===0 footer.
-// Aggregate verdict across all four sub-signals: true only when every one is flat zero on a LOW.
-const noDuplicates = result.flag === "LOW"
-  && result.collisionObs === 0
-  && result.duplicateRows === 0
-  && wrTotal === 0
-  && blocks.length === 0;
-if (noDuplicates) footerParts.push("no duplicates found");
-if (structuralBlocks.length > 0) footerParts.push(`${structuralBlocks.length} block${structuralBlocks.length!==1?"s":""} (${nDupRows} duplicated row${nDupRows!==1?"s":""})`);
-if (hasWithinRow) footerParts.push(`${wrTotal} within-row (${wrExp.toFixed(0)} expected)`);
-footerParts.push(fmtPBadge(result.primaryP));
-const footer = footerParts.join(" · ");
+const dupBlock = structuralBlocks[0];
+const rowDupClause = hasRowDups
+  ? (nDupRows === 1 ? "1 row is an exact duplicate" : `${nDupRows} rows are exact duplicates`)
+  : null;
+let blockClause = null;
+if (dupBlock) {
+  if (dupBlock.isColumnMatch) {
+    const _r0 = fileRow(toOrigRow(dupBlock.srcRows[0]));
+    const _r1 = fileRow(toOrigRow(dupBlock.srcRows[1]));
+    blockClause = `two columns are identical over rows ${_r0}–${_r1}`;
+  } else {
+    const _n = structuralBlocks.length;
+    blockClause = `${_n} repeated block${_n !== 1 ? "s" : ""}`;
+  }
+}
+const footer = (rowDupClause && blockClause)
+  ? `${rowDupClause} · ${blockClause}`
+  : (rowDupClause || blockClause || "no duplicates found");
 
 // ── Shared styles ──
 const stickyRow = {position:"sticky",left:0,zIndex:2,background:"inherit"};

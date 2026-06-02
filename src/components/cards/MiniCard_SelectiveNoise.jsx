@@ -7,14 +7,13 @@ import { PlotLayout } from "../shared/PlotLayout.jsx";
 import { ChartLegend } from "../shared/ChartLegend.jsx";
 import { HBarPlot } from "../plots/HBarPlot.jsx";
 import { NoiseSpreadPlot } from "../plots/NoiseSpreadPlot.jsx";
-import { fmtP, fmtPBadge } from "../../constants/thresholds.js";
+import { fmtP } from "../../constants/thresholds.js";
 import { SUB_HEAD } from "../shared/styles.js";
 
 
 export function MiniCard_SelectiveNoise({ result, importConfig, rowMap }) {
   const details = result.details || [];
   const isAgg = result.groupsAssessed !== undefined;
-const ratio = parseFloat(result.maxMinVarianceRatio) || 0;
 const pivotBanner = result.pivotNote ? (
   <CardBanner type="info">
     ⤵ <strong>Pivot mode:</strong> columns represent distinct experimental groups — variance differences between groups are expected by design. Flag suppressed.
@@ -68,8 +67,12 @@ if (flaggedNames.length === 1) {
 // displayed p stays primaryP — on column-grouped / no-condition fixtures that
 // is pooled Bartlett, not the gate's cut; pending Chat decision.)
 const isCleared = result.flag === "LOW" || result.flag === "N/A";
-const outlierClause = (!isCleared && outlierName && outlierDir) ? ` (${outlierName} ${outlierDir})` : "";
-const footerText = <>{cds.length} columns · variance ratio {ratio.toFixed(1)}×{outlierClause} · Bartlett χ²={result.bartlettChi} · df={result.df} · {fmtPBadge(result.primaryP)}</>;
+const nNoisyCols = flaggedCols.size;
+const footerText = isCleared
+  ? "noise even across columns"
+  : nNoisyCols > 1
+    ? `${nNoisyCols} columns differ in noise`
+    : `one column ${outlierDir || "noisier"} than the rest`;
 const lookForText = outlierDir === "quieter"
   ? `${outlierName || "One column"} has less noise than the others — this can happen when a column's values were smoothed, averaged, or manually adjusted. Compare the flagged column's raw values against the instrument output file. Check whether the quiet column's values are rounder or less variable than the others at similar signal levels.`
   : `${outlierName || "One column"} has more noise than the others — this can happen when noise was added to one column to disguise data concerns, or when that column was measured under different conditions. Check whether the noisy column corresponds to a different instrument, operator, or date.`;

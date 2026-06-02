@@ -5,7 +5,6 @@ import { ChartLegend } from "../shared/ChartLegend.jsx";
 import { MahalanobisDistPlot } from "../plots/MahalanobisDistPlot.jsx";
 import { C, CC, FW, FF } from "../../constants/tokens.js";
 import { COND_COLORS, buildCondColorMap } from "../../constants/roles.js";
-import { fmtPBadge } from "../../constants/thresholds.js";
 import { makeRowMapper } from "../shared/coordinates.js";
 import { SUB_HEAD } from "../shared/styles.js";
 
@@ -15,11 +14,6 @@ export function MiniCard_Mahalanobis({ result, importConfig, rowMap }) {
   const sub = result.subDetails || [];
   const isAgg = result.groupsAssessed !== undefined;
   const totalOutliers = isAgg ? sub.length : (result.nOutliers || 0);
-
-  const totalRows = isAgg && details.length > 0
-    ? details.reduce((s, d) => s + (d.nRowsTested || d.rows || 0), 0)
-    : (result.nRows || 0);
-  const pctStr = totalRows > 0 ? ((totalOutliers / totalRows) * 100).toFixed(1) + "%" : "0%";
 
   // Coordinate mapping
   const { fileRow } = makeRowMapper(importConfig, rowMap);
@@ -47,7 +41,9 @@ export function MiniCard_Mahalanobis({ result, importConfig, rowMap }) {
 
   return (
     <MiniCardLayout result={result}
-      footer={`${totalRows} rows tested · ${totalOutliers} outlier${totalOutliers!==1?"s":""} (${pctStr}) · ${fmtPBadge(result.primaryP)}`}
+      footer={totalOutliers > 0
+        ? `${totalOutliers} row${totalOutliers !== 1 ? "s have" : " has"} an unusual combination of values`
+        : "no unusual rows"}
       lookFor="Outlier rows have values that don't fit the multivariate pattern of the rest of the data — they may have been manually edited, transcribed from a different source, or constructed independently. Check whether the flagged rows correspond to key experimental results (e.g. the treatment group showing the desired effect). Look at the specific values in those rows: are they rounder, more regular, or inconsistent with the instrument's precision?"
       implications="Rows that are multivariate outliers — plausible individually but unusual in combination — can result from genuine biological outlier samples or heavy-tailed distributions. They can also indicate rows where values were generated independently rather than drawn from the same multivariate distribution as the rest of the data.">
 
