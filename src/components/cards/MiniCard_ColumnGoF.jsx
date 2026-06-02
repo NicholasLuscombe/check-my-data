@@ -90,7 +90,7 @@ export function MiniCard_ColumnGoF({ result, importConfig, rowMap }) {
           isAggregated={isAgg}
           refValue={1} refLabel="Null median (ratio = 1)"
           valueAxisLabel="A² ratio"
-          skippedClause="near-uniform shape outside the {Normal, Poisson, NB} family (v1.1: LogNormal, Gamma)" />
+          skippedClause="near-uniform shape — too flat to fit a distribution" />
       )}
 
       {isAgg && sub.length > 0 && (() => {

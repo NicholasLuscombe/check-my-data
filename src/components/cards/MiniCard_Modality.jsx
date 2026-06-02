@@ -67,7 +67,7 @@ export function MiniCard_Modality({ result, importConfig, rowMap }) {
           isAggregated={isAgg}
           refValue={DIP_GATE} refLabel="Multimodality threshold"
           valueAxisLabel="Dip statistic"
-          skippedClause="near-uniform shape would dominate the uniform-reference null" />
+          skippedClause="near-uniform shape — too flat to test for peaks" />
       )}
 
       {isAgg && sub.length > 0 && (() => {
