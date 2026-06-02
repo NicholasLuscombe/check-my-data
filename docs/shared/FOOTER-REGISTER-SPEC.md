@@ -136,6 +136,24 @@ guardrail that keeps it falsifiable: the choice is **read off the card's actual
 affordance**, never asserted from intent. Where ontology and affordance agree the rule is
 mechanical; the ambiguity class (rule 4) is where affordance does the deciding.
 
+### Register stability across runs
+
+8. **Register is a property of the test across its whole output range, not of a single
+   footer.** A footer is a snapshot; the lock must hold for every dataset the test can
+   fire on. Count-led therefore requires the count be **always available** — if the test
+   localises to an enumerable actionable set on some datasets but yields only a global
+   signal with no identifiable units on others, it stays **property-fragment**. It cannot
+   promise the count without flipping register between runs, and a card that reads
+   count-led on one dataset and fragment on the next destroys scan-ability. Priority when
+   they conflict: **stability > localisation > sibling-frame** — once a test *reliably*
+   localises across its whole range, that stable localisation severs a surface sibling
+   frame (rule 7) rather than violating it; but a test that only *sometimes* localises
+   does not earn count-led on the strength of the datasets where it happens to. (Added
+   S208 follow-up; the six-model lock induced from single-instance footers and could not
+   see the across-runs axis. Inter-Replicate Correlation is the canonical case: it can
+   localise to over-correlated pairs on some data, so it stays property-fragment unless
+   the count is shown to be always available.)
+
 ## Diagnostic for the sweep
 
 For each card's footer, ask: **is the flagged unit set the finding, or is a property
@@ -145,6 +163,9 @@ conclusion survives.
 - Property state is the finding → property-fragment, no invented count.
 - Both (ambiguity class) → read the card's affordance: isolates units → count-led;
   plot/summary only → property-fragment.
+- Count-led also requires the count be **always available** across the test's output
+  range (rule 8) — if the test only localises on some datasets, it stays
+  property-fragment. Check the test across fixtures, not one footer.
 - Cleared state → same register as the test's flagged footer, polarity flipped
   ("no <units>…" for count-led, never "0").
 A footer that violates its test's category is the fix target. The rule respects what is
