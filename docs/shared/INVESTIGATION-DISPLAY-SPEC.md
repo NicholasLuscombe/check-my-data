@@ -382,7 +382,7 @@ The settled design the sub-header/footer arc executes against. Authored S199 aga
 
 | # | title | sub-header | footer flag (target) | footer clear |
 |---|---|---|---|---|
-| 1 | Duplicated Data | Are the same rows or blocks repeated? | {N} repeated blocks — rows {range} reappear at {range} | no duplicates found |
+| 1 | Duplicated Data | Are the same rows or blocks repeated? | {N} rows are exact duplicates / two columns are identical over rows {range} (both drivers: combined) | no duplicates found |
 | 2 | Offset copies | Are numbers copied and shifted by a constant? | {N} offset copies — block reappears shifted by a constant | no offset copies found |
 | 3 | Shared noisy rows | Are the same rows the noisiest in every condition? | the {N} noisiest rows are the same in every condition | no shared noisy rows |
 
@@ -394,7 +394,7 @@ The settled design the sub-header/footer arc executes against. Authored S199 aga
 | 5 | Second-Digit Frequencies | How are the second digits distributed? | second digits depart from the expected pattern | second digits as expected |
 | 6 | Last-Digit Frequencies | How are the last digits distributed? | last digits are not evenly spread | last digits evenly spread |
 | 7 | Decimal precision | Do the numbers share a consistent precision? | mixed precision — {N} levels, suggesting more than one source | consistent precision throughout |
-| 8 | Over-used numbers | Does any number or digit combination recur more than chance allows? | {value} appears {N}× / {digits} recurs across {N} numbers | no number over-represented |
+| 8 | Over-used numbers | Does any number or digit combination recur more than chance allows? | {N} numbers appear more often than chance allows (full pass) / {N} digit combinations recur more often than chance allows (digit pass) | no number over-represented |
 
 #8 is a two-pass test (whole-value spikes + recurring fractional digit combinations). "Over-used" (frequency) separates it from #1 Duplicated (structure).
 
@@ -418,12 +418,12 @@ The settled design the sub-header/footer arc executes against. Authored S199 aga
 | 16a | Row-mean patterns | Do the row averages run in streaks? | row averages run in streaks rather than alternating | row averages alternate as expected |
 | 17 | Noise scaling | Does the noise scale the way this assay should? | noise scaling doesn't match this assay | noise scales as expected for this assay |
 | 18 | Within-row noise | Are any rows' replicates unusually uniform? | {N} rows unusually uniform across their replicates | no rows with unusual spread |
-| 19 | Column-to-column noise | Is the noise even from column to column? | one column noisier than the rest / {N} columns differ in noise | noise even across columns |
+| 19 | Column-to-column noise | Is the noise even from column to column? | one column noisier/quieter than the rest / {N} columns differ in noise | noise even across columns |
 | 20 | Noise level trend | Does the noise change partway through the dataset? | noise level changes partway through | noise level steady throughout |
 | 21 | Region-to-region noise | Is the noise even across regions of the data? | one region noisier than the rest — rows {range} | noise even across regions |
 | 22 | Unusual rows | Do any rows have an unusual combination of values? | {N} rows have an unusual combination of values | no unusual rows |
 | 23 | Shifted blocks | Do any blocks of data show coordinated shifts in values? | rows {range} shift together as a block | no shifted blocks |
-| 24 | Missing-data pattern | Where are the missing values? | missing values concentrated in {column/region} | (never clears) |
+| 24 | Missing-data pattern | Where are the missing values? | missing values concentrated in rows {range} | (never clears) |
 
 #14/#15 are a localised twin pair (banked merge candidate, IRC-style). #16a Row-mean patterns runs a runs test on the *sequence of row means* — streaks of above/below-average rows rather than random alternation; distinct from #16 Noise sign-pattern (signs of residuals) and #20 Noise level trend (drift in noise magnitude). #17: the finding is mismatch with the assay's expected slope (qPCR ≈ 0, densitometry ≈ 2), not absolute flatness. #18 is inter-replicate (a row's own replicates), one row at a time — not cross-condition.
 
@@ -438,6 +438,12 @@ Cluster 4 is 14 cards (#12–#24 plus #16a Row-mean patterns); the #16a label av
 | 27 | Overall condition similarity | Are any two conditions alike across many different measures at once? | two conditions alike across {N} of {M} measures | conditions differ normally |
 
 #25 flags ρ *above* the biological null 0.85 (not ρ ≈ 1 — "non-identical but significant" is valid); capped at MODERATE (corroborating only). #26 measures *differences being too small*, not "matching"; "conditions" not "groups". #27 is a three-stage framework (pool / residual / structural-invariant) on one card.
+
+**S202 engine reconciliation (four footer strings corrected to match the engine).** During stage-2b implementation four budget flag strings were found to describe semantics the engine doesn't produce; they were corrected here to match what shipped (`4957428`):
+- **#1 Duplicated Data** — the old "rows reappear at {range}" was a row-block-copy story no fixture produces. The engine has two independent drivers — row-dup groups (`rowDupGroupList`) and column-match blocks (`structuralBlocks` with `isColumnMatch`); the footer is driver-branched, combining both on a fixture that fires both (DS14).
+- **#8 Over-used numbers** — the old singular "{value} appears {N}×" misrepresented a multi-spike test (the HIGH fixture DS13 has two full-value spikes). The footer is now an aggregate count, branched on `drivingPass` (full → "numbers"; digit → "digit combinations").
+- **#19 Column-to-column noise** — the single-column form is direction-branched off `outlierDir` (the test flags either direction; the only live fixture, DS08, is the quieter case), so "noisier/quieter" rather than the old one-directional "noisier".
+- **#24 Missing-data pattern** — `colMissRates` is near-uniform, so "{column/region}" leaned the wrong way; the dominant signal is the block region, so the footer names the most-significant `blockHits` row span (file-row-mapped to match the heatmap's drawn block).
 
 **Plot/table-heading hand-off list** (other arcs own these surfaces):
 
