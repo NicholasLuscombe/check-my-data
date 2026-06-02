@@ -111,7 +111,7 @@ if(result.colDetails?.length) {
       ]} />
       {perCol.length > 0 && result.flag !== "LOW" && result.flag !== "N/A" && (
         <div style={{marginTop:"8px"}}>
-          <div style={SUB_HEAD}>Per-column variance test</div>
+          <div style={SUB_HEAD}>Spread compared to expected, per column</div>
           {(() => {
             const sds = perCol.map(d => d.residualStd);
             const sorted = [...sds].sort((a, b) => a - b);

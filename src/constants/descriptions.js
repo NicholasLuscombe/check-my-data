@@ -32,3 +32,9 @@ export const QC_CATEGORY_DESCRIPTIONS = {
 
   perfect: 'Your measurements agree with each other more closely than expected \u2014 this includes replicates that are too similar, conditions that track each other too well, or experimental groups that match more closely than random assignment would produce. Check whether any averaging, filtering, or outlier removal was applied during data processing \u2014 for example summarising replicates before export, removing failed runs, or selecting best-of-three readings.',
 };
+
+// Shared flagged-branch caption for the localised-row evidence tables
+// (Windowed Autocorrelation, Blocked Mahalanobis). Reads the table \u2014 names
+// what the highlight + sort show, not the \u03b1 / BH-FDR convention (method
+// detail lives on the How-this-works surface). S204 caption arc.
+export const LOCALISED_ROWS_CAPTION = "Highlighted rows shifted most from the rest; most-shifted first.";

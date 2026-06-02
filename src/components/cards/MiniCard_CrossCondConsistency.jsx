@@ -36,7 +36,7 @@
    the bottom. */
 
 import { C, FS, FW, FF, SIGNAL } from "../../constants/tokens.js";
-import { fmtP, ALPHA } from "../../constants/thresholds.js";
+import { fmtP } from "../../constants/thresholds.js";
 import { MiniCardLayout } from "../shared/CardLayout.jsx";
 import { EvidenceTable } from "../shared/EvidenceTable.jsx";
 import { SUB_HEAD } from "../shared/styles.js";
@@ -156,18 +156,7 @@ export function MiniCard_CrossCondConsistency({ result }) {
             maxHeight={260}
           />
           <div style={legendStyle}>
-            Amber-tinted rows meet the forensic criterion: adj-p &lt; {fmtP(ALPHA.NOTE)} AND
-            the effect-size gate passes AND the direction is forensically actionable for
-            that property (for Stage 1 properties, only "too similar" is actionable —
-            honest conditions legitimately differ on span / MAD / CDF). Rows in muted
-            text mark "informational" pairs: non-forensic-direction (typically "too
-            different"), shown for transparency but not contributing to the flag.
-            "Null median" is the median of the permutation distribution; "Direction"
-            indicates which tail the observed distance sits in (similar = below median,
-            different = above). HIGH (adj-p &lt; {fmtP(ALPHA.FLAG)}) is unreachable for
-            this framework at B={result.B || "?"} permutations — see METHODOLOGY §1.9 ¶8
-            (permutation-arithmetic limitation), so MODERATE is the strongest tier this
-            test can report.
+            Amber rows are more alike across conditions than chance usually produces. Muted rows differ between conditions — which is what real treatments normally do — so they're shown for context, not flagged. 'Direction' shows whether each pair sits closer together or further apart than chance; 'Null median' is the midpoint of the chance range.
           </div>
         </>
       )}

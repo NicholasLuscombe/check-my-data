@@ -242,7 +242,7 @@ export function CoordResidualProfile({ allProfiles, nRows, pairDetails, condColo
       {hasMatrix && showRhoMatrix && (
         <>
           <div style={{...SUB_HEAD,marginTop:"12px"}}>
-            Pairwise residual correlation (Spearman ρ)
+            How closely each row pair's noise tracks
           </div>
           <PlotLayout>
             <CorrMatrixSVG

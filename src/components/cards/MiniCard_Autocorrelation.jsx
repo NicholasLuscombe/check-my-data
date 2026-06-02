@@ -121,10 +121,10 @@ export function MiniCard_Autocorrelation({ result, importConfig, rowMap }) {
         // structure is present but lag-1 was already flagged, the new
         // string acknowledges corroboration without claiming promotion.
         const footerText = result.higherLagWasDecisive
-          ? "Higher-lag (2–5) serial structure survives pooled BH-FDR at α = 0.001 AND ≥ 2 pairs corroborate per-pair — sub-unit evidence promoted this test to MODERATE."
+          ? "The pattern repeats at longer gaps (every 2–5 rows), not just between adjacent rows — that wider structure raised this to Moderate."
           : result.higherLagPromoted
-            ? "Higher-lag (2–5) serial structure survives pooled BH-FDR at α = 0.001 AND ≥ 2 pairs corroborate per-pair — corroborating the lag-1 finding."
-            : "Lag 1 is the primary statistic; lags 2–5 are sub-unit evidence (promotion requires pooled adj p < 0.001 plus ≥ 2 pairs at per-pair adj p < 0.05).";
+            ? "The pattern repeats at longer gaps (every 2–5 rows), not just between adjacent rows — backing up the adjacent-row finding."
+            : "The main check is between adjacent rows; longer-gap patterns (2–5 rows apart) act as backup evidence.";
         return (
           <>
             <div style={{...SUB_HEAD, marginTop: "12px"}}>Pooled autocorrelation by lag</div>

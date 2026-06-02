@@ -125,7 +125,7 @@ return (
         exceeds noise, r near 1.0 is expected and not suspicious.
       </CardBanner>
     )}
-    <div style={SUB_HEAD}>Pairwise Pearson r (all rows)</div>
+    <div style={SUB_HEAD}>How closely each row pair tracks</div>
     <PlotLayout fitContent>
         <div style={{display:"flex",flexWrap:"wrap",gap:"12px",alignItems:"flex-start",justifyContent:"center"}}>
           {matrices.map(({cond, cols, mat}) => {

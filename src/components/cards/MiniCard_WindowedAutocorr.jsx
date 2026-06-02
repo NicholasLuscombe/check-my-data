@@ -9,6 +9,7 @@ import { ChartLegend } from "../shared/ChartLegend.jsx";
 import { RegionalNoiseStrip } from "../plots/RegionalNoiseStrip.jsx";
 import { makeRowMapper } from "../shared/coordinates.js";
 import { SUB_HEAD } from "../shared/styles.js";
+import { LOCALISED_ROWS_CAPTION } from "../../constants/descriptions.js";
 
 
 export function MiniCard_WindowedAutocorr({ result, importConfig, rowMap }) {
@@ -78,7 +79,7 @@ export function MiniCard_WindowedAutocorr({ result, importConfig, rowMap }) {
         rows={rows} identifierColumns={isAgg ? 3 : 2} compact
         footerText={result.flag === "LOW"
           ? "All windows are consistent with independent noise in each pair (BH-FDR at α = 0.05)."
-          : "Rows with adj-p < 0.05 are highlighted. Sorted by adj-p ascending (most localised first)."}
+          : LOCALISED_ROWS_CAPTION}
       />
     );
   }

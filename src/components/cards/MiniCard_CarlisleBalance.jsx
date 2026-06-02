@@ -41,7 +41,7 @@ export function MiniCard_CarlisleBalance({ result, importConfig, rowMap }) {
             stroke={CC.EXP} strokeWidth={1} strokeDasharray="4,3" opacity={0.6} />;
         })()}
         <text x={padL + plotW / 2} y={H - 1} textAnchor="middle" fontSize={CF.SMALL} fill={C.TEXT_3}>
-          ANOVA p-value distribution (10 bins)
+          Per-feature p-value distribution (10 bins)
         </text>
       </PlotSVG>
     );
@@ -64,16 +64,16 @@ export function MiniCard_CarlisleBalance({ result, importConfig, rowMap }) {
         <div style={{fontSize:FS.sm,fontFamily:FF.UI,color:C.TEXT_2,marginTop:"4px"}}>
           Bar height = count of features per p-value bin. Dashed line = expected under uniform.
           {direction === "too balanced" && " Highlighted bar = excess p-values near 1.0 (too balanced)."}
-          {` Distributional-shape statistic for this plot: KS D = ${result.ksD}, ${fmtPBadge(result.ksP)}.`}
+          {` How far the bars sit from the dashed expected line: ${fmtPBadge(result.ksP)}.`}
         </div>
       </>}
 
       {details.length > 0 && (
         <div style={{ marginTop: "8px" }}>
-          <div style={SUB_HEAD}>Per-feature ANOVA results</div>
+          <div style={SUB_HEAD}>Balance across conditions, per feature</div>
           <DataTable data={details} maxRows={20} compact identifierColumns={1} totalCount={nFeatures} columns={[
             { header: "Feature", bold: true, render: d => d.Feature },
-            { header: "ANOVA p", render: d => d["ANOVA p"] },
+            { header: "p", render: d => d["ANOVA p"] },
             { header: "Condition means", render: d => d.Means },
           ]} />
         </div>
