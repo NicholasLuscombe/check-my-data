@@ -26,6 +26,21 @@ export function MiniCard_Mahalanobis({ result, importConfig, rowMap }) {
   const hasAllCond = isAgg && result.allCondD2?.length > 0;
   const hasSinglePlot = result.plotD2?.length > 0;
 
+  // Outlier-row membership the plot colours from — bound to the SAME set the
+  // table and footer use (S207), never re-derived from a distance threshold.
+  // Coordinates align with each series' plotD2Rows (0-indexed):
+  //   pooled   — details[].Row is 1-indexed validIdx → −1.
+  //   per-cond — subDetails[].Row is dataset-relative 1-indexed → −1, keyed by condition.
+  const pooledOutlierRows = !isAgg
+    ? details.filter(d => typeof d.Row === "number").map(d => d.Row - 1)
+    : [];
+  const outlierRowsByCond = {};
+  if (isAgg) {
+    sub.forEach(s => {
+      if (typeof s.Row === "number") (outlierRowsByCond[s.group] ||= []).push(s.Row - 1);
+    });
+  }
+
   // Build legend — dot swatches for conditions, dashed line for threshold
   const legendItems = [];
   if (hasAllCond) {
@@ -58,6 +73,8 @@ export function MiniCard_Mahalanobis({ result, importConfig, rowMap }) {
             plotD2Rows={hasSinglePlot ? result.plotD2Rows : undefined}
             plotThreshold={result.plotThreshold}
             outlierThreshold={result.outlierThreshold}
+            outlierRowsByCond={outlierRowsByCond}
+            pooledOutlierRows={pooledOutlierRows}
             fileRow={fileRow}
           />
         </PlotLayout>

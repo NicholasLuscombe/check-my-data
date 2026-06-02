@@ -15,19 +15,24 @@ import { PlotSVG } from "./PlotSVG.jsx";
  * chart matches the footer's "0 outliers" count instead of showing
  * misleading red dots above the looser raw-χ² line.
  */
-export function MahalanobisDistPlot({ allCondD2, condColorMap, plotD2, plotD2Rows, plotThreshold, outlierThreshold, fileRow, W = CP.W }) {
+export function MahalanobisDistPlot({ allCondD2, condColorMap, plotD2, plotD2Rows, plotThreshold, outlierThreshold, outlierRowsByCond, pooledOutlierRows, fileRow, W = CP.W }) {
   const pickThresh = (newT, legacyT) =>
     newT !== undefined ? newT : (legacyT ?? null);
+  // Outlier membership per series — the SAME set the table/footer use (S207),
+  // carried as a Set of 0-indexed matrix rows aligned with each series' `rows`
+  // (plotD2Rows). Colour, the x-axis split, and the row labels bind this set,
+  // never a distance-vs-threshold re-test.
   const series = allCondD2?.length > 0
     ? allCondD2.map((cd, ci) => ({
         name: cd.condition,
         d2: cd.plotD2 || [],
         rows: cd.plotD2Rows || [],
         threshold: pickThresh(cd.outlierThreshold, cd.plotThreshold),
+        outlierRows: new Set(outlierRowsByCond?.[cd.condition] || []),
         color: condColorMap?.[cd.condition]?.text || COND_COLORS[ci % COND_COLORS.length].text,
       }))
     : plotD2?.length > 0
-      ? [{ name: "All data", d2: plotD2, rows: plotD2Rows || [], threshold: pickThresh(outlierThreshold, plotThreshold), color: CC.OBS }]
+      ? [{ name: "All data", d2: plotD2, rows: plotD2Rows || [], threshold: pickThresh(outlierThreshold, plotThreshold), outlierRows: new Set(pooledOutlierRows || []), color: CC.OBS }]
       : [];
   if (!series.length || !series.some(s => s.d2.length >= 1)) return null;
 
@@ -65,15 +70,18 @@ export function MahalanobisDistPlot({ allCondD2, condColorMap, plotD2, plotD2Row
         const yOffset = PT_TOP + ci * (MINI_H + GAP);
         const thresh = s.threshold; // per-condition threshold; null when no BH-FDR outliers
         const hasFiniteThresh = Number.isFinite(thresh);
-        // Centralised outlier predicate. Naive `v > thresh` is dangerous
-        // when `thresh` is null — JS coerces null → 0 in numeric
-        // context, so every positive D² evaluates as "outlier" and the
-        // chart paints every dot red with a row label (S126b add-5b
-        // bug fix). Always go through this guard.
-        const isOutlierAt = (v) => hasFiniteThresh && v > thresh;
+        // Outlier identity is the table/footer membership decision (the
+        // BH-FDR per-row set the engine already computed), NOT a re-test of
+        // distance against the threshold line. `v > thresh` stranded the
+        // boundary-defining row — whose D² equals outlierThreshold by
+        // construction — on the Normal side, mis-colouring it blue (S206/S207;
+        // with a single outlier it could never paint red). Membership keys on
+        // the dot's row, so the threshold-defining row is correctly an outlier.
+        const isOutlierAt = (i) => s.outlierRows.has(s.rows[i]);
 
-        // Split x-axis: find the index where outliers start (d2 is sorted ascending)
-        const splitIdx = hasFiniteThresh ? s.d2.findIndex(v => v > thresh) : -1;
+        // Split x-axis: outliers are the high-D² suffix of the ascending array,
+        // so the first member marks where the outlier region begins.
+        const splitIdx = s.d2.findIndex((v, i) => isOutlierAt(i));
         const hasOutliers = splitIdx >= 0;
         const nNormal = hasOutliers ? splitIdx : N;
         const nOutlier = hasOutliers ? N - splitIdx : 0;
@@ -109,7 +117,7 @@ export function MahalanobisDistPlot({ allCondD2, condColorMap, plotD2, plotD2Row
         // s.rows is built 1:1 with s.d2 at every producer; fileRow always defined.
         const outliers = [];
         s.d2.forEach((v, i) => {
-          if (isOutlierAt(v)) {
+          if (isOutlierAt(i)) {
             outliers.push({ i, x: xscale(i), y: yscale(v), rowNum: `R${fileRow(s.rows[i])}` });
           }
         });
@@ -211,7 +219,7 @@ export function MahalanobisDistPlot({ allCondD2, condColorMap, plotD2, plotD2Row
 
             {/* Dots — condition colour for normal, solid red with white border for outliers */}
             {s.d2.map((v, i) => {
-              return isOutlierAt(v) ? (
+              return isOutlierAt(i) ? (
                 <circle key={`d${i}`} cx={xscale(i)} cy={yscale(v)} r={4}
                   fill={CC.THRESH} stroke={C.WHITE} strokeWidth={1.5} opacity={0.85} />
               ) : (
