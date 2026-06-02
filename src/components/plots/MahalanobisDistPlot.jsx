@@ -6,7 +6,8 @@ import { PlotSVG } from "./PlotSVG.jsx";
 /**
  * Mahalanobis distance — small multiples, one mini chart per condition.
  * Shared y-axis scale across all charts. Per-condition threshold lines.
- * Split x-axis: below-threshold region compressed, above-threshold expanded.
+ * Continuous x-axis (sorted-rank order); flagged outliers render inline
+ * (S207 — previously a membership-driven split/break, now removed).
  *
  * S126b add-5: prefers `outlierThreshold` (BH-FDR-corrected boundary;
  * matches the `details` table count) over `plotThreshold` (raw χ²(0.99)
@@ -55,9 +56,6 @@ export function MahalanobisDistPlot({ allCondD2, condColorMap, plotD2, plotD2Row
   const yTicks = [];
   for (let v = 0; v <= globalMax; v += yStep) yTicks.push(v);
 
-  // Break gap between normal and outlier regions
-  const BREAK_GAP = 6;
-
   return (
     <PlotSVG W={W} H={totalH} overflow>
       {/* Y-axis label — centered across all charts */}
@@ -79,31 +77,18 @@ export function MahalanobisDistPlot({ allCondD2, condColorMap, plotD2, plotD2Row
         // the dot's row, so the threshold-defining row is correctly an outlier.
         const isOutlierAt = (i) => s.outlierRows.has(s.rows[i]);
 
-        // Split x-axis: outliers are the high-D² suffix of the ascending array,
-        // so the first member marks where the outlier region begins.
-        const splitIdx = s.d2.findIndex((v, i) => isOutlierAt(i));
-        const hasOutliers = splitIdx >= 0;
-        const nNormal = hasOutliers ? splitIdx : N;
-        const nOutlier = hasOutliers ? N - splitIdx : 0;
+        // S207: the x-axis runs continuous — it no longer splits or shows an
+        // axis-break glyph on outlier membership. The flagged outlier renders
+        // inline at its true sorted-rank x-position. (The colour-fix membership
+        // rebind had flipped the old split predicate and manufactured a break
+        // on single-outlier fixtures; the axis LAYOUT is now decoupled from
+        // membership entirely.) Colour (dot fill) and the row labels still bind
+        // outlier-set membership via isOutlierAt — only the layout changed here.
+        const nNormal = N;
+        const xscale = i => PL + (i / Math.max(N - 1, 1)) * CW;
 
-        // Allocate x-width: if outliers exist, give them proportionally more space
-        // Normal region: 40% of width (or full if no outliers)
-        // Outlier region: 60% of width
-        const NORMAL_FRAC = hasOutliers ? 0.4 : 1;
-        const OUTLIER_FRAC = 0.6;
-        const normalW = (CW - (hasOutliers ? BREAK_GAP : 0)) * NORMAL_FRAC;
-        const outlierW = (CW - BREAK_GAP) * OUTLIER_FRAC;
-        const breakX = PL + normalW; // x position of the break
-
-        // Piecewise x-scale: index → pixel
-        const xscale = i => {
-          if (!hasOutliers) return PL + (i / Math.max(N - 1, 1)) * CW;
-          if (i < splitIdx) return PL + (i / Math.max(nNormal - 1, 1)) * normalW;
-          const oi = i - splitIdx;
-          return breakX + BREAK_GAP + (oi / Math.max(nOutlier - 1, 1)) * outlierW;
-        };
-
-        // X-axis ticks for normal region only (outlier region uses row labels)
+        // X-axis ticks across the full continuous row axis; outlier dots are
+        // additionally annotated with row labels below.
         const xTicks = [];
         if (nNormal > 1) {
           const xStep = niceStep(nNormal, 3);
@@ -127,9 +112,9 @@ export function MahalanobisDistPlot({ allCondD2, condColorMap, plotD2, plotD2Row
         const sorted = [...outliers].sort((a, b) => a.x - b.x);
         sorted.forEach((o, oi) => {
           const xNudge = (oi % 2 === 0) ? -12 : 12;
-          const outlierLeft = breakX + BREAK_GAP;
-          const outlierRight = PL + CW;
-          o.labelX = Math.max(outlierLeft + 5, Math.min(outlierRight - 5, o.x + xNudge));
+          const chartLeft = PL;
+          const chartRight = PL + CW;
+          o.labelX = Math.max(chartLeft + 5, Math.min(chartRight - 5, o.x + xNudge));
           let ly = o.y - 10;
           for (let pass = 0; pass < 20; pass++) {
             let collision = false;
@@ -152,26 +137,18 @@ export function MahalanobisDistPlot({ allCondD2, condColorMap, plotD2, plotD2Row
             <text x={PL} y={-5} fontSize={CF.LABEL} fill={s.color}
               fontFamily={FF.UI} fontWeight={FW.SEMI}>{s.name}</text>
 
-            {/* Gridlines — normal region */}
+            {/* Gridlines — continuous axis */}
             {yTicks.map(v => (
-              <line key={`g${v}`} x1={PL} y1={yscale(v)} x2={hasOutliers ? breakX : PL + CW} y2={yscale(v)}
-                stroke={C.BORDER_L} strokeWidth={CS.GRID.w} />
-            ))}
-            {/* Gridlines — outlier region */}
-            {hasOutliers && yTicks.map(v => (
-              <line key={`go${v}`} x1={breakX + BREAK_GAP} y1={yscale(v)} x2={PL + CW} y2={yscale(v)}
+              <line key={`g${v}`} x1={PL} y1={yscale(v)} x2={PL + CW} y2={yscale(v)}
                 stroke={C.BORDER_L} strokeWidth={CS.GRID.w} />
             ))}
 
             {/* Per-condition threshold dashed line — only when a BH-FDR
                 outlier boundary exists; suppressed entirely when no row
-                survived per-row identification (threshold === null). */}
+                survived per-row identification (threshold === null). Spans
+                the full continuous axis. */}
             {hasFiniteThresh && (
-              <line x1={PL} y1={yscale(thresh)} x2={hasOutliers ? breakX : PL + CW} y2={yscale(thresh)}
-                stroke={CC.THRESH} strokeWidth={CS.REF.w} strokeDasharray={CS.REF.dash} opacity={CS.REF.opacity} />
-            )}
-            {hasFiniteThresh && hasOutliers && (
-              <line x1={breakX + BREAK_GAP} y1={yscale(thresh)} x2={PL + CW} y2={yscale(thresh)}
+              <line x1={PL} y1={yscale(thresh)} x2={PL + CW} y2={yscale(thresh)}
                 stroke={CC.THRESH} strokeWidth={CS.REF.w} strokeDasharray={CS.REF.dash} opacity={CS.REF.opacity} />
             )}
 
@@ -188,26 +165,11 @@ export function MahalanobisDistPlot({ allCondD2, condColorMap, plotD2, plotD2Row
               </g>
             ))}
 
-            {/* X-axis baseline — normal region */}
-            <line x1={PL} y1={MINI_H} x2={hasOutliers ? breakX : PL + CW} y2={MINI_H}
+            {/* X-axis baseline — continuous */}
+            <line x1={PL} y1={MINI_H} x2={PL + CW} y2={MINI_H}
               stroke={C.BORDER} strokeWidth={CS.GRID.w} />
-            {/* X-axis baseline — outlier region */}
-            {hasOutliers && (
-              <line x1={breakX + BREAK_GAP} y1={MINI_H} x2={PL + CW} y2={MINI_H}
-                stroke={C.BORDER} strokeWidth={CS.GRID.w} />
-            )}
 
-            {/* Break indicator — diagonal slashes */}
-            {hasOutliers && (
-              <g>
-                <line x1={breakX - 1} y1={MINI_H - 4} x2={breakX + 3} y2={MINI_H + 4}
-                  stroke={C.BORDER} strokeWidth={1} />
-                <line x1={breakX + 3} y1={MINI_H - 4} x2={breakX + 7} y2={MINI_H + 4}
-                  stroke={C.BORDER} strokeWidth={1} />
-              </g>
-            )}
-
-            {/* X-axis ticks — normal region */}
+            {/* X-axis ticks — continuous axis */}
             {xTicks.map(v => (
               <g key={`xt${v}`}>
                 <line x1={xscale(v - 1)} y1={MINI_H} x2={xscale(v - 1)} y2={MINI_H + 3}

@@ -52,7 +52,7 @@ export function MiniCard_Mahalanobis({ result, importConfig, rowMap }) {
     legendItems.push({ color: CC.OBS, label: "Normal", swatchType: "dot", opacity: 0.55 });
   }
   legendItems.push({ color: CC.THRESH, label: "Outlier", swatchType: "dot" });
-  legendItems.push({ color: CC.THRESH, label: "Threshold", swatchType: "line", dashed: true, opacity: 0.7 });
+  legendItems.push({ color: CC.THRESH, label: "Significance threshold", swatchType: "line", dashed: true, opacity: 0.7 });
 
   return (
     <MiniCardLayout result={result}
