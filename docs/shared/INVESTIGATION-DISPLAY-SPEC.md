@@ -487,6 +487,43 @@ Two-row sticky header for data excerpt tables:
 
 Bleed-through bug fix baked in (2px overlap + z-index). Used by DupDet evidence tables.
 
+### Reference-line vocabulary: "Expected" vs "Significance threshold" (S207)
+
+Plots carry two kinds of horizontal reference line, and they mean different things —
+the label must not conflate them:
+
+- **"Expected"** — a null-model predicted value (Benford curve, LOESS trend, predicted
+  σ, Poisson slope-1). What the data should look like under H₀.
+- **"Significance threshold"** — a flag cutoff: the boundary at or above which a unit is
+  flagged. Distinct from "Expected" — it is "what counts as flagged", not "what's
+  predicted".
+
+**Mahalanobis Row Outlier ("Unusual rows") — the threshold line is a data-dependent
+BH-FDR cutoff, not a fixed critical value.** The dashed line is drawn at
+`outlierThreshold = min flagged distance` (`mahalanobis.js:195`) — the lowest Mahalanobis
+distance that survived BH-FDR correction at α=0.001 **for that dataset**. This is *not*
+a χ² critical value, and there is no fixed χ² distance that reproduces the BH decision:
+BH significance is rank-dependent (the effective per-row cutoff slides with rank across
+the tested rows), so it has no closed form. The min-flagged distance is the empirical
+realisation of that sliding cutoff. It is a **faithful separator** — adj-p is monotone in
+D², so no unflagged row can ever sit above it.
+
+Two consequences are correct, not bugs:
+- On a single-outlier fixture the line lands exactly **on** the flagged dot, because that
+  lone survivor's distance *is* the line. "Kissing the line" is the corrected cutoff
+  defined by its boundary row, not a marginal result.
+- Rows that clear raw per-row p < 0.01 but fail the 0.001 adjusted gate sit visibly
+  separated **below** the line and stay unflagged (DS08: R2 @ 14.65, R21 @ 12.18). They
+  read as outliers to the eye but are correctly cleared after multiple-comparison
+  correction.
+
+The legend token is **"Significance threshold"** (`MiniCard_Mahalanobis.jsx:55`; the
+legend token is the sole label — there is no line-adjacent text). **Do not** redraw the
+line onto a raw χ²(0.99) value (ignores multiplicity on a multi-row plot) or a Bonferroni
+value (a different correction than the engine applies) — both considered and rejected
+S207. The line value is correct; only the label and the (separate) axis-break suppression
+changed.
+
 ---
 
 ## Font System (S71)

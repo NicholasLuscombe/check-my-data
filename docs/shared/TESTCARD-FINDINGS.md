@@ -1046,6 +1046,197 @@ Per-card findings live under the owning category section below; pass-level frami
 
 ---
 
+## S206 visual-pass findings (DS08 + DS06, live `813bc65`)
+
+First live eyeball of the promoted copy arcs (caption arc + card-text arc). Five
+findings; none touch the S204 two-table rename (that **verified clean** — `:101
+"Spread by column"` heads the plot, `:114 "Spread compared to expected, per
+column"` heads the EvidenceTable, two distinct sections, footer direction-aware).
+Two are per-card display issues; three are cross-card consistency drift the copy
+arcs never reconciled as a set.
+
+**Scope note (the real gap this pass exposed).** The S199 information-budget
+sweep locked the three-axis framework across **titles / sub-headers /
+How-this-works**. It did **not** run a cross-card discipline pass on **footers and
+legends** — those were authored per-card during S200–S205, each correct in
+isolation, never reconciled against each other. Findings #3–#5 below are that
+unreconciled drift. **The footer-register + legend-vocabulary + label-casing
+cross-card consistency arc is NOT STARTED** (Chat-owned copy arc; lock the rule,
+sweep all cards). Banked as the named next copy arc. A full 56-card verification
+walk should wait until this arc lands — walking now verifies a surface with one
+whole consistency dimension still unedited. (Coverage caveat: this pass only saw
+the cross-replicate + cross-condition clusters; distribution-shape and
+unusual-digit footers/legends are unexamined and may add drift — lock the rules
+against more than this sample.)
+
+### #1 — Outlier row mis-coloured Normal (Unusual rows / Mahalanobis Row Outlier, DS08) — RESOLVED S207 (promoted `87c8a75`)
+
+**Original finding (S206):** the footer read "1 row has an unusual combination of
+values" and the Outlier-rows table named Row 18, Distance 29.62, p=1.66e-6, but the
+flagged point rendered **blue (Normal)** on the Distance-by-row plot — the flagged
+outlier mis-coloured as Normal, the red Outlier legend state never painting.
+
+**Root cause (confirmed at source, S207-RO-MAHALANOBIS Question A):** dot colour and
+table selection re-derived from a strict `v > thresh` re-test. The dashed line is
+drawn at `outlierThreshold = min flagged distance` (`mahalanobis.js:195`) — which on
+a single-outlier fixture **is the flagged row's own distance**, so that row can
+never satisfy strict `v > thresh` (the boundary row can't exceed its own value),
+compounded by full-precision `v` vs `toFixed(2)` threshold. The fix binds colour +
+selection to outlier-set membership (`isOutlierAt(i)` over `s.outlierRows`).
+
+**Fix shipped S207 (`87c8a75`):** colour-from-membership (`7a64768`) + the render fix
+that resolved the axis-break regression it introduced (see #8) + the threshold-line
+relabel. Verified live on DS06 (R12, HIGH) and DS08 (R18, MODERATE) — flagged outlier
+paints red, red legend appears, axis continuous. Off the roster.
+
+### #7 — Headline p vs table per-row p read as contradictory (Unusual rows / Mahalanobis) — RESOLVED S207 (two statistics by construction)
+
+On the Mahalanobis Row Outlier card the badge p and the Outlier-rows table per-row p
+look like the same quantity reported twice with conflicting values (DS06: badge
+**High p = 0.0004**, table Row 12 **9.11e-7**; DS08: badge **Moderate p = 0.0017**,
+table Row 18 **1.66e-6**).
+
+**Confirmed at source (S207-RO-MAHALANOBIS Question B): two different statistics by
+construction.** The headline is `primaryP = binomP` — a dataset-level binomial
+(normal-approx) on the count of rows exceeding raw per-row p < 0.01. The card is
+FISHER_EXEMPT (`aggregation.js:131`), so the headline is that primaryP itself, **not**
+a Fisher-combination of per-row ps. The table per-row P-value is the **raw** per-row
+χ²(nC) tail p for that row (`rowPvals[i]`). Not contradictory: a whole-dataset rate
+test vs one row's individual distance probability.
+
+**Latent side-finding (open, → consistency arc):** the table *displays* the raw
+per-row p but *selects* rows into the table on `adjRowPvals` (BH-FDR adjusted, α=0.001)
+— a third quantity shown nowhere. So a reader sees a raw p that is not the gate that
+decided membership. Same global-verdict-vs-per-row-statistic legibility family as #2;
+feeds the cross-card legibility display rule, not a one-card patch.
+
+### #8 — Mahalanobis plot x-axis break regression — RESOLVED S207 (promoted `87c8a75`)
+
+The S206/S207 colour fix (membership rebind) introduced an x-axis **break**: the
+membership predicate also drove `splitIdx` → `hasOutliers`, which triggered an
+axis-break glyph flinging the lone outlier past the break even though it sat only
+~2× the next point — manufacturing separation the data did not have.
+
+**Confirmed at source (S207-RO-MAHALANOBIS Question A): introduced, not relocated.**
+Pre-edit, strict `v > thresh` returned `-1` on single-outlier fixtures (outlier on
+the threshold) → `hasOutliers` false → no break. Membership caught the row →
+`hasOutliers` true → break appeared. Colour, split, and row labels were all coupled
+to the one `isOutlierAt` predicate — none separable at the predicate level.
+
+**Fix shipped S207 (`87c8a75`):** the break-rendering path was removed unconditionally
+(`splitIdx`/`hasOutliers` segmentation, break glyph, dual-segment gridlines/baseline/
+threshold all gone); `xscale` is now continuous (sorted-rank) for all indices
+regardless of outlier count, so the flagged outlier renders inline. Colour + selection
+remain bound to membership. Verified live on DS06 + DS08 (continuous axis, outlier
+inline on the line). Off the roster.
+
+### #9 — Mahalanobis threshold line is a data-dependent BH-FDR cutoff, not a fixed critical value — RESOLVED S207 (relabel) + RATIONALE FOR THE SPEC
+
+**Surfaced from the #1/#8 investigation.** The dashed line is drawn at the minimum
+flagged distance (`outlierThreshold`, `mahalanobis.js:195`) — i.e. the lowest distance
+that survived BH-FDR (α=0.001) correction **for that dataset**. It is NOT a χ² critical
+value and there is no fixed χ² distance that reproduces the BH decision (BH
+significance is rank-dependent across the tested rows, so the effective per-row cutoff
+slides with rank — α/N for the most extreme row, 2α/N for the next, etc.). The
+min-flagged distance is the *empirical realisation* of that sliding cutoff. It is a
+**faithful separator** — adj-p is monotone in D², so no unflagged row can sit above it.
+
+Two consequences that were misreading as bugs but are correct:
+- On a single-outlier fixture the line lands exactly ON the flagged dot, because that
+  lone survivor's distance *is* the line. "Kissing the line" is correct, not marginal.
+- Rows that are raw-p < 0.01 but fail the 0.001 adjusted gate (DS08 R2 @ 14.65, R21 @
+  12.18 — "0.01-positive, 0.001-negative") sit visibly separated below the line. They
+  look like outliers to the eye but are correctly unflagged after multiple-comparison
+  correction.
+
+**Fix shipped S207 (`87c8a75`):** legend token relabelled "Threshold" →
+**"Significance threshold"** (`MiniCard_Mahalanobis.jsx:55`; no separate line label
+exists — the legend token is the sole label). Resolves the S188 finding-#6 vocabulary
+problem (a line named "Threshold" implying a fixed critical value when it is a corrected
+cutoff). **The line value is correct and unchanged** — only the label and the (#8) break
+changed. This rationale belongs in INVESTIGATION-DISPLAY-SPEC so a future reader doesn't
+reopen "why is the line the min-flagged distance" — it is the corrected cutoff made
+concrete.
+
+### #10 — Multi-flagged Mahalanobis continuous-axis state — VERIFIED BY CONSTRUCTION ONLY (→ #49 positive anchors)
+
+No fixture in the 22-set flags Mahalanobis Row Outlier with 2+ outlier rows on one
+chart. Only DS06 (HIGH, 1 row) and DS08 (MODERATE, 1 row) flag — both single-outlier,
+pooled. DS09 carries 2 sub-outlier rows but at LOW verdict (not flagged) and split
+one-per-condition (Vehicle R31, Treatment R302), so even its per-condition charts draw
+one dot each. The S207 break-suppression removed the break path unconditionally and
+`xscale` is continuous for all indices, so a 2+-outlier chart would render inline by the
+same path DS06/DS08 now exercise — but the multi-dot continuous-axis state **cannot be
+eyeballed in the 22-set**. Verify against #49 positive anchors when they land.
+
+### #11 — "All data" orphan label still present on the Mahalanobis plot (S188 finding #4, still open) — DEAD CHROME
+
+The Distance-by-row plot carries an "All data" series label as a chart annotation
+above the dots, duplicating the legend below (Normal · Outlier · Significance
+threshold). Identified S188 as dead/duplicate chrome (likely a plot-library series-name
+default or a leftover from a per-condition variant); lean to drop it. Still present on
+the live render after the S207 fixes (visible top-left of the plot interior on DS06 +
+DS08). Not touched by the S207 render fix (out of scope — that was colour/break/label).
+Per-card cleanup; carry forward.
+
+### #2 — HIGH verdict with no significant per-column row (Column-to-column noise / Selective Noise, DS08) — LEGIBILITY
+
+Card fires **High p=0.0006**, but the per-column table shows no individually
+significant column: Plate3 Adj. p = **0.0513** ("Quieter", just over 0.05),
+Plate1/Plate2 "As expected" (0.47 / 0.32). A reader sees HIGH up top and three
+non-significant rows below and reasonably asks "high based on what?" Mechanically
+**correct** — this is a global/scan test, the High p is the dataset-level
+across-column SD-spread statistic, per-column ps are descriptive context per the
+documented evidence-display rule (global tests → p in badge only). The footer
+"one column quieter than the rest" is *accurate*. But the **surface doesn't make
+the global-vs-per-column relationship legible** — the verdict and the context
+rows read as contradicting each other. Display/legibility finding, **not** an
+engine change. My lean: the rule is right; the card should telegraph that the
+verdict is global and the rows are context.
+
+### #3 — Footer register inconsistent across cards — CROSS-CARD COPY (arc not started)
+
+Footers mix at least two registers when read side by side:
+- terse lowercase fragments — "one column quieter than the rest" (Column-to-column
+  noise), "balance as expected" (Baseline Balance), "conditions differ normally"
+  (Overall condition similarity), "replicates correlate more closely than
+  expected" (IRC);
+- count-led near-sentences — "1 row has an unusual combination of values" (Unusual
+  rows), which leads with a numeral and reads as a sentence missing its capital
+  against the all-lowercase fragments.
+
+Authored per-card, never reconciled. Resolve by **locking a footer-register rule**
+(fragment vs sentence; lowercase-start vs capitalised; count-led vs property-led)
+then sweeping all cards — same shape as S199. Part of the not-started cross-card
+consistency arc.
+
+### #4 — Legend baseline vocabulary: "Median spread" vs "Expected" — CROSS-CARD CONSISTENCY
+
+Column-to-column noise labels its shaded reference band **"Median spread"**, while
+its own plot caption frames the comparison against *expected*, and the IRC card
+labels the equivalent baseline swatch **"Expected"**. Same conceptual role
+(baseline / reference the series are compared against), two different words, and
+"Median spread" is the less legible — it doesn't read as "this is the expectation
+baseline". Align the vocabulary (e.g. "Expected spread", or a caption tying
+"median spread" to the expectation explicitly). Part of the consistency arc.
+
+### #5 — Adjusted-p column label casing: "Adj. p" vs "adj-p" vs "Adj P" — MINOR
+
+Three casings observed for the same adjusted-p column header: Column-to-column
+noise **"Adj. p"**; Overall condition similarity **"adj-p"**; Over-used numbers
+(VFS) **"Adj P"** (no period). Same field, three variants. Locked target **"Adj.
+p"**; fold into the consistency arc sweep.
+
+### #6 — VFS EvidenceTable "Adj P" column truncated (Over-used numbers, DS04) — LAYOUT
+
+On Over-used numbers the per-value Over-represented-values table overflows its
+width — the rightmost **Adj P** column values are clipped ("0.001…", "0.004…",
+"0.007…" all cut at the right edge). Layout finding (table-width / PlotLayout
+bounds), **not** copy. Separate fix from the #5 casing sweep. The header casing
+("Adj P") folds into #5; the truncation is its own layout issue.
+
+---
+
 ## Resolved cross-card blocks
 
 ### add-8 unscoped findings — modal-table wash (RESOLVED S193)
