@@ -35,38 +35,130 @@ by whether the test localises to a countable set of flagged things.
 
 **Shapes leg confirmed (DS06).** Noise scaling — a global/dataset-wide shapes test
 — takes the property-fragment register as predicted, closing the coverage caveat.
-The split is now empirically clean across all five clusters (digits, replicate,
-condition, shapes; copy/paste via DupDet). No rule revision needed.
+The split is empirically clean across all five clusters (digits, replicate,
+condition, shapes; copy/paste via DupDet).
 
-## Rule (locked)
+**The discriminator was reworded S208 (six-model cross-lock).** The split is real,
+but "countable set of flagged units" was a presentation symptom, not the boundary —
+every model could manufacture a count for the property-fragment tests (Benford →
+"N of 9 bins deviate"). The boundary is the finding's **cognitive object**: a subset
+of units to inspect vs a property/pattern of the dataset. The observed table above is
+unchanged by the rewording — it just now classifies for the right reason. See the
+revised rule below.
 
-1. **Count-led** when the test localises to a countable set of flagged units
-   (rows, cells, values, blocks): lead with the count — `N <units> <finding>`
-   ("3 rows are exact duplicates"). The count IS the finding's shape.
+## Rule (locked — revised S208 after six-model cross-lock)
 
-2. **Property-fragment** when the test reports a dataset- or property-level signal
-   with no countable flagged set (global/scan tests): a bare descriptive fragment
-   naming the property's state ("leading digits depart from the expected
-   pattern"). No invented count.
+*Cross-model lock: Sonnet / Gemini / GPT / Copilot / Deepseek / Grok — unanimous on the
+core boundary. All six independently relocated the discriminator from "countability" to
+the cognitive object of the finding; "countable set of flagged units" was a presentation
+symptom, not the boundary. One classification (Column-to-column noise) deferred to an
+engine + affordance source-check — see end of section.*
 
-3. **Lowercase-start throughout** — both registers. Confirmed deliberate: every
-   observed footer starts lowercase; the count-led ones only *look* sentence-cased
-   because they lead with a numeral. The sweep enforces lowercase-start uniformly
-   (a numeral start is still lowercase-register).
+### The discriminator: cognitive object, not cardinality
 
-4. **Sibling construction frames hold.** Where tests are siblings on a shared
-   surface they share a frame: the two Benford footers are identical-frame
-   ("<ordinal> digits depart from the expected pattern"); the skippedClause
-   captions are identical-frame ("near-uniform shape — too flat to <consequence>").
-   The sweep preserves sibling frames, doesn't homogenise across non-siblings.
+1. **Count-led** when the finding's primary cognitive object IS a subset of units —
+   rows, cells, columns, blocks, values that are individually meaningful to inspect.
+   The units ARE the finding. Lead with the count: `N <units> <finding>`
+   ("3 rows are exact duplicates"). **Deletion test:** strip the count — if the
+   conclusion collapses because the units WERE the conclusion, it's count-led.
+
+2. **Property-fragment** when the finding's primary cognitive object is a property,
+   pattern, or relationship describing the dataset's structure as a whole — even when a
+   subsidiary diagnostic could enumerate contributing units. A bare descriptive fragment
+   naming the property's state ("leading digits depart from the expected pattern"). No
+   invented count. **Deletion test:** strip any count — if the substantive conclusion
+   survives, it's property-fragment. (Benford CAN report "N of 9 bins deviate"; the
+   finding is the distribution shape, the bin count is an implementation detail — stays
+   property-fragment.)
+
+3. **NOT cardinality. NOT N≥2.** The discriminator is the cognitive object, not the
+   count's value. "1 row has an unusual combination of values" is count-led at N=1 — the
+   row is the finding. "one column quieter than the rest" is property-fragment despite
+   naming one unit — the column is an *anchor for a pattern* (relative cross-column
+   noise), not the payload. A sharp reader defaults to "count-led when N≥2" (Grok did);
+   the rule explicitly overrides that. Cardinality is not the test.
+
+### The genuine-ambiguity class: the affordance decides, not a default
+
+4. When a test produces BOTH a global signal AND an enumerable contributor set, there is
+   **no defensible statistical default** — two coherent models split opposite ways (Grok
+   resolved toward count-led on actionability; the other five toward property-fragment on
+   the count being threshold-contingent). They are the SAME rule once conditioned on the
+   card's actual affordance:
+   - The card's evidence table **isolates** the specific units (user can view/select/
+     filter them) → **count-led**. The units are actionable, so the count is the object.
+   - The card only renders a **distribution/relationship plot or summary** with no
+     per-unit isolation → **property-fragment**. The pattern is the object.
+
+   Read the affordance from the live card, not from design intent. This is the
+   falsifiability guardrail (see meta-rule): "what the card lets the user do" is
+   observable; "the mental model we want" is assertable and would make the rule
+   unfalsifiable. The register follows the affordance we set deliberately — a choice,
+   but an *observable* one.
+
+### Cleared state
+
+5. **Cleared inherits the active register, polarity flipped — no third register.** A
+   null result is the same linguistic shape as its flagged counterpart, reversed; a
+   separate "cleared register" would encode statistical outcome rather than linguistic
+   shape (the weaker organizing principle — 6/6). A property test clears
+   property-fragment ("balance as expected"). A count-led test clears with the **negative
+   determiner** ("no rows are exact duplicates" / "no unusual rows detected") — NOT the
+   zero numeral ("0 rows…", which all six flag as robotic) and NOT a property fragment.
+   This is a count of zero rendered as "no", preserving the sibling frame across the
+   pass/fail boundary (rule 7).
+
+### Casing
+
+6. **Casing is a production rule, not a perceptible register.** A leading numeral has no
+   case — "3 rows…" is neither upper- nor lowercase-start; the rule is vacuous but
+   satisfied. What it actually enforces: use numerals (not spelled-out numbers) when
+   leading with a count; apply no title or sentence case to either register. It rules out
+   "Three rows…" and "3 Rows Are…", which is all it can. **Sweep watch-item:**
+   lowercase-start collides with proper nouns / acronyms at the head of a property
+   fragment (a footer that would open "Benford…" or "ANOVA…"); flag for rephrase rather
+   than force an awkward lowercase proper noun.
+
+### Siblings
+
+7. **Sibling construction frames hold.** Tests sharing a surface share a frame: the two
+   Benford footers are identical-frame ("<ordinal> digits depart from the expected
+   pattern"); the skippedClause captions are identical-frame ("near-uniform shape — too
+   flat to <consequence>"). Preserve sibling frames, don't homogenise across non-siblings
+   — and (per rule 5) the frame holds across a test's own flagged/cleared states too.
+
+### Meta-rule (the honest framing)
+
+The register reflects the mental model the card is built to give the user — which is a
+design choice, not a mathematical inevitability (the same test can sit in either register
+depending on productisation). This is not a weakness; it serves user cognition. The
+guardrail that keeps it falsifiable: the choice is **read off the card's actual
+affordance**, never asserted from intent. Where ontology and affordance agree the rule is
+mechanical; the ambiguity class (rule 4) is where affordance does the deciding.
 
 ## Diagnostic for the sweep
 
-For each card's footer, ask: **does this test produce a count of flagged units?**
-- Yes → footer must be count-led, lowercase, lead with N.
-- No → footer must be a property-fragment, lowercase, no count.
-A footer that violates its test's category is the fix target. The rule respects
-what is already there; it does not flatten the two registers into one.
+For each card's footer, ask: **is the flagged unit set the finding, or is a property
+state the finding?** Apply the deletion test if unsure — strip the count, see if the
+conclusion survives.
+- Units ARE the finding → count-led, lead with N, numerals not words.
+- Property state is the finding → property-fragment, no invented count.
+- Both (ambiguity class) → read the card's affordance: isolates units → count-led;
+  plot/summary only → property-fragment.
+- Cleared state → same register as the test's flagged footer, polarity flipped
+  ("no <units>…" for count-led, never "0").
+A footer that violates its test's category is the fix target. The rule respects what is
+already there; it does not flatten the registers into one, and does not default
+ambiguous cases by cardinality.
+
+**One classification deferred to source (S208).** "one column quieter than the rest"
+(Column-to-column noise) is currently property-fragment and is the rule's sharpest edge
+(all six models flagged it; Gemini/Grok leaned reclassify-count-led, the other four held
+property-fragment). The deletion test is soft here, so it routes to a two-part
+source-check: (a) is the engine per-column binary classification or a relative/omnibus
+spread comparison; (b) does the card's evidence table isolate the flagged column or only
+render the cross-column spread plot. Engine + affordance should agree. See the read-only
+prompt. The sweep does not classify this footer until source reports back.
 
 ---
 
@@ -132,8 +224,8 @@ adjusted-p column and any other shared-field header casing drift surfaced en rou
 
 1. **Enumerate every card's footer string** at source (Code read-only, or Chat
    from the card-text-arc working docs) — the canonical footer per test, per
-   reachable state (flagged states; cleared footers are a third register sampled
-   but not the focus).
+   reachable state (flagged states; cleared footers sampled to confirm they
+   inherit the active register with polarity flipped, per rule 5).
 2. **Classify each footer** count-led vs property-fragment by the diagnostic.
 3. **Flag violators** — wrong register for the test's category, sentence-case
    starts, broken sibling frames.
