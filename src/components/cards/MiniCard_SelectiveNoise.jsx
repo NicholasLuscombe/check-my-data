@@ -66,7 +66,10 @@ const isCleared = result.flag === "LOW" || result.flag === "N/A";
 const footerText = isCleared
   ? "noise levels are even across columns"
   : "noise levels differ across columns more than expected";
-const lookForText = outlierDir === "quieter"
+const namesColumn = flaggedCols.size > 0;
+const lookForText = !namesColumn
+  ? `Look for one or more columns whose noise differs from the rest — some appearing smoother or rounder, or one noticeably more variable, at similar signal levels. Compare each replicate column's raw values against the instrument output file to check whether any column was smoothed, averaged, or had noise added.`
+  : outlierDir === "quieter"
   ? `${outlierName || "One column"} has less noise than the others — this can happen when a column's values were smoothed, averaged, or manually adjusted. Compare the flagged column's raw values against the instrument output file. Check whether the quiet column's values are rounder or less variable than the others at similar signal levels.`
   : `${outlierName || "One column"} has more noise than the others — this can happen when noise was added to one column to disguise data concerns, or when that column was measured under different conditions. Check whether the noisy column corresponds to a different instrument, operator, or date.`;
 const implicationsText = "Unequal variability across replicate columns can result from different instruments, operators, or measurement conditions per column — for example, one plate reader producing noisier readings than another. It can also indicate that one column's values have a different origin from the others — for example, one replicate measured and the others constructed.";
