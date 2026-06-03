@@ -107,7 +107,7 @@ export function TestCardLayout({ result, mode, mk, expanded, onToggle, footer, c
             {/* S195: disclosure glyph leads the test name (left/leading),
                 matching the CardLayout disclosure pattern. */}
             {expandable && <span style={{ color: C.TEXT_3, fontSize: FS.base, flexShrink: 0 }}>{expanded ? "▾" : "▸"}</span>}
-            <span style={{ fontSize: FS.md, fontWeight: FW.SEMI, color: C.TEXT, whiteSpace: "nowrap" }}>
+            <span style={{ fontSize: FS.base, fontWeight: FW.SEMI, color: C.TEXT, whiteSpace: "nowrap" }}>
               {DISPLAY_NAMES[result.name] || result.name}
             </span>
           </span>
