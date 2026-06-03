@@ -35,6 +35,7 @@
 import { C, FS, FW, MECH_COLOR, SEV_VERDICT } from "../../constants/tokens.js";
 import { LANE_LABEL_TYPOGRAPHY } from "./Section.jsx";
 import { MechIcon, mechIconSize } from "./MechIcon.jsx";
+import { RAIL_GUTTER, RAIL_GUTTER_GAP } from "./styles.js";
 
 /**
  * @param {object} props
@@ -67,41 +68,43 @@ export function ClusterRow({
   return (
     <div style={{ padding: "10px 10px", borderLeft: `3px solid ${borderColor}` }}>
       <div
-        style={{ display: "flex", alignItems: "center", gap: "8px", cursor: isExpandable ? "pointer" : "default" }}
+        style={{ display: "flex", alignItems: "center", gap: 0, cursor: isExpandable ? "pointer" : "default" }}
         onClick={isExpandable ? onToggle : undefined}
       >
-        {/* S195: disclosure glyph leads the row (left/leading), matching
-            the CardLayout disclosure pattern (glyph then label). Spacing
-            comes from the row's gap:8px, so no marginRight is added.
-            Icon-glyph carve-out per TYPOGRAPHY-SYSTEM.md §"What this
-            system does NOT cover". */}
-        {isExpandable && (
-          <span style={{ color: C.TEXT_2, fontSize: "14px", flexShrink: 0 }}>
-            {isExpanded ? "▾" : "▸"}
+        {/* S210: fixed-width gutter holds the leading chrome (disclosure
+            triangle + mechanism icon) so the label text below lands on the
+            shared §3 rail. Glyph + icon are the icon-glyph carve-out per
+            TYPOGRAPHY-SYSTEM.md §"What this system does NOT cover". */}
+        <span style={{ width: RAIL_GUTTER, flexShrink: 0, display: "inline-flex", alignItems: "center", gap: RAIL_GUTTER_GAP }}>
+          {isExpandable && (
+            <span style={{ color: C.TEXT_2, fontSize: "14px", flexShrink: 0 }}>
+              {isExpanded ? "▾" : "▸"}
+            </span>
+          )}
+          {/* S157: cluster-identity icon; 20px (mechIconSize +2 for digits),
+              MECH_COLOR hue via the mk key. Full opacity in all tiers — the
+              right-side worst-tier word does the cleared/flagged muting. */}
+          {mk && <MechIcon mk={mk} size={mechIconSize(mk, 20)} />}
+        </span>
+        {/* Text group — starts on the rail (gutter's right edge). Keeps the
+            label↔count↔description rhythm and the right-pinned word badge. */}
+        <div style={{ display: "flex", alignItems: "center", gap: "8px", flex: 1, minWidth: 0 }}>
+          <span style={{ ...LANE_LABEL_TYPOGRAPHY }}>
+            {label}
           </span>
-        )}
-        {/* S157: cluster-identity icon at the row's leading position.
-            20px to match the cluster-header text weight; MECH_COLOR
-            hue carried through MechIcon's default colour resolution
-            via the mk key. Renders at full opacity in all tiers — the
-            right-side worst-tier word badge does the cleared/flagged
-            muting work via SEV_VERDICT colour. */}
-        {mk && <MechIcon mk={mk} size={mechIconSize(mk, 20)} />}
-        <span style={{ ...LANE_LABEL_TYPOGRAPHY }}>
-          {label}
-        </span>
-        <span style={{ fontSize: FS.base, fontWeight: FW.NORM, color: C.TEXT_3, flexShrink: 0 }}>
-          ({count} {noun}{count !== 1 ? "s" : ""})
-        </span>
-        <span style={{ fontSize: FS.base, fontWeight: FW.NORM, color: C.TEXT_3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", minWidth: 0 }}>
-          {"— "}{description}
-        </span>
-        {/* Worst-tier word badge — colour-on-chrome / words-stay-plain rule.
-            SEV_VERDICT colour matches the per-card badge at TestCardLayout
-            for visual continuity. */}
-        <span style={{ fontSize: FS.base, fontWeight: FW.NORM, color: wordColor, marginLeft: "auto", flexShrink: 0 }}>
-          {wordText}
-        </span>
+          <span style={{ fontSize: FS.base, fontWeight: FW.NORM, color: C.TEXT_3, flexShrink: 0 }}>
+            ({count} {noun}{count !== 1 ? "s" : ""})
+          </span>
+          <span style={{ fontSize: FS.base, fontWeight: FW.NORM, color: C.TEXT_3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", minWidth: 0 }}>
+            {"— "}{description}
+          </span>
+          {/* Worst-tier word badge — colour-on-chrome / words-stay-plain rule.
+              SEV_VERDICT colour matches the per-card badge at TestCardLayout
+              for visual continuity. */}
+          <span style={{ fontSize: FS.base, fontWeight: FW.NORM, color: wordColor, marginLeft: "auto", flexShrink: 0 }}>
+            {wordText}
+          </span>
+        </div>
       </div>
     </div>
   );

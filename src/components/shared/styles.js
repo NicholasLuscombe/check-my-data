@@ -29,6 +29,20 @@ export const LEAD_HEAD = { fontSize: FS.sm, fontFamily: FF.UI, fontWeight: FW.SE
 export const BLOCK_GAP = "12px";
 export const BLOCK_GAP_TIGHT = "6px";
 
+// S210 (§3 left-rail unification): one shared text rail down section 3. The
+// leading chrome (disclosure triangle, mechanism icon, cleared ✓) sits in a
+// fixed-width gutter; ALL §3 title text + the sub-header question begin at the
+// gutter's right edge, so the rail x is constant whether or not a row carries
+// an icon/check. RAIL_GUTTER is sized to clear the widest chrome (triangle +
+// the 22px `digits` mechanism icon) with a little slack. RAIL_GUTTER_GAP is the
+// gap BETWEEN chrome glyphs inside the gutter (triangle↔icon, triangle↔check).
+// Consumers (ClusterRow, TestCardLayout, ClearSummaryRow) anchor their text to
+// this single offset from the box content-left rather than building independent
+// padding/gap/glyph chains. The 3px colour stripe / card box edges stay at x=0
+// (the gutter sits inside the box content, not the stripe).
+export const RAIL_GUTTER = "40px";
+export const RAIL_GUTTER_GAP = "4px";
+
 // S151 (C.9 / B1): full spec match for footnote/reference register.
 // Pre-S151: fontSize TF.DETAIL (11px) + color C.TEXT_4. Now sm Regular C.TEXT_2 sans
 // per TYPOGRAPHY-SYSTEM.md § Tables "Footnote / reference under table" row.

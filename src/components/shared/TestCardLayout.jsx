@@ -8,7 +8,7 @@ import { C, FS, FW, FF, SEV_VERDICT, MECH_COLOR } from "../../constants/tokens.j
 import { DISPLAY_NAMES, TEST_DESCRIPTIONS, MECHANISMS } from "../../constants/mechanisms.js";
 import { fmtPBadge } from "../../constants/thresholds.js";
 import { MechIcon, mechIconSize } from "./MechIcon.jsx";
-import { BLOCK_GAP } from "./styles.js";
+import { BLOCK_GAP, RAIL_GUTTER } from "./styles.js";
 
 /**
  * @param {object} props
@@ -66,7 +66,7 @@ export function TestCardLayout({ result, mode, mk, expanded, onToggle, footer, c
       border: "1px solid #E5E7EB",
       ...(mechStripe ? { borderLeft: `3px solid ${mechStripe}` } : {}),
       borderRadius: "6px",
-      padding: mechStripe ? "8px 16px 8px 11px" : "8px 16px",
+      padding: mechStripe ? "8px 16px 8px 10px" : "8px 16px",
       fontFamily: FF.UI,
     }}>
       {/* ── Cluster-name breadcrumb (S156-fix5 + S157 icon) ── */}
@@ -103,10 +103,14 @@ export function TestCardLayout({ result, mode, mk, expanded, onToggle, footer, c
       >
         {/* Row 1 — test name (left) · verdict·p (right) */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <span style={{ display: "flex", alignItems: "center", gap: "4px", overflow: "hidden", minWidth: 0 }}>
-            {/* S195: disclosure glyph leads the test name (left/leading),
-                matching the CardLayout disclosure pattern. */}
-            {expandable && <span style={{ color: C.TEXT_3, fontSize: FS.base, flexShrink: 0 }}>{expanded ? "▾" : "▸"}</span>}
+          <span style={{ display: "flex", alignItems: "center", gap: 0, overflow: "hidden", minWidth: 0 }}>
+            {/* S210: disclosure triangle sits in the fixed-width gutter so the
+                test name lands on the shared §3 rail — aligned with the cluster
+                label, the cleared-strip text, and the sub-header question
+                below. Glyph is the icon-glyph carve-out (TYPOGRAPHY-SYSTEM.md). */}
+            <span style={{ width: RAIL_GUTTER, flexShrink: 0, display: "inline-flex", alignItems: "center" }}>
+              {expandable && <span style={{ color: C.TEXT_3, fontSize: FS.base, flexShrink: 0 }}>{expanded ? "▾" : "▸"}</span>}
+            </span>
             <span style={{ fontSize: FS.base, fontWeight: FW.SEMI, color: C.TEXT, whiteSpace: "nowrap" }}>
               {DISPLAY_NAMES[result.name] || result.name}
             </span>
@@ -128,6 +132,7 @@ export function TestCardLayout({ result, mode, mk, expanded, onToggle, footer, c
             on the collapsed card (teaser); wraps and reads in full on expand. */}
         {showSubtitle && TEST_DESCRIPTIONS[result.name] && (
           <div style={{
+            paddingLeft: RAIL_GUTTER,
             fontSize: FS.sm, fontWeight: FW.NORM, color: C.TEXT_3,
             overflow: "hidden", textOverflow: "ellipsis",
             whiteSpace: expanded ? "normal" : "nowrap",
