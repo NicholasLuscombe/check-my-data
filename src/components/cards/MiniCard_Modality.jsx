@@ -10,12 +10,12 @@
    LOW the card body would render nothing under the title + verdict
    badge. */
 
-import { C, FS, FF } from "../../constants/tokens.js";
+import { C, FS, FW, FF } from "../../constants/tokens.js";
 import { fmtP } from "../../constants/thresholds.js";
 import { MiniCardLayout } from "../shared/CardLayout.jsx";
 import { DataTable } from "../shared/DataTable.jsx";
 import { EvidenceTable } from "../shared/EvidenceTable.jsx";
-import { SUB_HEAD } from "../shared/styles.js";
+import { SUB_HEAD, BLOCK_GAP, BLOCK_GAP_TIGHT } from "../shared/styles.js";
 import { ColumnStatBar } from "../plots/ColumnStatBar.jsx";
 import { DIP_GATE } from "../../tests/modality.js";
 
@@ -58,7 +58,7 @@ export function MiniCard_Modality({ result, importConfig, rowMap }) {
         ? (nFlagged === 1
             ? "1 column has more than one peak"
             : `${nFlagged} columns have more than one peak`)
-        : "all columns single-peaked"}
+        : "All columns single-peaked"}
       lookFor="Flagged columns have a Hartigan dip statistic exceeding the uniform-reference null — a unimodal distribution cannot produce dip values that high. Examine the column histogram: look for two or more peaks separated by a clear gap, or for asymmetry consistent with mixing two distributions of different mean or scale."
       implications={implications}>
 
@@ -79,8 +79,10 @@ export function MiniCard_Modality({ result, importConfig, rowMap }) {
           return row[k];
         }));
         return (
-          <div style={{ marginTop: "8px" }}>
-            <div style={SUB_HEAD}>Flagged columns</div>
+          <div style={{ marginTop: BLOCK_GAP }}>
+            {/* S210 (multi-surface): secondary-surface heading kept but demoted
+                (Regular weight) to read clearly below the footer-lead. */}
+            <div style={{...SUB_HEAD, fontWeight: FW.NORM, marginBottom: BLOCK_GAP_TIGHT}}>Flagged columns</div>
             <EvidenceTable columns={etCols} rows={etRows} identifierColumns={2} compact />
             {sub.length > 20 && <div style={{ fontFamily: FF.UI, fontSize: FS.xs, color: C.TEXT_3, marginTop: "3px" }}>…and {sub.length - 20} more</div>}
           </div>
@@ -88,8 +90,10 @@ export function MiniCard_Modality({ result, importConfig, rowMap }) {
       })()}
 
       {!isAgg && rows.length > 0 && (
-        <div style={{ marginTop: "8px" }}>
-          <div style={SUB_HEAD}>Flagged columns</div>
+        <div style={{ marginTop: BLOCK_GAP }}>
+          {/* S210 (multi-surface): secondary-surface heading kept but demoted
+              (Regular weight) to read clearly below the footer-lead. */}
+          <div style={{...SUB_HEAD, fontWeight: FW.NORM, marginBottom: BLOCK_GAP_TIGHT}}>Flagged columns</div>
           <DataTable data={rows} maxRows={20} compact identifierColumns={1} columns={[
             { header: "Col", bold: true, render: d => d.Col },
             { header: "Dip", bold: true, render: d => d.Dip },

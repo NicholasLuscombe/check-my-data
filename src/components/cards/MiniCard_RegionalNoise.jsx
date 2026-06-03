@@ -8,7 +8,7 @@ import { RegionalNoiseStrip } from "../plots/RegionalNoiseStrip.jsx";
 import { C, CC, FW, FF } from "../../constants/tokens.js";
 import { fmtP } from "../../constants/thresholds.js";
 import { makeRowMapper } from "../shared/coordinates.js";
-import { SUB_HEAD } from "../shared/styles.js";
+import { SUB_HEAD, BLOCK_GAP, BLOCK_GAP_TIGHT } from "../shared/styles.js";
 
 
 export function MiniCard_RegionalNoise({ result, importConfig, rowMap }) {
@@ -49,8 +49,8 @@ export function MiniCard_RegionalNoise({ result, importConfig, rowMap }) {
   return (
     <MiniCardLayout result={result}
       footer={result.flag !== "LOW" && result.flag !== "N/A"
-        ? `one region ${parseFloat(bestVarRatio) > 1 ? "noisier" : "quieter"} than the rest — rows ${bestRowsDisplay}`
-        : "noise even across regions"}
+        ? `One region ${parseFloat(bestVarRatio) > 1 ? "noisier" : "quieter"} than the rest — rows ${bestRowsDisplay}`
+        : "Noise even across regions"}
       lookFor={`${bestColName} in rows ${bestRowsDisplay} has unusually ${parseFloat(bestVarRatio) > 1 ? "high" : "low"} noise compared to its own average. Examine that column in that region — are the values smoother, rounder, or more variable than the rest of the column? If multiple windows flag the same column, that column may have been selectively edited in those rows.`}
       implications="A region that is noisier or quieter than the column average can result from plate edge effects, batch boundaries, or changes in sample quality across the run. It can also indicate that a stretch of values in one column was smoothed or replaced while the rest was left intact.">
 
@@ -58,7 +58,8 @@ export function MiniCard_RegionalNoise({ result, importConfig, rowMap }) {
         const windowData = isAgg ? sub : details;
         if (!windowData.length) return null;
         return <>
-          <div style={SUB_HEAD}>Noise by region</div>
+          {/* S210 (multi-surface): primary-surface heading dropped — the footer
+              fragment (LEAD_HEAD in MiniCardLayout) heads this primary plot. */}
           <PlotLayout>
             <RegionalNoiseStrip details={windowData} nRows={result.nRows}
               colNames={colNames} toFileRow={toFileRow} />
@@ -67,8 +68,9 @@ export function MiniCard_RegionalNoise({ result, importConfig, rowMap }) {
             from: "rgba(239,68,68,0.15)", to: "rgba(239,68,68,0.7)",
             startLabel: "Low divergence", endLabel: "High divergence", width: 100,
           }} />
-          <div style={{marginTop:"8px"}}>
-            <div style={SUB_HEAD}>Anomalous windows</div>
+          <div style={{marginTop: BLOCK_GAP}}>
+            {/* S210 (multi-surface): secondary-surface heading demoted (Regular weight). */}
+            <div style={{...SUB_HEAD, fontWeight: FW.NORM, marginBottom: BLOCK_GAP_TIGHT}}>Anomalous windows</div>
             <EvidenceTable
               columns={["Rows", "Column", "Observed SD", "Expected SD", "SD ratio", "Finding"]}
               identifierColumns={2}

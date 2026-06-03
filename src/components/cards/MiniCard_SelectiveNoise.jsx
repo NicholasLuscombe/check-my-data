@@ -64,8 +64,8 @@ if (flaggedNames.length === 1) {
 // column could fire on a global-only result the engine never localised.
 const isCleared = result.flag === "LOW" || result.flag === "N/A";
 const footerText = isCleared
-  ? "noise levels are even across columns"
-  : "noise levels differ across columns more than expected";
+  ? "Noise levels are even across columns"
+  : "Noise levels differ across columns more than expected";
 const namesColumn = flaggedCols.size > 0;
 const lookForText = !namesColumn
   ? `Look for one or more columns whose noise differs from the rest — some appearing smoother or rounder, or one noticeably more variable, at similar signal levels. Compare each replicate column's raw values against the instrument output file to check whether any column was smoothed, averaged, or had noise added.`

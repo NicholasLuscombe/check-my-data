@@ -8,7 +8,7 @@ import { PlotLayout } from "../shared/PlotLayout.jsx";
 import { ChartLegend } from "../shared/ChartLegend.jsx";
 import { RegionalNoiseStrip } from "../plots/RegionalNoiseStrip.jsx";
 import { makeRowMapper } from "../shared/coordinates.js";
-import { SUB_HEAD } from "../shared/styles.js";
+import { SUB_HEAD, BLOCK_GAP, BLOCK_GAP_TIGHT } from "../shared/styles.js";
 import { LOCALISED_ROWS_CAPTION } from "../../constants/descriptions.js";
 
 
@@ -91,10 +91,10 @@ export function MiniCard_WindowedAutocorr({ result, importConfig, rowMap }) {
     ? `${toFileRow(sigWins[0].startRow)}\u2013${toFileRow(sigWins[0].endRow)}`
     : null;
   const footer = (result.flag === "LOW" || result.flag === "N/A")
-    ? "no localised noise correlation"
+    ? "No localised noise correlation"
     : flaggedRange
-      ? `noise correlates within rows ${flaggedRange}`
-      : "noise correlates within a localised window";
+      ? `Noise correlates within rows ${flaggedRange}`
+      : "Noise correlates within a localised window";
 
   return (
     <MiniCardLayout result={result}
@@ -104,7 +104,8 @@ export function MiniCard_WindowedAutocorr({ result, importConfig, rowMap }) {
 
       {strip && (
         <>
-          <div style={SUB_HEAD}>Flagged windows by pair</div>
+          {/* S210 (multi-surface): primary-surface heading dropped — the footer
+              fragment (LEAD_HEAD in MiniCardLayout) heads this primary plot. */}
           <PlotLayout>{strip}</PlotLayout>
           <ChartLegend items={[
             { color: C.TEXT_3, label: "Row range of flagged window (darker = larger |r|)" },
@@ -114,7 +115,10 @@ export function MiniCard_WindowedAutocorr({ result, importConfig, rowMap }) {
 
       {table && (
         <>
-          <div style={{...SUB_HEAD, marginTop: strip ? "12px" : "0"}}>Windows by adj-p</div>
+          {/* S210 (multi-surface): heading demoted when the strip is present
+              (secondary surface); dropped when the table is the sole surface
+              (footer-lead heads it). */}
+          {strip && <div style={{...SUB_HEAD, marginTop: BLOCK_GAP, fontWeight: FW.NORM, marginBottom: BLOCK_GAP_TIGHT}}>Windows by adj-p</div>}
           {table}
         </>
       )}

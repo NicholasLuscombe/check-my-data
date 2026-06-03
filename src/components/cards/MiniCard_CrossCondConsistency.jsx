@@ -39,7 +39,6 @@ import { C, FS, FW, FF, SIGNAL } from "../../constants/tokens.js";
 import { fmtP } from "../../constants/thresholds.js";
 import { MiniCardLayout } from "../shared/CardLayout.jsx";
 import { EvidenceTable } from "../shared/EvidenceTable.jsx";
-import { SUB_HEAD } from "../shared/styles.js";
 
 const LOOK_FOR =
   "A 'too similar' flag between conditions that should produce different " +
@@ -90,9 +89,9 @@ export function MiniCard_CrossCondConsistency({ result }) {
   const topDir = result.top?.direction;
   const footer = (result.flag !== "LOW" && result.flag !== "N/A")
     ? (topDir === "different"
-        ? `two conditions diverge across ${nAmber} of ${nRan} measures`
-        : `two conditions alike across ${nAmber} of ${nRan} measures`)
-    : "conditions differ normally";
+        ? `Two conditions diverge across ${nAmber} of ${nRan} measures`
+        : `Two conditions alike across ${nAmber} of ${nRan} measures`)
+    : "Conditions differ normally";
 
   // ── Table shape ─────────────────────────────────────────────────
   // Flag column retired (S175): for forensic rows the amber tint encodes
@@ -151,7 +150,8 @@ export function MiniCard_CrossCondConsistency({ result }) {
 
       {result.flag !== "N/A" && rows.length > 0 && (
         <>
-          <div style={SUB_HEAD}>All property × pair comparisons</div>
+          {/* S210 (single-surface): section heading dropped — the footer
+              fragment (LEAD_HEAD in MiniCardLayout) heads this sole table. */}
           <EvidenceTable
             columns={columns}
             rows={rows}

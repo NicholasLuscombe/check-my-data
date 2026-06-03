@@ -11,7 +11,7 @@ import { PlotLayout } from "../shared/PlotLayout.jsx";
 import { ChartLegend } from "../shared/ChartLegend.jsx";
 import { RegionalNoiseStrip } from "../plots/RegionalNoiseStrip.jsx";
 import { makeRowMapper } from "../shared/coordinates.js";
-import { SUB_HEAD } from "../shared/styles.js";
+import { SUB_HEAD, BLOCK_GAP, BLOCK_GAP_TIGHT } from "../shared/styles.js";
 import { LOCALISED_ROWS_CAPTION } from "../../constants/descriptions.js";
 
 export function MiniCard_BlockedMahalanobis({ result, importConfig, rowMap }) {
@@ -83,8 +83,8 @@ export function MiniCard_BlockedMahalanobis({ result, importConfig, rowMap }) {
   // producer (blockedMahalanobis.js). Names the flagged block’s row range.
   const driverBest = (result.flag !== "LOW" && result.flag !== "N/A" && details[0]) ? details[0] : null;
   const footer = driverBest
-    ? `rows ${toFileRow(driverBest.startRow)}\u2013${toFileRow(driverBest.endRow)} shift together as a block`
-    : "no shifted blocks";
+    ? `Rows ${toFileRow(driverBest.startRow)}\u2013${toFileRow(driverBest.endRow)} shift together as a block`
+    : "No shifted blocks";
 
   return (
     <MiniCardLayout result={result}
@@ -94,7 +94,8 @@ export function MiniCard_BlockedMahalanobis({ result, importConfig, rowMap }) {
 
       {strip && (
         <>
-          <div style={SUB_HEAD}>Flagged blocks by pass and condition</div>
+          {/* S210 (multi-surface): primary-surface heading dropped — the footer
+              fragment (LEAD_HEAD in MiniCardLayout) heads this primary plot. */}
           <PlotLayout>{strip}</PlotLayout>
           <ChartLegend items={[
             { color: C.TEXT_3, label: "Row range of flagged block (darker = larger scan statistic)" },
@@ -104,7 +105,10 @@ export function MiniCard_BlockedMahalanobis({ result, importConfig, rowMap }) {
 
       {table && (
         <>
-          <div style={{...SUB_HEAD, marginTop: strip ? "12px" : "0"}}>Blocks by adj-p</div>
+          {/* S210 (multi-surface): heading demoted when the strip is present
+              (secondary surface); dropped when the table is the sole surface
+              (footer-lead heads it). */}
+          {strip && <div style={{...SUB_HEAD, marginTop: BLOCK_GAP, fontWeight: FW.NORM, marginBottom: BLOCK_GAP_TIGHT}}>Blocks by adj-p</div>}
           {table}
         </>
       )}

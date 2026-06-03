@@ -7,7 +7,7 @@ import { DataTable } from "../shared/DataTable.jsx";
 
 import { PlotLayout } from "../shared/PlotLayout.jsx";
 import { PlotSVG } from "../plots/PlotSVG.jsx";
-import { SUB_HEAD } from "../shared/styles.js";
+import { SUB_HEAD, BLOCK_GAP, BLOCK_GAP_TIGHT } from "../shared/styles.js";
 
 export function MiniCard_CarlisleBalance({ result, importConfig, rowMap }) {
   const nFeatures = result.nFeatures || 0;
@@ -52,8 +52,8 @@ export function MiniCard_CarlisleBalance({ result, importConfig, rowMap }) {
   return (
     <MiniCardLayout result={result}
       footer={result.flag !== "LOW" && result.flag !== "N/A"
-        ? "differences between conditions smaller than chance across most features"
-        : "balance as expected"}
+        ? "Differences between conditions smaller than chance across most features"
+        : "Balance as expected"}
       lookFor="If most p-values cluster near 1.0, the conditions are suspiciously identical — as if someone fabricated the data to ensure perfect balance. In clinical trials, this is a hallmark of Carlisle-type fabrication. If p-values cluster near 0, allocation may not be random."
       implications="Groups that match more closely than random assignment predicts can occasionally occur by chance, particularly with small sample sizes or when stratified randomisation was used. Consistently near-perfect balance across many features, however, is unlikely under genuine random assignment and may indicate that group allocations were adjusted after the data was observed.">
 
@@ -69,8 +69,11 @@ export function MiniCard_CarlisleBalance({ result, importConfig, rowMap }) {
       </>}
 
       {details.length > 0 && (
-        <div style={{ marginTop: "8px" }}>
-          <div style={SUB_HEAD}>Balance across conditions, per feature</div>
+        <div style={{ marginTop: histPlot ? BLOCK_GAP : 0 }}>
+          {/* S210 (multi-surface): secondary-surface heading demoted (Regular
+              weight) when the plot is present; dropped when the table is the
+              sole surface (footer-lead heads it). */}
+          {histPlot && <div style={{...SUB_HEAD, fontWeight: FW.NORM, marginBottom: BLOCK_GAP_TIGHT}}>Balance across conditions, per feature</div>}
           <DataTable data={details} maxRows={20} compact identifierColumns={1} totalCount={nFeatures} columns={[
             { header: "Feature", bold: true, render: d => d.Feature },
             { header: "p", render: d => d["ANOVA p"] },

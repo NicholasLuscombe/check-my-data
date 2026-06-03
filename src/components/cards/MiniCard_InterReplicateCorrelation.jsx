@@ -10,7 +10,7 @@ import { ChartLegend } from "../shared/ChartLegend.jsx";
 import { EvidenceTable } from "../shared/EvidenceTable.jsx";
 import { classifyIrcPairs } from "../../analysis/buildHighlightSpec.js";
 import { shortColName, makeRowMapper } from "../shared/coordinates.js";
-import { SUB_HEAD } from "../shared/styles.js";
+import { SUB_HEAD, BLOCK_GAP, BLOCK_GAP_TIGHT } from "../shared/styles.js";
 
 
 export function MiniCard_InterReplicateCorrelation({ result, importConfig, rowMap }) {
@@ -114,8 +114,8 @@ return (
 
   <MiniCardLayout result={result}
     footer={result.flag !== "LOW" && result.flag !== "N/A"
-      ? "replicates correlate more closely than expected"
-      : "replicates correlate as expected"}
+      ? "Replicates correlate more closely than expected"
+      : "Replicates correlate as expected"}
     lookFor={wins.length > 0 ? "The windowed scan found a stretch of rows where replicates agree more closely than elsewhere. Check whether those rows correspond to a particular experimental group or were added later. Ask for the raw instrument output to verify that the submitted replicates are distinct measurements." : "One or more replicate pairs correlate more strongly than the dataset's signal-to-noise ratio predicts. Check whether those columns might be copies or near-copies of each other. Compare the original instrument files against the submitted data to confirm independent measurements." }
     implications="Replicates that track each other unusually closely can reflect a high signal-to-noise ratio experiment where the true biological signal dominates random noise. They can also indicate that one replicate was derived from another — for example, by copying a column and adding small perturbations.">
 
@@ -125,7 +125,8 @@ return (
         exceeds noise, r near 1.0 is expected and not suspicious.
       </CardBanner>
     )}
-    <div style={SUB_HEAD}>How closely each row pair tracks</div>
+    {/* S210 (multi-surface): primary-surface heading dropped — the footer
+        fragment (LEAD_HEAD in MiniCardLayout) heads this primary plot. */}
     <PlotLayout fitContent>
         <div style={{display:"flex",flexWrap:"wrap",gap:"12px",alignItems:"flex-start",justifyContent:"center"}}>
           {matrices.map(({cond, cols, mat}) => {
@@ -150,8 +151,9 @@ return (
     </PlotLayout>
     <ChartLegend items={legend} />
     {topWins.length > 0 && (
-      <div style={{marginTop:"12px"}}>
-        <div style={SUB_HEAD}>Highly correlated row windows</div>
+      <div style={{marginTop: BLOCK_GAP}}>
+        {/* S210 (multi-surface): secondary-surface heading demoted (Regular weight). */}
+        <div style={{...SUB_HEAD, fontWeight: FW.NORM, marginBottom: BLOCK_GAP_TIGHT}}>Highly correlated row windows</div>
         <EvidenceTable
           columns={condNames.length > 1 ? ["Condition", "Columns", "Rows", "Observed r", "Expected r"] : ["Columns", "Rows", "Observed r", "Expected r"]}
           rows={topWins.map(w => condNames.length > 1

@@ -5,7 +5,7 @@ import { fmtP } from "../../constants/thresholds.js";
 import { MiniCardLayout } from "../shared/CardLayout.jsx";
 import { DataTable } from "../shared/DataTable.jsx";
 import { EvidenceTable } from "../shared/EvidenceTable.jsx";
-import { SUB_HEAD } from "../shared/styles.js";
+import { SUB_HEAD, BLOCK_GAP, BLOCK_GAP_TIGHT } from "../shared/styles.js";
 import { ColumnStatBar } from "../plots/ColumnStatBar.jsx";
 
 
@@ -45,7 +45,7 @@ export function MiniCard_Entropy({ result, importConfig, rowMap }) {
         ? (nFlagged === 1
             ? "1 column has too few or too many distinct numbers"
             : `${nFlagged} columns have too few or too many distinct numbers`)
-        : "value variety normal across columns"}
+        : "Value variety normal across columns"}
       lookFor="Low-entropy columns suggest values were drawn from a restricted set — too few distinct values for what's expected. High-entropy columns suggest over-randomisation — values were spread too uniformly to look 'real'. Check whether flagged columns correspond to key results or treatment groups."
       implications={entropyImplications}>
 
@@ -65,8 +65,10 @@ export function MiniCard_Entropy({ result, importConfig, rowMap }) {
           return row[k];
         }));
         return (
-          <div style={{ marginTop: "8px" }}>
-            <div style={SUB_HEAD}>Flagged columns</div>
+          <div style={{ marginTop: BLOCK_GAP }}>
+            {/* S210 (multi-surface): secondary-surface heading kept but demoted
+                (Regular weight) to read clearly below the footer-lead. */}
+            <div style={{...SUB_HEAD, fontWeight: FW.NORM, marginBottom: BLOCK_GAP_TIGHT}}>Flagged columns</div>
             <EvidenceTable columns={etCols} rows={etRows} identifierColumns={2} compact />
             {sub.length > 20 && <div style={{ fontFamily: FF.UI, fontSize: FS.xs, color: C.TEXT_3, marginTop: "3px" }}>…and {sub.length - 20} more</div>}
           </div>
@@ -74,8 +76,10 @@ export function MiniCard_Entropy({ result, importConfig, rowMap }) {
       })()}
 
       {!isAgg && rows.length > 0 && (
-        <div style={{ marginTop: "8px" }}>
-          <div style={SUB_HEAD}>Flagged columns</div>
+        <div style={{ marginTop: BLOCK_GAP }}>
+          {/* S210 (multi-surface): secondary-surface heading kept but demoted
+              (Regular weight) to read clearly below the footer-lead. */}
+          <div style={{...SUB_HEAD, fontWeight: FW.NORM, marginBottom: BLOCK_GAP_TIGHT}}>Flagged columns</div>
           <DataTable data={rows} maxRows={20} compact identifierColumns={2} columns={[
             { header: "Col", bold: true, render: d => d.Col },
             { header: "Finding", render: d => d.Direction === "Low entropy" ? "Too few distinct values" : d.Direction === "High entropy" ? "Too many distinct values" : d.Direction },

@@ -10,7 +10,7 @@ import { KurtosisDistPlot } from "../plots/KurtosisDistPlot.jsx";
 import { DotStrip } from "../plots/DotStrip.jsx";
 import { HBarPlot } from "../plots/HBarPlot.jsx";
 import { PlotSVG } from "../plots/PlotSVG.jsx";
-import { SUB_HEAD } from "../shared/styles.js";
+import { SUB_HEAD, BLOCK_GAP, BLOCK_GAP_TIGHT } from "../shared/styles.js";
 
 
 export function MiniCard_Kurtosis({ result, importConfig, rowMap }) {
@@ -35,8 +35,8 @@ export function MiniCard_Kurtosis({ result, importConfig, rowMap }) {
   return (
     <MiniCardLayout result={result}
       footer={result.flag !== "LOW" && result.flag !== "N/A"
-        ? (isPlat ? "noise distribution too flat and wide" : "noise distribution too peaked and narrow")
-        : "noise distribution as expected"}
+        ? (isPlat ? "Noise distribution too flat and wide" : "Noise distribution too peaked and narrow")
+        : "Noise distribution as expected"}
       lookFor={isPlat ? "This pattern is not visible by scanning individual cells — each value looks plausible on its own, but replicate differences are more evenly spaced than real instruments produce. Ask the authors for the original instrument output files and compare them against the submitted dataset. Check whether data was rounded, averaged, or manually adjusted before upload." : "Replicate differences cluster too tightly around zero with occasional large jumps — suggesting data from mixed sources or selective editing of outliers. Check whether the large-jump rows correspond to key experimental results, and whether different conditions show different noise patterns." }
       implications={isPlat
         ? "Noise that is flatter than expected — evenly spread without the central peak of a bell curve — is unusual for instrument noise and can indicate values generated from a uniform distribution rather than measured."
@@ -44,7 +44,8 @@ export function MiniCard_Kurtosis({ result, importConfig, rowMap }) {
 
       {/* ── Global distribution chart ── */}
       {normDiffs?.length ? <>
-        <div style={SUB_HEAD}>Distribution shape</div>
+        {/* S210 (multi-surface): primary-surface heading dropped — the footer
+            fragment (LEAD_HEAD in MiniCardLayout) heads this primary plot. */}
         <PlotLayout>
           <KurtosisDistPlot normDiffs={normDiffs} simDiffs={result.simDiffs}
             pooledKurtosis={pk} simKurtosis={result.simKurtosis} flag={result.flag}/>
@@ -65,8 +66,9 @@ export function MiniCard_Kurtosis({ result, importConfig, rowMap }) {
 
       {/* ── Condition-stratified section ── */}
       {condK?.length >= 2 && (isAgg || result.flag === "HIGH" || condK.some(c => c.verdict !== "clear")) && (
-        <div style={{marginTop:"10px"}}>
-          <div style={SUB_HEAD}>
+        <div style={{marginTop: BLOCK_GAP}}>
+          {/* S210 (multi-surface): secondary-surface heading demoted (Regular weight). */}
+          <div style={{...SUB_HEAD, fontWeight: FW.NORM, marginBottom: BLOCK_GAP_TIGHT}}>
             Noise shape by condition
             {condK.promoted && <span style={{marginLeft:"8px",fontSize:FS.xs,color:BADGE.PROMOTED.text,background:BADGE.PROMOTED.bg,border:`1px solid ${BADGE.PROMOTED.border}`,borderRadius:CR.SM,padding:"1px 5px"}}>differs between conditions — promoted</span>}
           </div>
@@ -128,7 +130,8 @@ export function MiniCard_Kurtosis({ result, importConfig, rowMap }) {
             })() : null;
             return (
               <>
-                <div style={{...SUB_HEAD, marginTop:"10px"}}>Per-condition noise shape</div>
+                {/* S210 (multi-surface): secondary-surface heading demoted (Regular weight). */}
+                <div style={{...SUB_HEAD, marginTop: BLOCK_GAP, fontWeight: FW.NORM, marginBottom: BLOCK_GAP_TIGHT}}>Per-condition noise shape</div>
                 <PlotLayout>
                   <div style={{display:"flex",flexWrap:"wrap",gap:"8px",justifyContent:"center"}}>
                     {condK.filter(c=>c.normDiffs?.length>=20).map((c,ci)=>{

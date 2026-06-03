@@ -154,7 +154,11 @@ export function TestCardLayout({ result, mode, mk, expanded, onToggle, footer, c
           The `footer` prop slot is preserved but unused by any current
           consumer; banked for separate cleanup (diagnostic finding S168). */}
       {expanded && (
-        <div style={{ marginTop: BLOCK_GAP }}>
+        // S211 (§3 body-left alignment): body wrapper carries paddingLeft
+        // RAIL_GUTTER so the footer-lead + every surface align UNDER the title
+        // text (name/question/breadcrumb), which each carry the same offset.
+        // Without it the body rendered RAIL_GUTTER (16px) left of the title rail.
+        <div style={{ marginTop: BLOCK_GAP, paddingLeft: RAIL_GUTTER }}>
           {children}
           {footer && (
             <div style={{ fontSize: FS.xs, fontFamily: FF.UI, color: C.TEXT_3 }}>

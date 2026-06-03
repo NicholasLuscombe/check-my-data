@@ -1,7 +1,7 @@
 /* ── MiniCard: Duplicate Detection ── */
 
 import { C, CC, FS, FW, FF, M, CP, CR, SIGNAL, DUP_GROUP_PALETTE } from "../../constants/tokens.js";
-import { SUB_HEAD, TD_NUM_CELL, TD_ID_CELL } from "../shared/styles.js";
+import { SUB_HEAD, TD_NUM_CELL, TD_ID_CELL, BLOCK_GAP, BLOCK_GAP_TIGHT } from "../shared/styles.js";
 import { FLAG_STYLES } from "../../constants/thresholds.js";
 import { MiniCardLayout } from "../shared/CardLayout.jsx";
 import { ColumnHeaders } from "../shared/ColumnHeaders.jsx";
@@ -57,7 +57,7 @@ if (dupBlock) {
   if (dupBlock.isColumnMatch) {
     const _r0 = fileRow(toOrigRow(dupBlock.srcRows[0]));
     const _r1 = fileRow(toOrigRow(dupBlock.srcRows[1]));
-    blockClause = `two columns are identical over rows ${_r0}–${_r1}`;
+    blockClause = `2 columns are identical over rows ${_r0}–${_r1}`;
   } else {
     const _n = structuralBlocks.length;
     blockClause = `${_n} repeated block${_n !== 1 ? "s" : ""}`;
@@ -65,7 +65,7 @@ if (dupBlock) {
 }
 const footer = (rowDupClause && blockClause)
   ? `${rowDupClause} · ${blockClause}`
-  : (rowDupClause || blockClause || "no duplicates found");
+  : (rowDupClause || blockClause || "No duplicates found");
 
 // ── Shared styles ──
 const stickyRow = {position:"sticky",left:0,zIndex:2,background:"inherit"};
@@ -139,9 +139,12 @@ const mapVisCols = (vc) => {
 };
 
 // ── Evidence section with sub-heading + description ──
-const EvidenceBlock = ({label, detail, children}) => (
-  <div style={{marginTop:"12px"}}>
-    <div style={SUB_HEAD}>{label}</div>
+const EvidenceBlock = ({label, detail, children, lead=false}) => (
+  <div style={{marginTop: lead ? 0 : BLOCK_GAP}}>
+    {/* S210 (multi-surface): the lead block's heading drops — the footer
+        fragment (LEAD_HEAD in MiniCardLayout) heads it; the secondary block
+        keeps a demoted (Regular weight) heading below the footer-lead. */}
+    {!lead && <div style={{...SUB_HEAD, fontWeight: FW.NORM, marginBottom: BLOCK_GAP_TIGHT}}>{label}</div>}
     {detail && <div style={{fontSize:FS.base,fontFamily:FF.UI,color:C.TEXT_2,marginBottom:"8px"}}>{detail}</div>}
     <div style={{border:`1px solid ${C.BORDER_L}`,borderRadius:CR.MD,padding:0,overflowX:"auto",overflowY:"auto",maxHeight:"200px",background:C.WHITE,position:"relative"}}>{children}</div>
   </div>
@@ -168,7 +171,7 @@ return (
       }
       const totalItems = structuralBlocks.length + (hasRowDups?1:0);
       return (
-      <EvidenceBlock label="Duplicated blocks of data" detail={summaryParts.join("; ")}>
+      <EvidenceBlock label="Duplicated blocks of data" detail={summaryParts.join("; ")} lead>
         {/* Multi-row or partial-width blocks — side-by-side display */}
         {structuralBlocks.slice(0,5).map((blk,bi) => {
           const rawCols = blk.cols.map(c => dataColMap[c] ?? c);
