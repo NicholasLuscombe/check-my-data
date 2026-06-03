@@ -107,7 +107,7 @@ export function TestCardLayout({ result, mode, mk, expanded, onToggle, footer, c
             {/* S195: disclosure glyph leads the test name (left/leading),
                 matching the CardLayout disclosure pattern. */}
             {expandable && <span style={{ color: C.TEXT_3, fontSize: FS.base, flexShrink: 0 }}>{expanded ? "▾" : "▸"}</span>}
-            <span style={{ fontSize: FS.base, fontWeight: FW.SEMI, color: C.TEXT, whiteSpace: "nowrap" }}>
+            <span style={{ fontSize: FS.md, fontWeight: FW.SEMI, color: C.TEXT, whiteSpace: "nowrap" }}>
               {DISPLAY_NAMES[result.name] || result.name}
             </span>
           </span>
@@ -117,7 +117,7 @@ export function TestCardLayout({ result, mode, mk, expanded, onToggle, footer, c
           <div style={{ display: "flex", gap: "8px", alignItems: "center", flexShrink: 0, marginLeft: "8px" }}>
             <span
               style={{
-                fontWeight: FW.SEMI, fontSize: FS.xs, color: flColor,
+                fontWeight: FW.MED, fontSize: FS.base, color: flColor,
               }}
             >
               {flLabel}{showPValue && fl !== "LOW" && result.primaryP != null ? ` ${fmtPBadge(result.primaryP)}` : ""}
@@ -128,7 +128,7 @@ export function TestCardLayout({ result, mode, mk, expanded, onToggle, footer, c
             on the collapsed card (teaser); wraps and reads in full on expand. */}
         {showSubtitle && TEST_DESCRIPTIONS[result.name] && (
           <div style={{
-            fontSize: FS.base, fontWeight: FW.NORM, color: C.TEXT_3,
+            fontSize: FS.sm, fontWeight: FW.NORM, color: C.TEXT_3,
             overflow: "hidden", textOverflow: "ellipsis",
             whiteSpace: expanded ? "normal" : "nowrap",
           }}>
