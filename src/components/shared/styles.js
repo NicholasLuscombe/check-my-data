@@ -30,18 +30,16 @@ export const BLOCK_GAP = "12px";
 export const BLOCK_GAP_TIGHT = "6px";
 
 // S210 (§3 left-rail unification): one shared text rail down section 3. The
-// leading chrome (disclosure triangle, mechanism icon, cleared ✓) sits in a
-// fixed-width gutter; ALL §3 title text + the sub-header question begin at the
-// gutter's right edge, so the rail x is constant whether or not a row carries
-// an icon/check. RAIL_GUTTER is sized to clear the widest chrome (triangle +
-// the 22px `digits` mechanism icon) with a little slack. RAIL_GUTTER_GAP is the
-// gap BETWEEN chrome glyphs inside the gutter (triangle↔icon, triangle↔check).
+// only leading chrome in the gutter is the disclosure triangle — the mechanism
+// icon (cluster header + breadcrumb) and the cleared-strip ✓ moved to the RIGHT
+// of the title text (S210 follow-up), so the gutter shrinks to just clear the
+// triangle + a small gap. ALL §3 title text + the sub-header question begin at
+// the gutter's right edge, so the rail x is constant across row types.
 // Consumers (ClusterRow, TestCardLayout, ClearSummaryRow) anchor their text to
 // this single offset from the box content-left rather than building independent
-// padding/gap/glyph chains. The 3px colour stripe / card box edges stay at x=0
-// (the gutter sits inside the box content, not the stripe).
-export const RAIL_GUTTER = "40px";
-export const RAIL_GUTTER_GAP = "4px";
+// padding/glyph chains. The 3px colour stripe / card box edges stay at x=0 (the
+// gutter sits inside the box content, not the stripe).
+export const RAIL_GUTTER = "16px";
 
 // S210 (§3 right rail): the mirror of RAIL_GUTTER on the right edge. Every §3
 // row's right-aligned verdict/flag (cluster worst-tier word, card verdict·p)

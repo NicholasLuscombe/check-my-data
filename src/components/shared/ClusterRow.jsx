@@ -35,7 +35,7 @@
 import { C, FS, FW, MECH_COLOR, SEV_VERDICT } from "../../constants/tokens.js";
 import { LANE_LABEL_TYPOGRAPHY } from "./Section.jsx";
 import { MechIcon, mechIconSize } from "./MechIcon.jsx";
-import { RAIL_GUTTER, RAIL_GUTTER_GAP, RAIL_RIGHT } from "./styles.js";
+import { RAIL_GUTTER, RAIL_RIGHT } from "./styles.js";
 
 /**
  * @param {object} props
@@ -71,20 +71,16 @@ export function ClusterRow({
         style={{ display: "flex", alignItems: "center", gap: 0, cursor: isExpandable ? "pointer" : "default" }}
         onClick={isExpandable ? onToggle : undefined}
       >
-        {/* S210: fixed-width gutter holds the leading chrome (disclosure
-            triangle + mechanism icon) so the label text below lands on the
-            shared §3 rail. Glyph + icon are the icon-glyph carve-out per
+        {/* S210: the gutter now holds only the disclosure triangle — the
+            mechanism icon moved to the right of the title (below), so the rail
+            sits close to the left edge. Glyph is the icon-glyph carve-out per
             TYPOGRAPHY-SYSTEM.md §"What this system does NOT cover". */}
-        <span style={{ width: RAIL_GUTTER, flexShrink: 0, display: "inline-flex", alignItems: "center", gap: RAIL_GUTTER_GAP }}>
+        <span style={{ width: RAIL_GUTTER, flexShrink: 0, display: "inline-flex", alignItems: "center" }}>
           {isExpandable && (
             <span style={{ color: C.TEXT_2, fontSize: "14px", flexShrink: 0 }}>
               {isExpanded ? "▾" : "▸"}
             </span>
           )}
-          {/* S157: cluster-identity icon; 20px (mechIconSize +2 for digits),
-              MECH_COLOR hue via the mk key. Full opacity in all tiers — the
-              right-side worst-tier word does the cleared/flagged muting. */}
-          {mk && <MechIcon mk={mk} size={mechIconSize(mk, 20)} />}
         </span>
         {/* Text group — starts on the rail (gutter's right edge). Keeps the
             label↔count↔description rhythm and the right-pinned word badge. */}
@@ -92,6 +88,10 @@ export function ClusterRow({
           <span style={{ ...LANE_LABEL_TYPOGRAPHY }}>
             {label}
           </span>
+          {/* S157/S210: cluster-identity icon — now immediately AFTER the title,
+              before the count: [title] [icon] (N tests). 20px (mechIconSize +2
+              for digits), MECH_COLOR hue via the mk key. */}
+          {mk && <MechIcon mk={mk} size={mechIconSize(mk, 20)} />}
           <span style={{ fontSize: FS.base, fontWeight: FW.NORM, color: C.TEXT_3, flexShrink: 0 }}>
             ({count} {noun}{count !== 1 ? "s" : ""})
           </span>

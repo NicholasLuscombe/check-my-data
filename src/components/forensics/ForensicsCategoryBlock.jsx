@@ -21,7 +21,7 @@ import { TestCardLayout } from "../shared/TestCardLayout.jsx";
 import { ClusterRow } from "../shared/ClusterRow.jsx";
 import { TestCard } from "../cards/TestCard.jsx";
 import { usePulseAnimation } from "./PulseStyle.jsx";
-import { RAIL_GUTTER, RAIL_GUTTER_GAP, RAIL_RIGHT } from "../shared/styles.js";
+import { RAIL_GUTTER, RAIL_RIGHT } from "../shared/styles.js";
 
 const SEV_RANK = { HIGH: 3, MOD: 2, MODERATE: 2, LOW: 1, CLEAR: 0, "N/A": -1 };
 
@@ -188,16 +188,17 @@ function ClearSummaryRow({ tests, onExpand, expanded = false }) {
         display: "flex", alignItems: "center", gap: 0,
       }}
     >
-      {/* S210: disclosure triangle + status ✓ sit in the fixed-width gutter so
-          the "N cleared" text lands on the shared §3 rail. Reading order
-          [▸ ✓ "N cleared"]; glyphs are the icon-glyph carve-out. */}
-      <span style={{ width: RAIL_GUTTER, flexShrink: 0, display: "inline-flex", alignItems: "center", gap: RAIL_GUTTER_GAP }}>
+      {/* S210: gutter holds only the disclosure triangle (matching the cluster
+          header + cards); the status ✓ moves onto the rail as the lead of the
+          text group. Reading order stays [▸ ✓ "N cleared"]. Triangle is the
+          icon-glyph carve-out. */}
+      <span style={{ width: RAIL_GUTTER, flexShrink: 0, display: "inline-flex", alignItems: "center" }}>
         <span style={{ color: C.TEXT_3, flexShrink: 0 }}>{expanded ? "▾" : "▸"}</span>
-        <span style={{ color: SEV_VERDICT[0].color, fontSize: FS.base }}>✓</span>
       </span>
-      {/* Text group on the rail. S156 (A1.D0c-bis D4 lock): ALL CAPS "CLEAR"
-          retired; sentence-case past-tense "cleared" matches the post-S137 canon. */}
+      {/* Text group on the rail, led by the status ✓. S156 (A1.D0c-bis D4 lock):
+          ALL CAPS "CLEAR" retired; sentence-case past-tense "cleared". */}
       <div style={{ display: "flex", alignItems: "center", gap: "6px", flex: 1, minWidth: 0 }}>
+        <span style={{ color: SEV_VERDICT[0].color, fontSize: FS.base, flexShrink: 0 }}>✓</span>
         <span style={{ fontWeight: FW.SEMI, color: C.TEXT, flexShrink: 0 }}>{tests.length} test{tests.length !== 1 ? "s" : ""} cleared</span>
         <span style={{ color: C.TEXT_3, flexShrink: 0 }}>—</span>
         <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", minWidth: 0 }}>

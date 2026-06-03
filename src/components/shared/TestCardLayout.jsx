@@ -77,9 +77,10 @@ export function TestCardLayout({ result, mode, mk, expanded, onToggle, footer, c
           (name+verdict·p / question); expanded restores it above the name. */}
       {clusterLabel && expanded && (
         <div style={{
+          paddingLeft: RAIL_GUTTER,
           display: "flex",
           alignItems: "center",
-          gap: 0,
+          gap: "8px",
           fontSize: FS.sm,
           fontWeight: FW.NORM,
           color: mechStripe,
@@ -87,13 +88,12 @@ export function TestCardLayout({ result, mode, mk, expanded, onToggle, footer, c
           lineHeight: "1.2",
           marginBottom: "2px",
         }}>
-          {/* S210: breadcrumb echoes the cluster header — icon in the shared
-              gutter, cluster-name text on the shared title rail (so it aligns
-              with the test name on the row below and the §3 cluster label). */}
-          <span style={{ width: RAIL_GUTTER, flexShrink: 0, display: "inline-flex", alignItems: "center" }}>
-            <MechIcon mk={mk} size={mechIconSize(mk, 14)} color={mechStripe} />
-          </span>
+          {/* S210: breadcrumb echoes the cluster header — cluster-name text on
+              the shared title rail (paddingLeft = the gutter, so it aligns with
+              the test name on the row below), mechanism icon to the RIGHT of the
+              text (same text-then-icon order as the cluster header). */}
           <span>{clusterLabel}</span>
+          <MechIcon mk={mk} size={mechIconSize(mk, 14)} color={mechStripe} />
         </div>
       )}
       {/* ── Header line (S210: two stacked rows) ── */}
