@@ -35,7 +35,7 @@
 import { C, FS, FW, MECH_COLOR, SEV_VERDICT } from "../../constants/tokens.js";
 import { LANE_LABEL_TYPOGRAPHY } from "./Section.jsx";
 import { MechIcon, mechIconSize } from "./MechIcon.jsx";
-import { RAIL_GUTTER, RAIL_GUTTER_GAP } from "./styles.js";
+import { RAIL_GUTTER, RAIL_GUTTER_GAP, RAIL_RIGHT } from "./styles.js";
 
 /**
  * @param {object} props
@@ -66,7 +66,7 @@ export function ClusterRow({
   const wordColor = hasHigh ? SEV_VERDICT[3].color : isFlagged ? SEV_VERDICT[2].color : SEV_VERDICT[0].color;
   const wordText  = hasHigh ? "High"               : isFlagged ? "Moderate"           : "Clear";
   return (
-    <div style={{ padding: "10px 10px", borderLeft: `3px solid ${borderColor}` }}>
+    <div style={{ padding: `10px ${RAIL_RIGHT} 10px 10px`, borderLeft: `3px solid ${borderColor}` }}>
       <div
         style={{ display: "flex", alignItems: "center", gap: 0, cursor: isExpandable ? "pointer" : "default" }}
         onClick={isExpandable ? onToggle : undefined}

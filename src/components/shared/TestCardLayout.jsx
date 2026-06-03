@@ -8,7 +8,7 @@ import { C, FS, FW, FF, SEV_VERDICT, MECH_COLOR } from "../../constants/tokens.j
 import { DISPLAY_NAMES, TEST_DESCRIPTIONS, MECHANISMS } from "../../constants/mechanisms.js";
 import { fmtPBadge } from "../../constants/thresholds.js";
 import { MechIcon, mechIconSize } from "./MechIcon.jsx";
-import { BLOCK_GAP, RAIL_GUTTER } from "./styles.js";
+import { BLOCK_GAP, RAIL_GUTTER, RAIL_RIGHT } from "./styles.js";
 
 /**
  * @param {object} props
@@ -66,7 +66,7 @@ export function TestCardLayout({ result, mode, mk, expanded, onToggle, footer, c
       border: "1px solid #E5E7EB",
       ...(mechStripe ? { borderLeft: `3px solid ${mechStripe}` } : {}),
       borderRadius: "6px",
-      padding: mechStripe ? "8px 16px 8px 10px" : "8px 16px",
+      padding: mechStripe ? `8px ${RAIL_RIGHT} 8px 10px` : `8px ${RAIL_RIGHT}`,
       fontFamily: FF.UI,
     }}>
       {/* ── Cluster-name breadcrumb (S156-fix5 + S157 icon) ── */}
@@ -79,7 +79,7 @@ export function TestCardLayout({ result, mode, mk, expanded, onToggle, footer, c
         <div style={{
           display: "flex",
           alignItems: "center",
-          gap: "6px",
+          gap: 0,
           fontSize: FS.sm,
           fontWeight: FW.NORM,
           color: mechStripe,
@@ -87,7 +87,12 @@ export function TestCardLayout({ result, mode, mk, expanded, onToggle, footer, c
           lineHeight: "1.2",
           marginBottom: "2px",
         }}>
-          <MechIcon mk={mk} size={mechIconSize(mk, 14)} color={mechStripe} />
+          {/* S210: breadcrumb echoes the cluster header — icon in the shared
+              gutter, cluster-name text on the shared title rail (so it aligns
+              with the test name on the row below and the §3 cluster label). */}
+          <span style={{ width: RAIL_GUTTER, flexShrink: 0, display: "inline-flex", alignItems: "center" }}>
+            <MechIcon mk={mk} size={mechIconSize(mk, 14)} color={mechStripe} />
+          </span>
           <span>{clusterLabel}</span>
         </div>
       )}

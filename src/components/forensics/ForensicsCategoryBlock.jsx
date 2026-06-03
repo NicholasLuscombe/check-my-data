@@ -21,7 +21,7 @@ import { TestCardLayout } from "../shared/TestCardLayout.jsx";
 import { ClusterRow } from "../shared/ClusterRow.jsx";
 import { TestCard } from "../cards/TestCard.jsx";
 import { usePulseAnimation } from "./PulseStyle.jsx";
-import { RAIL_GUTTER, RAIL_GUTTER_GAP } from "../shared/styles.js";
+import { RAIL_GUTTER, RAIL_GUTTER_GAP, RAIL_RIGHT } from "../shared/styles.js";
 
 const SEV_RANK = { HIGH: 3, MOD: 2, MODERATE: 2, LOW: 1, CLEAR: 0, "N/A": -1 };
 
@@ -112,7 +112,10 @@ export function ForensicsCategoryBlock({
       />
 
       {isExpanded && (
-        <div style={{ padding: "0 10px 10px 0" }}>
+        // S210: right padding dropped (10→0) so card/strip boxes span to the
+        // block right edge like the cluster row — shared right edge for the
+        // verdict rail. Left stays 0 (shared x=0 left origin, S210 left rail).
+        <div style={{ padding: "0 0 10px 0" }}>
           <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginTop: "8px" }}>
             {flaggedTests.map(r => {
               const defaultOpen = true;
@@ -174,7 +177,7 @@ function ClearSummaryRow({ tests, onExpand, expanded = false }) {
     <div
       onClick={onExpand}
       style={{
-        padding: "8px 12px",
+        padding: `8px ${RAIL_RIGHT} 8px 12px`,
         background: C.BG_L,
         border: `1px solid ${C.BORDER_L}`,
         borderRadius: CR.LG,

@@ -43,6 +43,16 @@ export const BLOCK_GAP_TIGHT = "6px";
 export const RAIL_GUTTER = "40px";
 export const RAIL_GUTTER_GAP = "4px";
 
+// S210 (§3 right rail): the mirror of RAIL_GUTTER on the right edge. Every §3
+// row's right-aligned verdict/flag (cluster worst-tier word, card verdict·p)
+// ends at one shared x — RAIL_RIGHT inset from the row's content-box right
+// edge. For this to be a single x the boxes must share a right edge: the
+// Forensics cards container drops its right padding so card/strip boxes span to
+// the block right like the cluster row does (mirror of the shared x=0 left
+// origin). Applied as padding-right on ClusterRow, TestCardLayout, and the
+// cleared-strip.
+export const RAIL_RIGHT = "16px";
+
 // S151 (C.9 / B1): full spec match for footnote/reference register.
 // Pre-S151: fontSize TF.DETAIL (11px) + color C.TEXT_4. Now sm Regular C.TEXT_2 sans
 // per TYPOGRAPHY-SYSTEM.md § Tables "Footnote / reference under table" row.
