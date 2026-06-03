@@ -8,6 +8,7 @@ import { C, FS, FW, FF, SEV_VERDICT, MECH_COLOR } from "../../constants/tokens.j
 import { DISPLAY_NAMES, TEST_DESCRIPTIONS, MECHANISMS } from "../../constants/mechanisms.js";
 import { fmtPBadge } from "../../constants/thresholds.js";
 import { MechIcon, mechIconSize } from "./MechIcon.jsx";
+import { BLOCK_GAP, RAIL_GUTTER, RAIL_RIGHT } from "./styles.js";
 
 /**
  * @param {object} props
@@ -65,15 +66,21 @@ export function TestCardLayout({ result, mode, mk, expanded, onToggle, footer, c
       border: "1px solid #E5E7EB",
       ...(mechStripe ? { borderLeft: `3px solid ${mechStripe}` } : {}),
       borderRadius: "6px",
-      padding: mechStripe ? "8px 16px 8px 11px" : "8px 16px",
+      padding: mechStripe ? `8px ${RAIL_RIGHT} 8px 10px` : `8px ${RAIL_RIGHT}`,
       fontFamily: FF.UI,
     }}>
       {/* ── Cluster-name breadcrumb (S156-fix5 + S157 icon) ── */}
-      {clusterLabel && (
+      {/* S210: gated on `expanded`. Its scroll-anchor role only applies on an
+          open card (where the §3 cluster header may be off-screen); on a
+          collapsed card the cluster header sits directly above, so the
+          breadcrumb is scan-time repetition. Collapsed = two lines
+          (name+verdict·p / question); expanded restores it above the name. */}
+      {clusterLabel && expanded && (
         <div style={{
+          paddingLeft: RAIL_GUTTER,
           display: "flex",
           alignItems: "center",
-          gap: "6px",
+          gap: "8px",
           fontSize: FS.sm,
           fontWeight: FW.NORM,
           color: mechStripe,
@@ -81,40 +88,63 @@ export function TestCardLayout({ result, mode, mk, expanded, onToggle, footer, c
           lineHeight: "1.2",
           marginBottom: "2px",
         }}>
-          <MechIcon mk={mk} size={mechIconSize(mk, 14)} color={mechStripe} />
+          {/* S210: breadcrumb echoes the cluster header — cluster-name text on
+              the shared title rail (paddingLeft = the gutter, so it aligns with
+              the test name on the row below), mechanism icon to the RIGHT of the
+              text (same text-then-icon order as the cluster header). */}
           <span>{clusterLabel}</span>
+          <MechIcon mk={mk} size={mechIconSize(mk, 14)} color={mechStripe} />
         </div>
       )}
-      {/* ── Header line ── */}
+      {/* ── Header line (S210: two stacked rows) ── */}
+      {/* The whole block owns expand/collapse. Row 1 carries the test name with
+          verdict·p right-aligned (the verdict no longer competes with the
+          question for the right edge); row 2 drops the sub-header question to
+          its own full-width line so it reads in full on expansion. Mechanism
+          breadcrumb above renders only when expanded (S210). */}
       <div
-        style={{ display: "flex", justifyContent: "space-between", alignItems: "center", cursor: expandable ? "pointer" : "default" }}
+        style={{ cursor: expandable ? "pointer" : "default" }}
         onClick={expandable ? onToggle : undefined}
       >
-        <span style={{ display: "flex", alignItems: "center", gap: "4px", overflow: "hidden", minWidth: 0 }}>
-          {/* S195: disclosure glyph leads the test name (left/leading),
-              matching the CardLayout disclosure pattern. */}
-          {expandable && <span style={{ color: C.TEXT_3, fontSize: FS.base, flexShrink: 0 }}>{expanded ? "▾" : "▸"}</span>}
-          <span style={{ fontSize: FS.base, fontWeight: FW.SEMI, color: C.TEXT, whiteSpace: "nowrap" }}>
-            {DISPLAY_NAMES[result.name] || result.name}
-          </span>
-          {showSubtitle && TEST_DESCRIPTIONS[result.name] && (
-            <span style={{ fontSize: FS.base, fontWeight: FW.NORM, color: C.TEXT_3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-              {" · "}{TEST_DESCRIPTIONS[result.name]}
+        {/* Row 1 — test name (left) · verdict·p (right) */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <span style={{ display: "flex", alignItems: "center", gap: 0, overflow: "hidden", minWidth: 0 }}>
+            {/* S210: disclosure triangle sits in the fixed-width gutter so the
+                test name lands on the shared §3 rail — aligned with the cluster
+                label, the cleared-strip text, and the sub-header question
+                below. Glyph is the icon-glyph carve-out (TYPOGRAPHY-SYSTEM.md). */}
+            <span style={{ width: RAIL_GUTTER, flexShrink: 0, display: "inline-flex", alignItems: "center" }}>
+              {expandable && <span style={{ color: C.TEXT_3, fontSize: FS.base, flexShrink: 0 }}>{expanded ? "▾" : "▸"}</span>}
             </span>
-          )}
-        </span>
-        {/* S195: verdict pill is inert text — no onClick, no pointer cursor.
-            The whole header row owns expand/collapse; the pill sits alone
-            on the right. */}
-        <div style={{ display: "flex", gap: "8px", alignItems: "center", flexShrink: 0, marginLeft: "8px" }}>
-          <span
-            style={{
-              fontWeight: FW.SEMI, fontSize: FS.xs, color: flColor,
-            }}
-          >
-            {flLabel}{showPValue && fl !== "LOW" && result.primaryP != null ? ` ${fmtPBadge(result.primaryP)}` : ""}
+            <span style={{ fontSize: FS.base, fontWeight: FW.SEMI, color: C.TEXT, whiteSpace: "nowrap" }}>
+              {DISPLAY_NAMES[result.name] || result.name}
+            </span>
           </span>
+          {/* S195: verdict pill is inert text — no onClick, no pointer cursor.
+              The whole header block owns expand/collapse; the pill sits alone
+              on the right of row 1. */}
+          <div style={{ display: "flex", gap: "8px", alignItems: "center", flexShrink: 0, marginLeft: "8px" }}>
+            <span
+              style={{
+                fontWeight: FW.MED, fontSize: FS.base, color: flColor,
+              }}
+            >
+              {flLabel}{showPValue && fl !== "LOW" && result.primaryP != null ? ` ${fmtPBadge(result.primaryP)}` : ""}
+            </span>
+          </div>
         </div>
+        {/* Row 2 — sub-header question, full-width on its own line. Truncates
+            on the collapsed card (teaser); wraps and reads in full on expand. */}
+        {showSubtitle && TEST_DESCRIPTIONS[result.name] && (
+          <div style={{
+            paddingLeft: RAIL_GUTTER,
+            fontSize: FS.sm, fontWeight: FW.NORM, color: C.TEXT_3,
+            overflow: "hidden", textOverflow: "ellipsis",
+            whiteSpace: expanded ? "normal" : "nowrap",
+          }}>
+            {TEST_DESCRIPTIONS[result.name]}
+          </div>
+        )}
       </div>
 
       {/* ── Expanded content ── */}
@@ -124,7 +154,7 @@ export function TestCardLayout({ result, mode, mk, expanded, onToggle, footer, c
           The `footer` prop slot is preserved but unused by any current
           consumer; banked for separate cleanup (diagnostic finding S168). */}
       {expanded && (
-        <div style={{ marginTop: "10px" }}>
+        <div style={{ marginTop: BLOCK_GAP }}>
           {children}
           {footer && (
             <div style={{ fontSize: FS.xs, fontFamily: FF.UI, color: C.TEXT_3 }}>

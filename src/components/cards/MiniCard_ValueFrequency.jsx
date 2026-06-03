@@ -3,7 +3,6 @@ import { FW } from "../../constants/tokens.js";
 import { EvidenceTable } from "../shared/EvidenceTable.jsx";
 
 import { fmtP } from "../../constants/thresholds.js";
-import { SUB_HEAD } from "../shared/styles.js";
 import { makeRowMapper } from "../shared/coordinates.js";
 
 // Compose the per-detail join key into a result._spikeCells group.
@@ -80,7 +79,8 @@ export function MiniCard_ValueFrequency({ result, importConfig, rowMap }) {
             <strong>Adjacent-key pattern detected</strong> — spike values include numpad diagonal entries (12, 23, 34, 45…). Consistent with keyboard entry rather than instrument output.
           </CardBanner>
         )}
-        <div style={SUB_HEAD}>Over-represented values</div>
+        {/* S210 (single-surface): section heading dropped — the footer
+            fragment (LEAD_HEAD in MiniCardLayout) heads this sole table. */}
         <EvidenceTable
           columns={[
             {label:"Value",    width:"85px"},

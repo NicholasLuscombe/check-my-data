@@ -8,7 +8,7 @@ import { ChartLegend } from "../shared/ChartLegend.jsx";
 import { HBarPlot } from "../plots/HBarPlot.jsx";
 import { NoiseSpreadPlot } from "../plots/NoiseSpreadPlot.jsx";
 import { fmtP } from "../../constants/thresholds.js";
-import { SUB_HEAD } from "../shared/styles.js";
+import { SUB_HEAD, BLOCK_GAP, BLOCK_GAP_TIGHT } from "../shared/styles.js";
 
 
 export function MiniCard_SelectiveNoise({ result, importConfig, rowMap }) {
@@ -94,7 +94,8 @@ if(result.colDetails?.length) {
     <MiniCardLayout result={result}
       footer={footerText} lookFor={lookForText} implications={implicationsText}>
       {pivotBanner}
-      <div style={SUB_HEAD}>Spread by column</div>
+      {/* S210 (multi-surface): primary-surface heading dropped — the footer
+          fragment (LEAD_HEAD in MiniCardLayout) heads this primary plot. */}
       <PlotLayout>
           <NoiseSpreadPlot colDetails={labelledCols}
             flaggedCols={flaggedCols.size > 0 ? flaggedCols : undefined}
@@ -106,8 +107,10 @@ if(result.colDetails?.length) {
         ...(result.flag !== "LOW" ? [{ color: C.BORDER, label: "Expected", opacity: 0.25 }] : []),
       ]} />
       {perCol.length > 0 && result.flag !== "LOW" && result.flag !== "N/A" && (
-        <div style={{marginTop:"8px"}}>
-          <div style={SUB_HEAD}>Spread compared to expected, per column</div>
+        <div style={{marginTop: BLOCK_GAP}}>
+          {/* S210 (multi-surface): secondary-surface heading kept but demoted
+              (Regular weight) to read clearly below the footer-lead. */}
+          <div style={{...SUB_HEAD, fontWeight: FW.NORM, marginBottom: BLOCK_GAP_TIGHT}}>Spread compared to expected, per column</div>
           {(() => {
             const sds = perCol.map(d => d.residualStd);
             const sorted = [...sds].sort((a, b) => a - b);

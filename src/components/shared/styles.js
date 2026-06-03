@@ -14,6 +14,43 @@ import { FLAG_STYLES } from "../../constants/thresholds.js";
 // table-header weight + colour.
 export const SUB_HEAD = { fontSize: FS.sm, fontFamily: FF.UI, fontWeight: FW.SEMI, color: C.TEXT_3, marginBottom: "8px" };
 
+// S210 (card composition): the footer fragment promoted to the body's lead
+// header on an expanded card — the finding-in-plain-words that heads the first
+// data surface. One tier above SUB_HEAD (dark + Semibold vs muted) so a
+// demoted secondary-surface heading reads clearly below it.
+export const LEAD_HEAD = { fontSize: FS.sm, fontFamily: FF.UI, fontWeight: FW.SEMI, color: C.TEXT };
+
+// S210 (card composition): the two — and only two — vertical-rhythm units for
+// the card body. BLOCK_GAP separates major blocks (header line → footer-lead →
+// surface → secondary surface → disclosure row); BLOCK_GAP_TIGHT is the
+// within-block gap from a surface heading to its own plot/table. Applied at
+// every inter-block gap rather than per-card ad-hoc margins. Not a glyph
+// register, so these live here rather than in TYPOGRAPHY-SYSTEM.md.
+export const BLOCK_GAP = "12px";
+export const BLOCK_GAP_TIGHT = "6px";
+
+// S210 (§3 left-rail unification): one shared text rail down section 3. The
+// only leading chrome in the gutter is the disclosure triangle — the mechanism
+// icon (cluster header + breadcrumb) and the cleared-strip ✓ moved to the RIGHT
+// of the title text (S210 follow-up), so the gutter shrinks to just clear the
+// triangle + a small gap. ALL §3 title text + the sub-header question begin at
+// the gutter's right edge, so the rail x is constant across row types.
+// Consumers (ClusterRow, TestCardLayout, ClearSummaryRow) anchor their text to
+// this single offset from the box content-left rather than building independent
+// padding/glyph chains. The 3px colour stripe / card box edges stay at x=0 (the
+// gutter sits inside the box content, not the stripe).
+export const RAIL_GUTTER = "16px";
+
+// S210 (§3 right rail): the mirror of RAIL_GUTTER on the right edge. Every §3
+// row's right-aligned verdict/flag (cluster worst-tier word, card verdict·p)
+// ends at one shared x — RAIL_RIGHT inset from the row's content-box right
+// edge. For this to be a single x the boxes must share a right edge: the
+// Forensics cards container drops its right padding so card/strip boxes span to
+// the block right like the cluster row does (mirror of the shared x=0 left
+// origin). Applied as padding-right on ClusterRow, TestCardLayout, and the
+// cleared-strip.
+export const RAIL_RIGHT = "16px";
+
 // S151 (C.9 / B1): full spec match for footnote/reference register.
 // Pre-S151: fontSize TF.DETAIL (11px) + color C.TEXT_4. Now sm Regular C.TEXT_2 sans
 // per TYPOGRAPHY-SYSTEM.md § Tables "Footnote / reference under table" row.
