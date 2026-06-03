@@ -829,6 +829,7 @@ Per-card findings live under the owning category section below; pass-level frami
 - **§2 field-swap landed and verified (S192 Fix 1).** `extractCellFlags` now reads `perColumnResults[].flagged`, not `colDetails[].residualStd`. No-localisation → no column highlight; the descriptive max/min-SD spread stays in the card body. Verified DS08: lands in "Flagged, location unclear," no column paint. The locked localisation invariant (highlight = localisation claim) now holds for this card. (This is the queued Tier-1 #1 from the §2-emission cluster resolution.)
 - **Open — descriptive header vs table (sweep finding, minor).** The card header reads "variance ratio 2.5× (Plate3 quieter)" but the per-column table's worst column is Plate3 at 0.65× (≈1.54× inverted). Header descriptive figure disagrees with the table. Not a highlight bug. Resolve in the per-card content pass (the "content / no redundancy" checklist axis). Also in STATUS Known bugs.
   - **S202 update (stage-2b footer rewrite, `4957428`).** The footer no longer carries the "(Plate3 quieter)" descriptive parenthetical — the budget footer dropped it, and the new single-column footer is direction-aware ("one column quieter than the rest", wired to `outlierDir`), so the footer surface is now correct on DS08. What remains open is **table-side only**: the descriptive field vs the per-column table's worst-column ratio. Axis-1 / content-adaptiveness, not the footer arc.
+  - **S209 update (footer-register sweep + Axis-1, `bd68509`/`45910f3`).** The direction-aware "one column quieter than the rest" footer was a truth-of-claim fault: it named a column via a max/min heuristic even on a global-only Bartlett firing where zero columns survive the per-column Levene (the engine localised nothing). Footer collapsed to the global fragment "noise levels differ across columns more than expected" (true across the whole output range, names no column); lookFor guarded to name a column only with a real survivor (`flaggedCols.size > 0`). The table-side descriptive-field mismatch noted above is **still open** — the footer is now claim-true, the table descriptive field is the residual Axis-1 item. Render-verification pending the S210 walk.
 - **Two distinct table surfaces, not a redundant heading (S204).** Selective Noise carries two SUB_HEAD surfaces: `:101 "Spread by column"` heads the NoiseSpreadPlot (plot + legend), and `:114` heads a separate EvidenceTable (Column / Observed SD / Expected SD / Ratio / Finding / Adj. p). They are distinct sections, not two headings over one table. The `:114` heading was method-named ("Per-column variance test") and renamed this arc to "Spread compared to expected, per column" (reads the table; distinguishes the expectation-comparison table from the plot). No deletion — the original caption-arc instruction proposed deletion on the assumption of redundancy; pass-1 source verification found the second table and converted it to a rename.
 - **Not the unscoped wash tension (de-merged S193).** S192e bundled the col-only-no-chip question (#6) into the add-8 unscoped wash tension. That was a mis-merge: on DS08 Selective Noise is **column-local**, not unscoped, so the wash never applied to it. #6 is a distinct question — whether a column-level test that fires but emits no §2 chip is behaving correctly (the locked localisation invariant says yes: no-localisation → no-chip). It shares the "no localisation → no highlight" principle with the S193 unscoped split but sits at a different tier (column-local vs unscoped). #6 stays parked on its own terms; it is not closed by the S193 fix.
 
@@ -1194,38 +1195,10 @@ rows read as contradicting each other. Display/legibility finding, **not** an
 engine change. My lean: the rule is right; the card should telegraph that the
 verdict is global and the rows are context.
 
-### #3 — Footer register inconsistent across cards — CROSS-CARD COPY (arc not started)
-
-Footers mix at least two registers when read side by side:
-- terse lowercase fragments — "one column quieter than the rest" (Column-to-column
-  noise), "balance as expected" (Baseline Balance), "conditions differ normally"
-  (Overall condition similarity), "replicates correlate more closely than
-  expected" (IRC);
-- count-led near-sentences — "1 row has an unusual combination of values" (Unusual
-  rows), which leads with a numeral and reads as a sentence missing its capital
-  against the all-lowercase fragments.
-
-Authored per-card, never reconciled. Resolve by **locking a footer-register rule**
-(fragment vs sentence; lowercase-start vs capitalised; count-led vs property-led)
-then sweeping all cards — same shape as S199. Part of the not-started cross-card
-consistency arc.
-
-### #4 — Legend baseline vocabulary: "Median spread" vs "Expected" — CROSS-CARD CONSISTENCY
-
-Column-to-column noise labels its shaded reference band **"Median spread"**, while
-its own plot caption frames the comparison against *expected*, and the IRC card
-labels the equivalent baseline swatch **"Expected"**. Same conceptual role
-(baseline / reference the series are compared against), two different words, and
-"Median spread" is the less legible — it doesn't read as "this is the expectation
-baseline". Align the vocabulary (e.g. "Expected spread", or a caption tying
-"median spread" to the expectation explicitly). Part of the consistency arc.
-
-### #5 — Adjusted-p column label casing: "Adj. p" vs "adj-p" vs "Adj P" — MINOR
-
-Three casings observed for the same adjusted-p column header: Column-to-column
-noise **"Adj. p"**; Overall condition similarity **"adj-p"**; Over-used numbers
-(VFS) **"Adj P"** (no period). Same field, three variants. Locked target **"Adj.
-p"**; fold into the consistency arc sweep.
+> **#3 / #4 / #5 — RESOLVED by the S209 footer-register arc.** The footer-register
+> rule (#3), the "Median spread"→"Expected" legend vocabulary (#4), and the
+> adjusted-p casing (#5) were locked S208 and swept S209. Moved to "Resolved
+> cross-card blocks" below. (#2 and #6 remain open — neither is copy-register.)
 
 ### #6 — VFS EvidenceTable "Adj P" column truncated (Over-used numbers, DS04) — LAYOUT
 
@@ -1238,6 +1211,51 @@ bounds), **not** copy. Separate fix from the #5 casing sweep. The header casing
 ---
 
 ## Resolved cross-card blocks
+
+### Footer-register + legend/casing consistency — #3/#4/#5 + two truth-of-claim faults (RESOLVED S208–S209)
+
+**Originally posed (S206):** footers mixed registers across cards (#3 — terse
+lowercase fragments vs count-led near-sentences); the Column-to-column noise legend
+labelled its baseline "Median spread" where IRC used "Expected" (#4); the adjusted-p
+column header appeared in three casings — "Adj. p" / "adj-p" / "Adj P" (#5).
+
+**Rule locked (S208).** Footer-register split rule re-derived via six-model cross-lock:
+the discriminator is the finding's *cognitive object* — subset-of-units-to-inspect
+(count-led) vs property/pattern (property-fragment), with a deletion test and an
+affordance-decides rule for the ambiguity class. Plus rule 8 — register must hold
+across the test's whole output range; count-led requires the count be *always
+available*. Full rule in `docs/shared/FOOTER-REGISTER-SPEC.md` (committed `4018c33`,
+amended `710a4a3`).
+
+**Swept + applied (S209), promoted `bd68509` → merge `42fe3ff`.** All 28 footer-
+composition sites enumerated at runtime source (not authored copy), classified, and
+13 corrections applied: #22 Column-to-column noise footer collapsed to one global
+fragment ("noise levels differ across columns more than expected"); #23 Region-noise
+and #28 Overall condition similarity direction-derived from existing fields; #25
+Within-row noise direction-neutral; #18 LOESS no-changepoint branch; #4 "Median
+spread"→"Expected" legend; #5 two "Adj. p" casing fixes. Gated outcomes settled at
+source: #27 Carlisle single-direction (no change); #26 RankCorrelation cleared branch
+added.
+
+**Two truth-of-claim faults the sweep surfaced — RESOLVED S209, promoted `45910f3` →
+merge `9ebea42`.** (1) Column-to-column noise footer/lookFor named a column via a
+max/min heuristic on a global-only Bartlett firing the engine never localised — footer
+collapsed to the global fragment, lookFor guarded to `flaggedCols.size > 0`. (2)
+Missing-data footer keyed on `blockHits` not flag tier, so a non-block flagged firing
+read the cleared "scattered across the data" string — now flag-keyed, a non-block
+flagged firing reads "missing values follow a non-random pattern" (deliberately general:
+the flag is a combined BH over three sub-signals while the hit arrays use separate
+per-signal BH, so no column/condition locus is always backable in that state).
+
+**Render-verification PENDING.** All fixes are code-promoted and batch-verified (23/23
+byte-identical, no severity moved) but NOT yet eyeballed on live UI — that is the S210
+56-card visual walk (caption/footer pass). If the walk finds a surface still wrong,
+re-open here. The classification rationale lives in `FOOTER-REGISTER-SPEC.md`; the
+caption-surface catalogue is `docs/shared/CAPTION-SURFACE-AUDIT.md`.
+
+**Still open (NOT resolved by this arc):** #2 (global-verdict-vs-per-column legibility
+on Column-to-column noise — a display finding, not copy) and #6 (VFS Adj-P column
+truncation — layout). Both remain in the open numbered findings above.
 
 ### add-8 unscoped findings — modal-table wash (RESOLVED S193)
 
@@ -1259,4 +1277,4 @@ Verified live on DS21 (Runs chip → table at rest, no wash, no dim, caption fir
 
 ## Trivial cleanups (non-blocking)
 
-**CCC card header-comment `ALPHA` reference (S204).** `MiniCard_CrossCondConsistency.jsx` header comments (lines 11/16/17/84) describe the amber-at-Moderate / can't-reach-High semantics and name `ALPHA`. The `ALPHA` import was removed S204 pass 3 (the CCC legend was its only code use; the tier-ceiling content moved to How-this-works). The comments remain factually accurate and are non-code, so they were left in place — but a comment naming an import that no longer exists is a future-reader trap. Rename/strip when the card is next touched. Not worth a dedicated edit.
+**CCC card header-comment `ALPHA` reference (S204).** `MiniCard_CrossCondConsistency.jsx` header comments (lines 11/16/17/84) describe the amber-at-Moderate / can't-reach-High semantics and name `ALPHA`. The `ALPHA` import was removed S204 pass 3 (the CCC legend was its only code use; the tier-ceiling content moved to How-this-works). The comments remain factually accurate and are non-code, so they were left in place — but a comment naming an import that no longer exists is a future-reader trap. Rename/strip when the card is next touched. Not worth a dedicated edit. **(S209 note: the card WAS touched this session — footer direction branch + "Adj. p" casing — but the comment was out of scope of the string-only sweep, so "strip when next touched" did NOT fire. Still pending; the next CCC-touching edit that isn't string-locked should clear it.)**
