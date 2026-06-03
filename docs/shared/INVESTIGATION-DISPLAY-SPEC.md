@@ -1172,3 +1172,241 @@ All features work on GitHub Pages static hosting:
 - QC mode TestCardLayout ALL CAPS FLAGGED/NOTED/CLEAR branch alignment to sentence-case High/Moderate/Clear (S156 D1)
 - QC cluster descriptions refresh against post-S95 v4.0 cluster names
 - ReportView embedded summary HTML title cell raw-integer severity inconsistent with the ACTION_LABEL canon (carry from S156 arc)
+
+
+---
+
+# Card composition — vertical hierarchy and rhythm (S210)
+
+## The card-surface programme (this spec is pass 1 of it)
+
+This composition spec is the first pass of a six-pass, two-track surface programme. Recorded
+here so the spec is not mistaken for the whole programme, and so the sequence + rationale
+survive. **Frame before contents; the walk verifies settled systems.**
+
+**Card-surface track (on-screen evidence battery):**
+1. **Composition** (this spec) — intra-card hierarchy + rhythm. The *frame*: how blocks
+   stack, rank, space. Owns: the card frame + the disclosure component.
+2. **Plot standardisation** — font / colour-token / size / axis / legend conformance *inside*
+   plots. Convention-home: the axes-colour-legend review checklist + mechanism palette.
+3. **Table standardisation** — EvidenceTable convention conformance *inside* tables (column
+   register, casing, headings, alignment). Convention-home: EvidenceTable conventions. The §2
+   modal table is the same family — reconcile together.
+4. **Visual walk** — render-verification against the three settled systems above. Manual.
+
+**Frame-surface track (the bookends, after the walk — adopt the settled card language):**
+5. **Export standardisation** — the off-screen evidence surface (Excel / §1 HTML / figures).
+   Bik standard applies. Inherits the settled table conventions. Audit parallel-eligible.
+6. **Import-metadata diagnostics** — the front-door ingest/confirmation surface. **Not a test
+   cluster** (confirms the parse, no null / no severity → non-verdict grammar) but adopts the
+   card composition + table language for consistency. May feed the §2 modal table. Scope when
+   it comes up.
+
+**Why this spec is only the frame.** Composition treats the plot and table as opaque blocks —
+it governs where they sit, what heads them, and the space around them, NOT what is inside
+them. Plot-internal and table-internal standardisation are passes 2 and 3, sequenced after,
+each with its own existing convention-home. Frame-before-contents: contents standardisation
+(how big a plot, how many legend items, how many columns) is partly driven by the space the
+frame gives, so the frame settles first. Do not widen this spec to cover plot/table
+internals — those are siblings, not part of this pass.
+
+---
+
+## Card composition — vertical hierarchy and rhythm
+
+A test card is token-conformant per element but reads as balanced only when its elements
+resolve into a small number of clearly-ranked tiers on a consistent vertical rhythm. The
+problem this section fixes: a card that uses five or six distinct peer-level treatments
+(mechanism label, test name, sub-header question, verdict, footer fragment, section heading,
+disclosure rows) gives the eye no primary/secondary/tertiary order, and irregular inter-block
+spacing reads as mess even when every font is correct. The rules below collapse the surfaces
+into three tiers and lock the rhythm between them.
+
+### The header line (collapsed + expanded)
+
+The header line is the **promoted footer** — it carries the verdict on the collapsed card so
+the result is visible without expanding. It persists unchanged when the card expands (the
+card keeps its identity open). Its grammar, top to bottom:
+
+1. **Mechanism breadcrumb — expand-only (S210).** The blue cluster-mechanism line (icon +
+   cluster name, e.g. "Copy, paste, edit") renders **only on the expanded card**, not the
+   collapsed one. Rationale: on a collapsed card the breadcrumb sits directly under its own §3
+   cluster header and is pure repetition at scan time; its scroll-anchor value (keeping the
+   reader's place once the cluster header has scrolled out of view) applies only once the card
+   is open and the reader is deep in it. So the collapsed card is two lines (name+verdict /
+   question); the expanded card gains the breadcrumb above the name. The breadcrumb's icon
+   sits to the **right** of the cluster-name text (hugging it as an icon+label unit, on the
+   shared title rail — see "Section-level alignment" below), matching the §3 cluster header's
+   text-then-icon order.
+2. **Test name + verdict·p line.** The bold test name, with **verdict·p right-aligned on this
+   line** (on the shared right rail — see "Section-level alignment"). The verdict is the most
+   important thing on a collapsed card and must sit in the top-right zone the eye hunts for it;
+   it must never compete with the sub-header question for horizontal space.
+3. **Sub-header question, full-width on its own line below.** The state-neutral direct
+   question ("Do any rows have an unusual combination of values?"), on its own line at full
+   width — so it no longer truncates on expansion. It is **collapsed-visible** (shows on the
+   collapsed card too, truncating as a teaser there). The fix the two-line split delivers:
+   verdict·p no longer crowds the question, and on expansion it reads in full.
+
+This replaces the prior single-line cram (name · question … verdict·p, where the question
+truncated mid-word and the verdict fought it for the right edge). Cost: one line of header
+height, absorbed by the rhythm unit below.
+
+### Header-line type ranking (S210)
+
+The header line's three elements are individually token-conformant but read as "mixed" unless
+size ranks them. The settled treatment (all Inter sans; the family is never the differentiator):
+
+- **Test name — primary.** `FS.base` (16px), `FW.SEMI`, `C.TEXT`.
+- **Sub-header question — secondary.** `FS.sm`, `FW.NORM`, `C.TEXT_3`. One size step below the
+  name.
+- **Verdict·p — the signal, ranked by colour not size.** `FS.base` (16px), `FW.MED`, severity
+  colour. Colour does the "look here" work; it is NOT the smallest element (the prior 13px made
+  size say "minor" while colour said "major" — an inversion that read as the mess).
+
+Two rules behind the values, recorded so a future re-tune does not undo them:
+
+1. **The rank between name and question comes from the question dropping, not the name rising.**
+   An earlier attempt raised the name to `FS.md` (20px); it then read **larger than its own §3
+   cluster header**, inverting the section hierarchy (a child test bigger than its parent
+   cluster). The name must sit at/under the cluster-header size (it is a child) while ranking
+   above its own question (it is the card's anchor). Both constraints are satisfied by keeping
+   the name at `FS.base` and dropping the question to `FS.sm` — never by enlarging the name.
+2. **Name and verdict must not tie on weight.** Both at `FW.SEMI` read as co-equal (label vs
+   result ranking the same). The verdict drops to `FW.MED` so weight separates them and colour
+   carries the verdict's salience.
+
+(Implementation note: S210 hand-edited these three spans during prototyping. Lifting them into
+named register constants — `TEST_NAME` / `VERDICT` / `SUB_HEAD_QUESTION` or similar — is a
+banked cleanup now the values are locked; until then they are inline literals built from the
+`FS`/`FW`/`C` scale.)
+
+### Footer fragment is the body's lead header (expanded)
+
+On expansion the **footer fragment** (the finding-in-plain-words: "1 row has an unusual
+combination of values", "noise levels differ across columns more than expected", "5 offset
+copies — block reappears shifted by a constant") becomes the **lead header for the card
+body** — the bridge from the header line to the first data surface. It reads true in this
+role because the footer is already a finding-about-the-data, so it describes the surface
+beneath it accurately (unlike the test-question, which describes the *test* and would
+mis-head a results table).
+
+### Section-level alignment — left rail, gutter, right rail (S210)
+
+The §3 row family (cluster headers, expanded test cards, cleared strips, and the sub-header
+question inside cards) must align to shared rails, or the column reads ragged ("ransom note")
+even when every row is individually token-conformant. The cause was four independent left-chrome
+chains landing title text at four different x-positions. The settled geometry:
+
+- **One left text rail.** All title text — cluster header, test name, breadcrumb cluster-name,
+  cleared-strip text — and the sub-header question align to a single left x. The leading chrome
+  (the disclosure triangle ▸/▾) sits in a **fixed-width gutter** to the left of the rail; the
+  rail position is constant whether or not the row has anything else. One shared token
+  (`RAIL_GUTTER`, set to clear the triangle + a small gap — S210 value 16px), NOT per-component
+  literals. The 3px colour stripe / card box edges stay at x=0; the rail is the *text*, not the
+  box.
+- **Mechanism icon placement — right of the title, NOT in the gutter (supersedes the earlier
+  icon-in-gutter idea).** The cluster mechanism icon was the widest gutter glyph and forced the
+  gutter wide, leaving an empty left channel on icon-less rows and floating the breadcrumb's
+  small icon. Resolution: the mechanism icon moves to the **right of the title text** — cluster
+  header (`[title] [icon] (N tests) — question … verdict`) and breadcrumb (`[cluster-name]
+  [icon]`) both. The icon keeps its size and palette colour. Consequence, recorded as
+  intended: the cluster-vs-card left-edge distinction now rests on the **colour stripe + card
+  background + the "(N tests)" count**, not on the icon (which is now mid-row). Verified to
+  hold at the prototype cluster; re-confirm at the battery-wide walk on dense clusters.
+- **One right verdict rail.** The right-aligned verdict/flag elements (cluster word badge, card
+  verdict·p, cleared "Clear") align their **right edge** to a single x. One shared token
+  (`RAIL_RIGHT`, S210 value 16px) applied as right-padding across ClusterRow / TestCardLayout /
+  ClearSummaryRow; the cards container drops its right padding so card boxes span to the block
+  right edge like the cluster row. (Accepted: bordered card/strip boxes carry a 1px border the
+  borderless cluster row does not, so their content-right is 1px more inset — sub-perceptible,
+  and a per-component −1px compensator would reintroduce the literal the one-token rule removes.
+  Left as-is by decision.)
+
+### Section headings — single-surface vs multi-surface
+
+The per-surface section heading ("Distance by row", "Detected constant-offset blocks",
+"Spread by column", "Leading digit frequencies") was a second element reading at near
+test-name weight — two competing headings per card. Resolve by surface count:
+
+- **Single-surface cards** (one plot OR one table after the footer): the footer fragment
+  heads the body; the **section heading drops**. The footer already names what the single
+  surface shows.
+- **Multi-surface cards** (plot AND table — e.g. Noise level trend's "Row-by-row noise
+  level" plot + "Region comparison" table; Column-to-column's "Spread by column" plot +
+  "Spread compared to expected, per column" table): the footer fragment heads the **primary
+  surface** (the plot); the **secondary surface keeps its heading, demoted** to a tier clearly
+  below the footer/lead so it labels the table without competing with the body lead.
+
+Content-truth check (verify per card during the visual walk): the footer fragment must
+actually describe the primary surface it now heads. On the audited DS08 cards it reads true
+(footer = finding-about-data = what the plot shows). Any card where the footer does not
+describe its primary surface keeps an explicit heading instead — flag at the walk rather than
+forcing the rule.
+
+### Vertical rhythm
+
+Lock **one inter-block spacing unit** between major blocks (header line → footer-lead →
+surface → secondary surface → disclosure row), and a **tighter within-block unit** (a
+surface heading to its own plot/table). Irregular spacing is the largest single contributor
+to the "messy" read — it is not a TYPOGRAPHY-SYSTEM token today (the type system governs
+glyphs, not gaps), so it has drifted per card. The exact two values are set once and applied battery-wide; the rule is that there are exactly
+two, consistently applied, not per-card. **S210 set them as shared tokens in `styles.js`:**
+`BLOCK_GAP` (between major blocks — header line → footer-lead → surface → secondary surface →
+disclosure row; S210 value 12px) and `BLOCK_GAP_TIGHT` (within a block — a surface heading to
+its own plot/table; S210 value 6px). Import the tokens; no ad-hoc inline margins for this
+recurring pattern. (Values are starting points verified on the prototype cluster; re-judge on
+dense clusters at the battery-wide walk.)
+
+### Disclosure tier
+
+The three disclosures ("How this test works", "Implications", "What to look for") were three
+full-width, heading-weight, stacked rows — reading at content-heading weight and eating
+vertical space. Demote and group:
+
+- **One quiet inline row**, lighter than content headings, so the set recedes as secondary
+  affordances rather than competing as content. **Wraps gracefully** to a second line at
+  narrow card widths (a clean wrap, not a hard single-row mandate — a forced single row that
+  overflows reads worse than a two-line wrap).
+- **Expand = accordion panel below the row.** Each label toggles (`▸`/`▾`) a full-width panel
+  that opens **directly below the row** (below the row-as-a-block, including when the row has
+  wrapped to two lines — the panel anchors to the row, not to the individual label).
+  **Multiple panels may be open at once, stacking in row order.** Not tabbed (no
+  one-at-a-time exclusivity — these are independent disclosures, not mutually-exclusive
+  views); not in-place (opening one must not split the row and disturb the others' labels).
+
+S210 verified on the prototype cards: the inline row recedes correctly, and multiple panels
+open at once stacking in row order below the row. **Watch-item for the visual walk:** the open
+panels currently each carry their own border (three stacked boxes-within-the-card); a single
+continuous panel region may read less boxy. Defensible reading of "panel below the row" either
+way — refinement deferred to the disclosure tier's own polish, re-judge once content density
+varies across cards.
+
+### The three tiers (summary)
+
+The rules above collapse the card to three ranked tiers:
+
+1. **Header line**: test name + verdict·p (right-aligned) · full-width question — collapsed-
+   visible. On expansion, gains the mechanism breadcrumb above the name (expand-only; icon to
+   the right of the cluster-name text).
+2. **Body** (expanded): footer-fragment lead header → primary surface → (demoted secondary
+   heading + secondary surface, multi-surface cards only).
+3. **Disclosure row** (quiet, recessive): one inline row, accordion panels below.
+
+A card reads balanced when these three tiers are visually distinct and the rhythm between
+blocks is the single locked unit.
+
+---
+
+## Implementation note (for the Code prompt that follows)
+
+This is a render/layout change across the card frame and the disclosure component — logic-
+adjacent (the disclosure accordion behaviour changes; the header line reflows; section-
+heading rendering becomes surface-count-conditional). It is NOT a string change, so it does
+not ride the footer-register parity shape — it needs its own visual verification (the walk),
+and the 22-fixture batch protects only that severities don't move (they shouldn't — this is
+pure presentation). Author the Code prompt AFTER the visual walk confirms the spec reads
+right on the representative cards, or dispatch a single representative-card implementation
+first (one single-surface, one multi-surface) to verify the spec renders as intended before
+rolling battery-wide. Lean: prototype on two cards (Unusual rows = single-surface after its
+plot; Column-to-column = multi-surface plot+table), eyeball, then roll out.
