@@ -1,4 +1,4 @@
-# S204 — Caption-surface audit (READ-ONLY)
+# Caption-surface audit (living reference)
 
 State-only enumeration of every plot caption, secondary `EvidenceTable.footerText` caption,
 and table/matrix heading across the card battery. No fixes, no recommendations. Strings quoted
