@@ -374,3 +374,11 @@ When updating these surfaces, edit the source-of-truth first and mirror here.
 - **AI consultation prompt for v1.0 (§4 prompt body).** Different surface — that's the existing Forensics-mode AI handoff, not AI Screening mode. Landed via A1.D2 / S161 / S162a / S162b / S162b-fix.
 
 If a v1.x topic surfaces that doesn't fit any section above, add a new section here rather than splitting across surfaces.
+
+---
+
+## 8. Staged artifacts for undecided arcs
+
+Inputs that were built but whose owning arc is not yet decided. Recorded here so the artifact isn't silently lost; listing one does NOT commit to running the arc.
+
+- **`docs/shared/CLEARED-BODY-AUDIT.md`** — runtime inventory of all 28 test cards' cleared-state field population + current cleared-card render (source-read at `file:line`), with a per-card design-verdict column left empty for Chat. Built to feed a possible **cleared-card body design pass**: deciding what each card presents on a CLEARED/LOW result (the mechanical gating already auto-withholds Implications + What-to-look-for on LOW — the open question is the positive design call, what cleared cards show instead of nothing). **Whether that pass happens is undecided** — it withholds nothing functional, so it reads as v1.x polish, not a blocker. Audited against S196 code state; re-confirm cleared-render behaviour at source before any design work (substantial drift since). Pulled from project knowledge to save session-start context; **repull it there when/if the arc goes active.**
