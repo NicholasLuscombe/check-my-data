@@ -91,10 +91,10 @@ export function MiniCard_WindowedAutocorr({ result, importConfig, rowMap }) {
     ? `${toFileRow(sigWins[0].startRow)}\u2013${toFileRow(sigWins[0].endRow)}`
     : null;
   const footer = (result.flag === "LOW" || result.flag === "N/A")
-    ? "no localised noise correlation"
+    ? "No localised noise correlation"
     : flaggedRange
-      ? `noise correlates within rows ${flaggedRange}`
-      : "noise correlates within a localised window";
+      ? `Noise correlates within rows ${flaggedRange}`
+      : "Noise correlates within a localised window";
 
   return (
     <MiniCardLayout result={result}

@@ -81,7 +81,7 @@ export function MiniCard_ColumnGoF({ result, importConfig, rowMap }) {
         ? (nFlagged === 1
             ? "1 column doesn't fit its expected shape"
             : `${nFlagged} columns don't fit their expected shape`)
-        : "all columns fit their expected shape"}
+        : "All columns fit their expected shape"}
       lookFor="Mismatch columns ('shape doesn't fit') deviate from the reference family — examine their histograms for heavy/light tails, multiple modes, or unusual clustering. Too-tight columns fit suspiciously well: examine for too-regular spacing or values that look generated rather than measured. Both directions warrant cross-checking against the original instrument output."
       implications={implications}>
 

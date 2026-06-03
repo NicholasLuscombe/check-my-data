@@ -49,8 +49,8 @@ export function MiniCard_RegionalNoise({ result, importConfig, rowMap }) {
   return (
     <MiniCardLayout result={result}
       footer={result.flag !== "LOW" && result.flag !== "N/A"
-        ? `one region ${parseFloat(bestVarRatio) > 1 ? "noisier" : "quieter"} than the rest — rows ${bestRowsDisplay}`
-        : "noise even across regions"}
+        ? `One region ${parseFloat(bestVarRatio) > 1 ? "noisier" : "quieter"} than the rest — rows ${bestRowsDisplay}`
+        : "Noise even across regions"}
       lookFor={`${bestColName} in rows ${bestRowsDisplay} has unusually ${parseFloat(bestVarRatio) > 1 ? "high" : "low"} noise compared to its own average. Examine that column in that region — are the values smoother, rounder, or more variable than the rest of the column? If multiple windows flag the same column, that column may have been selectively edited in those rows.`}
       implications="A region that is noisier or quieter than the column average can result from plate edge effects, batch boundaries, or changes in sample quality across the run. It can also indicate that a stretch of values in one column was smoothed or replaced while the rest was left intact.">
 

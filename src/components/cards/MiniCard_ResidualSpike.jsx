@@ -21,8 +21,8 @@ export function MiniCard_ResidualSpike({ result, importConfig, rowMap }) {
   return (
     <MiniCardLayout result={result}
       footer={result.flag !== "LOW" && result.flag !== "N/A"
-        ? `the ${overlapN} noisiest rows are the same in every condition`
-        : "no shared noisy rows"}
+        ? `The ${overlapN} noisiest rows are the same in every condition`
+        : "No shared noisy rows"}
       lookFor={lookFor}
       implications="Rows that are noisy in one condition and noisy in others can reflect genuine biological covariates — for example, an outlier sample that affects all measurements. They can also indicate that specific rows were edited across multiple conditions, leaving correlated residual patterns even if the edits differ in magnitude.">
 

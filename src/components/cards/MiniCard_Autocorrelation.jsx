@@ -68,8 +68,8 @@ export function MiniCard_Autocorrelation({ result, importConfig, rowMap }) {
 
   // ── Footer ──
   const footer = (result.flag !== "LOW" && result.flag !== "N/A")
-    ? "noise correlates from one row to the next"
-    : "noise independent row to row";
+    ? "Noise correlates from one row to the next"
+    : "Noise independent row to row";
 
   return (
     <MiniCardLayout result={result}

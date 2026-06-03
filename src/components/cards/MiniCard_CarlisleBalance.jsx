@@ -52,8 +52,8 @@ export function MiniCard_CarlisleBalance({ result, importConfig, rowMap }) {
   return (
     <MiniCardLayout result={result}
       footer={result.flag !== "LOW" && result.flag !== "N/A"
-        ? "differences between conditions smaller than chance across most features"
-        : "balance as expected"}
+        ? "Differences between conditions smaller than chance across most features"
+        : "Balance as expected"}
       lookFor="If most p-values cluster near 1.0, the conditions are suspiciously identical — as if someone fabricated the data to ensure perfect balance. In clinical trials, this is a hallmark of Carlisle-type fabrication. If p-values cluster near 0, allocation may not be random."
       implications="Groups that match more closely than random assignment predicts can occasionally occur by chance, particularly with small sample sizes or when stratified randomisation was used. Consistently near-perfect balance across many features, however, is unlikely under genuine random assignment and may indicate that group allocations were adjusted after the data was observed.">
 

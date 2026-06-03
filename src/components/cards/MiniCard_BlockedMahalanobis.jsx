@@ -83,8 +83,8 @@ export function MiniCard_BlockedMahalanobis({ result, importConfig, rowMap }) {
   // producer (blockedMahalanobis.js). Names the flagged block’s row range.
   const driverBest = (result.flag !== "LOW" && result.flag !== "N/A" && details[0]) ? details[0] : null;
   const footer = driverBest
-    ? `rows ${toFileRow(driverBest.startRow)}\u2013${toFileRow(driverBest.endRow)} shift together as a block`
-    : "no shifted blocks";
+    ? `Rows ${toFileRow(driverBest.startRow)}\u2013${toFileRow(driverBest.endRow)} shift together as a block`
+    : "No shifted blocks";
 
   return (
     <MiniCardLayout result={result}

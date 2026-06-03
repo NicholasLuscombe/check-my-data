@@ -89,9 +89,9 @@ export function MiniCard_CrossCondConsistency({ result }) {
   const topDir = result.top?.direction;
   const footer = (result.flag !== "LOW" && result.flag !== "N/A")
     ? (topDir === "different"
-        ? `two conditions diverge across ${nAmber} of ${nRan} measures`
-        : `two conditions alike across ${nAmber} of ${nRan} measures`)
-    : "conditions differ normally";
+        ? `Two conditions diverge across ${nAmber} of ${nRan} measures`
+        : `Two conditions alike across ${nAmber} of ${nRan} measures`)
+    : "Conditions differ normally";
 
   // ── Table shape ─────────────────────────────────────────────────
   // Flag column retired (S175): for forensic rows the amber tint encodes

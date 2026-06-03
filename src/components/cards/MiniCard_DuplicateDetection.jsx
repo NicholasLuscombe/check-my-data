@@ -65,7 +65,7 @@ if (dupBlock) {
 }
 const footer = (rowDupClause && blockClause)
   ? `${rowDupClause} · ${blockClause}`
-  : (rowDupClause || blockClause || "no duplicates found");
+  : (rowDupClause || blockClause || "No duplicates found");
 
 // ── Shared styles ──
 const stickyRow = {position:"sticky",left:0,zIndex:2,background:"inherit"};

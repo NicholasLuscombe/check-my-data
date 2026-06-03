@@ -51,8 +51,8 @@ export function MiniCard_RankCorrelation({ result, importConfig, rowMap }) {
   // (rankCorrelation.js flagRankCap maps LOW→LOW), so the card can render
   // in a non-flagged state.
   const footer = (result.flag !== "LOW" && result.flag !== "N/A")
-    ? "conditions rank their rows more alike than typical"
-    : "conditions rank their rows as expected";
+    ? "Conditions rank their rows more alike than typical"
+    : "Conditions rank their rows as expected";
 
 
   return (

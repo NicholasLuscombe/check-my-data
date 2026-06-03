@@ -114,8 +114,8 @@ return (
 
   <MiniCardLayout result={result}
     footer={result.flag !== "LOW" && result.flag !== "N/A"
-      ? "replicates correlate more closely than expected"
-      : "replicates correlate as expected"}
+      ? "Replicates correlate more closely than expected"
+      : "Replicates correlate as expected"}
     lookFor={wins.length > 0 ? "The windowed scan found a stretch of rows where replicates agree more closely than elsewhere. Check whether those rows correspond to a particular experimental group or were added later. Ask for the raw instrument output to verify that the submitted replicates are distinct measurements." : "One or more replicate pairs correlate more strongly than the dataset's signal-to-noise ratio predicts. Check whether those columns might be copies or near-copies of each other. Compare the original instrument files against the submitted data to confirm independent measurements." }
     implications="Replicates that track each other unusually closely can reflect a high signal-to-noise ratio experiment where the true biological signal dominates random noise. They can also indicate that one replicate was derived from another — for example, by copying a column and adding small perturbations.">
 

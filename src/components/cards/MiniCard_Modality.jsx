@@ -58,7 +58,7 @@ export function MiniCard_Modality({ result, importConfig, rowMap }) {
         ? (nFlagged === 1
             ? "1 column has more than one peak"
             : `${nFlagged} columns have more than one peak`)
-        : "all columns single-peaked"}
+        : "All columns single-peaked"}
       lookFor="Flagged columns have a Hartigan dip statistic exceeding the uniform-reference null — a unimodal distribution cannot produce dip values that high. Examine the column histogram: look for two or more peaks separated by a clear gap, or for asymmetry consistent with mixing two distributions of different mean or scale."
       implications={implications}>
 

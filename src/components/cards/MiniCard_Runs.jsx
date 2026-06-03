@@ -154,8 +154,8 @@ export function MiniCard_Runs({ result, importConfig, rowMap }) {
   // direction (clumping vs over-alternation); the worstGroup / no-group
   // branch collapses to the same clause.
   const footerContent = (result.flag !== "LOW" && result.flag !== "N/A")
-    ? (pooledMeanZ < 0 ? "noise signs clump — too few changes" : "noise signs alternate too regularly")
-    : "noise signs flip as expected";
+    ? (pooledMeanZ < 0 ? "Noise signs clump — too few changes" : "Noise signs alternate too regularly")
+    : "Noise signs flip as expected";
 
   return (
     <MiniCardLayout result={result}

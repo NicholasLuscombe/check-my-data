@@ -25,8 +25,8 @@ export function MiniCard_DecimalPrecision({ result, importConfig, rowMap }) {
     <MiniCardLayout result={result}
       implications={implications}
       footer={result.flag !== "LOW" && result.flag !== "N/A"
-        ? `mixed precision — ${details.length} levels, suggesting more than one source`
-        : "consistent precision throughout"}
+        ? `Mixed precision — ${details.length} levels, suggesting more than one source`
+        : "Consistent precision throughout"}
       lookFor={hasGap ? "A precision gap (e.g. values at 1dp and 3dp but none at 2dp) is impossible from a single instrument. It suggests values were transcribed from different sources or manually constructed with inconsistent rounding." : "Check whether the spread of precision levels is consistent with the stated instrument. A single instrument should produce values at one fixed precision (which then gets trailing-zero-stripped by Excel into 1–2 adjacent levels)."}>
 
       {/* S210 (single-surface): section heading dropped — the footer
