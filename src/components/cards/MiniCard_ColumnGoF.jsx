@@ -9,12 +9,12 @@
    Goodness-of-Fit" in MINIPLOT_REGISTRY (MiniPlot.jsx) so the test
    card body rendered nothing under the title + verdict badge. */
 
-import { C, FS, FF } from "../../constants/tokens.js";
+import { C, FS, FW, FF } from "../../constants/tokens.js";
 import { fmtP } from "../../constants/thresholds.js";
 import { MiniCardLayout } from "../shared/CardLayout.jsx";
 import { DataTable } from "../shared/DataTable.jsx";
 import { EvidenceTable } from "../shared/EvidenceTable.jsx";
-import { SUB_HEAD } from "../shared/styles.js";
+import { SUB_HEAD, BLOCK_GAP, BLOCK_GAP_TIGHT } from "../shared/styles.js";
 import { ColumnStatBar } from "../plots/ColumnStatBar.jsx";
 
 // Family slugs come from the producer in lowercase ("normal" / "poisson"
@@ -106,8 +106,10 @@ export function MiniCard_ColumnGoF({ result, importConfig, rowMap }) {
           return row[k];
         }));
         return (
-          <div style={{ marginTop: "8px" }}>
-            <div style={SUB_HEAD}>Flagged columns</div>
+          <div style={{ marginTop: BLOCK_GAP }}>
+            {/* S210 (multi-surface): secondary-surface heading kept but demoted
+                (Regular weight) to read clearly below the footer-lead. */}
+            <div style={{...SUB_HEAD, fontWeight: FW.NORM, marginBottom: BLOCK_GAP_TIGHT}}>Flagged columns</div>
             <EvidenceTable columns={etCols} rows={etRows} identifierColumns={2} compact />
             {sub.length > 20 && <div style={{ fontFamily: FF.UI, fontSize: FS.xs, color: C.TEXT_3, marginTop: "3px" }}>…and {sub.length - 20} more</div>}
           </div>
@@ -115,8 +117,10 @@ export function MiniCard_ColumnGoF({ result, importConfig, rowMap }) {
       })()}
 
       {!isAgg && rows.length > 0 && (
-        <div style={{ marginTop: "8px" }}>
-          <div style={SUB_HEAD}>Flagged columns</div>
+        <div style={{ marginTop: BLOCK_GAP }}>
+          {/* S210 (multi-surface): secondary-surface heading kept but demoted
+              (Regular weight) to read clearly below the footer-lead. */}
+          <div style={{...SUB_HEAD, fontWeight: FW.NORM, marginBottom: BLOCK_GAP_TIGHT}}>Flagged columns</div>
           <DataTable data={rows} maxRows={20} compact identifierColumns={2} columns={[
             { header: "Col", bold: true, render: d => d.Col },
             { header: "Finding", render: d => findingText(d.Direction, d.Family) },

@@ -8,7 +8,7 @@ import { PlotLayout } from "../shared/PlotLayout.jsx";
 import { ChartLegend } from "../shared/ChartLegend.jsx";
 import { PlotSVG } from "../plots/PlotSVG.jsx";
 import { makeRowMapper } from "../shared/coordinates.js";
-import { SUB_HEAD } from "../shared/styles.js";
+import { SUB_HEAD, BLOCK_GAP, BLOCK_GAP_TIGHT } from "../shared/styles.js";
 
 export function MiniCard_WithinRowVariance({ result, importConfig, rowMap }) {
   // Producer emits 1-indexed matrix rows in d.Row; render file rows so the
@@ -91,8 +91,11 @@ export function MiniCard_WithinRowVariance({ result, importConfig, rowMap }) {
       </>}
 
       {rows.length > 0 && (
-        <div style={{ marginTop: "8px" }}>
-          <div style={SUB_HEAD}>Outlier rows</div>
+        <div style={{ marginTop: histPlot ? BLOCK_GAP : 0 }}>
+          {/* S210 (multi-surface): secondary-surface heading demoted (Regular
+              weight) when the plot is present; dropped when the table is the
+              sole surface (footer-lead heads it). */}
+          {histPlot && <div style={{...SUB_HEAD, fontWeight: FW.NORM, marginBottom: BLOCK_GAP_TIGHT}}>Outlier rows</div>}
           <EvidenceTable
             columns={isAgg
               ? [{label:"Condition"},{label:"Row"},{label:"z"},{label:"Direction"},{label:"SD"},{label:"Expected"}]

@@ -7,7 +7,7 @@ import { DataTable } from "../shared/DataTable.jsx";
 
 import { PlotLayout } from "../shared/PlotLayout.jsx";
 import { PlotSVG } from "../plots/PlotSVG.jsx";
-import { SUB_HEAD } from "../shared/styles.js";
+import { SUB_HEAD, BLOCK_GAP, BLOCK_GAP_TIGHT } from "../shared/styles.js";
 
 export function MiniCard_CarlisleBalance({ result, importConfig, rowMap }) {
   const nFeatures = result.nFeatures || 0;
@@ -69,8 +69,11 @@ export function MiniCard_CarlisleBalance({ result, importConfig, rowMap }) {
       </>}
 
       {details.length > 0 && (
-        <div style={{ marginTop: "8px" }}>
-          <div style={SUB_HEAD}>Balance across conditions, per feature</div>
+        <div style={{ marginTop: histPlot ? BLOCK_GAP : 0 }}>
+          {/* S210 (multi-surface): secondary-surface heading demoted (Regular
+              weight) when the plot is present; dropped when the table is the
+              sole surface (footer-lead heads it). */}
+          {histPlot && <div style={{...SUB_HEAD, fontWeight: FW.NORM, marginBottom: BLOCK_GAP_TIGHT}}>Balance across conditions, per feature</div>}
           <DataTable data={details} maxRows={20} compact identifierColumns={1} totalCount={nFeatures} columns={[
             { header: "Feature", bold: true, render: d => d.Feature },
             { header: "p", render: d => d["ANOVA p"] },

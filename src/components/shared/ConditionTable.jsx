@@ -1,6 +1,6 @@
 import { C, FS, FW, FF, CR, CC, SIGNAL, BADGE } from "../../constants/tokens.js";
 import { EvidenceTable } from "./EvidenceTable.jsx";
-import { SUB_HEAD } from "./styles.js";
+import { SUB_HEAD, BLOCK_GAP, BLOCK_GAP_TIGHT } from "./styles.js";
 
 /** Per-condition breakdown table — shared by ConstOffset, Autocorr, Runs, RegNoise.
  *  columns: [{header, align?, bold?, render: row => value}]. Last column is always p-coloured.
@@ -23,9 +23,12 @@ export function ConditionTable({ data, title, columns, condColorMap = {} }) {
       return Object.keys(style).length ? { value: val, style } : val;
     });
   });
+  // S210 (multi-surface): the per-condition table is always a secondary
+  // surface in its consumer cards (Runs, RegionalNoise) — heading demoted to
+  // Regular weight so it reads below the card's footer-lead.
   return (
-    <div style={{ marginTop: "10px" }}>
-      <div style={SUB_HEAD}>
+    <div style={{ marginTop: BLOCK_GAP }}>
+      <div style={{ ...SUB_HEAD, fontWeight: FW.NORM, marginBottom: BLOCK_GAP_TIGHT }}>
         {title}
         {data.promoted && <span style={{ marginLeft: "8px", fontSize: FS.xs, color: BADGE.PROMOTED.text, background: BADGE.PROMOTED.bg, border: `1px solid ${BADGE.PROMOTED.border}`, borderRadius: CR.SM, padding: "1px 5px" }}>differs between conditions — promoted</span>}
       </div>

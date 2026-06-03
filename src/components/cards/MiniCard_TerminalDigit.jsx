@@ -3,7 +3,6 @@ import { PlotLayout } from "../shared/PlotLayout.jsx";
 import { ChartLegend } from "../shared/ChartLegend.jsx";
 import { VBarPlot } from "../plots/VBarPlot.jsx";
 import { CC, C, FF, FW } from "../../constants/tokens.js";
-import { SUB_HEAD } from "../shared/styles.js";
 
 
 export function MiniCard_TerminalDigit({ result, importConfig, rowMap }) {
@@ -22,7 +21,8 @@ return (
     </>}
     lookFor="Check which digits are over- or under-represented. Humans tend to favour digits 0 and 5 (rounding) and avoid extremes like 0 and 9 at the end. If the dataset has trailing-zero suppression, focus on digits 1–9. A non-uniform pattern across multiple digits is stronger evidence than a single digit being slightly off.">
 
-    <div style={SUB_HEAD}>Terminal digit frequencies</div>
+    {/* S210 (single-surface): section heading dropped — the footer
+        fragment (LEAD_HEAD in MiniCardLayout) heads this sole plot. */}
     <PlotLayout>
         <VBarPlot
           items={details}

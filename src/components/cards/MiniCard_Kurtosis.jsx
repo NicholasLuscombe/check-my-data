@@ -10,7 +10,7 @@ import { KurtosisDistPlot } from "../plots/KurtosisDistPlot.jsx";
 import { DotStrip } from "../plots/DotStrip.jsx";
 import { HBarPlot } from "../plots/HBarPlot.jsx";
 import { PlotSVG } from "../plots/PlotSVG.jsx";
-import { SUB_HEAD } from "../shared/styles.js";
+import { SUB_HEAD, BLOCK_GAP, BLOCK_GAP_TIGHT } from "../shared/styles.js";
 
 
 export function MiniCard_Kurtosis({ result, importConfig, rowMap }) {
@@ -44,7 +44,8 @@ export function MiniCard_Kurtosis({ result, importConfig, rowMap }) {
 
       {/* ── Global distribution chart ── */}
       {normDiffs?.length ? <>
-        <div style={SUB_HEAD}>Distribution shape</div>
+        {/* S210 (multi-surface): primary-surface heading dropped — the footer
+            fragment (LEAD_HEAD in MiniCardLayout) heads this primary plot. */}
         <PlotLayout>
           <KurtosisDistPlot normDiffs={normDiffs} simDiffs={result.simDiffs}
             pooledKurtosis={pk} simKurtosis={result.simKurtosis} flag={result.flag}/>
@@ -65,8 +66,9 @@ export function MiniCard_Kurtosis({ result, importConfig, rowMap }) {
 
       {/* ── Condition-stratified section ── */}
       {condK?.length >= 2 && (isAgg || result.flag === "HIGH" || condK.some(c => c.verdict !== "clear")) && (
-        <div style={{marginTop:"10px"}}>
-          <div style={SUB_HEAD}>
+        <div style={{marginTop: BLOCK_GAP}}>
+          {/* S210 (multi-surface): secondary-surface heading demoted (Regular weight). */}
+          <div style={{...SUB_HEAD, fontWeight: FW.NORM, marginBottom: BLOCK_GAP_TIGHT}}>
             Noise shape by condition
             {condK.promoted && <span style={{marginLeft:"8px",fontSize:FS.xs,color:BADGE.PROMOTED.text,background:BADGE.PROMOTED.bg,border:`1px solid ${BADGE.PROMOTED.border}`,borderRadius:CR.SM,padding:"1px 5px"}}>differs between conditions — promoted</span>}
           </div>
@@ -128,7 +130,8 @@ export function MiniCard_Kurtosis({ result, importConfig, rowMap }) {
             })() : null;
             return (
               <>
-                <div style={{...SUB_HEAD, marginTop:"10px"}}>Per-condition noise shape</div>
+                {/* S210 (multi-surface): secondary-surface heading demoted (Regular weight). */}
+                <div style={{...SUB_HEAD, marginTop: BLOCK_GAP, fontWeight: FW.NORM, marginBottom: BLOCK_GAP_TIGHT}}>Per-condition noise shape</div>
                 <PlotLayout>
                   <div style={{display:"flex",flexWrap:"wrap",gap:"8px",justifyContent:"center"}}>
                     {condK.filter(c=>c.normDiffs?.length>=20).map((c,ci)=>{

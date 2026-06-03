@@ -1,7 +1,6 @@
 import { MiniCardLayout } from "../shared/CardLayout.jsx";
 import { CoordResidualProfile } from "../plots/CoordResidualProfile.jsx";
 import { buildCondColorMap } from "../../constants/roles.js";
-import { SUB_HEAD } from "../shared/styles.js";
 
 // Display threshold: bestPair ρ above this → global correlation mode (ρ matrix prominent).
 // Below → coordinated extremes mode (ρ matrix de-emphasized).
@@ -27,7 +26,8 @@ export function MiniCard_ResidualSpike({ result, importConfig, rowMap }) {
       lookFor={lookFor}
       implications="Rows that are noisy in one condition and noisy in others can reflect genuine biological covariates — for example, an outlier sample that affects all measurements. They can also indicate that specific rows were edited across multiple conditions, leaving correlated residual patterns even if the edits differ in magnitude.">
 
-      <div style={SUB_HEAD}>Residual noise by condition</div>
+      {/* S210 (single-surface): section heading dropped — the footer
+          fragment (LEAD_HEAD in MiniCardLayout) heads this sole surface. */}
       <CoordResidualProfile
         allProfiles={result.allProfiles}
         nRows={result.nRows || 0}

@@ -2,7 +2,6 @@ import { MiniCardLayout } from "../shared/CardLayout.jsx";
 import { PlotLayout } from "../shared/PlotLayout.jsx";
 import { VBarPlot } from "../plots/VBarPlot.jsx";
 import { CHART, FW, FF, C, CC } from "../../constants/tokens.js";
-import { SUB_HEAD } from "../shared/styles.js";
 
 
 export function MiniCard_DecimalPrecision({ result, importConfig, rowMap }) {
@@ -30,7 +29,8 @@ export function MiniCard_DecimalPrecision({ result, importConfig, rowMap }) {
         : "consistent precision throughout"}
       lookFor={hasGap ? "A precision gap (e.g. values at 1dp and 3dp but none at 2dp) is impossible from a single instrument. It suggests values were transcribed from different sources or manually constructed with inconsistent rounding." : "Check whether the spread of precision levels is consistent with the stated instrument. A single instrument should produce values at one fixed precision (which then gets trailing-zero-stripped by Excel into 1–2 adjacent levels)."}>
 
-      <div style={SUB_HEAD}>Precision distribution</div>
+      {/* S210 (single-surface): section heading dropped — the footer
+          fragment (LEAD_HEAD in MiniCardLayout) heads this sole plot. */}
       <PlotLayout>
         <VBarPlot
           items={filledItems} xKey="decimalPlaces" obsKey="count"

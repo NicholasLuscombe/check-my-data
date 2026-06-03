@@ -9,7 +9,7 @@ import { PlotSVG } from "../plots/PlotSVG.jsx";
 import { C, CC, CP, CS, CF, FW, FF } from "../../constants/tokens.js";
 import { fmtP } from "../../constants/thresholds.js";
 import { shortColName, makeRowMapper } from "../shared/coordinates.js";
-import { SUB_HEAD } from "../shared/styles.js";
+import { SUB_HEAD, BLOCK_GAP, BLOCK_GAP_TIGHT } from "../shared/styles.js";
 
 
 // Match SignStripPlot colours
@@ -170,7 +170,8 @@ export function MiniCard_Runs({ result, importConfig, rowMap }) {
           defined) or under the windowed-driver branch where the per-pair
           marker isn't the headline. */}
       {Number.isFinite(pooledMeanZ) && Array.isArray(result.pooledZCI95) && (<>
-        <div style={SUB_HEAD}>Pooled mean-z across pairs</div>
+        {/* S210 (multi-surface): primary-surface heading dropped — the footer
+            fragment (LEAD_HEAD in MiniCardLayout) heads this primary plot. */}
         <PlotLayout>
           <PooledZMarker value={pooledMeanZ} ci={result.pooledZCI95} />
         </PlotLayout>
@@ -178,7 +179,8 @@ export function MiniCard_Runs({ result, importConfig, rowMap }) {
 
       {/* Multi-strip with per-pair expected-frequency ticks */}
       {stripSeqs.length > 0 ? (<>
-        <div style={SUB_HEAD}>Significant pairs</div>
+        {/* S210 (multi-surface): secondary-surface heading demoted (Regular weight). */}
+        <div style={{...SUB_HEAD, marginTop: BLOCK_GAP, fontWeight: FW.NORM, marginBottom: BLOCK_GAP_TIGHT}}>Significant pairs</div>
         <PlotLayout>
           <SignStripPlot
             groupSignSeqs={stripSeqs}
@@ -209,8 +211,9 @@ export function MiniCard_Runs({ result, importConfig, rowMap }) {
 
       {/* Evidence table — all pairs */}
       {etRows.length > 0 && (
-        <div style={{marginTop:"8px"}}>
-          <div style={SUB_HEAD}>All replicate pairs</div>
+        <div style={{marginTop: BLOCK_GAP}}>
+          {/* S210 (multi-surface): secondary-surface heading demoted (Regular weight). */}
+          <div style={{...SUB_HEAD, fontWeight: FW.NORM, marginBottom: BLOCK_GAP_TIGHT}}>All replicate pairs</div>
           <EvidenceTable
             columns={condColumns}
             rows={etRows}

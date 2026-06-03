@@ -7,7 +7,7 @@ import { HBarPlot } from "../plots/HBarPlot.jsx";
 import { EvidenceTable } from "../shared/EvidenceTable.jsx";
 import { buildCondColorMap } from "../../constants/roles.js";
 import { makeRowMapper } from "../shared/coordinates.js";
-import { SUB_HEAD } from "../shared/styles.js";
+import { SUB_HEAD, BLOCK_GAP, BLOCK_GAP_TIGHT } from "../shared/styles.js";
 
 export function MiniCard_ConstantOffset({ result, importConfig, rowMap }) {
   const details = result.details || [];
@@ -59,14 +59,18 @@ export function MiniCard_ConstantOffset({ result, importConfig, rowMap }) {
       implications="A constant difference between replicates over consecutive rows can result from batch corrections or instrument drift adjustments applied uniformly to a block. It can also indicate that one row was copied and a fixed value added or subtracted to create neighbouring rows.">
 
       {barChart && (<>
-        <div style={{...SUB_HEAD, marginBottom: "6px"}}>Constant-offset blocks per condition</div>
+        {/* S210 (multi-surface): primary-surface heading dropped — the footer
+            fragment (LEAD_HEAD in MiniCardLayout) heads this primary plot. */}
         <PlotLayout>
           {barChart}
         </PlotLayout>
       </>)}
       {hasBlocks && (
-        <div style={{ marginTop: "4px" }}>
-          <div style={{...SUB_HEAD, marginBottom: "6px"}}>Detected constant-offset blocks</div>
+        <div style={{ marginTop: barChart ? BLOCK_GAP : 0 }}>
+          {/* S210 (multi-surface): secondary-surface heading demoted (Regular
+              weight) when the plot is present; dropped when the table is the
+              sole surface (footer-lead heads it). */}
+          {barChart && <div style={{...SUB_HEAD, fontWeight: FW.NORM, marginBottom: BLOCK_GAP_TIGHT}}>Detected constant-offset blocks</div>}
           <EvidenceTable
             columns={isAgg ? ["Condition", "Replicate pair", "Rows", "Offset"] : ["Replicate pair", "Rows", "Offset"]}
             rows={blockEntries.map(d => isAgg

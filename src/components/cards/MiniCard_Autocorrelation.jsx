@@ -10,7 +10,7 @@ import { ChartLegend } from "../shared/ChartLegend.jsx";
 import { AutocorrDecayPlot } from "../plots/AutocorrDecayPlot.jsx";
 import { DotStrip } from "../plots/DotStrip.jsx";
 import { shortName } from "../shared/utils.js";
-import { SUB_HEAD } from "../shared/styles.js";
+import { SUB_HEAD, BLOCK_GAP, BLOCK_GAP_TIGHT } from "../shared/styles.js";
 
 
 export function MiniCard_Autocorrelation({ result, importConfig, rowMap }) {
@@ -79,7 +79,8 @@ export function MiniCard_Autocorrelation({ result, importConfig, rowMap }) {
 
       {mainChart && (
         <>
-          <div style={SUB_HEAD}>Autocorrelation by lag</div>
+          {/* S210 (multi-surface): primary-surface heading dropped — the footer
+              fragment (LEAD_HEAD in MiniCardLayout) heads this primary plot. */}
           <PlotLayout>
             {mainChart}
           </PlotLayout>
@@ -127,7 +128,8 @@ export function MiniCard_Autocorrelation({ result, importConfig, rowMap }) {
             : "The main check is between adjacent rows; longer-gap patterns (2–5 rows apart) act as backup evidence.";
         return (
           <>
-            <div style={{...SUB_HEAD, marginTop: "12px"}}>Pooled autocorrelation by lag</div>
+            {/* S210 (multi-surface): secondary-surface heading demoted (Regular weight). */}
+            <div style={{...SUB_HEAD, marginTop: BLOCK_GAP, fontWeight: FW.NORM, marginBottom: BLOCK_GAP_TIGHT}}>Pooled autocorrelation by lag</div>
             <EvidenceTable columns={cols} rows={rows} identifierColumns={1} compact
               footerText={footerText} />
           </>

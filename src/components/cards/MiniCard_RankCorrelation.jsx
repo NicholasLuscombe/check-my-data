@@ -7,7 +7,6 @@ import { MiniCardLayout, CardBanner } from "../shared/CardLayout.jsx";
 import { CorrMatrixSVG } from "../plots/CorrMatrixSVG.jsx";
 import { PlotLayout } from "../shared/PlotLayout.jsx";
 import { ChartLegend } from "../shared/ChartLegend.jsx";
-import { SUB_HEAD } from "../shared/styles.js";
 
 export function MiniCard_RankCorrelation({ result, importConfig, rowMap }) {
   const details = result.details || [];
@@ -71,7 +70,8 @@ export function MiniCard_RankCorrelation({ result, importConfig, rowMap }) {
 
       {hasMatrix && (
         <>
-          <div style={SUB_HEAD}>ρ by condition pair</div>
+          {/* S210 (single-surface): section heading dropped — the footer
+              fragment (LEAD_HEAD in MiniCardLayout) heads this sole surface. */}
           <PlotLayout>
             <CorrMatrixSVG
               labels={condNames}

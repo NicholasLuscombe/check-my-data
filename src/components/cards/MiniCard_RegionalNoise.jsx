@@ -8,7 +8,7 @@ import { RegionalNoiseStrip } from "../plots/RegionalNoiseStrip.jsx";
 import { C, CC, FW, FF } from "../../constants/tokens.js";
 import { fmtP } from "../../constants/thresholds.js";
 import { makeRowMapper } from "../shared/coordinates.js";
-import { SUB_HEAD } from "../shared/styles.js";
+import { SUB_HEAD, BLOCK_GAP, BLOCK_GAP_TIGHT } from "../shared/styles.js";
 
 
 export function MiniCard_RegionalNoise({ result, importConfig, rowMap }) {
@@ -58,7 +58,8 @@ export function MiniCard_RegionalNoise({ result, importConfig, rowMap }) {
         const windowData = isAgg ? sub : details;
         if (!windowData.length) return null;
         return <>
-          <div style={SUB_HEAD}>Noise by region</div>
+          {/* S210 (multi-surface): primary-surface heading dropped — the footer
+              fragment (LEAD_HEAD in MiniCardLayout) heads this primary plot. */}
           <PlotLayout>
             <RegionalNoiseStrip details={windowData} nRows={result.nRows}
               colNames={colNames} toFileRow={toFileRow} />
@@ -67,8 +68,9 @@ export function MiniCard_RegionalNoise({ result, importConfig, rowMap }) {
             from: "rgba(239,68,68,0.15)", to: "rgba(239,68,68,0.7)",
             startLabel: "Low divergence", endLabel: "High divergence", width: 100,
           }} />
-          <div style={{marginTop:"8px"}}>
-            <div style={SUB_HEAD}>Anomalous windows</div>
+          <div style={{marginTop: BLOCK_GAP}}>
+            {/* S210 (multi-surface): secondary-surface heading demoted (Regular weight). */}
+            <div style={{...SUB_HEAD, fontWeight: FW.NORM, marginBottom: BLOCK_GAP_TIGHT}}>Anomalous windows</div>
             <EvidenceTable
               columns={["Rows", "Column", "Observed SD", "Expected SD", "SD ratio", "Finding"]}
               identifierColumns={2}
