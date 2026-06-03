@@ -57,7 +57,7 @@ if (dupBlock) {
   if (dupBlock.isColumnMatch) {
     const _r0 = fileRow(toOrigRow(dupBlock.srcRows[0]));
     const _r1 = fileRow(toOrigRow(dupBlock.srcRows[1]));
-    blockClause = `two columns are identical over rows ${_r0}–${_r1}`;
+    blockClause = `2 columns are identical over rows ${_r0}–${_r1}`;
   } else {
     const _n = structuralBlocks.length;
     blockClause = `${_n} repeated block${_n !== 1 ? "s" : ""}`;
