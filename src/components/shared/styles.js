@@ -14,6 +14,21 @@ import { FLAG_STYLES } from "../../constants/thresholds.js";
 // table-header weight + colour.
 export const SUB_HEAD = { fontSize: FS.sm, fontFamily: FF.UI, fontWeight: FW.SEMI, color: C.TEXT_3, marginBottom: "8px" };
 
+// S210 (card composition): the footer fragment promoted to the body's lead
+// header on an expanded card — the finding-in-plain-words that heads the first
+// data surface. One tier above SUB_HEAD (dark + Semibold vs muted) so a
+// demoted secondary-surface heading reads clearly below it.
+export const LEAD_HEAD = { fontSize: FS.sm, fontFamily: FF.UI, fontWeight: FW.SEMI, color: C.TEXT };
+
+// S210 (card composition): the two — and only two — vertical-rhythm units for
+// the card body. BLOCK_GAP separates major blocks (header line → footer-lead →
+// surface → secondary surface → disclosure row); BLOCK_GAP_TIGHT is the
+// within-block gap from a surface heading to its own plot/table. Applied at
+// every inter-block gap rather than per-card ad-hoc margins. Not a glyph
+// register, so these live here rather than in TYPOGRAPHY-SYSTEM.md.
+export const BLOCK_GAP = "12px";
+export const BLOCK_GAP_TIGHT = "6px";
+
 // S151 (C.9 / B1): full spec match for footnote/reference register.
 // Pre-S151: fontSize TF.DETAIL (11px) + color C.TEXT_4. Now sm Regular C.TEXT_2 sans
 // per TYPOGRAPHY-SYSTEM.md § Tables "Footnote / reference under table" row.

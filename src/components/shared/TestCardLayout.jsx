@@ -8,6 +8,7 @@ import { C, FS, FW, FF, SEV_VERDICT, MECH_COLOR } from "../../constants/tokens.j
 import { DISPLAY_NAMES, TEST_DESCRIPTIONS, MECHANISMS } from "../../constants/mechanisms.js";
 import { fmtPBadge } from "../../constants/thresholds.js";
 import { MechIcon, mechIconSize } from "./MechIcon.jsx";
+import { BLOCK_GAP } from "./styles.js";
 
 /**
  * @param {object} props
@@ -85,36 +86,50 @@ export function TestCardLayout({ result, mode, mk, expanded, onToggle, footer, c
           <span>{clusterLabel}</span>
         </div>
       )}
-      {/* ── Header line ── */}
+      {/* ── Header line (S210: two stacked rows) ── */}
+      {/* The whole block owns expand/collapse. Row 1 carries the test name with
+          verdict·p right-aligned (the verdict no longer competes with the
+          question for the right edge); row 2 drops the sub-header question to
+          its own full-width line so it reads in full on expansion. Mechanism
+          breadcrumb above is unchanged (scroll-anchor). */}
       <div
-        style={{ display: "flex", justifyContent: "space-between", alignItems: "center", cursor: expandable ? "pointer" : "default" }}
+        style={{ cursor: expandable ? "pointer" : "default" }}
         onClick={expandable ? onToggle : undefined}
       >
-        <span style={{ display: "flex", alignItems: "center", gap: "4px", overflow: "hidden", minWidth: 0 }}>
-          {/* S195: disclosure glyph leads the test name (left/leading),
-              matching the CardLayout disclosure pattern. */}
-          {expandable && <span style={{ color: C.TEXT_3, fontSize: FS.base, flexShrink: 0 }}>{expanded ? "▾" : "▸"}</span>}
-          <span style={{ fontSize: FS.base, fontWeight: FW.SEMI, color: C.TEXT, whiteSpace: "nowrap" }}>
-            {DISPLAY_NAMES[result.name] || result.name}
-          </span>
-          {showSubtitle && TEST_DESCRIPTIONS[result.name] && (
-            <span style={{ fontSize: FS.base, fontWeight: FW.NORM, color: C.TEXT_3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-              {" · "}{TEST_DESCRIPTIONS[result.name]}
+        {/* Row 1 — test name (left) · verdict·p (right) */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <span style={{ display: "flex", alignItems: "center", gap: "4px", overflow: "hidden", minWidth: 0 }}>
+            {/* S195: disclosure glyph leads the test name (left/leading),
+                matching the CardLayout disclosure pattern. */}
+            {expandable && <span style={{ color: C.TEXT_3, fontSize: FS.base, flexShrink: 0 }}>{expanded ? "▾" : "▸"}</span>}
+            <span style={{ fontSize: FS.base, fontWeight: FW.SEMI, color: C.TEXT, whiteSpace: "nowrap" }}>
+              {DISPLAY_NAMES[result.name] || result.name}
             </span>
-          )}
-        </span>
-        {/* S195: verdict pill is inert text — no onClick, no pointer cursor.
-            The whole header row owns expand/collapse; the pill sits alone
-            on the right. */}
-        <div style={{ display: "flex", gap: "8px", alignItems: "center", flexShrink: 0, marginLeft: "8px" }}>
-          <span
-            style={{
-              fontWeight: FW.SEMI, fontSize: FS.xs, color: flColor,
-            }}
-          >
-            {flLabel}{showPValue && fl !== "LOW" && result.primaryP != null ? ` ${fmtPBadge(result.primaryP)}` : ""}
           </span>
+          {/* S195: verdict pill is inert text — no onClick, no pointer cursor.
+              The whole header block owns expand/collapse; the pill sits alone
+              on the right of row 1. */}
+          <div style={{ display: "flex", gap: "8px", alignItems: "center", flexShrink: 0, marginLeft: "8px" }}>
+            <span
+              style={{
+                fontWeight: FW.SEMI, fontSize: FS.xs, color: flColor,
+              }}
+            >
+              {flLabel}{showPValue && fl !== "LOW" && result.primaryP != null ? ` ${fmtPBadge(result.primaryP)}` : ""}
+            </span>
+          </div>
         </div>
+        {/* Row 2 — sub-header question, full-width on its own line. Truncates
+            on the collapsed card (teaser); wraps and reads in full on expand. */}
+        {showSubtitle && TEST_DESCRIPTIONS[result.name] && (
+          <div style={{
+            fontSize: FS.base, fontWeight: FW.NORM, color: C.TEXT_3,
+            overflow: "hidden", textOverflow: "ellipsis",
+            whiteSpace: expanded ? "normal" : "nowrap",
+          }}>
+            {TEST_DESCRIPTIONS[result.name]}
+          </div>
+        )}
       </div>
 
       {/* ── Expanded content ── */}
@@ -124,7 +139,7 @@ export function TestCardLayout({ result, mode, mk, expanded, onToggle, footer, c
           The `footer` prop slot is preserved but unused by any current
           consumer; banked for separate cleanup (diagnostic finding S168). */}
       {expanded && (
-        <div style={{ marginTop: "10px" }}>
+        <div style={{ marginTop: BLOCK_GAP }}>
           {children}
           {footer && (
             <div style={{ fontSize: FS.xs, fontFamily: FF.UI, color: C.TEXT_3 }}>
