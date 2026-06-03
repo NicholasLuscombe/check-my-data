@@ -70,7 +70,12 @@ export function TestCardLayout({ result, mode, mk, expanded, onToggle, footer, c
       fontFamily: FF.UI,
     }}>
       {/* ── Cluster-name breadcrumb (S156-fix5 + S157 icon) ── */}
-      {clusterLabel && (
+      {/* S210: gated on `expanded`. Its scroll-anchor role only applies on an
+          open card (where the §3 cluster header may be off-screen); on a
+          collapsed card the cluster header sits directly above, so the
+          breadcrumb is scan-time repetition. Collapsed = two lines
+          (name+verdict·p / question); expanded restores it above the name. */}
+      {clusterLabel && expanded && (
         <div style={{
           display: "flex",
           alignItems: "center",
@@ -91,7 +96,7 @@ export function TestCardLayout({ result, mode, mk, expanded, onToggle, footer, c
           verdict·p right-aligned (the verdict no longer competes with the
           question for the right edge); row 2 drops the sub-header question to
           its own full-width line so it reads in full on expansion. Mechanism
-          breadcrumb above is unchanged (scroll-anchor). */}
+          breadcrumb above renders only when expanded (S210). */}
       <div
         style={{ cursor: expandable ? "pointer" : "default" }}
         onClick={expandable ? onToggle : undefined}
