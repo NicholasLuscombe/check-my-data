@@ -29,7 +29,7 @@ import { SUB_HEAD } from "../shared/styles.js";
 // sparse categorical matrices (HEATMAP_TIER / IRC / CorrMatrix) map linearly and
 // are correct as-is; do NOT add this gamma to them, and do NOT soften these
 // endpoints back off canonical.
-const RESID_GAMMA = 2.2;
+const RESID_GAMMA = 1.5;
 const STRIP_GRAD_FROM = "#CBD5E1";  // light slate — low residual
 const STRIP_GRAD_MID = "#F97316";   // amber (canonical)
 const STRIP_GRAD_TO = "#EF4444";    // red (canonical) — high residual
