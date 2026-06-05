@@ -5,7 +5,8 @@ import { PlotSVG } from "./PlotSVG.jsx";
 const CROSSING_COLOR = SIGN.CROSSING; // deep indigo — bold crossing emphasis
 const RUN_COLOR = SIGN.RUN;      // muted lavender — calm but visible
 
-// Simulated line uses CC.EXP_SOFT (mint) directly — no local constant needed
+// Simulated line uses CC.EXP (teal) directly — simulated null folds into the
+// expected/null data role, sharing teal with analytic nulls. No local constant needed.
 
 /**
  * Line/dot chart of row means with crossing emphasis on both lines.
@@ -103,13 +104,13 @@ export function RowMeanTrendPlot({ rowMeans, simMeans, rowIdxs, grandMean, fileR
       <line x1={PL} y1={gmY} x2={PL + plotW} y2={gmY}
         stroke={C.TEXT_3} strokeWidth="1" strokeDasharray={CS.REF.dash} opacity={CS.REF.opacity} />
 
-      {/* simulated line — uniform mint, no crossing emphasis, no dots */}
+      {/* simulated line — uniform teal, no crossing emphasis, no dots */}
       {simPts && simPts.map((pt, i) => {
         if (i === 0) return null;
         const prev = simPts[i - 1];
         return (
           <line key={`s${i}`} x1={prev.px} y1={prev.py} x2={pt.px} y2={pt.py}
-            stroke={CC.EXP_SOFT} strokeWidth="1.5" />
+            stroke={CC.EXP} strokeWidth="1.5" />
         );
       })}
 

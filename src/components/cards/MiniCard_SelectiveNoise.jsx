@@ -103,7 +103,7 @@ if(result.colDetails?.length) {
       </PlotLayout>
       <ChartLegend items={[
         { color: CC.OBS, label: "Normal column", swatchType: "line" },
-        { color: CC.WARN, label: "Flagged column", swatchType: "line" },
+        { color: CC.THRESH, label: "Flagged column", swatchType: "line" },
         ...(result.flag !== "LOW" ? [{ color: C.BORDER, label: "Expected", opacity: 0.25 }] : []),
       ]} />
       {perCol.length > 0 && result.flag !== "LOW" && result.flag !== "N/A" && (

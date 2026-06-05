@@ -1,8 +1,10 @@
-import { CP, CS, C, FF, CF, CHART } from "../../constants/tokens.js";
+import { CP, CS, C, FF, CF } from "../../constants/tokens.js";
+import { COND_COLORS } from "../../constants/roles.js";
 import { PlotSVG } from "./PlotSVG.jsx";
 
-// Group-colour palette matching reference figure
-const GROUP_COLORS = CHART.SERIES;
+// Condition-colour fallback when no condColorMap is supplied — the .text shades
+// of COND_COLORS, in palette order, so an unmapped group matches its condition hue.
+const GROUP_COLORS = COND_COLORS.map(c => c.text);
 
 /**
  * Autocorrelation-by-lag plot.
@@ -83,7 +85,7 @@ export function AutocorrDecayPlot({ perGroupDecay, singleCurve, condColorMap, ve
       ))}
       {/* group lines */}
       {curves.map((c,ci)=>{
-        const col=condColorMap?.[c.group]?.border || GROUP_COLORS[ci%GROUP_COLORS.length];
+        const col=condColorMap?.[c.group]?.text || GROUP_COLORS[ci%GROUP_COLORS.length];
         const pts=c.curve.map((v,i)=>`${xs(i+1)},${ys(v)}`).join(" ");
         return (
           <g key={ci}>

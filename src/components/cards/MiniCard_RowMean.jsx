@@ -36,7 +36,7 @@ const mainPlot = hasRowMeans ? (
 
 const legend = [
   { color: CROSSING_COLOR, label: "Observed", swatchType: "line" },
-  { color: CC.EXP_SOFT, label: "Simulated (permuted)", swatchType: "line" },
+  { color: CC.EXP, label: "Simulated (permuted)", swatchType: "line" },
   { color: C.TEXT_3, label: "Grand mean", swatchType: "line", dashed: true, opacity: 0.70 },
 ];
 

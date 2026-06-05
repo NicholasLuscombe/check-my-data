@@ -239,8 +239,18 @@ export const M = { fontFamily: FF.MONO };
 
 // Heatmap tier colours — flat per-tier fills shared by all correlation/residual matrices.
 // Edit here to change heatmap colours globally. heatmapColors.js re-exports as TIER_COLOR.
+// Two-regime magnitude ramp: a light-slate resting floor below the flag
+// threshold (LOW = "tested, not flagged"), handing off to amber → red above it
+// (MID/HIGH carry magnitude in the flagged range). The colour break at the
+// threshold reads as the categorical "this crossed the line". A first S214 pass
+// ran single-hue red at three opacities, which compressed not-significant /
+// elevated / high into indistinguishable pinks; the slate floor restores low-
+// range legibility while keeping amber → red the severity scale. Slate, not
+// blue: blue is spent on observed, condition-1, and the sign two-tone. The
+// slate floor (slate-300) reads clear of the condition slate label (slate-500,
+// darker) on the IRC / residual matrices.
 export const HEATMAP_TIER = {
-  LOW:  { color: "rgba(59,130,246,0.25)",  label: "Low" },
-  MID:  { color: "rgba(245,158,11,0.45)",  label: "Moderate" },
-  HIGH: { color: "rgba(239,68,68,0.55)",   label: "High" },
+  LOW:  { color: "#CBD5E1",  label: "Low" },
+  MID:  { color: "#F97316",  label: "Moderate" },
+  HIGH: { color: "#EF4444",  label: "High" },
 };

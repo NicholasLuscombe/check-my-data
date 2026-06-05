@@ -16,14 +16,35 @@ import { makeRowMapper } from "../shared/coordinates.js";
 import { rhoColor, rhoTextColor, rhoLegendItems } from "../shared/heatmapColors.js";
 import { SUB_HEAD } from "../shared/styles.js";
 
-// Solid red ramp: SIGNAL.RED.bg (#FEF2F2) → CC.THRESH (#EF4444)
-const STRIP_GRAD_FROM = "#FEF2F2";
-const STRIP_GRAD_TO = "#EF4444";
+// Residual magnitude ramp — the CANONICAL TIER_COLOR family colours: slate
+// #CBD5E1 → amber #F97316 → red #EF4444, the same #F97316 / #EF4444 the severity
+// scale and every flag mark use. A high residual must read as the SAME red as an
+// outlier dot or flagged cell, so the endpoints are not softened. What is local
+// here is the GAMMA CURVE (t = intensity ** RESID_GAMMA) applied before the ramp:
+// this is a dense, continuous surface (intensity = residual / globalMax, no
+// threshold) where a linear map paints most of the grid warm. The gamma reserves
+// the warm end for genuinely high values — most cells stay cool/slate, amber
+// appears in the upper-mid, full red only at the high rows — while the low-mid
+// keeps its variation so the cross-condition correlation texture still reads. The
+// sparse categorical matrices (HEATMAP_TIER / IRC / CorrMatrix) map linearly and
+// are correct as-is; do NOT add this gamma to them, and do NOT soften these
+// endpoints back off canonical.
+const RESID_GAMMA = 1.5;
+const STRIP_GRAD_FROM = "#DAE1EA";  // lighter slate — low residual floor, sits just
+                                    // above the #F8FAFC strip background so the low
+                                    // end rises gently rather than stepping up
+const STRIP_GRAD_MID = "#F97316";   // amber (canonical)
+const STRIP_GRAD_TO = "#EF4444";    // red (canonical) — high residual
 const stripCellColor = (intensity) => {
-  const r = Math.round(253 + (239 - 253) * intensity);
-  const g = Math.round(242 + (68 - 242) * intensity);
-  const b = Math.round(242 + (68 - 242) * intensity);
-  return `rgb(${r},${g},${b})`;
+  const t = Math.max(0, Math.min(1, intensity)) ** RESID_GAMMA;
+  const lerp = (a, b, f) => Math.round(a + (b - a) * f);
+  // lighter slate (218,225,234) → amber (249,115,22) → red (239,68,68)
+  if (t <= 0.5) {
+    const f = t / 0.5;
+    return `rgb(${lerp(218,249,f)},${lerp(225,115,f)},${lerp(234,22,f)})`;
+  }
+  const f = (t - 0.5) / 0.5;
+  return `rgb(${lerp(249,239,f)},${lerp(115,68,f)},${lerp(22,68,f)})`;
 };
 const MIN_CELL_H = 4;
 const MAX_PANEL_H = 400;
@@ -186,8 +207,12 @@ export function CoordResidualProfile({ allProfiles, nRows, pairDetails, condColo
               <rect x={stripX(ci)} y={PT} width={STRIP_W} height={CHART_H}
                 fill={C.BG_L} stroke="none" shapeRendering="crispEdges"/>
               {bp.map((v, bi) => {
+                // Draw every cell — no low-value skip — so the lowest residuals
+                // (and nulls, coerced to 0 at the binning step via `?? 0`) paint
+                // the lighter floor instead of leaving an undrawn near-white hole.
+                // On this surface an absent row correctly reads as "not a spike
+                // here" (floor), so nulls and the lowest residuals are one colour.
                 const intensity = v / globalMax;
-                if (intensity < 0.02) return null;
                 const y0 = Math.round(yr(bi));
                 const y1 = Math.round(yr(bi + 1));
                 return (
@@ -233,6 +258,10 @@ export function CoordResidualProfile({ allProfiles, nRows, pairDetails, condColo
       {/* Strip gradient legend — on card, outside PlotLayout */}
       <ChartLegend gradient={{
         from: STRIP_GRAD_FROM,
+        mid: STRIP_GRAD_MID,
+        // amber (ramp t=0.5) lands at intensity 0.5**(1/gamma) on the Low→High
+        // axis, so the legend bar curves the same way the cells do.
+        midPos: Math.round(Math.pow(0.5, 1 / RESID_GAMMA) * 100),
         to: STRIP_GRAD_TO,
         startLabel: "Low",
         endLabel: "High residual",

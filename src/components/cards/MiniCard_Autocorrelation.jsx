@@ -1,10 +1,10 @@
 /* ── MiniCard: Autocorrelation ── */
 
-import { C, FW, CHART, SIGNAL } from "../../constants/tokens.js";
+import { C, FW, SIGNAL } from "../../constants/tokens.js";
 import { fmtP } from "../../constants/thresholds.js";
 import { MiniCardLayout } from "../shared/CardLayout.jsx";
 import { EvidenceTable } from "../shared/EvidenceTable.jsx";
-import { buildCondColorMap } from "../../constants/roles.js";
+import { buildCondColorMap, COND_COLORS } from "../../constants/roles.js";
 import { PlotLayout } from "../shared/PlotLayout.jsx";
 import { ChartLegend } from "../shared/ChartLegend.jsx";
 import { AutocorrDecayPlot } from "../plots/AutocorrDecayPlot.jsx";
@@ -57,7 +57,7 @@ export function MiniCard_Autocorrelation({ result, importConfig, rowMap }) {
   //    swatch retires alongside the ±0.15 rectangle. ──
   const legendItems = hasDecay ? [
     ...(result.perGroupDecay || [{ group: "All data" }]).map((c, ci) => ({
-      color: condColorMap[c.group]?.border || CHART.SERIES[ci % CHART.SERIES.length],
+      color: condColorMap[c.group]?.text || COND_COLORS[ci % COND_COLORS.length].text,
       label: shortName(c.group),
       opacity: 0.7,
       swatchType: "line",

@@ -3,10 +3,11 @@
  *
  * TIER_COLOR — the single source of flat tier colours.
  *   Sourced from HEATMAP_TIER in tokens.js. Edit tokens.js to retheme globally.
+ *   Two-regime ramp — slate floor below the flag threshold, amber → red above.
  *
- *   LOW  (blue)   rgba(59,130,246,0.25)
- *   MID  (amber)  rgba(245,158,11,0.45)
- *   HIGH (red)    rgba(239,68,68,0.55)
+ *   LOW   #CBD5E1  (light slate — tested, not flagged)
+ *   MID   #F97316  (amber)
+ *   HIGH  #EF4444  (red)
  *
  * Usage:
  *   CCR — call rhoColor(rho)  (ρ ≥ 0.6 → HIGH, ρ ≥ 0.3 → MID, else LOW)

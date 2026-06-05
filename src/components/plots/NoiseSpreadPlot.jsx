@@ -44,8 +44,8 @@ export function NoiseSpreadPlot({ colDetails, flaggedCols, outlierCol, flag, W=C
         <line key={`g${i}`} x1={PL} x2={PL+CW} y1={py(v)} y2={py(v)}
           stroke={C.BORDER_L} strokeWidth={CS.GRID.w}/>
       ))}
-      {/* Zero line */}
-      <line x1={PL} x2={PL+CW} y1={midY} y2={midY} stroke={C.BORDER} strokeWidth={CS.GRID.w}/>
+      {/* Zero line — neutral baseline (grey, dashed) per shared treatment */}
+      <line x1={PL} x2={PL+CW} y1={midY} y2={midY} stroke={C.TEXT_3} strokeWidth={CS.REF.w} strokeDasharray={CS.REF.dash} opacity={CS.REF.opacity}/>
       {/* Y-axis ticks */}
       {yTicks.map((v, i) => (
         <g key={i}>
@@ -60,7 +60,7 @@ export function NoiseSpreadPlot({ colDetails, flaggedCols, outlierCol, flag, W=C
         const sd = stds[i];
         const x = cx(i);
         const isOutlier = isFlagged(d);
-        const color = isOutlier ? CC.WARN : CC.OBS;
+        const color = isOutlier ? CC.THRESH : CC.OBS;
         const capW = 8;
         return (
           <g key={i}>
@@ -78,7 +78,7 @@ export function NoiseSpreadPlot({ colDetails, flaggedCols, outlierCol, flag, W=C
               fill={color} stroke={C.WHITE} strokeWidth="1"/>
             {/* Column label */}
             <text x={x} y={H-PB+15} textAnchor="middle" fontSize={CF.AXIS}
-              fill={isOutlier ? SIGNAL.AMBER.dot : C.TEXT_2} fontWeight={isOutlier ? 700 : 400} fontFamily={FF.UI}>
+              fill={isOutlier ? SIGNAL.RED.dot : C.TEXT_2} fontWeight={isOutlier ? 700 : 400} fontFamily={FF.UI}>
               {d.label || ("Col " + d.col)}
             </text>
             <text x={x} y={H-PB+28} textAnchor="middle" fontSize={CF.TICK} fill={C.TEXT_3} fontFamily={FF.MONO}>
@@ -86,7 +86,7 @@ export function NoiseSpreadPlot({ colDetails, flaggedCols, outlierCol, flag, W=C
             </text>
             {/* SD value */}
             <text x={x} y={py(sd)-7} textAnchor="middle" fontSize={CF.TICK} fontFamily={FF.MONO}
-              fill={isOutlier ? SIGNAL.AMBER.dot : C.TEXT_3} fontWeight={isOutlier ? 600 : 400}>
+              fill={isOutlier ? SIGNAL.RED.dot : C.TEXT_3} fontWeight={isOutlier ? 600 : 400}>
               {sd.toFixed(2)}
             </text>
           </g>

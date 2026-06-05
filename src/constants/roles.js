@@ -8,17 +8,23 @@ export const ROLES = {
 };
 export const ROLE_KEYS = ["data", "label", "condition", "ignore"];
 
-// Condition colours: saturated enough to distinguish adjacent conditions.
-// Each entry: { bg, text, border } for badge rendering.
+// Condition colours: eight hues in a lighter register, ordered so the common
+// first-three case spreads across the wheel. Each entry: { bg, text, border };
+// condition marks read the .text shade everywhere, the import chip reads .bg
+// (pale fill) + .text (label), so .bg / .border are tints/shades of the entry's
+// .text hue — one hue per condition across import and plot. Hues are picked for
+// mutual separation as thin lines, not for avoiding the severity family
+// (channel 1 is a role-not-hue rule). Ordering and .text anchors track
+// PLOT-COLOUR-SEMANTICS.md (the condition palette table).
 export const COND_COLORS = [
-  { bg: "#DBEAFE", text: "#1E40AF", border: "#93C5FD" },  // blue
-  { bg: "#FEE2E2", text: "#991B1B", border: "#FCA5A5" },  // red
-  { bg: "#D1FAE5", text: "#065F46", border: "#6EE7B7" },  // green
-  { bg: "#FEF3C7", text: "#92400E", border: "#FCD34D" },  // amber
-  { bg: "#EDE9FE", text: "#5B21B6", border: "#C4B5FD" },  // purple
-  { bg: "#CFFAFE", text: "#155E75", border: "#67E8F9" },  // cyan
-  { bg: "#FFF1F2", text: "#9F1239", border: "#FDA4AF" },  // rose
-  { bg: "#ECFCCB", text: "#3F6212", border: "#BEF264" },  // lime
+  { bg: "#DBEAFE", text: "#3B82F6", border: "#93C5FD" },  // blue
+  { bg: "#ECFCCB", text: "#4D7C0F", border: "#BEF264" },  // lime (.text darkened to lime-700 for small-text contrast on white)
+  { bg: "#F3E8FF", text: "#A855F7", border: "#D8B4FE" },  // purple
+  { bg: "#CFFAFE", text: "#06B6D4", border: "#67E8F9" },  // cyan
+  { bg: "#FCE7F3", text: "#EC4899", border: "#F9A8D4" },  // pink
+  { bg: "#D1FAE5", text: "#10B981", border: "#6EE7B7" },  // green
+  { bg: "#FEF3C7", text: "#B45309", border: "#FCD34D" },  // amber (.text darkened to amber-700 for small-text contrast on white)
+  { bg: "#F1F5F9", text: "#64748B", border: "#CBD5E1" },  // slate
 ];
 
 /** Rebuild the condition → colour map from importConfig.condPerCol.
