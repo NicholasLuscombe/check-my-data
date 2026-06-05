@@ -1,76 +1,115 @@
-# Test → display map
+# Test → fixture lookup
 
 **GENERATED — DO NOT HAND-EDIT** — regenerate via
 `node scripts/build-test-display-map.mjs`
 
-- Generated: 2026-05-24 01:57:31Z
-- Commit:    `1057eef` (`1057eef27f640403b6940d82771cba71ec806a84`)
-- Branch:    `claude/bold-meitner-4fa588`
-- Batch:     `node test/validate-batch.mjs` (this script reproduces the validate-batch pipeline against 22 fixtures on the branch above)
+- Generated: 2026-06-05 05:10:13Z
+- Commit:    `cc2f4a2` (`cc2f4a26a00c458b14f655c90079901dbd51d0cb`)
+- Branch:    `claude/nifty-lamarr-f66b3b`
+- Batch:     live `result.flag` via the validate-batch pipeline over the shared 22-fixture set (`test/batch-fixtures.mjs`)
 
-## What this is
+Answers one question for the visual walk: **which dataset do I load to see a
+visible flag for test X.**
 
-Single source-of-truth reference mapping every active engine test to:
+## Source basis
 
-1. its `result.name` (engine identifier, the key shared by `MINIPLOT_REGISTRY`, `TEMPLATE_MAP`, and the seven dispatch maps in `src/constants/mechanisms.js`);
-2. its user-facing display name from `DISPLAY_NAMES` (`src/constants/mechanisms.js`);
-3. the **UI cluster** it renders under in §3 — the `MECHANISMS[k].label` corresponding to `TEST_MECHANISM[name]`. `ReportView.jsx` threads this label through to `ForensicsCategoryBlock` for §3 grouping; it IS the on-screen cluster heading.
-4. the fixtures it fired on (HIGH or MOD), taken from the engine's `result.flag` output across the 22-fixture batch. Tests that returned only LOW / N/A across every fixture are listed as "none — latent".
+Every cell is derived from source, not transcribed from any prior version of
+this file:
 
-Replaces methodology-prose reasoning about display behaviour with empirical batch output.
+- **Code test name** — the canonical key of `TEST_MECHANISM` in
+  `src/constants/mechanisms.js`. This is the engine `result.name`, shared by
+  the dispatch maps.
+- **UI name** — the `DISPLAY_NAMES` value for that key
+  (`src/constants/mechanisms.js`).
+- **Cluster** — the §3 display category. `TEST_MECHANISM[name]` gives the
+  internal key (`copied` / `digits` / `shapes` / `replicate` / `group`); the
+  display name is `MECHANISMS[key].label`.
+- **Fires on** — presence from live batch output: a test appears under a
+  fixture when its `result.flag` is HIGH or MOD there. The mark is set by
+  cross-referencing the shared `EXPECTED` allow-sets in
+  `test/batch-fixtures.mjs` — a fire declared in that fixture's
+  `EXPECTED.flags` is credited (bare); a fire that renders but is not a
+  declared channel is acknowledged (`(ack)`).
 
-## UI cluster vs working-cluster vocabulary
+**Tier rendering.** Credited fires take the declared allow-set: a singleton
+`['HIGH']` renders `HIGH`, and a two-value `['MODERATE','HIGH']` renders
+`MOD/HIGH` (the fixture permits either tier). Acknowledged fires take the live
+tier — `HIGH` or `MOD` — followed by `(ack)`. A test with no fire on any
+fixture is `— latent`.
 
-The §3 UI grouping uses the five `MECHANISMS` labels: **Copy, paste, edit** / **Unusual digits** / **Distribution shapes** / **Cross-replicate comparisons** / **Cross-condition comparisons** (`MECHANISM_ORDER`). This map's "Cluster" column carries that vocabulary because that is what the user reads on screen.
+Sorted by cluster in fixed display order (copied → digits → shapes → replicate
+→ group); tests alphabetical by UI name within each cluster.
 
-The working-cluster names used in `docs/shared/TESTCARD-FINDINGS.md` for A2 chrome passes — _clone-duplication_, _cross-condition consistency_, _distribution shape_, _spread / heteroscedasticity_, _ordering / sequence_, _cell-level_ — are a finer vocabulary that cross-cuts the UI clusters. The correspondences are not 1:1:
+## Lookup table
 
-| Working cluster (TESTCARD-FINDINGS)        | UI clusters it touches                                   |
-|--------------------------------------------|----------------------------------------------------------|
-| clone-duplication                          | Copy, paste, edit                                        |
-| cross-condition consistency                | Copy, paste, edit (RSC); Cross-condition comparisons (CCC) |
-| distribution shape                         | Unusual digits; Distribution shapes                      |
-| spread / heteroscedasticity                | Cross-replicate comparisons (IRC, Kurtosis, …)           |
-| ordering / sequence                        | Cross-replicate comparisons (Autocorr, Runs, Row-Mean Runs, LOESS) |
-| cell-level                                 | Cross-replicate comparisons (Mahalanobis, Within-Row Variance) |
+### Copy, Paste, Edit
 
-Flag this mismatch — it is real and worth carrying. The map below renders the UI cluster only.
-
-## The map
-
-Sorted by `MECHANISM_ORDER` (copied → digits → shapes → replicate → group), then by display name within cluster.
-
-| Display name | Engine name | Cluster (§3 UI) | Flagged on (HIGH / MOD) |
+| Code test name | UI name | Cluster | Fires on |
 |---|---|---|---|
-| Correlated residuals | Residual Spike Correlation | Copy, paste, edit | DS02 MOD, DS11 MOD |
-| Duplicated and offset | Constant-Offset Blocks | Copy, paste, edit | DS08 MOD |
-| Duplicated data | Exact Duplicate Detection | Copy, paste, edit | DS04 HIGH, DS06 HIGH, DS10 HIGH, DS14 HIGH |
-| Decimal places | Decimal Precision Consistency | Unusual digits | none — latent |
-| First-digit frequencies | Benford's Law (First Digit) | Unusual digits | DS08 HIGH |
-| Last-digit frequencies | Terminal Digit Uniformity | Unusual digits | DS04 HIGH |
-| Repeated digits | Value-Frequency Spike | Unusual digits | DS04 MOD, DS06 MOD, DS13 HIGH |
-| Second-digit frequencies | Benford's Law (Second Digit) | Unusual digits | DS10 HIGH, DS11 HIGH |
-| Column modality | Modality Test | Distribution shapes | none — latent |
-| Column shape fit | Column Goodness-of-Fit | Distribution shapes | DS10 MOD, DS19 MOD, DS20 MOD |
-| Value entropy | Entropy / Zipf Analysis | Distribution shapes | none — latent |
-| Block covariance anomaly | Blocked Mahalanobis | Cross-replicate comparisons | DS15 MOD, DS21 HIGH, DS22 MOD |
-| Distribution of noise across columns | Selective Noise Partitioning | Cross-replicate comparisons | DS08 HIGH, DS20 HIGH |
-| Inter-replicate correlation | Inter-Replicate Correlation | Cross-replicate comparisons | DS02 MOD, DS08 HIGH |
-| Missing data patterns | Missing Data Pattern | Cross-replicate comparisons | DS15 HIGH |
-| Noise consistency | LOESS Residual Analysis | Cross-replicate comparisons | DS08 HIGH, DS10 MOD, DS12b MOD |
-| Noise predictability | Autocorrelation | Cross-replicate comparisons | DS02 MOD, DS11 HIGH, DS20 MOD, DS21 HIGH, DS22 MOD |
-| Noise scaling | Noise Scaling With Measurement Size | Cross-replicate comparisons | DS06 HIGH |
-| Regional noise | Regional Noise Homogeneity | Cross-replicate comparisons | DS10 MOD, DS21 MOD |
-| Replicate noise shape | Excess Kurtosis | Cross-replicate comparisons | none — latent |
-| Row variance scan | Within-Row Variance | Cross-replicate comparisons | DS14 HIGH |
-| Row-mean patterns | Row-Mean Runs | Cross-replicate comparisons | DS21 HIGH |
-| Row-order randomness | Runs Test | Cross-replicate comparisons | DS02 MOD, DS21 HIGH, DS22 HIGH |
-| Unusual rows | Mahalanobis Row Outlier | Cross-replicate comparisons | DS06 HIGH, DS08 MOD |
-| Windowed autocorrelation | Windowed Autocorrelation | Cross-replicate comparisons | none — latent |
-| Condition balance | Baseline Balance | Cross-condition comparisons | DS16 HIGH |
-| Cross-condition consistency | Cross-Condition Consistency | Cross-condition comparisons | DS15 MOD, DS19 MOD |
-| Cross-condition similarity | Cross-Condition Rank Correlation | Cross-condition comparisons | none — latent |
+| Exact Duplicate Detection | Duplicated Data | Copy, Paste, Edit | DS04 HIGH, DS06 HIGH, DS10 HIGH, DS14 HIGH |
+| Constant-Offset Blocks | Offset copies | Copy, Paste, Edit | DS08 MOD/HIGH |
+| Residual Spike Correlation | Shared noisy rows | Copy, Paste, Edit | DS02 MOD/HIGH, DS11 MOD/HIGH |
 
----
+### Unusual Digits
 
-Fixtures covered (22): DS01, DS02, DS03, DS04, DS05, DS06, DS07, DS08, DS09, DS10, DS11, DS12a, DS12b, DS13, DS14, DS15, DS16, DS17, DS19, DS20, DS21, DS22.
+| Code test name | UI name | Cluster | Fires on |
+|---|---|---|---|
+| Decimal Precision Consistency | Decimal precision | Unusual Digits | — latent |
+| Benford's Law (First Digit) | First-Digit Frequencies | Unusual Digits | DS08 HIGH |
+| Terminal Digit Uniformity | Last-Digit Frequencies | Unusual Digits | DS04 HIGH |
+| Value-Frequency Spike | Over-used numbers | Unusual Digits | DS04 MOD/HIGH, DS06 MOD/HIGH, DS13 HIGH |
+| Benford's Law (Second Digit) | Second-Digit Frequencies | Unusual Digits | DS10 HIGH, DS11 HIGH |
+
+### Distribution Shapes
+
+| Code test name | UI name | Cluster | Fires on |
+|---|---|---|---|
+| Column Goodness-of-Fit | Column Goodness-of-Fit | Distribution Shapes | DS10 MOD/HIGH, DS20 MOD/HIGH |
+| Entropy / Zipf Analysis | Distinct numbers | Distribution Shapes | — latent |
+| Modality Test | Number of peaks | Distribution Shapes | — latent |
+
+### Cross-Replicate Comparisons
+
+| Code test name | UI name | Cluster | Fires on |
+|---|---|---|---|
+| Selective Noise Partitioning | Column-to-column noise | Cross-Replicate Comparisons | DS08 MOD/HIGH, DS20 HIGH |
+| Inter-Replicate Correlation | Inter-Replicate Correlation | Cross-Replicate Comparisons | DS02 MOD/HIGH, DS08 MOD/HIGH |
+| Windowed Autocorrelation | Local noise correlation | Cross-Replicate Comparisons | — latent |
+| Missing Data Pattern | Missing-data pattern | Cross-Replicate Comparisons | DS15 HIGH |
+| Autocorrelation | Noise correlation | Cross-Replicate Comparisons | DS02 MOD/HIGH, DS11 HIGH, DS20 MOD/HIGH, DS21 HIGH, DS22 MOD/HIGH |
+| Excess Kurtosis | Noise distribution | Cross-Replicate Comparisons | — latent |
+| LOESS Residual Analysis | Noise level trend | Cross-Replicate Comparisons | DS08 MOD/HIGH, DS10 MOD/HIGH, DS12b MOD/HIGH |
+| Noise Scaling With Measurement Size | Noise scaling | Cross-Replicate Comparisons | DS06 HIGH |
+| Runs Test | Noise sign-pattern | Cross-Replicate Comparisons | DS02 MOD/HIGH, DS21 MOD/HIGH, DS22 MOD/HIGH |
+| Regional Noise Homogeneity | Region-to-region noise | Cross-Replicate Comparisons | DS10 MOD/HIGH, DS21 MOD/HIGH |
+| Row-Mean Runs | Row-mean patterns | Cross-Replicate Comparisons | DS21 MOD/HIGH |
+| Blocked Mahalanobis | Shifted blocks | Cross-Replicate Comparisons | DS15 MOD/HIGH, DS21 MOD/HIGH, DS22 MOD/HIGH |
+| Mahalanobis Row Outlier | Unusual rows | Cross-Replicate Comparisons | DS06 HIGH (ack), DS08 MOD (ack) |
+| Within-Row Variance | Within-row noise | Cross-Replicate Comparisons | — latent |
+
+### Cross-Condition Comparisons
+
+| Code test name | UI name | Cluster | Fires on |
+|---|---|---|---|
+| Baseline Balance | Baseline Balance | Cross-Condition Comparisons | DS16 MOD/HIGH |
+| Cross-Condition Rank Correlation | Cross-Condition Rank Correlation | Cross-Condition Comparisons | — latent |
+| Cross-Condition Consistency | Overall condition similarity | Cross-Condition Comparisons | DS15 MOD/HIGH, DS19 MOD/HIGH |
+
+Credited fires are unmarked; `(ack)` marks a fire that renders on screen but is not a declared detection channel for that fixture (incidental or corroborating — see TEST-GROUND-TRUTH for the per-fixture rationale).
+
+## Notes
+
+- 28 active tests, matching the 28 keys of `TEST_MECHANISM`.
+- Seven tests are `— latent`: no fixture in `EXPECTED` declares a HIGH or MOD
+  allow-set for them, and they carry no acknowledged fire. They are Decimal
+  Precision Consistency, Distinct numbers (Entropy / Zipf), Number of peaks
+  (Modality), Local noise correlation (Windowed Autocorrelation), Noise
+  distribution (Excess Kurtosis), Within-row noise (Within-Row Variance), and
+  Cross-Condition Rank Correlation.
+- The acknowledged fires come from the `ACKNOWLEDGED` side-map in
+  `test/batch-fixtures.mjs`, which holds two entries: Mahalanobis Row Outlier
+  on DS06 (HIGH) and DS08 (MOD), both incidental single-row outliers downstream
+  of other manipulations. Tiers are the live engine flag on those two
+  fixtures; the side-map itself stores a reason string, not a tier.
+- DS12b is the fabricated half of the uniform-mixture pair (file
+  `12b-uniform-mixture-fabricated.csv`); DS12a is clean and carries no flags.
