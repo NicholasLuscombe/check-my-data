@@ -1,6 +1,6 @@
 # Check My Data — Investigation Display UI Specification
 
-**Version:** 7.0 (Chat post-S157 — A1.D0c-bis chrome lock + mechanism iconography)
+**Version:** 7.2 (Chat post-S213 — single severity scale + plot colour-semantics reference; S211 composition rollout)
 **Status:** QC mode ✅ (Code S21). Forensics mode ✅ (Code S25+S69+S71, S156+S157 chrome lock). Peer review mode ✅ (Code S70+S71).
 
 This document is the authoritative reference for how Check My Data presents analysis results across three modes. It covers:
@@ -53,9 +53,18 @@ Per-test verdict, sentence-case "High / Moderate / Clear" (replaced the earlier 
 
 | Tier word | Internal flag | Colour | Used at |
 |-----------|---------------|--------|---------|
-| **High** | `HIGH` | Red `#c0392b` (`SEV_VERDICT.HIGH.color`) | Test cards, chip suffix, cluster-header right badge |
-| **Moderate** | `MED` | Orange `#D97706` (`SEV_VERDICT.MED.color`) | Test cards, chip suffix, cluster-header right badge |
-| **Clear** | `LOW` | Green `#16a34a` (`SEV_VERDICT.LOW.color`) | Test cards, CLEAR-strip, cluster-header right badge for all-cleared clusters |
+| **High** | `HIGH` | Red `#EF4444` (`SEV_VERDICT.HIGH.color`) | Test cards, chip suffix, cluster-header right badge |
+| **Moderate** | `MED` | Amber `#F97316` (`SEV_VERDICT.MED.color`) | Test cards, chip suffix, cluster-header right badge |
+| **Clear** | `LOW` | Green `#22C55E` (`SEV_VERDICT.LOW.color`) | Test cards, CLEAR-strip, cluster-header right badge for all-cleared clusters |
+
+**One severity scale (S213).** `SEV_VERDICT` is the single severity colour scale,
+shared by chrome and plot interiors — the bright triple above. Before S213 the
+chrome words used a darker triple (`#c0392b` / `#D97706` / `#16a34a`) while the
+four-dot tier indicator and plot marks used the bright set, so a single card showed
+two reds and two ambers. Ruled to one scale, the bright set; the dot-ramp and plot
+flag marks (`PLOT_FC` / `CC.THRESH`) read from `SEV_VERDICT`. Plot-interior colour
+generally is governed by `PLOT-COLOUR-SEMANTICS.md`; this table is the chrome
+consumer of the same scale.
 
 Engine identifier `r.flag === "HIGH" / "MED" / "LOW"` stays the load-bearing string identity at the dispatch layer (S129 convention); display-label transform happens at the chrome edge.
 
@@ -1291,6 +1300,15 @@ role because the footer is already a finding-about-the-data, so it describes the
 beneath it accurately (unlike the test-question, which describes the *test* and would
 mis-head a results table).
 
+**Casing (S211).** A footer-lead that begins with a **letter** is **capitalised at the first
+letter**, to read consistently with the cap-leading test name and sub-header question above it
+("Noise correlates from one row to the next", "Last digits are not evenly spread"). A footer-lead
+that begins with a **number** is left as-is — a leading numeral is a valid sentence start and
+creates no clash ("2 columns don't fit their expected shape", "3 rows are exact duplicates").
+Count-findings therefore lead with the numeral, not the spelled word (Duplicated Data's
+block-clause was "two columns…" → "2 columns…", S211, to join this convention). First-letter case
+only — the rule does not reword or re-punctuate. Applies to all lead variants (finding + cleared).
+
 ### Section-level alignment — left rail, gutter, right rail (S210)
 
 The §3 row family (cluster headers, expanded test cards, cleared strips, and the sub-header
@@ -1339,10 +1357,26 @@ test-name weight — two competing headings per card. Resolve by surface count:
   below the footer/lead so it labels the table without competing with the body lead.
 
 Content-truth check (verify per card during the visual walk): the footer fragment must
-actually describe the primary surface it now heads. On the audited DS08 cards it reads true
-(footer = finding-about-data = what the plot shows). Any card where the footer does not
+actually describe the primary surface it now heads. Any card where the footer does not
 describe its primary surface keeps an explicit heading instead — flag at the walk rather than
 forcing the rule.
+
+**Applied battery-wide (S211).** The rule was prototyped on two S210 cards (Over-used numbers
+single-surface, Column-to-column multi-surface) and rolled out across the remaining cards in
+S211. The state-dependence trap is part of the rule: five cards (Mahalanobis Row Outlier,
+Selective Noise, Column GoF, Entropy, Modality) render one surface when cleared and add a table
+only when flagged — they are MULTI for this rule (footer-lead heads the plot, the table's heading
+demotes when present, and there is no secondary to demote when cleared). One card holds an
+explicit heading by the content-truth carve-out: **Missing-data pattern** — its footer describes
+the spatial heatmap's row-concentration, not the first/primary per-column rate bar, so demoting
+its headings would mis-head the primary surface (resolution — reorder surfaces vs accept explicit
+headings — deferred to the visual walk).
+
+Open at the walk: the demoted secondary reads unbalanced on multi cards when it echoes the
+footer-lead, and ~11 of ~20 multi cards carry short title-style secondaries ("Flagged columns")
+that the weight-only demote does not make read subordinate. Candidate resolutions: strengthen the
+demote treatment battery-wide, or reword the title-style secondaries into descriptive labels.
+Judge on a dense cluster.
 
 ### Vertical rhythm
 

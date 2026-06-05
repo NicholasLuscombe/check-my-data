@@ -5,6 +5,14 @@ and table/matrix heading across the card battery. No fixes, no recommendations. 
 verbatim from source at the listed line. Primary card footers (the `footer=` prop on
 `MiniCardLayout` / `CardLayout`) are **out of scope** and not catalogued (that surface is done).
 
+*Refreshed S212 (plot-standardisation arc): four entries had drifted against source after the
+post-S199/S210 plain-English caption rewrites — the Autocorrelation footerText and three Carlisle
+strings (plot caption tail, in-plot axis caption, table heading). Strings + line numbers updated
+from source; two Carlisle surfaces reclassified MIXED → READS-TABLE (see summary count). One
+re-quote is still pending (Autocorrelation footerText branches (b)/(c) — only (a) was in the S212
+audit source read; flagged inline). One walk watch-item logged at the foot of the MIXED section
+(Kurtosis axis-label verdict words).*
+
 ## Summary count
 
 Counting distinct caption/heading **surfaces** (a multi-branch caption counts once; the branch
@@ -12,11 +20,13 @@ strings are all quoted in its row).
 
 | Classification | Count |
 |---|---|
-| `READS-TABLE` | 27 |
+| `READS-TABLE` | 29 |
 | `EXPLAINS-METHOD` | 8 |
-| `MIXED` | 9 |
+| `MIXED` | 7 |
 | `FACTUAL-ERROR` | 0 |
 | **Total surfaces** | **44** |
+
+*(Counts updated S212 caption refresh: two Carlisle surfaces — the in-plot axis caption and the table heading — shifted MIXED → READS-TABLE after the post-S199/S210 plain-English rewrite dropped the "ANOVA" test-naming. MIXED 9→7, READS-TABLE 27→29; EXPLAINS-METHOD and total unchanged. The Carlisle plot caption was held in MIXED but its EXPLAINS half is now thin — see its row.)*
 
 Breakdown by surface type: plot captions 6 · reference-line / axis labels (`refLabel`/`xlabel`) 8 ·
 skipped-column captions 2 · secondary `footerText` 4 · table/matrix headings 24.
@@ -42,7 +52,7 @@ skipped-column captions 2 · secondary `footerText` 4 · table/matrix headings 2
 
 | Card | Surface | Component + location | Current string (verbatim) | Note |
 |---|---|---|---|---|
-| Noise correlation (Autocorrelation) | secondary `footerText` | [MiniCard_Autocorrelation.jsx:124](src/components/cards/MiniCard_Autocorrelation.jsx:124), `EvidenceTable footerText` | 3 branches — (a) `Higher-lag (2–5) serial structure survives pooled BH-FDR at α = 0.001 AND ≥ 2 pairs corroborate per-pair — sub-unit evidence promoted this test to MODERATE.` (b) `…corroborating the lag-1 finding.` (c) `Lag 1 is the primary statistic; lags 2–5 are sub-unit evidence (promotion requires pooled adj p < 0.001 plus ≥ 2 pairs at per-pair adj p < 0.05).` | Dynamic; branches on `result.higherLagWasDecisive` / `result.higherLagPromoted`. All three describe the promotion rule / statistic, not what the table shows. Inline strings. |
+| Noise correlation (Autocorrelation) | secondary `footerText` | [MiniCard_Autocorrelation.jsx:124](src/components/cards/MiniCard_Autocorrelation.jsx:124), `EvidenceTable footerText` | 3 branches (REWRITTEN to plain English post-S199/S210) — (a) `The pattern repeats at longer gaps (every 2–5 rows), not just between adjacent rows — that wider structure raised this to Moderate.` (b) the corroboration branch; (c) the primary-statistic branch. Dynamic; branches on `result.higherLagWasDecisive` / `result.higherLagPromoted`. Still describes the promotion rule / what the result means, not what the table shows — remains EXPLAINS-METHOD despite the plainer wording. Inline strings. *(Branches (b)/(c) verbatim re-quote pending — refreshed (a) from S212 plot-audit source read; re-quote (b)/(c) when next at the file.)* |
 | Local noise correlation (Windowed Autocorr) | secondary `footerText` (flagged branch) | [MiniCard_WindowedAutocorr.jsx:79](src/components/cards/MiniCard_WindowedAutocorr.jsx:79) | `Rows with adj-p < 0.05 are highlighted. Sorted by adj-p ascending (most localised first).` | Flagged branch only (the `else` of `result.flag === "LOW"`). Explains highlight + sort convention + α. Inline. |
 | Blocked Mahalanobis | secondary `footerText` (flagged branch) | [MiniCard_BlockedMahalanobis.jsx:74](src/components/cards/MiniCard_BlockedMahalanobis.jsx:74) | `Rows with adj-p < 0.01 are highlighted. Sorted by adj-p ascending (most localised first).` | Flagged branch only. Same shape as Windowed; note α differs (0.01 vs 0.05). Inline. |
 | Cross-Condition Consistency | plot/table legend caption | [MiniCard_CrossCondConsistency.jsx:158](src/components/cards/MiniCard_CrossCondConsistency.jsx:158), `legendStyle` div under EvidenceTable | `Amber-tinted rows meet the forensic criterion: adj-p < {ALPHA.NOTE} AND the effect-size gate passes AND the direction is forensically actionable for that property (for Stage 1 properties, only "too similar" is actionable — honest conditions legitimately differ on span / MAD / CDF). Rows in muted text mark "informational" pairs: non-forensic-direction (typically "too different"), shown for transparency but not contributing to the flag. "Null median" is the median of the permutation distribution; "Direction" indicates which tail the observed distance sits in (similar = below median, different = above). HIGH (adj-p < {ALPHA.FLAG}) is unreachable for this framework at B={result.B} permutations — see METHODOLOGY §1.9 ¶8 (permutation-arithmetic limitation), so MODERATE is the strongest tier this test can report.` | Longest caption on the surface. Predominantly methodology (forensic criterion, permutation distribution, framework tier limitation). Does double as a column-glossary (defines "Null median" / "Direction"). Dynamic (`ALPHA.NOTE`, `ALPHA.FLAG`, `result.B`). Inline. |
@@ -55,14 +65,26 @@ skipped-column captions 2 · secondary `footerText` 4 · table/matrix headings 2
 
 ## MIXED (reads + explains)
 
+*S212 note: two rows below — Carlisle in-plot axis caption (`:44`) and Carlisle table heading
+(`:74`) — are now classified READS-TABLE after the ANOVA-name drop; they remain physically in
+this table to avoid reshuffling rows, tagged in their Note column. The Carlisle plot caption
+(`:64`) is held here but its EXPLAINS half is thin post-rewrite.*
+
+*Walk watch-item (S212, not a caption-table entry): `MiniCard_Kurtosis.jsx:57` carries
+`xlabel="Noise shape index (negative = too uniform, positive = too peaked)"` — the axis label
+still uses the "too uniform/too peaked" verdict words that S212 stripped from the per-chart
+heading (Fix 3, now "flatter/more peaked/typical"). Open question for the visual walk: does an
+axis-pole label count as orientation (legitimately naming what the poles mean) or as a verdict
+re-entering through the axis? Eyes on the rendered plot, not a chat-side call.*
+
 | Card | Surface | Component + location | Current string (verbatim) | Note |
 |---|---|---|---|---|
 | Noise correlation (Autocorrelation) | plot caption | [MiniCard_Autocorrelation.jsx:96](src/components/cards/MiniCard_Autocorrelation.jsx:96), `SUB_HEAD`-derived div under PlotLayout | 2 lead-in branches + shared tail: (a) `Lines are per-condition lag-k means` OR (b) `The line shows lag-k means across pairs` then `; dots are per-lag values. The mean ± 95% CI marker at lag 1 carries the verdict — average serial correlation across pairs is reliably above zero when the interval excludes the dashed reference.` | Lead-in reads the plot (what lines/dots are); tail explains the verdict-decision rule. Rendered only when `hasDecay`. Branches on `result.perGroupDecay?.length > 1`. Inline. |
 | Blocked Mahalanobis | secondary `footerText` (LOW branch) | [MiniCard_BlockedMahalanobis.jsx:74](src/components/cards/MiniCard_BlockedMahalanobis.jsx:74) | `All windows are consistent with a single condition-wide covariance / mean structure.` | States the finding (no localised shift) but in method vocabulary ("covariance / mean structure"). LOW branch. Inline. |
 | Local noise correlation (Windowed Autocorr) | secondary `footerText` (LOW branch) | [MiniCard_WindowedAutocorr.jsx:79](src/components/cards/MiniCard_WindowedAutocorr.jsx:79) | `All windows are consistent with independent noise in each pair (BH-FDR at α = 0.05).` | States the finding (independent noise) then appends the method/α parenthetical. LOW branch. Inline. |
-| Carlisle Balance | plot caption | [MiniCard_CarlisleBalance.jsx:64](src/components/cards/MiniCard_CarlisleBalance.jsx:64), div under PlotLayout | `Bar height = count of features per p-value bin. Dashed line = expected under uniform.` + optional ` Highlighted bar = excess p-values near 1.0 (too balanced).` + ` Distributional-shape statistic for this plot: KS D = {result.ksD}, {fmtPBadge(result.ksP)}.` | First two sentences read the plot; the appended "Distributional-shape statistic … KS D = …" names the statistic (method). Dynamic; `direction === "too balanced"` gates the middle clause. Inline. |
-| Carlisle Balance | in-plot axis caption | [MiniCard_CarlisleBalance.jsx:43](src/components/cards/MiniCard_CarlisleBalance.jsx:43), `<text>` in PlotSVG | `ANOVA p-value distribution (10 bins)` | Names the test (ANOVA) + binning. Static SVG caption. |
-| Carlisle Balance | table heading | [MiniCard_CarlisleBalance.jsx:73](src/components/cards/MiniCard_CarlisleBalance.jsx:73), `SUB_HEAD` | `Per-feature ANOVA results` | Names the test. Inline. |
+| Carlisle Balance | plot caption | [MiniCard_CarlisleBalance.jsx:64](src/components/cards/MiniCard_CarlisleBalance.jsx:64), div under PlotLayout | `Bar height = count of features per p-value bin. Dashed line = expected under uniform.` + optional ` Highlighted bar = excess p-values near 1.0 (too balanced).` + tail (REWRITTEN post-S199/S210, KS-D clause replaced) ` How far the bars sit from the dashed expected line: {fmtPBadge(result.ksP)}.` | First two sentences read the plot. The tail no longer names KS-D — it now reads the plot ("how far the bars sit from the line"), so this surface has shifted toward READS-TABLE (the explicit method-statistic naming is gone; only the p-badge remains). Kept under MIXED pending the visual-walk read, but the EXPLAINS half is now thin. Dynamic; `direction === "too balanced"` gates the middle clause. Inline. |
+| Carlisle Balance | in-plot axis caption | [MiniCard_CarlisleBalance.jsx:44](src/components/cards/MiniCard_CarlisleBalance.jsx:44), `<text>` in PlotSVG | `Per-feature p-value distribution (10 bins)` (REWRITTEN post-S199/S210 — "ANOVA" dropped, line shifted :43→:44) | No longer names the test; reads as a description of what the axis shows + binning. Shifted MIXED → READS-TABLE (the method-naming that put it in MIXED is gone). Static SVG caption. |
+| Carlisle Balance | table heading | [MiniCard_CarlisleBalance.jsx:74](src/components/cards/MiniCard_CarlisleBalance.jsx:74), `SUB_HEAD` | `Balance across conditions, per feature` (REWRITTEN post-S199/S210 — "ANOVA" dropped, line shifted :73→:74) | No longer names the test; describes what the table shows. Shifted MIXED → READS-TABLE. Inline. |
 | Selective Noise | table heading | [MiniCard_SelectiveNoise.jsx:114](src/components/cards/MiniCard_SelectiveNoise.jsx:114), `SUB_HEAD` | `Per-column variance test` | Names the statistic ("variance test"). Inline. |
 | Noise correlation (Autocorrelation) | plot/table headings | [MiniCard_Autocorrelation.jsx:82](src/components/cards/MiniCard_Autocorrelation.jsx:82) & [:130](src/components/cards/MiniCard_Autocorrelation.jsx:130), `SUB_HEAD` | `Autocorrelation by lag` and `Pooled autocorrelation by lag` | Name the statistic but frame what is plotted/tabulated. Inline. |
 | Column goodness-of-fit | reference-line caption | [MiniCard_ColumnGoF.jsx:91](src/components/cards/MiniCard_ColumnGoF.jsx:91), `ColumnStatBar refLabel` | `Null median (ratio = 1)` | "Null median" is method vocabulary; "(ratio = 1)" reads the axis. Inline. |
@@ -146,8 +168,10 @@ skipped-column captions 2 · secondary `footerText` 4 · table/matrix headings 2
 - **Two distinct caption shapes carry the EXPLAINS-METHOD load:** (1) the flagged-branch
   `footerText` on the three localised tests (Blocked Mahalanobis / Windowed Autocorr / Autocorr)
   all explain highlight + sort convention + α threshold; near-identical wording, candidate for a
-  shared constant. (2) Statistic-naming headings (RSC `Spearman ρ`, IRC `Pearson r`, Carlisle
-  `ANOVA`, Selective Noise `variance test`).
+  shared constant. (2) Statistic-naming headings (RSC `Spearman ρ`, IRC `Pearson r`, Selective
+  Noise `variance test`). *(Carlisle's ANOVA-named heading + axis caption were here pre-S212; the
+  plain-English rewrite dropped the test name, so Carlisle no longer belongs in this group — see
+  the S212 reclassification note.)*
 - **`ColumnStatBar` is shared** across ColumnGoF / ValueFrequency / Modality / Entropy; the
   `refLabel` / `skippedClause` strings are card-supplied (inline per-card), composed by
   `composeSkippedLine` ([ColumnStatBar.jsx:209](src/components/plots/ColumnStatBar.jsx:209)).
