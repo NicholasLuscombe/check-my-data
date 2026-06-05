@@ -16,26 +16,29 @@ import { makeRowMapper } from "../shared/coordinates.js";
 import { rhoColor, rhoTextColor, rhoLegendItems } from "../shared/heatmapColors.js";
 import { SUB_HEAD } from "../shared/styles.js";
 
-// Residual magnitude ramp — mirrors HEATMAP_TIER's two-regime treatment (light
-// slate floor → amber → red). This surface is relative magnitude (intensity =
-// residual / globalMax) with no statistical flag threshold, so the two-regime
-// colours are mirrored as a continuous three-stop ramp — slate (low residual) →
-// amber → red (high) — rather than imposing a hard categorical break the data
-// range doesn't define. Can't read TIER_COLOR directly (that is a three-tier
-// ρ-threshold lookup; this is a continuous gradient).
-const STRIP_GRAD_FROM = "#CBD5E1";  // light slate — low residual
-const STRIP_GRAD_MID = "#F97316";   // amber
-const STRIP_GRAD_TO = "#EF4444";    // red — high residual
+// Residual magnitude ramp — the slate → amber → red FAMILY of HEATMAP_TIER, but
+// at LOWER SATURATION (desaturated amber + red warm stops). This is intentional
+// and local: HEATMAP_TIER / the IRC + correlation matrices are sparse categorical
+// surfaces where the full-saturation warm stops are correct; this residual
+// heatmap is a dense, continuous surface (intensity = residual / globalMax, every
+// value maps linearly to its own colour, no threshold) where full-saturation reads
+// as a wall of heat. The softer warm end keeps the dense grid legible as texture —
+// the mid-range correlation pattern is the card's argument — while the high rows
+// stay clearly the warmest. Do NOT "unify" these warm stops back to HEATMAP_TIER:
+// the two ramps share the family by design, at different saturations.
+const STRIP_GRAD_FROM = "#CBD5E1";  // light slate — low residual (unchanged)
+const STRIP_GRAD_MID = "#E89C5E";   // desaturated amber
+const STRIP_GRAD_TO = "#E36A63";    // desaturated red — high residual
 const stripCellColor = (intensity) => {
   const t = Math.max(0, Math.min(1, intensity));
   const lerp = (a, b, f) => Math.round(a + (b - a) * f);
-  // slate (203,213,225) → amber (249,115,22) → red (239,68,68)
+  // slate (203,213,225) → desat amber (232,156,94) → desat red (227,106,99)
   if (t <= 0.5) {
     const f = t / 0.5;
-    return `rgb(${lerp(203,249,f)},${lerp(213,115,f)},${lerp(225,22,f)})`;
+    return `rgb(${lerp(203,232,f)},${lerp(213,156,f)},${lerp(225,94,f)})`;
   }
   const f = (t - 0.5) / 0.5;
-  return `rgb(${lerp(249,239,f)},${lerp(115,68,f)},${lerp(22,68,f)})`;
+  return `rgb(${lerp(232,227,f)},${lerp(156,106,f)},${lerp(94,99,f)})`;
 };
 const MIN_CELL_H = 4;
 const MAX_PANEL_H = 400;
