@@ -1,9 +1,9 @@
-import { CC, C, FF, CF, CP, CS } from "../../constants/tokens.js";
+import { CC, C, FF, CF, CP, CS, SIGN } from "../../constants/tokens.js";
 import { PlotSVG } from "./PlotSVG.jsx";
 
 // Observed — purple/indigo pair
-const CROSSING_COLOR = "#4A3D8F"; // deep indigo — bold crossing emphasis
-const RUN_COLOR = "#A0A0CC";      // muted lavender — calm but visible
+const CROSSING_COLOR = SIGN.CROSSING; // deep indigo — bold crossing emphasis
+const RUN_COLOR = SIGN.RUN;      // muted lavender — calm but visible
 
 // Simulated line uses CC.EXP_SOFT (mint) directly — no local constant needed
 

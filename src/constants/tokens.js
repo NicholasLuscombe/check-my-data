@@ -64,6 +64,26 @@ export const CHART = {
   REF:       "#4a7a4a",   // expected-range reference line
 };
 
+// Two-tone strip-series colours — neutral sign / crossing encodings, NOT
+// flag state. Shared so card-side and plot-side can't drift (S212):
+//   runs sign strip — Oxford / Cambridge blue (+1 / −1);
+//   row-mean trend  — indigo crossing emphasis / lavender run segment.
+export const SIGN = {
+  POS:      "#002147",  // Oxford blue (+1) — runs sign strip
+  NEG:      "#A3C1DA",  // Cambridge blue (−1) — runs sign strip
+  CROSSING: "#4A3D8F",  // deep indigo — row-mean crossing emphasis
+  RUN:      "#A0A0CC",  // muted lavender — row-mean run segment
+};
+
+// withAlpha(hex, a) — rgba string at alpha a, derived from a hex token so
+// opacity-tinted fills stay sourced from the palette rather than drifting
+// rgba literals. Used for SIGNAL.RED.dot at reduced opacity (missing-data
+// cells, regional-noise divergence gradient).
+export const withAlpha = (hex, a) => {
+  const h = hex.replace("#", "");
+  return `rgba(${parseInt(h.slice(0,2),16)},${parseInt(h.slice(2,4),16)},${parseInt(h.slice(4,6),16)},${a})`;
+};
+
 
 // 5. TYPOGRAPHY — font stacks, weights, sizes.
 //    Change these to re-font the entire app.

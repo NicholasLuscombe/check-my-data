@@ -3,7 +3,7 @@
    units with their argmax block row-range, observed scan statistic, and
    BH-adjusted p. Optional position strip shows where flagged blocks sit. */
 
-import { C, SIGNAL, FW } from "../../constants/tokens.js";
+import { C, CC, SIGNAL, FW } from "../../constants/tokens.js";
 import { fmtP } from "../../constants/thresholds.js";
 import { MiniCardLayout } from "../shared/CardLayout.jsx";
 import { EvidenceTable } from "../shared/EvidenceTable.jsx";
@@ -51,7 +51,7 @@ export function MiniCard_BlockedMahalanobis({ result, importConfig, rowMap }) {
       });
       strip = (
         <RegionalNoiseStrip details={stripDetails} nRows={nRows}
-          colNames={colNames} toFileRow={r => r} />
+          colNames={colNames} toFileRow={r => r} yAxisTitle={null} />
       );
     }
   }
@@ -98,7 +98,7 @@ export function MiniCard_BlockedMahalanobis({ result, importConfig, rowMap }) {
               fragment (LEAD_HEAD in MiniCardLayout) heads this primary plot. */}
           <PlotLayout>{strip}</PlotLayout>
           <ChartLegend items={[
-            { color: C.TEXT_3, label: "Row range of flagged block (darker = larger scan statistic)" },
+            { color: CC.THRESH, label: "Row range of flagged block (darker = larger scan statistic)" },
           ]} />
         </>
       )}

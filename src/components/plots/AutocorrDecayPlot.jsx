@@ -29,7 +29,7 @@ export function AutocorrDecayPlot({ perGroupDecay, singleCurve, condColorMap, ve
   if(!curves || !curves.length) return null;
 
   const W=CP.W, H=170;
-  const PL=34, PR=10, PT=12, PB=36;
+  const PL=52, PR=10, PT=12, PB=36;
   const CW=W-PL-PR, CH=H-PT-PB;
   const LAGS=10;
 

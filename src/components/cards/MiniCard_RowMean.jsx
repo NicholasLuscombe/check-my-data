@@ -2,15 +2,15 @@ import { MiniCardLayout } from "../shared/CardLayout.jsx";
 import { PlotLayout } from "../shared/PlotLayout.jsx";
 import { ChartLegend } from "../shared/ChartLegend.jsx";
 import { RowMeanTrendPlot } from "../plots/RowMeanTrendPlot.jsx";
-import { C, CC, FW, FF } from "../../constants/tokens.js";
+import { C, CC, FW, FF, SIGN } from "../../constants/tokens.js";
 import { makeRowMapper } from "../shared/coordinates.js";
 import { buildCondColorMap } from "../../constants/roles.js";
 import { SUB_HEAD } from "../shared/styles.js";
 
 
 // Match colours defined in RowMeanTrendPlot
-const CROSSING_COLOR = "#4A3D8F";
-const RUN_COLOR = "#A0A0CC";
+const CROSSING_COLOR = SIGN.CROSSING;
+const RUN_COLOR = SIGN.RUN;
 
 export function MiniCard_RowMean({ result, importConfig, rowMap }) {
   const isAgg = result.groupsAssessed !== undefined;

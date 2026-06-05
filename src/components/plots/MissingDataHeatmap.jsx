@@ -1,9 +1,9 @@
-import { C, FF, CF, CS, SIGNAL } from "../../constants/tokens.js";
+import { C, FF, CF, CS, SIGNAL, withAlpha } from "../../constants/tokens.js";
 import { PlotSVG } from "./PlotSVG.jsx";
 
 // Cell colours
 const PRESENT_FILL = "#F8FAFC"; // near-white — almost invisible
-const MISSING_FILL = "rgba(239, 68, 68, 0.45)"; // visible pink at compressed row heights
+const MISSING_FILL = withAlpha(SIGNAL.RED.dot, 0.45); // visible pink at compressed row heights
 const BLOCK_STROKE = SIGNAL.RED.dot; // bold red outline for significant blocks
 
 /**

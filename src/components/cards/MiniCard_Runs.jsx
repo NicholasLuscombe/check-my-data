@@ -6,15 +6,15 @@ import { PlotLayout } from "../shared/PlotLayout.jsx";
 import { ChartLegend } from "../shared/ChartLegend.jsx";
 import { SignStripPlot } from "../plots/SignStripPlot.jsx";
 import { PlotSVG } from "../plots/PlotSVG.jsx";
-import { C, CC, CP, CS, CF, FW, FF } from "../../constants/tokens.js";
+import { C, CC, CP, CS, CF, FW, FF, SIGN } from "../../constants/tokens.js";
 import { fmtP } from "../../constants/thresholds.js";
 import { shortColName, makeRowMapper } from "../shared/coordinates.js";
 import { SUB_HEAD, BLOCK_GAP, BLOCK_GAP_TIGHT } from "../shared/styles.js";
 
 
 // Match SignStripPlot colours
-const SIGN_POS = "#002147";
-const SIGN_NEG = "#A3C1DA";
+const SIGN_POS = SIGN.POS;
+const SIGN_NEG = SIGN.NEG;
 
 // ── Pooled mean-z verdict marker (S166 A5) ──────────────────────────
 // Small inline horizontal-axis plot showing the producer's pooled mean-z

@@ -1,6 +1,6 @@
 /* ── MiniCard: Missing Data Pattern ── */
 
-import { C, CC, FW, FF, CF, CP, CS, SIGNAL } from "../../constants/tokens.js";
+import { C, CC, FW, FF, CF, CP, CS, SIGNAL, withAlpha } from "../../constants/tokens.js";
 import { MiniCardLayout } from "../shared/CardLayout.jsx";
 import { PlotLayout } from "../shared/PlotLayout.jsx";
 import { ChartLegend } from "../shared/ChartLegend.jsx";
@@ -9,7 +9,7 @@ import { MissingDataHeatmap } from "../plots/MissingDataHeatmap.jsx";
 import { shortColName, makeRowMapper } from "../shared/coordinates.js";
 import { SUB_HEAD } from "../shared/styles.js";
 
-const MISSING_FILL = "rgba(239, 68, 68, 0.45)";
+const MISSING_FILL = withAlpha(SIGNAL.RED.dot, 0.45);
 
 export function MiniCard_MissingDataPattern({ result, importConfig, rowMap }) {
   // Column setup

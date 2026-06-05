@@ -141,7 +141,7 @@ export function MiniCard_Kurtosis({ result, importConfig, rowMap }) {
                       const cIsPlat=c.platykurtic && cIsNoted;
                       const cIsLepto=c.isLeptokurtic;
                       const col=cIsPlat?(cIsFlagged?CC.THRESH:SIGNAL.AMBER.dot):cIsLepto?(cIsFlagged?CC.THRESH:SIGNAL.AMBER.dot):CC.OBS;
-                      const cLabel=cIsPlat?(cIsFlagged?"too uniform":"possibly uniform"):cIsLepto?(cIsFlagged?"too peaked":"possibly peaked"):"normal";
+                      const cLabel=cIsPlat?"flatter":cIsLepto?"more peaked":"typical";
                       return (
                         <div key={ci} style={{display:"flex",flexDirection:"column",alignItems:"center"}}>
                           <div style={{fontSize:FS.sm,fontWeight:FW.SEMI,marginBottom:"2px"}}>

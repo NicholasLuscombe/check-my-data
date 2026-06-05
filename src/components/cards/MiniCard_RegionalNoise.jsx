@@ -5,7 +5,7 @@ import { buildCondColorMap } from "../../constants/roles.js";
 import { PlotLayout } from "../shared/PlotLayout.jsx";
 import { ChartLegend } from "../shared/ChartLegend.jsx";
 import { RegionalNoiseStrip } from "../plots/RegionalNoiseStrip.jsx";
-import { C, CC, FW, FF } from "../../constants/tokens.js";
+import { C, CC, FW, FF, SIGNAL, withAlpha } from "../../constants/tokens.js";
 import { fmtP } from "../../constants/thresholds.js";
 import { makeRowMapper } from "../shared/coordinates.js";
 import { SUB_HEAD, BLOCK_GAP, BLOCK_GAP_TIGHT } from "../shared/styles.js";
@@ -65,7 +65,7 @@ export function MiniCard_RegionalNoise({ result, importConfig, rowMap }) {
               colNames={colNames} toFileRow={toFileRow} />
           </PlotLayout>
           <ChartLegend gradient={{
-            from: "rgba(239,68,68,0.15)", to: "rgba(239,68,68,0.7)",
+            from: withAlpha(SIGNAL.RED.dot, 0.15), to: withAlpha(SIGNAL.RED.dot, 0.7),
             startLabel: "Low divergence", endLabel: "High divergence", width: 100,
           }} />
           <div style={{marginTop: BLOCK_GAP}}>

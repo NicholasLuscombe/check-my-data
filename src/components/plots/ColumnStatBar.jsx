@@ -95,6 +95,7 @@ export function ColumnStatBar({ items, skipped, cardFlag, refValue, refLabel, va
   const baselineY = PT + CH;
 
   return (
+    <>
     <PlotLayout fitContent>
       <div style={{ display: "flex", flexDirection: "column", alignItems: "stretch" }}>
         <PlotSVG W={W} H={H} overflow>
@@ -124,7 +125,7 @@ export function ColumnStatBar({ items, skipped, cardFlag, refValue, refLabel, va
             const cx = x + bw / 2;
             const labelText = (
               <text x={cx} y={H - PB + 12} fontSize={CF.LABEL} fill={C.TEXT_3}
-                textAnchor="middle" fontFamily={FF.MONO}>{s.colLabel}</text>
+                textAnchor="middle" fontFamily={FF.UI}>{s.colLabel}</text>
             );
             if (s.kind === "tested") {
               const v = Number(s.value) || 0;
@@ -171,38 +172,39 @@ export function ColumnStatBar({ items, skipped, cardFlag, refValue, refLabel, va
               transform={`rotate(-90,10,${PT + CH / 2})`}>{valueAxisLabel}</text>
           )}
         </PlotSVG>
-
-        {/* Caption stack — full-width vertical blocks, one per item, top to
-            bottom: reference-line label, skipped-cols line, scope line (when
-            aggregated). No horizontal column split; each line wraps cleanly
-            on its own row, no interleaving. */}
-        {(refLabel || slotsSkipped.length > 0 || isAggregated) && (
-          <div style={{
-            marginTop: "6px", paddingLeft: `${PL}px`, paddingRight: `${PR}px`,
-            fontSize: FS.xs, fontFamily: FF.UI, color: C.TEXT_3,
-            display: "flex", flexDirection: "column", gap: "3px",
-          }}>
-            {refLabel && (
-              <div>
-                <svg width="22" height="6" style={{ verticalAlign: "middle", marginRight: "4px" }}>
-                  <line x1="0" y1="3" x2="22" y2="3" stroke={C.TEXT_3}
-                    strokeWidth={CS.REF.w} strokeDasharray={CS.REF.dash} opacity={CS.REF.opacity} />
-                </svg>
-                {refLabel}
-              </div>
-            )}
-            {slotsSkipped.length > 0 && (
-              <div>{composeSkippedLine(slotsSkipped, skippedClause)}</div>
-            )}
-            {isAggregated && (
-              <div style={{ fontStyle: "italic" }}>
-                Bar shows a single condition; full per-condition detail in the table below.
-              </div>
-            )}
-          </div>
-        )}
       </div>
     </PlotLayout>
+
+      {/* Caption stack — moved below the plot wrapper (S212) to match the
+          battery's below-wrapper caption convention; content + order are
+          unchanged. Full-width left-aligned — the in-box PL/PR indent is
+          dropped now that the bordered wrapper no longer encloses it. */}
+      {(refLabel || slotsSkipped.length > 0 || isAggregated) && (
+        <div style={{
+          marginTop: "6px",
+          fontSize: FS.xs, fontFamily: FF.UI, color: C.TEXT_3,
+          display: "flex", flexDirection: "column", gap: "3px",
+        }}>
+          {refLabel && (
+            <div>
+              <svg width="22" height="6" style={{ verticalAlign: "middle", marginRight: "4px" }}>
+                <line x1="0" y1="3" x2="22" y2="3" stroke={C.TEXT_3}
+                  strokeWidth={CS.REF.w} strokeDasharray={CS.REF.dash} opacity={CS.REF.opacity} />
+              </svg>
+              {refLabel}
+            </div>
+          )}
+          {slotsSkipped.length > 0 && (
+            <div>{composeSkippedLine(slotsSkipped, skippedClause)}</div>
+          )}
+          {isAggregated && (
+            <div style={{ fontStyle: "italic" }}>
+              Bar shows a single condition; full per-condition detail in the table below.
+            </div>
+          )}
+        </div>
+      )}
+    </>
   );
 }
 

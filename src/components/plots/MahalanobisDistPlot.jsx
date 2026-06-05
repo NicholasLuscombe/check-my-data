@@ -37,6 +37,12 @@ export function MahalanobisDistPlot({ allCondD2, condColorMap, plotD2, plotD2Row
       : [];
   if (!series.length || !series.some(s => s.d2.length >= 1)) return null;
 
+  // Pooled branch produces a single sentinel "All data" series; the
+  // stratified branch always names ≥2 real conditions (S127 dispatch). A
+  // lone pooled chart has no sibling condition to disambiguate, so its
+  // per-chart condition label is an orphan — suppressed below.
+  const isPooled = !(allCondD2?.length > 0);
+
   // Threshold may be null when no row survived BH-FDR — exclude from
   // axis-range computation and from the threshold-line render.
   const finiteThresholds = series.map(s => s.threshold).filter(t => Number.isFinite(t));
@@ -133,9 +139,12 @@ export function MahalanobisDistPlot({ allCondD2, condColorMap, plotD2, plotD2Row
 
         return (
           <g key={ci} transform={`translate(0,${yOffset})`}>
-            {/* Condition label above chart */}
-            <text x={PL} y={-5} fontSize={CF.LABEL} fill={s.color}
-              fontFamily={FF.UI} fontWeight={FW.SEMI}>{s.name}</text>
+            {/* Condition label above chart — suppressed for the single
+                pooled "All data" chart (no sibling conditions to disambiguate). */}
+            {!isPooled && (
+              <text x={PL} y={-5} fontSize={CF.LABEL} fill={s.color}
+                fontFamily={FF.UI} fontWeight={FW.SEMI}>{s.name}</text>
+            )}
 
             {/* Gridlines — continuous axis */}
             {yTicks.map(v => (

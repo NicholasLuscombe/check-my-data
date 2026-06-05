@@ -38,7 +38,7 @@ export function rhoColor(rho) {
  * Text colour for a ρ cell — white on HIGH tier, default text otherwise.
  */
 export function rhoTextColor(rho) {
-  return rho != null && rho >= 0.6 ? "#FFFFFF" : C.TEXT;
+  return rho != null && rho >= 0.6 ? C.WHITE : C.TEXT;
 }
 
 /**
