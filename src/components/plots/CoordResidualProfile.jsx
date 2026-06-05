@@ -16,14 +16,26 @@ import { makeRowMapper } from "../shared/coordinates.js";
 import { rhoColor, rhoTextColor, rhoLegendItems } from "../shared/heatmapColors.js";
 import { SUB_HEAD } from "../shared/styles.js";
 
-// Solid red ramp: SIGNAL.RED.bg (#FEF2F2) → CC.THRESH (#EF4444)
-const STRIP_GRAD_FROM = "#FEF2F2";
-const STRIP_GRAD_TO = "#EF4444";
+// Residual magnitude ramp — mirrors HEATMAP_TIER's two-regime treatment (light
+// slate floor → amber → red). This surface is relative magnitude (intensity =
+// residual / globalMax) with no statistical flag threshold, so the two-regime
+// colours are mirrored as a continuous three-stop ramp — slate (low residual) →
+// amber → red (high) — rather than imposing a hard categorical break the data
+// range doesn't define. Can't read TIER_COLOR directly (that is a three-tier
+// ρ-threshold lookup; this is a continuous gradient).
+const STRIP_GRAD_FROM = "#CBD5E1";  // light slate — low residual
+const STRIP_GRAD_MID = "#F97316";   // amber
+const STRIP_GRAD_TO = "#EF4444";    // red — high residual
 const stripCellColor = (intensity) => {
-  const r = Math.round(253 + (239 - 253) * intensity);
-  const g = Math.round(242 + (68 - 242) * intensity);
-  const b = Math.round(242 + (68 - 242) * intensity);
-  return `rgb(${r},${g},${b})`;
+  const t = Math.max(0, Math.min(1, intensity));
+  const lerp = (a, b, f) => Math.round(a + (b - a) * f);
+  // slate (203,213,225) → amber (249,115,22) → red (239,68,68)
+  if (t <= 0.5) {
+    const f = t / 0.5;
+    return `rgb(${lerp(203,249,f)},${lerp(213,115,f)},${lerp(225,22,f)})`;
+  }
+  const f = (t - 0.5) / 0.5;
+  return `rgb(${lerp(249,239,f)},${lerp(115,68,f)},${lerp(22,68,f)})`;
 };
 const MIN_CELL_H = 4;
 const MAX_PANEL_H = 400;
@@ -233,6 +245,7 @@ export function CoordResidualProfile({ allProfiles, nRows, pairDetails, condColo
       {/* Strip gradient legend — on card, outside PlotLayout */}
       <ChartLegend gradient={{
         from: STRIP_GRAD_FROM,
+        mid: STRIP_GRAD_MID,
         to: STRIP_GRAD_TO,
         startLabel: "Low",
         endLabel: "High residual",

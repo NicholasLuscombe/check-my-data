@@ -5,7 +5,8 @@
    Three modes:
      items=[{color,label}]  → discrete colour swatches (default square)
      items + swatchType="line" → line+dot swatches for line charts
-     gradient={from,to,startLabel,endLabel,width?}  → continuous gradient bar */
+     gradient={from,to,startLabel,endLabel,mid?,width?}  → continuous gradient bar
+       (optional mid inserts a three-stop ramp: from → mid → to) */
 
 import { C, FF, FS, FW } from "../../constants/tokens.js";
 
@@ -24,7 +25,7 @@ export function ChartLegend({ items, gradient, swatchType }) {
           width: gradient.width || 80,
           height: 8,
           borderRadius: 2,
-          background: `linear-gradient(to right, ${gradient.from}, ${gradient.to})`,
+          background: `linear-gradient(to right, ${gradient.from}, ${gradient.mid ? gradient.mid + ", " : ""}${gradient.to})`,
           border: `0.5px solid ${C.BORDER_L}`,
           flexShrink: 0,
         }} />

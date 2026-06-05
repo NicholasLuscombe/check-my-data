@@ -18,12 +18,12 @@ export const ROLE_KEYS = ["data", "label", "condition", "ignore"];
 // PLOT-COLOUR-SEMANTICS.md (the condition palette table).
 export const COND_COLORS = [
   { bg: "#DBEAFE", text: "#3B82F6", border: "#93C5FD" },  // blue
-  { bg: "#ECFCCB", text: "#84CC16", border: "#BEF264" },  // lime
+  { bg: "#ECFCCB", text: "#4D7C0F", border: "#BEF264" },  // lime (.text darkened to lime-700 for small-text contrast on white)
   { bg: "#F3E8FF", text: "#A855F7", border: "#D8B4FE" },  // purple
   { bg: "#CFFAFE", text: "#06B6D4", border: "#67E8F9" },  // cyan
   { bg: "#FCE7F3", text: "#EC4899", border: "#F9A8D4" },  // pink
   { bg: "#D1FAE5", text: "#10B981", border: "#6EE7B7" },  // green
-  { bg: "#FEF3C7", text: "#D97706", border: "#FCD34D" },  // amber
+  { bg: "#FEF3C7", text: "#B45309", border: "#FCD34D" },  // amber (.text darkened to amber-700 for small-text contrast on white)
   { bg: "#F1F5F9", text: "#64748B", border: "#CBD5E1" },  // slate
 ];
 
