@@ -24,8 +24,17 @@ Red means "anomalous", in three forms of expression:
 - Faded / dashed red — a flag-*boundary* reference line (e.g. a significance
   threshold). Subordinate to the marks it bounds: dashed and reduced-opacity so it
   reads as reference, not as the flagged thing itself.
-- White-to-red intensity ramp — magnitude encoding (more red = more anomalous).
-Amber is the Moderate tier only. **No other channel may use red or amber.** This is
+- Two-regime magnitude ramp — a neutral resting floor below the flag threshold,
+  handing off to amber→red above it. The floor is a single cool-neutral (slate)
+  carrying "below threshold, not flagged"; amber→red carries magnitude in the flagged
+  range (more red = more anomalous). The handoff sits at the flag threshold, so the
+  colour break itself reads as the categorical "this crossed the line". The floor is a
+  flat resting colour, not the low pole of a ramp — it must not read as a low-anomaly
+  *signal*, only as "off". Slate, not blue: blue is spent on observed (channel 4),
+  condition-1, and the neutral sign two-tone, so a blue floor would be a fourth
+  competing blue on a dense card.
+Amber belongs to the anomaly/severity channel only — the Moderate tier and the upper
+reach of the magnitude ramp. **No other channel may use red or amber.** This is
 the one wall that cannot leak: a condition, an observed series, or an expected line
 must never render red or amber.
 
@@ -130,6 +139,28 @@ only), so the batch does not gate it; the check is a chrome visual sweep, which
 folds into the full-battery visual walk already on the programme. The four-dot tier
 ramp is a `SEV_VERDICT` consumer and updates with it — no separate edit.
 
+## TIER_COLOR ramp (ruled — S214, corrected within session)
+
+The S214 colour fix first retoked `TIER_COLOR` to a single-hue red intensity ramp, to
+kill the blue-low / observed-blue collision in the old blue→amber→red ramp. Live
+review the same session found single-hue red compressed not-significant / elevated /
+high into indistinguishable pinks — the collision was gone but the low range was no
+longer legible.
+
+Ruled: `TIER_COLOR` is a two-regime ramp — a slate-neutral resting floor below the
+flag threshold, handing off to amber→red above it. The break sits at the flag
+threshold, so the colour change reads as the categorical "this crossed the line";
+amber→red carries magnitude in the flagged range. Slate floor, not blue: blue is
+already spent on observed (channel 4), condition-1, and the neutral sign two-tone, so
+a blue floor would be a fourth competing blue on a dense card. Amber-mid was never the
+problem — blue-low was — so this keeps the amber→red the old ramp had and replaces
+only the blue floor.
+
+The floor is a flat resting colour, not the low pole of a ramp: it signals "off / not
+flagged", not "low anomaly". Per-consumer caveat: any `TIER_COLOR` surface that
+overlays observed marks (`CC.OBS` blue) on the ramped cells must confirm the slate
+floor reads distinct from `CC.OBS` on that surface.
+
 ## Per-plot conformance
 
 What each of the 15 live plots changes. "OK" = already conforms. Dead components
@@ -151,12 +182,16 @@ What each of the 15 live plots changes. "OK" = already conforms. Dead components
 | RegionalNoiseStrip | window fill red, opacity-ramped | OK (red intensity ramp) |
 | RowMeanTrendPlot | sim line mint `CC.EXP_SOFT`; crossing/run two-tone neutral | mint → teal `CC.EXP` (fold simulated into expected); two-tone OK |
 | SignStripPlot | sign two-tone (Oxford/Cambridge blue), neutral | OK (neutral categorical, not flag) |
-| CorrMatrixSVG / consumers | cells via `TIER_COLOR` blue→amber→red | retoken `TIER_COLOR` to single-hue red intensity ramp (drop blue-low and amber-mid) |
-| CoordResidualProfile | residual ramp white→red; matrix via `rhoColor` | OK (red intensity ramp); matrix follows `TIER_COLOR` retoken |
+| CorrMatrixSVG / consumers | cells via `TIER_COLOR` | `TIER_COLOR` is the two-regime slate→amber→red ramp (S214, corrected within session from the first single-hue red retoken) |
+| CoordResidualProfile | residual ramp; matrix via `rhoColor` | follows the `TIER_COLOR` two-regime ramp; per-consumer observed-blue overlap check applies |
 
 **Shared-lever changes** (one retoken, battery-wide):
-- `TIER_COLOR` → single-hue red intensity ramp (fixes CorrMatrixSVG + CoordResidual
-  matrix + every correlation card at once).
+- `TIER_COLOR` → two-regime ramp: slate-neutral floor (below threshold) → amber → red
+  (magnitude above threshold), break at the flag threshold. Corrected within S214 from
+  the first single-hue red retoken (see ruling note below). Applies identically to every
+  consumer (CorrMatrixSVG, CoordResidualProfile matrix, IRC matrix). Per-consumer
+  caveat: any surface that overlays observed-blue (`CC.OBS`) marks on the ramped cells
+  needs the floor confirmed distinct from `CC.OBS`.
 - `COND_COLORS` → the eight-hue palette above (fixes every condition consumer).
 - Condition shade → `.text` everywhere (fixes the `.border`/`.text` split).
 
