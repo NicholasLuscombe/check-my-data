@@ -8,17 +8,21 @@ export const ROLES = {
 };
 export const ROLE_KEYS = ["data", "label", "condition", "ignore"];
 
-// Condition colours: saturated enough to distinguish adjacent conditions.
-// Each entry: { bg, text, border } for badge rendering.
+// Condition colours: eight non-severity hues, saturated enough to distinguish
+// adjacent conditions. Each entry: { bg, text, border } for badge rendering;
+// condition marks read the .text shade everywhere. None falls in the severity
+// red/amber family — the old red (entry 2), amber (entry 4) and rose (entry 7)
+// collided with severity and are replaced by magenta, ochre and slate. Ordering
+// and hexes track PLOT-COLOUR-SEMANTICS.md (the condition palette table).
 export const COND_COLORS = [
   { bg: "#DBEAFE", text: "#1E40AF", border: "#93C5FD" },  // blue
-  { bg: "#FEE2E2", text: "#991B1B", border: "#FCA5A5" },  // red
   { bg: "#D1FAE5", text: "#065F46", border: "#6EE7B7" },  // green
-  { bg: "#FEF3C7", text: "#92400E", border: "#FCD34D" },  // amber
   { bg: "#EDE9FE", text: "#5B21B6", border: "#C4B5FD" },  // purple
   { bg: "#CFFAFE", text: "#155E75", border: "#67E8F9" },  // cyan
-  { bg: "#FFF1F2", text: "#9F1239", border: "#FDA4AF" },  // rose
   { bg: "#ECFCCB", text: "#3F6212", border: "#BEF264" },  // lime
+  { bg: "#FCE7F3", text: "#9D174D", border: "#F9A8D4" },  // magenta
+  { bg: "#FEF9C3", text: "#854D0E", border: "#FDE047" },  // ochre
+  { bg: "#E2E8F0", text: "#334155", border: "#94A3B8" },  // slate
 ];
 
 /** Rebuild the condition → colour map from importConfig.condPerCol.

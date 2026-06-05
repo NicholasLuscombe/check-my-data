@@ -3,10 +3,11 @@
  *
  * TIER_COLOR — the single source of flat tier colours.
  *   Sourced from HEATMAP_TIER in tokens.js. Edit tokens.js to retheme globally.
+ *   Single-hue red intensity ramp — more red = stronger ρ / residual.
  *
- *   LOW  (blue)   rgba(59,130,246,0.25)
- *   MID  (amber)  rgba(245,158,11,0.45)
- *   HIGH (red)    rgba(239,68,68,0.55)
+ *   LOW   rgba(239,68,68,0.15)
+ *   MID   rgba(239,68,68,0.35)
+ *   HIGH  rgba(239,68,68,0.55)
  *
  * Usage:
  *   CCR — call rhoColor(rho)  (ρ ≥ 0.6 → HIGH, ρ ≥ 0.3 → MID, else LOW)

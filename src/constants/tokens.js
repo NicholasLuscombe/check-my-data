@@ -239,8 +239,12 @@ export const M = { fontFamily: FF.MONO };
 
 // Heatmap tier colours — flat per-tier fills shared by all correlation/residual matrices.
 // Edit here to change heatmap colours globally. heatmapColors.js re-exports as TIER_COLOR.
+// Single-hue red intensity ramp (pale low → full red high): more red = stronger
+// correlation/residual. Pre-S214 this ran blue → amber → red, which borrowed the
+// severity amber and a low-tier blue; both retired so the matrices read on one
+// red magnitude axis (severity red #EF4444 at rising opacity).
 export const HEATMAP_TIER = {
-  LOW:  { color: "rgba(59,130,246,0.25)",  label: "Low" },
-  MID:  { color: "rgba(245,158,11,0.45)",  label: "Moderate" },
+  LOW:  { color: "rgba(239,68,68,0.15)",  label: "Low" },
+  MID:  { color: "rgba(239,68,68,0.35)",  label: "Moderate" },
   HIGH: { color: "rgba(239,68,68,0.55)",   label: "High" },
 };

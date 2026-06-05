@@ -46,7 +46,7 @@ export function VBarPlot({ items, xKey, obsKey, expKey, xlabel, ylabel, obsColor
           const x = i===0 ? PL : i===items.length-1 ? PL+CW : PL+i*(bw+2)+bw/2;
           return `${x},${yscale(expVals[i])}`;
         }).join(" ")}
-          fill="none" stroke={expColor||CC.OBS} strokeWidth={CS.REF.w} strokeDasharray={CS.REF.dash} opacity={CS.REF.opacity}/>
+          fill="none" stroke={expColor||CC.EXP} strokeWidth={CS.REF.w} strokeDasharray={CS.REF.dash} opacity={CS.REF.opacity}/>
       )}
       {/* observed bars */}
       {items.map((d,i)=>{
