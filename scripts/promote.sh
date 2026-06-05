@@ -54,6 +54,16 @@ else
   git commit -m "$COMMIT_MSG"
 fi
 
+# Advisory — is the generated lookup map current? Runs the TEST-DISPLAY-MAP
+# generator in --check mode (no file write) against the worktree. Non-blocking
+# by design: a stale map prints a warning but the promote continues. To make it
+# blocking, replace the warning line with `exit 1`; to drop it, remove this
+# block. Guarded by `if !` so a non-zero --check does not trip `set -e`.
+echo "==> Checking docs/TEST-DISPLAY-MAP.md freshness (advisory)."
+if ! node scripts/build-test-display-map.mjs --check; then
+  echo "    ⚠  TEST-DISPLAY-MAP.md is stale — regenerate via 'node scripts/build-test-display-map.mjs' and recommit. Continuing promote."
+fi
+
 # Step 2 — switch to main and merge.
 cd "$REPO_ROOT"
 echo "==> Switching to main."
