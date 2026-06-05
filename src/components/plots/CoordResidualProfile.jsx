@@ -16,29 +16,33 @@ import { makeRowMapper } from "../shared/coordinates.js";
 import { rhoColor, rhoTextColor, rhoLegendItems } from "../shared/heatmapColors.js";
 import { SUB_HEAD } from "../shared/styles.js";
 
-// Residual magnitude ramp — the slate → amber → red FAMILY of HEATMAP_TIER, but
-// at LOWER SATURATION (desaturated amber + red warm stops). This is intentional
-// and local: HEATMAP_TIER / the IRC + correlation matrices are sparse categorical
-// surfaces where the full-saturation warm stops are correct; this residual
-// heatmap is a dense, continuous surface (intensity = residual / globalMax, every
-// value maps linearly to its own colour, no threshold) where full-saturation reads
-// as a wall of heat. The softer warm end keeps the dense grid legible as texture —
-// the mid-range correlation pattern is the card's argument — while the high rows
-// stay clearly the warmest. Do NOT "unify" these warm stops back to HEATMAP_TIER:
-// the two ramps share the family by design, at different saturations.
-const STRIP_GRAD_FROM = "#CBD5E1";  // light slate — low residual (unchanged)
-const STRIP_GRAD_MID = "#E89C5E";   // desaturated amber
-const STRIP_GRAD_TO = "#E36A63";    // desaturated red — high residual
+// Residual magnitude ramp — the CANONICAL TIER_COLOR family colours: slate
+// #CBD5E1 → amber #F97316 → red #EF4444, the same #F97316 / #EF4444 the severity
+// scale and every flag mark use. A high residual must read as the SAME red as an
+// outlier dot or flagged cell, so the endpoints are not softened. What is local
+// here is the GAMMA CURVE (t = intensity ** RESID_GAMMA) applied before the ramp:
+// this is a dense, continuous surface (intensity = residual / globalMax, no
+// threshold) where a linear map paints most of the grid warm. The gamma reserves
+// the warm end for genuinely high values — most cells stay cool/slate, amber
+// appears in the upper-mid, full red only at the high rows — while the low-mid
+// keeps its variation so the cross-condition correlation texture still reads. The
+// sparse categorical matrices (HEATMAP_TIER / IRC / CorrMatrix) map linearly and
+// are correct as-is; do NOT add this gamma to them, and do NOT soften these
+// endpoints back off canonical.
+const RESID_GAMMA = 2.2;
+const STRIP_GRAD_FROM = "#CBD5E1";  // light slate — low residual
+const STRIP_GRAD_MID = "#F97316";   // amber (canonical)
+const STRIP_GRAD_TO = "#EF4444";    // red (canonical) — high residual
 const stripCellColor = (intensity) => {
-  const t = Math.max(0, Math.min(1, intensity));
+  const t = Math.max(0, Math.min(1, intensity)) ** RESID_GAMMA;
   const lerp = (a, b, f) => Math.round(a + (b - a) * f);
-  // slate (203,213,225) → desat amber (232,156,94) → desat red (227,106,99)
+  // slate (203,213,225) → amber (249,115,22) → red (239,68,68)
   if (t <= 0.5) {
     const f = t / 0.5;
-    return `rgb(${lerp(203,232,f)},${lerp(213,156,f)},${lerp(225,94,f)})`;
+    return `rgb(${lerp(203,249,f)},${lerp(213,115,f)},${lerp(225,22,f)})`;
   }
   const f = (t - 0.5) / 0.5;
-  return `rgb(${lerp(232,227,f)},${lerp(156,106,f)},${lerp(94,99,f)})`;
+  return `rgb(${lerp(249,239,f)},${lerp(115,68,f)},${lerp(22,68,f)})`;
 };
 const MIN_CELL_H = 4;
 const MAX_PANEL_H = 400;
@@ -249,6 +253,9 @@ export function CoordResidualProfile({ allProfiles, nRows, pairDetails, condColo
       <ChartLegend gradient={{
         from: STRIP_GRAD_FROM,
         mid: STRIP_GRAD_MID,
+        // amber (ramp t=0.5) lands at intensity 0.5**(1/gamma) on the Low→High
+        // axis, so the legend bar curves the same way the cells do.
+        midPos: Math.round(Math.pow(0.5, 1 / RESID_GAMMA) * 100),
         to: STRIP_GRAD_TO,
         startLabel: "Low",
         endLabel: "High residual",
