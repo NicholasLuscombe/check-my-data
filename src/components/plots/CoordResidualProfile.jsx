@@ -30,16 +30,18 @@ import { SUB_HEAD } from "../shared/styles.js";
 // are correct as-is; do NOT add this gamma to them, and do NOT soften these
 // endpoints back off canonical.
 const RESID_GAMMA = 1.5;
-const STRIP_GRAD_FROM = "#CBD5E1";  // light slate — low residual
+const STRIP_GRAD_FROM = "#DAE1EA";  // lighter slate — low residual floor, sits just
+                                    // above the #F8FAFC strip background so the low
+                                    // end rises gently rather than stepping up
 const STRIP_GRAD_MID = "#F97316";   // amber (canonical)
 const STRIP_GRAD_TO = "#EF4444";    // red (canonical) — high residual
 const stripCellColor = (intensity) => {
   const t = Math.max(0, Math.min(1, intensity)) ** RESID_GAMMA;
   const lerp = (a, b, f) => Math.round(a + (b - a) * f);
-  // slate (203,213,225) → amber (249,115,22) → red (239,68,68)
+  // lighter slate (218,225,234) → amber (249,115,22) → red (239,68,68)
   if (t <= 0.5) {
     const f = t / 0.5;
-    return `rgb(${lerp(203,249,f)},${lerp(213,115,f)},${lerp(225,22,f)})`;
+    return `rgb(${lerp(218,249,f)},${lerp(225,115,f)},${lerp(234,22,f)})`;
   }
   const f = (t - 0.5) / 0.5;
   return `rgb(${lerp(249,239,f)},${lerp(115,68,f)},${lerp(22,68,f)})`;
@@ -205,8 +207,12 @@ export function CoordResidualProfile({ allProfiles, nRows, pairDetails, condColo
               <rect x={stripX(ci)} y={PT} width={STRIP_W} height={CHART_H}
                 fill={C.BG_L} stroke="none" shapeRendering="crispEdges"/>
               {bp.map((v, bi) => {
+                // Draw every cell — no low-value skip — so the lowest residuals
+                // (and nulls, coerced to 0 at the binning step via `?? 0`) paint
+                // the lighter floor instead of leaving an undrawn near-white hole.
+                // On this surface an absent row correctly reads as "not a spike
+                // here" (floor), so nulls and the lowest residuals are one colour.
                 const intensity = v / globalMax;
-                if (intensity < 0.02) return null;
                 const y0 = Math.round(yr(bi));
                 const y1 = Math.round(yr(bi + 1));
                 return (
