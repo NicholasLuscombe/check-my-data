@@ -101,15 +101,15 @@ export const FW = {
   MED:   500,   // table headers, buttons, tabs (inactive), tier word
   NORM:  400,   // body prose, identity rows, table cells, fine print
 };
-// SVG chart font sizes — 7 levels (nothing below 10pt)
+// SVG chart font sizes — 7 levels (nothing below 11pt)
 export const CF = {
-  TITLE: "13",     // axis/plot titles (was the SvgLabel title:"12" literal)
-  TICK:  "11",     // axis tick numbers
-  AXIS:  "12",     // axis title labels
-  LABEL: "11",     // group names, bar labels, legend text
-  VALUE: "11",     // data value annotations on bars/points
-  SMALL: "10",     // secondary annotations, reference line labels
-  TINY:  "10",     // floor — nothing smaller than 10pt in any chart
+  TITLE: "14",     // axis/plot titles (was the SvgLabel title:"12" literal)
+  TICK:  "12",     // axis tick numbers
+  AXIS:  "13",     // axis title labels
+  LABEL: "12",     // group names, bar labels, legend text
+  VALUE: "12",     // data value annotations on bars/points
+  SMALL: "11",     // secondary annotations, reference line labels
+  TINY:  "11",     // floor — nothing smaller than 11pt in any chart
 };
 // Typography system size scale (S136) — six steps, 1.25 ratio anchored at 16px.
 // Sole HTML/DOM size token rail post-S151 C.9 (legacy TF.* scaffold retired).
