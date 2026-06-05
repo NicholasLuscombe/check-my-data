@@ -18,7 +18,7 @@ target; the per-plot conformance table at the end maps one to the other.
 Colour on a plot does one of five jobs. Each job owns its hue family; no job may
 borrow another's.
 
-**1 — Anomaly / severity. Red family, reserved absolutely.**
+**1 — Anomaly / severity. Red family, reserved by role.**
 Red means "anomalous", in three forms of expression:
 - Solid red — a categorical flag mark (outlier dot, flagged cell, flagged bar).
 - Faded / dashed red — a flag-*boundary* reference line (e.g. a significance
@@ -30,19 +30,33 @@ Red means "anomalous", in three forms of expression:
   range (more red = more anomalous). The handoff sits at the flag threshold, so the
   colour break itself reads as the categorical "this crossed the line". The floor is a
   flat resting colour, not the low pole of a ramp — it must not read as a low-anomaly
-  *signal*, only as "off". Slate, not blue: blue is spent on observed (channel 4),
-  condition-1, and the neutral sign two-tone, so a blue floor would be a fourth
-  competing blue on a dense card.
-Amber belongs to the anomaly/severity channel only — the Moderate tier and the upper
-reach of the magnitude ramp. **No other channel may use red or amber.** This is
-the one wall that cannot leak: a condition, an observed series, or an expected line
-must never render red or amber.
+  *signal*, only as "off". Slate, not blue: a blue floor would set up a blue→red
+  anomaly axis (blue = low anomaly, red = high), making blue a *signal* in the ramp;
+  slate stays neutral and reads as "off / not flagged" rather than as the cool end of a
+  scale.
+Amber belongs to the anomaly/severity channel — the Moderate tier and the upper
+reach of the magnitude ramp. **The wall is about role, not hue.** A severity colour
+(red, amber, the cleared green) is reserved where severity is *read* — the verdict
+word, the dot ramp, the flag marks, the magnitude ramp. It is not reserved across the
+whole hue. A condition line, an observed series, or an expected curve may sit in the
+red / amber / green family, because a reader resolves a mark's meaning from what it is
+and where it sits (a line on a per-condition plot, a flag dot on the verdict ramp),
+not from hue alone. The only live constraint is local: a condition mark should be
+clear of a severity colour *when it would sit directly alongside a flag mark of that
+colour on the same plot* — an adjacency check, not a global exclusion. (This corrects
+the earlier "no condition in the severity family" framing, which was too broad: it
+banned green from conditions though a condition line never reads as "cleared", and the
+avoidance manufactured near-collisions worse than the natural hue.)
 
-**2 — Condition identity. Eight non-severity hues, end-to-end from import.**
+**2 — Condition identity. A wheel of distinct hues, end-to-end from import.**
 Which condition a mark belongs to. Drawn from `COND_COLORS` (see palette below),
-the same map the import-view condition chips use — so "Treatment = magenta" on the
-import chip is the same magenta on every plot line for that condition. One shade
-(`.text`) and one fallback everywhere.
+the same map the import-view condition chips use — so "Treatment = lime" on the
+import chip is the same lime on every plot line for that condition. The line reads the
+`.text` shade; the import chip reads `.bg` (pale fill) plus `.text` (label), so each
+entry's `.bg` / `.border` are tints/shades of the same hue — one hue per condition
+across both surfaces. Hues are chosen for mutual separation as lines; a severity hue
+is allowed unless it would sit directly beside a flag mark of that colour (channel 1's
+role-not-hue rule). Past the palette depth, recycle hue with a line-style modifier.
 
 **3 — Data role. Teal for expected/null; grey for neutral reference.**
 - Expected / null-model prediction — the curve or line showing what clean data
@@ -56,8 +70,12 @@ import chip is the same magenta on every plot line for that condition. One shade
 
 **4 — Observed data. Blue.**
 The measured data itself — observed bars, scatter points, observed lines. Blue
-(`CC.OBS`). The one collision risk is a low-tier blue inside an intensity ramp
-(see `TIER_COLOR`, below); that is retired by channel 1's single-hue red ramp.
+(`CC.OBS`). Note observed-blue is not reserved *against* conditions: on a per-condition
+plot the line is observed data for that condition, so condition-blue and observed-blue
+are the same mark, not a collision. The only real constraint is the `TIER_COLOR` ramp
+floor (channel 1): a surface that overlays observed-blue marks on ramped cells needs
+its floor confirmed distinct from `CC.OBS` — but the audit found no `TIER_COLOR`
+surface does this, so it does not bite today.
 
 **5 — Mechanism / cluster. Frame accent only.**
 Cluster identity (`MECH_COLOR`) stays card chrome — stripe, icon, breadcrumb — and
@@ -68,28 +86,37 @@ card frame; the interior marks are governed by channels 1–4.)
 
 ## The condition palette
 
-`COND_COLORS`, eight entries, `.text` shade, none in the severity red/amber family.
-The original palette held red (entry 2), amber (entry 4), and rose (entry 7), which
-collided with severity; those three are replaced.
+`COND_COLORS`, eight entries, lighter register, ordered so the common first-three case
+spreads across the wheel. Hues are chosen for mutual separation as thin lines, not for
+avoiding the severity family (channel 1's role-not-hue rule). The line reads `.text`;
+the import chip reads `.bg` (pale fill) + `.text` (label), so each entry's `.bg` /
+`.border` are tints/shades of its `.text` hue — one hue per condition across import and
+plot.
 
-| # | Hue | `.text` hex | Status |
-|---|---|---|---|
-| 1 | blue | `#1E40AF` | kept |
-| 2 | green | `#065F46` | kept |
-| 3 | purple | `#5B21B6` | kept |
-| 4 | cyan | `#155E75` | kept |
-| 5 | lime | `#3F6212` | kept |
-| 6 | magenta | `#9D174D` | replaces old red — clears severity red at plot scale |
-| 7 | ochre | `#854D0E` | replaces old amber — clears severity amber at plot scale |
-| 8 | slate | `#334155` | replaces old rose — neutral, collides with nothing |
+| # | Hue | `.text` hex |
+|---|---|---|
+| 1 | blue | `#3B82F6` |
+| 2 | lime | `#84CC16` |
+| 3 | purple | `#A855F7` |
+| 4 | cyan | `#06B6D4` |
+| 5 | pink | `#EC4899` |
+| 6 | green | `#10B981` |
+| 7 | amber | `#D97706` |
+| 8 | slate | `#64748B` |
 
-The `.bg` and `.border` shades of each entry are regenerated to match the new
-`.text` hue (kept entries unchanged). Condition marks read the `.text` shade
-uniformly — the audit found `.border` used in one plot and `.text` in another;
-`.text` wins everywhere.
+The `.bg` (pale fill) and `.border` (mid shade) of each entry are regenerated to match
+its `.text` hue. Condition marks read the `.text` shade uniformly — the audit found
+`.border` used in one plot and `.text` in another; `.text` wins everywhere.
+
+Watch-pairs, both benign in the 22-set: lime (2) and green (6) only co-occur at 6+
+conditions; amber (7) is clear of severity amber unless a condition line sits directly
+beside an amber flag mark — neither bites at current fixture depth. The earlier dark
+palette swapped blue/green order to fix a blue↔dark-green line collapse; the lighter
+register and lime-in-slot-2 resolve that. Exact lighter hexes were set from swatches
+and confirmed on the live render at implementation.
 
 **Overflow past 8 conditions.** Hue carries conditions 1–8. The realistic ceiling
-of distinguishable non-severity hues on a white ground is about this many; adding
+of mutually distinguishable hues on a white ground is about this many; adding
 more hurts separation rather than helping. Past 8, recycle the palette with a
 second channel: condition N+8 takes hue-N plus a line-dash or marker-shape
 modifier. No current fixture exceeds three conditions, so this is specified now and
@@ -192,7 +219,9 @@ What each of the 15 live plots changes. "OK" = already conforms. Dead components
   consumer (CorrMatrixSVG, CoordResidualProfile matrix, IRC matrix). Per-consumer
   caveat: any surface that overlays observed-blue (`CC.OBS`) marks on the ramped cells
   needs the floor confirmed distinct from `CC.OBS`.
-- `COND_COLORS` → the eight-hue palette above (fixes every condition consumer).
+- `COND_COLORS` → the reordered, relightened palette above, with `.bg` / `.border`
+  regenerated per entry to match each new `.text` (fixes every condition consumer and
+  keeps the import chip matching the plot line).
 - Condition shade → `.text` everywhere (fixes the `.border`/`.text` split).
 
 **Per-plot tail** (individual edits):
