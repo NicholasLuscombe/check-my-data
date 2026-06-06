@@ -71,26 +71,26 @@ export function MeanVarianceScatter({ logPoints, logCentroid, observedSlope, exp
     <PlotSVG W={W} H={H} overflow>
       <defs><clipPath id={clipId}><rect x={PL} y={PT} width={CW} height={CH}/></clipPath></defs>
       {/* axes */}
-      <line x1={PL} y1={PT} x2={PL} y2={PT+CH} stroke={C.BORDER} strokeWidth={CS.GRID.w}/>
-      <line x1={PL} y1={PT+CH} x2={PL+CW} y2={PT+CH} stroke={C.BORDER} strokeWidth={CS.GRID.w}/>
+      <line x1={PL} y1={PT} x2={PL} y2={PT+CH} stroke={C.AXIS} strokeWidth={CS.GRID.w}/>
+      <line x1={PL} y1={PT+CH} x2={PL+CW} y2={PT+CH} stroke={C.AXIS} strokeWidth={CS.GRID.w}/>
       {/* grid + ticks */}
       {xTicks.map(t=>(
         <g key={t}>
-          <line x1={px(t)} y1={PT} x2={px(t)} y2={PT+CH} stroke={C.BORDER_L} strokeWidth={CS.GRID.w}/>
-          <line x1={px(t)} y1={PT+CH} x2={px(t)} y2={PT+CH+4} stroke={C.BORDER} strokeWidth={CS.GRID.w}/>
-          <text x={px(t)} y={PT+CH+15} fontSize={CF.TICK} fill={C.TEXT_3} textAnchor="middle" fontFamily={FF.MONO}>{t.toFixed(1)}</text>
+          <line x1={px(t)} y1={PT} x2={px(t)} y2={PT+CH} stroke={C.GRID} strokeWidth={CS.GRID.w}/>
+          <line x1={px(t)} y1={PT+CH} x2={px(t)} y2={PT+CH+4} stroke={C.AXIS} strokeWidth={CS.GRID.w}/>
+          <text x={px(t)} y={PT+CH+15} fontSize={CF.TICK} fill={C.TEXT_2} textAnchor="middle" fontFamily={FF.MONO}>{t.toFixed(1)}</text>
         </g>
       ))}
       {yTicks.map(t=>(
         <g key={t}>
-          <line x1={PL} y1={py(t)} x2={PL+CW} y2={py(t)} stroke={C.BORDER_L} strokeWidth={CS.GRID.w}/>
-          <line x1={PL-4} y1={py(t)} x2={PL} y2={py(t)} stroke={C.BORDER} strokeWidth={CS.GRID.w}/>
-          <text x={PL-6} y={py(t)+3} fontSize={CF.TICK} fill={C.TEXT_3} textAnchor="end" fontFamily={FF.MONO}>{t.toFixed(1)}</text>
+          <line x1={PL} y1={py(t)} x2={PL+CW} y2={py(t)} stroke={C.GRID} strokeWidth={CS.GRID.w}/>
+          <line x1={PL-4} y1={py(t)} x2={PL} y2={py(t)} stroke={C.AXIS} strokeWidth={CS.GRID.w}/>
+          <text x={PL-6} y={py(t)+3} fontSize={CF.TICK} fill={C.TEXT_2} textAnchor="end" fontFamily={FF.MONO}>{t.toFixed(1)}</text>
         </g>
       ))}
       {/* axis labels */}
-      <text x={PL+CW/2} y={H-2} fontSize={CF.AXIS} fill={C.TEXT_3} textAnchor="middle" fontFamily={FF.UI}>log₁₀(mean)</text>
-      <text x={12} y={PT+CH/2} fontSize={CF.AXIS} fill={C.TEXT_3} textAnchor="middle"
+      <text x={PL+CW/2} y={H-2} fontSize={CF.AXIS} fill={C.TEXT_2} textAnchor="middle" fontFamily={FF.UI}>log₁₀(mean)</text>
+      <text x={12} y={PT+CH/2} fontSize={CF.AXIS} fill={C.TEXT_2} textAnchor="middle"
         fontFamily={FF.UI} transform={`rotate(-90,12,${PT+CH/2})`}>log₁₀(variance)</text>
       {/* 95% CI band (clipped to plot area) */}
       {showCIBand&&ciUpper&&ciLower&&(

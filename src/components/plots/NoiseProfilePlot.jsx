@@ -31,13 +31,13 @@ export function NoiseProfilePlot({ noiseProfile, changepointRow, secondaryRow, t
   return (
     <PlotSVG W={W} H={H} overflow>
       {/* Axes */}
-      <line x1={PL} y1={PT} x2={PL} y2={PT + CH} stroke={C.BORDER} strokeWidth={CS.GRID.w}/>
-      <line x1={PL} y1={PT + CH} x2={PL + CW} y2={PT + CH} stroke={C.BORDER} strokeWidth={CS.GRID.w}/>
+      <line x1={PL} y1={PT} x2={PL} y2={PT + CH} stroke={C.AXIS} strokeWidth={CS.GRID.w}/>
+      <line x1={PL} y1={PT + CH} x2={PL + CW} y2={PT + CH} stroke={C.AXIS} strokeWidth={CS.GRID.w}/>
       {/* Y grid */}
       {ySteps.map(v => (
         <g key={v}>
-          <line x1={PL} y1={py(v)} x2={PL + CW} y2={py(v)} stroke={C.BORDER_L} strokeWidth={CS.GRID.w}/>
-          <text x={PL - 4} y={py(v) + 3} fontSize={CF.SMALL} fill={C.TEXT_3} textAnchor="end" fontFamily={FF.MONO}>
+          <line x1={PL} y1={py(v)} x2={PL + CW} y2={py(v)} stroke={C.GRID} strokeWidth={CS.GRID.w}/>
+          <text x={PL - 4} y={py(v) + 3} fontSize={CF.SMALL} fill={C.TEXT_2} textAnchor="end" fontFamily={FF.MONO}>
             {v < 0.01 ? v.toExponential(0) : v < 1 ? v.toFixed(2) : v.toFixed(1)}
           </text>
         </g>
@@ -45,8 +45,8 @@ export function NoiseProfilePlot({ noiseProfile, changepointRow, secondaryRow, t
       {/* X ticks — display file row numbers */}
       {xTicks.map(x => (
         <g key={x}>
-          <line x1={px(x)} y1={PT + CH} x2={px(x)} y2={PT + CH + 4} stroke={C.BORDER} strokeWidth={CS.GRID.w}/>
-          <text x={px(x)} y={PT + CH + 14} fontSize={CF.SMALL} fill={C.TEXT_3} textAnchor="middle" fontFamily={FF.MONO}>{fn(x)}</text>
+          <line x1={px(x)} y1={PT + CH} x2={px(x)} y2={PT + CH + 4} stroke={C.AXIS} strokeWidth={CS.GRID.w}/>
+          <text x={px(x)} y={PT + CH + 14} fontSize={CF.SMALL} fill={C.TEXT_2} textAnchor="middle" fontFamily={FF.MONO}>{fn(x)}</text>
         </g>
       ))}
       {/* Observed noise — dots + line */}
@@ -77,9 +77,9 @@ export function NoiseProfilePlot({ noiseProfile, changepointRow, secondaryRow, t
         </g>
       )}
       {/* Axis labels */}
-      <text x={10} y={PT + CH / 2} fontSize={CF.SMALL} fill={C.TEXT_3} textAnchor="middle"
+      <text x={10} y={PT + CH / 2} fontSize={CF.AXIS} fill={C.TEXT_2} textAnchor="middle"
         fontFamily={FF.UI} transform={`rotate(-90,10,${PT + CH / 2})`}>Noise level</text>
-      <text x={PL + CW / 2} y={H - 2} fontSize={CF.SMALL} fill={C.TEXT_3} textAnchor="middle"
+      <text x={PL + CW / 2} y={H - 2} fontSize={CF.AXIS} fill={C.TEXT_2} textAnchor="middle"
         fontFamily={FF.UI}>Row</text>
     </PlotSVG>
   );

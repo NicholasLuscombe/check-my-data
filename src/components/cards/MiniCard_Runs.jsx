@@ -42,8 +42,8 @@ function PooledZMarker({ value, ci }) {
     <PlotSVG W={W} H={H}>
       {/* z = 0 dashed reference */}
       <line x1={xs(0)} y1={PT} x2={xs(0)} y2={PT + 28}
-        stroke={C.BORDER} strokeWidth={CS.GRID.w} strokeDasharray="4,3"/>
-      <text x={xs(0)} y={PT - 4} fontSize={CF.SMALL} fill={C.TEXT_3}
+        stroke={C.AXIS} strokeWidth={CS.GRID.w} strokeDasharray="4,3"/>
+      <text x={xs(0)} y={PT - 4} fontSize={CF.SMALL} fill={C.TEXT_2}
         textAnchor="middle" fontFamily={FF.MONO}>z = 0</text>
       {/* CI whisker */}
       {Array.isArray(ci) && Number.isFinite(ci[0]) && Number.isFinite(ci[1]) && (
@@ -61,12 +61,12 @@ function PooledZMarker({ value, ci }) {
         fill={C.TEXT} stroke={C.WHITE} strokeWidth="1.5"/>
       {/* Axis */}
       <line x1={PL} y1={PT + 28} x2={PL + CW} y2={PT + 28}
-        stroke={C.BORDER} strokeWidth={CS.GRID.w}/>
+        stroke={C.AXIS} strokeWidth={CS.GRID.w}/>
       {ticks.map(t => (
         <g key={t}>
           <line x1={xs(t)} y1={PT + 28} x2={xs(t)} y2={PT + 32}
-            stroke={C.BORDER} strokeWidth={CS.GRID.w}/>
-          <text x={xs(t)} y={PT + 42} fontSize={CF.SMALL} fill={C.TEXT_3}
+            stroke={C.AXIS} strokeWidth={CS.GRID.w}/>
+          <text x={xs(t)} y={PT + 42} fontSize={CF.SMALL} fill={C.TEXT_2}
             textAnchor="middle" fontFamily={FF.MONO}>{t}</text>
         </g>
       ))}

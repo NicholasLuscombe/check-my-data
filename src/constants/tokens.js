@@ -8,6 +8,15 @@ export const C = {
   TEXT_2:   "#525252",  // secondary text
   TEXT_3:   "#737373",  // table headers, axis labels, fine print
   BORDER:   "#CBD5E1",  // primary borders, dividers (slate-300)
+  AXIS:     "#94A3B8",  // plot axis lines and tick marks (slate-400): one step
+                        // darker than BORDER so the line reads as structure on the
+                        // tinted panel, still lighter than TEXT_2 so it does not
+                        // compete with the tick numbers it carries
+  GRID:     "#CBD5E1",  // interior plot gridlines (slate-300): one step darker than
+                        // the panel background BG and one step lighter than the axis
+                        // line AXIS, so the grey layers step evenly from panel to grid
+                        // to axis to text. Its own role, kept apart from BORDER so
+                        // tuning panel and table borders never drags the gridlines
   BORDER_L: "#E2E8F0",  // light row separators (slate-200)
   BG:       "#F1F5F9",  // card/row alt backgrounds (slate-100)
   BG_L:     "#F8FAFC",  // lightest background (slate-50)

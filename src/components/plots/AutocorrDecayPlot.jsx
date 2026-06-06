@@ -77,9 +77,9 @@ export function AutocorrDecayPlot({ perGroupDecay, singleCurve, condColorMap, ve
       {yTicks.map(v=>(
         <g key={v}>
           <line x1={PL} y1={ys(v)} x2={PL+CW} y2={ys(v)}
-            stroke={v===0?C.BORDER:C.BORDER_L} strokeWidth={v===0?1:0.7}
+            stroke={v===0?C.AXIS:C.GRID} strokeWidth={v===0?1:CS.GRID.w}
             strokeDasharray={v===0?"4,3":""}/>
-          <text x={PL-4} y={ys(v)+3.5} fontSize={CF.LABEL} fill={C.TEXT_3}
+          <text x={PL-4} y={ys(v)+3.5} fontSize={CF.LABEL} fill={C.TEXT_2}
             textAnchor="end" fontFamily={FF.MONO}>{v.toFixed(tickDp)}</text>
         </g>
       ))}
@@ -122,15 +122,15 @@ export function AutocorrDecayPlot({ perGroupDecay, singleCurve, condColorMap, ve
         );
       })()}
       {/* x axis */}
-      <line x1={PL} y1={PT+CH} x2={PL+CW} y2={PT+CH} stroke={C.BORDER} strokeWidth={CS.GRID.w}/>
+      <line x1={PL} y1={PT+CH} x2={PL+CW} y2={PT+CH} stroke={C.AXIS} strokeWidth={CS.GRID.w}/>
       {Array.from({length:LAGS},(_,i)=>(
-        <text key={i} x={xs(i+1)} y={H-PB+14} fontSize={CF.LABEL} fill={C.TEXT_3}
+        <text key={i} x={xs(i+1)} y={H-PB+14} fontSize={CF.LABEL} fill={C.TEXT_2}
           textAnchor="middle" fontFamily={FF.MONO}>{i+1}</text>
       ))}
-      <text x={PL+CW/2} y={H-2} fontSize={CF.LABEL} fill={C.TEXT_3}
+      <text x={PL+CW/2} y={H-2} fontSize={CF.AXIS} fill={C.TEXT_2}
         textAnchor="middle" fontFamily={FF.UI}>Lag (rows apart)</text>
       {/* Y-axis label */}
-      <text x={8} y={PT+CH/2} fontSize={CF.AXIS} fill={C.TEXT_3}
+      <text x={8} y={PT+CH/2} fontSize={CF.AXIS} fill={C.TEXT_2}
         textAnchor="middle" fontFamily={FF.UI} transform={`rotate(-90,8,${PT+CH/2})`}>Autocorrelation (r)</text>
     </PlotSVG>
   );
