@@ -1,7 +1,7 @@
 /* ── MiniCard: Rank Correlation ── */
 
 import { C, FW, FF } from "../../constants/tokens.js";
-import { TIER_COLOR } from "../shared/heatmapColors.js";
+import { TIER_COLOR, cellTextOn } from "../shared/heatmapColors.js";
 import { buildCondColorMap } from "../../constants/roles.js";
 import { MiniCardLayout, CardBanner } from "../shared/CardLayout.jsx";
 import { CorrMatrixSVG } from "../plots/CorrMatrixSVG.jsx";
@@ -38,7 +38,7 @@ export function MiniCard_RankCorrelation({ result, importConfig, rowMap }) {
     if (!val) return C.BORDER_L;
     return val.suspicious ? TIER_COLOR.MID : TIER_COLOR.LOW;
   };
-  const cellTxt = () => C.TEXT;
+  const cellTxt = (val) => cellTextOn(cellBg(val));
   const cellBold = (val) => !!val?.suspicious;
 
   // ── Legend ──

@@ -1,7 +1,7 @@
 /* ── MiniCard: Inter-Replicate Correlation ── */
 
 import { C, FS, FW, FF } from "../../constants/tokens.js";
-import { TIER_COLOR } from "../shared/heatmapColors.js";
+import { TIER_COLOR, cellTextOn } from "../shared/heatmapColors.js";
 import { COND_COLORS, buildCondColorMap } from "../../constants/roles.js";
 import { MiniCardLayout, CardBanner } from "../shared/CardLayout.jsx";
 import { CorrMatrixSVG } from "../plots/CorrMatrixSVG.jsx";
@@ -94,7 +94,7 @@ const cellBg = (p) => {
   if (elevatedConds.has(p.condition)) return TIER_COLOR.MID;
   return TIER_COLOR.LOW;
 };
-const cellTxt = (p) => p?.suspicious ? C.WHITE : C.TEXT;
+const cellTxt = (p) => cellTextOn(cellBg(p));
 
 // Legend items
 const legend = [

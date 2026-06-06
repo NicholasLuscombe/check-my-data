@@ -20,7 +20,7 @@ import { C, FF, CF, FW } from "../../constants/tokens.js";
 const ROLES = {
   tick:   { fontSize: CF.TICK,  fontFamily: FF.UI,   fontWeight: FW.SEMI, fill: C.TEXT_2 },
   axis:   { fontSize: CF.AXIS,  fontFamily: FF.UI,   fontWeight: FW.SEMI, fill: C.TEXT_2 },
-  title:  { fontSize: "12",     fontFamily: FF.UI,   fontWeight: FW.SEMI, fill: C.TEXT_2 },
+  title:  { fontSize: CF.TITLE, fontFamily: FF.UI,   fontWeight: FW.SEMI, fill: C.TEXT_2 },
   legend: { fontSize: CF.SMALL, fontFamily: FF.UI,   fontWeight: FW.NORM, fill: C.TEXT_3 },
   value:  { fontSize: CF.TICK,  fontFamily: FF.MONO, fontWeight: FW.NORM, fill: C.TEXT   },
   yaxis:  { fontSize: CF.AXIS,  fontFamily: FF.MONO, fontWeight: FW.NORM, fill: C.TEXT_3 },

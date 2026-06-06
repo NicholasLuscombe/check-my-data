@@ -42,6 +42,17 @@ export function rhoTextColor(rho) {
   return rho != null && rho >= 0.6 ? C.WHITE : C.TEXT;
 }
 
+// Relative luminance of a #RRGGBB hex; returns light text on dark fills, dark on light.
+export function cellTextOn(bg) {
+  if (typeof bg !== "string" || bg[0] !== "#" || bg.length < 7) return C.TEXT;
+  const r = parseInt(bg.slice(1, 3), 16) / 255;
+  const g = parseInt(bg.slice(3, 5), 16) / 255;
+  const b = parseInt(bg.slice(5, 7), 16) / 255;
+  const lin = (c) => (c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4));
+  const L = 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
+  return L < 0.5 ? C.WHITE : C.TEXT;
+}
+
 /**
  * Legend items for a ρ matrix, filtered to tiers present in the data.
  * @param {number[]} rhoValues — flat array of all ρ values in the matrix

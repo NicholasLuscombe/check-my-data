@@ -13,7 +13,7 @@ import { SvgLabel } from "../shared/SvgLabel.jsx";
 import { SvgAxis } from "../shared/SvgAxis.jsx";
 import { ChartLegend } from "../shared/ChartLegend.jsx";
 import { makeRowMapper } from "../shared/coordinates.js";
-import { rhoColor, rhoTextColor, rhoLegendItems } from "../shared/heatmapColors.js";
+import { rhoColor, rhoLegendItems, cellTextOn } from "../shared/heatmapColors.js";
 import { SUB_HEAD } from "../shared/styles.js";
 
 // Residual magnitude ramp — the CANONICAL TIER_COLOR family colours: slate
@@ -283,7 +283,7 @@ export function CoordResidualProfile({ allProfiles, nRows, pairDetails, condColo
               }}
               formatCell={v => v != null ? v.toFixed(2) : ""}
               cellBg={v => v != null ? rhoColor(v) : C.BORDER_L}
-              cellText={v => rhoTextColor(v)}
+              cellText={v => cellTextOn(rhoColor(v))}
               cellBold={v => v != null && v >= 0.4}
               labelColors={[...matLabelColors].reverse()}
             />

@@ -205,7 +205,7 @@ export function MahalanobisDistPlot({ allCondD2, condColorMap, plotD2, plotD2Row
                 <line x1={o.x} y1={o.y - 5} x2={o.labelX} y2={o.labelY + 3}
                   stroke={C.TEXT_3} strokeWidth={0.5} />
                 <text x={o.labelX} y={o.labelY}
-                  fontSize="9" fill={C.TEXT_2} textAnchor="middle"
+                  fontSize={CF.SMALL} fill={C.TEXT_2} textAnchor="middle"
                   fontFamily={FF.MONO}>{o.rowNum}</text>
               </g>
             ))}
