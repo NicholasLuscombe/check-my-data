@@ -39,12 +39,12 @@ export function DotStrip({ items, valueKey, refMin, refMax, refLabel, xlabel, co
           fill={col} opacity="0.7" stroke={C.WHITE} strokeWidth="0.8"/>;
       })}
       {/* axis */}
-      <line x1={PL} y1={PT+22} x2={W-PR} y2={PT+22} stroke={C.BORDER} strokeWidth={CS.GRID.w}/>
+      <line x1={PL} y1={PT+22} x2={W-PR} y2={PT+22} stroke={C.AXIS} strokeWidth={CS.GRID.w}/>
       {[lo,0,(lo+hi)/2,hi].filter((v,i,a)=>a.indexOf(v)===i).map((v,i)=>(
-        <text key={i} x={xscale(v)} y={H-8} fontSize={CF.SMALL} fill={C.TEXT_3} textAnchor="middle"
+        <text key={i} x={xscale(v)} y={H-8} fontSize={CF.SMALL} fill={C.TEXT_2} textAnchor="middle"
           fontFamily={FF.MONO}>{v.toFixed(2)}</text>
       ))}
-      {xlabel&&<text x={PL+CW/2} y={H-1} fontSize={CF.LABEL} fill={C.TEXT_3} textAnchor="middle"
+      {xlabel&&<text x={PL+CW/2} y={H-1} fontSize={CF.AXIS} fill={C.TEXT_2} textAnchor="middle"
         fontFamily={FF.UI}>{xlabel}</text>}
     </PlotSVG>
   );

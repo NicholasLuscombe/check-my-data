@@ -55,7 +55,7 @@ export function RegionalNoiseStrip({ details, nRows, colNames, toFileRow, yAxisT
           the reclaimed left pad reads as tighter chrome, not a blank gutter). */}
       {yAxisTitle && (
         <text x={8} y={PT + cols.length*(ROW_H+GAP)/2} textAnchor="middle"
-          fontSize={CF.AXIS} fill={C.TEXT_3} fontFamily={FF.UI} transform={`rotate(-90,8,${PT + cols.length*(ROW_H+GAP)/2})`}>{yAxisTitle}</text>
+          fontSize={CF.AXIS} fill={C.TEXT_2} fontFamily={FF.UI} transform={`rotate(-90,8,${PT + cols.length*(ROW_H+GAP)/2})`}>{yAxisTitle}</text>
       )}
       {cols.map((col, ci) => {
         const y = PT + ci*(ROW_H+GAP);
@@ -81,9 +81,9 @@ export function RegionalNoiseStrip({ details, nRows, colNames, toFileRow, yAxisT
         );
       })}
       {/* X-axis: "Row" label + tick marks using file row numbers */}
-      <text x={PL+CW/2} y={H-2} fontSize={CF.LABEL} fill={C.TEXT_3} textAnchor="middle" fontFamily={FF.UI}>Row</text>
+      <text x={PL+CW/2} y={H-2} fontSize={CF.AXIS} fill={C.TEXT_2} textAnchor="middle" fontFamily={FF.UI}>Row</text>
       {ticks.map(t => (
-        <text key={t} x={xs(t)} y={H-16} fontSize={CF.SMALL} fill={C.TEXT_3}
+        <text key={t} x={xs(t)} y={H-16} fontSize={CF.SMALL} fill={C.TEXT_2}
           textAnchor="middle" fontFamily={FF.MONO}>{fn(t)}</text>
       ))}
     </PlotSVG>

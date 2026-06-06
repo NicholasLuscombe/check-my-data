@@ -53,8 +53,8 @@ export function KurtosisDistPlot({ normDiffs, simDiffs }) {
       {yTicks.map(v=>(
         <g key={v}>
           <line x1={PL} y1={ys(v)} x2={PL+CW} y2={ys(v)}
-            stroke={C.BORDER_L} strokeWidth={CS.GRID.w}/>
-          <text x={PL-4} y={ys(v)+3.5} fontSize={CF.SMALL} fill={C.TEXT_3}
+            stroke={C.GRID} strokeWidth={CS.GRID.w}/>
+          <text x={PL-4} y={ys(v)+3.5} fontSize={CF.SMALL} fill={C.TEXT_2}
             textAnchor="end" fontFamily={FF.MONO}>{v.toFixed(1)}</text>
         </g>
       ))}
@@ -72,18 +72,18 @@ export function KurtosisDistPlot({ normDiffs, simDiffs }) {
       {simPath && <path d={simPath} fill="none" stroke={CC.EXP} strokeWidth={CS.FIT.w} opacity="0.9"/>}
 
       {/* axes */}
-      <line x1={PL} y1={PT+CH} x2={PL+CW} y2={PT+CH} stroke={C.BORDER} strokeWidth={CS.GRID.w}/>
-      <line x1={PL} y1={PT} x2={PL} y2={PT+CH} stroke={C.BORDER} strokeWidth={CS.GRID.w}/>
+      <line x1={PL} y1={PT+CH} x2={PL+CW} y2={PT+CH} stroke={C.AXIS} strokeWidth={CS.GRID.w}/>
+      <line x1={PL} y1={PT} x2={PL} y2={PT+CH} stroke={C.AXIS} strokeWidth={CS.GRID.w}/>
       {xTicks.map(v=>(
         <g key={v}>
-          <line x1={xs(v)} y1={PT+CH} x2={xs(v)} y2={PT+CH+3} stroke={C.BORDER} strokeWidth={CS.GRID.w}/>
-          <text x={xs(v)} y={PT+CH+12} fontSize={CF.SMALL} fill={C.TEXT_3}
+          <line x1={xs(v)} y1={PT+CH} x2={xs(v)} y2={PT+CH+3} stroke={C.AXIS} strokeWidth={CS.GRID.w}/>
+          <text x={xs(v)} y={PT+CH+12} fontSize={CF.SMALL} fill={C.TEXT_2}
             textAnchor="middle" fontFamily={FF.MONO}>{v}</text>
         </g>
       ))}
-      <text x={PL+CW/2} y={H-PB+28} fontSize={CF.LABEL} fill={C.TEXT_3}
+      <text x={PL+CW/2} y={H-PB+28} fontSize={CF.AXIS} fill={C.TEXT_2}
         textAnchor="middle" fontFamily={FF.UI}>Normalised replicate difference (d / local σ)</text>
-      <text x={12} y={PT+CH/2} fontSize={CF.LABEL} fill={C.TEXT_3}
+      <text x={12} y={PT+CH/2} fontSize={CF.AXIS} fill={C.TEXT_2}
         textAnchor="middle" fontFamily={FF.UI}
         transform={`rotate(-90,12,${PT+CH/2})`}>Density</text>
 

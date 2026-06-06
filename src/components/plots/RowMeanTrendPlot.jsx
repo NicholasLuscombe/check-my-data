@@ -97,12 +97,12 @@ export function RowMeanTrendPlot({ rowMeans, simMeans, rowIdxs, grandMean, fileR
       {/* gridlines */}
       {yTicks.map(v => (
         <line key={v} x1={PL} y1={sy(v)} x2={PL + plotW} y2={sy(v)}
-          stroke={C.BORDER_L} strokeWidth={CS.GRID.w} />
+          stroke={C.GRID} strokeWidth={CS.GRID.w} />
       ))}
 
       {/* grand mean dashed line */}
       <line x1={PL} y1={gmY} x2={PL + plotW} y2={gmY}
-        stroke={C.TEXT_3} strokeWidth="1" strokeDasharray={CS.REF.dash} opacity={CS.REF.opacity} />
+        stroke={C.AXIS} strokeWidth="1" strokeDasharray={CS.REF.dash} opacity={CS.REF.opacity} />
 
       {/* simulated line — uniform teal, no crossing emphasis, no dots */}
       {simPts && simPts.map((pt, i) => {
@@ -138,31 +138,31 @@ export function RowMeanTrendPlot({ rowMeans, simMeans, rowIdxs, grandMean, fileR
 
       {/* Y-axis */}
       <line x1={PL} y1={PT} x2={PL} y2={PT + plotH}
-        stroke={C.BORDER} strokeWidth={CS.GRID.w} />
+        stroke={C.AXIS} strokeWidth={CS.GRID.w} />
       {yTicks.map(v => (
         <g key={v}>
           <line x1={PL - 3} y1={sy(v)} x2={PL} y2={sy(v)}
-            stroke={C.BORDER} strokeWidth={CS.GRID.w} />
-          <text x={PL - 5} y={sy(v) + 3} fontSize={CF.SMALL} fill={C.TEXT_3}
+            stroke={C.AXIS} strokeWidth={CS.GRID.w} />
+          <text x={PL - 5} y={sy(v) + 3} fontSize={CF.SMALL} fill={C.TEXT_2}
             textAnchor="end" fontFamily={FF.MONO}>{fmtTick(v)}</text>
         </g>
       ))}
-      <text x={10} y={PT + plotH / 2} fontSize={CF.SMALL} fill={C.TEXT_3}
+      <text x={10} y={PT + plotH / 2} fontSize={CF.AXIS} fill={C.TEXT_2}
         textAnchor="middle" fontFamily={FF.UI}
         transform={`rotate(-90,10,${PT + plotH / 2})`}>Row mean</text>
 
       {/* X-axis */}
       <line x1={PL} y1={PT + plotH} x2={PL + plotW} y2={PT + plotH}
-        stroke={C.BORDER} strokeWidth={CS.GRID.w} />
+        stroke={C.AXIS} strokeWidth={CS.GRID.w} />
       {xTickSet.map(i => (
         <g key={i}>
           <line x1={sx(i)} y1={PT + plotH} x2={sx(i)} y2={PT + plotH + 3}
-            stroke={C.BORDER} strokeWidth={CS.GRID.w} />
-          <text x={sx(i)} y={PT + plotH + 13} fontSize={CF.SMALL} fill={C.TEXT_3}
+            stroke={C.AXIS} strokeWidth={CS.GRID.w} />
+          <text x={sx(i)} y={PT + plotH + 13} fontSize={CF.SMALL} fill={C.TEXT_2}
             textAnchor="middle" fontFamily={FF.MONO}>{fileRows[i]}</text>
         </g>
       ))}
-      <text x={PL + plotW / 2} y={H - 3} fontSize={CF.SMALL} fill={C.TEXT_3}
+      <text x={PL + plotW / 2} y={H - 3} fontSize={CF.AXIS} fill={C.TEXT_2}
         textAnchor="middle" fontFamily={FF.UI}>Row</text>
     </PlotSVG>
   );

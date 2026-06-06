@@ -132,19 +132,19 @@ export function SignStripPlot({ groupSignSeqs, singleSeq, singleRuns, singleExp,
 
       {/* X-axis */}
       <line x1={LABEL_W} y1={axisY} x2={LABEL_W + STRIP_W} y2={axisY}
-        stroke={C.BORDER} strokeWidth={CS.GRID.w}/>
+        stroke={C.AXIS} strokeWidth={CS.GRID.w}/>
       {xTickVals.map(fr => (
         <g key={fr}>
           <line x1={fileRowToX(fr)} y1={axisY}
             x2={fileRowToX(fr)} y2={axisY + 4}
-            stroke={C.BORDER} strokeWidth={CS.GRID.w}/>
+            stroke={C.AXIS} strokeWidth={CS.GRID.w}/>
           <text x={fileRowToX(fr)} y={axisY + 13} fontSize={CF.SMALL}
-            fill={C.TEXT_3} textAnchor="middle" fontFamily={FF.MONO}>
+            fill={C.TEXT_2} textAnchor="middle" fontFamily={FF.MONO}>
             {fr}
           </text>
         </g>
       ))}
-      <text x={LABEL_W + STRIP_W / 2} y={totalH - 3} fontSize={CF.LABEL} fill={C.TEXT_3}
+      <text x={LABEL_W + STRIP_W / 2} y={totalH - 3} fontSize={CF.AXIS} fill={C.TEXT_2}
         textAnchor="middle" fontFamily={FF.UI}>Row</text>
     </PlotSVG>
   );

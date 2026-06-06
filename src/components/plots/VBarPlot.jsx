@@ -35,8 +35,8 @@ export function VBarPlot({ items, xKey, obsKey, expKey, xlabel, ylabel, obsColor
       {ticks.map(t=>(
         <g key={t}>
           {t>0&&<line x1={PL} y1={yscale(t)} x2={W-PR} y2={yscale(t)}
-            stroke={C.BORDER_L} strokeWidth={CS.GRID.w}/>}
-          <text x={PL-4} y={yscale(t)+3.5} fontSize={CF.TICK} fill={C.TEXT_3}
+            stroke={C.GRID} strokeWidth={CS.GRID.w}/>}
+          <text x={PL-4} y={yscale(t)+3.5} fontSize={CF.TICK} fill={C.TEXT_2}
             textAnchor="end" fontFamily={FF.MONO}>{fmtTick(t)}</text>
         </g>
       ))}
@@ -59,17 +59,17 @@ export function VBarPlot({ items, xKey, obsKey, expKey, xlabel, ylabel, obsColor
           <g key={i}>
             {barH>0&&<rect x={PL+i*(bw+2)} y={yscale(v)} width={bw} height={barH}
               rx="1" fill={col} fillOpacity="0.35" stroke={col} strokeWidth="1"/>}
-            <text x={PL+i*(bw+2)+bw/2} y={H-PB+11} fontSize={CF.LABEL} fill={C.TEXT_3}
+            <text x={PL+i*(bw+2)+bw/2} y={H-PB+11} fontSize={CF.LABEL} fill={C.TEXT_2}
               textAnchor="middle" fontFamily={FF.MONO}>{d[xKey]}</text>
           </g>
         );
       })}
       {/* axes */}
-      <line x1={PL} y1={PT} x2={PL} y2={PT+CH} stroke={C.BORDER} strokeWidth={CS.GRID.w}/>
-      <line x1={PL} y1={PT+CH} x2={W-PR} y2={PT+CH} stroke={C.BORDER} strokeWidth={CS.GRID.w}/>
-      {xlabel&&<text x={PL+CW/2} y={H-2} fontSize={CF.LABEL} fill={C.TEXT_3} textAnchor="middle"
+      <line x1={PL} y1={PT} x2={PL} y2={PT+CH} stroke={C.AXIS} strokeWidth={CS.GRID.w}/>
+      <line x1={PL} y1={PT+CH} x2={W-PR} y2={PT+CH} stroke={C.AXIS} strokeWidth={CS.GRID.w}/>
+      {xlabel&&<text x={PL+CW/2} y={H-2} fontSize={CF.AXIS} fill={C.TEXT_2} textAnchor="middle"
         fontFamily={FF.UI}>{xlabel}</text>}
-      {ylabel&&<text x={10} y={PT+CH/2} fontSize={CF.LABEL} fill={C.TEXT_3}
+      {ylabel&&<text x={10} y={PT+CH/2} fontSize={CF.AXIS} fill={C.TEXT_2}
         textAnchor="middle" fontFamily={FF.UI}
         transform={`rotate(-90,10,${PT+CH/2})`}>{ylabel}</text>}
     </PlotSVG>

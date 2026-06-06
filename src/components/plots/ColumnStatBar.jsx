@@ -104,9 +104,9 @@ export function ColumnStatBar({ items, skipped, cardFlag, refValue, refLabel, va
             <g key={t}>
               {t > 0 && (
                 <line x1={PL} y1={yscale(t)} x2={W - PR} y2={yscale(t)}
-                  stroke={C.BORDER_L} strokeWidth={CS.GRID.w} />
+                  stroke={C.GRID} strokeWidth={CS.GRID.w} />
               )}
-              <text x={PL - 4} y={yscale(t) + 3.5} fontSize={CF.TICK} fill={C.TEXT_3}
+              <text x={PL - 4} y={yscale(t) + 3.5} fontSize={CF.TICK} fill={C.TEXT_2}
                 textAnchor="end" fontFamily={FF.MONO}>{fmtTick(t)}</text>
             </g>
           ))}
@@ -124,7 +124,7 @@ export function ColumnStatBar({ items, skipped, cardFlag, refValue, refLabel, va
             const x = PL + i * (bw + 4) + 2;
             const cx = x + bw / 2;
             const labelText = (
-              <text x={cx} y={H - PB + 12} fontSize={CF.LABEL} fill={C.TEXT_3}
+              <text x={cx} y={H - PB + 12} fontSize={CF.LABEL} fill={C.TEXT_2}
                 textAnchor="middle" fontFamily={FF.UI}>{s.colLabel}</text>
             );
             if (s.kind === "tested") {
@@ -161,13 +161,13 @@ export function ColumnStatBar({ items, skipped, cardFlag, refValue, refLabel, va
 
           {/* axes */}
           <line x1={PL} y1={PT} x2={PL} y2={PT + CH}
-            stroke={C.BORDER} strokeWidth={CS.GRID.w} />
+            stroke={C.AXIS} strokeWidth={CS.GRID.w} />
           <line x1={PL} y1={PT + CH} x2={W - PR} y2={PT + CH}
-            stroke={C.BORDER} strokeWidth={CS.GRID.w} />
+            stroke={C.AXIS} strokeWidth={CS.GRID.w} />
 
           {/* y-axis label */}
           {valueAxisLabel && (
-            <text x={10} y={PT + CH / 2} fontSize={CF.AXIS} fill={C.TEXT_3}
+            <text x={10} y={PT + CH / 2} fontSize={CF.AXIS} fill={C.TEXT_2}
               textAnchor="middle" fontFamily={FF.UI}
               transform={`rotate(-90,10,${PT + CH / 2})`}>{valueAxisLabel}</text>
           )}

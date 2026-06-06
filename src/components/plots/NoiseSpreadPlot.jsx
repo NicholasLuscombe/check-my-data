@@ -42,15 +42,15 @@ export function NoiseSpreadPlot({ colDetails, flaggedCols, outlierCol, flag, W=C
       {/* Horizontal gridlines */}
       {yTicks.map((v, i) => (
         <line key={`g${i}`} x1={PL} x2={PL+CW} y1={py(v)} y2={py(v)}
-          stroke={C.BORDER_L} strokeWidth={CS.GRID.w}/>
+          stroke={C.GRID} strokeWidth={CS.GRID.w}/>
       ))}
       {/* Zero line — neutral baseline (grey, dashed) per shared treatment */}
-      <line x1={PL} x2={PL+CW} y1={midY} y2={midY} stroke={C.TEXT_3} strokeWidth={CS.REF.w} strokeDasharray={CS.REF.dash} opacity={CS.REF.opacity}/>
+      <line x1={PL} x2={PL+CW} y1={midY} y2={midY} stroke={C.AXIS} strokeWidth={CS.REF.w} strokeDasharray={CS.REF.dash} opacity={CS.REF.opacity}/>
       {/* Y-axis ticks */}
       {yTicks.map((v, i) => (
         <g key={i}>
-          <line x1={PL-3} x2={PL} y1={py(v)} y2={py(v)} stroke={C.BORDER} strokeWidth={CS.GRID.w}/>
-          <text x={PL-5} y={py(v)+3.5} textAnchor="end" fontSize={CF.TICK} fill={C.TEXT_3} fontFamily={FF.MONO}>
+          <line x1={PL-3} x2={PL} y1={py(v)} y2={py(v)} stroke={C.AXIS} strokeWidth={CS.GRID.w}/>
+          <text x={PL-5} y={py(v)+3.5} textAnchor="end" fontSize={CF.TICK} fill={C.TEXT_2} fontFamily={FF.MONO}>
             {fmtTick(v)}
           </text>
         </g>
@@ -93,7 +93,7 @@ export function NoiseSpreadPlot({ colDetails, flaggedCols, outlierCol, flag, W=C
         );
       })}
       {/* Y-axis label */}
-      <text x={10} y={midY} textAnchor="middle" fontSize={CF.SMALL} fill={C.TEXT_3}
+      <text x={10} y={midY} textAnchor="middle" fontSize={CF.AXIS} fill={C.TEXT_2}
         fontFamily={FF.UI} transform={`rotate(-90,10,${midY})`}>±1 SD residual</text>
     </PlotSVG>
   );

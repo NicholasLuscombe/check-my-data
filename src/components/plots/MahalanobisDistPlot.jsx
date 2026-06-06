@@ -65,7 +65,7 @@ export function MahalanobisDistPlot({ allCondD2, condColorMap, plotD2, plotD2Row
   return (
     <PlotSVG W={W} H={totalH} overflow>
       {/* Y-axis label — centered across all charts */}
-      <text x={5} y={totalH / 2} fontSize={CF.SMALL} fill={C.TEXT_3}
+      <text x={5} y={totalH / 2} fontSize={CF.AXIS} fill={C.TEXT_2}
         textAnchor="middle" fontFamily={FF.UI}
         transform={`rotate(-90,5,${totalH / 2})`}>Distance</text>
       {series.map((s, ci) => {
@@ -149,7 +149,7 @@ export function MahalanobisDistPlot({ allCondD2, condColorMap, plotD2, plotD2Row
             {/* Gridlines — continuous axis */}
             {yTicks.map(v => (
               <line key={`g${v}`} x1={PL} y1={yscale(v)} x2={PL + CW} y2={yscale(v)}
-                stroke={C.BORDER_L} strokeWidth={CS.GRID.w} />
+                stroke={C.GRID} strokeWidth={CS.GRID.w} />
             ))}
 
             {/* Per-condition threshold dashed line — only when a BH-FDR
@@ -162,28 +162,28 @@ export function MahalanobisDistPlot({ allCondD2, condColorMap, plotD2, plotD2Row
             )}
 
             {/* Y-axis line */}
-            <line x1={PL} y1={0} x2={PL} y2={MINI_H} stroke={C.BORDER} strokeWidth={CS.GRID.w} />
+            <line x1={PL} y1={0} x2={PL} y2={MINI_H} stroke={C.AXIS} strokeWidth={CS.GRID.w} />
 
             {/* Y-axis ticks */}
             {yTicks.map(v => (
               <g key={`yt${v}`}>
                 <line x1={PL - 3} y1={yscale(v)} x2={PL} y2={yscale(v)}
-                  stroke={C.BORDER} strokeWidth={CS.GRID.w} />
-                <text x={PL - 5} y={yscale(v) + 3} fontSize={CF.SMALL} fill={C.TEXT_3}
+                  stroke={C.AXIS} strokeWidth={CS.GRID.w} />
+                <text x={PL - 5} y={yscale(v) + 3} fontSize={CF.SMALL} fill={C.TEXT_2}
                   textAnchor="end" fontFamily={FF.MONO}>{Math.round(v)}</text>
               </g>
             ))}
 
             {/* X-axis baseline — continuous */}
             <line x1={PL} y1={MINI_H} x2={PL + CW} y2={MINI_H}
-              stroke={C.BORDER} strokeWidth={CS.GRID.w} />
+              stroke={C.AXIS} strokeWidth={CS.GRID.w} />
 
             {/* X-axis ticks — continuous axis */}
             {xTicks.map(v => (
               <g key={`xt${v}`}>
                 <line x1={xscale(v - 1)} y1={MINI_H} x2={xscale(v - 1)} y2={MINI_H + 3}
-                  stroke={C.BORDER} strokeWidth={CS.GRID.w} />
-                <text x={xscale(v - 1)} y={MINI_H + 12} fontSize={CF.SMALL} fill={C.TEXT_3}
+                  stroke={C.AXIS} strokeWidth={CS.GRID.w} />
+                <text x={xscale(v - 1)} y={MINI_H + 12} fontSize={CF.SMALL} fill={C.TEXT_2}
                   textAnchor="middle" fontFamily={FF.MONO}>{v}</text>
               </g>
             ))}

@@ -40,7 +40,7 @@ export function HBarPlot({ items, accessor, xlabel, refVal, refLabel, maxOverrid
         const y=PT+i*(BH+GAP);
         return (
           <g key={i}>
-            <text x={LW-PL} y={y+BH*0.78} textAnchor="end" fontSize={CF.LABEL} fill={C.TEXT_3}
+            <text x={LW-PL} y={y+BH*0.78} textAnchor="end" fontSize={CF.LABEL} fill={C.TEXT_2}
               fontFamily={FF.UI}>{shortName(d.group||d.col||`#${i+1}`)}</text>
             <rect x={LW} y={y} width={bw} height={BH} rx="2"
               fill={CC.OBS} fillOpacity="0.35" stroke={CC.OBS} strokeWidth="1"/>
@@ -51,20 +51,20 @@ export function HBarPlot({ items, accessor, xlabel, refVal, refLabel, maxOverrid
         );
       })}
       {/* x-axis line */}
-      <line x1={LW} y1={axisY} x2={LW+CW} y2={axisY} stroke={C.BORDER} strokeWidth={CS.GRID.w}/>
+      <line x1={LW} y1={axisY} x2={LW+CW} y2={axisY} stroke={C.AXIS} strokeWidth={CS.GRID.w}/>
       {/* x-axis ticks */}
       {ticks.map((t,i) => {
         const x = LW + (t/mx)*CW;
         return (
           <g key={i}>
-            <line x1={x} y1={axisY} x2={x} y2={axisY+3} stroke={C.BORDER} strokeWidth={0.5}/>
-            <text x={x} y={svgH-3} fontSize={CF.SMALL} fill={C.TEXT_3} textAnchor="middle"
+            <line x1={x} y1={axisY} x2={x} y2={axisY+3} stroke={C.AXIS} strokeWidth={0.5}/>
+            <text x={x} y={svgH-3} fontSize={CF.SMALL} fill={C.TEXT_2} textAnchor="middle"
               fontFamily={FF.MONO}>{t % 1 === 0 ? t : t.toFixed(1)}</text>
           </g>
         );
       })}
       {/* x-axis label */}
-      {xlabel && <text x={LW+CW/2} y={svgH+8} fontSize={CF.LABEL} fill={C.TEXT_3} textAnchor="middle"
+      {xlabel && <text x={LW+CW/2} y={svgH+8} fontSize={CF.AXIS} fill={C.TEXT_2} textAnchor="middle"
         fontFamily={FF.UI}>{xlabel}</text>}
     </PlotSVG>
   );
