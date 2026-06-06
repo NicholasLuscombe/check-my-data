@@ -157,8 +157,8 @@ return (
         <EvidenceTable
           columns={condNames.length > 1 ? ["Condition", "Columns", "Rows", "Observed r", "Expected r"] : ["Columns", "Rows", "Observed r", "Expected r"]}
           rows={topWins.map(w => condNames.length > 1
-            ? [condCell(w.condition), pairLabel(w.pair, w.condition), `${toFileRow(w.startRow)}\u2013${toFileRow(w.endRow)}`, w.rWin, w.baseline]
-            : [pairLabel(w.pair, w.condition || "All data"), `${toFileRow(w.startRow)}\u2013${toFileRow(w.endRow)}`, w.rWin, w.baseline]
+            ? [condCell(w.condition), pairLabel(w.pair, w.condition), `${toFileRow(w.startRow)}\u2013${toFileRow(w.endRow)}`, Number(w.rWin).toFixed(2), Number(w.baseline).toFixed(2)]
+            : [pairLabel(w.pair, w.condition || "All data"), `${toFileRow(w.startRow)}\u2013${toFileRow(w.endRow)}`, Number(w.rWin).toFixed(2), Number(w.baseline).toFixed(2)]
           )}
           identifierColumns={condNames.length > 1 ? 3 : 2}
         />

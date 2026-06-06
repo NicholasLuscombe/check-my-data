@@ -132,7 +132,7 @@ export function MiniCard_Kurtosis({ result, importConfig, rowMap }) {
               <>
                 {/* S210 (multi-surface): secondary-surface heading demoted (Regular weight). */}
                 <div style={{...SUB_HEAD, marginTop: BLOCK_GAP, fontWeight: FW.NORM, marginBottom: BLOCK_GAP_TIGHT}}>Per-condition noise shape</div>
-                <PlotLayout>
+                <PlotLayout fitContent>
                   <div style={{display:"flex",flexWrap:"wrap",gap:"8px",justifyContent:"center"}}>
                     {condK.filter(c=>c.normDiffs?.length>=20).map((c,ci)=>{
                       const obsDens=buildH(c.normDiffs);

@@ -48,7 +48,7 @@ export function MiniCard_CarlisleBalance({ result, importConfig, rowMap }) {
     const xTicks = [0, 0.25, 0.5, 0.75, 1];
 
     histPlot = (
-      <PlotSVG width={W} height={H} style={{ display: "block", margin: "4px auto" }}>
+      <PlotSVG W={W} H={H}>
         {/* count-axis gridlines + labels (behind the bars) */}
         {yTicks.map(t => (
           <g key={`y${t}`}>
@@ -104,7 +104,7 @@ export function MiniCard_CarlisleBalance({ result, importConfig, rowMap }) {
       implications="Groups that match more closely than random assignment predicts can occasionally occur by chance, particularly with small sample sizes or when stratified randomisation was used. Consistently near-perfect balance across many features, however, is unlikely under genuine random assignment and may indicate that group allocations were adjusted after the data was observed.">
 
       {histPlot && <>
-        <PlotLayout>
+        <PlotLayout fitContent>
           {histPlot}
         </PlotLayout>
         <div style={{fontSize:FS.sm,fontFamily:FF.UI,color:C.TEXT_2,marginTop:"4px"}}>

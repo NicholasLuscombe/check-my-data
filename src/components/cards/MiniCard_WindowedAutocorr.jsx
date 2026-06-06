@@ -67,12 +67,12 @@ export function MiniCard_WindowedAutocorr({ result, importConfig, rowMap }) {
       const sig = d.significant;
       const cell = v => sig ? { value: v, style: { color: SIGNAL.AMBER.text, fontWeight: FW.SEMI } } : v;
       const rowsLabel = `${toFileRow(d.startRow)}\u2013${toFileRow(d.endRow)}`;
-      const base = [cell(d.pair), cell(rowsLabel), cell(d.r), cell(fmtP(d.rawP)), cell(fmtP(d.adjP))];
+      const base = [cell(d.pair), cell(rowsLabel), cell(d.r), cell(fmtP(d.adjP))];
       return isAgg ? [cell(d.group), ...base] : base;
     });
     const cols = isAgg
-      ? [{label:"Condition"}, {label:"Pair"}, {label:"Rows"}, {label:"r"}, {label:"p"}, {label:"adj p"}]
-      : [{label:"Pair"}, {label:"Rows"}, {label:"r"}, {label:"p"}, {label:"adj p"}];
+      ? [{label:"Condition"}, {label:"Pair"}, {label:"Rows"}, {label:"r"}, {label:"Adj. p"}]
+      : [{label:"Pair"}, {label:"Rows"}, {label:"r"}, {label:"Adj. p"}];
     table = (
       <EvidenceTable
         columns={cols}

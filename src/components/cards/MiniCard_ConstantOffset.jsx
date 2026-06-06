@@ -72,7 +72,7 @@ export function MiniCard_ConstantOffset({ result, importConfig, rowMap }) {
               sole surface (footer-lead heads it). */}
           {barChart && <div style={{...SUB_HEAD, fontWeight: FW.NORM, marginBottom: BLOCK_GAP_TIGHT}}>Detected constant-offset blocks</div>}
           <EvidenceTable
-            columns={isAgg ? ["Condition", "Replicate pair", "Rows", "Offset"] : ["Replicate pair", "Rows", "Offset"]}
+            columns={isAgg ? ["Condition", "Pair", "Rows", "Offset"] : ["Pair", "Rows", "Offset"]}
             rows={blockEntries.map(d => isAgg
               ? [condCell(d.group), d.pair, positionsToFileRows(d.positions), fmtOffset(d.diff)]
               : [d.pair, positionsToFileRows(d.positions), fmtOffset(d.diff)]

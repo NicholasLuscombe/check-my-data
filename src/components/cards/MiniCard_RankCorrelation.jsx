@@ -72,7 +72,7 @@ export function MiniCard_RankCorrelation({ result, importConfig, rowMap }) {
         <>
           {/* S210 (single-surface): section heading dropped — the footer
               fragment (LEAD_HEAD in MiniCardLayout) heads this sole surface. */}
-          <PlotLayout>
+          <PlotLayout fitContent>
             <CorrMatrixSVG
               labels={condNames}
               getValue={(rowL, colL) => lookup[rowL + "|" + colL] || null}

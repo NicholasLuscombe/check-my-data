@@ -1,7 +1,8 @@
 /* ── MiniCard: Duplicate Detection ── */
 
 import { C, CC, FS, FW, FF, M, CP, CR, SIGNAL, DUP_GROUP_PALETTE } from "../../constants/tokens.js";
-import { SUB_HEAD, TD_NUM_CELL, TD_ID_CELL, BLOCK_GAP, BLOCK_GAP_TIGHT } from "../shared/styles.js";
+import { TD_NUM_CELL, TD_ID_CELL } from "../shared/styles.js";
+import { EvidenceBlock } from "../shared/EvidenceBlock.jsx";
 import { FLAG_STYLES } from "../../constants/thresholds.js";
 import { MiniCardLayout } from "../shared/CardLayout.jsx";
 import { ColumnHeaders } from "../shared/ColumnHeaders.jsx";
@@ -137,18 +138,6 @@ const mapVisCols = (vc) => {
   colDefs.forEach((cd, di) => { if (vc.keep.has(cd.rawCI)) keep.add(di); });
   return { keep, omitted: vc.omitted };
 };
-
-// ── Evidence section with sub-heading + description ──
-const EvidenceBlock = ({label, detail, children, lead=false}) => (
-  <div style={{marginTop: lead ? 0 : BLOCK_GAP}}>
-    {/* S210 (multi-surface): the lead block's heading drops — the footer
-        fragment (LEAD_HEAD in MiniCardLayout) heads it; the secondary block
-        keeps a demoted (Regular weight) heading below the footer-lead. */}
-    {!lead && <div style={{...SUB_HEAD, fontWeight: FW.NORM, marginBottom: BLOCK_GAP_TIGHT}}>{label}</div>}
-    {detail && <div style={{fontSize:FS.base,fontFamily:FF.UI,color:C.TEXT_2,marginBottom:"8px"}}>{detail}</div>}
-    <div style={{border:`1px solid ${C.BORDER_L}`,borderRadius:CR.MD,padding:0,overflowX:"auto",overflowY:"auto",maxHeight:"200px",background:C.WHITE,position:"relative"}}>{children}</div>
-  </div>
-);
 
 return (
 

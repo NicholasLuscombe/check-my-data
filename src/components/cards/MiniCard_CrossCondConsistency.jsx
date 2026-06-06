@@ -103,7 +103,7 @@ export function MiniCard_CrossCondConsistency({ result }) {
     { label: "Pair",     align: "left" },
     { label: "Observed" },
     { label: "Null median" },
-    { label: "Direction" },
+    { label: "Finding" },
     { label: "Adj. p" },
   ];
 
@@ -159,7 +159,7 @@ export function MiniCard_CrossCondConsistency({ result }) {
             maxHeight={260}
           />
           <div style={legendStyle}>
-            Amber rows are more alike across conditions than chance usually produces. Muted rows differ between conditions — which is what real treatments normally do — so they're shown for context, not flagged. 'Direction' shows whether each pair sits closer together or further apart than chance; 'Null median' is the midpoint of the chance range.
+            Amber rows are more alike across conditions than chance usually produces. Muted rows differ between conditions — which is what real treatments normally do — so they're shown for context, not flagged. 'Finding' shows whether each pair sits closer together or further apart than chance; 'Null median' is the midpoint of the chance range.
           </div>
         </>
       )}

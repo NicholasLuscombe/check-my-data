@@ -122,7 +122,7 @@ export function MiniCard_MissingDataPattern({ result, importConfig, rowMap }) {
 
       {heatmap && <>
         <div style={{...SUB_HEAD, marginTop: "8px"}}>Spatial distribution</div>
-        <PlotLayout>{heatmap}</PlotLayout>
+        <PlotLayout fitContent>{heatmap}</PlotLayout>
         <ChartLegend items={[
           { color: MISSING_FILL, label: "Missing cell" },
           ...(blockItems.length > 0 ? [{ color: "transparent", label: "Significant block", stroke: SIGNAL.RED.dot }] : []),

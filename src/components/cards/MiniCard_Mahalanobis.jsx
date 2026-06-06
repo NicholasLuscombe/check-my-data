@@ -84,10 +84,13 @@ export function MiniCard_Mahalanobis({ result, importConfig, rowMap }) {
       {(() => {
         const outlierList = isAgg ? sub : details;
         if (!outlierList.length) return null;
-        const cols = Object.keys(outlierList[0]);
-        const headerMap = { group: "Condition" };
-        const etCols = cols.map(k => ({ label: headerMap[k] || k.charAt(0).toUpperCase() + k.slice(1) }));
-        const etRows = outlierList.slice(0, 100).map(row => cols.map(k => {
+        // S217: fixed declared columns (was Object.keys-derived). Producer emits
+        // {Row, Distance, "p-value"}; the aggregator prepends group → Condition.
+        const keys = isAgg ? ["group", "Row", "Distance", "p-value"] : ["Row", "Distance", "p-value"];
+        const etCols = isAgg
+          ? [{label:"Condition"}, {label:"Row"}, {label:"Distance"}, {label:"p"}]
+          : [{label:"Row"}, {label:"Distance"}, {label:"p"}];
+        const etRows = outlierList.slice(0, 100).map(row => keys.map(k => {
           // Remap Row from 1-indexed matrix position to original file row
           if (k === "Row" && typeof row[k] === "number") return fileRow(row[k] - 1);
           return row[k];
@@ -97,7 +100,8 @@ export function MiniCard_Mahalanobis({ result, importConfig, rowMap }) {
             {/* S210 (multi-surface): secondary-surface heading kept but demoted
                 (Regular weight) to read clearly below the footer-lead. */}
             <div style={{...SUB_HEAD, fontWeight: FW.NORM, marginBottom: BLOCK_GAP_TIGHT}}>Outlier rows</div>
-            <EvidenceTable columns={etCols} rows={etRows} identifierColumns={isAgg ? 2 : 1} />
+            <EvidenceTable columns={etCols} rows={etRows} identifierColumns={isAgg ? 2 : 1}
+              footerText={outlierList.length > 100 ? `Showing 100 of ${outlierList.length}.` : undefined} />
           </div>
         );
       })()}

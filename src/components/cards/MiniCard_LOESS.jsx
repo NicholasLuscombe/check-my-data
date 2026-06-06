@@ -52,7 +52,7 @@ export function MiniCard_LOESS({ result, importConfig, rowMap }) {
           {/* S210 (multi-surface): secondary-surface heading demoted (Regular weight). */}
           <div style={{...SUB_HEAD, fontWeight: FW.NORM, marginBottom: BLOCK_GAP_TIGHT}}>Region comparison</div>
           <EvidenceTable
-            columns={["Region", "Rows", "Observed noise", "Expected noise", "Ratio", "Finding"]}
+            columns={["Region", "Rows", "Observed SD", "Expected SD", "Ratio", "Finding"]}
             identifierColumns={2}
             rows={regions.map(r => {
               // Map rows to file coordinates

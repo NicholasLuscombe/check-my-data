@@ -193,7 +193,7 @@ export function CoordResidualProfile({ allProfiles, nRows, pairDetails, condColo
     <div>
       {/* ── Section A: Heatmap strips ── */}
       {/* Sub-heading provided by MiniCard_ResidualSpike — not duplicated here */}
-      <PlotLayout>
+      <PlotLayout fitContent>
         <PlotSVG W={W_STRIP} H={H_STRIP} responsive>
           {/* Left axis line */}
           <line
@@ -273,7 +273,7 @@ export function CoordResidualProfile({ allProfiles, nRows, pairDetails, condColo
           <div style={{...SUB_HEAD,marginTop:"12px"}}>
             How closely each row pair's noise tracks
           </div>
-          <PlotLayout>
+          <PlotLayout fitContent>
             <CorrMatrixSVG
               labels={[...matShortNames].reverse()}
               getValue={(rowL, colL) => {

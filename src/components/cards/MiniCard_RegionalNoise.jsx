@@ -72,7 +72,7 @@ export function MiniCard_RegionalNoise({ result, importConfig, rowMap }) {
             {/* S210 (multi-surface): secondary-surface heading demoted (Regular weight). */}
             <div style={{...SUB_HEAD, fontWeight: FW.NORM, marginBottom: BLOCK_GAP_TIGHT}}>Anomalous windows</div>
             <EvidenceTable
-              columns={["Rows", "Column", "Observed SD", "Expected SD", "SD ratio", "Finding"]}
+              columns={["Rows", "Column", "Observed SD", "Expected SD", "Ratio", "Finding"]}
               identifierColumns={2}
               rows={windowData.map(d => {
                 const rowParts = String(d.rows).match(/(\d+)\D+(\d+)/);

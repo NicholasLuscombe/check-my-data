@@ -66,11 +66,11 @@ export function MiniCard_BlockedMahalanobis({ result, importConfig, rowMap }) {
         : v;
       const rowsLabel = `${toFileRow(d.startRow)}–${toFileRow(d.endRow)}`;
       const statLabel = `${d.statType} = ${d.stat}`;
-      return [cell(d.pass), cell(d.condition), cell(rowsLabel), cell(statLabel), cell(fmtP(d.rawP)), cell(fmtP(d.adjP))];
+      return [cell(d.pass), cell(d.condition), cell(rowsLabel), cell(statLabel), cell(fmtP(d.adjP))];
     });
     table = (
       <EvidenceTable
-        columns={[{label:"Pass"}, {label:"Condition"}, {label:"Rows"}, {label:"Statistic"}, {label:"p"}, {label:"adj p"}]}
+        columns={[{label:"Pass"}, {label:"Condition"}, {label:"Rows"}, {label:"Statistic"}, {label:"Adj. p"}]}
         rows={rows} identifierColumns={3} compact
         footerText={result.flag === "LOW"
           ? "All windows are consistent with a single condition-wide covariance / mean structure."

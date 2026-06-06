@@ -14,7 +14,6 @@ import { C, FS, FW, FF } from "../../constants/tokens.js";
 import { fmtP } from "../../constants/thresholds.js";
 import { MiniCardLayout } from "../shared/CardLayout.jsx";
 import { DataTable } from "../shared/DataTable.jsx";
-import { EvidenceTable } from "../shared/EvidenceTable.jsx";
 import { SUB_HEAD, BLOCK_GAP, BLOCK_GAP_TIGHT } from "../shared/styles.js";
 import { ColumnStatBar } from "../plots/ColumnStatBar.jsx";
 import { DIP_GATE } from "../../tests/modality.js";
@@ -72,19 +71,17 @@ export function MiniCard_Modality({ result, importConfig, rowMap }) {
 
       {isAgg && sub.length > 0 && (() => {
         const cols = Object.keys(sub[0]);
-        const headerMap = { group: "Condition", adjP: "adj. p" };
-        const etCols = cols.map(k => ({ label: headerMap[k] || k }));
-        const etRows = sub.slice(0, 20).map(row => cols.map(k => {
-          if (k === "adjP") return fmtP(row[k]);
-          return row[k];
+        const headerMap = { group: "Condition", adjP: "Adj. p" };
+        const dtCols = cols.map(k => ({
+          header: headerMap[k] || k,
+          render: k === "adjP" ? (d => fmtP(d[k])) : (d => d[k]),
         }));
         return (
           <div style={{ marginTop: BLOCK_GAP }}>
             {/* S210 (multi-surface): secondary-surface heading kept but demoted
                 (Regular weight) to read clearly below the footer-lead. */}
             <div style={{...SUB_HEAD, fontWeight: FW.NORM, marginBottom: BLOCK_GAP_TIGHT}}>Flagged columns</div>
-            <EvidenceTable columns={etCols} rows={etRows} identifierColumns={2} compact />
-            {sub.length > 20 && <div style={{ fontFamily: FF.UI, fontSize: FS.xs, color: C.TEXT_3, marginTop: "3px" }}>…and {sub.length - 20} more</div>}
+            <DataTable data={sub} maxRows={20} compact identifierColumns={2} columns={dtCols} />
           </div>
         );
       })()}
@@ -97,9 +94,8 @@ export function MiniCard_Modality({ result, importConfig, rowMap }) {
           <DataTable data={rows} maxRows={20} compact identifierColumns={1} columns={[
             { header: "Col", bold: true, render: d => d.Col },
             { header: "Dip", bold: true, render: d => d.Dip },
-            { header: "adj. p", render: d => fmtP(d.adjP) },
+            { header: "Adj. p", render: d => fmtP(d.adjP) },
           ]} />
-          {nFlagged > 20 && <div style={{ fontFamily: FF.UI, fontSize: FS.xs, color: C.TEXT_3, marginTop: "3px" }}>…and {nFlagged - 20} more</div>}
         </div>
       )}
 

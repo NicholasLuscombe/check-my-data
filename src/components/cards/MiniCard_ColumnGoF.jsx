@@ -13,7 +13,6 @@ import { C, FS, FW, FF } from "../../constants/tokens.js";
 import { fmtP } from "../../constants/thresholds.js";
 import { MiniCardLayout } from "../shared/CardLayout.jsx";
 import { DataTable } from "../shared/DataTable.jsx";
-import { EvidenceTable } from "../shared/EvidenceTable.jsx";
 import { SUB_HEAD, BLOCK_GAP, BLOCK_GAP_TIGHT } from "../shared/styles.js";
 import { ColumnStatBar } from "../plots/ColumnStatBar.jsx";
 
@@ -98,20 +97,19 @@ export function MiniCard_ColumnGoF({ result, importConfig, rowMap }) {
         // from subDetails with auto-derived columns and a Condition column
         // (group → Condition). Matches MiniCard_Mahalanobis.
         const cols = Object.keys(sub[0]);
-        const headerMap = { group: "Condition", adjP: "adj. p", A2_obs: "A²", A2_null_median: "A² null median", Ratio: "A² ratio" };
-        const etCols = cols.map(k => ({ label: headerMap[k] || k }));
-        const etRows = sub.slice(0, 20).map(row => cols.map(k => {
-          if (k === "adjP") return fmtP(row[k]);
-          if (k === "Family") return FAMILY_LABEL[row[k]] || row[k];
-          return row[k];
+        const headerMap = { group: "Condition", adjP: "Adj. p", A2_obs: "A²", A2_null_median: "A² null median", Ratio: "Ratio" };
+        const dtCols = cols.map(k => ({
+          header: headerMap[k] || k,
+          render: k === "adjP" ? (d => fmtP(d[k]))
+                : k === "Family" ? (d => FAMILY_LABEL[d[k]] || d[k])
+                : (d => d[k]),
         }));
         return (
           <div style={{ marginTop: BLOCK_GAP }}>
             {/* S210 (multi-surface): secondary-surface heading kept but demoted
                 (Regular weight) to read clearly below the footer-lead. */}
             <div style={{...SUB_HEAD, fontWeight: FW.NORM, marginBottom: BLOCK_GAP_TIGHT}}>Flagged columns</div>
-            <EvidenceTable columns={etCols} rows={etRows} identifierColumns={2} compact />
-            {sub.length > 20 && <div style={{ fontFamily: FF.UI, fontSize: FS.xs, color: C.TEXT_3, marginTop: "3px" }}>…and {sub.length - 20} more</div>}
+            <DataTable data={sub} maxRows={20} compact identifierColumns={2} columns={dtCols} />
           </div>
         );
       })()}
@@ -124,10 +122,9 @@ export function MiniCard_ColumnGoF({ result, importConfig, rowMap }) {
           <DataTable data={rows} maxRows={20} compact identifierColumns={2} columns={[
             { header: "Col", bold: true, render: d => d.Col },
             { header: "Finding", render: d => findingText(d.Direction, d.Family) },
-            { header: "A² ratio", bold: true, render: d => d.Ratio },
-            { header: "adj. p", render: d => fmtP(d.adjP) },
+            { header: "Ratio", bold: true, render: d => d.Ratio },
+            { header: "Adj. p", render: d => fmtP(d.adjP) },
           ]} />
-          {nFlagged > 20 && <div style={{ fontFamily: FF.UI, fontSize: FS.xs, color: C.TEXT_3, marginTop: "3px" }}>…and {nFlagged - 20} more</div>}
         </div>
       )}
 
