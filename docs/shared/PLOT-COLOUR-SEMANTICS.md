@@ -6,12 +6,18 @@ figure, encodes the same meaning with the same colour — so a reader who learns
 applied at the encoding level: the visual must carry a *reliable* argument.
 
 Scope is the **plot interior** — the marks that carry data (lines, dots, bars,
-cells, reference lines). Card chrome (cluster stripe, MechIcon, breadcrumb, verdict
-badge) is governed separately by INVESTIGATION-DISPLAY-SPEC and is not touched here.
+cells, reference lines) — and the **plot axis furniture** (ticks, tick labels, axis
+lines, axis titles, axis reference labels). Axis furniture is a third category,
+neither data marks nor card chrome: it is the navigational frame a reader needs to
+decode the marks, and it must be legible on the plot panel without competing with
+the data. Card chrome (cluster stripe, MechIcon, breadcrumb, verdict badge) is
+governed separately by INVESTIGATION-DISPLAY-SPEC and is not touched here.
 
 Derived from the S213 read-only plot colour audit (15 live plot components,
-source-verified). The audit catalogued the current state; this doc defines the
-target; the per-plot conformance table at the end maps one to the other.
+source-verified), extended by the S216 axis-chrome read-only (the two rendering
+paths and the C.TEXT_3 wash on sparse plots). The audit catalogued the current state;
+this doc defines the target; the per-plot conformance table at the end maps one to the
+other.
 
 ## The five channels
 
@@ -84,6 +90,58 @@ re-state which cluster the card belongs to; the frame already carries it. (A
 cluster-coloured accent on the plot *container* is permissible as it echoes the
 card frame; the interior marks are governed by channels 1–4.)
 
+## Axis furniture — legible navigation, one darkness (ruled — S216)
+
+Axis furniture is the navigational frame, not a data channel: it carries no verdict,
+no condition, no magnitude. Its only job is to be readable enough to decode the marks,
+without competing with them. The S216 axis-chrome read-only found this was failing on
+the sparse plots, and found why.
+
+**The two rendering paths.** Plots split into two paths, and the split *is* the
+contrast story:
+- **Path A — inline-text plots** (~17 XY/strip plots, every sparse lead case): each
+  plot hand-writes its own `<text>` / `<line>` elements. Tick labels and axis titles
+  at `C.TEXT_3`; axis lines at `C.BORDER`. These do not route through the shared
+  helper.
+- **Path B — `SvgAxis` / `SvgLabel` helper** (only 2 consumers: `CorrMatrixSVG`,
+  `CoordResidualProfile` — the dense matrices/heatmaps): the `tick` and `axis` roles
+  resolve to `C.TEXT_2` (darker).
+
+So the sparse plots that wash out are Path A (`C.TEXT_3` on the slate-100 panel); the
+dense matrices that read fine are Path B (`C.TEXT_2`). The gap is not random — it is
+exactly the path split. The dense plots also carry contrast via their own data marks;
+the sparse plots have little ink, so faint furniture has nothing to hide behind.
+
+**Ruled — one darkness for all axis text.** Tick labels, axis titles, and axis
+reference labels (the `z = 0` / `r = 0` annotations) all read `C.TEXT_2`. This is the
+darkness Path B already uses; the fix brings Path A up to it. Reference-line labels
+darken *with* ticks and titles rather than staying recessive — subordination of a
+reference line is carried by its **dash** (`CS.REF`), not by faint text. (This amends
+the channel-3 / reference-line ruling, which previously assigned the neutral baseline
+label `C.TEXT_3`; see the reference-line section. The channel-3 "neutral recedes"
+logic was about not using *red* on a baseline — don't imply a flag — not a brightness
+argument, so darkening the grey does not violate it.)
+
+**Ruled — a dedicated axis-line token, `C.AXIS`.** Axis lines and tick marks move off
+`C.BORDER` (slate-300, marginal against the slate-100 panel) onto a new dedicated
+token `C.AXIS`, set one step darker than `C.BORDER` but lighter than the `C.TEXT_2`
+axis text. Axis lines conventionally sit *between* panel and text: darker than the
+panel border so they read as structure, lighter than the tick numbers so the line does
+not compete with the labels it carries. No existing token sits at that mid-point, which
+is why the role gets its own token rather than reusing `C.TEXT_2` (too heavy — line
+competes with text) or `C.BORDER` (too light — the wash being fixed). Exact `C.AXIS`
+hex is set from swatches and **confirmed on the live render at implementation** — a
+chat-side pixel read of a mid-grey stroke on a tinted panel at screenshot resolution is
+unreliable.
+
+**Structural target, not 17 spot-edits.** The contrast gap exists because Path A is
+off the shared rail — the same shape as the S215 type-scale divergence (literals off
+the `CF` rail). The fix routes Path A's axis *text* through the `SvgLabel` `tick` /
+`axis` / reference roles so it inherits `C.TEXT_2` by construction and future plots are
+correct by default; it does not paper 17 inline literals. The helper renders labels
+only — it draws no axis line — so the line / tick-mark strokes stay inline but adopt
+`C.AXIS`. (The line geometry is per-plot and bespoke; only its stroke token is shared.)
+
 ## The condition palette
 
 `COND_COLORS`, eight entries, lighter register, ordered so the common first-three case
@@ -129,13 +187,16 @@ The audit found reference lines mixing two roles under one treatment. They split
 
 | Kind | Role | Colour | Dash |
 |---|---|---|---|
-| Neutral baseline | zero, grand-mean, expected-value | grey (`C.TEXT_3`) | `CS.REF` (`4,3`) |
+| Neutral baseline | zero, grand-mean, expected-value | grey (`C.TEXT_2`) | `CS.REF` (`4,3`) |
 | Expected / null curve | LOESS fit, Poisson slope, sim null | teal (`CC.EXP`) | solid or `CS.REF` |
 | Flag boundary | significance threshold, cutoff | faded/dashed red | `CS.REF`, reduced opacity |
 
 A flag-boundary line keeps red (it is about the same anomaly as the marks it
 bounds) but is dashed and faded so it reads as subordinate reference, not as a
-flagged mark. A neutral baseline never uses red.
+flagged mark. A neutral baseline never uses red. The neutral-baseline *label* reads
+`C.TEXT_2` (amended S216 from `C.TEXT_3`): it is axis furniture and shares the one
+axis-text darkness; the line's subordination is carried by its dash, not by faint
+text (see "Axis furniture").
 
 ## One severity scale (ruled)
 
@@ -188,6 +249,54 @@ flagged", not "low anomaly". Per-consumer caveat: any `TIER_COLOR` surface that
 overlays observed marks (`CC.OBS` blue) on the ramped cells must confirm the slate
 floor reads distinct from `CC.OBS` on that surface.
 
+## Dense magnitude surfaces — reserve by curve, not by tier (ruled — S214)
+
+`TIER_COLOR`'s two-regime ramp suits a *sparse categorical* surface: a handful of
+cells, each a discrete verdict, read individually (the IRC and correlation matrices).
+A *dense continuous-magnitude* surface — every cell carries a continuous value, the
+whole field read at once — needs different handling. The residual heatmap in
+CoordResidualProfile is the case that established this.
+
+A dense magnitude heatmap uses the **same canonical flag colours** as everything else
+— slate floor → amber `#F97316` → red `#EF4444`, the unified severity reds and ambers
+— but reserves the warm end by a **gamma curve** on the normalised intensity before
+colour selection, rather than by a threshold break. CoordResidualProfile uses
+`RESID_GAMMA = 1.5`: most cells stay cool, amber appears for the upper-mid, full
+canonical red is reached only by genuinely high cells. The curve *compresses* the
+low-mid toward the floor but does not *flatten* it (strictly monotonic on [0,1], no two
+intensities collapse to one colour), so the mid-range variation that carries the
+surface's argument survives. This matters because the residual heatmap's argument is
+that the whole residual *pattern* correlates across conditions, not just that a few
+rows spike — a threshold break or raised floor would crush the correlation-bearing mid.
+
+Why curve, not threshold: a continuous surface has no categorical "crossed the line"
+to encode — the residual-spike test computes no per-row significance threshold (only a
+relative top-decile rank, with the verdict from a dataset-level permutation p). There
+is no cutoff to break the ramp at, so the warm end is reserved by curve instead.
+
+**Floor and nulls (dense magnitude heatmaps).** The floor sits *just above* the strip
+background (CoordResidualProfile: floor `#DAE1EA` on background `#F8FAFC`) so the lowest
+values read as a gentle rise from the canvas, not a darker shelf — and every cell is
+painted (no sub-threshold skip), so there are no undrawn near-white holes inside the
+field. A genuine null (a row with no usable value in a condition) maps to the floor,
+the same as the lowest value: on a magnitude surface, absent correctly reads as
+"lowest / not a spike here", so no separate no-data treatment is used.
+
+**Maintenance note — two slate→amber→red definitions, kept apart on purpose.** The
+matrices (`TIER_COLOR`, two-regime linear) and the dense residual heatmap (canonical
+colours, gamma-reserved) therefore hold two definitions of the same colour family at
+different effective treatments. This is intentional, not drift — do NOT "unify" them.
+If the canonical flag reds/ambers ever change, both must move together.
+CoordResidualProfile carries an inline comment to this effect.
+
+**Severity-red token names.** The unified severity red (`#EF4444`) is referenced under
+four token names across the codebase (S214 audit, grep-confirmed at commit time):
+`SEV_VERDICT` (rank-3 `.color`), `PLOT_FC` (`HIGH`), and `CC.THRESH` — all three reading
+the canonical primitive `SIGNAL.RED.dot` — plus `TIER_COLOR` (`HIGH`, re-exported from
+`HEATMAP_TIER.HIGH.color`), which carries the `#EF4444` literal directly. If the
+canonical red ever changes, `SIGNAL.RED.dot` and `HEATMAP_TIER.HIGH.color` are the two
+source-of-truth edits the four names resolve through.
+
 ## Per-plot conformance
 
 What each of the 15 live plots changes. "OK" = already conforms. Dead components
@@ -210,19 +319,35 @@ What each of the 15 live plots changes. "OK" = already conforms. Dead components
 | RowMeanTrendPlot | sim line mint `CC.EXP_SOFT`; crossing/run two-tone neutral | mint → teal `CC.EXP` (fold simulated into expected); two-tone OK |
 | SignStripPlot | sign two-tone (Oxford/Cambridge blue), neutral | OK (neutral categorical, not flag) |
 | CorrMatrixSVG / consumers | cells via `TIER_COLOR` | `TIER_COLOR` is the two-regime slate→amber→red ramp (S214, corrected within session from the first single-hue red retoken) |
-| CoordResidualProfile | residual ramp; matrix via `rhoColor` | follows the `TIER_COLOR` two-regime ramp; per-consumer observed-blue overlap check applies |
+| CoordResidualProfile | residual ramp; matrix via `rhoColor` | residual heatmap = canonical colours + gamma reserve (`RESID_GAMMA = 1.5`, floor `#DAE1EA`, nulls-to-floor; see "Dense magnitude surfaces"), NOT the `TIER_COLOR` two-regime ramp; matrix unchanged (`rhoColor`) |
+
+**Axis-furniture changes (S216 — apply across Path A inline plots):**
+- Axis *text* (ticks, axis titles, reference labels) → route through the `SvgLabel`
+  `tick` / `axis` / reference roles so it inherits `C.TEXT_2`; no inline `fill={C.TEXT_3}`
+  literals remain on axis text. Path B (CorrMatrixSVG, CoordResidualProfile) already at
+  `C.TEXT_2` — no change.
+- Axis lines + tick marks → `C.AXIS` (new token; replaces inline `stroke={C.BORDER}` on
+  axis furniture). Line geometry stays per-plot; only the stroke token is shared.
+- The facet of *which* plots carry axis titles and how caption zones are placed is a
+  separate read-only (title/caption presence inventory) — not settled here; this section
+  rules colour/stroke only.
 
 **Shared-lever changes** (one retoken, battery-wide):
 - `TIER_COLOR` → two-regime ramp: slate-neutral floor (below threshold) → amber → red
   (magnitude above threshold), break at the flag threshold. Corrected within S214 from
-  the first single-hue red retoken (see ruling note below). Applies identically to every
-  consumer (CorrMatrixSVG, CoordResidualProfile matrix, IRC matrix). Per-consumer
-  caveat: any surface that overlays observed-blue (`CC.OBS`) marks on the ramped cells
-  needs the floor confirmed distinct from `CC.OBS`.
+  the first single-hue red retoken (see ruling note above). Applies to the sparse
+  categorical matrix consumers (CorrMatrixSVG, IRC matrix). **The CoordResidualProfile
+  residual heatmap does NOT use `TIER_COLOR`** — it uses the canonical-colours + gamma
+  treatment for dense magnitude surfaces (see that section); only its `rhoColor` matrix
+  is a separate concern. Per-consumer caveat: any `TIER_COLOR` surface that overlays
+  observed-blue (`CC.OBS`) marks on the ramped cells needs the floor confirmed distinct
+  from `CC.OBS`.
 - `COND_COLORS` → the reordered, relightened palette above, with `.bg` / `.border`
   regenerated per entry to match each new `.text` (fixes every condition consumer and
   keeps the import chip matching the plot line).
 - Condition shade → `.text` everywhere (fixes the `.border`/`.text` split).
+- `C.AXIS` → new dedicated axis-line/tick-mark stroke token (S216); axis text → `C.TEXT_2`
+  via the helper rail (S216).
 
 **Per-plot tail** (individual edits):
 - VBarPlot expected line → teal.
