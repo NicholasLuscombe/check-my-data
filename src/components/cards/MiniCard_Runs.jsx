@@ -7,7 +7,7 @@ import { ChartLegend } from "../shared/ChartLegend.jsx";
 import { SignStripPlot } from "../plots/SignStripPlot.jsx";
 import { PlotSVG } from "../plots/PlotSVG.jsx";
 import { C, CC, CP, CS, CF, FW, FF, SIGN } from "../../constants/tokens.js";
-import { fmtP } from "../../constants/thresholds.js";
+import { fmtP, ALPHA } from "../../constants/thresholds.js";
 import { shortColName, makeRowMapper } from "../shared/coordinates.js";
 import { SUB_HEAD, BLOCK_GAP, BLOCK_GAP_TIGHT } from "../shared/styles.js";
 
@@ -137,18 +137,31 @@ export function MiniCard_Runs({ result, importConfig, rowMap }) {
   // convention: identifierColumns covers ALL leading text columns).
   const allStats = result.allPairStats || [];
   const condColumns = worstGroup
-    ? ["Condition", "Pair", "Runs", "Expected", "z", "p", "Finding"]
-    : ["Pair", "Runs", "Expected", "z", "p", "Finding"];
+    ? ["Condition", "Pair", "Runs", "Expected", "z", "Adj. p", "Finding"]
+    : ["Pair", "Runs", "Expected", "z", "Adj. p", "Finding"];
   const condIdentifierColumns = worstGroup ? 2 : 1;
-  const etRows = allStats.map(p => [
-    ...(worstGroup ? [{ value: worstGroup, style: { fontFamily: FF.UI } }] : []),
-    { value: `${repName(p.col1)}\u2013${repName(p.col2)}`, style: { fontFamily: FF.UI } },
-    p.runs,
-    p.expected,
-    p.z,
-    fmtP(parseFloat(p.p)),
-    { value: parseFloat(p.z) < -1.96 ? "Fewer than expected" : parseFloat(p.z) > 1.96 ? "More than expected" : "As expected", style: { fontFamily: FF.UI } },
-  ]);
+  const etRows = allStats.map(p => {
+    // S218: the Finding word follows the verdict's per-pair significance \u2014 the
+    // BH-adjusted p against ALPHA.FLAG, the same predicate anyPairFlagged reads
+    // to promote the verdict (runs.js). A single gate decides flagged-or-not;
+    // the sign of z only labels the direction of an already-flagged pair. The
+    // raw-z (\u00b11.96) word is retired, and the p column now shows the adjusted
+    // value the decision is made on.
+    const z = parseFloat(p.z);
+    const flaggedPair = parseFloat(p.adjP) < ALPHA.FLAG;
+    const finding = !flaggedPair
+      ? "As expected"
+      : z < 0 ? "Fewer than expected" : "More than expected";
+    return [
+      ...(worstGroup ? [{ value: worstGroup, style: { fontFamily: FF.UI } }] : []),
+      { value: `${repName(p.col1)}\u2013${repName(p.col2)}`, style: { fontFamily: FF.UI } },
+      p.runs,
+      p.expected,
+      p.z,
+      fmtP(parseFloat(p.adjP)),
+      { value: finding, style: { fontFamily: FF.UI } },
+    ];
+  });
 
   // Footer: plain finding. When flagged, the pooled mean-z sign picks the
   // direction (clumping vs over-alternation); the worstGroup / no-group

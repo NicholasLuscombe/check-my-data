@@ -67,7 +67,11 @@ export function testRuns(matrix, condCtx, rng) {
 
   // BH-FDR over pairs
   const runsAdjPs=bhFDR(res.map(r=>r.rawP));
-  res.forEach((r,i)=>{r.significant=runsAdjPs[i]<0.01;});
+  // S218: stamp the BH-adjusted per-pair p onto res[i] alongside significant,
+  // index-aligned to runsAdjPs before any sort. This is the value the verdict
+  // reads (anyPairFlagged = runsAdjPs.some(p<ALPHA.FLAG)); the card displays it
+  // as Adj. p and gates the per-pair Finding word on it. No new bhFDR call.
+  res.forEach((r,i)=>{r.significant=runsAdjPs[i]<0.01; r.adjP=runsAdjPs[i];});
   const nSig=res.filter(r=>r.significant).length;
   const pooled=allZ.length>=2?oneSampleT(allZ):{t:0,df:0,p:1};
   const pooledMeanZ=allZ.length?mean(allZ):0;
@@ -304,6 +308,6 @@ export function testRuns(matrix, condCtx, rng) {
       .map(r => ({ pair: r.pair, col1: r.col1, col2: r.col2, signs: r.signs, pos: r.pos, runs: r.runs, expected: Math.round(parseFloat(r.expected)) })),
     // All pair stats for evidence table (no sign arrays — lightweight)
     allPairStats: [...res].sort((a,b) => parseFloat(a.z) - parseFloat(b.z))
-      .map(r => ({ pair: r.pair, col1: r.col1, col2: r.col2, runs: r.runs, expected: r.expected, z: r.z, p: r.p, significant: r.significant })),
+      .map(r => ({ pair: r.pair, col1: r.col1, col2: r.col2, runs: r.runs, expected: r.expected, z: r.z, p: r.p, adjP: r.adjP, significant: r.significant })),
     flag, details:[...winSig.map(w=>({...w,source:"window"})),...res.slice(0,15)] };
 }

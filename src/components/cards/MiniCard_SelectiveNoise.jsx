@@ -102,8 +102,8 @@ if(result.colDetails?.length) {
             flag={result.flag}/>
       </PlotLayout>
       <ChartLegend items={[
-        { color: CC.OBS, label: "Normal column", swatchType: "line" },
-        { color: CC.THRESH, label: "Flagged column", swatchType: "line" },
+        { color: CC.OBS, label: "As expected", swatchType: "line" },
+        { color: CC.THRESH, label: "Differs from rest", swatchType: "line" },
         ...(result.flag !== "LOW" ? [{ color: C.BORDER, label: "Expected", opacity: 0.25 }] : []),
       ]} />
       {perCol.length > 0 && result.flag !== "LOW" && result.flag !== "N/A" && (
@@ -120,7 +120,14 @@ if(result.colDetails?.length) {
               identifierColumns={1}
               rows={perCol.map(d => {
                 const ratio = medianSD > 0 ? d.residualStd / medianSD : 1;
-                const finding = ratio > 1.5 ? "Noisier" : ratio < 0.67 ? "Quieter" : "As expected";
+                // S218: Finding word follows per-column significance — the same
+                // flagged field (adjP < ALPHA.FLAG) that colours the plot — with the
+                // per-column direction supplying the high/low word. The SD-ratio band
+                // is retired from the word; effect size stays visible in the Observed
+                // SD and Ratio columns.
+                const finding = !d.flagged
+                  ? "As expected"
+                  : d.direction === "quieter" ? "Quieter" : "Noisier";
                 return [
                   { value: cn(d.col - 1), style: { fontFamily: FF.UI } },
                   d.residualStd.toFixed(4),
