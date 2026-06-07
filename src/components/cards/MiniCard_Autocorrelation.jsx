@@ -105,12 +105,12 @@ export function MiniCard_Autocorrelation({ result, importConfig, rowMap }) {
       )}
 
       {result.lagTable?.length > 0 && (() => {
-        const cols = [{label:"Lag"}, {label:"Pooled r"}, {label:"Adj. p"}, {label:"Pairs sig."}];
+        const cols = [{label:"Lag"}, {label:"Pooled r"}, {label:"Pairs sig."}, {label:"Adj. p"}];
         const rows = result.lagTable.map(r => {
           const sig = r.isPromotionTrigger === true;
           const cell = v => sig ? { value: v, style:{ color: SIGNAL.AMBER.text, fontWeight: FW.SEMI } } : v;
           const pairsStr = r.pairsSig == null ? "—" : `${r.pairsSig}/${r.pairsTotal}`;
-          return [cell(r.lag), cell(Number(r.pooledR).toFixed(2)), cell(fmtP(r.rawAdjP)), cell(pairsStr)];
+          return [cell(r.lag), cell(Number(r.pooledR).toFixed(2)), cell(pairsStr), cell(fmtP(r.rawAdjP))];
         });
         // S166 A2: condition the "promoted to MODERATE" string on the
         // producer's `higherLagWasDecisive` boolean — true only when
