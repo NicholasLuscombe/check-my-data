@@ -78,11 +78,16 @@ export function MiniCard_Kurtosis({ result, importConfig, rowMap }) {
             const etCols = [{label:"Condition"},{label:"Rows",align:"right"},{label:"Observed κ",align:"right"},{label:"Expected κ",align:"right"},{label:"p",align:"right"},{label:"Finding"}];
             const etRows = condK.map(c => {
               const isFlagged = c.verdict === "flagged";
-              const isNoted = c.verdict === "noted" || isFlagged;
-              const cIsPlat = c.platykurtic && isNoted;
+              // S221: the platykurtic word and colour follow the corrected per-
+              // condition decision (c.condPromoted, BH-adjusted across conditions),
+              // not the raw condP verdict. c.platykurtic (the κ-deviation band) is
+              // the DIRECTION gate only — uniform vs peaked vs normal. Leptokurtic
+              // and normal branches stay verdict-driven.
+              const cIsPlat = c.platykurtic;
               const cIsLepto = c.isLeptokurtic;
-              const flagColor = cIsPlat ? (isFlagged ? CC.THRESH : SIGNAL.AMBER.dot) : cIsLepto ? (isFlagged ? CC.THRESH : SIGNAL.AMBER.dot) : CC.OBS;
-              const shapeLabel = cIsPlat ? (isFlagged ? "Too uniform" : "Possibly uniform") : cIsLepto ? (isFlagged ? "Too peaked" : "Possibly peaked") : "Normal";
+              const platPromoted = !!c.condPromoted;
+              const flagColor = cIsPlat ? (platPromoted ? CC.THRESH : SIGNAL.AMBER.dot) : cIsLepto ? (isFlagged ? CC.THRESH : SIGNAL.AMBER.dot) : CC.OBS;
+              const shapeLabel = cIsPlat ? (platPromoted ? "Too uniform" : "Possibly uniform") : cIsLepto ? (isFlagged ? "Too peaked" : "Possibly peaked") : "Normal";
               const condColor = condColorMap[c.condition]?.text;
               return [
                 condColor ? {value: c.condition, style: {color: condColor}} : c.condition,

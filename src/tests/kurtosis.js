@@ -455,11 +455,24 @@ export function testKurtosis(matrix, condCtx, rng) {
       // S109 Part 2: directional suppression also applies per-condition — only
       // platykurtic (κDev < 0) conditions can promote. Leptokurtic-positive
       // per-condition signals are informational only.
-      const platyResults = bestResults.filter(c => parseFloat(c.kurtDeviation) < 0);
-      const condPs = platyResults.map(c => c.rawP).filter(p => p != null && isFinite(p) && p > 0);
-      if (condPs.length >= 1 && flag === "LOW") {
-        const condAdjPs = bhFDR(condPs);
-        if (condAdjPs.some(p => p < ALPHA.FLAG)) {
+      // S221 — per-condition BH-FDR, mapping-preserving. Only platykurtic
+      // (κDev < 0) conditions with a valid positive finite rawP join the family
+      // (same filter semantics as before), but each keeps its link to its own
+      // adjusted result: written back as c.condAdjP plus a corrected per-
+      // condition decision c.condPromoted = condAdjP < ALPHA.FLAG. Computed
+      // UNCONDITIONALLY so the corrected per-condition word exists regardless of
+      // the test-wide flag. The aggregate promotion below is unchanged in
+      // behaviour — it still gates on flag === "LOW" and promotes when any
+      // adjusted p clears ALPHA.FLAG.
+      const platyFamily = bestResults.filter(c =>
+        parseFloat(c.kurtDeviation) < 0 && c.rawP != null && isFinite(c.rawP) && c.rawP > 0);
+      if (platyFamily.length >= 1) {
+        const condAdjPs = bhFDR(platyFamily.map(c => c.rawP));
+        platyFamily.forEach((c, i) => {
+          c.condAdjP = condAdjPs[i];
+          c.condPromoted = condAdjPs[i] < ALPHA.FLAG;
+        });
+        if (flag === "LOW" && condAdjPs.some(p => p < ALPHA.FLAG)) {
           Object.assign(condKurtosis, { promoted: true, promotedFlag: "MODERATE" });
         }
       }
