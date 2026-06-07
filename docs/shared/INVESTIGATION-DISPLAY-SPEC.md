@@ -567,6 +567,25 @@ the raw direction tag. S207 (above, § "Mahalanobis Row Outlier — the threshol
 S218 does not supersede it. (Prior status: STATUS Accepted-limitations carried this as "likely
 resolves toward Adj. p, confirm at audit" — now resolved as exempt.)
 
+**Per-unit word where no corrected per-unit decision exists (S220).** The S218 principle governs
+cards where a corrected decision exists at the per-unit grain. Where correction exists only at a
+coarser grain (test-wide, or per-window / per-pair when the table shows a finer unit) and a
+per-unit corrected decision is not statistically sound to manufacture, the per-unit word is
+*descriptive, not inferential*: it characterises the unit (e.g. "too noisy", "Quieter") while the
+corrected decision the verdict uses sits at the coarser grain. Such surfaces are labelled to read
+as evidence-for-the-verdict, not as standalone per-unit significance claims, and keep the raw
+statistic only as magnitude context. Ruled exceptions (S220): **Within-Row Variance** — the per-row
+z is a robust screening flag by design (bin-median / bin-MAD fit, dispersion floor, a deliberately
+conservative fixed `|z| > 4.0` cut, no per-row p), so the correction lives at the per-window BH-FDR
+and the test-wide exceedance binomial; converting the z to a per-row adjusted p would impose a
+Gaussian calibration the design intentionally withholds. **LOESS Residual** — the per-region word
+reads a magnitude ratio (`obsSD / expSD`), and regions are CUSUM-changepoint splits whose
+boundaries are chosen from the same data, so a per-region p would be selection-inflated; the
+correction lives at the test-wide scan-max and changepoint permutation grains. **Excess Kurtosis**
+is *not* an exception — its corrected per-condition decision (`condAdjPs`, BH-FDR across conditions)
+already exists and is brought forward to drive the per-condition word (S220 conformance). See
+METHODOLOGY § "Per-unit word: inferential vs descriptive surfaces" for the statistical rationale.
+
 ### PlotLayout
 
 Chart container replacing the former `miniCardWrap`. Wraps SVG charts with consistent margins and renders caption below in `FF.UI` / `C.TEXT_3`.

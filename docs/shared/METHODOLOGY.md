@@ -1507,6 +1507,18 @@ Fisher's χ² = −2Σ ln(p_i) assumes each input p_i ~ Uniform(0, 1) under H₀
 
 The Fisher aggregation step remains in use for tests that do satisfy the uniform-null assumption (Constant-Offset, Regional Noise, Runs, etc.). The exempt list is a targeted correction, not a generalised abandonment of aggregation.
 
+### Per-unit word: inferential vs descriptive surfaces (S220)
+
+The display principle that a per-unit word follows the corrected (BH-adjusted) decision the verdict uses, never a raw statistic or magnitude band, assumes a corrected decision *exists at the per-unit grain*. Three cards whose per-unit table shows a finer unit than the grain at which correction runs were audited against it. The principle resolves three ways, not one.
+
+**Excess Kurtosis — conforms.** A BH-FDR across conditions (`condAdjPs`) is already computed; the per-condition word was instead driven by the raw permutation-p flag plus the κ-deviation band. The corrected per-condition decision is brought forward to drive the word. Note the directional asymmetry already in the design (§2.2): only *platykurtic* ("too uniform") observations contribute to flagging — leptokurtic ("too peaked") observations are informational only at all N. So the corrected decision applies to the platykurtic word; the leptokurtic word remains descriptive by the existing directional-suppression rule, not as a new exception. The κ-deviation band is retained only as *direction* (uniform vs peaked), not as the significance gate.
+
+**Within-Row Variance — descriptive, by design.** The per-row statistic `z = (row.sd − expectedSD) / scale` is a *robust screening flag*, not a calibrated test statistic. `expectedSD` and `scale` are the bin-median and bin-MAD of a binned mean-variance fit, regularised by a dispersion floor, and the per-row decision is a deliberately conservative fixed cut (`|z| > 4.0`), not a p-value. The row sits inside its own reference bin (in-sample), but the median/MAD estimators over a bin of ~10+ rows down-weight any single member, so the null is in-sample-but-robust rather than mean/SD-circular. The actual inference runs at the grains the verdict uses — the test-wide exceedance binomial (`globalP`) and the per-15-row-window BH-FDR (`windowScanP`). Converting the per-row z to an adjusted p would impose a Gaussian calibration the design intentionally withholds and assert a per-row significance claim the statistic cannot support. The per-row word ("too smooth" / "too noisy") is descriptive of the robust deviation; correction lives at the window and test-wide grains.
+
+**LOESS Residual — descriptive, by selection.** The per-region word reads a magnitude ratio (`obsSD / expSD`: > 1.5 "Noisier", < 0.67 "Quieter"). Regions are CUSUM-changepoint splits — their boundaries are chosen from the same data, so a per-region p tested after the split would be selection-inflated, the circularity the leave-one-out designs elsewhere (e.g. IRC §1.5) exist to avoid. Correction lives at the test-wide scan-max and changepoint permutation grains (`scanP`, `cusumP`). The per-region word is descriptive; the inference is test-wide.
+
+Both Within-Row Variance and LOESS retain the raw statistic (z, Ratio) as honest magnitude *context*. The descriptive per-unit surface is read as evidence-for-the-verdict, not a standalone per-unit significance claim; the labelling must not imply the latter. Whether a rendered surface actually implies per-unit significance is a visual-walk judgment, settled on the live UI rather than here.
+
 ### Threshold Transparency (v0.4)
 
 Every threshold in the tool falls into one of three categories. This section documents which is which, so reviewers can assess the epistemological basis of each decision independently.
