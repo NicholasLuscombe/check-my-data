@@ -198,7 +198,7 @@ export function CoordResidualProfile({ allProfiles, nRows, pairDetails, condColo
           {/* Left axis line */}
           <line
             x1={PL} y1={PT} x2={PL} y2={PT + CHART_H}
-            stroke={C.BORDER} strokeWidth="1"
+            stroke={C.AXIS} strokeWidth="1"
           />
 
           {/* Heatmap strips */}
