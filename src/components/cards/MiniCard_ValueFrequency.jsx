@@ -105,6 +105,7 @@ export function MiniCard_ValueFrequency({ result, importConfig, rowMap }) {
               fmtP(parseFloat(d.adjP)),
             ];
           })}
+          footerText={details.length < result.nSpikes ? `Showing ${details.length} of ${result.nSpikes}.` : undefined}
         />
       </>)}
 

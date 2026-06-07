@@ -77,7 +77,7 @@ export function MiniCard_Entropy({ result, importConfig, rowMap }) {
           {/* S210 (multi-surface): secondary-surface heading kept but demoted
               (Regular weight) to read clearly below the footer-lead. */}
           <div style={{...SUB_HEAD, fontWeight: FW.NORM, marginBottom: BLOCK_GAP_TIGHT}}>Flagged columns</div>
-          <DataTable data={rows} maxRows={20} compact identifierColumns={2} columns={[
+          <DataTable data={rows} maxRows={20} compact identifierColumns={2} totalCount={result.nFlagged} columns={[
             { header: "Col", bold: true, render: d => d.Col },
             { header: "Finding", render: d => d.Direction === "Low entropy" ? "Too few distinct values" : d.Direction === "High entropy" ? "Too many distinct values" : d.Direction },
             { header: "Excess", bold: true, render: d => { const r = parseFloat(d.Ratio); if (isNaN(r)) return d.Ratio; const pct = Math.round((r - 1) * 100); return (pct >= 0 ? "+" : "") + pct + "%"; } },

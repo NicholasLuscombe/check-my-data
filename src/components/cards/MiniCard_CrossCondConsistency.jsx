@@ -103,8 +103,8 @@ export function MiniCard_CrossCondConsistency({ result }) {
     { label: "Pair",     align: "left" },
     { label: "Observed" },
     { label: "Null median" },
-    { label: "Finding" },
     { label: "Adj. p" },
+    { label: "Finding" },
   ];
 
   const AMBER_BG       = SIGNAL.AMBER.bg;
@@ -117,18 +117,34 @@ export function MiniCard_CrossCondConsistency({ result }) {
     if (amberHere) cellStyle = { background: AMBER_BG };
     else if (d.ran && !d.forensic) cellStyle = { color: INFORMATIONAL_COLOR };
     const cell = (v) => cellStyle ? { value: v, style: cellStyle } : v;
+    // Finding is a non-contiguous text column (past identifierColumns); force
+    // FF.UI so it reads sans-serif like every other card's Finding word, while
+    // preserving the row's amber-bg / muted-colour styling.
+    const cellFinding = (v) => ({ value: v, style: { ...(cellStyle || {}), fontFamily: FF.UI } });
 
-    const directionLabel = d.ran
-      ? (d.fallback ? `${d.direction} (fallback)` : d.direction)
-      : d.reason || "—";
+    // S219 (per-unit principle, INVESTIGATION-DISPLAY-SPEC:525): the Finding word
+    // follows the corrected significance the verdict uses (isAmberRow — the
+    // BH-adjusted forensic flag), not the raw similar/different direction tag.
+    // Direction supplies the descriptor only once the corrected gate has flagged
+    // the pair; ran-but-unflagged pairs read "As expected". The raw direction
+    // stays legible in the Observed / Null median columns.
+    let finding;
+    if (!d.ran) {
+      finding = d.reason || "—";
+    } else if (!amberHere) {
+      finding = "As expected";
+    } else {
+      const word = d.direction === "similar" ? "Too similar" : "Too different";
+      finding = d.fallback ? `${word} (fallback)` : word;
+    }
 
     return [
       cell(d.property),
       cell(d.pair),
       cell(d.observed),
       cell(d.nullMedian),
-      cell(directionLabel),
       cell(d.ran && d.adjP != null ? fmtP(d.adjP) : "—"),
+      cellFinding(finding),
     ];
   });
 
@@ -159,7 +175,7 @@ export function MiniCard_CrossCondConsistency({ result }) {
             maxHeight={260}
           />
           <div style={legendStyle}>
-            Amber rows are more alike across conditions than chance usually produces. Muted rows differ between conditions — which is what real treatments normally do — so they're shown for context, not flagged. 'Finding' shows whether each pair sits closer together or further apart than chance; 'Null median' is the midpoint of the chance range.
+            Amber rows are more alike across conditions than chance usually produces. Muted rows differ between conditions — which is what real treatments normally do — so they're shown for context, not flagged. 'Finding' reads off the corrected significance test — flagged pairs show 'Too similar', the rest read 'As expected'; 'Null median' is the midpoint of the chance range.
           </div>
         </>
       )}

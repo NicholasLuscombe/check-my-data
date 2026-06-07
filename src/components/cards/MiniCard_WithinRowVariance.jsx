@@ -98,17 +98,17 @@ export function MiniCard_WithinRowVariance({ result, importConfig, rowMap }) {
           {histPlot && <div style={{...SUB_HEAD, fontWeight: FW.NORM, marginBottom: BLOCK_GAP_TIGHT}}>Outlier rows</div>}
           <EvidenceTable
             columns={isAgg
-              ? [{label:"Condition"},{label:"Row"},{label:"z"},{label:"Finding"},{label:"SD"},{label:"Expected"}]
-              : [{label:"Row"},{label:"z"},{label:"Finding"},{label:"SD"},{label:"Expected"}]}
+              ? [{label:"Condition"},{label:"Row"},{label:"z"},{label:"SD"},{label:"Expected"},{label:"Finding"}]
+              : [{label:"Row"},{label:"z"},{label:"SD"},{label:"Expected"},{label:"Finding"}]}
             identifierColumns={isAgg ? 2 : 1}
             compact
             rows={rows.slice(0,20).map(d => {
               const base = [
                 {value: toFileRow(d.Row), style:{fontWeight:FW.BOLD}},
                 {value: d.z, style:{fontWeight:FW.BOLD}},
-                {value: d.Direction, style:{fontFamily:FF.UI}},
                 d.SD,
                 d.Expected,
+                {value: d.Direction, style:{fontFamily:FF.UI}},
               ];
               return isAgg ? [{value: d.group, style:{fontFamily:FF.UI}}, ...base] : base;
             })}
