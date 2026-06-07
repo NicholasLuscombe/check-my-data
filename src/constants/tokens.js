@@ -182,24 +182,27 @@ export const MECH_COLOR = {
 // DUP_GROUP_PALETTE — six-entry rotation for the within-row duplicate group
 // shading in MiniCard_DuplicateDetection (and the matching cell-bg rotation in
 // ReportView's Excel-export pass). Group rotation is NOT mechanism-keyed —
-// these are arbitrary slot identifiers — so the palette stays semantically
-// independent of MECH_COLOR. Hues chosen for visual distinctness from each
-// other AND from the five MECH_COLOR hues, so a within-row group shading on a
-// chip's neighbouring cell can't be confused for a mechanism stripe. Each
-// entry pairs `text` (saturated, used for cell text colour) with `bg` (pale
-// wash, used for cell background).
+// these are arbitrary slot identifiers carrying no decodable meaning — so the
+// hue must stay clear of the signal family. Red and amber are reserved for
+// flags battery-wide; a severity hue on an arbitrary group is both meaningless
+// and a "no red/amber on numeric cells" violation, since the grid paints the
+// `text` colour onto the numbers themselves.
 //
-// Pre-S133f the rotation read from MECH_ACCENT (a pre-S95 5-key map) padded
-// with MECH_COLOR entries, leaving three of six slots resolving to undefined
-// after S133e-palette retired the pre-S95 MECH_COLOR keys. DUP_GROUP_PALETTE
-// supersedes both — MECH_ACCENT is retired with no remaining consumers.
+// Sourced verbatim from the first six COND_COLORS entries (blue, lime, purple,
+// cyan, pink, green) in roles.js — the locked group-identity palette, whose
+// hues are chosen away from the severity family by design. COND_COLORS' amber
+// entry is slot 6, which a six-wide `gi % length` rotation never reaches.
+// Copied rather than imported because tokens.js is the primitive leaf module
+// and roles.js already imports from it — importing back would be circular. The
+// full {bg, text, border} objects are kept (a literal slice); consumers read
+// `text` (cell text colour) and `bg` (cell background); `border` is inert here.
 export const DUP_GROUP_PALETTE = [
-  { text: "#B91C1C", bg: "#FEE2E2" },  // red
-  { text: "#C2410C", bg: "#FFEDD5" },  // orange
-  { text: "#B45309", bg: "#FEF3C7" },  // amber
-  { text: "#0F766E", bg: "#CCFBF1" },  // teal
-  { text: "#155E75", bg: "#CFFAFE" },  // cyan
-  { text: "#78350F", bg: "#FDE68A" },  // brown
+  { bg: "#DBEAFE", text: "#3B82F6", border: "#93C5FD" },  // blue
+  { bg: "#ECFCCB", text: "#4D7C0F", border: "#BEF264" },  // lime (.text darkened to lime-700 for small-text contrast on white)
+  { bg: "#F3E8FF", text: "#A855F7", border: "#D8B4FE" },  // purple
+  { bg: "#CFFAFE", text: "#06B6D4", border: "#67E8F9" },  // cyan
+  { bg: "#FCE7F3", text: "#EC4899", border: "#F9A8D4" },  // pink
+  { bg: "#D1FAE5", text: "#10B981", border: "#6EE7B7" },  // green
 ];
 export const SERIES7 = [CC.OBS, CHART.S_ORANGE, ACCENT.TEAL.color, ACCENT.PURPLE.color, ACCENT.PINK.color, CHART.S_INDIGO, SIGNAL.AMBER.dot];
 
