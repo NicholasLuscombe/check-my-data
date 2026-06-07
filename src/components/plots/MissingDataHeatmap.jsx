@@ -2,7 +2,7 @@ import { C, FF, CF, CS, SIGNAL, withAlpha } from "../../constants/tokens.js";
 import { PlotSVG } from "./PlotSVG.jsx";
 
 // Cell colours
-const PRESENT_FILL = "#F8FAFC"; // near-white — almost invisible
+const PRESENT_FILL = C.BG_L; // near-white — almost invisible (slate-50, identical hex)
 const MISSING_FILL = withAlpha(SIGNAL.RED.dot, 0.45); // visible pink at compressed row heights
 const BLOCK_STROKE = SIGNAL.RED.dot; // bold red outline for significant blocks
 

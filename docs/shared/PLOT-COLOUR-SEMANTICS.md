@@ -134,13 +134,32 @@ hex is set from swatches and **confirmed on the live render at implementation** 
 chat-side pixel read of a mid-grey stroke on a tinted panel at screenshot resolution is
 unreliable.
 
-**Structural target, not 17 spot-edits.** The contrast gap exists because Path A is
-off the shared rail — the same shape as the S215 type-scale divergence (literals off
-the `CF` rail). The fix routes Path A's axis *text* through the `SvgLabel` `tick` /
-`axis` / reference roles so it inherits `C.TEXT_2` by construction and future plots are
-correct by default; it does not paper 17 inline literals. The helper renders labels
-only — it draws no axis line — so the line / tick-mark strokes stay inline but adopt
-`C.AXIS`. (The line geometry is per-plot and bespoke; only its stroke token is shared.)
+**Axis text — conformed by inline literal; rail-routing blocked on a font role.**
+The contrast gap that the S216 read-only found was a colour gap: Path A axis text sat
+at `C.TEXT_3` and washed out on the sparse panels. That colour gap is closed — every
+Path A plot now reads `C.TEXT_2` axis text, uniform across the battery. It was closed by
+inline `fill={C.TEXT_2}` literal in each of the thirteen Path A plots, **not** by routing
+them onto the shared `SvgLabel` rail.
+
+The structural ideal is the rail — route Path A's axis text through the `SvgLabel`
+`tick` / `axis` roles so `C.TEXT_2` is inherited by construction and future plots are
+correct by default, the same shape as the S215 type-scale convergence onto the `CF`
+rail. That routing was not built, and the reason is a real precondition, not an
+oversight: the rail's `tick` / `axis` roles render `FF.UI` sans at `FW.SEMI`, while
+Path A tick numerals are `FF.MONO` and axis titles are normal-weight. Routing as-is
+would switch every tick numeral mono→sans and every title to semibold — a visible
+regression. The rail can carry Path A only once it gains an `FF.MONO` tick role at
+`C.TEXT_2`. Until that role exists the inline literals are the correct state: right in
+colour, off the rail by necessity. The full-battery rail migration (add the `FF.MONO`
+role, then route all thirteen) is banked as an eligible arc — see BANKED
+§ "`SvgLabel` mono-tick rail precondition".
+
+The **stroke** half of the S216 plan was built as the doc describes: the helper renders
+labels only and draws no axis line, so line and tick-mark strokes stay inline and adopt
+`C.AXIS` (line geometry is per-plot and bespoke; only the stroke token is shared). One
+straggler remains — CoordResidualProfile's left axis line still strokes `C.BORDER`, the
+lone axis-furniture instance not yet on `C.AXIS` (it is Path B, outside the S216
+"across Path A" scope); it is pending a stroke-uniformity repair.
 
 ## The condition palette
 
@@ -187,16 +206,18 @@ The audit found reference lines mixing two roles under one treatment. They split
 
 | Kind | Role | Colour | Dash |
 |---|---|---|---|
-| Neutral baseline | zero, grand-mean, expected-value | grey (`C.TEXT_2`) | `CS.REF` (`4,3`) |
+| Neutral baseline | zero, grand-mean, expected-value | grey (`C.AXIS`) | `CS.REF` (`4,3`) |
 | Expected / null curve | LOESS fit, Poisson slope, sim null | teal (`CC.EXP`) | solid or `CS.REF` |
 | Flag boundary | significance threshold, cutoff | faded/dashed red | `CS.REF`, reduced opacity |
 
 A flag-boundary line keeps red (it is about the same anomaly as the marks it
 bounds) but is dashed and faded so it reads as subordinate reference, not as a
-flagged mark. A neutral baseline never uses red. The neutral-baseline *label* reads
-`C.TEXT_2` (amended S216 from `C.TEXT_3`): it is axis furniture and shares the one
-axis-text darkness; the line's subordination is carried by its dash, not by faint
-text (see "Axis furniture").
+flagged mark. A neutral baseline never uses red. The neutral-baseline *line* reads
+`C.AXIS` (the dedicated axis-line token; the table above is corrected from a stale
+`C.TEXT_2`, which predated the token), while its *label* reads `C.TEXT_2` (amended
+S216 from `C.TEXT_3`): the label is axis text and shares the one axis-text darkness,
+the line is axis furniture stroke and sits one step lighter on `C.AXIS`. The line's
+subordination is carried by its dash, not by faint text (see "Axis furniture").
 
 ## One severity scale (ruled)
 
@@ -289,13 +310,12 @@ different effective treatments. This is intentional, not drift — do NOT "unify
 If the canonical flag reds/ambers ever change, both must move together.
 CoordResidualProfile carries an inline comment to this effect.
 
-**Severity-red token names.** The unified severity red (`#EF4444`) is referenced under
-four token names across the codebase (S214 audit, grep-confirmed at commit time):
-`SEV_VERDICT` (rank-3 `.color`), `PLOT_FC` (`HIGH`), and `CC.THRESH` — all three reading
-the canonical primitive `SIGNAL.RED.dot` — plus `TIER_COLOR` (`HIGH`, re-exported from
-`HEATMAP_TIER.HIGH.color`), which carries the `#EF4444` literal directly. If the
-canonical red ever changes, `SIGNAL.RED.dot` and `HEATMAP_TIER.HIGH.color` are the two
-source-of-truth edits the four names resolve through.
+**Severity-red token names.** The unified severity reds are referenced under several
+token names across the codebase (the S214 audit counted four). These are to be filled
+here from a source grep **at commit time, not from memory** — the Code prompt that
+commits this doc must grep the source and list the exact token names in this paragraph
+before committing. (Placeholder until then; a blank cannot be wrong, a recalled token
+name can.)
 
 ## Per-plot conformance
 
@@ -321,16 +341,23 @@ What each of the 15 live plots changes. "OK" = already conforms. Dead components
 | CorrMatrixSVG / consumers | cells via `TIER_COLOR` | `TIER_COLOR` is the two-regime slate→amber→red ramp (S214, corrected within session from the first single-hue red retoken) |
 | CoordResidualProfile | residual ramp; matrix via `rhoColor` | residual heatmap = canonical colours + gamma reserve (`RESID_GAMMA = 1.5`, floor `#DAE1EA`, nulls-to-floor; see "Dense magnitude surfaces"), NOT the `TIER_COLOR` two-regime ramp; matrix unchanged (`rhoColor`) |
 
-**Axis-furniture changes (S216 — apply across Path A inline plots):**
-- Axis *text* (ticks, axis titles, reference labels) → route through the `SvgLabel`
-  `tick` / `axis` / reference roles so it inherits `C.TEXT_2`; no inline `fill={C.TEXT_3}`
-  literals remain on axis text. Path B (CorrMatrixSVG, CoordResidualProfile) already at
-  `C.TEXT_2` — no change.
-- Axis lines + tick marks → `C.AXIS` (new token; replaces inline `stroke={C.BORDER}` on
-  axis furniture). Line geometry stays per-plot; only the stroke token is shared.
+**Axis-furniture state (S216 — across Path A inline plots):**
+- Axis *text* (ticks, axis titles, reference labels): reads `C.TEXT_2`, reached by
+  inline `fill={C.TEXT_2}` literal in the thirteen Path A plots. No `fill={C.TEXT_3}`
+  literal remains on axis text. The rail-routing ideal (route through the `SvgLabel`
+  `tick` / `axis` roles) was not built — it is blocked on adding an `FF.MONO` tick role
+  at `C.TEXT_2`, see "Axis text — conformed by inline literal" above and BANKED
+  § "`SvgLabel` mono-tick rail precondition". Path B (CorrMatrixSVG, CoordResidualProfile)
+  already reaches `C.TEXT_2` natively through the rail.
+- Axis lines + tick marks → `C.AXIS` (dedicated token; replaced inline
+  `stroke={C.BORDER}` on axis furniture). Built across Path A; line geometry stays
+  per-plot, only the stroke token is shared. One straggler: CoordResidualProfile's left
+  axis line (Path B, outside the S216 "across Path A" scope) still strokes `C.BORDER` —
+  the lone axis-furniture instance not yet on `C.AXIS`, pending a stroke-uniformity repair
+  (BANKED § CoordResidualProfile inline `C.BORDER` axis line).
 - The facet of *which* plots carry axis titles and how caption zones are placed is a
-  separate read-only (title/caption presence inventory) — not settled here; this section
-  rules colour/stroke only.
+  separate inventory (title/caption presence) — catalogued but not yet ruled; this
+  section rules colour/stroke only.
 
 **Shared-lever changes** (one retoken, battery-wide):
 - `TIER_COLOR` → two-regime ramp: slate-neutral floor (below threshold) → amber → red
