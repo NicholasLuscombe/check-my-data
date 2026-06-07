@@ -484,6 +484,57 @@ Single source of truth for results/statistics tables (e.g. VFS over-represented 
 
 Not used for input data excerpt tables (DupDet, hotspot excerpts) — those have specialised rendering but use shared cell tokens (`TD_NUM_CELL`, `TD_ID_CELL`).
 
+### Table column conventions
+
+*(Authored S217; the S217 working-tree copy was lost uncommitted — see the docs-shared
+commit gap — and reconstructed from SESSION217-CHAT-SUMMARY §Decisions 5–6 at S218 close,
+when the S218 additions below also landed. Content faithful to the S217 record.)*
+
+**DataTable / EvidenceTable split.** `EvidenceTable` is the primitive (`{value, style}` cells,
+baked-in font split). `DataTable` is a thin authoring-wrapper *over* it — converts column-keyed
+`{header, render, bold}` into EvidenceTable cells and delegates. Converge new results tables onto
+`DataTable` (the ergonomic superset); do not retire it. DataTable's auto `Showing N of M.` footer
+is the canonical truncation footer — manual `…and N more` footers are retired.
+
+**Header vocabulary canon.** `Adj. p` (BH-adjusted) · `p` (raw, only where genuinely uncorrected) ·
+bare `Ratio` · `Finding` · `Pair` (IRC carves out `Columns`) · `Pairs sig.` · `Showing N of M.`
+(truncation footer). Raw `p` is dropped from the three BH-corrected cards (Autocorrelation,
+Windowed Autocorrelation, Blocked Mahalanobis). The Observed / Expected / Ratio triple is KEPT
+where present (intentional readability per the Bik standard — not filler).
+
+**Two-rule p-disambiguation.** A card may carry more than one `p` column provided the two rules
+keep them unambiguous: the **header carries correction status** (`p` raw / `Adj. p` adjusted); the
+**caption carries aggregation level** (per-unit vs pooled / by-condition). Two `p` columns at
+different aggregation levels are permitted iff each caption names its level.
+
+**Number format.** Ratio always `8.00×`. Correlation `r` to 2 d.p. The Obs/Exp qualifier is
+unified where it is the same quantity (`Observed SD`) and kept distinct where it differs
+(`Observed κ`).
+
+**Truncation.** A capped table must show `Showing N of M.`; an uncapped table needs no footer.
+DupDet's specific footers are kept (custom tables).
+
+**Column order (canonical, S218).** Columns read left to right: identifier column(s) →
+test-specific evidence columns → `Adj. p` → `Finding`. `Finding` is the rightmost column — the
+plain-English per-row conclusion the eye builds to, mirroring the verdict's position on the card
+header line; `Adj. p` (the statistical decision) immediately precedes it. Test-specific evidence
+columns (Obs/Exp/Ratio, Runs/Expected/z, …) are non-uniform by design — EvidenceTable is the
+single source of truth for divergent table shapes, and this rule governs only the shared columns
+and their order. (Runs conforms post-S218; Selective Noise to conform at the structural audit.)
+
+**Per-unit surface follows the corrected decision (cross-card principle, S218).** On any card with
+a test-wide verdict plus per-unit detail, the per-unit surface shows the *corrected* (BH-adjusted)
+decision the verdict uses — never the raw per-unit statistic. This governs both the displayed
+per-unit p (adjusted, not raw) and the per-unit Finding/word (driven by the corrected significance
+boolean, not a raw statistic or a magnitude band). Originating precedent: **Mahalanobis Row
+Outlier** (below, § "Mahalanobis Row Outlier — the threshold line…") — the threshold line sits at
+the adjusted BH cutoff, and rows that pass raw p<0.01 but fail the adjusted 0.001 gate render
+unflagged. S218 conformance: Selective Noise (Finding ← `d.flagged` Levene-adj + `d.direction`;
+SD-ratio band retired from the word; legend relabelled to locator language) and Runs (per-pair
+table → `Adj. p`; Finding ← the corrected promotion predicate). The raw per-unit statistic may
+still appear as *context* in a neighbouring column (Selective Noise keeps Observed SD / Ratio for
+effect-size judgment) but never drives the per-unit decision or word.
+
 ### PlotLayout
 
 Chart container replacing the former `miniCardWrap`. Wraps SVG charts with consistent margins and renders caption below in `FF.UI` / `C.TEXT_3`.
