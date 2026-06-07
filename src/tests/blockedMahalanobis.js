@@ -657,6 +657,7 @@ export async function testBlockedMahalanobis(matrix, condCtx, rng, dataType = 'c
     nWindowsTotal: applicable.reduce((s, ws) => s + ws.nWindows, 0),
     interpretation,
     details,
+    nDetailRows: detailRows.length,
     conditionNames: applicable.map(ws => ws.name),
     _perfExceedances,
   };

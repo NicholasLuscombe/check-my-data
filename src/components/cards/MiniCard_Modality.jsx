@@ -91,7 +91,7 @@ export function MiniCard_Modality({ result, importConfig, rowMap }) {
           {/* S210 (multi-surface): secondary-surface heading kept but demoted
               (Regular weight) to read clearly below the footer-lead. */}
           <div style={{...SUB_HEAD, fontWeight: FW.NORM, marginBottom: BLOCK_GAP_TIGHT}}>Flagged columns</div>
-          <DataTable data={rows} maxRows={20} compact identifierColumns={1} columns={[
+          <DataTable data={rows} maxRows={20} compact identifierColumns={1} totalCount={result.nFlagged} columns={[
             { header: "Col", bold: true, render: d => d.Col },
             { header: "Dip", bold: true, render: d => d.Dip },
             { header: "Adj. p", render: d => fmtP(d.adjP) },

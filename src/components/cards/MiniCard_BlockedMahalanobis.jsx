@@ -74,7 +74,9 @@ export function MiniCard_BlockedMahalanobis({ result, importConfig, rowMap }) {
         rows={rows} identifierColumns={3} compact
         footerText={result.flag === "LOW"
           ? "All windows are consistent with a single condition-wide covariance / mean structure."
-          : LOCALISED_ROWS_CAPTION}
+          : result.nDetailRows > rows.length
+            ? `${LOCALISED_ROWS_CAPTION} Showing ${rows.length} of ${result.nDetailRows}.`
+            : LOCALISED_ROWS_CAPTION}
       />
     );
   }

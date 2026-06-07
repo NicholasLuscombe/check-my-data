@@ -79,7 +79,9 @@ export function MiniCard_WindowedAutocorr({ result, importConfig, rowMap }) {
         rows={rows} identifierColumns={isAgg ? 3 : 2} compact
         footerText={result.flag === "LOW"
           ? "All windows are consistent with independent noise in each pair (BH-FDR at α = 0.05)."
-          : LOCALISED_ROWS_CAPTION}
+          : tableSource.length > 20
+            ? `${LOCALISED_ROWS_CAPTION} Showing 20 of ${tableSource.length}.`
+            : LOCALISED_ROWS_CAPTION}
       />
     );
   }

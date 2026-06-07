@@ -116,7 +116,7 @@ if(result.colDetails?.length) {
             const sorted = [...sds].sort((a, b) => a - b);
             const medianSD = sorted[sorted.length >> 1];
             return <EvidenceTable
-              columns={["Column", "Observed SD", "Expected SD", "Ratio", "Finding", "Adj. p"]}
+              columns={["Column", "Observed SD", "Expected SD", "Ratio", "Adj. p", "Finding"]}
               identifierColumns={1}
               rows={perCol.map(d => {
                 const ratio = medianSD > 0 ? d.residualStd / medianSD : 1;
@@ -133,8 +133,8 @@ if(result.colDetails?.length) {
                   d.residualStd.toFixed(4),
                   medianSD.toFixed(4),
                   ratio.toFixed(2) + "×",
-                  { value: finding, style: { fontFamily: FF.UI } },
                   fmtP(d.adjP),
+                  { value: finding, style: { fontFamily: FF.UI } },
                 ];
               })}
             />;

@@ -78,6 +78,7 @@ export function MiniCard_ConstantOffset({ result, importConfig, rowMap }) {
               : [d.pair, positionsToFileRows(d.positions), fmtOffset(d.diff)]
             )}
             identifierColumns={isAgg ? 3 : 2}
+            footerText={!isAgg && blockEntries.length < result.consecutiveEqualDiffs ? `Showing ${blockEntries.length} of ${result.consecutiveEqualDiffs}.` : undefined}
           />
         </div>
       )}

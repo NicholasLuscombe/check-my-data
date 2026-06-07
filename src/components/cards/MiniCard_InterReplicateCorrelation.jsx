@@ -161,6 +161,7 @@ return (
             : [pairLabel(w.pair, w.condition || "All data"), `${toFileRow(w.startRow)}\u2013${toFileRow(w.endRow)}`, Number(w.rWin).toFixed(2), Number(w.baseline).toFixed(2)]
           )}
           identifierColumns={condNames.length > 1 ? 3 : 2}
+          footerText={topWins.length < result.nWindowsTested ? `Showing ${topWins.length} of ${result.nWindowsTested}.` : undefined}
         />
       </div>
     )}
