@@ -511,8 +511,16 @@ different aggregation levels are permitted iff each caption names its level.
 unified where it is the same quantity (`Observed SD`) and kept distinct where it differs
 (`Observed κ`).
 
-**Truncation.** A capped table must show `Showing N of M.`; an uncapped table needs no footer.
-DupDet's specific footers are kept (custom tables).
+**Truncation.** A capped table must show `Showing N of M.` (M = the true pre-cap count, surfaced
+from the producer — never the post-slice length); an uncapped table needs no footer. Verified
+S219 by synthetic over-cap assertion across all capping producers (`test/diag-s219-overcap.mjs`).
+
+**DuplicateDetection custom-grid exemption (S219).** DupDet does not use EvidenceTable/DataTable
+and is exempt from the column-order, font-split, and footer conventions above. It renders the raw
+imported spreadsheet (not a results schema), so it diverges deliberately: alternating background
+`C.BG_L` (not `C.BG`), `borderCollapse: separate`, `ColumnHeaders` rather than `<th>`, a row-index
+`FF.MONO` override, and its own `…and N more` truncation rows. This is a ruled exemption, not a
+non-conformance — structural audits should not re-flag it.
 
 **Column order (canonical, S218).** Columns read left to right: identifier column(s) →
 test-specific evidence columns → `Adj. p` → `Finding`. `Finding` is the rightmost column — the
@@ -521,6 +529,17 @@ header line; `Adj. p` (the statistical decision) immediately precedes it. Test-s
 columns (Obs/Exp/Ratio, Runs/Expected/z, …) are non-uniform by design — EvidenceTable is the
 single source of truth for divergent table shapes, and this rule governs only the shared columns
 and their order. (Runs conforms post-S218; Selective Noise to conform at the structural audit.)
+
+**DataTable Finding-font carve-out (S219).** The Finding-rightmost rule has one documented
+exception: `ColumnGoF` and `Entropy` (both DataTable-path) keep `Finding` in second position
+rather than rightmost. Finding must render `FF.UI` (sans-serif, like every other card's Finding
+word); on these two cards that is achieved by placing it within `identifierColumns=2`. DataTable's
+authoring API exposes only `bold`/`color`, not a per-column font override, so moving Finding
+rightmost would render it `FF.MONO`. Widening the DataTable contract for two cards would break the
+S217 zero-widening principle (DataTable is a thin wrapper, not a rival renderer). The carve-out
+holds until DataTable next converges; revisit then. SelectiveNoise, CrossCondConsistency and
+WithinRowVariance (all EvidenceTable-direct, where the Finding cell takes a direct FF.UI override)
+conform to Finding-rightmost as of S219.
 
 **Per-unit surface follows the corrected decision (cross-card principle, S218).** On any card with
 a test-wide verdict plus per-unit detail, the per-unit surface shows the *corrected* (BH-adjusted)
@@ -534,6 +553,19 @@ SD-ratio band retired from the word; legend relabelled to locator language) and 
 table → `Adj. p`; Finding ← the corrected promotion predicate). The raw per-unit statistic may
 still appear as *context* in a neighbouring column (Selective Noise keeps Observed SD / Ratio for
 effect-size judgment) but never drives the per-unit decision or word.
+
+**Mahalanobis Row Outlier — S207 holds against the S218 principle (resolved S219).** The S219
+structural audit tested this card against the per-unit principle: the per-row table displays the
+*raw* χ² p and raw D² distance while selection runs on the BH-adjusted α=0.001 gate. This is
+exempt, and the exemption is principled, not a tolerated breach. The per-unit *word/flag* is not
+raw-driven — it is the corrected decision (the threshold line sits at the adjusted cutoff; rows
+that clear raw p<0.01 but fail the adjusted gate render unflagged, below the line). What is shown
+raw is the *displayed distance number*, because distance is the interpretable physical quantity and
+the corrected cut is carried visually by the threshold line alongside it. This is materially
+different from the CrossCondConsistency anti-pattern S219 fixed, where the Finding *word itself* was
+the raw direction tag. S207 (above, § "Mahalanobis Row Outlier — the threshold line…") governs;
+S218 does not supersede it. (Prior status: STATUS Accepted-limitations carried this as "likely
+resolves toward Adj. p, confirm at audit" — now resolved as exempt.)
 
 ### PlotLayout
 
