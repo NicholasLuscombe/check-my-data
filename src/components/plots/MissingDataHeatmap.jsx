@@ -22,8 +22,17 @@ export function MissingDataHeatmap({ missGrid, colNames, fileRows, blocks }) {
   const nR = missGrid.length;
   const nC = missGrid[0].length;
 
+  // Significant-block p-labels render in the right gutter (mono, 11px). Size
+  // that gutter to the widest label rather than a fixed width — the same
+  // content-sized shape as RegionalNoiseStrip's left pad — so a full
+  // "p < 0.0001" never clips the container's right edge. Floor at 60 keeps the
+  // prior spacing when no block is present.
+  const fmtP = (p) => p < 0.0001 ? "p < 0.0001" : `p = ${p.toFixed(4)}`;
+  const P_LABEL_GAP = 4;
+  const maxPLabelLen = blocks?.length ? Math.max(...blocks.map(b => fmtP(b.adjP).length)) : 0;
   // Hard cap: grid fits within 300px height
-  const PL = 42, PR = 60, PT = 4, PB = 32;
+  const PL = 42, PT = 4, PB = 32;
+  const PR = Math.max(60, P_LABEL_GAP + Math.ceil(maxPLabelLen * 7) + 6);
   const MAX_GRID_H = 300;
   const maxPlotW = 320;
   const cellW = Math.max(6, Math.min(24, Math.floor(maxPlotW / nC)));
@@ -49,8 +58,6 @@ export function MissingDataHeatmap({ missGrid, colNames, fileRows, blocks }) {
     adjP: b.adjP,
   }));
 
-  const fmtP = (p) => p < 0.0001 ? "p < 0.0001" : `p = ${p.toFixed(4)}`;
-
   return (
     <PlotSVG W={W} H={H}>
       {/* Grid cells */}
@@ -71,7 +78,7 @@ export function MissingDataHeatmap({ missGrid, colNames, fileRows, blocks }) {
         const y = PT + b.r0 * cellH;
         const w = (b.c1 - b.c0) * cellW;
         const h = (b.r1 - b.r0) * cellH;
-        const labelX = PL + gridW + 4;
+        const labelX = PL + gridW + P_LABEL_GAP;
         const labelY = y + h / 2 + 3;
         return (
           <g key={`blk${i}`}>
