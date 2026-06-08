@@ -637,6 +637,41 @@ changed.
 
 ---
 
+### Out-of-data text sits in a reserved gutter, not an overflow (S224)
+
+Axis titles, axis labels, and legends are out-of-data text: they live outside the plotted data
+region but inside the plot's own footprint. The rule for placing them is **reserve, don't
+overflow** — size a margin to hold the text and seat the text in that margin, rather than drawing
+the text past the SVG box edge and relying on the surrounding card not to clip it.
+
+**The house mechanism is a content-sized reserved gutter.** RegionalNoiseStrip's
+`max(floor, content)` pad is the standard form: the gutter is the larger of a minimum floor and the
+measured text extent, so short text gets a tidy fixed margin and long text gets exactly the room it
+needs — never less, never an arbitrary fixed value that the longest case overruns. Apply the same
+`max(floor, content)` shape to every out-of-data text margin: left pad for a rotated y-title, bottom
+pad for an x-title, right margin for an end-of-axis label.
+
+**Overflow is retired as a title mechanism.** Drawing an axis title at a coordinate outside the
+viewBox (the former `svgH + 8` x-title pattern, and equivalents) is not allowed for titles. It
+reads correctly only while nothing downstream clips the SVG, which is a property of the consumer,
+not the plot — so it is not a property the plot can guarantee. Titles go in a bottom or side gutter
+inside the box (the corrected x-title sits at `axisY + 32`, a reserved bottom gutter, not `svgH + 8`
+outside it). This retires overflow for **titles specifically**; it does not forbid every draw
+outside the data region for other purposes, only the practice of placing titles where the box does
+not reserve room for them.
+
+**Legends sit adjacent to the plot they key.** A legend belongs next to the marks it explains, in a
+reserved strip beside or below the data region — not floating loose at an unrelated screen position
+where the reader has to reconstruct which plot it belongs to. "Adjacent" is the Bik-standard test:
+the legend and its plot read as one standalone unit in a crop.
+
+**Vertical-centre rotated titles on the data region, not the box.** A rotated y-title uses
+`dominantBaseline="central"` and is positioned against the data region's vertical centre (the
+CoordResidualProfile "Row" title), so it reads as centred on the rows it labels rather than drifting
+with whatever incidental box height the plot happens to have.
+
+---
+
 ## Font System (S71)
 
 ### Font split rule

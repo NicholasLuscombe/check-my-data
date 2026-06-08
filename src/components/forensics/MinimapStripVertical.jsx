@@ -33,6 +33,12 @@ import { convergenceMinimapStyle } from "../shared/heatmapColors.js";
 import { buildPerVisRowMax } from "./minimapDerivation.js";
 
 const STRIP_W = 32;
+// Minimum on-screen height (px) for a flagged-row density band. The SVG
+// stretches a viewBox nVisRows units tall into the strip's pixel height
+// (preserveAspectRatio="none"), so at high row counts a one-unit row
+// collapses sub-pixel; this floors each flagged row to a visible band.
+// Starting value — tunable on screen.
+const MIN_BAND_PX = 2;
 
 export function MinimapStripVertical({
   convergence, rowMap, nVisRows,
@@ -47,6 +53,7 @@ export function MinimapStripVertical({
   const containerRef = useRef(null);
   const draggingRef = useRef(false);
   const [viewFrac, setViewFrac] = useState([0, 1]);
+  const [stripHeightPx, setStripHeightPx] = useState(0);
 
   // Track the table's scrollTop → viewport-band fraction. rAF-throttled
   // so rapid scroll events don't trigger setState storms; mirrors
@@ -122,6 +129,19 @@ export function MinimapStripVertical({
     };
   }, [scrollToY, tableEl]);
 
+  // Measure the strip's rendered pixel height so a flagged row's band can
+  // carry a true on-screen minimum despite the preserveAspectRatio="none"
+  // viewBox stretch — 2 px back-converts to viewBox units at render below.
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return undefined;
+    const measure = () => setStripHeightPx(el.getBoundingClientRect().height);
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
   if (perRow.size === 0 && nVisRows === 0) return null;
 
   // Per-vis-row rect descriptors. ViewBox y = row index (1 row = 1
@@ -135,6 +155,13 @@ export function MinimapStripVertical({
   }
 
   const stripH = Math.max(nVisRows, 1);
+  // Flagged-row band floor in viewBox units: MIN_BAND_PX on screen back-
+  // converted through the viewBox→pixel stretch. The natural one-row
+  // height (1 unit) is the lower bound, so fixtures whose rows already
+  // exceed the floor are unchanged.
+  const minBandUnits = stripHeightPx > 0
+    ? Math.max(1, (MIN_BAND_PX * stripH) / stripHeightPx)
+    : 1;
   const bandTopUnits = viewFrac[0] * stripH;
   const bandHeightUnits = Math.max((viewFrac[1] - viewFrac[0]) * stripH, 1);
 
@@ -165,7 +192,7 @@ export function MinimapStripVertical({
           <rect
             key={ri}
             x={0} y={ri}
-            width={STRIP_W} height={1}
+            width={STRIP_W} height={minBandUnits}
             fill={fill}
             opacity={opacity}
           />

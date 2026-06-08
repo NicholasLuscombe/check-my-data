@@ -500,7 +500,7 @@ export function buildConvergenceGridFromFindings(findings, nRows, nCols) {
     if (!testName) continue;
     for (const { rows, cols } of f.region.raw || []) {
       const rList = rows || Array.from({ length: nRows }, (_, i) => i);
-      const cList = cols || Array.from({ length: nCols }, (_, i) => i);
+      const cList = (cols && cols.length) ? cols : Array.from({ length: nCols }, (_, i) => i);
       for (const r of rList) {
         for (const c of cList) {
           mark(r, c, testName, category, sev);
