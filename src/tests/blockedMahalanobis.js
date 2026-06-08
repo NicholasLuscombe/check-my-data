@@ -663,11 +663,3 @@ export async function testBlockedMahalanobis(matrix, condCtx, rng, dataType = 'c
   };
 }
 
-/** Registry prototype for UI and applicability table. Category/mechanism
- *  routing is governed by TEST_MECHANISM in constants/mechanisms.js. */
-export const BLOCKED_MAHALANOBIS_PROTOTYPE = {
-  name: "Blocked Mahalanobis",
-  category: "replicate",
-  dim: "III",
-  subgroup: "C",
-};

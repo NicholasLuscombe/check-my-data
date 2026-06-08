@@ -24,22 +24,6 @@ export function variance(arr) {
  *  @returns {number} */
 export function stddev(arr) { return Math.sqrt(variance(arr)); }
 
-/** Slice matrix rows by condition label. Returns [{name, rows, rowIndices}] with ≥minRows
- *  per group and ≥2 groups, or null. Single shared utility for all row-condition grouping. */
-export function sliceByCondition(matrix, rowConditions, minRows = 1) {
-  if (!rowConditions || !rowConditions.some(c => c)) return null;
-  const groups = {};
-  for (let r = 0; r < rowConditions.length && r < matrix.length; r++) {
-    const c = rowConditions[r];
-    if (!c) continue;
-    if (!groups[c]) groups[c] = { name: c, rows: [], rowIndices: [] };
-    groups[c].rows.push(matrix[r]);
-    groups[c].rowIndices.push(r);
-  }
-  const result = Object.values(groups).filter(g => g.rows.length >= minRows);
-  return result.length >= 2 ? result : null;
-}
-
 /** CUSUM changepoint statistic. Returns {cusum, maxAbs, cpIdx} where cpIdx is the
  *  index of maximum |cumulative deviation from mu|. */
 export function cusumStat(values, mu) {
@@ -334,11 +318,6 @@ export function invertMatrix(M, n) {
 
   // Extract inverse
   return aug.map(row => row.slice(n));
-}
-
-/** Factorial (iterative). @param {number} k @returns {number} */
-export function factorial(k) {
-  let r=1; for(let i=2;i<=k;i++) r*=i; return r;
 }
 
 /** Chi-squared quantile via Wilson-Hilferty approximation.

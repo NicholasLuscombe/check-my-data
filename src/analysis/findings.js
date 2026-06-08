@@ -394,14 +394,3 @@ export function buildFindings(results, nRows, nCols, opts = {}) {
   return findings;
 }
 
-/** Filter helper — split a findings list into global vs localised. */
-export function partitionFindings(findings) {
-  const globalF = [];
-  const localF = [];
-  for (const f of findings) {
-    (f.type === "global" ? globalF : localF).push(f);
-  }
-  return { global: globalF, local: localF };
-}
-
-export const FINDING_SEV_RANK = SEV_RANK;

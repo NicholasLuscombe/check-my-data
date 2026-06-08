@@ -52,9 +52,6 @@ export const RAIL_GUTTER = "16px";
 export const RAIL_RIGHT = "16px";
 
 // S151 (C.9 / B1): full spec match for footnote/reference register.
-// Pre-S151: fontSize TF.DETAIL (11px) + color C.TEXT_4. Now sm Regular C.TEXT_2 sans
-// per TYPOGRAPHY-SYSTEM.md § Tables "Footnote / reference under table" row.
-export const S_NOTE  = { fontFamily: FF.UI, fontSize: FS.sm, color: C.TEXT_2, marginTop: "2px", paddingLeft: "4px" };
 // Shared header style for all data tables (evidence, hotspot, import preview).
 // Background applied at <tr> level. S151 (C.9): fontSize TF.DETAIL → FS.sm
 // per TYPOGRAPHY-SYSTEM.md § Tables "Header (semantic)" row.
@@ -170,8 +167,6 @@ export const FREEZE_Z = {
   FROZEN_BODY:   5,   // sticky left only (data rows in frozen zone)
   HEADER:        4,   // sticky top only (scrolling header cells)
 };
-// Freeze boundary line color — rendered as a positioned overlay div, not per-cell border.
-export const FREEZE_LINE_COLOR = "rgba(0,0,0,0.08)";
 
 /**
  * Count how many columns from the left should be frozen.

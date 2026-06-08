@@ -86,18 +86,13 @@ src/
   components/
     shared/                         Shared UI components
       Logo.jsx                      SVG logo
-      FlagBadge.jsx                 Coloured flag indicator (HIGH/MODERATE/LOW/N/A/ERROR)
-      RoleBadge.jsx                 Column role indicator
       ErrorBoundary.jsx             React error boundary for ReportView/BatchView
       CardLayout.jsx                MiniCardLayout, headlines, footers, guidance
       DataTable.jsx                 Sortable data table
-      DetailTable.jsx               Key-value detail table
-      CorrMatrix.jsx                Correlation matrix heatmap
       ConditionTable.jsx            Condition-grouped summary table
       coordinates.js                Original file coordinate mapping (Excel letters, row numbers)
       styles.js                     Shared inline style objects
       utils.js                      UI utility functions
-      miniCardWrap.jsx              Card wrapper with expand/collapse
 
     plots/                          SVG plot components
       PlotSVG.jsx                   Base SVG container with axes
@@ -122,8 +117,6 @@ src/
       MiniCard_DuplicateDetection.jsx
       MiniCard_ConstantOffset.jsx
       MiniCard_SelectiveNoise.jsx
-      MiniCard_ConstantResponse.jsx
-      MiniCard_CrossConditionDuplication.jsx
       MiniCard_InterReplicateCorrelation.jsx
       MiniCard_RankCorrelation.jsx
       MiniCard_Autocorrelation.jsx
@@ -149,13 +142,7 @@ src/
       ReportView.jsx                Single-file analysis report (3-mode presentation)
       BatchView.jsx                 Multi-file batch analysis
       VerdictBanner.jsx             Severity verdict header with data profile
-      DensityStrip.jsx              Cross-test flag density visualization
-      TestHeatmapFacets.jsx         Heatmap facets by mechanism
-      MechanismGroupPanel.jsx       Mechanism-grouped test panels
       LongFormatModal.jsx           Long-format pivot confirmation modal
-      HeatmapView.jsx               Convergence heatmap with ghost grid and hotspot outlines
-      HotspotCard.jsx               QC mode hotspot display (plain-language guidance)
-      HotspotTable.jsx              Peer review mode hotspot table (convergence metrics)
 ```
 
 ## Dependency Graph

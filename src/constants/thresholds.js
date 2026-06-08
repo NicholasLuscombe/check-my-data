@@ -52,6 +52,3 @@ export function fmtPOp(v) { const s = fmtP(v); return s === "—" ? "=\u202f—"
 /** Format p-value as badge text: "p < 0.0001" or "p = 0.0234" (thin spaces) */
 export function fmtPBadge(v) { return `p\u202f${fmtPOp(v)}`; }
 
-
-/** Parse hex colour to [r,g,b] array */
-export function hexToRgb(hex) { const n = parseInt(hex.slice(1), 16); return [(n>>16)&255, (n>>8)&255, n&255]; }

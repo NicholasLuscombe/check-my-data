@@ -118,15 +118,6 @@ export const GLOBAL_TESTS = new Set([
   "Cross-Condition Consistency",
 ]);
 
-// Prose fragments for building the Layer 1 global summary sentence.
-export const MECHANISM_PROSE = {
-  copied:    "value repetition",
-  digits:    "digit patterns",
-  shapes:    "distributional shape",
-  replicate: "replicate agreement",
-  group:     "cross-condition similarity",
-};
-
 // testKey → full test name (for mapping group testKeys back to result names)
 export const TEST_KEY_TO_NAME = {
   dupDet:       "Exact Duplicate Detection",

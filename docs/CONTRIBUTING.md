@@ -121,7 +121,7 @@ Create `src/components/cards/MiniCard_MyNewTest.jsx` following the pattern of ex
 Each test has a corresponding MiniCard that displays its results. Follow the pattern:
 
 1. Create `src/components/cards/MiniCard_YourTest.jsx`
-2. Import shared components: `CardLayout`, `FlagBadge`, `DetailTable`, etc.
+2. Import shared components: `CardLayout`, etc.
 3. Export a named function component accepting `{ result }` as props
 4. Register in `src/components/cards/MiniPlot.jsx`
 

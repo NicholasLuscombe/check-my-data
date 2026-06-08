@@ -21,7 +21,6 @@ import { Section } from "../shared/Section.jsx";
 import { AsideCallout } from "../shared/AsideCallout.jsx";
 import { ExcelMetaCard } from "../cards/ExcelMetaCard.jsx";
 import { TestCard } from "../cards/TestCard.jsx";
-import { KeyFindings } from "../shared/KeyFindings.jsx";
 import { MODE_ORDER, MODES, CATEGORY_GUIDANCE, QC_HOTSPOT_NARRATIVE } from "../../constants/guidance.js";
 import { CATEGORY_SHORT_DESCRIPTIONS, QC_CATEGORY_DESCRIPTIONS } from "../../constants/descriptions.js";
 import { originalFileRow, colToExcelLetter, buildOriginalColMap } from "../shared/coordinates.js";
@@ -88,8 +87,8 @@ export function ReportView({ results, importConfig, matrix, rowMap, onBack, onCh
   const nCols = matrix?.[0]?.length || importConfig.nCols || 0;
 
   // ── S126a: findings[] is the canonical aggregator over results ──
-  // Convergence grid + GlobalKeyFindings + LocalKeyFindings + the
-  // individual-localising-findings filter all read from this one structure.
+  // Convergence grid + the individual-localising-findings filter all read
+  // from this one structure.
   // Engine producers untouched; this is a transform layer over r.flag /
   // r.primaryP / extractCellFlags(r) outputs.
   const findings = useMemo(
