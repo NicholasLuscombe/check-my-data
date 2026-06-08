@@ -672,6 +672,33 @@ with whatever incidental box height the plot happens to have.
 
 ---
 
+### Multiple plots within one card stack vertically (S225)
+
+When a card renders more than one plot, the plots stack top to bottom in a single column. They do
+not flow side-by-side, and they do not wrap onto one row when the card is wide. This is the house
+layout, not an accident of the current width: card surfaces are block-flow children of
+`MiniCardLayout`, and each `PlotLayout fitContent` plot caps its own width and centres, so a plot
+already takes its own row regardless of how much horizontal room is free. The rule makes that
+deliberate and forbids re-arranging paired plots as side-by-side peers.
+
+**Why stacked, not abreast.** Card plots are sequential by design — a primary surface establishes a
+phenomenon and a secondary surface quantifies or details it. The intended read is top to bottom:
+verdict before texture (Runs draws the pooled marker above the per-pair sign strips), and
+phenomenon before quantification (Shared noisy rows draws the residual strips above the correlation
+matrix, and the card copy frames the matrix as the follow-on — "the heatmap below shows pairwise
+ρ"). Setting these abreast would break the read order. It would also break the Bik crop test: with
+two plots side-by-side a shared or adjacent legend becomes ambiguous about which plot it keys, the
+very thing the legend-adjacency rule above guards against.
+
+**Exception — small multiples flow and wrap.** Repetitions of a single chart type within one
+labelled surface (the per-condition sparklines on Noise distribution, the per-condition matrices on
+the inter-replicate card) flow horizontally and wrap to a second row when narrow. That is one
+surface showing many instances of the same chart, not two distinct plots arranged as peers, and it
+is allowed. The rule governs a card's primary-and-secondary plots, not the internal layout of a
+single small-multiples surface.
+
+---
+
 ## Font System (S71)
 
 ### Font split rule

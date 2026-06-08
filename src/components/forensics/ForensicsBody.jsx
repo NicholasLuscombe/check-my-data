@@ -10,10 +10,10 @@
                                    ForensicsCategoryBlock (severity-
                                    descending order + CLEAR collapse).
 
-   Why a child component: needs `usePulseTrigger` from PulseProvider.
-   ReportView wraps the Forensics return in <PulseProvider>, then renders
-   <ForensicsBody …/> here so chips/pills/test-card badge clicks all
-   share the same pulse bus.
+   Why a child component: its descendant chips and pills read the pulse
+   bus from PulseProvider. ReportView wraps the Forensics return in
+   <PulseProvider>, then renders <ForensicsBody …/> here so those
+   descendants all share the same bus.
 
    Click model:
      - chip click       → pulse(chip:N, region:N, card:<each>) + scroll
@@ -23,9 +23,6 @@
      - pill click       → pulse(pill:test, card:test) + scroll card
                           (no panel activation — writer scope is
                           localised chips only)
-     - badge click on
-       a test card      → pulse(card:test, pill or chip+region from
-                          finding)
 
    S163 lifecycle: `activeRegionNumber` is the §2 state and drives
    per-chip `isActive` (ring colour) in StickySurface plus the
@@ -58,7 +55,6 @@ import { CATEGORY_SHORT_DESCRIPTIONS } from "../../constants/descriptions.js";
 import { C } from "../../constants/tokens.js";
 import { StickySurface, STICKY_SURFACE_SELECTOR } from "./StickySurface.jsx";
 import { ForensicsCategoryBlock } from "./ForensicsCategoryBlock.jsx";
-import { usePulseTrigger } from "./pulseContext.jsx";
 
 // S150-fix1: clean-state copy renders as bold sentence-lead + body
 // continuation. Threaded through to StickySurface where it renders
@@ -87,17 +83,6 @@ export function ForensicsBody({
   // mount MinimapStripVertical + ExcerptTable when Show data is open.
   heatmapProps = null,
 }) {
-  const trigger = usePulseTrigger();
-
-  // Quick test-id → finding lookup for badge-click pulse routing.
-  const testToFinding = useMemo(() => {
-    const m = new Map();
-    for (const f of findings) {
-      for (const t of f.tests || []) m.set(t.testId, f);
-    }
-    return m;
-  }, [findings]);
-
   // Scroll-to-card via the data-test-id attribute that ForensicsTestCard
   // sets. CSS.escape handles test-id strings that contain spaces / parens
   // / quotes. The arithmetic offsets the landing position past the §2
@@ -323,21 +308,6 @@ export function ForensicsBody({
     setSelection({ selected: new Set(), lastAdded: null });
   }, []);
 
-  // Test-card severity-badge click. Routes the pulse back to the
-  // finding's pill (global) or chip+region overlay (localised). The
-  // panel-internal MinimapStripVertical's RegionBadge listens on
-  // `region:N` so badge → chip → region pulse symmetry covers the
-  // panel minimap too.
-  const onCardBadgeClick = useCallback((result) => {
-    const f = testToFinding.get(result.name);
-    const keys = [`card:${result.name}`];
-    if (f) {
-      if (f.type === "global") keys.push(`pill:${result.name}`);
-      else if (f.regionNumber != null) keys.push(`chip:${f.regionNumber}`, `region:${f.regionNumber}`);
-    }
-    trigger(...keys);
-  }, [testToFinding, trigger]);
-
   // S163 B2b / B2e: derive `activeFindings` (array) and `focusFinding`
   // (single, the last-added) from selection state. `activeFindings`
   // drives the data-block compositing in FindingDetailPanel /
@@ -426,7 +396,6 @@ export function ForensicsBody({
                   return { ...prev, [name]: !cur };
                 })}
                 importConfig={importConfig} rowMap={rowMap}
-                onCardBadgeClick={onCardBadgeClick}
               />
             </div>
           );

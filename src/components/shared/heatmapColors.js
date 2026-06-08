@@ -35,13 +35,6 @@ export function rhoColor(rho) {
   return TIER_COLOR.LOW;
 }
 
-/**
- * Text colour for a ρ cell — white on HIGH tier, default text otherwise.
- */
-export function rhoTextColor(rho) {
-  return rho != null && rho >= 0.6 ? C.WHITE : C.TEXT;
-}
-
 // Relative luminance of a #RRGGBB hex; returns light text on dark fills, dark on light.
 export function cellTextOn(bg) {
   if (typeof bg !== "string" || bg[0] !== "#" || bg.length < 7) return C.TEXT;
