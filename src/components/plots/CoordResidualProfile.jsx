@@ -201,6 +201,10 @@ export function CoordResidualProfile({ allProfiles, nRows, pairDetails, condColo
     <div>
       {/* ── Section A: Heatmap strips ── */}
       {/* Sub-heading provided by MiniCard_ResidualSpike — not duplicated here */}
+      {/* Plot + its gradient legend share one centred fit-content footprint,
+          so the legend travels with the plot and reads as one unit in a crop
+          instead of falling to the card-container left edge. */}
+      <div style={{ width: "fit-content", margin: "0 auto" }}>
       <PlotLayout fitContent>
         <PlotSVG W={W_STRIP} H={H_STRIP} responsive>
           {/* Left axis line */}
@@ -267,7 +271,8 @@ export function CoordResidualProfile({ allProfiles, nRows, pairDetails, condColo
           ))}
         </PlotSVG>
       </PlotLayout>
-      {/* Strip gradient legend — on card, outside PlotLayout */}
+      {/* Strip gradient legend — sibling below the plot, inside the shared
+          fit-content wrapper so it left-aligns to the plot and travels with it. */}
       <ChartLegend gradient={{
         from: STRIP_GRAD_FROM,
         mid: STRIP_GRAD_MID,
@@ -278,6 +283,7 @@ export function CoordResidualProfile({ allProfiles, nRows, pairDetails, condColo
         startLabel: "Low",
         endLabel: "High residual",
       }} />
+      </div>
 
       {/* ── Section B: ρ correlation matrix (via CorrMatrixSVG) ── */}
       {hasMatrix && showRhoMatrix && (
@@ -285,6 +291,9 @@ export function CoordResidualProfile({ allProfiles, nRows, pairDetails, condColo
           <div style={{...SUB_HEAD,marginTop:"12px"}}>
             How closely each row pair's noise tracks
           </div>
+          {/* Matrix + its tier legend share one centred fit-content footprint,
+              the same pairing the gradient legend uses in Section A. */}
+          <div style={{ width: "fit-content", margin: "0 auto" }}>
           <PlotLayout fitContent>
             <CorrMatrixSVG
               labels={[...matShortNames].reverse()}
@@ -300,8 +309,10 @@ export function CoordResidualProfile({ allProfiles, nRows, pairDetails, condColo
               labelColors={[...matLabelColors].reverse()}
             />
           </PlotLayout>
-          {/* ρ tier legend — on card, outside PlotLayout */}
+          {/* ρ tier legend — sibling below the matrix, inside the shared
+              fit-content wrapper so it travels with the matrix. */}
           <ChartLegend items={legendItems} />
+          </div>
         </>
       )}
     </div>
