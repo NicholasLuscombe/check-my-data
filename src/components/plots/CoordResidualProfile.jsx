@@ -289,7 +289,7 @@ export function CoordResidualProfile({ allProfiles, nRows, pairDetails, condColo
       {hasMatrix && showRhoMatrix && (
         <>
           <div style={{...SUB_HEAD,marginTop:"12px"}}>
-            How closely each row pair's noise tracks
+            How correlated the noise is between groups
           </div>
           {/* Matrix + its tier legend share one centred fit-content footprint,
               the same pairing the gradient legend uses in Section A. */}

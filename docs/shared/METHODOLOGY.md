@@ -450,6 +450,8 @@ The permutation null tests whether consecutive matching is **row-order-dependent
 
 **Minimum data:** ≥2 groups, ≥10 shared rows.
 
+**Known limitation — unbalanced designs truncate to the shortest condition.** Step 3's top-K overlap requires the same row index to mean the same feature across every group, so the analysis position-matches groups by index and runs only as deep as the shortest condition. When conditions have unequal feature counts, the longer conditions' tail rows past the shortest condition's length are dropped from the analysis silently — they never enter the top-K sets or the permutation null, on every surface. A balanced design (equal rows per condition) is unaffected. No validation fixture exercises this: the residual-spike fixture is balanced, so the truncation never fires in the 22-set.
+
 ---
 
 ### 1.8 Constant-Response Concentration — removed (S95)
