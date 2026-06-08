@@ -139,7 +139,17 @@ export function CoordResidualProfile({ allProfiles, nRows, pairDetails, condColo
 
   // ── Strip layout ──
   const STRIP_GAP = 2;
-  const PL = needsBinning ? 44 : 32;
+  const { fileRow } = makeRowMapper(importConfig);
+
+  // Left gutter seats the rotated "Row" title AND the file-row tick numbers
+  // to its right. Sized to content like RegionalNoiseStrip's left pad: a fixed
+  // band for the rotated title plus the widest tick's width, floored so the
+  // title at Y_TITLE_X always clears the container's left edge.
+  const Y_TITLE_X = 10;     // title centre; with a central baseline the 13px
+                            // glyph box spans ~[3.5, 16.5], clear of x=0
+  const Y_TITLE_BAND = 20;  // horizontal room reserved for the rotated title
+  const maxTickDigits = String(fileRow(nRows - 1)).length;
+  const PL = Math.max(needsBinning ? 44 : 32, Y_TITLE_BAND + Math.ceil(maxTickDigits * 7) + 6);
 
   const STRIP_W = nC > 8 ? 18 : nC > 5 ? 22 : Math.min(80, Math.max(26, Math.floor(200 / nC)));
   const STRIPS_W = nC * STRIP_W + (nC - 1) * STRIP_GAP;
@@ -168,8 +178,6 @@ export function CoordResidualProfile({ allProfiles, nRows, pairDetails, condColo
   const stripX = ci => PL + ci * (STRIP_W + STRIP_GAP);
 
   // ── Y-axis ticks ──
-  const { fileRow } = makeRowMapper(importConfig);
-
   const rowStep = nRows < 50 ? 10 : nRows < 200 ? 25 : nRows < 500 ? 50 : 100;
   const yTicks = [];
   yTicks.push({ bin: 0, label: String(fileRow(0)) });
@@ -235,12 +243,16 @@ export function CoordResidualProfile({ allProfiles, nRows, pairDetails, condColo
             role="axis"
           />
 
-          {/* Y-axis "Row" label — rotated -90°, centred on strip height */}
+          {/* Y-axis "Row" label — rotated -90°, centred on strip height.
+              dominantBaseline central (matching the row ticks below) keeps the
+              rotated glyph box centred on the pivot so it seats inside the left
+              gutter instead of spilling past x=0. */}
           <SvgLabel
-            x={8} y={PT + CHART_H / 2}
+            x={Y_TITLE_X} y={PT + CHART_H / 2}
             text="Row"
             role="axis"
             textAnchor="middle"
+            dominantBaseline="central"
             rotate={true} deg={-90}
           />
 

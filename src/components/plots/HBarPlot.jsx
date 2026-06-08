@@ -17,7 +17,7 @@ function niceTicksTo(max) {
 
 export function HBarPlot({ items, accessor, xlabel, refVal, refLabel, maxOverride }) {
   if(!items?.length) return null;
-  const BH=13, GAP=3, LW=72, PL=6, PR=28, PT=12, PB=22;
+  const BH=13, GAP=3, LW=72, PL=6, PR=28, PT=12, PB=38;
   const vals = items.map(d=>accessor(d)||0);
   const mx = maxOverride || Math.max(...vals, refVal||0, 0.001);
   const CW = CP.W_MD - LW - PR;
@@ -58,13 +58,13 @@ export function HBarPlot({ items, accessor, xlabel, refVal, refLabel, maxOverrid
         return (
           <g key={i}>
             <line x1={x} y1={axisY} x2={x} y2={axisY+3} stroke={C.AXIS} strokeWidth={0.5}/>
-            <text x={x} y={svgH-3} fontSize={CF.SMALL} fill={C.TEXT_2} textAnchor="middle"
+            <text x={x} y={axisY+18} fontSize={CF.SMALL} fill={C.TEXT_2} textAnchor="middle"
               fontFamily={FF.MONO}>{t % 1 === 0 ? t : t.toFixed(1)}</text>
           </g>
         );
       })}
-      {/* x-axis label */}
-      {xlabel && <text x={LW+CW/2} y={svgH+8} fontSize={CF.AXIS} fill={C.TEXT_2} textAnchor="middle"
+      {/* x-axis label — inside the bottom gutter (PB), not in overflow */}
+      {xlabel && <text x={LW+CW/2} y={axisY+32} fontSize={CF.AXIS} fill={C.TEXT_2} textAnchor="middle"
         fontFamily={FF.UI}>{xlabel}</text>}
     </PlotSVG>
   );
