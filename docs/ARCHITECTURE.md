@@ -106,16 +106,13 @@ src/
       VBarPlot.jsx                  Vertical bar chart
       DotStrip.jsx                  Dot strip plot
       MahalanobisDistPlot.jsx       Mahalanobis distance distribution
-      ObsVsExpPlot.jsx              Observed vs expected comparison
       MeanVarianceScatter.jsx       Mean-variance scatter plot
       NoiseSpreadPlot.jsx           Noise spread visualization
       AutocorrDecayPlot.jsx         Autocorrelation decay plot
       KurtosisDistPlot.jsx          Kurtosis distribution plot
       NoiseProfilePlot.jsx          Noise profile plot
       SignStripPlot.jsx             Sign pattern strip plot
-      ConstOffsetStrip.jsx          Constant offset strip plot
       RegionalNoiseStrip.jsx        Regional noise strip plot
-      IRCSegmentStrip.jsx           IRC segment strip plot
       CoordResidualProfile.jsx      Coordinated residual profile plot
 
     cards/                          Per-test result cards
