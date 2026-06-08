@@ -319,8 +319,7 @@ name can.)
 
 ## Per-plot conformance
 
-What each of the 15 live plots changes. "OK" = already conforms. Dead components
-(ConstOffsetStrip, IRCSegmentStrip, ObsVsExpPlot) are excluded — not mounted.
+What each live plot changes. "OK" = already conforms.
 
 | Plot | Current | Change |
 |---|---|---|
