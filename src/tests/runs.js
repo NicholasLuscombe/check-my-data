@@ -71,7 +71,7 @@ export function testRuns(matrix, condCtx, rng) {
   // index-aligned to runsAdjPs before any sort. This is the value the verdict
   // reads (anyPairFlagged = runsAdjPs.some(p<ALPHA.FLAG)); the card displays it
   // as Adj. p and gates the per-pair Finding word on it. No new bhFDR call.
-  res.forEach((r,i)=>{r.significant=runsAdjPs[i]<0.01; r.adjP=runsAdjPs[i];});
+  res.forEach((r,i)=>{r.significant=runsAdjPs[i]<ALPHA.NOTE; r.adjP=runsAdjPs[i];});
   const nSig=res.filter(r=>r.significant).length;
   const pooled=allZ.length>=2?oneSampleT(allZ):{t:0,df:0,p:1};
   const pooledMeanZ=allZ.length?mean(allZ):0;
