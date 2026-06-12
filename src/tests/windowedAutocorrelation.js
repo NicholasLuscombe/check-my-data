@@ -141,7 +141,7 @@ export function testWindowedAutocorrelation(matrix, rng) {
   // when fabrication is sparse across pairs, per METHODOLOGY §2.1b S108 finding).
   // DS01-19 per-pair dry-run (S109 Part 1) confirmed zero clean-fixture regressions.
   // Arithmetic floor: with N_PERM=999 and nWindows≈18/pair, min reachable
-  // per-pair adj-p ≈ 1/1000 × nWindows ≈ 0.018 (MOD floor at ALPHA.FLAG=0.01).
+  // per-pair adj-p ≈ 1/1000 × nWindows ≈ 0.018 (MOD floor at ALPHA.NOTE=0.01).
   // HIGH at <0.001 is unreachable without N_PERM ≥ 9999; deferred to a separate
   // N_PERM / W calibration session.
   const byPair = new Map();
