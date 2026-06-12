@@ -148,7 +148,7 @@ export function MiniCard_Runs({ result, importConfig, rowMap }) {
     // raw-z (\u00b11.96) word is retired, and the p column now shows the adjusted
     // value the decision is made on.
     const z = parseFloat(p.z);
-    const flaggedPair = parseFloat(p.adjP) < ALPHA.FLAG;
+    const flaggedPair = parseFloat(p.adjP) < ALPHA.NOTE;
     const finding = !flaggedPair
       ? "As expected"
       : z < 0 ? "Fewer than expected" : "More than expected";
