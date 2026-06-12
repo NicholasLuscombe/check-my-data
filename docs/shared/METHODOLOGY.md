@@ -26,6 +26,8 @@ At large N (≥500 rows), p-values detect trivially small deviations from ideali
 
 This consistency gives the convergence escalation rule a rigorous interpretation: if 2+ tests independently flag MODERATE, the joint probability under H₀ is ~1 in 10,000 (assuming independence), justifying escalation to HIGH.
 
+**Confidence-interval level on plotted bands.** Where a card draws a confidence interval as the visual stand-in for its verdict — the bands on Autocorrelation, Runs, Mean-Variance, and the analytic/permutation-read bands added in the v1.0 CI programme — the band is drawn at the **99.9% level (z = 3.29), matching the HIGH gate (α = 0.001)**, not at 95%. The level is fixed to the gate by design: a band that excludes its null value reads as "this card flags HIGH," so the visual claim and the flag decision are the same test. A 95% band (z = 1.96) is *not* used, because it excludes the null at p < 0.05 — looser than even the MODERATE gate — and would let a marker read "significant" on a card that flags LOW. Bands are drawn only where the band's exceedance is the verdict's exceedance; where a test's gate is on a pooled or count statistic that no per-unit band corresponds to (Benford per-digit vs pooled MAD; Within-Row Variance per-row vs count-tail; any flag capped below the HIGH gate, e.g. CCR), no band is drawn and the p stays in the verdict. The band reflects the corrected (BH-adjusted) decision the verdict uses, never a raw per-unit statistic.
+
 **Null model hierarchy.** Where possible, each test uses the most assumption-free null available:
 
 | Null type | Used by | Advantage |
@@ -757,9 +759,9 @@ Evidence table reports the active threshold value and which gate is operative (`
 2. Classify each position as positive (d > 0) or negative (d < 0). Ties (d = 0) are ignored.
 3. Count runs (contiguous sequences of the same sign). Compare to expected runs under randomness: E(R) = 2n₊n₋/n + 1, Var(R) = 2n₊n₋(2n₊n₋ − n) / (n²(n−1)).
 4. Pool z-scores across all pairs. One-sample t-test: H₀: mean(z) = 0.
-5. **Windowed scan:** Sliding windows of 15 rows (stride 5), run per pair per condition. BH-FDR correction across ALL individual windows. adjP < 0.001 → HIGH signal, adjP < 0.05 → MODERATE.
+5. **Windowed scan:** Sliding windows of 15 rows (stride 5), run per pair per condition. BH-FDR correction across ALL individual windows. A surviving window (adjP < 0.001) promotes the flag to MODERATE only — the windowed sub-unit is capped at MODERATE and cannot reach HIGH (it can promote LOW → MODERATE, never demote). The per-pair BH-FDR sub-unit promotes on the same basis (any pair adjP < 0.001 → MODERATE, capped).
 
-**Flag:** More severe of global and windowed. Global: pooled t p < 0.001 → HIGH, p < 0.01 → MODERATE.
+**Flag:** More severe of global and the capped sub-unit promotion. Global: pooled t p < 0.001 → HIGH, p < 0.01 → MODERATE. The sub-units (windowed scan, per-pair BH) can only raise a LOW global flag to MODERATE; HIGH comes from the global pooled-t gate alone.
 
 **v0.4 change:** Removed the arbitrary |pooledMeanZ| > 1.96 floor from the global flag. The pooled t-test p-value alone determines significance.
 
@@ -856,7 +858,7 @@ Evidence table reports the active threshold value and which gate is operative (`
 
 **Forensic value:** Detects rows where individually plausible values are jointly improbable — a fabricator who generates plausible per-replicate values may still produce rows with wrong multivariate structure (e.g., copy-paste from a different sample produces a row where all replicates are internally consistent but the joint distribution is wrong).
 
-**Known false positives:** Heavy-tailed data; small sample sizes (noisy Σ estimate). Mitigated by Bonferroni individual thresholds and binomial test-level gate.
+**Known false positives:** Heavy-tailed data; small sample sizes (noisy Σ estimate). Mitigated by the per-row BH-FDR threshold (α = 0.001) and the binomial test-level gate.
 
 **Fisher's-combination exemption (S127c):** §2.6 is exempt from the Fisher's-combination cross-group aggregation in `aggregation.js` (joining `aggregation.js` Fisher-exempt set's other three members at S127c — Excess Kurtosis, Windowed Autocorrelation, Blocked Mahalanobis). Rationale: `primaryP = binomP` from the dataset-level binomial on rows exceeding χ²(p, 0.99). The χ² null assumes multivariate normality; under heavy-tailed raw data the exceedance count exceeds the binomial null even when zero rows survive Stage-2 BH-FDR α=0.001 — `binomP` becomes stochastically smaller than Uniform(0,1) under H0, violating the uniform-null assumption Fisher's chi-squared combination depends on. Pre-S127c, on multi-condition row-grouped fixtures running with VST=raw routing, each per-group testFn correctly hit the S126b add-5b verdict gate (`nOut === 0 → LOW`) but the aggregator's Fisher's-combination on the small per-group binomP values inflated the combined χ² and promoted the aggregate flag from LOW to HIGH — a false-positive pathway that bypassed the test's own per-row evidence requirement. Post-S127c, the aggregator falls back to `worstGroupFlag` for §2.6 — when both per-group verdicts are LOW (no rows survive BH-FDR within either condition), the aggregate stays LOW. Under VST=log routing the gate is dormant in either branch (per-group binomP ≈ 0.5 post-VST); the fix matters specifically under raw routing where the test's null mis-calibration makes Fisher's promotion structurally unreliable.
 
@@ -1542,7 +1544,7 @@ These thresholds are derived from a null hypothesis and a test statistic with a 
 | Mean-Variance z-test with Cochran's Q | z = (β̂ − β₀)/SE(β̂); block-robust SE when Q significant | Cochran (1954) |
 | Benford's MAD ≥ 0.015 ("Nonconformity") | Published forensic threshold for first-digit analysis | Nigrini (2012) Table 7.1 p.160 |
 | Benford 2nd digit MAD ≥ 0.008 | Published forensic threshold for second-digit analysis | Nigrini (2012) |
-| Mahalanobis D² ~ χ²(p) | Individual row outliers at Bonferroni threshold; test-level binomial | Mahalanobis (1936); Penny (1996) |
+| Mahalanobis D² ~ χ²(p) | Individual row outliers at per-row BH-FDR threshold (α = 0.001); test-level binomial | Mahalanobis (1936); Penny (1996) |
 | IRC excess ≥ 0.01 (small N), ≥ 0.05 (N ≥ 500) | Minimum forensically meaningful departure from LOO winsorized Pearson prediction | Fisher z scale; Wilcox (2012) |
 | Within-Row Variance binomial test | One-tailed count of "too smooth" outliers (z < −4.0) vs P(z < −4.0) = 3.17×10⁻⁵ | Binomial test; N(0,1) tail probability |
 | Entropy bootstrap null | B=999 synthetic columns from moment-matched parametric model (Normal/Poisson/NB); two-sided; BH-FDR across columns | Shannon (1948); Benjamini & Hochberg (1995) |

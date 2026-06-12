@@ -501,7 +501,7 @@ Ordered by effort, smallest first:
 
 (c) METHODOLOGY.md §1.1 uses "FLAGGED/NOTED" terminology. Align to HIGH/MODERATE per unified α. Documentation fix only.
 
-**2. Mahalanobis uses Bonferroni across rows; everything else uses BH-FDR.** Already planned — STATUS priority 7.
+**2. Mahalanobis per-row selection uses BH-FDR (landed).** Earlier map drafts listed this as a planned Bonferroni→BH-FDR change; the change is in source (`mahalanobis.js:152`, `bhFDR(rowPvals)` at α=0.001). No test gates on pure Bonferroni — it survives only nested inside DupDet block-copy and Missing-Data block-scan, both of which then feed a BH gate. The "everything is BH-FDR at the row/unit gate" statement now holds across the battery.
 
 **3. Cross-Condition Rank uses ρ₀ = 0.85 heuristic (Tier 2); everything else is Tier 1.** LOO alternative specified in METHODOLOGY.md §1.5. Already planned — STATUS priority 12.
 
@@ -545,7 +545,7 @@ Independent tracks, none blocking the others:
 **Track A — Coherence cleanup** (Code, small).
 
 1. DupDet: Tests 1+3 to exact binomial; empirically test Test 2 gate removal; FLAGGED/NOTED terminology fix.
-2. Mahalanobis Bonferroni → BH-FDR.
+2. Mahalanobis Bonferroni → BH-FDR. LANDED (source `mahalanobis.js:152`); listed here for sequence completeness.
 3. CCR ρ₀ → LOO.
 4. Escalation rule: Runs + Row-Mean Runs → sub-unit BH-FDR.
 5. ConstOffset: expand to all column pairs.
