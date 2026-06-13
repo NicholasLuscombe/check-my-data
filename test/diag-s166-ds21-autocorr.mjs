@@ -41,7 +41,7 @@ console.log('  higherLagWasDecisive=', ac?.higherLagWasDecisive);
 console.log('  pooledMeanR1        =', ac?.pooledMeanR1);
 console.log('  pooledP             =', ac?.pooledP);
 console.log('  pooledR1SD          =', typeof ac?.pooledR1SD === 'number' ? ac.pooledR1SD.toFixed(4) : ac?.pooledR1SD);
-console.log('  pooledR1CI95        =', Array.isArray(ac?.pooledR1CI95) ? ac.pooledR1CI95.map(v => v.toFixed(4)) : ac?.pooledR1CI95);
+console.log('  pooledR1CI          =', Array.isArray(ac?.pooledR1CI) ? ac.pooledR1CI.map(v => v.toFixed(4)) : ac?.pooledR1CI);
 console.log('  nPairs              =', ac?.nPairs);
 console.log('  effectSizeClass     =', ac?.effectSizeClass);
 
