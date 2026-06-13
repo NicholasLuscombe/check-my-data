@@ -82,7 +82,7 @@ export function testRuns(matrix, condCtx, rng) {
   const pooledZSD = allZ.length >= 2 ? stddev(allZ) : 0;
   const pooledZSE = allZ.length >= 2 ? pooledZSD / Math.sqrt(allZ.length) : 0;
   const pooledZCI95 = allZ.length >= 2
-    ? [pooledMeanZ - 1.96 * pooledZSE, pooledMeanZ + 1.96 * pooledZSE]
+    ? [pooledMeanZ - 3.29 * pooledZSE, pooledMeanZ + 3.29 * pooledZSE]
     : null;
 
   // ── Windowed permutation scan ──

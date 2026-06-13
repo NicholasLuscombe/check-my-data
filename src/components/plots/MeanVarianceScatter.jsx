@@ -22,7 +22,7 @@ export function MeanVarianceScatter({ logPoints, logCentroid, observedSlope, exp
   const x0=xMin-xPad, x1=xMax+xPad;
   // For y, ensure slope lines fit but NOT CI band (clip it instead)
   const lineYatX=(slope,x)=>cy+slope*(x-cx);
-  const ciHi=obsSlope+1.96*se, ciLo=obsSlope-1.96*se;
+  const ciHi=obsSlope+3.29*se, ciLo=obsSlope-3.29*se;
   const lineYs=[obsSlope,expSlope].filter(s=>s!=null).flatMap(s=>[lineYatX(s,x0),lineYatX(s,x1)]);
   const y0=Math.min(yMin-yPad,...lineYs), y1=Math.max(yMax+yPad,...lineYs);
 
@@ -115,7 +115,7 @@ export function MeanVarianceScatter({ logPoints, logCentroid, observedSlope, exp
       {/* legend */}
       <line x1={PL+4} y1={PT+10} x2={PL+20} y2={PT+10} stroke={obsCol} strokeWidth={CS.FIT.w}/>
       <text x={PL+24} y={PT+14} fontSize={CF.AXIS} fill={obsCol} fontFamily={FF.UI}>
-        Observed slope {parseFloat(observedSlope).toFixed(2)}{hasCINumbers?` (95% CI: ${ciLo.toFixed(2)} – ${ciHi.toFixed(2)})`:""}
+        Observed slope {parseFloat(observedSlope).toFixed(2)}{hasCINumbers?` (99.9% CI: ${ciLo.toFixed(2)} – ${ciHi.toFixed(2)})`:""}
       </text>
       {expSlope!==null&&(<>
         <line x1={PL+4} y1={PT+26} x2={PL+20} y2={PT+26} stroke={expCol} strokeWidth={CS.REF.w} strokeDasharray={CS.REF.dash} opacity={CS.REF.opacity}/>
