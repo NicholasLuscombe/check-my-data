@@ -66,7 +66,7 @@ export function MiniCard_Mahalanobis({ result, importConfig, rowMap }) {
       {(hasAllCond || hasSinglePlot) && (<>
         {/* S210 (multi-surface): primary-surface heading dropped — the footer
             fragment (LEAD_HEAD in MiniCardLayout) heads this primary plot. */}
-        <PlotLayout>
+        <PlotLayout fitContent>
           <MahalanobisDistPlot
             allCondD2={hasAllCond ? result.allCondD2 : undefined}
             condColorMap={condColorMap}
