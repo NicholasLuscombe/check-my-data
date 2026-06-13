@@ -35,6 +35,15 @@ downstream decision:
    - **centred-on-null** — the band sits around an expected REFERENCE; significance =
      observed outside band.
 
+   **The convention is an OUTPUT of the exceedance rule, not an independent choice (S232).**
+   Which shape a card takes is fixed by what its verdict tests against: the band must use
+   the same null/spread the verdict uses, or the picture can contradict the verdict. A card
+   whose verdict tests an observed statistic against a meaningful zero, on the observed
+   spread, is exclude-null by construction — there is no free swap to centred-on-null without
+   also changing what the verdict tests. "Consistent cross-test" therefore means each band
+   faithfully pictures its own verdict, not that all bands share one shape regardless of
+   verdict. (See the WS-1 lock notes below, and the §Locked summary.)
+
 A card draws a band **iff** it is in the §3 draw set. A card being feasibility-"analytic"
 in the CI screen does NOT put it in the draw set — Within-Row Variance, Selective Noise,
 and CCR are analytic-feasible but are NOT drawn (they fail the exceedance rule; see
@@ -72,12 +81,30 @@ marked (the existing "r=0 independent" dashed line stays). Mechanism: analytic S
 marker — at 99.9% it must visibly agree with the pooled-t flag (a band excluding 0 ⇔ card
 flags HIGH). Confirm on a flagged fixture that the two agree.
 
+> **Convention lock (S232).** Exclude-null is locked here *because* the headline verdict is
+> the pooled-t on the observed between-pair spread (METHODOLOGY §2.1) — the band must use the
+> same spread (the §1 exceedance rule), and a band on the observed r with that spread is
+> exclude-null by construction. Centred-on-null was considered (one-glance "outside
+> expectation" read) and closed: it would require the verdict to use the `1/√n` independence
+> null, which §2.1 deliberately rejected for the documented pair-lottery artifact. Do not
+> reopen centred-on-null without first changing the verdict null — which §2.1 argues against.
+> (S232 also restructured the verdict surface to a 1-D r number-line — the whisker on the
+> decay plot didn't read as an interval; the convention is unaffected by that render change.
+> Verified on flagged and clean fixtures.)
+
 **Runs** — exclude-null. Band on the pooled-z mean; null value **z = 0** marked.
 Mechanism: analytic pooled-z SE (`runs.js:83`), swap the z literal at `:85`
 (PooledZMarker). Watch: this card's strip/table now mark MODERATE pairs (S230); the
 headline band marks HIGH. Two tiers on one card by design — the band (HIGH) and the
 per-pair surfaces (MODERATE) are different statements. The band must not be confused with
 the strip; keep them visually distinct.
+
+> **Convention lock (S232).** Same as Autocorrelation: the headline verdict is the pooled-t
+> on the observed spread of the pooled-z (METHODOLOGY §2.1 Runs, step 4 + flag) → the band
+> uses the observed spread → exclude-null. Centred-on-null closed for the same reason.
+> Verified at source S232. Runs' verdict surface is already a 1-D z number-line and reads
+> correctly as-is — it is the reference treatment the S232 Autocorrelation restructure
+> converged onto.
 
 **Mean-Variance** — exclude-null. Band on the slope; null value **expected slope (0/1/2)**
 marked. Mechanism: analytic slope SE (`MeanVarianceScatter.jsx:25`), swap z. **Carry-over
@@ -86,6 +113,17 @@ not an independent intercept) — the band reflects slope uncertainty only, abou
 centroid. Keep the centroid pinning; the band widens to 99.9% about the same pivot. Do not
 "fix" the expected line to an independent intercept — that is the documented deliberate
 anchoring, not a bug.
+
+> **Geometry confirm (S232).** A read-only source confirm established that the band is a
+> centroid-pinned bow-tie (both bounding lines pass through the log-centroid → zero width
+> there, fanning out with |x−cx|), and the expected-slope line, also centroid-pinned, touches
+> the band only at the pinch (measure-zero) and is strictly outside elsewhere when the
+> expected slope is outside the slope CI. The verdict is computed in slope-space
+> (`meanVariance.js:107-112`, z = (slope−expSlope)/slopeSE); the line-space band is a
+> separate render of that same slope CI. The S231 "expected line threads through the band"
+> read was a centroid-pinch resolution artifact (S133f pixel-read class), not a contradiction
+> — the band agrees with the verdict. No fix. Exclude-null holds: the verdict tests the
+> observed slope against the expected on the slope SE, so the band uses that same spread.
 
 ### WS-2 — analytic-new (closed-form, not yet drawn)
 
@@ -98,7 +136,9 @@ present). The live reference line is already `outlierThreshold` (not the legacy 
 fallback). Watch: the line is suppressed when no row survives — the band must respect that
 suppression (no band drawn on a cleared card). Per-row selection is **BH-FDR, not
 Bonferroni** (METHODOLOGY-MAP corrected S229) — the band is per-row BH, not a Bonferroni
-envelope.
+envelope. (This is a genuine centred-on-null card: its verdict null IS the χ² reference, so
+the band matches the verdict by construction — contrast the WS-1 exclude-null set, whose
+verdicts test against the observed spread.)
 
 **Decimal Precision** — exclude-null. Per-level band; the per-level binomial deficit vs
 the trailing-zero model is the statistic. Mechanism: Clopper-Pearson per precision level,
@@ -306,7 +346,14 @@ it visually not read as a CI — the opposite of a draw.
 **Locked:** level (99.9% uniform across the draw set), corrected basis (BH-adjusted,
 worst-group where per-condition), draw set membership (the 12 cards of §2, modulo the two
 OPENs), the no-band and decorative-distinguish boundaries (Appendices B/C), implementation
-order (Appendix A), the engine prerequisite as a separate gated dispatch (§5).
+order (Appendix A), the engine prerequisite as a separate gated dispatch (§5). The per-card
+convention (exclude-null vs centred-on-null) is the *output* of the §1 band-matches-verdict
+rule applied to each card's verdict null, not an independent choice — the WS-1 set
+(Autocorrelation, Runs, Mean-Variance) all lock exclude-null because all three verdicts test
+an observed statistic against a meaningful zero using the observed spread (S232, sourced to
+METHODOLOGY §2.1 pooled-t and the Mean-Variance slope-space geometry confirm).
+"Consistent cross-test" means each band faithfully pictures its own verdict, not that all
+bands are identically shaped regardless of verdict.
 
 **Open (confirm before the relevant dispatch, not before the spec lands):**
 1. **Terminal Digits convention** — does the clean-uniform null distinguish it from
