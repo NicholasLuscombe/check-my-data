@@ -62,7 +62,7 @@ export function MiniCard_Autocorrelation({ result, importConfig, rowMap }) {
       opacity: 0.7,
       swatchType: "line",
     })),
-    { color: C.TEXT, label: "Mean ± 95% CI at lag 1 (verdict)", swatchType: "dot" },
+    { color: C.TEXT, label: "Mean ± 99.9% CI at lag 1 (verdict)", swatchType: "dot" },
     { color: C.BORDER, label: "r = 0 (independent)", swatchType: "line", dashed: true },
   ] : null;
 
@@ -81,7 +81,7 @@ export function MiniCard_Autocorrelation({ result, importConfig, rowMap }) {
         <>
           {/* S210 (multi-surface): primary-surface heading dropped — the footer
               fragment (LEAD_HEAD in MiniCardLayout) heads this primary plot. */}
-          <PlotLayout>
+          <PlotLayout fitContent>
             {mainChart}
           </PlotLayout>
           {legendItems && <ChartLegend items={legendItems} />}

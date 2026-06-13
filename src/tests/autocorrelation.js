@@ -60,7 +60,7 @@ export function testAutocorrelation(matrix) {
   const pooledR1SD = allR1.length >= 2 ? stddev(allR1) : 0;
   const pooledR1SE = allR1.length >= 2 ? pooledR1SD / Math.sqrt(allR1.length) : 0;
   const pooledR1CI95 = allR1.length >= 2
-    ? [pooledMeanR1 - 1.96 * pooledR1SE, pooledMeanR1 + 1.96 * pooledR1SE]
+    ? [pooledMeanR1 - 3.29 * pooledR1SE, pooledMeanR1 + 3.29 * pooledR1SE]
     : null;
   // Flag: pooled t-test p-value with effect-size gate at large N .
   // At N > 500, genomic autocorrelation (co-regulated neighboring genes) produces
