@@ -53,7 +53,7 @@ export function MahalanobisDistPlot({ allCondD2, condColorMap, plotD2, plotD2Row
   const MINI_H = 100, GAP = 30;
   const nConds = series.length;
   const CW = W - PL - PR;
-  const PT_TOP = 25, PB_BOT = 10;
+  const PT_TOP = 25, PB_BOT = 32; // bottom gutter holds x-tick numbers + x-axis title
   const totalH = PT_TOP + nConds * MINI_H + (nConds - 1) * GAP + PB_BOT;
 
   const yscale = v => MINI_H - (v / globalMax) * MINI_H;
@@ -68,6 +68,12 @@ export function MahalanobisDistPlot({ allCondD2, condColorMap, plotD2, plotD2Row
       <text x={5} y={totalH / 2} fontSize={CF.AXIS} fill={C.TEXT_2}
         textAnchor="middle" fontFamily={FF.UI}
         transform={`rotate(-90,5,${totalH / 2})`}>Distance</text>
+      {/* X-axis title — centered below the bottom chart. x indexes sorted
+          rank (rows ordered by ascending distance), NOT the original row ID,
+          so the title names the ordering to stop a reader reading a dot's
+          x-position as its row number (row IDs ride on the outlier labels). */}
+      <text x={PL + CW / 2} y={totalH - 6} fontSize={CF.AXIS} fill={C.TEXT_2}
+        textAnchor="middle" fontFamily={FF.UI}>Rows sorted by distance</text>
       {series.map((s, ci) => {
         const N = s.d2.length;
         if (N < 1) return null;
