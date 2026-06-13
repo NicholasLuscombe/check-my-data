@@ -7,7 +7,7 @@ plotted bands"). Evidence base: `SESSION229-CI-SCREEN.md` (per-test null type, c
 family, feasibility), `SESSION230-ALPHA-AUDIT.md` (verbatim retrofit targets, level
 confirm).
 
-This spec governs only the **draw** set — the 12 cards where a CI is the natural read of
+This spec governs only the **draw** set — the 11 cards where a CI is the natural read of
 the test. The no-band and decorative-distinguish cards are specified separately (§Appendix
 B) so the boundary is explicit, but they carry no band.
 
@@ -51,7 +51,9 @@ and CCR are analytic-feasible but are NOT drawn (they fail the exceedance rule; 
 
 ---
 
-## 2. The draw set — 12 cards, three workstreams
+## 2. The draw set — 11 cards, three workstreams
+
+*(Was 12; Mahalanobis Row Outlier moved to no-band on the live render — S233, Appendix B. Drops to 10 if Modality lands no-band per its §3 OPEN.)*
 
 The draw set is the natural-fit DRAW classification (S230), not the feasibility roll-up.
 Workstreams are ordered by implementation cost, not priority — all 12 land before the
@@ -60,7 +62,7 @@ programme is complete.
 | WS | Cards | What the draw needs |
 |---|---|---|
 | **WS-1 retrofit** | Autocorrelation, Runs, Mean-Variance | Already draw a 95% band; swap z 1.96 → 3.29. Lowest cost. |
-| **WS-2 analytic-new** | Mahalanobis, Decimal Precision, VFS, Terminal Digits, IRC (per-pair), Modality | Closed-form band, not currently drawn. No engine edit. |
+| **WS-2 analytic-new** | Decimal Precision, VFS, Terminal Digits, IRC (per-pair), Modality | Closed-form band, not currently drawn. No engine edit. (Mahalanobis was scoped first but moved to no-band on the live render — S233, Appendix B.) |
 | **WS-3 permutation-read** | Entropy, Column GoF, Kurtosis | Band read from an existing permutation/sim null at the adjusted quantile. **Prerequisite engine edit** — the null quantiles are currently discarded; they must be retained. |
 
 WS-3 has a hard dependency (the engine edit) that WS-1 and WS-2 do not. WS-1 and WS-2 can
@@ -127,18 +129,28 @@ anchoring, not a bug.
 
 ### WS-2 — analytic-new (closed-form, not yet drawn)
 
-**Mahalanobis Row Outlier** — centred-on-null. Band on the χ²(nC) distribution; the
-corrected per-row boundary is the line. **The cleanest case in the battery:**
-`outlierThreshold` (`mahalanobis.js:152`, BH-FDR survivor boundary at ROW_ALPHA=0.001)
-*already is* the empirical HIGH-tier boundary — the band is the χ² envelope at the
-corrected per-row level, closed-form via `chiSquaredQuantile(nC, q)` (`:194`, already
-present). The live reference line is already `outlierThreshold` (not the legacy χ²(0.99)
-fallback). Watch: the line is suppressed when no row survives — the band must respect that
-suppression (no band drawn on a cleared card). Per-row selection is **BH-FDR, not
-Bonferroni** (METHODOLOGY-MAP corrected S229) — the band is per-row BH, not a Bonferroni
-envelope. (This is a genuine centred-on-null card: its verdict null IS the χ² reference, so
-the band matches the verdict by construction — contrast the WS-1 exclude-null set, whose
-verdicts test against the observed spread.)
+**Mahalanobis Row Outlier** — **moved to no-band (Appendix B), S233.** Was the first WS-2
+card scoped; the band was built and rendered, and the live render answered the §3 OPEN
+("does the band earn its name") with no. On every fixture in the 22-set, `outlierThreshold`
+(the smallest BH-FDR survivor D²) equals the single flagged row's own distance — so the
+"flagged region above the cutoff" degenerates to a thin sliver hugging the plot ceiling with
+the one outlier sitting on its lower edge. It adds visual weight without information; the
+existing dashed `outlierThreshold` line plus the red outlier dot already carry the whole
+argument. The only state where the band would have area (2+ outliers, cutoff below several
+flagged points) has no positive anchor in the 22-set (walk #10 / parked #49) and cannot be
+built or verified. See Appendix B for the full rationale. The S233 correction below stands
+as the record of why the χ² framing was wrong, but the card is no longer in the draw set.
+
+> **Correction (S233).** An earlier draft of this row conflated two distinct values and is
+> corrected here against source (S233 read-only). `outlierThreshold` (`:195`) is the BH-FDR
+> survivor boundary — data-derived, the verdict's cutoff, null when `nOut === 0`.
+> `plotThreshold` = `chiSquaredQuantile(nC, 1 − ALPHA_BIN)` (`:194`) is the closed-form
+> χ²(nC, 0.99) tail — a *different* value that does NOT decide membership. The two diverge on
+> real data. The verdict flags on BH-FDR at α=0.001, not on the raw χ²(0.99) tail, so §1
+> (band-exceedance = verdict-exceedance) requires any band to picture the BH-FDR decision,
+> not the χ²(0.99) tail. The earlier "centred-on-null / band IS the χ² envelope / matches by
+> construction" framing rested on the conflation and is withdrawn. The `:152` line reference
+> in the earlier draft was also wrong (`:152` is unrelated; the symbols are at `:194`/`:195`).
 
 **Decimal Precision** — exclude-null. Per-level band; the per-level binomial deficit vs
 the trailing-zero model is the statistic. Mechanism: Clopper-Pearson per precision level,
@@ -298,9 +310,9 @@ walk findings own the residuals; the dispatch merges them).
 1. **WS-1 retrofit** (Autocorrelation, Runs, Mean-Variance) — lowest cost, no engine edit,
    highest confidence (the bands already draw). Validates the 99.9% level visually on three
    live bands before extending. Land first.
-2. **WS-2 analytic-new**, Mahalanobis first (cleanest case, `outlierThreshold` already the
-   boundary), then DecPrec / VFS / Terminal / IRC. Modality gated on its OPEN level
-   exception; Terminal gated on its OPEN convention check.
+2. **WS-2 analytic-new** — DecPrec / VFS / Terminal / IRC. Modality gated on its OPEN level
+   exception; Terminal gated on its OPEN convention check. (Mahalanobis was the original WS-2
+   lead but moved to no-band on the live render — S233, Appendix B.)
 3. **WS-3 engine prerequisite** dispatch, then WS-3 draws (Entropy, Column GoF, Kurtosis).
 
 Each card's band rides with its surface residuals (§6).
@@ -323,6 +335,18 @@ Data, Carlisle, Blocked Mahalanobis, CCC.
 - **Within-Row Variance** — count-tail gate (is the COUNT of extreme rows beyond the
   binomial tail), not per-row; a per-row band would assert per-row inference the gate
   doesn't make. Decorative-distinguish only (§Appendix C).
+- **Mahalanobis Row Outlier** — **moved here from the draw set on the live render (S233).**
+  The corrected decision is a single threshold (`outlierThreshold`, the smallest BH-FDR
+  survivor D²), not an interval, so the only honest band is the shaded half-plane above it.
+  On every 22-set fixture that flag is a *single* outlier, so `outlierThreshold` equals that
+  one row's distance and the shaded region degenerates to a sliver at the plot ceiling — the
+  flagged dot sits on its lower edge, the region is near-empty. Built and rendered S233 on
+  DS06/DS08; it added visual weight without information. The band would only have area on a
+  2+-outlier fixture (cutoff below several flagged points), which has no positive anchor
+  (walk #10 / parked #49) and cannot be verified. The existing dashed `outlierThreshold` line
+  plus the red outlier dot already carry the full argument. No band; keep the line. (If a
+  multi-outlier positive anchor lands via #49, revisit whether a band earns its place then —
+  but not before a fixture can render it.)
 
 **Modality** — pending the §3 OPEN; lean is to land it here (no-band, MOD-capped, same
 logic as CCR).
@@ -344,7 +368,7 @@ it visually not read as a CI — the opposite of a draw.
 ## Locked / open summary
 
 **Locked:** level (99.9% uniform across the draw set), corrected basis (BH-adjusted,
-worst-group where per-condition), draw set membership (the 12 cards of §2, modulo the two
+worst-group where per-condition), draw set membership (the 11 cards of §2, modulo the two
 OPENs), the no-band and decorative-distinguish boundaries (Appendices B/C), implementation
 order (Appendix A), the engine prerequisite as a separate gated dispatch (§5). The per-card
 convention (exclude-null vs centred-on-null) is the *output* of the §1 band-matches-verdict

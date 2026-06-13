@@ -329,7 +329,7 @@ What each live plot changes. "OK" = already conforms.
 | HBarPlot | bars fixed blue `CC.OBS`; ref line teal | OK |
 | VBarPlot | expected line defaults to blue `CC.OBS` | expected line → teal `CC.EXP` (currently miscoloured as observed) |
 | KurtosisDistPlot | observed blue; sim-null teal solid | OK |
-| MahalanobisDistPlot | dots `.text`; outlier solid red; threshold line solid red | threshold line → faded/dashed red (channel 1 flag-boundary); dots/outlier OK |
+| MahalanobisDistPlot | dots `.text`; outlier solid red; threshold line **faded/dashed red** (`CS.REF.dash`/`CS.REF.opacity`) | **DONE** — line already faded/dashed at source (the "solid" current-state flag was stale; confirmed S233); dots/outlier OK |
 | MeanVarianceScatter | observed blue; expected slope teal | OK |
 | MissingDataHeatmap | missing cells + block outline red | OK (red = anomalous, intensity/flag) |
 | NoiseProfilePlot | observed blue; LOESS teal; changepoints red | OK (changepoint = detected anomaly) |
@@ -355,8 +355,15 @@ What each live plot changes. "OK" = already conforms.
   the lone axis-furniture instance not yet on `C.AXIS`, pending a stroke-uniformity repair
   (BANKED § CoordResidualProfile inline `C.BORDER` axis line).
 - The facet of *which* plots carry axis titles and how caption zones are placed is a
-  separate inventory (title/caption presence) — catalogued but not yet ruled; this
-  section rules colour/stroke only.
+  separate inventory (title/caption presence) — this section rules colour/stroke only.
+  **Title-presence inventory done (S233): `SESSION233-AXIS-LABEL-AUDIT.md` catalogues all
+  22 surfaces (16 `plots/` components + 6 inline `<PlotSVG>` card surfaces) for x/y-title
+  presence, with verbatim text and per-absence reasoning. Findings routed: (1)
+  RegionalNoiseStrip `yAxisTitle` wired but never passed → candidate gap, eyes-on next
+  (BANKED); (2) Carlisle/WithinRowVariance untitled count axis → likely-fix, low priority
+  (BANKED); (3) inline surfaces render axis titles at `CF.SMALL` vs `plots/` at `CF.AXIS` →
+  reconcile in the cross-card legend/typography pass (BANKED). Caption-zone placement
+  remains unruled.**
 
 **Shared-lever changes** (one retoken, battery-wide):
 - `TIER_COLOR` → two-regime ramp: slate-neutral floor (below threshold) → amber → red
@@ -377,7 +384,8 @@ What each live plot changes. "OK" = already conforms.
 
 **Per-plot tail** (individual edits):
 - VBarPlot expected line → teal.
-- MahalanobisDistPlot threshold line → faded/dashed red.
+- MahalanobisDistPlot threshold line → faded/dashed red. **(DONE — already faded/dashed at
+  source; the conformance-table "solid" flag was stale, confirmed S233.)**
 - NoiseSpreadPlot outlier → red (resolve the amber/red outlier split).
 - RowMeanTrendPlot mint → teal.
 
