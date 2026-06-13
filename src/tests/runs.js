@@ -75,8 +75,8 @@ export function testRuns(matrix, condCtx, rng) {
   const nSig=res.filter(r=>r.significant).length;
   const pooled=allZ.length>=2?oneSampleT(allZ):{t:0,df:0,p:1};
   const pooledMeanZ=allZ.length?mean(allZ):0;
-  // S166 A5: additive 95% CI on the pooled mean-z for the headline marker.
-  // Normal-approximation interval (mean ± 1.96·SE) consistent with the
+  // S166 A5: additive 99.9% CI on the pooled mean-z for the headline marker.
+  // Normal-approximation interval (mean ± 3.29·SE) consistent with the
   // oneSampleT df>30 branch. CI's relation to z=0 IS the pooled-t verdict
   // (negative-of-zero = too few runs across pairs). Null when n<2.
   const pooledZSD = allZ.length >= 2 ? stddev(allZ) : 0;

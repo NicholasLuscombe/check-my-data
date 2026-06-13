@@ -39,7 +39,7 @@ export function MeanVarianceScatter({ logPoints, logCentroid, observedSlope, exp
   const obsCol = CC.OBS;
   const expCol = CC.EXP;
 
-  // 95% CI: always show numbers in legend, but only render band when narrow enough to be informative
+  // 99.9% CI: always show numbers in legend, but only render band when narrow enough to be informative
   const hasCINumbers=se>0&&se<Infinity&&se<50;
   const showCIBand=hasCINumbers&&se<2; // band useless when CI spans >~8 slope units
   const ciUpper=showCIBand?lineEndpoints(ciHi):null;
@@ -92,7 +92,7 @@ export function MeanVarianceScatter({ logPoints, logCentroid, observedSlope, exp
       <text x={PL+CW/2} y={H-2} fontSize={CF.AXIS} fill={C.TEXT_2} textAnchor="middle" fontFamily={FF.UI}>log₁₀(mean)</text>
       <text x={12} y={PT+CH/2} fontSize={CF.AXIS} fill={C.TEXT_2} textAnchor="middle"
         fontFamily={FF.UI} transform={`rotate(-90,12,${PT+CH/2})`}>log₁₀(variance)</text>
-      {/* 95% CI band (clipped to plot area) */}
+      {/* 99.9% CI band (clipped to plot area) */}
       {showCIBand&&ciUpper&&ciLower&&(
         <polygon clipPath={`url(#${clipId})`}
           points={`${ciUpper[0].x},${ciUpper[0].y} ${ciUpper[1].x},${ciUpper[1].y} ${ciLower[1].x},${ciLower[1].y} ${ciLower[0].x},${ciLower[0].y}`}
