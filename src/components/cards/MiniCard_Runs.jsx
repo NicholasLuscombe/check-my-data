@@ -18,7 +18,7 @@ const SIGN_NEG = SIGN.NEG;
 
 // ── Pooled mean-z verdict marker (S166 A5) ──────────────────────────
 // Small inline horizontal-axis plot showing the producer's pooled mean-z
-// from the one-sample t (runs.js) with its 95% CI whisker, against the
+// from the one-sample t (runs.js) with its 99.9% CI whisker, against the
 // dashed z = 0 reference. The interval's relation to zero IS the verdict;
 // negative-of-zero = too few runs distributed across pairs (the §2.3
 // fabrication signal). Drawn above the per-pair sign strips so the
@@ -178,7 +178,7 @@ export function MiniCard_Runs({ result, importConfig, rowMap }) {
 
       {/* S166 A5: pooled mean-z headline marker — the verdict statistic
           (one-sample t on per-pair z, runs.js:72) drawn against z = 0 with
-          its 95% CI whisker. The interval-vs-zero relation IS the verdict;
+          its 99.9% CI whisker. The interval-vs-zero relation IS the verdict;
           per-pair strips below are texture. Suppressed when n < 2 (no CI
           defined) or under the windowed-driver branch where the per-pair
           marker isn't the headline. */}

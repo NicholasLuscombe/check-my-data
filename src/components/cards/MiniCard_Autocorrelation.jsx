@@ -20,7 +20,7 @@ export function MiniCard_Autocorrelation({ result, importConfig, rowMap }) {
   const meanR1 = typeof result.pooledMeanR1 === "number" ? result.pooledMeanR1 : parseFloat(result.pooledMeanR1);
 
   // ── Verdict marker (S166 A1) ──
-  // The producer's pooled lag-1 mean + 95% CI from the one-sample t on
+  // The producer's pooled lag-1 mean + 99.9% CI from the one-sample t on
   // allR1 (autocorrelation.js). The plot draws it at lag 1; the CI's
   // exclusion of zero is the verdict in visual form.
   const verdictMarker = Number.isFinite(meanR1) ? {
@@ -53,7 +53,7 @@ export function MiniCard_Autocorrelation({ result, importConfig, rowMap }) {
   }
 
   // ── Legend items — per-condition lines, r=0 reference, and the verdict
-  //    marker (pooled lag-1 mean ± 95% CI). The pre-S166 "Expected range"
+  //    marker (pooled lag-1 mean ± 99.9% CI). The pre-S166 "Expected range"
   //    swatch retires alongside the ±0.15 rectangle. ──
   const legendItems = hasDecay ? [
     ...(result.perGroupDecay || [{ group: "All data" }]).map((c, ci) => ({
@@ -98,7 +98,7 @@ export function MiniCard_Autocorrelation({ result, importConfig, rowMap }) {
               {(result.perGroupDecay?.length || 0) > 1
                 ? "Lines are per-condition lag-k means"
                 : "The line shows lag-k means across pairs"}
-              ; dots are per-lag values. The mean ± 95% CI marker at lag 1 carries the verdict — average serial correlation across pairs is reliably above zero when the interval excludes the dashed reference.
+              ; dots are per-lag values. The mean ± 99.9% CI marker at lag 1 carries the verdict — average serial correlation across pairs is reliably above zero when the interval excludes the dashed reference.
             </div>
           )}
         </>

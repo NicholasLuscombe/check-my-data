@@ -53,8 +53,8 @@ export function testAutocorrelation(matrix) {
   // More powerful than proportion heuristic, especially for small nC.
   const pooled=allR1.length>=2?oneSampleT(allR1):{t:0,df:0,p:1};
   const pooledMeanR1=allR1.length?mean(allR1):0;
-  // S166 A1: additive 95% CI on the pooled lag-1 mean for the plot's verdict
-  // marker. Normal-approximation interval (mean ± 1.96·SE) — consistent with
+  // S166 A1: additive 99.9% CI on the pooled lag-1 mean for the plot's verdict
+  // marker. Normal-approximation interval (mean ± 3.29·SE) — consistent with
   // oneSampleT's df>30 z-approximation branch. CI's exclusion of zero IS the
   // pooled-t verdict in visual form. Empty array when n<2 (no interval defined).
   const pooledR1SD = allR1.length >= 2 ? stddev(allR1) : 0;
