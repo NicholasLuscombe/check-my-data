@@ -59,7 +59,7 @@ export function testAutocorrelation(matrix) {
   // pooled-t verdict in visual form. Empty array when n<2 (no interval defined).
   const pooledR1SD = allR1.length >= 2 ? stddev(allR1) : 0;
   const pooledR1SE = allR1.length >= 2 ? pooledR1SD / Math.sqrt(allR1.length) : 0;
-  const pooledR1CI95 = allR1.length >= 2
+  const pooledR1CI = allR1.length >= 2
     ? [pooledMeanR1 - 3.29 * pooledR1SE, pooledMeanR1 + 3.29 * pooledR1SE]
     : null;
   // Flag: pooled t-test p-value with effect-size gate at large N .
@@ -164,7 +164,7 @@ export function testAutocorrelation(matrix) {
     pooledT:pooled.t.toFixed(3), pooledP:pooled.p.toFixed(4),
     primaryP: Math.min(pooled.p, ...(anyPairFlagged ? acfAdjPs.filter(p=>p<ALPHA.FLAG) : [1])),
     effectSizeClass,
-    pooledR1SD, pooledR1SE, pooledR1CI95,
+    pooledR1SD, pooledR1SE, pooledR1CI,
     lagTable, higherLagPromoted, higherLagWasDecisive,
     decayCurve, flag, details:res.slice(0,15) };
 }

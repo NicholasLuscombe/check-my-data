@@ -48,7 +48,7 @@ for (const [file, assay] of [['21-localised-ar.csv', 'general'], ['02-densitomet
     : ac.decayCurve ? [{ group: 'All data', curve: ac.decayCurve }] : [];
   const verdictMarker = Number.isFinite(parseFloat(ac.pooledMeanR1)) ? {
     value: parseFloat(ac.pooledMeanR1),
-    ci: Array.isArray(ac.pooledR1CI95) ? ac.pooledR1CI95 : null,
+    ci: Array.isArray(ac.pooledR1CI) ? ac.pooledR1CI : null,
     lag: 1,
   } : null;
   const fit = simulateAxisFit(curves, verdictMarker);
