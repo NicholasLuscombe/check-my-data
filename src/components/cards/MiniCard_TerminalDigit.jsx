@@ -9,6 +9,20 @@ export function MiniCard_TerminalDigit({ result, importConfig, rowMap }) {
   const details = result.details || [];
 if(!details.length) return null;
 
+  // Per-unit display follows the corrected decision the verdict used
+  // (INVESTIGATION-DISPLAY-SPEC §544): under trailing-zero suppression the gate
+  // runs the 9-digit test with digit 0 excluded (terminalDigits.js:46-54), so the
+  // plot drops digit 0 and centres on the 9-digit uniform (exp9 = total9/9), not
+  // the ten-digit exp10. Display-only — the engine result is unchanged.
+  const tzw = result.trailingZeroWarning;
+  let plotDetails = details;
+  if (tzw) {
+    const digit0 = details.find(d => d.digit === 0);
+    const exp9 = (result.nValues - (digit0 ? digit0.observed : 0)) / 9;
+    plotDetails = details.filter(d => d.digit !== 0).map(d => ({ ...d, expected: exp9 }));
+  }
+  const xlabel = tzw ? "Terminal digit (1–9)" : "Terminal digit (0–9)";
+
 const implications = "Non-uniform last digits can result from instrument truncation, software rounding during export, or file format conversion that strips trailing zeros. They can also indicate hand-entered or hand-adjusted values — humans tend to avoid certain digits and over-use others when typing numbers.";
 
 return (
@@ -23,14 +37,14 @@ return (
 
     {/* S210 (single-surface): section heading dropped — the footer
         fragment (LEAD_HEAD in MiniCardLayout) heads this sole plot. */}
-    <PlotLayout>
+    <PlotLayout fitContent>
         <VBarPlot
-          items={details}
+          items={plotDetails}
           xKey="digit" obsKey="observed"
           expKey="expected"
           obsColor={CC.OBS}
           expColor={CC.EXP}
-          xlabel="Terminal digit (0–9)"
+          xlabel={xlabel}
           ylabel="Count"/>
     </PlotLayout>
     <ChartLegend items={[
