@@ -18,7 +18,7 @@ export function MiniCard_DecimalPrecision({ result, importConfig, rowMap }) {
   });
   const hasGap = filledItems.some(d => d.isGap);
 
-  const gapCount = (result.details || []).filter(d => d.deficit === true || parseFloat(d.ratio) < 0.5).length;
+  const gapCount = (result.perLevel || []).filter(l => l.adjP < 0.001).length;
   const implications = `${gapCount || "Some"} precision level${gapCount !== 1 ? "s" : ""} show${gapCount === 1 ? "s" : ""} fewer values than the trailing-zero model predicts. A dataset recorded by a single instrument at consistent settings typically shows one dominant precision level with a smooth tail from trailing-zero stripping. Gaps or deficits in this pattern can indicate values from different sources, manual editing, or changes in recording precision mid-experiment.`;
 
   return (
