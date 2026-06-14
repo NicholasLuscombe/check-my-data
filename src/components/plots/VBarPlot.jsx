@@ -16,16 +16,11 @@ function fmtTick(v) {
 }
 
 // Vertical bar chart (digit frequencies)
-export function VBarPlot({ items, xKey, obsKey, expKey, loKey, xlabel, ylabel, obsColor, expColor, flagKey, barColorKey }) {
+export function VBarPlot({ items, xKey, obsKey, expKey, xlabel, ylabel, obsColor, expColor, flagKey, barColorKey }) {
   if(!items?.length) return null;
   const W=CP.W_MD, H=110, PL=40, PR=8, PT=8, PB=30;
   const CW=W-PL-PR, CH=H-PT-PB;
   const obsVals=items.map(d=>d[obsKey]||0), expVals=expKey ? items.map(d=>d[expKey]||0) : [];
-  // Indices that actually carry an expected value. Full-coverage consumers
-  // (Benford, Terminal Digit) have every item defined; partial-coverage ones
-  // (Decimal Precision — intermediate levels only) leave the edge bars undefined.
-  const expIdx = expKey ? items.reduce((a,d,i)=>{ if(d[expKey]!=null) a.push(i); return a; }, []) : [];
-  const fullExp = expKey && expIdx.length===items.length;
   const rawMax=Math.max(...obsVals,...expVals,1);
   const step=niceStep(rawMax);
   const ticks=[];
@@ -34,18 +29,6 @@ export function VBarPlot({ items, xKey, obsKey, expKey, loKey, xlabel, ylabel, o
   const mx=ticks[ticks.length-1]||1;
   const bw=Math.floor(CW/items.length)-2;
   function yscale(v){ return PT+CH-(v/mx)*CH; }
-  // Full-coverage expected lines snap their endpoints to the chart edges (Benford
-  // span-the-width aesthetic); partial-coverage lines stay on bar centres so they
-  // don't dive to the axis at the unbanded edge bars.
-  const expX = i => (fullExp && i===0) ? PL : (fullExp && i===items.length-1) ? PL+CW : PL+i*(bw+2)+bw/2;
-  // 99.9% deficit band: a polygon from the expected line (top) down to the per-level
-  // lower bound (bottom), over the contiguous run of levels carrying both. One-sided
-  // (no upper edge) — the test is a one-tailed deficit. Gated identically to the line.
-  const bandIdx = loKey ? expIdx.filter(i => items[i][loKey] != null) : [];
-  const bandPoints = bandIdx.length>1
-    ? [...bandIdx.map(i=>`${expX(i)},${yscale(expVals[i])}`),
-       ...bandIdx.slice().reverse().map(i=>`${expX(i)},${yscale(items[i][loKey])}`)].join(" ")
-    : null;
   return (
     <PlotSVG W={W} H={H}>
       {/* y-axis gridlines + tick labels */}
@@ -57,13 +40,12 @@ export function VBarPlot({ items, xKey, obsKey, expKey, loKey, xlabel, ylabel, o
             textAnchor="end" fontFamily={FF.MONO}>{fmtTick(t)}</text>
         </g>
       ))}
-      {/* 99.9% deficit band — sits under the bars and the expected line */}
-      {bandPoints&&(
-        <polygon points={bandPoints} fill={expColor||CC.EXP} opacity="0.10" stroke="none"/>
-      )}
-      {/* expected line — full width when every bar has an expected value, else bar-centred */}
-      {expIdx.length>1&&(
-        <polyline points={expIdx.map(i=>`${expX(i)},${yscale(expVals[i])}`).join(" ")}
+      {/* expected line — spans full chart width */}
+      {expVals.length>1&&(
+        <polyline points={items.map((_,i)=>{
+          const x = i===0 ? PL : i===items.length-1 ? PL+CW : PL+i*(bw+2)+bw/2;
+          return `${x},${yscale(expVals[i])}`;
+        }).join(" ")}
           fill="none" stroke={expColor||CC.EXP} strokeWidth={CS.REF.w} strokeDasharray={CS.REF.dash} opacity={CS.REF.opacity}/>
       )}
       {/* observed bars */}
