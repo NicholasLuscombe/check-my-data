@@ -7,7 +7,7 @@ plotted bands"). Evidence base: `SESSION229-CI-SCREEN.md` (per-test null type, c
 family, feasibility), `SESSION230-ALPHA-AUDIT.md` (verbatim retrofit targets, level
 confirm).
 
-This spec governs only the **draw** set — the 10 cards where a CI is the natural read of
+This spec governs only the **draw** set — the 8 cards where a CI is the natural read of
 the test. The no-band and decorative-distinguish cards are specified separately (§Appendix
 B) so the boundary is explicit, but they carry no band.
 
@@ -51,18 +51,20 @@ and CCR are analytic-feasible but are NOT drawn (they fail the exceedance rule; 
 
 ---
 
-## 2. The draw set — 10 cards, three workstreams
+## 2. The draw set — 8 cards, three workstreams
 
-*(Was 12. Mahalanobis Row Outlier moved to no-band on the live render — S233, Appendix B. Decimal Precision moved to no-band on the live render — S234, Appendix B. Drops to 9 if Modality lands no-band per its §3 OPEN.)*
+*(Was 12. Four WS-2 cards moved to no-band: Mahalanobis Row Outlier (S233, sliver), Decimal Precision (S234, dominant-bar scale swamp), Value-Frequency Spike (S235, no hostable plot), Terminal Digits (S236, no clean-uniform fixture — every fixture trips the trailing-zero branch). Appendix B for each. Drops to 7 if Modality lands no-band per its §3 OPEN.)*
 
 The draw set is the natural-fit DRAW classification (S230), not the feasibility roll-up.
-Workstreams are ordered by implementation cost, not priority. (Two cards have since moved
-to Appendix B on their live renders — see the count note above.)
+Workstreams are ordered by implementation cost, not priority. (Four WS-2 cards have since
+moved to Appendix B — two on their live renders (Mahalanobis, DecPrec), one on a read-only
+that found no plot to host a band (VFS), one on a probe that found no fixture exercises the
+band's reference branch (Terminal) — see the count note above.)
 
 | WS | Cards | What the draw needs |
 |---|---|---|
 | **WS-1 retrofit** | Autocorrelation, Runs, Mean-Variance | Already draw a 95% band; swap z 1.96 → 3.29. Lowest cost. |
-| **WS-2 analytic-new** | VFS, Terminal Digits, IRC (per-pair), Modality | Closed-form band, not currently drawn. No engine edit. (Mahalanobis and Decimal Precision were scoped here first but moved to no-band on the live render — S233 / S234, Appendix B.) |
+| **WS-2 analytic-new** | IRC (per-pair), Modality | Closed-form band, not currently drawn. No engine edit. (Mahalanobis, Decimal Precision, Value-Frequency Spike, and Terminal Digits were scoped here first but moved to no-band — S233 / S234 / S235 / S236, Appendix B.) |
 | **WS-3 permutation-read** | Entropy, Column GoF, Kurtosis | Band read from an existing permutation/sim null at the adjusted quantile. **Prerequisite engine edit** — the null quantiles are currently discarded; they must be retained. |
 
 WS-3 has a hard dependency (the engine edit) that WS-1 and WS-2 do not. WS-1 and WS-2 can
@@ -160,32 +162,32 @@ full rationale. The `gapCount` correctness fix found during the scoping — the 
 count read `deficit`/`ratio` fields that don't exist on `details`, so it was permanently
 zero; now reads `perLevel.adjP < 0.001` — was kept and promotes independently (`cf8c749`).
 
-**VFS** — exclude-null. Per-value band; per-value Poisson (λ = LOO neighbour mean) is the
-null. Mechanism: closed-form Poisson survival at the corrected quantile; union BH-FDR
-across pass-1 + pass-2 spikes (`valueFrequencySpike.js:288-295`) + the ratio≥2 gate. Watch:
-the gate is union-BH across two passes plus a ratio floor — the band must reflect the
-union-corrected decision, and the ratio≥2 gate is a separate condition the band does not
-encode (a value can exceed the band but fail ratio≥2 → not flagged). Note that interaction
-on the card so the band isn't read as the sole gate.
+**Value-Frequency Spike** — **moved to no-band (Appendix B), S235.** Scoped as a per-value
+Poisson band but the read-only found there is no plot to host it: the card body is an
+`EvidenceTable`, not an SVG (`MiniCard_ValueFrequency.jsx` imports no plot component;
+`MiniPlot.jsx:54` maps the test to the table card; no `plots/` file references VFS). Adding
+a band is "build a plot first," not a ride-along, and three further blockers sit behind the
+missing plot: the test is dual-pass with no single canonical axis (pass-1 integer histogram
+vs pass-2 per-length digit-substring histograms, driving pass varies by fixture); the
+"expected" is the per-value leave-one-out neighbour mean (a jagged per-bar line, not a
+single CI reference); and real fixtures have hostile x-cardinality (~180 near-unit bars on
+the cellcount fixtures). See Appendix B. Two source corrections to the withdrawn draft: the
+Poisson survival is **inline** (exact upper tail, normal approx for λ>30 —
+`valueFrequencySpike.js:88-105`), not a closed-form library call; and `ratio` divides by the
+**raw** neighbour mean `smoothed`, not the 0.1-floored λ (`:107`).
 
-**Terminal Digits** — centred-on-null. Band around the uniform expected line (the existing
-`expKey="expected"` line stays). Mechanism: per-digit binomial(n, 1/10) envelope, analytic;
-the χ² GoF p is already closed-form. Watch: the gate is a global χ² (`flagFromP(p10)`,
-`terminalDigits.js:58`), not per-digit — so the per-digit band is *illustrative of where
-the omnibus signal comes from*, and a single digit poking out is not itself the flag. This
-is the Benford tension (Appendix B) at lower stakes: here the expected line + band are the
-natural read, but the verdict is the omnibus. Draw the band, but the card copy must keep
-the verdict as the χ² omnibus, not "this digit is significant."
-
-> **OPEN — Terminal Digits convention check.** Terminal Digits sits closest to the
-> Appendix-B Benford carve-out. Benford is no-band because its per-digit band wouldn't
-> match the pooled-MAD gate. Terminal Digits has the same omnibus-gate / per-digit-band
-> structure. The reason it's IN the draw set and Benford is OUT: Terminal's null is a clean
-> uniform (every digit equiprobable, a genuine centred reference a reader interprets
-> directly), whereas Benford's expected frequencies are the test's whole content and the
-> MAD is explicitly pooled. This is a real but fine distinction — **flag for confirm before
-> the WS-2 Terminal dispatch.** If the distinction doesn't hold, Terminal moves to
-> Appendix B alongside Benford.
+**Terminal Digits** — **moved to no-band (Appendix B), S236.** Was scoped as a centred-on-null
+per-digit binomial(n, 1/10) band on the flat ten-digit uniform expected line. The §3 OPEN
+(does the clean-uniform null distinguish it from Benford's pooled-MAD carve-out?) resolved
+against the band: in principle the distinction holds (the default verdict gates on a global χ²
+over the flat ten-digit uniform, `terminalDigits.js:58`, and the plotted expected line is that
+same uniform — a genuine centred reference, unlike Benford's pooled MAD), but a probe across
+all 22 fixtures found **no fixture exercises the default 10-digit branch** — every numeric
+fixture (18/18) trips the trailing-zero 9-digit branch, the other 4 are integer and never
+gated. Decimal instrument data strips trailing zeros (exactly the artifact the 9-digit branch
+corrects for), so the clean ten-digit uniform the band sits on is produced by no real dataset,
+and the band has no fixture to verify against. See Appendix B for the full rationale,
+including the digit-0 display defect fixed alongside (`5a1402d`).
 
 **IRC (per-pair)** — centred-on-null. Per-pair band on the heatmap; the null is the
 **LOO-expected r, not ρ = 0** (`interReplicateCorrelation.js`). Mechanism: per-pair
@@ -193,7 +195,9 @@ Fisher-z SE (`:107-114`), analytic. Watch: the centre is the leave-one-out expec
 correlation, NOT zero — drawing a band around ρ=0 would be the wrong null. The windowed
 sub-unit stays no-band (permutation scan, separate surface). The "elevated replicates"
 amber tint is a *relative* cut (mean-Z+1·SD), not a significance band (alpha-audit Q1
-cleared it) — the new per-pair band must not be conflated with that tint.
+cleared it) — the new per-pair band must not be conflated with that tint. **Per the
+four prior WS-2 reverts: confirm a hostable plot with a single canonical axis AND a fixture
+that exercises the band's reference branch before scoping — not just exceedance.**
 
 **Modality** — centred-on-null. Band on the Hartigan dip vs the uniform null. Mechanism:
 analytic qDiptab inversion (bootstrap retired S159b). **The real null is not currently
@@ -216,7 +220,7 @@ flag.
 > decoration. **Lean: (b) no-band**, for consistency with the CCR decision (both MOD-capped,
 > both therefore off the draw set), which keeps the level rule clean (every drawn band is
 > 99.9%, no exceptions). Confirm before WS-2 Modality dispatch. If (b), Modality leaves the
-> draw set → 9 cards, and WS-2 loses one.
+> draw set → 7 cards, and WS-2 loses its last analytic-new draw.
 
 ### WS-3 — permutation-read (engine prerequisite, §5)
 
@@ -310,10 +314,10 @@ walk findings own the residuals; the dispatch merges them).
 1. **WS-1 retrofit** (Autocorrelation, Runs, Mean-Variance) — lowest cost, no engine edit,
    highest confidence (the bands already draw). Validates the 99.9% level visually on three
    live bands before extending. Land first.
-2. **WS-2 analytic-new** — VFS / Terminal / IRC. Modality gated on its OPEN level
-   exception; Terminal gated on its OPEN convention check. (Mahalanobis was the original WS-2
-   lead, and Decimal Precision the next; both moved to no-band on the live render — S233 /
-   S234, Appendix B.)
+2. **WS-2 analytic-new** — IRC is the live analytic-new draw candidate; Modality gated on its
+   level-exception OPEN. (Mahalanobis was the original WS-2 lead, Decimal Precision the next,
+   VFS the third, and Terminal the fourth; all four moved to no-band — S233 / S234 / S235 /
+   S236, Appendix B.)
 3. **WS-3 engine prerequisite** dispatch, then WS-3 draws (Entropy, Column GoF, Kurtosis).
 
 Each card's band rides with its surface residuals (§6).
@@ -365,6 +369,57 @@ Data, Carlisle, Blocked Mahalanobis, CCC.
   the plot were re-scaled to the intermediate levels, which would bury the dominant bar and
   defeat the card's main read.) The `gapCount` correctness fix found during scoping was kept
   (`cf8c749`).
+- **Value-Frequency Spike** — **moved here from the draw set on a read-only, S235.** Unlike
+  Mahalanobis and DecPrec, VFS did not get to a live render: the read-only found the card has
+  no plot. The body is an `EvidenceTable`; frequency appears only as the `Observed` /
+  `Expected` / `Ratio` columns, never on an axis. A band would require building a plot first,
+  and three structural facts make that plot ill-posed: (1) **no single canonical axis** — VFS
+  is dual-pass (pass-1 integer-value histogram, pass-2 a set of fractional-digit-substring
+  histograms bucketed by length), and the driving pass varies by fixture (DS13/DS06 full,
+  DS04 digit), so one plot cannot host both; (2) **per-value null** — λ is the leave-one-out
+  local-neighbour mean, a jagged line tracking local density, not the single reference the
+  programme draws against; (3) **hostile x-cardinality** on the real fixtures (DS06/DS05 are
+  ~180 near-unit-count bars over a 600-wide range). The probe also showed the scale story is
+  per-fixture and varied, not the DecPrec swamp: the synthetic HIGH anchor DS13 is bounded
+  (6–71, 55 bars, count spread 4.4×, the tallest bar IS the spike) and a band there would
+  render legibly and be anchor-verifiable — but the real cellcount fixtures degenerate by
+  sparsity and the qPCR fixtures have no integer axis at all. So even a DS13-shaped plot would
+  degenerate on the other fixtures. No band; the EvidenceTable already carries Observed /
+  Expected / Ratio / Adj. p per value, which is the honest read. (If the programme ever wants
+  a VFS visual, DS13 is the only viable anchor-verifiable target, and it is a bespoke
+  single-fixture-shaped plot build — its own scoped piece, not a band ride-along. Not homed in
+  #49: the blocker is structural, not a missing positive anchor — VFS already has three.)
+- **Terminal Digits** — **moved here from the draw set on a probe, S236.** Was scoped as a
+  centred-on-null per-digit binomial(n, 1/10) band on the flat ten-digit uniform expected
+  line, with the verdict gating on the global χ² (illustrative band, not per-digit decision).
+  The §3 OPEN tested whether the clean-uniform null distinguishes Terminal from Benford —
+  which is no-band because its expected frequencies ARE the test content and the MAD is
+  pooled. **The distinction holds in principle:** the default verdict gates on `p10`, a global
+  χ² over the flat ten-digit uniform `exp10 = total/10` (`terminalDigits.js:58`), and the
+  plotted expected line is that same flat uniform — a genuine centred reference a reader
+  interprets directly, unlike Benford's pooled MAD. **What killed it:** a probe across all 22
+  fixtures (real `testTerminalDigits` on each, matrix built as `validate-batch.mjs` does)
+  found **0 fixtures exercise the default 10-digit branch.** 18/18 numeric-applicable fixtures
+  trip the trailing-zero 9-digit branch (`counts[0] < exp10*0.40`, `df=8`); 4 are
+  100%-integer and never gated. Decimal instrument data strips trailing zeros — exactly the
+  artifact the 9-digit branch corrects for — so the clean ten-digit uniform the band sits on
+  is produced by no real dataset, and the band has no fixture to verify against. Same outcome
+  as VFS, different cause. **The display defect found alongside (fixed, separate from the
+  band):** the plot drew digit 0 and the flat ten-digit expected line even in the suppression
+  branch, while the verdict gates on the 9-digit test with digit 0 excluded — a
+  per-unit-display violation (INVESTIGATION-DISPLAY-SPEC §544, S218). Fixed `5a1402d`,
+  card-side (`MiniCard_TerminalDigit.jsx`): when `trailingZeroWarning`, plot digits 1–9 with
+  `exp9 = total9/9`. This correctness fix lands regardless of the no-band decision — the
+  suppression branch is the operating norm on all real numeric data, not an edge case. The
+  default-branch display path is preserved in source (not removed) but unexercised; a future
+  fixture or upload could trip it. **NOT a parked-anchor band:** Terminal already has fixtures;
+  the blocker is that they all trip the trailing-zero branch. A purpose-built fabricated
+  fixture engineered to dodge trailing-zero stripping (to exercise the default branch and give
+  the band a clean-uniform home) is parked in #49 as a bespoke off-CI idea, not a live band.
+  **Source notes confirmed:** line 58 is the default-branch `flagFromP(p10)`; the suppression
+  branch gates `flagFromP(p9)` at line 54; the plotted expected line is `exp10`
+  (`terminalDigits.js:35`), never rewritten to `exp9` in the suppression branch (the source of
+  the display defect).
 
 **Modality** — pending the §3 OPEN; lean is to land it here (no-band, MOD-capped, same
 logic as CCR).
@@ -386,22 +441,24 @@ it visually not read as a CI — the opposite of a draw.
 ## Locked / open summary
 
 **Locked:** level (99.9% uniform across the draw set), corrected basis (BH-adjusted,
-worst-group where per-condition), draw set membership (the 10 cards of §2, modulo the two
-OPENs), the no-band and decorative-distinguish boundaries (Appendices B/C), implementation
-order (Appendix A), the engine prerequisite as a separate gated dispatch (§5). The per-card
-convention (exclude-null vs centred-on-null) is the *output* of the §1 band-matches-verdict
-rule applied to each card's verdict null, not an independent choice — the WS-1 set
-(Autocorrelation, Runs, Mean-Variance) all lock exclude-null because all three verdicts test
-an observed statistic against a meaningful zero using the observed spread (S232, sourced to
-METHODOLOGY §2.1 pooled-t and the Mean-Variance slope-space geometry confirm).
+worst-group where per-condition), draw set membership (the 8 cards of §2, modulo the one
+remaining OPEN), the no-band and decorative-distinguish boundaries (Appendices B/C),
+implementation order (Appendix A), the engine prerequisite as a separate gated dispatch (§5).
+The per-card convention (exclude-null vs centred-on-null) is the *output* of the §1
+band-matches-verdict rule applied to each card's verdict null, not an independent choice — the
+WS-1 set (Autocorrelation, Runs, Mean-Variance) all lock exclude-null because all three
+verdicts test an observed statistic against a meaningful zero using the observed spread (S232,
+sourced to METHODOLOGY §2.1 pooled-t and the Mean-Variance slope-space geometry confirm).
 "Consistent cross-test" means each band faithfully pictures its own verdict, not that all
 bands are identically shaped regardless of verdict.
 
 **Open (confirm before the relevant dispatch, not before the spec lands):**
-1. **Terminal Digits convention** — does the clean-uniform null distinguish it from
-   Benford's carve-out, keeping it in the draw set? (§3 OPEN.) Confirm before WS-2 Terminal.
-2. **Modality level exception** — no-band (lean, → 9 cards) vs 99% exception band? (§3
+1. **Modality level exception** — no-band (lean, → 7 cards) vs 99% exception band? (§3
    OPEN.) Confirm before WS-2 Modality.
 
-Neither OPEN blocks WS-1 (retrofit) or the WS-2 cards other than Terminal/Modality, nor the
-WS-3 engine prerequisite. The spec is dispatchable for WS-1 immediately on landing.
+(The Terminal Digits convention OPEN — did the clean-uniform null distinguish it from
+Benford's carve-out? — RESOLVED S236: it holds in principle, but no fixture exercises the
+default branch, so Terminal moved to Appendix B no-band.)
+
+The Modality OPEN does not block WS-1 (retrofit), the WS-2 IRC card, or the WS-3 engine
+prerequisite. The spec is dispatchable for WS-1 immediately on landing.
