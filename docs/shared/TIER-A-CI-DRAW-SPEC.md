@@ -7,7 +7,7 @@ plotted bands"). Evidence base: `SESSION229-CI-SCREEN.md` (per-test null type, c
 family, feasibility), `SESSION230-ALPHA-AUDIT.md` (verbatim retrofit targets, level
 confirm).
 
-This spec governs only the **draw** set — the 11 cards where a CI is the natural read of
+This spec governs only the **draw** set — the 10 cards where a CI is the natural read of
 the test. The no-band and decorative-distinguish cards are specified separately (§Appendix
 B) so the boundary is explicit, but they carry no band.
 
@@ -51,18 +51,18 @@ and CCR are analytic-feasible but are NOT drawn (they fail the exceedance rule; 
 
 ---
 
-## 2. The draw set — 11 cards, three workstreams
+## 2. The draw set — 10 cards, three workstreams
 
-*(Was 12; Mahalanobis Row Outlier moved to no-band on the live render — S233, Appendix B. Drops to 10 if Modality lands no-band per its §3 OPEN.)*
+*(Was 12. Mahalanobis Row Outlier moved to no-band on the live render — S233, Appendix B. Decimal Precision moved to no-band on the live render — S234, Appendix B. Drops to 9 if Modality lands no-band per its §3 OPEN.)*
 
 The draw set is the natural-fit DRAW classification (S230), not the feasibility roll-up.
-Workstreams are ordered by implementation cost, not priority — all 12 land before the
-programme is complete.
+Workstreams are ordered by implementation cost, not priority. (Two cards have since moved
+to Appendix B on their live renders — see the count note above.)
 
 | WS | Cards | What the draw needs |
 |---|---|---|
 | **WS-1 retrofit** | Autocorrelation, Runs, Mean-Variance | Already draw a 95% band; swap z 1.96 → 3.29. Lowest cost. |
-| **WS-2 analytic-new** | Decimal Precision, VFS, Terminal Digits, IRC (per-pair), Modality | Closed-form band, not currently drawn. No engine edit. (Mahalanobis was scoped first but moved to no-band on the live render — S233, Appendix B.) |
+| **WS-2 analytic-new** | VFS, Terminal Digits, IRC (per-pair), Modality | Closed-form band, not currently drawn. No engine edit. (Mahalanobis and Decimal Precision were scoped here first but moved to no-band on the live render — S233 / S234, Appendix B.) |
 | **WS-3 permutation-read** | Entropy, Column GoF, Kurtosis | Band read from an existing permutation/sim null at the adjusted quantile. **Prerequisite engine edit** — the null quantiles are currently discarded; they must be retained. |
 
 WS-3 has a hard dependency (the engine edit) that WS-1 and WS-2 do not. WS-1 and WS-2 can
@@ -152,13 +152,13 @@ as the record of why the χ² framing was wrong, but the card is no longer in th
 > construction" framing rested on the conflation and is withdrawn. The `:152` line reference
 > in the earlier draft was also wrong (`:152` is unrelated; the symbols are at `:194`/`:195`).
 
-**Decimal Precision** — exclude-null. Per-level band; the per-level binomial deficit vs
-the trailing-zero model is the statistic. Mechanism: Clopper-Pearson per precision level,
-`regIncBeta` present; BH-FDR across levels (`decimalPrecision.js:77-81`). **Also restore
-the suppressed expected line** — the producer computes per-level expected counts but the
-plot passes no `expKey`, so neither expected line nor band draws today. Restore both.
-Watch: the band is per-level and BH-adjusted across levels — draw the corrected per-level
-envelope, not a single global band.
+**Decimal Precision** — **moved to no-band (Appendix B), S234.** Was scoped as a per-level
+binomial-deficit band with the suppressed expected line restored; built (`0dae9c7`),
+rendered on the live UI, and reverted. The live render answered the §3 OPEN ("does the band
+earn its name") with no: the band and expected line are invisible. See Appendix B for the
+full rationale. The `gapCount` correctness fix found during the scoping — the card's deficit
+count read `deficit`/`ratio` fields that don't exist on `details`, so it was permanently
+zero; now reads `perLevel.adjP < 0.001` — was kept and promotes independently (`cf8c749`).
 
 **VFS** — exclude-null. Per-value band; per-value Poisson (λ = LOO neighbour mean) is the
 null. Mechanism: closed-form Poisson survival at the corrected quantile; union BH-FDR
@@ -216,7 +216,7 @@ flag.
 > decoration. **Lean: (b) no-band**, for consistency with the CCR decision (both MOD-capped,
 > both therefore off the draw set), which keeps the level rule clean (every drawn band is
 > 99.9%, no exceptions). Confirm before WS-2 Modality dispatch. If (b), Modality leaves the
-> draw set → 11 cards, and WS-2 loses one.
+> draw set → 9 cards, and WS-2 loses one.
 
 ### WS-3 — permutation-read (engine prerequisite, §5)
 
@@ -310,9 +310,10 @@ walk findings own the residuals; the dispatch merges them).
 1. **WS-1 retrofit** (Autocorrelation, Runs, Mean-Variance) — lowest cost, no engine edit,
    highest confidence (the bands already draw). Validates the 99.9% level visually on three
    live bands before extending. Land first.
-2. **WS-2 analytic-new** — DecPrec / VFS / Terminal / IRC. Modality gated on its OPEN level
+2. **WS-2 analytic-new** — VFS / Terminal / IRC. Modality gated on its OPEN level
    exception; Terminal gated on its OPEN convention check. (Mahalanobis was the original WS-2
-   lead but moved to no-band on the live render — S233, Appendix B.)
+   lead, and Decimal Precision the next; both moved to no-band on the live render — S233 /
+   S234, Appendix B.)
 3. **WS-3 engine prerequisite** dispatch, then WS-3 draws (Entropy, Column GoF, Kurtosis).
 
 Each card's band rides with its surface residuals (§6).
@@ -347,6 +348,23 @@ Data, Carlisle, Blocked Mahalanobis, CCC.
   plus the red outlier dot already carry the full argument. No band; keep the line. (If a
   multi-outlier positive anchor lands via #49, revisit whether a band earns its place then —
   but not before a fixture can render it.)
+- **Decimal Precision** — **moved here from the draw set on the live render (S234).**
+  The band was the per-level binomial deficit floor below the trailing-zero expected line,
+  over intermediate precision levels 1…maxDp−1. It is geometrically well-formed (lower bound
+  ≤ expected on every level, verified by probe) but invisible: the dominant precision bar
+  sets the y-scale, and the trailing-zero model predicts only ~0.9 × 0.1^k of the dominant
+  at each intermediate level k — a handful of values against a dominant bar in the hundreds.
+  The expected line and band therefore live in the bottom few percent of the plot; on a
+  clean fixture the expected line renders as a dashed scrawl along the axis that reads as a
+  glitch, not information. **This failure is intrinsic to the test's scale, not anchor-gated.**
+  Unlike Mahalanobis — where a 2+-outlier anchor would give the band area — no DecPrec
+  fixture rescues it: the dominant-bar-sets-scale relationship holds for every fixture, clean
+  or flagged. The bars-only card already carries the precision distribution; gaps and
+  deficits read directly off the bars. No band, no expected line. (Not revisitable via a
+  positive anchor — the scale relationship is structural; NOT homed in #49. Revisit only if
+  the plot were re-scaled to the intermediate levels, which would bury the dominant bar and
+  defeat the card's main read.) The `gapCount` correctness fix found during scoping was kept
+  (`cf8c749`).
 
 **Modality** — pending the §3 OPEN; lean is to land it here (no-band, MOD-capped, same
 logic as CCR).
@@ -368,7 +386,7 @@ it visually not read as a CI — the opposite of a draw.
 ## Locked / open summary
 
 **Locked:** level (99.9% uniform across the draw set), corrected basis (BH-adjusted,
-worst-group where per-condition), draw set membership (the 11 cards of §2, modulo the two
+worst-group where per-condition), draw set membership (the 10 cards of §2, modulo the two
 OPENs), the no-band and decorative-distinguish boundaries (Appendices B/C), implementation
 order (Appendix A), the engine prerequisite as a separate gated dispatch (§5). The per-card
 convention (exclude-null vs centred-on-null) is the *output* of the §1 band-matches-verdict
@@ -382,7 +400,7 @@ bands are identically shaped regardless of verdict.
 **Open (confirm before the relevant dispatch, not before the spec lands):**
 1. **Terminal Digits convention** — does the clean-uniform null distinguish it from
    Benford's carve-out, keeping it in the draw set? (§3 OPEN.) Confirm before WS-2 Terminal.
-2. **Modality level exception** — no-band (lean, → 11 cards) vs 99% exception band? (§3
+2. **Modality level exception** — no-band (lean, → 9 cards) vs 99% exception band? (§3
    OPEN.) Confirm before WS-2 Modality.
 
 Neither OPEN blocks WS-1 (retrofit) or the WS-2 cards other than Terminal/Modality, nor the
