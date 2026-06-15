@@ -1,464 +1,312 @@
-# TIER-A CI DRAW SPEC — v1.0 confidence-interval programme
+# PER-UNIT DISPLAY PROGRAMME SPEC — v2.0
 
-**Status:** Chat-authored, Chat-owned (`docs/shared`). The canonical spec every CI
-implementation prompt cites. Locked inputs: the natural-fit classification (S230) and the
-99.9% level lock (S230, METHODOLOGY Unified α Framework "Confidence-interval level on
-plotted bands"). Evidence base: `SESSION229-CI-SCREEN.md` (per-test null type, correction
-family, feasibility), `SESSION230-ALPHA-AUDIT.md` (verbatim retrofit targets, level
-confirm).
+**Status:** Chat-authored, Chat-owned (`docs/shared`). The canonical spec every per-unit
+display implementation prompt cites. Supersedes the v1.0 confidence-interval programme,
+which this document retires.
 
-This spec governs only the **draw** set — the 8 cards where a CI is the natural read of
-the test. The no-band and decorative-distinguish cards are specified separately (§Appendix
-B) so the boundary is explicit, but they carry no band.
+**What changed (S237→S238).** The CI-band programme rested on an untested structural
+assumption — that a single confidence band is the natural read of each test. A full-suite
+flag-assembly classification (all 28 active tests, read at source, S237;
+`SESSION237-FLAG-ASSEMBLY-CLASSIFICATION.md`) found that assumption false for two-thirds of
+the suite: **19 tests are PER-UNIT-OR, 6 POOLED-SINGLE, 3 DETECTION.** A PER-UNIT-OR test's
+flag fires from per-unit evidence — a pair, lag, window, condition, column, block, or stage —
+via promotion, BH-FDR over sub-units, worst-group selection, or an OR across units. A single
+band on a *pooled* quantity cannot picture an OR across units; it can sit clean while the
+verdict reads MODERATE. That is not a level bug — it is the band picturing a different
+quantity than the one the verdict tests. Two shipped bands carry exactly this defect
+(Autocorrelation, Runs).
 
----
+The honest object for a PER-UNIT-OR test is a **per-unit display**: each unit's evidence
+shown against its own reference, flagged units marked, the multiplicity correction visible,
+so the geometry carries the same claim the verdict rests on. This spec governs that
+programme. A single CI band survives only for the one POOLED-SINGLE test that ever drew one
+(Noise Scaling), and is specified here as a bounded exception, not the programme's subject.
 
-## 1. The governing rule (locked, do not re-litigate)
-
-A CI band is drawn **only where the band's exceedance is the verdict's exceedance** — a
-band that excludes its null must mean "this card flags HIGH." Three consequences fix every
-downstream decision:
-
-1. **Level.** Every band is drawn at **99.9% (z = 3.29), the HIGH gate (α = 0.001)**.
-   Never 95%, never 99%, never a dual inner/outer band. The level is uniform across the
-   draw set. (A 95% band excludes its null at p < 0.05 — looser than even MODERATE — and
-   would read "significant" on a LOW card. That is the bug the programme fixes.)
-
-2. **Corrected basis.** The band reflects the **BH-adjusted** decision the verdict uses,
-   never the raw per-unit statistic. Where a card routes per-condition (Fisher-exempt
-   worst-group; see §4), the band reflects the worst-group decision, not a pooled draw.
-
-3. **Convention follows the null per card.** Two shapes, assigned per card in §3:
-   - **exclude-null** — the band sits on a statistic with a meaningful zero; the null
-     VALUE (r=0, z=0, slope=expected, ratio=1) is marked; significance = null outside
-     band.
-   - **centred-on-null** — the band sits around an expected REFERENCE; significance =
-     observed outside band.
-
-   **The convention is an OUTPUT of the exceedance rule, not an independent choice (S232).**
-   Which shape a card takes is fixed by what its verdict tests against: the band must use
-   the same null/spread the verdict uses, or the picture can contradict the verdict. A card
-   whose verdict tests an observed statistic against a meaningful zero, on the observed
-   spread, is exclude-null by construction — there is no free swap to centred-on-null without
-   also changing what the verdict tests. "Consistent cross-test" therefore means each band
-   faithfully pictures its own verdict, not that all bands share one shape regardless of
-   verdict. (See the WS-1 lock notes below, and the §Locked summary.)
-
-A card draws a band **iff** it is in the §3 draw set. A card being feasibility-"analytic"
-in the CI screen does NOT put it in the draw set — Within-Row Variance, Selective Noise,
-and CCR are analytic-feasible but are NOT drawn (they fail the exceedance rule; see
-§Appendix B).
+**Evidence base.** `SESSION237-FLAG-ASSEMBLY-CLASSIFICATION.md` (the 28-test classification,
+the source of the per-unit/pooled/detection split and the per-unit return-shape column); the
+S238 return-shape confirmation read-only (the field-level grounding for the primitive
+contract and the two render modes); METHODOLOGY Unified α Framework (flag boundaries, the
+worst-group constraint).
 
 ---
 
-## 2. The draw set — 8 cards, three workstreams
+## 1. The governing rule (carried forward from v1.0, unchanged)
 
-*(Was 12. Four WS-2 cards moved to no-band: Mahalanobis Row Outlier (S233, sliver), Decimal Precision (S234, dominant-bar scale swamp), Value-Frequency Spike (S235, no hostable plot), Terminal Digits (S236, no clean-uniform fixture — every fixture trips the trailing-zero branch). Appendix B for each. Drops to 7 if Modality lands no-band per its §3 OPEN.)*
+**A display's geometry must picture the same quantity the verdict tests.** This is the rule
+the CI programme articulated and then violated; it is the rule the per-unit programme is
+built to satisfy.
 
-The draw set is the natural-fit DRAW classification (S230), not the feasibility roll-up.
-Workstreams are ordered by implementation cost, not priority. (Four WS-2 cards have since
-moved to Appendix B — two on their live renders (Mahalanobis, DecPrec), one on a read-only
-that found no plot to host a band (VFS), one on a probe that found no fixture exercises the
-band's reference branch (Terminal) — see the count note above.)
+For a pooled single-statistic test, that meant a band whose exceedance equals the verdict's
+exceedance. For a PER-UNIT-OR test, it means a display that shows the per-unit evidence the
+flag actually fires on — not a pooled summary that can disagree with the flag. The
+consequence:
 
-| WS | Cards | What the draw needs |
+- The display reflects the **BH-adjusted** per-unit decision the verdict uses, never the raw
+  per-unit statistic, and never a pooled draw where the verdict routes per-unit.
+- Where a test routes **per-condition** (Fisher-exempt worst-group; §4), the display reflects
+  the worst-group decision, on the worst group's null — not a pooled-across-conditions
+  statistic, which would be contaminated by treatment effects across conditions.
+- The flag boundary shown on the display is the boundary the verdict uses (the flag-promotion
+  threshold), not the HIGH gate. The CI programme drew every band at 99.9% (the HIGH gate)
+  while flags fire at MODERATE (p < 0.01); a MODERATE verdict then fell inside the band. The
+  per-unit display marks units at the boundary that actually flags them.
+
+---
+
+## 2. The per-unit display primitive
+
+### 2.1 One contract, two render modes
+
+All per-unit displays consume one data tuple. A `referenceMode` field on the data selects the
+render mode. **The mode is a function of the data, never a per-card choice** — this is what
+keeps the programme out of the card-by-card drift that made the CI programme expensive.
+
+**The unit tuple.** Each display receives an array of units; each unit carries:
+
+| field | meaning | required |
 |---|---|---|
-| **WS-1 retrofit** | Autocorrelation, Runs, Mean-Variance | Already draw a 95% band; swap z 1.96 → 3.29. Lowest cost. |
-| **WS-2 analytic-new** | IRC (per-pair), Modality | Closed-form band, not currently drawn. No engine edit. (Mahalanobis, Decimal Precision, Value-Frequency Spike, and Terminal Digits were scoped here first but moved to no-band — S233 / S234 / S235 / S236, Appendix B.) |
-| **WS-3 permutation-read** | Entropy, Column GoF, Kurtosis | Band read from an existing permutation/sim null at the adjusted quantile. **Prerequisite engine edit** — the null quantiles are currently discarded; they must be retained. |
+| `unitLabel` | display label (column index, condition pair, `startRow–endRow`, value key) | yes |
+| `estimate` | the per-unit magnitude (correlation, ratio, distance, z) | forest mode |
+| `reference` | the value to plot the estimate against | when `referenceMode = stored` |
+| `referenceMode` | `stored` \| `zero` \| `none` — drives the render mode | yes |
+| `adjP` | BH-adjusted per-unit p-value | yes |
+| `flagged` | did this unit clear the flag boundary | yes |
+| `direction` | signed/labelled direction, when the test is two-sided | optional |
+| `span` | `{startRow, endRow}` for located-window units | optional |
 
-WS-3 has a hard dependency (the engine edit) that WS-1 and WS-2 do not. WS-1 and WS-2 can
-proceed in parallel; WS-3's draw work waits on its prerequisite (§5).
+Display-level context, set once per card (not per unit): `flagBoundary` (the p threshold for
+the threshold line and the strip ranking), `multiplicityNote` (the correction applied — the
+BH-FDR family size — shown so the reader sees the units were corrected), `effectAxisLabel`
+(forest mode only).
 
----
+### 2.2 Render mode A — forest (`referenceMode = stored` or `zero`)
 
-## 3. Per-card draw specification
+Horizontal effect axis. Each unit is a point at its `estimate`, positioned by magnitude,
+against a reference tick: at `reference` (stored mode) or at zero (zero mode — every tick at
+x = 0). An interval is drawn if the unit carries one. Flagged units are marked distinctly from
+cleared units. **The reader reads distance from the reference as the evidence.**
 
-Each row: convention (exclude-null / centred-on-null), what the band sits on, what marks
-the null, the feasibility mechanism, and the per-card watch-item.
+Covers the eleven tests with a showable magnitude-vs-reference (build-ready set):
+Autocorrelation (zero), Runs (stored), IRC (stored), Windowed Autocorrelation (zero),
+Row-Mean Runs (stored), Column GoF (stored), Entropy/Zipf (stored), Value-Frequency Spike
+(stored), Decimal Precision (stored), Cross-Condition Consistency (stored), Cross-Condition
+Rank Correlation (stored).
 
-### WS-1 — retrofit (swap 1.96 → 3.29)
+### 2.3 Render mode B — strip (`referenceMode = none`)
 
-**Autocorrelation** — exclude-null. Band on the pooled lag-1 mean r; null value **r = 0**
-marked (the existing "r=0 independent" dashed line stays). Mechanism: analytic SE = sd/√n
-(`autocorrelation.js:61`), swap the z literal at `:63`. Watch: the band is the verdict
-marker — at 99.9% it must visibly agree with the pooled-t flag (a band excluding 0 ⇔ card
-flags HIGH). Confirm on a flagged fixture that the two agree.
+No effect axis. Units are ranked vertically by `adjP`, with a threshold line at `flagBoundary`;
+position encodes **significance, not magnitude**. The absence of the effect axis is deliberate
+and load-bearing: it tells the reader the units were located by their p-value and that no
+effect size is being asserted.
 
-> **Convention lock (S232).** Exclude-null is locked here *because* the headline verdict is
-> the pooled-t on the observed between-pair spread (METHODOLOGY §2.1) — the band must use the
-> same spread (the §1 exceedance rule), and a band on the observed r with that spread is
-> exclude-null by construction. Centred-on-null was considered (one-glance "outside
-> expectation" read) and closed: it would require the verdict to use the `1/√n` independence
-> null, which §2.1 deliberately rejected for the documented pair-lottery artifact. Do not
-> reopen centred-on-null without first changing the verdict null — which §2.1 argues against.
-> (S232 also restructured the verdict surface to a 1-D r number-line — the whisker on the
-> decay plot didn't read as an interval; the convention is unaffected by that render change.
-> Verified on flagged and clean fixtures.)
+Covers the tests with no per-unit reference to plot against: LOESS `pairResults`, and Blocked
+Mahalanobis (provisional — see §2.5 open item).
 
-**Runs** — exclude-null. Band on the pooled-z mean; null value **z = 0** marked.
-Mechanism: analytic pooled-z SE (`runs.js:83`), swap the z literal at `:85`
-(PooledZMarker). Watch: this card's strip/table now mark MODERATE pairs (S230); the
-headline band marks HIGH. Two tiers on one card by design — the band (HIGH) and the
-per-pair surfaces (MODERATE) are different statements. The band must not be confused with
-the strip; keep them visually distinct.
+### 2.4 Why two registers, not one
 
-> **Convention lock (S232).** Same as Autocorrelation: the headline verdict is the pooled-t
-> on the observed spread of the pooled-z (METHODOLOGY §2.1 Runs, step 4 + flag) → the band
-> uses the observed spread → exclude-null. Centred-on-null closed for the same reason.
-> Verified at source S232. Runs' verdict surface is already a 1-D z number-line and reads
-> correctly as-is — it is the reference treatment the S232 Autocorrelation restructure
-> converged onto.
+A zero-reference forest and a p-ranked strip can look near-identical, but they make different
+claims. The forest asserts an effect size and its distance from no-effect; a point near the
+line is weak even if flagged. The strip asserts only significance; a unit can be wildly
+significant with an effect size the strip never shows. Rendering them the same lets a reader
+infer an effect-size reading the strip data doesn't support — the same
+geometry-mispictures-the-verdict failure that retired the bands, one layer up. On a forensic
+surface feeding misconduct findings, that miscalibration is the expensive error; a second
+visual register is the cheap one. Per the Bik standard, a per-unit display must read as a
+standalone screenshot, and *what kind of evidence this is* (effect size vs significance) must
+be legible from the geometry alone.
 
-**Mean-Variance** — exclude-null. Band on the slope; null value **expected slope (0/1/2)**
-marked. Mechanism: analytic slope SE (`MeanVarianceScatter.jsx:25`), swap z. **Carry-over
-S229 5c:** the expected line is centroid-pinned (rotated about the observed log-centroid,
-not an independent intercept) — the band reflects slope uncertainty only, about the
-centroid. Keep the centroid pinning; the band widens to 99.9% about the same pivot. Do not
-"fix" the expected line to an independent intercept — that is the documented deliberate
-anchoring, not a bug.
+### 2.5 Open item — Blocked Mahalanobis render mode (confirm at build)
 
-> **Geometry confirm (S232).** A read-only source confirm established that the band is a
-> centroid-pinned bow-tie (both bounding lines pass through the log-centroid → zero width
-> there, fanning out with |x−cx|), and the expected-slope line, also centroid-pinned, touches
-> the band only at the pinch (measure-zero) and is strictly outside elsewhere when the
-> expected slope is outside the slope CI. The verdict is computed in slope-space
-> (`meanVariance.js:107-112`, z = (slope−expSlope)/slopeSE); the line-space band is a
-> separate render of that same slope CI. The S231 "expected line threads through the band"
-> read was a centroid-pinch resolution artifact (S133f pixel-read class), not a contradiction
-> — the band agrees with the verdict. No fix. Exclude-null holds: the verdict tests the
-> observed slope against the expected on the slope SE, so the band uses that same spread.
+Provisionally strip-mode: no stored per-element reference (the permutation null is not kept on
+each element, only `rawP`/`adjP`). But the element returns `stat` (T² or λ), a real magnitude,
+so it may belong in forest-mode with a derived reference rather than the strip. Resolve when
+Blocked Mahalanobis is built. The two-mode structure holds either way — this only moves one
+test between modes.
 
-### WS-2 — analytic-new (closed-form, not yet drawn)
+### 2.6 Wiring notes from the S238 return-shape read-only (build-time, not contract)
 
-**Mahalanobis Row Outlier** — **moved to no-band (Appendix B), S233.** Was the first WS-2
-card scoped; the band was built and rendered, and the live render answered the §3 OPEN
-("does the band earn its name") with no. On every fixture in the 22-set, `outlierThreshold`
-(the smallest BH-FDR survivor D²) equals the single flagged row's own distance — so the
-"flagged region above the cutoff" degenerates to a thin sliver hugging the plot ceiling with
-the one outlier sitting on its lower edge. It adds visual weight without information; the
-existing dashed `outlierThreshold` line plus the red outlier dot already carry the whole
-argument. The only state where the band would have area (2+ outliers, cutoff below several
-flagged points) has no positive anchor in the 22-set (walk #10 / parked #49) and cannot be
-built or verified. See Appendix B for the full rationale. The S233 correction below stands
-as the record of why the χ² framing was wrong, but the card is no longer in the draw set.
+These are confirmed against source; none requires an engine edit.
 
-> **Correction (S233).** An earlier draft of this row conflated two distinct values and is
-> corrected here against source (S233 read-only). `outlierThreshold` (`:195`) is the BH-FDR
-> survivor boundary — data-derived, the verdict's cutoff, null when `nOut === 0`.
-> `plotThreshold` = `chiSquaredQuantile(nC, 1 − ALPHA_BIN)` (`:194`) is the closed-form
-> χ²(nC, 0.99) tail — a *different* value that does NOT decide membership. The two diverge on
-> real data. The verdict flags on BH-FDR at α=0.001, not on the raw χ²(0.99) tail, so §1
-> (band-exceedance = verdict-exceedance) requires any band to picture the BH-FDR decision,
-> not the χ²(0.99) tail. The earlier "centred-on-null / band IS the χ² envelope / matches by
-> construction" framing rested on the conflation and is withdrawn. The `:152` line reference
-> in the earlier draft was also wrong (`:152` is unrelated; the symbols are at `:194`/`:195`).
+- **Reference modes are mixed across forest tests**, as the field pass found: stored expected
+  (Runs, IRC, Row-Mean Runs, Column GoF, Entropy, VFS, Decimal Precision, Cross-Condition
+  Consistency, Rank Correlation), implicit zero (both autocorrelations — reference is 0,
+  significance rides on `adjP`). The `referenceMode` field captures this; do not assume a
+  single reference axis.
+- **Runs `direction`** is read from `details[]` (the `interpretation` field — "Too few
+  (clustered)" / "Too many (alternating)"), not `allPairStats[]`, which drops it. The value is
+  on the result object; the primitive reads the right array. No engine edit.
+- **Blocked Mahalanobis `direction`** is recoverable per element from `passKey`/`pass` (μ-pass
+  = mean shift, Σ-pass = covariance inflation); the readable phrase is headline-scoped and
+  derivable at display time. No engine edit.
+- **Two retention cases remain**, not build-ready, needing engine output before they can use
+  the primitive: **Kurtosis** (per-condition simulated null computed and dropped) and
+  **Regional Noise** (per-column promoter stats computed and dropped). These are gated like
+  WS-3 was — a separate engine dispatch (§5).
 
-**Decimal Precision** — **moved to no-band (Appendix B), S234.** Was scoped as a per-level
-binomial-deficit band with the suppressed expected line restored; built (`0dae9c7`),
-rendered on the live UI, and reverted. The live render answered the §3 OPEN ("does the band
-earn its name") with no: the band and expected line are invisible. See Appendix B for the
-full rationale. The `gapCount` correctness fix found during the scoping — the card's deficit
-count read `deficit`/`ratio` fields that don't exist on `details`, so it was permanently
-zero; now reads `perLevel.adjP < 0.001` — was kept and promotes independently (`cf8c749`).
+### 2.7 Out of scope for this spec (deliberately)
 
-**Value-Frequency Spike** — **moved to no-band (Appendix B), S235.** Scoped as a per-value
-Poisson band but the read-only found there is no plot to host it: the card body is an
-`EvidenceTable`, not an SVG (`MiniCard_ValueFrequency.jsx` imports no plot component;
-`MiniPlot.jsx:54` maps the test to the table card; no `plots/` file references VFS). Adding
-a band is "build a plot first," not a ride-along, and three further blockers sit behind the
-missing plot: the test is dual-pass with no single canonical axis (pass-1 integer histogram
-vs pass-2 per-length digit-substring histograms, driving pass varies by fixture); the
-"expected" is the per-value leave-one-out neighbour mean (a jagged per-bar line, not a
-single CI reference); and real fixtures have hostile x-cardinality (~180 near-unit bars on
-the cellcount fixtures). See Appendix B. Two source corrections to the withdrawn draft: the
-Poisson survival is **inline** (exact upper tail, normal approx for λ>30 —
-`valueFrequencySpike.js:88-105`), not a closed-form library call; and `ratio` divides by the
-**raw** neighbour mean `smoothed`, not the 0.1-floored λ (`:107`).
+Two things are left to their proper homes rather than fixed here:
 
-**Terminal Digits** — **moved to no-band (Appendix B), S236.** Was scoped as a centred-on-null
-per-digit binomial(n, 1/10) band on the flat ten-digit uniform expected line. The §3 OPEN
-(does the clean-uniform null distinguish it from Benford's pooled-MAD carve-out?) resolved
-against the band: in principle the distinction holds (the default verdict gates on a global χ²
-over the flat ten-digit uniform, `terminalDigits.js:58`, and the plotted expected line is that
-same uniform — a genuine centred reference, unlike Benford's pooled MAD), but a probe across
-all 22 fixtures found **no fixture exercises the default 10-digit branch** — every numeric
-fixture (18/18) trips the trailing-zero 9-digit branch, the other 4 are integer and never
-gated. Decimal instrument data strips trailing zeros (exactly the artifact the 9-digit branch
-corrects for), so the clean ten-digit uniform the band sits on is produced by no real dataset,
-and the band has no fixture to verify against. See Appendix B for the full rationale,
-including the digit-0 display defect fixed alongside (`5a1402d`).
-
-**IRC (per-pair)** — centred-on-null. Per-pair band on the heatmap; the null is the
-**LOO-expected r, not ρ = 0** (`interReplicateCorrelation.js`). Mechanism: per-pair
-Fisher-z SE (`:107-114`), analytic. Watch: the centre is the leave-one-out expected
-correlation, NOT zero — drawing a band around ρ=0 would be the wrong null. The windowed
-sub-unit stays no-band (permutation scan, separate surface). The "elevated replicates"
-amber tint is a *relative* cut (mean-Z+1·SD), not a significance band (alpha-audit Q1
-cleared it) — the new per-pair band must not be conflated with that tint. **Per the
-four prior WS-2 reverts: confirm a hostable plot with a single canonical axis AND a fixture
-that exercises the band's reference branch before scoping — not just exceedance.**
-
-**Modality** — centred-on-null. Band on the Hartigan dip vs the uniform null. Mechanism:
-analytic qDiptab inversion (bootstrap retired S159b). **The real null is not currently
-plotted** — today's reference line is the dip-gate 0.04 (an effect-size floor), NOT the
-null value. Drawing this band means plotting a *different object* than the current line:
-the qDiptab-derived null envelope. Watch: decide whether the 0.04 gate line stays
-(alongside the new null band) or is replaced. The gate and the null are different
-quantities; if both show, the card must distinguish them. **Modality caps at MODERATE**
-(`modality.js:34`, never HIGH) — so per the level rule this is a MOD-capped card. A 99.9%
-HIGH-tier band would over-state. **This is a level exception: Modality's band, if drawn,
-sits at the 99% MODERATE level, not 99.9%** — or Modality moves to no-band. See the OPEN
-flag.
-
-> **OPEN — Modality level exception.** Modality is the one draw-set card that caps at
-> MODERATE. The level lock says the band marks HIGH; a card that can't reach HIGH can't
-> carry a HIGH-tier band honestly. Two resolutions: (a) draw Modality's band at 99%
-> (MODERATE), making it the documented single exception to the uniform-99.9% rule, with the
-> band meaning "would flag MODERATE"; or (b) move Modality to no-band (Appendix B) on the
-> same logic that removes CCR — a band that can't move the flag to its own level is
-> decoration. **Lean: (b) no-band**, for consistency with the CCR decision (both MOD-capped,
-> both therefore off the draw set), which keeps the level rule clean (every drawn band is
-> 99.9%, no exceptions). Confirm before WS-2 Modality dispatch. If (b), Modality leaves the
-> draw set → 7 cards, and WS-2 loses its last analytic-new draw.
-
-### WS-3 — permutation-read (engine prerequisite, §5)
-
-**Entropy / Zipf** — exclude-null. Band on the H ratio vs **1** (H_obs / median(H_null)).
-Mechanism: B=999 bootstrap null exists in-loop but is collapsed to its median and
-discarded; the band needs **retained quantiles** (the engine edit, §5). Read the band at
-the corrected quantile of the retained null. Watch: **Fisher-exempt, per-condition
-worst-group** — the band reflects the worst-group decision, not a pooled draw (§4).
-
-**Column GoF** — exclude-null. Band on the A² ratio vs **1** (A²_obs / median(A²_null),
-two-sided). Same mechanism and same engine dependency as Entropy (B=999 refit bootstrap,
-median-collapsed). Same Fisher-exempt worst-group constraint (§4). Watch: two-sided —
-the band has both an upper and lower bound on the ratio; significance is ratio outside
-either.
-
-**Kurtosis** — centred-on-null. Band on the simulated null density (N(0,√2)-shaped).
-Mechanism: N_SIM=1999 nulls pooled κ; analytic √(24/N) SE *also* exists, so this one has a
-fallback if the retained-quantile path is awkward. Fisher-exempt (per-condition BH sub-unit
-promotes). Watch: **Kurtosis has no positive anchor in the 22-fixture set** (STATUS,
-parked #49) — the flagged-band path is verified-by-construction only, never rendered on a
-real flagged fixture. The band can be specified and built but cannot be visually verified
-on a flagged card until a positive-anchor fixture exists. Note this as a render-unexercised
-draw; do not block the build on it, but flag it as unverified at close.
+- **Component count** (one component with a mode switch vs two components sharing scaffolding)
+  is an implementation shape for Code to propose in its build plan. Pinning it here reaches
+  into `src/`.
+- **Visual particulars** (marker shapes, colours, interval style, the forest/strip register
+  distinction in concrete terms) route through `INVESTIGATION-DISPLAY-SPEC` and
+  `PLOT-COLOUR-SEMANTICS`, set once against the existing plot vocabulary, not invented here.
 
 ---
 
-## 4. The Fisher-exempt worst-group constraint (WS-3)
+## 3. Build order
 
-Entropy, Column GoF, and Kurtosis route **per-condition** when ≥2 row groups exist
-(`aggregatePerGroup`), and are **Fisher-exempt** — the aggregate flag is the **worst-group**
+Keyed to verifiability, then to defect-replacement priority. Of the 19 PER-UNIT-OR tests, 12
+have a flagged fixture in the 22-set and 7 are latent (clean-state-only on the batch — a
+display renders only its clean state until a flagged anchor exists). Verifiable-first, because
+a display you can see on a flagged fixture is a display you can confirm; a latent one is
+built-and-trusted until #49.
+
+**Stage 1 — defect replacement (verifiable, leads the programme).** Autocorrelation and Runs
+each ship a defective CI band today (§6); both are verifiable and both are forest-mode. Built
+first, they replace a known-defective band with a real per-unit display *and* exercise both
+forest reference modes (zero for Autocorrelation, stored for Runs) plus the recoverable-direction
+wiring for Runs. This is the proof-of-concept: the two cards we must fix anyway also stress the
+two parts of the contract most likely to be wrong.
+
+**Stage 2 — remaining verifiable (build-ready, flagged fixture exists).** Column GoF
+(DS10/20), VFS (DS04/06/13), Mahalanobis Row [Family B, §7], Blocked Mahalanobis (DS15/21/22),
+IRC (DS02/08), Regional Noise (DS10/21 — *retention-gated*), Selective Noise (DS08/20), LOESS
+(DS08/10/12b), Row-Mean Runs (DS21), Cross-Condition Consistency (DS15/19).
+
+**Stage 3 — latent (build-ready by shape, no flagged fixture; renders clean-state only).**
+Entropy, Decimal Precision, Windowed Autocorrelation, Modality, Cross-Condition Rank
+Correlation, Within-Row Variance [Family B], Kurtosis (*retention-gated*). These build against
+the existing return shape but can be visually verified only when a fabricated flagged fixture
+exists (#49). Flag each as render-unexercised at close; do not block the build, but do not
+claim visual verification.
+
+---
+
+## 4. The Fisher-exempt worst-group constraint
+
+Several PER-UNIT-OR tests route **per-condition** when ≥2 row groups exist
+(`aggregatePerGroup`) and are **Fisher-exempt** — the aggregate flag is the **worst-group**
 flag, never a Fisher promotion (`aggregation.js:127-135`). The card displays the worst-group
-slice (the card captions this scope).
+slice.
 
-**Constraint on the band:** the drawn band must reflect the **worst-group** decision the
-verdict uses — the same per-unit-display principle as Mahalanobis (S218). Concretely: the
-band is read at the corrected quantile of the *worst group's* retained null, on the
-worst group's statistic — not a pooled-across-conditions null. A pooled band would be a
-different (and wrong) statistic, contaminated by treatment effects across conditions.
+**Constraint on the display:** the per-unit display must reflect the **worst-group** decision
+the verdict uses. The units shown, and the reference each is plotted against, are the worst
+group's, on the worst group's null — not a pooled-across-conditions statistic, which would be
+the wrong (treatment-contaminated) quantity. This is the same per-unit principle the programme
+rests on, applied at the condition layer: a pooled-condition forest would re-import the exact
+defect the programme removes.
 
-This is why WS-3 cannot be a pure presentational swap: the retained-quantile engine edit
-(§5) must retain the **per-group** null quantiles, so the worst-group band is available.
-Retaining only a pooled quantile would not satisfy this.
-
----
-
-## 5. WS-3 engine prerequisite (separate Code dispatch)
-
-WS-3's three bands read a quantile of a permutation/bootstrap null that the engine
-**currently discards** — Entropy and Column GoF collapse their B=999 null to its median
-(the ratio denominator) and drop the array; Kurtosis nulls pooled κ via N_SIM=1999 and
-retains only the p. To draw the band, the engine must **retain the adjusted-level quantile**
-(per-group, per §4) instead of discarding it.
-
-This is a `src/` engine change, owned by Code, **separate from the presentational draw
-work** and a prerequisite for it. It does not depend on the alpha audit or anything else
-landed in S230. Scope when WS-3 is reached:
-
-- Entropy (`entropyTest.js` ~:36) — retain the per-group null quantile at the 99.9%
-  level alongside the median.
-- Column GoF (`columnGof.js` ~:35,138-164) — same, on the refit bootstrap null.
-- Kurtosis (`kurtosis.js` ~:158) — retain the sim-null quantile; OR use the analytic
-  √(24/N) SE if cleaner (Kurtosis has the analytic fallback the other two lack).
-
-Decision for the engine dispatch: **retained-quantile vs analytic-SE per card.** Entropy
-and Column GoF have no closed form → retained quantile is the only path. Kurtosis has both
-→ pick analytic-SE if it avoids touching the sim loop, retained-quantile if consistency
-with the other two is worth more. Resolve at WS-3 scoping, not now.
-
-**WS-3 is gated on this engine edit. WS-1 and WS-2 are not — they can land first.**
+This is also why the retention cases (Kurtosis, Regional Noise) cannot be pure presentational
+work: the engine must retain the **per-group / per-column** stats so the worst-group display is
+available. Retaining only a pooled quantity would not satisfy the constraint.
 
 ---
 
-## 6. Surface-residual co-landing (the ride-with-the-band set)
+## 5. Engine prerequisite for the retention cases (separate Code dispatch)
 
-The S229 walk's plot residuals on CI-bearing cards (R2 wrapper-hug, R4 legend, R5 colour,
-plot-design specifics, the S211 section-heading resolution) land **with** the band on each
-tier-A card — one touch per surface, not a battery-wide legend pass followed by a
-third-of-them redraw. This is the double-touch trap the classification exists to avoid. The
-no-band cards' residuals already landed (or land) separately as the land-now set; they are
-not part of this spec.
+Two tests compute the per-unit evidence the display needs and then discard it:
 
-Per tier-A card, the band dispatch carries: the band itself, plus that card's R2/R4/R5/
-plot-design residuals and any S211 heading resolution. Specify the residuals per card from
-WALK-FINDINGS at dispatch time — they are not re-listed here (this spec owns the band; the
-walk findings own the residuals; the dispatch merges them).
+- **Kurtosis** — the per-condition simulated null (N_SIM nulls) is computed and collapsed; the
+  per-condition `kurtosis`/`kurtDeviation`/`p` survive but the null the forest would plot
+  against is dropped. A per-condition forest needs the retained per-condition reference.
+- **Regional Noise** — the per-column promoter stats (the per-column BH path that can promote
+  the flag) are computed and dropped; the window `details` survive but the per-column units the
+  display would show do not.
+
+These ride a **separate, gated engine dispatch**, as WS-3 did in v1.0. Read-only-first: confirm
+at source exactly which values are dropped and where, before scoping the retention edit. The
+display build for these two waits on the retention edit landing.
 
 ---
 
-## Appendix A — implementation order
+## 6. The two live band defects (replace, do not merely remove)
 
-1. **WS-1 retrofit** (Autocorrelation, Runs, Mean-Variance) — lowest cost, no engine edit,
-   highest confidence (the bands already draw). Validates the 99.9% level visually on three
-   live bands before extending. Land first.
-2. **WS-2 analytic-new** — IRC is the live analytic-new draw candidate; Modality gated on its
-   level-exception OPEN. (Mahalanobis was the original WS-2 lead, Decimal Precision the next,
-   VFS the third, and Terminal the fourth; all four moved to no-band — S233 / S234 / S235 /
-   S236, Appendix B.)
-3. **WS-3 engine prerequisite** dispatch, then WS-3 draws (Entropy, Column GoF, Kurtosis).
+Both ship today; both must be replaced by a per-unit display, not just deleted, because the
+card still needs to show the per-unit evidence the flag fires on.
 
-Each card's band rides with its surface residuals (§6).
+**Autocorrelation** — ships a pooled lag-1 mean ± CI band. The flag also promotes on higher
+lags (2–5) and a single pair's lag-1 BH-adjusted p (`autocorrelation.js:139-140`) — quantities
+the band doesn't show, so a clean lag-1 band can accompany a MODERATE verdict. Replace with a
+forest-mode display (zero reference): per-pair lag-1 and the higher-lag promoters, each against
+r = 0, flagged units marked, BH family visible. Verifiable (DS02/11/20/21/22).
 
-## Appendix B — the no-band set (specified for boundary clarity; NO band drawn)
+**Runs** — ships a pooled mean-z ± CI band. The flag promotes on a single pair's BH-adjusted p
+or a localised row-window (`runs.js:236-238`). Replace with a forest-mode display (stored
+reference): per-pair z against `expected`, plus the per-window scan units, flagged marked,
+direction read from `details[]`, BH family visible. Verifiable (DS02/21/22).
 
-These are NOT in the draw set. Listed so the boundary is explicit and the exceedance rule
-is auditable.
+Until replaced, both ship as known-defect.
 
-**No-band — no per-unit interval-shaped null (keep p in verdict):** Exact Duplicate
-Detection, Constant Offset, RSC (gating stat; the ρ matrix stays informational, NOT
-promoted to a CI — S217 fault if it were), Regional Noise, LOESS, Row-Mean Runs, Missing
-Data, Carlisle, Blocked Mahalanobis, CCC.
+**Independent latent fix — Row-Mean Runs `primaryP`.** `primaryP = globalBestP` does not track
+the windowed promotion that can raise the flag (`rowMeanRuns.js:98,145-147`) — a `primaryP`-vs-
+`flag` mismatch. Fix is independent of the display work; note it so it isn't lost.
 
-**No-band — analytic-feasible but fails the exceedance rule:**
-- **Benford 1 / Benford 2** — per-digit band wouldn't match the pooled-MAD raw-sim gate;
-  the dashed expected-frequency line is already the natural read. Keep the line, no band.
-- **CCR** — flag-capped at MODERATE; a band can't move the flag to its own (HIGH) level →
-  decoration. No band.
-- **Within-Row Variance** — count-tail gate (is the COUNT of extreme rows beyond the
-  binomial tail), not per-row; a per-row band would assert per-row inference the gate
-  doesn't make. Decorative-distinguish only (§Appendix C).
-- **Mahalanobis Row Outlier** — **moved here from the draw set on the live render (S233).**
-  The corrected decision is a single threshold (`outlierThreshold`, the smallest BH-FDR
-  survivor D²), not an interval, so the only honest band is the shaded half-plane above it.
-  On every 22-set fixture that flag is a *single* outlier, so `outlierThreshold` equals that
-  one row's distance and the shaded region degenerates to a sliver at the plot ceiling — the
-  flagged dot sits on its lower edge, the region is near-empty. Built and rendered S233 on
-  DS06/DS08; it added visual weight without information. The band would only have area on a
-  2+-outlier fixture (cutoff below several flagged points), which has no positive anchor
-  (walk #10 / parked #49) and cannot be verified. The existing dashed `outlierThreshold` line
-  plus the red outlier dot already carry the full argument. No band; keep the line. (If a
-  multi-outlier positive anchor lands via #49, revisit whether a band earns its place then —
-  but not before a fixture can render it.)
-- **Decimal Precision** — **moved here from the draw set on the live render (S234).**
-  The band was the per-level binomial deficit floor below the trailing-zero expected line,
-  over intermediate precision levels 1…maxDp−1. It is geometrically well-formed (lower bound
-  ≤ expected on every level, verified by probe) but invisible: the dominant precision bar
-  sets the y-scale, and the trailing-zero model predicts only ~0.9 × 0.1^k of the dominant
-  at each intermediate level k — a handful of values against a dominant bar in the hundreds.
-  The expected line and band therefore live in the bottom few percent of the plot; on a
-  clean fixture the expected line renders as a dashed scrawl along the axis that reads as a
-  glitch, not information. **This failure is intrinsic to the test's scale, not anchor-gated.**
-  Unlike Mahalanobis — where a 2+-outlier anchor would give the band area — no DecPrec
-  fixture rescues it: the dominant-bar-sets-scale relationship holds for every fixture, clean
-  or flagged. The bars-only card already carries the precision distribution; gaps and
-  deficits read directly off the bars. No band, no expected line. (Not revisitable via a
-  positive anchor — the scale relationship is structural; NOT homed in #49. Revisit only if
-  the plot were re-scaled to the intermediate levels, which would bury the dominant bar and
-  defeat the card's main read.) The `gapCount` correctness fix found during scoping was kept
-  (`cf8c749`).
-- **Value-Frequency Spike** — **moved here from the draw set on a read-only, S235.** Unlike
-  Mahalanobis and DecPrec, VFS did not get to a live render: the read-only found the card has
-  no plot. The body is an `EvidenceTable`; frequency appears only as the `Observed` /
-  `Expected` / `Ratio` columns, never on an axis. A band would require building a plot first,
-  and three structural facts make that plot ill-posed: (1) **no single canonical axis** — VFS
-  is dual-pass (pass-1 integer-value histogram, pass-2 a set of fractional-digit-substring
-  histograms bucketed by length), and the driving pass varies by fixture (DS13/DS06 full,
-  DS04 digit), so one plot cannot host both; (2) **per-value null** — λ is the leave-one-out
-  local-neighbour mean, a jagged line tracking local density, not the single reference the
-  programme draws against; (3) **hostile x-cardinality** on the real fixtures (DS06/DS05 are
-  ~180 near-unit-count bars over a 600-wide range). The probe also showed the scale story is
-  per-fixture and varied, not the DecPrec swamp: the synthetic HIGH anchor DS13 is bounded
-  (6–71, 55 bars, count spread 4.4×, the tallest bar IS the spike) and a band there would
-  render legibly and be anchor-verifiable — but the real cellcount fixtures degenerate by
-  sparsity and the qPCR fixtures have no integer axis at all. So even a DS13-shaped plot would
-  degenerate on the other fixtures. No band; the EvidenceTable already carries Observed /
-  Expected / Ratio / Adj. p per value, which is the honest read. (If the programme ever wants
-  a VFS visual, DS13 is the only viable anchor-verifiable target, and it is a bespoke
-  single-fixture-shaped plot build — its own scoped piece, not a band ride-along. Not homed in
-  #49: the blocker is structural, not a missing positive anchor — VFS already has three.)
-- **Terminal Digits** — **moved here from the draw set on a probe, S236.** Was scoped as a
-  centred-on-null per-digit binomial(n, 1/10) band on the flat ten-digit uniform expected
-  line, with the verdict gating on the global χ² (illustrative band, not per-digit decision).
-  The §3 OPEN tested whether the clean-uniform null distinguishes Terminal from Benford —
-  which is no-band because its expected frequencies ARE the test content and the MAD is
-  pooled. **The distinction holds in principle:** the default verdict gates on `p10`, a global
-  χ² over the flat ten-digit uniform `exp10 = total/10` (`terminalDigits.js:58`), and the
-  plotted expected line is that same flat uniform — a genuine centred reference a reader
-  interprets directly, unlike Benford's pooled MAD. **What killed it:** a probe across all 22
-  fixtures (real `testTerminalDigits` on each, matrix built as `validate-batch.mjs` does)
-  found **0 fixtures exercise the default 10-digit branch.** 18/18 numeric-applicable fixtures
-  trip the trailing-zero 9-digit branch (`counts[0] < exp10*0.40`, `df=8`); 4 are
-  100%-integer and never gated. Decimal instrument data strips trailing zeros — exactly the
-  artifact the 9-digit branch corrects for — so the clean ten-digit uniform the band sits on
-  is produced by no real dataset, and the band has no fixture to verify against. Same outcome
-  as VFS, different cause. **The display defect found alongside (fixed, separate from the
-  band):** the plot drew digit 0 and the flat ten-digit expected line even in the suppression
-  branch, while the verdict gates on the 9-digit test with digit 0 excluded — a
-  per-unit-display violation (INVESTIGATION-DISPLAY-SPEC §544, S218). Fixed `5a1402d`,
-  card-side (`MiniCard_TerminalDigit.jsx`): when `trailingZeroWarning`, plot digits 1–9 with
-  `exp9 = total9/9`. This correctness fix lands regardless of the no-band decision — the
-  suppression branch is the operating norm on all real numeric data, not an edge case. The
-  default-branch display path is preserved in source (not removed) but unexercised; a future
-  fixture or upload could trip it. **NOT a parked-anchor band:** Terminal already has fixtures;
-  the blocker is that they all trip the trailing-zero branch. A purpose-built fabricated
-  fixture engineered to dodge trailing-zero stripping (to exercise the default branch and give
-  the band a clean-uniform home) is parked in #49 as a bespoke off-CI idea, not a live band.
-  **Source notes confirmed:** line 58 is the default-branch `flagFromP(p10)`; the suppression
-  branch gates `flagFromP(p9)` at line 54; the plotted expected line is `exp10`
-  (`terminalDigits.js:35`), never rewritten to `exp9` in the suppression branch (the source of
-  the display defect).
+---
 
-**Modality** — pending the §3 OPEN; lean is to land it here (no-band, MOD-capped, same
-logic as CCR).
+## 7. The one surviving single band — Noise Scaling (POOLED-SINGLE)
 
-## Appendix C — decorative-distinguish (make the rect visually NOT-a-CI)
+Noise Scaling is the single POOLED-SINGLE test that ever drew a CI band, and it is **clean**:
+its band quantity equals its verdict quantity (a single slope vs the expected slope, on the
+slope SE; no per-unit promotion path). It is exclude-null by construction — the verdict tests
+the observed slope against the expected on the slope SE, so the band uses that same spread —
+and it stays a band, not a per-unit display, because the test genuinely is a single decision.
 
-These draw a rect/line that reads like a tolerance interval but isn't. The work is to make
-it visually not read as a CI — the opposite of a draw.
+**The one fix it needs: re-level to the flag boundary.** The band is drawn at 99.9% (z = 3.29,
+the HIGH gate) while the flag fires at the MODERATE boundary (p < 0.01, z ≈ 2.576) — so a
+MODERATE verdict falls inside the band. The CI programme's level lock set the edge to the HIGH
+boundary across the board; that was the programme-wide level error. Re-level Noise Scaling's
+band to the flag boundary so the band's edge is the verdict's edge. (The geometry is otherwise
+correct: a centroid-pinned bow-tie band on the slope, the expected-slope line also
+centroid-pinned — confirmed at source S232; keep the centroid pinning, do not "fix" the
+expected line to an independent intercept.)
 
-- **Selective Noise** — the ±medianStd grey rect is the empirical median column SD,
-  flag-gated, illustrative; significance is the Bartlett omnibus, not the rect. Make it
-  read as a display aid, not a band.
-- **Within-Row Variance** — the ±3.5 z-lines are fixed display cuts AND don't match the
-  engine's own Z_THRESH=4.0. Distinguish as display cuts; reconcile the threshold to the
-  engine value so the line stops contradicting the code.
+The `pooledZCI95` field name is stale (it holds a 3.29 interval, not a 95% one) — cosmetic
+rename, parked, not load-bearing.
+
+---
+
+## 8. Family B — magnitude-vs-threshold (separate pass)
+
+Two PER-UNIT-OR tests don't fit the §2 estimate-vs-reference contract: their per-unit value is
+already a distance from a null, with a threshold rather than a reference value to plot against.
+
+- **Mahalanobis Row Outlier** — per-row D² with a BH-FDR survivor threshold; `flaggedRowIndices`.
+- **Within-Row Variance** — per-row z (too-smooth) with `flaggedRowIndices`; per-window p dropped.
+
+The natural display is a row-strip with a threshold line, not a forest of estimate-vs-reference
+intervals — close to render mode B but with a magnitude axis (the distance) rather than a p-rank
+axis. **Family B is scoped in its own pass**, after Family A's contract is confirmed on the
+Autocorrelation/Runs build, so two contracts aren't blurred into one. Held here as a named open,
+not resolved.
 
 ---
 
 ## Locked / open summary
 
-**Locked:** level (99.9% uniform across the draw set), corrected basis (BH-adjusted,
-worst-group where per-condition), draw set membership (the 8 cards of §2, modulo the one
-remaining OPEN), the no-band and decorative-distinguish boundaries (Appendices B/C),
-implementation order (Appendix A), the engine prerequisite as a separate gated dispatch (§5).
-The per-card convention (exclude-null vs centred-on-null) is the *output* of the §1
-band-matches-verdict rule applied to each card's verdict null, not an independent choice — the
-WS-1 set (Autocorrelation, Runs, Mean-Variance) all lock exclude-null because all three
-verdicts test an observed statistic against a meaningful zero using the observed spread (S232,
-sourced to METHODOLOGY §2.1 pooled-t and the Mean-Variance slope-space geometry confirm).
-"Consistent cross-test" means each band faithfully pictures its own verdict, not that all
-bands are identically shaped regardless of verdict.
+**Locked:** the governing rule (display geometry pictures the verdict quantity, §1); the
+per-unit primitive contract and the two data-driven render modes (§2); the build order
+(verifiable-first, defects leading, §3); the worst-group constraint for per-condition routing
+(§4); Noise Scaling as the one surviving single band, re-leveled to the flag boundary (§7); the
+two defect bands replaced rather than removed (§6).
 
-**Open (confirm before the relevant dispatch, not before the spec lands):**
-1. **Modality level exception** — no-band (lean, → 7 cards) vs 99% exception band? (§3
-   OPEN.) Confirm before WS-2 Modality.
+**Open (named, scoped, not blocking):**
+- Blocked Mahalanobis render mode — strip vs forest-with-derived-reference; confirm at its build
+  (§2.5).
+- The retention engine edit for Kurtosis and Regional Noise — read-only-first, separate dispatch
+  (§5).
+- Family B contract — Mahalanobis Row and Within-Row Variance; own pass after Family A is
+  confirmed (§8).
+- Component count and visual particulars — Code's build plan and the display/colour specs
+  respectively, not this spec (§2.7).
 
-(The Terminal Digits convention OPEN — did the clean-uniform null distinguish it from
-Benford's carve-out? — RESOLVED S236: it holds in principle, but no fixture exercises the
-default branch, so Terminal moved to Appendix B no-band.)
-
-The Modality OPEN does not block WS-1 (retrofit), the WS-2 IRC card, or the WS-3 engine
-prerequisite. The spec is dispatchable for WS-1 immediately on landing.
+**Retired:** the v1.0 CI-band programme in full — the natural-fit DRAW classification, the
+99.9% uniform level lock, the WS-1/WS-2/WS-3 workstream structure, and the Appendix B/C no-band
+and decorative-distinguish sets. The disposition of every former band candidate is subsumed by
+the §2 classification: the cards that left the draw set were leaving it because they are
+PER-UNIT-OR (the honest object is a per-unit display, not a band) or because no plot could host
+a pooled band — both of which this programme answers directly. The one decorative-distinguish
+item that remains live independent of the band question (Within-Row Variance's display cuts not
+matching the engine `Z_THRESH`) carries into the Family B pass.
