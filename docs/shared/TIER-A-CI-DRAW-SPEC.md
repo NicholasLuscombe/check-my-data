@@ -7,7 +7,7 @@ which this document retires.
 **What changed (S237→S238).** The CI-band programme rested on an untested structural
 assumption — that a single confidence band is the natural read of each test. A full-suite
 flag-assembly classification (all 28 active tests, read at source, S237;
-`SESSION237-FLAG-ASSEMBLY-CLASSIFICATION.md`) found that assumption false for two-thirds of
+`docs/shared/S237-FLAG-ASSEMBLY-CLASSIFICATION-v2.md`) found that assumption false for two-thirds of
 the suite: **18 tests are PER-UNIT-OR, 7 POOLED-SINGLE, 3 DETECTION** (revised S239: Runs moved
 PER-UNIT-OR → POOLED-SINGLE on the routing-probe finding below). A PER-UNIT-OR test's
 flag fires from per-unit evidence — a pair, lag, window, condition, column, block, or stage —
@@ -26,7 +26,7 @@ so the geometry carries the same claim the verdict rests on. This spec governs t
 programme. A single CI band survives only for the POOLED-SINGLE tests (Noise Scaling, and now
 Runs), specified here as a bounded exception, not the programme's subject.
 
-**Evidence base.** `SESSION237-FLAG-ASSEMBLY-CLASSIFICATION.md` (the 28-test classification,
+**Evidence base.** `docs/shared/S237-FLAG-ASSEMBLY-CLASSIFICATION-v2.md` (the 28-test classification,
 the source of the per-unit/pooled/detection split and the per-unit return-shape column); the
 S238 return-shape confirmation read-only (the field-level grounding for the primitive
 contract and the two render modes); the S239 routing probe (the per-fixture routing and
