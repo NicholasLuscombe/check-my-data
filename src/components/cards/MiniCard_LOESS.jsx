@@ -14,6 +14,11 @@ export function MiniCard_LOESS({ result, importConfig, rowMap }) {
 
   const cpRow = result.changepointRow;
   const hasCP = cpRow != null && cpRow !== "—" && String(result.cusumP) !== "—";
+  // S243 21b: the changepoint marker reads as a signal, so it gates on the
+  // verdict's significance — not on existence of the argmax-CUSUM row. Draw the
+  // marker (and its legend swatch) only when a changepoint exists AND the verdict
+  // fired, matching the footer / region-table flag gate below.
+  const showChangepoint = hasCP && result.flag !== "LOW" && result.flag !== "N/A";
   const regions = result.regionComparison || [];
 
   // Coordinate-mapped display values
@@ -37,14 +42,14 @@ export function MiniCard_LOESS({ result, importConfig, rowMap }) {
             fragment (LEAD_HEAD in MiniCardLayout) heads this primary plot. */}
         <PlotLayout>
           <NoiseProfilePlot noiseProfile={result.noiseProfile}
-            changepointRow={hasCP ? cpRow : null}
+            changepointRow={showChangepoint ? cpRow : null}
             secondaryRow={result.secondaryRow || null}
             toFileRow={toFileRow}/>
         </PlotLayout>
         <ChartLegend items={[
           { color: CC.OBS, label: "Row noise", opacity: 0.5, swatchType: "line" },
           { color: CC.EXP, label: "LOESS trend", swatchType: "line" },
-          ...(hasCP ? [{ color: CC.THRESH, label: "Changepoint", swatchType: "line" }] : []),
+          ...(showChangepoint ? [{ color: CC.THRESH, label: "Changepoint", swatchType: "line" }] : []),
         ]} />
       </>}
       {regions.length > 0 && result.flag !== "LOW" && result.flag !== "N/A" && (
