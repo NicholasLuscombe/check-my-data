@@ -685,6 +685,46 @@ threshold. Never label a cutoff bare "α"; name the layer — "flag gate", "scre
 
 ---
 
+### Lead with the surface that carries the signal; an all-clear surface never leads (S243)
+
+The gating rule above governs elements that falsely *signal* — emphasis that fires on something
+looser than the verdict. This rule governs the converse: a surface that *truthfully* signals
+nothing must not occupy the lead slot on a flagged card.
+
+> On a multi-surface card, the surface that carries the verdict's signal leads. A surface that is
+> honestly all-clear (no flagged element) demotes below the signal-bearing surface, or is
+> suppressed entirely — it never sits in the prominent slot directly under a verdict it does not
+> support.
+
+The failure mode is an honest-but-empty surface pinned in the most prominent position by a static
+render order, directly under a verdict headline it contradicts. The surface is not lying — it
+correctly shows no signal — but its prominence reads as the card's primary evidence, so a reader
+sees "nothing here" immediately under "something was found."
+
+Render order must therefore be **data-driven**, a function of which surface carries the signal, not
+a fixed sequence. The distinguishing quantity already exists on most multi-surface results (a
+per-element count, a flag-driver field); the card derives lead-vs-demote from it.
+
+Worked example (Inter-Replicate Correlation, S243). The card has two surfaces at different
+granularities: a per-condition correlation matrix (per-pair signal) and a row-windows table
+(localised signal). The signal shape differs by fixture:
+
+- **Per-pair signal** (a suspicious pair exists): the matrix carries the red flagged cell, so the
+  matrix leads. The windows table is empty and shows its "no localised ranges" message below.
+- **Windowed-only signal** (no suspicious pair, but flagged row-windows exist): the matrix is
+  honestly all-"Expected" — it carries nothing. So the row-windows table leads, and the all-clear
+  matrix is *suppressed*, not merely demoted: a full all-slate matrix is heavy chrome for zero
+  signal, and even below the table it read as a grey afterthought. Suppression was the right call
+  once the demoted-with-framing version was built and seen.
+
+Demote vs. suppress is a judgement on whether the all-clear surface adds real context cheaply. A
+compact all-clear surface may demote and earn its place as scope ("the rest is clean"); a heavy one
+(a large matrix, a dense plot) suppresses, because the cost in prominence and chrome outweighs the
+context. Build the demoted version, look at it, and cut to suppression if it reads as dead weight —
+the screenshot decides, not the principle.
+
+---
+
 ### Out-of-data text sits in a reserved gutter, not an overflow (S224)
 
 Axis titles, axis labels, and legends are out-of-data text: they live outside the plotted data
