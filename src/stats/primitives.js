@@ -429,6 +429,29 @@ export function pooledTtoP(t,df) {
   return regIncBeta(df/2,0.5,x);
 }
 
+/** Two-sided Student-t quantile (inverse-CDF). Given a two-sided tail
+ *  probability p and degrees of freedom df, returns t > 0 such that the
+ *  two-sided tail area beyond ±t equals p — i.e. the 1 − p/2 quantile.
+ *  Inverts pooledTtoP (the same regIncBeta forward path) by bisection, so a
+ *  consumer's interval edge matches the exact-t tail rather than a normal
+ *  approximation. Correct at low df (df=2, p=0.01 → ≈9.925); → normal
+ *  quantile as df → ∞.
+ *  @param {number} p - two-sided tail probability ∈ (0,1)
+ *  @param {number} df - degrees of freedom (>0)
+ *  @returns {number} */
+export function tQuantileTwoSided(p,df) {
+  if(!(p>0&&p<1)||!(df>0)) return NaN;
+  // pooledTtoP(t,df) is monotone decreasing in t: 1 at t=0, →0 as t→∞.
+  // Bracket the root [lo,hi] then bisect.
+  let lo=0, hi=1;
+  while(pooledTtoP(hi,df)>p && hi<1e8) hi*=2;
+  for(let i=0;i<100;i++){
+    const mid=(lo+hi)/2;
+    if(pooledTtoP(mid,df)>p) lo=mid; else hi=mid;
+  }
+  return (lo+hi)/2;
+}
+
 /** Modal decimal precision of a numeric array (most common # of decimal places).
  *  Trailing zeros are stripped by `Number→String` coercion (so 30.70 → "30.7" → 1dp).
  *  @param {number[]} vals
