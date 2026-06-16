@@ -4,7 +4,6 @@
    Fallback: generic "{testName}: flagged (p = {p})" if fields are missing. */
 
 import { fmtPBadge } from "./thresholds.js";
-import { classifyIrcPairs } from "../analysis/buildHighlightSpec.js";
 
 function isFlagged(r) {
   return r.flag === "HIGH" || r.flag === "FLAGGED" || r.flag === "MODERATE" || r.flag === "NOTED";
@@ -181,28 +180,16 @@ function interReplicateCorrelation(r, toFileRow) {
   if (!isFlagged(r)) return null;
   try {
     const details = r.details || [];
-    const globalPairs = details.filter(d => !d.source);
     const f = toFileRow || (x => x);
 
-    // 1. Condition-level elevation (highest priority — the forensic signal)
-    const { elevatedConds } = classifyIrcPairs(r);
-    if (elevatedConds.size > 0) {
-      const condName = [...elevatedConds][0];
-      const condPairs = globalPairs.filter(d => d.condition === condName);
-      const meanR = condPairs.length
-        ? (condPairs.reduce((s, d) => s + parseFloat(d.r), 0) / condPairs.length).toFixed(2)
-        : r.meanR;
-      return `All replicates in ${condName} are uniformly correlated (mean r = ${meanR}) — significantly above other conditions. ${fmtPBadge(r.primaryP)}`;
-    }
-
-    // 2. Globally suspicious pairs
+    // 1. Globally suspicious pairs
     const susPair = details.find(d => d.suspicious);
     if (susPair) {
       const cond = susPair.condition ? ` in ${susPair.condition}` : "";
       return `Replicates ${susPair.pair} are more correlated than expected${cond} (r = ${susPair.r}). ${fmtPBadge(r.primaryP)}`;
     }
 
-    // 3. Windowed-scan entries (informational)
+    // 2. Windowed-scan entries (informational)
     const winEntry = details.find(d => d.source === "window" && d.significant);
     if (winEntry) {
       const cond = winEntry.condition ? ` in ${winEntry.condition}` : "";
@@ -211,7 +198,7 @@ function interReplicateCorrelation(r, toFileRow) {
       return `Replicates ${winEntry.pair}${cond} are locally more correlated than expected${rows}${rVal}. ${fmtPBadge(r.primaryP)}`;
     }
 
-    // 4. Fallback
+    // 3. Fallback
     if (r.meanR != null) {
       return `Replicate correlations are higher than expected (mean r = ${r.meanR}). ${fmtPBadge(r.primaryP)}`;
     }

@@ -213,58 +213,11 @@ function buildLocalityCompose(findings, ctx) {
   return { hasWholeTable, hasUnscoped, unionCells, unionRows, unionCols, countCells, countRows, countCols };
 }
 
-// ── Shared IRC pair classification ──────────────────────────────────
-/**
- * Classify IRC pairs into two tiers. Used by both the card and the highlight spec.
- * Windowed pairs are informational only (shown in the card's evidence table, not in
- * the heatmap or highlight).
- *
- * @param {object} ircResult - The IRC test result object
- * @returns {{ elevatedConds: Set<string> }}
- *   elevatedConds: condition names where mean Fisher-z > overall + 1×SD
- */
-export function classifyIrcPairs(ircResult) {
-  const empty = { elevatedConds: new Set() };
-  if (!ircResult?.details?.length) return empty;
-
-  const globalPairs = ircResult.details.filter(d => !d.source);
-  if (!globalPairs.length) return empty;
-
-  // Group global pairs by condition
-  const condMap = {};
-  for (const d of globalPairs) {
-    if (!condMap[d.condition]) condMap[d.condition] = [];
-    condMap[d.condition].push(d);
-  }
-  const condNames = Object.keys(condMap);
-
-  // Condition-level elevation: mean Fisher-z per condition > overall + 1×SD
-  const elevatedConds = new Set();
-  if (condNames.length >= 2) {
-    const arctanh = (r) => 0.5 * Math.log((1 + r) / (1 - r));
-    const condMeanZ = condNames.map(cond => {
-      const rs = condMap[cond].map(d => Math.min(parseFloat(d.r), 0.9999));
-      const zs = rs.map(arctanh);
-      return zs.reduce((a, b) => a + b, 0) / zs.length;
-    });
-    const overallMeanZ = condMeanZ.reduce((a, b) => a + b, 0) / condMeanZ.length;
-    const sdZ = Math.sqrt(condMeanZ.reduce((s, z) => s + (z - overallMeanZ) ** 2, 0) / condMeanZ.length);
-    const threshold = overallMeanZ + sdZ;
-    condNames.forEach((cond, i) => {
-      if (condMeanZ[i] > threshold) elevatedConds.add(cond);
-    });
-  }
-
-  return { elevatedConds };
-}
-
 // ── Per-test builders ───────────────────────────────────────────────
 
 /**
  * IRC: column tint + brackets. No row highlighting.
- * Two sources via classifyIrcPairs:
- *   1. Globally suspicious pairs (d.suspicious === true) — individual brackets
- *   2. Condition-level elevation — single spanning bracket per condition
+ * Source: globally suspicious pairs (d.suspicious === true) — individual brackets.
  * Windowed pairs are informational only (shown in card evidence table).
  */
 function buildIrcSpec(results, ctx) {
@@ -273,7 +226,6 @@ function buildIrcSpec(results, ctx) {
 
   const { matColToVisCol } = ctx;
   const globalPairs = ircResult.details.filter(d => !d.source);
-  const { elevatedConds } = classifyIrcPairs(ircResult);
 
   const tintedVisCols = new Set();
   const brackets = [];
@@ -289,28 +241,10 @@ function buildIrcSpec(results, ctx) {
     brackets.push({ viStart: Math.min(vi1, vi2), viEnd: Math.max(vi1, vi2), label });
   };
 
-  // 1. Globally suspicious pairs — individual brackets
+  // Globally suspicious pairs — individual brackets
   for (const d of globalPairs) {
     if (!d.suspicious) continue;
     addPair(d.matCol1, d.matCol2, `r = ${parseFloat(d.r).toFixed(2)}`);
-  }
-
-  // 2. Elevated conditions — tint all columns, one spanning bracket with mean r
-  for (const cond of elevatedConds) {
-    const pairs = globalPairs.filter(d => d.condition === cond);
-    const condVisCols = new Set();
-    for (const d of pairs) {
-      if (d.matCol1 != null) { const v = matColToVisCol[d.matCol1]; if (v != null) condVisCols.add(v); }
-      if (d.matCol2 != null) { const v = matColToVisCol[d.matCol2]; if (v != null) condVisCols.add(v); }
-    }
-    if (condVisCols.size === 0) continue;
-    for (const vi of condVisCols) tintedVisCols.add(vi);
-    const sorted = [...condVisCols].sort((a, b) => a - b);
-    const rs = pairs.map(d => parseFloat(d.r));
-    const label = rs.length === 1
-      ? `r = ${rs[0].toFixed(2)}`
-      : `r = ${Math.min(...rs).toFixed(2)}–${Math.max(...rs).toFixed(2)}`;
-    brackets.push({ viStart: sorted[0], viEnd: sorted[sorted.length - 1], label });
   }
 
   return {

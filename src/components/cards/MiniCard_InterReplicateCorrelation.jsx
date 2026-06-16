@@ -8,7 +8,6 @@ import { CorrMatrixSVG } from "../plots/CorrMatrixSVG.jsx";
 import { PlotLayout } from "../shared/PlotLayout.jsx";
 import { ChartLegend } from "../shared/ChartLegend.jsx";
 import { EvidenceTable } from "../shared/EvidenceTable.jsx";
-import { classifyIrcPairs } from "../../analysis/buildHighlightSpec.js";
 import { shortColName, makeRowMapper } from "../shared/coordinates.js";
 import { SUB_HEAD, BLOCK_GAP, BLOCK_GAP_TIGHT } from "../shared/styles.js";
 
@@ -82,16 +81,12 @@ const matrices = condNames.map(cond => {
   return { cond, cols, mat };
 });
 
-// ── Two-tier classification via shared utility ──
-const { elevatedConds } = classifyIrcPairs(result);
-
 // Cell colour — two tiers (same filter as highlight spec):
-// Red = globally suspicious. Amber = elevated condition. Blue = expected.
+// Red = globally suspicious (dual-gated outlier pair). Slate = expected.
 // Windowed pairs are informational only (shown in the evidence table below).
 const cellBg = (p) => {
   if (!p) return C.BORDER_L;
   if (p.suspicious) return TIER_COLOR.HIGH;
-  if (elevatedConds.has(p.condition)) return TIER_COLOR.MID;
   return TIER_COLOR.LOW;
 };
 const cellTxt = (p) => cellTextOn(cellBg(p));
@@ -99,7 +94,6 @@ const cellTxt = (p) => cellTextOn(cellBg(p));
 // Legend items
 const legend = [
   { color: TIER_COLOR.LOW, label: "Expected" },
-  { color: TIER_COLOR.MID, label: "Elevated replicates" },
 ];
 if (nSusp > 0) legend.push({ color: TIER_COLOR.HIGH, label: "Highly correlated (outlier pair)" });
 
@@ -110,21 +104,16 @@ const topWins = [...wins].sort((a, b) => {
   return (a.condition || "").localeCompare(b.condition || "");
 });
 
-return (
+// -- Surface hierarchy: lead with the surface that carries the signal --
+// Windowed signal present (wins) -> windows table leads. The matrix follows only
+// when it carries a red cell (a suspicious pair, State 3); when it is all-slate
+// (State 2) it is suppressed entirely, since the table holds everything.
+// Per-pair signal only (or clean) -> matrix leads, windows message follows.
+const tableLeads = wins.length > 0;
 
-  <MiniCardLayout result={result}
-    footer={result.flag !== "LOW" && result.flag !== "N/A"
-      ? "Replicates correlate more closely than expected"
-      : "Replicates correlate as expected"}
-    lookFor={wins.length > 0 ? "The windowed scan found a stretch of rows where replicates agree more closely than elsewhere. Check whether those rows correspond to a particular experimental group or were added later. Ask for the raw instrument output to verify that the submitted replicates are distinct measurements." : "One or more replicate pairs correlate more strongly than the dataset's signal-to-noise ratio predicts. Check whether those columns might be copies or near-copies of each other. Compare the original instrument files against the submitted data to confirm independent measurements." }
-    implications="Replicates that track each other unusually closely can reflect a high signal-to-noise ratio experiment where the true biological signal dominates random noise. They can also indicate that one replicate was derived from another — for example, by copying a column and adding small perturbations.">
-
-    {result.highSNRWarning&&(
-      <CardBanner type="warn">
-        <strong>High-SNR data</strong> — ICC-predicted r ≈ {result.iccPredicted}. When signal greatly
-        exceeds noise, r near 1.0 is expected and not suspicious.
-      </CardBanner>
-    )}
+// Matrix surface -- the legend travels with the matrix wherever it sits.
+const matrixSurface = (
+  <>
     {/* S210 (multi-surface): primary-surface heading dropped — the footer
         fragment (LEAD_HEAD in MiniCardLayout) heads this primary plot. */}
     <PlotLayout fitContent>
@@ -150,7 +139,12 @@ return (
         </div>
     </PlotLayout>
     <ChartLegend items={legend} />
-    {topWins.length > 0 && (
+  </>
+);
+
+// Windows table -- only built when windowed entries exist (the leading surface
+// whenever present, per the hierarchy above).
+const windowsTable = (
       <div style={{marginTop: BLOCK_GAP}}>
         {/* S210 (multi-surface): secondary-surface heading demoted (Regular weight). */}
         <div style={{...SUB_HEAD, fontWeight: FW.NORM, marginBottom: BLOCK_GAP_TIGHT}}>Highly correlated row windows</div>
@@ -164,11 +158,48 @@ return (
           footerText={topWins.length < result.nWindowsTested ? `Showing ${topWins.length} of ${result.nWindowsTested}.` : undefined}
         />
       </div>
-    )}
-    {topWins.length === 0 && result.flag !== "LOW" && (
+);
+
+// Shown only when no windowed ranges exist and the test still flagged.
+const noWindowsMessage = (topWins.length === 0 && result.flag !== "LOW") ? (
       <div style={{marginTop:"12px",fontSize:FS.base,fontFamily:FF.UI,color:C.TEXT}}>
         No localised row ranges detected — elevated correlation is uniform across all rows.
       </div>
+) : null;
+
+return (
+
+  <MiniCardLayout result={result}
+    footer={result.flag !== "LOW" && result.flag !== "N/A"
+      ? "Replicates correlate more closely than expected"
+      : "Replicates correlate as expected"}
+    lookFor={wins.length > 0 ? "The windowed scan found a stretch of rows where replicates agree more closely than elsewhere. Check whether those rows correspond to a particular experimental group or were added later. Ask for the raw instrument output to verify that the submitted replicates are distinct measurements." : "One or more replicate pairs correlate more strongly than the dataset's signal-to-noise ratio predicts. Check whether those columns might be copies or near-copies of each other. Compare the original instrument files against the submitted data to confirm independent measurements." }
+    implications="Replicates that track each other unusually closely can reflect a high signal-to-noise ratio experiment where the true biological signal dominates random noise. They can also indicate that one replicate was derived from another — for example, by copying a column and adding small perturbations.">
+
+    {result.highSNRWarning&&(
+      <CardBanner type="warn">
+        <strong>High-SNR data</strong> — ICC-predicted r ≈ {result.iccPredicted}. When signal greatly
+        exceeds noise, r near 1.0 is expected and not suspicious.
+      </CardBanner>
+    )}
+    {tableLeads ? (
+      // State 2 (windowed signal, no per-pair signal): windows table only -- the
+      // all-slate matrix is dead weight, so it is suppressed. State 3 (a suspicious
+      // pair is also present): the matrix follows, carrying its red cell.
+      <>
+        {windowsTable}
+        {nSusp > 0 && (
+          <div style={{marginTop: BLOCK_GAP}}>
+            {matrixSurface}
+          </div>
+        )}
+      </>
+    ) : (
+      // State 1 (per-pair signal only) + clean: matrix leads, windows message follows.
+      <>
+        {matrixSurface}
+        {noWindowsMessage}
+      </>
     )}
 
 
