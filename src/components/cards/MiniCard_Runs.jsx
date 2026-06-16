@@ -18,7 +18,7 @@ const SIGN_NEG = SIGN.NEG;
 
 // ── Pooled mean-z verdict marker (S166 A5) ──────────────────────────
 // Small inline horizontal-axis plot showing the producer's pooled mean-z
-// from the one-sample t (runs.js) with its 99.9% CI whisker, against the
+// from the one-sample t (runs.js) with its verdict-edge CI whisker, against the
 // dashed z = 0 reference. The interval's relation to zero IS the verdict;
 // negative-of-zero = too few runs distributed across pairs (the §2.3
 // fabrication signal). Drawn above the per-pair sign strips so the
@@ -176,17 +176,16 @@ export function MiniCard_Runs({ result, importConfig, rowMap }) {
       lookFor={hasWindowed ? `Rows ${details.find(d=>d.source==="window")?.startRow||"?"}\u2013${details.find(d=>d.source==="window")?.endRow||"?"} show unusually long stretches where one replicate stays above the other. Examine those rows for signs of sequential construction — are the values suspiciously smooth, evenly spaced, or trending in one direction? Compare the sign pattern in that region against the rest of the dataset.` : "Too few sign changes means replicate differences persist in the same direction for long stretches. This is the signature of values typed row-by-row, where each value is anchored to the previous one. Ask for the original instrument files and compare the row ordering — if the data was re-sorted before submission, that alone can explain the pattern."}
       implications={runsImplications}>
 
-      {/* S166 A5: pooled mean-z headline marker — the verdict statistic
-          (one-sample t on per-pair z, runs.js:72) drawn against z = 0 with
-          its 99.9% CI whisker. The interval-vs-zero relation IS the verdict;
-          per-pair strips below are texture. Suppressed when n < 2 (no CI
-          defined) or under the windowed-driver branch where the per-pair
-          marker isn't the headline. */}
-      {Number.isFinite(pooledMeanZ) && Array.isArray(result.pooledZCI95) && (<>
+      {/* Pooled mean-z headline marker: the one-sample t on per-pair z (runs.js)
+          drawn against z = 0 with its verdict-edge CI whisker (pooledZCI_flag).
+          The interval-vs-zero relation IS the verdict. Single-matrix path only —
+          the !isAgg gate drops it on the column-grouped path, which has no
+          pooled-by-design marker (its run-length table and minimap stand). */}
+      {!isAgg && Number.isFinite(pooledMeanZ) && Array.isArray(result.pooledZCI_flag) && (<>
         {/* S210 (multi-surface): primary-surface heading dropped — the footer
             fragment (LEAD_HEAD in MiniCardLayout) heads this primary plot. */}
         <PlotLayout>
-          <PooledZMarker value={pooledMeanZ} ci={result.pooledZCI95} />
+          <PooledZMarker value={pooledMeanZ} ci={result.pooledZCI_flag} />
         </PlotLayout>
       </>)}
 
