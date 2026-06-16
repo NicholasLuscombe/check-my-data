@@ -266,12 +266,13 @@ replacement.** The routing probe found no flagged-per-unit anchor in any fixture
 on the single pooled mean-z, DS02 on the worst-group (Control) pooled mean-z, with every per-pair
 and every window cleared (`significant: false` throughout). A forest of cleared units under a
 flagged verdict re-imports the band defect one layer up. The honest object is a **single band on
-the pooled mean-z**, re-leveled to the flag boundary like Noise Scaling (§7), with the per-pair
-table and run-length minimap retained as context. On the worst-group (column-grouped) path the
-band must be the **worst group's** pooled mean-z on the worst group's null — not pooled across
-conditions (the §4 contamination point applies to the band too). Confirm band-quantity =
-verdict-quantity on both routing paths at source before building (read-only-first). Until built,
-ships as known-defect (the old band still drawn).
+the pooled mean-z** on the single-matrix path, re-leveled to the flag boundary like Noise Scaling
+(§7), with the per-pair table and run-length minimap retained as context. **S240 resolved the scope:**
+the band is built on the single-matrix path only; the column-grouped (worst-group) path is
+**suppressed**, because Runs is not Fisher-exempt and a Fisher-promoted aggregate verdict has no
+single markable quantity for a band to picture — that path routes to the parked Fisher-combined open
+(§7 carries the detail). Build dispatched S240, in flight S240→S241; until it lands, ships as
+known-defect (the old band still drawn).
 
 **Independent latent fix — Row-Mean Runs `primaryP`.** `primaryP = globalBestP` does not track
 the windowed promotion that can raise the flag (`rowMeanRuns.js:98,145-147`) — a `primaryP`-vs-
@@ -301,12 +302,39 @@ expected line to an independent intercept.)
 The `pooledZCI95` field name is stale (it holds a 3.29 interval, not a 95% one) — cosmetic
 rename, parked, not load-bearing.
 
-**Runs band (POOLED-SINGLE, S239).** Same single-band object as Noise Scaling, on the pooled
-mean-z. Two routing paths: single-matrix (DS21/22 — pooled mean-z, straightforward band) and
-worst-group column-grouped (DS02 — band on the worst group's mean-z, worst group's null, not
-pooled-across-conditions). The `pooledZCI95` field already holds the interval (named for a 95%
-level it isn't — the parked cosmetic rename). Read-only-first: confirm the band quantity equals the
-verdict quantity on both paths before building.
+**Runs band (POOLED-SINGLE, S239; scope resolved S240).** Same single-band object as Noise
+Scaling, on the pooled mean-z — but only on the **single-matrix path**. The S240 read-onlies settled
+the two routing paths differently:
+
+- **Single-matrix path (DS21/DS22): banded.** The band is `pooledMeanZ ± tCrit · pooledZSE`, where
+  the verdict is `oneSampleT(allZ)` against 0 using that same mean, SE, and df — so the band edge is
+  the verdict edge by construction. New field `pooledZCI_flag` holds this interval (added beside the
+  stale-named `pooledZCI95`, which still holds the 3.29/HIGH-gate width; `pooledZCI95` retirement is
+  parked once no reader remains).
+- **Column-grouped path (DS02 and siblings): suppressed, not banded.** The aggregate verdict is
+  `max(fisherFlag, worstGroupFlag)` and Runs is **not** Fisher-exempt (§4), so when Fisher promotes
+  above the worst group there is no single markable quantity — the propagated interval holds only the
+  worst group's spread, which under-states a Fisher-promoted flag. The card gates the band off on this
+  path via `!isAgg` (`result.groupsAssessed !== undefined`). The honest display object for this path is
+  the parked Fisher-combined column-grouped open (shared with the Autocorrelation DS02-class all-grey
+  case), not this band. (Supersedes the prior worst-group-band description, which predated the S240
+  routing read-onlies.)
+
+**Re-level convention.** The band edge matches the verdict's **per-branch** boundary: exact-t at
+df ≤ 30, normal at df > 30 — because `oneSampleT` itself switches to the normal approximation at
+df > 30, so matching it keeps band = verdict at every df (this is not an exception to "no normal
+quantile for a t-edge" — at df > 30 the normal quantile *is* the verdict's edge). The inverse-t
+(`tQuantileTwoSided`, `primitives.js`) is **Runs-only** — the structure-first pass found no other
+POOLED-SINGLE consumer (Noise Scaling is flat-z-correct; its verdict maps through the normal tail
+`zToP`). df > 30 is unreachable on the current battery (needs ≥ 9 replicate columns; DS21 = 8,
+DS22 = 7).
+
+**Validity note (banked, not a band fix).** The single-matrix verdict's `oneSampleT(allZ)` treats
+the maximally-overlapping all-pairs runs-z's as i.i.d. at df = nPairs − 1; no permutation or df
+correction guards it (confirmed S240). The flag is over-liberal, scaling with pair count, latent on
+the current battery. Banked as a confirmed instance of the §5.4 FP-equivalence blocker
+(V1X-FUTURE-WORK §5.4). The band is unaffected — it faithfully draws whatever the verdict claims; if
+the null is later recalibrated, the band re-levels to the new boundary automatically.
 
 ---
 
