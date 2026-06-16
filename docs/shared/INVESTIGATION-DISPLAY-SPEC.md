@@ -637,6 +637,54 @@ changed.
 
 ---
 
+### Signal-reading display elements gate on the verdict's significance (S242)
+
+The band-level rule (METHODOLOGY § "Confidence-interval level on plotted bands") states it for one
+element: a plotted band's exceedance must equal the verdict's exceedance — a band that excludes its
+null reads as "this card flags," so the visual claim and the flag decision are the same test. The S207
+reference-line vocabulary above applies the same logic to threshold lines (the Mahalanobis cutoff is the
+faithful realisation of the BH decision, so no unflagged row sits above it).
+
+**The principle generalises to every display element that reads as a signal — not just bands and lines,
+but markers, colour tints, highlighted bins, and emphasis of any kind:**
+
+> A display element that reads as a signal must gate on the same significance the verdict gates on, or be
+> visibly marked as non-significant.
+
+An element "reads as a signal" when a viewer would take its presence or emphasis as "something was found
+here." The failure mode is an element that fires on **existence** or **relative ranking** rather than on
+the **gated decision** the verdict uses — so it lights up on data the verdict correctly clears. Two
+confirmed instances (S242 card-walk; both verdict-correct, both display-misleading):
+
+- **Relative-ranking tint (Inter-Replicate Correlation "Elevated replicates" amber tier).** The amber
+  tier keys on a purely relative z-ranking — a condition tinted whenever its mean Fisher-z exceeds the
+  cross-condition mean by 1 SD (`buildHighlightSpec.js`). No p-value enters. On clean multi-condition data
+  this tints the top-ranked condition **by construction** — sampling noise guarantees one condition sits
+  >1 SD above the mean. The amber reads as "elevated = suspicious" on a card that correctly flags LOW.
+  Fix: gate the tier on the verdict's significance, or relabel so the tint reads as "relatively highest"
+  (ranking, not signal) rather than "elevated" (signal).
+
+- **Existence-gated marker (LOESS changepoint marker).** The marker draws at the unconditional argmax of
+  |CUSUM| and gates on existence (`hasCP`), not significance — so it marks the most-extreme location on
+  every fixture regardless of the (often LOW) verdict. The card's footer and region-table are flag-gated;
+  the marker is the lone element that is not. Fix: gate the marker on significance, or mark it visibly as
+  "most-extreme location, not significant" when the verdict clears.
+
+**Application.** When adding or auditing any plotted emphasis (marker, tint, highlighted bar/bin, bold,
+colour), ask: does this element gate on the verdict's significance decision, or on something looser
+(existence, rank, raw extremity, a relative threshold)? If looser, either re-gate it onto the verdict
+decision, or label it so it cannot be read as a flag. This is the display-side companion to the
+dual-gating methodology rule (statistical significance AND effect size) — the display must not assert a
+signal the verdict withholds.
+
+**Related: label which α a number represents.** Cards surface three distinct α layers — the verdict gate
+(HIGH < 0.001 / MOD < 0.01), an internal BH-FDR sub-unit screening α (e.g. 0.05, set by the
+permutation-floor arithmetic), and the plotted-band level (99.9%, pinned to the HIGH gate). All are
+correct and deliberate, but a bare "α = X" on a card lets a reader read three layers as one incoherent
+threshold. Never label a cutoff bare "α"; name the layer — "flag gate", "screening α", or "band level".
+
+---
+
 ### Out-of-data text sits in a reserved gutter, not an overflow (S224)
 
 Axis titles, axis labels, and legends are out-of-data text: they live outside the plotted data
