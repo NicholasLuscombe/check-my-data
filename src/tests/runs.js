@@ -1,4 +1,4 @@
-import { mean, zToP, oneSampleT, bhFDR, stddev } from "../stats/primitives.js";
+import { mean, zToP, oneSampleT, bhFDR, stddev, normalQuantile, tQuantileTwoSided } from "../stats/primitives.js";
 import { flagFromP, ALPHA, flagRankOf } from "../constants/thresholds.js";
 
 /* 7. Runs Test */
@@ -83,6 +83,18 @@ export function testRuns(matrix, condCtx, rng) {
   const pooledZSE = allZ.length >= 2 ? pooledZSD / Math.sqrt(allZ.length) : 0;
   const pooledZCI95 = allZ.length >= 2
     ? [pooledMeanZ - 3.29 * pooledZSE, pooledMeanZ + 3.29 * pooledZSE]
+    : null;
+  // Band that pictures the verdict. tCrit mirrors the oneSampleT(allZ) verdict's
+  // per-branch convention exactly: the normal quantile at df>30 (where the
+  // verdict's p uses zToP), the exact inverse-t otherwise (where it uses
+  // pooledTtoP). ALPHA.NOTE edge against the same pooledMeanZ, pooledZSE and df
+  // the verdict reads, so the interval's relation to z = 0 IS the flag decision.
+  // Display only — no flag logic reads this. pooledZCI95 retained (retirement parked).
+  const tCrit = pooled.df > 30
+    ? normalQuantile(1 - ALPHA.NOTE / 2)
+    : tQuantileTwoSided(ALPHA.NOTE, pooled.df);
+  const pooledZCI_flag = allZ.length >= 2
+    ? [pooledMeanZ - tCrit * pooledZSE, pooledMeanZ + tCrit * pooledZSE]
     : null;
 
   // ── Windowed permutation scan ──
@@ -282,7 +294,7 @@ export function testRuns(matrix, condCtx, rng) {
     nRows: matrix.length,
     nSignificant:nSig, nPairs:res.length,
     pooledMeanZ:pooledMeanZ.toFixed(3), pooledT:pooled.t.toFixed(3), pooledP:pooled.p.toFixed(4), primaryP:bestP,
-    pooledZSD, pooledZSE, pooledZCI95,
+    pooledZSD, pooledZSE, pooledZCI95, pooledZCI_flag,
     // Observed/expected runs ratio over all pairs. Drives the N>=500
     // effect-size gate (runsRatio > 0.70 → LOW even when p-value would
     // otherwise flag). METHODOLOGY Tier 2 references this gate; field
