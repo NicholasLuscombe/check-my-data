@@ -4,9 +4,11 @@ import { C, CC, CF, CS, FS, FW, FF, SIGNAL } from "../../constants/tokens.js";
 import { fmtP, fmtPBadge } from "../../constants/thresholds.js";
 import { MiniCardLayout } from "../shared/CardLayout.jsx";
 import { DataTable } from "../shared/DataTable.jsx";
+import { makeRowMapper } from "../shared/coordinates.js";
 
 import { PlotLayout } from "../shared/PlotLayout.jsx";
 import { PlotSVG } from "../plots/PlotSVG.jsx";
+import { ChartLegend } from "../shared/ChartLegend.jsx";
 import { SUB_HEAD, BLOCK_GAP, BLOCK_GAP_TIGHT } from "../shared/styles.js";
 
 // Round-interval step for the count axis (~4 intervals over [0, max]),
@@ -20,7 +22,13 @@ function niceStep(max) {
 
 export function MiniCard_CarlisleBalance({ result, importConfig, rowMap }) {
   const nFeatures = result.nFeatures || 0;
-  const direction = result.direction || "normal";
+  // Verdict gate shared by the red bin, the legend swatch, and the caption,
+  // so colour and explanation always move together.
+  const isFlagged = result.flag !== "LOW" && result.flag !== "N/A";
+  // Maps a raw matrix row index to the file row the investigator sees in their
+  // spreadsheet (accounts for stripped header and preamble rows). Used for the
+  // column-grouped path's "Row N" labels.
+  const mapper = makeRowMapper(importConfig, rowMap);
 
   // P-value histogram (10 bins, expected uniform)
   const histBins = result.histBins || [];
@@ -63,11 +71,16 @@ export function MiniCard_CarlisleBalance({ result, importConfig, rowMap }) {
         {/* y-axis + x-axis baseline */}
         <line x1={padL} y1={padT} x2={padL} y2={baselineY} stroke={C.BORDER} strokeWidth={CS.GRID.w} />
         <line x1={padL} y1={baselineY} x2={padL + plotW} y2={baselineY} stroke={C.BORDER} strokeWidth={CS.GRID.w} />
+        {/* count-axis title — vertical, reading bottom-to-top. Matches the
+            axis-text colour (C.TEXT_3) used by the tick and p-axis labels. */}
+        <text x={8} y={padT + plotH / 2} transform={`rotate(-90 8 ${padT + plotH / 2})`}
+          textAnchor="middle" fontSize={CF.SMALL} fill={C.TEXT_3}>Count</text>
         {histBins.map((count, i) => {
           const x = padL + i * barW;
           const h = (count / maxC) * plotH;
-          const isExcess = i === 9 && count > expectedPerBin * 2; // last bin (0.9–1.0) excess
-          const fill = isExcess ? SIGNAL.RED.dot : C.TEXT_3;
+          // Last bin (p in 0.9–1.0) renders red only when the verdict flags;
+          // all other bins stay neutral grey.
+          const fill = (i === 9 && isFlagged) ? SIGNAL.RED.dot : C.TEXT_3;
           return <rect key={i} x={x} y={padT + plotH - h} width={barW - 1} height={h}
             fill={fill} fillOpacity="0.35" stroke={fill} strokeWidth="1" />;
         })}
@@ -107,10 +120,14 @@ export function MiniCard_CarlisleBalance({ result, importConfig, rowMap }) {
         <PlotLayout fitContent>
           {histPlot}
         </PlotLayout>
+        <ChartLegend items={[
+          { color: C.TEXT_3, label: "Features per p-value bin", opacity: 0.35 },
+          { color: CC.EXP, label: "Expected under uniform", swatchType: "line", dashed: true },
+          ...(isFlagged ? [{ color: SIGNAL.RED.dot, label: "Excess balanced features", opacity: 0.35 }] : []),
+        ]} />
         <div style={{fontSize:FS.sm,fontFamily:FF.UI,color:C.TEXT_2,marginTop:"4px"}}>
           Bar height = count of features per p-value bin. Dashed line = expected under uniform.
-          {direction === "too balanced" && " Highlighted bar = excess p-values near 1.0 (too balanced)."}
-          {` How far the bars sit from the dashed expected line: ${fmtPBadge(result.ksP)}.`}
+          {isFlagged && ` The verdict counts features with a between-condition p-value above 0.95 and flags when at least half exceed it (test significance ${fmtPBadge(result.primaryP)}). The red bin marks the 0.90–1.0 decile.`}
         </div>
       </>}
 
@@ -120,10 +137,18 @@ export function MiniCard_CarlisleBalance({ result, importConfig, rowMap }) {
               weight) when the plot is present; dropped when the table is the
               sole surface (footer-lead heads it). */}
           {histPlot && <div style={{...SUB_HEAD, fontWeight: FW.NORM, marginBottom: BLOCK_GAP_TIGHT}}>Balance across conditions, per feature</div>}
-          <DataTable data={details} maxRows={20} compact identifierColumns={1} totalCount={nFeatures} columns={[
-            { header: "Feature", bold: true, render: d => d.Feature },
-            { header: "p", render: d => d["ANOVA p"] },
+          {/* Column order follows the EvidenceTable convention: identifier →
+              evidence → p. The condition means and their spread (CV) are the
+              evidence for "too balanced", so they sit together before the p. */}
+          <DataTable data={details} maxRows={20} compact identifierColumns={1} totalCount={nFeatures}
+            moreLabel={(n, t) => `Top ${n} of ${t} by balance`} columns={[
+            // rowIdx present → column-grouped record: map to the file row.
+            // colIdx present → row-grouped "Col N" record: pass the string
+            // through (its file mapping is scoped separately).
+            { header: "Feature", bold: true, render: d => d.rowIdx != null ? `Row ${mapper.toFileRow(d.rowIdx + 1)}` : d.Feature },
             { header: "Condition means", render: d => d.Means },
+            { header: "Spread (CV)", render: d => d.CV ?? "—" },
+            { header: "p", render: d => d["ANOVA p"] },
           ]} />
         </div>
       )}

@@ -67,7 +67,10 @@ export function testCarlisleBalance(matrix, condCtx) {
       const p = _oneWayAnovaP(groups);
       if (p !== null && isFinite(p)) {
         featurePValues.push(p);
-        featureDetails.push({ feature: `Col ${c + 1}`, p: +p.toFixed(6), condMeans });
+        // colIdx: raw 0-based matrix column index. The "Col N" label is the
+        // row-grouped (column-feature) branch — its file mapping is scoped
+        // separately; the card passes the feature string through unchanged.
+        featureDetails.push({ feature: `Col ${c + 1}`, colIdx: c, p: +p.toFixed(6), condMeans });
       }
     }
   } else if (condCtx.type === "column-grouped") {
@@ -94,7 +97,9 @@ export function testCarlisleBalance(matrix, condCtx) {
       if (p !== null && isFinite(p)) {
         featurePValues.push(p);
         if (featureDetails.length < 100) {
-          featureDetails.push({ feature: `Row ${r + 1}`, p: +p.toFixed(6), condMeans });
+          // rowIdx: raw 0-based matrix row index. The card maps this through
+          // toFileRow to show the investigator the real file row.
+          featureDetails.push({ feature: `Row ${r + 1}`, rowIdx: r, p: +p.toFixed(6), condMeans });
         }
       }
     }
@@ -154,6 +159,14 @@ export function testCarlisleBalance(matrix, condCtx) {
       ? "imbalanced"
       : "normal";
 
+  // Sort the per-feature evidence by p descending so the most balanced
+  // features (the ones driving the verdict) head the table rather than an
+  // arbitrary matrix-index sample. Display-only and safe: the verdict reads
+  // featurePValues, not featureDetails, so this reordering cannot move the
+  // flag. Descending-p is correct unconditionally because the effect-size gate
+  // only lets the flag survive above LOW on the high-p (too-balanced) tail.
+  featureDetails.sort((a, b) => b.p - a.p);
+
   return {
     name: NAME, category: CAT,
     description: "Under honest random allocation or independent sampling, between-group comparison p-values " +
@@ -175,11 +188,37 @@ export function testCarlisleBalance(matrix, condCtx) {
     details: featureDetails.slice(0, 30).map(d => ({
       Feature: d.feature, "ANOVA p": d.p < 0.0001 ? "<0.0001" : d.p.toFixed(4),
       Means: d.condMeans.join(" / "),
+      // Scale-normalized closeness of the condition means: a wall of tiny CVs
+      // is the too-balanced signature. Computed from the means already shown.
+      CV: _cvOfMeans(d.condMeans),
+      // Carry whichever raw 0-based index this record holds (a record carries
+      // exactly one): rowIdx on the column-grouped path, colIdx on the
+      // row-grouped path. The card maps rowIdx to a file row.
+      ...(d.rowIdx != null ? { rowIdx: d.rowIdx } : { colIdx: d.colIdx }),
     })),
   };
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────
+
+// Mean below this in absolute value makes the CV ratio blow up (division by a
+// near-zero denominator), so we emit no CV in that case rather than a huge or
+// infinite number. CV is scale-invariant, so the only universally unsafe case
+// is a mean at or near zero — this guard catches exactly that and nothing else.
+const CV_EPS = 1e-9;
+
+/** Coefficient of variation across the per-condition means, as a percentage
+ *  string (e.g. "5.74%"), or null when the mean is too close to zero to divide.
+ *  Population SD (divide by n): the conditions are the full set being compared,
+ *  not a sample drawn from a larger population. */
+function _cvOfMeans(condMeans) {
+  if (!condMeans || condMeans.length < 2) return null;
+  const m = mean(condMeans);
+  if (Math.abs(m) < CV_EPS) return null;
+  const popVar = condMeans.reduce((s, x) => s + (x - m) ** 2, 0) / condMeans.length;
+  const cv = Math.sqrt(popVar) / Math.abs(m);
+  return (cv * 100).toFixed(2) + "%";
+}
 
 function _na(name, cat, desc) {
   return { name, category: cat, flag: "N/A", primaryP: null, description: desc };

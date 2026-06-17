@@ -6,7 +6,10 @@ import { EvidenceTable } from "./EvidenceTable.jsx";
 // totalCount (optional): when supplied, the "Showing N of M" footer uses
 // this true total instead of data.length — for consumers whose engine caps
 // `data` below the true count (e.g. Carlisle's 30-row details slice).
-export function DataTable({ columns, data, maxRows = 20, rowBg, compact, identifierColumns = 0, totalCount }) {
+// moreLabel (optional): (shown, total) => string, overrides the default
+// "Showing N of M." truncation footer for one consumer without changing it
+// for the rest (e.g. Carlisle's "Top N of M by balance" signal-sorted note).
+export function DataTable({ columns, data, maxRows = 20, rowBg, compact, identifierColumns = 0, totalCount, moreLabel }) {
   if (!data?.length) return null;
   const shown = data.slice(0, maxRows);
   const cols = columns.map(c => ({ label: c.header, align: c.align }));
@@ -20,6 +23,8 @@ export function DataTable({ columns, data, maxRows = 20, rowBg, compact, identif
     })
   );
   const total = totalCount != null ? totalCount : data.length;
-  const more = total > maxRows ? `Showing ${maxRows} of ${total}.` : undefined;
+  const more = total > maxRows
+    ? (moreLabel ? moreLabel(maxRows, total) : `Showing ${maxRows} of ${total}.`)
+    : undefined;
   return <EvidenceTable columns={cols} rows={rows} identifierColumns={identifierColumns} rowBg={rowBg ? (row, i) => rowBg(shown[i], i) : undefined} compact={compact} footerText={more} />;
 }
