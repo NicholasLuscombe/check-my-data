@@ -1,6 +1,6 @@
 /* ── MiniCard: Autocorrelation ── */
 
-import { C, CP, CS, CF, FF, FW, SIGNAL } from "../../constants/tokens.js";
+import { C, CC, CP, CS, CF, FF, FW, SIGNAL } from "../../constants/tokens.js";
 import { fmtP } from "../../constants/thresholds.js";
 import { MiniCardLayout } from "../shared/CardLayout.jsx";
 import { EvidenceTable } from "../shared/EvidenceTable.jsx";
@@ -46,9 +46,9 @@ function PooledR1Marker({ value, ci }) {
   for (let v = RMIN; v <= RMAX + 1e-9; v += tickStep) ticks.push(Math.round(v * 1000) / 1000);
   return (
     <PlotSVG W={W} H={H}>
-      {/* r = 0 dashed reference */}
+      {/* r = 0 dashed reference — null anchor (teal, standardised CS.REF) */}
       <line x1={xs(0)} y1={PT} x2={xs(0)} y2={PT + 28}
-        stroke={C.AXIS} strokeWidth={CS.GRID.w} strokeDasharray="4,3"/>
+        stroke={CC.EXP} strokeWidth={CS.REF.w} strokeDasharray={CS.REF.dash} opacity={CS.REF.opacity}/>
       <text x={xs(0)} y={PT - 4} fontSize={CF.SMALL} fill={C.TEXT_2}
         textAnchor="middle" fontFamily={FF.MONO}>r = 0</text>
       {/* CI whisker */}
@@ -123,7 +123,7 @@ export function MiniCard_Autocorrelation({ result, importConfig, rowMap }) {
       opacity: 0.7,
       swatchType: "line",
     })),
-    { color: C.BORDER, label: "r = 0 (independent)", swatchType: "line", dashed: true },
+    { color: CC.EXP, label: "r = 0 (independent)", swatchType: "line", dashed: true },
   ] : null;
 
   // ── Footer ──
@@ -144,9 +144,15 @@ export function MiniCard_Autocorrelation({ result, importConfig, rowMap }) {
           fragment (LEAD_HEAD in MiniCardLayout) heads this primary surface, so
           no heading here (mirrors Runs). */}
       {Number.isFinite(meanR1) && Array.isArray(result.pooledR1CI) && (
+        <>
         <PlotLayout>
           <PooledR1Marker value={meanR1} ci={result.pooledR1CI} />
         </PlotLayout>
+        <ChartLegend items={[
+          { color: C.TEXT, label: "Pooled lag-1 mean ± 99.9% CI", swatchType: "dot" },
+          { color: CC.EXP, label: "r = 0 (independent)", swatchType: "line", dashed: true },
+        ]} />
+        </>
       )}
 
       {mainChart && (

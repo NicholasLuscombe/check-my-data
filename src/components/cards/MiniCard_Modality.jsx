@@ -10,7 +10,7 @@
    LOW the card body would render nothing under the title + verdict
    badge. */
 
-import { C, FS, FW, FF } from "../../constants/tokens.js";
+import { C, CC, FS, FW, FF } from "../../constants/tokens.js";
 import { fmtP } from "../../constants/thresholds.js";
 import { MiniCardLayout } from "../shared/CardLayout.jsx";
 import { DataTable } from "../shared/DataTable.jsx";
@@ -64,7 +64,7 @@ export function MiniCard_Modality({ result, importConfig, rowMap }) {
       {(barItems.length > 0 || skippedItems.length > 0) && (
         <ColumnStatBar items={barItems} skipped={skippedItems} cardFlag={result.flag}
           isAggregated={isAgg}
-          refValue={DIP_GATE} refLabel="Multimodality threshold"
+          refValue={DIP_GATE} refLabel="Multimodality threshold" refColor={CC.THRESH}
           valueAxisLabel="Dip statistic"
           skippedClause="near-uniform shape — too flat to test for peaks" />
       )}

@@ -13,7 +13,7 @@
    v1.x distribution-histogram with fitted-reference overlay is out
    of scope here. */
 
-import { C, CP, CS, CF, FS, FF } from "../../constants/tokens.js";
+import { C, CC, CP, CS, CF, FS, FF } from "../../constants/tokens.js";
 import { SEV_VERDICT } from "../../constants/tokens.js";
 import { FLAG_RANK } from "../../constants/thresholds.js";
 import { PlotSVG } from "./PlotSVG.jsx";
@@ -56,7 +56,7 @@ function fmtTick(v) {
  *   auto-trim of the producer reason (strips "Pre-skip: γ₁=…, γ₂=… —" diagnostic prefix) when
  *   not supplied.
  */
-export function ColumnStatBar({ items, skipped, cardFlag, refValue, refLabel, valueAxisLabel, isAggregated, skippedClause }) {
+export function ColumnStatBar({ items, skipped, cardFlag, refValue, refLabel, refColor = CC.EXP, valueAxisLabel, isAggregated, skippedClause }) {
   if (!items?.length && !skipped?.length) return null;
 
   const flaggedColor = SEV_VERDICT[FLAG_RANK[cardFlag] ?? 0].color;
@@ -115,7 +115,7 @@ export function ColumnStatBar({ items, skipped, cardFlag, refValue, refLabel, va
               it never overlaps a bar at any column count) */}
           {Number.isFinite(refValue) && refValue >= 0 && refValue <= mx && (
             <line x1={PL} y1={yscale(refValue)} x2={W - PR} y2={yscale(refValue)}
-              stroke={C.TEXT_3} strokeWidth={CS.REF.w}
+              stroke={refColor} strokeWidth={CS.REF.w}
               strokeDasharray={CS.REF.dash} opacity={CS.REF.opacity} />
           )}
 
@@ -188,7 +188,7 @@ export function ColumnStatBar({ items, skipped, cardFlag, refValue, refLabel, va
           {refLabel && (
             <div>
               <svg width="22" height="6" style={{ verticalAlign: "middle", marginRight: "4px" }}>
-                <line x1="0" y1="3" x2="22" y2="3" stroke={C.TEXT_3}
+                <line x1="0" y1="3" x2="22" y2="3" stroke={refColor}
                   strokeWidth={CS.REF.w} strokeDasharray={CS.REF.dash} opacity={CS.REF.opacity} />
               </svg>
               {refLabel}

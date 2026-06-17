@@ -68,7 +68,7 @@ export function KurtosisDistPlot({ normDiffs, simDiffs }) {
           fill={CC.OBS} fillOpacity="0.35" stroke={CC.OBS} strokeWidth="1"/>;
       })}
 
-      {/* simulated null (teal stepped line) */}
+      {/* simulated null (teal stepped line — solid: a stepped density doesn't read in dashes) */}
       {simPath && <path d={simPath} fill="none" stroke={CC.EXP} strokeWidth={CS.FIT.w} opacity="0.9"/>}
 
       {/* axes */}
