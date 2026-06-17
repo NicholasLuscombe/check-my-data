@@ -78,9 +78,10 @@ export function MiniCard_CarlisleBalance({ result, importConfig, rowMap }) {
         {histBins.map((count, i) => {
           const x = padL + i * barW;
           const h = (count / maxC) * plotH;
-          // Last bin (p in 0.9–1.0) renders red only when the verdict flags;
-          // all other bins stay neutral grey.
-          const fill = (i === 9 && isFlagged) ? SIGNAL.RED.dot : C.TEXT_3;
+          // Data model (channel 4): observed bars are blue when clear. The
+          // 0.9–1.0 driving decile renders red when the verdict flags (red
+          // region); every other bin sits at observed-blue.
+          const fill = (i === 9 && isFlagged) ? SIGNAL.RED.dot : CC.OBS;
           return <rect key={i} x={x} y={padT + plotH - h} width={barW - 1} height={h}
             fill={fill} fillOpacity="0.35" stroke={fill} strokeWidth="1" />;
         })}

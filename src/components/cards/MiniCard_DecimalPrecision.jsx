@@ -36,7 +36,7 @@ export function MiniCard_DecimalPrecision({ result, importConfig, rowMap }) {
           items={filledItems} xKey="decimalPlaces" obsKey="count"
           barColorKey="barColor"
           xlabel="Decimal places"
-          ylabel="Count"/>
+          ylabel="Count" flag={result.flag}/>
       </PlotLayout>
 
     </MiniCardLayout>

@@ -75,7 +75,9 @@ export function AutocorrDecayPlot({ perGroupDecay, singleCurve, condColorMap }) 
       ))}
       {/* group lines */}
       {curves.map((c,ci)=>{
-        const col=condColorMap?.[c.group]?.text || GROUP_COLORS[ci%GROUP_COLORS.length];
+        // Row-13 drift guard (S246): the no-condition "All data" fallback reads
+        // observed-blue directly, not COND_COLORS[0].text (same hex, two literals).
+        const col=c.group==="All data" ? CC.OBS : (condColorMap?.[c.group]?.text || GROUP_COLORS[ci%GROUP_COLORS.length]);
         const pts=c.curve.map((v,i)=>`${xs(i+1)},${ys(v)}`).join(" ");
         return (
           <g key={ci}>

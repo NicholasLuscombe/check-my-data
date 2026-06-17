@@ -73,15 +73,12 @@ export const CHART = {
   REF:       "#4a7a4a",   // expected-range reference line
 };
 
-// Two-tone strip-series colours — neutral sign / crossing encodings, NOT
-// flag state. Shared so card-side and plot-side can't drift (S212):
-//   runs sign strip — Oxford / Cambridge blue (+1 / −1);
-//   row-mean trend  — indigo crossing emphasis / lavender run segment.
+// Salient-state navy for the two-tone observed encodings (S246). The dark pole
+// shared by the runs sign strip (+1) and the row-mean trend (crossing); the
+// non-salient pole is observed-blue CC.OBS. These carry sign / crossing, NOT flag
+// state. Cambridge blue, indigo, and lavender retired S246 (the 16b "wrong blue").
 export const SIGN = {
-  POS:      "#002147",  // Oxford blue (+1) — runs sign strip
-  NEG:      "#A3C1DA",  // Cambridge blue (−1) — runs sign strip
-  CROSSING: "#4A3D8F",  // deep indigo — row-mean crossing emphasis
-  RUN:      "#A0A0CC",  // muted lavender — row-mean run segment
+  POS:      "#002147",  // Oxford navy — salient pole (+1 / crossing)
 };
 
 // withAlpha(hex, a) — rgba string at alpha a, derived from a hex token so

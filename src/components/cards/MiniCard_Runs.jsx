@@ -12,9 +12,9 @@ import { shortColName, makeRowMapper } from "../shared/coordinates.js";
 import { SUB_HEAD, BLOCK_GAP, BLOCK_GAP_TIGHT } from "../shared/styles.js";
 
 
-// Match SignStripPlot colours
+// Match SignStripPlot colours (S246: navy +1 / observed-blue −1)
 const SIGN_POS = SIGN.POS;
-const SIGN_NEG = SIGN.NEG;
+const SIGN_NEG = CC.OBS;
 
 // ── Pooled mean-z verdict marker (S166 A5) ──────────────────────────
 // Small inline horizontal-axis plot showing the producer's pooled mean-z
