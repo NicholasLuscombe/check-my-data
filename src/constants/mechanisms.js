@@ -183,7 +183,7 @@ export const TEST_METHODS = {
 
   'LOESS Residual Analysis': 'Measures how variable each row\'s replicates are, then fits a smooth trend to see whether noise changes gradually across the dataset. A cumulative-sum test (CUSUM) pinpoints the exact row where the noise character shifts \u2014 the changepoint.',
 
-  'Row-Mean Runs': 'Within each condition, computes the average value for each row and tracks how often it crosses the condition-wide mean. Too few crossings indicates trending or block shifts; too many suggests unusual alternation (Wald\u2013Wolfowitz runs test).',
+  'Row-Mean Runs': 'Within each condition, computes the average value for each row, fits a straight-line trend through those row averages, and records whether each row sits above or below that fitted trend. The Wald\u2013Wolfowitz runs test then counts the unbroken runs of above- or below-trend rows: far fewer runs than chance means the averages clump into streaks \u2014 the signature of a shift applied to a block of rows \u2014 while far more runs than chance means they alternate more regularly than real measurements would. The number of runs expected under random alternation is 1 + 2\u00b7n\u208a\u00b7n\u208b / n, where n\u208a and n\u208b are the counts of above- and below-trend rows and n is their total \u2014 for a 200-row condition split roughly evenly, about 101. Each condition is tested independently against its own expected count, and the card flags on the condition with the strongest result.',
 
   'Regional Noise Homogeneity': 'Divides the replicate columns into spatial blocks and checks whether some blocks are more or less variable than others. Significance assessed by shuffling row order (Levene\u2019s test with permutation null).',
 

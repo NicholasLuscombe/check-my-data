@@ -205,6 +205,24 @@ export function testRowMeanRuns(matrix, condCtx, rng) {
     firstPairRuns: bestSeq.runs,
     firstPairExp: Math.round(bestSeq.expected),
     worstPairLabel: `${bestSeq.label} (${bestSeq.runs} runs, exp: ${Math.round(bestSeq.expected)})`,
+    // S247: per-condition sign sequences + run stats for the multi-strip and
+    // run-length evidence table (mirrors Runs' pairSignSeqs). Additive — drives
+    // the SignStrip + table only; changes no verdict-path field. signs/pos are
+    // reconstructed from each sequence's detrended residuals, so the strip shows
+    // runs around the FITTED TREND (the tested quantity), not the grand mean,
+    // with each sign aligned to its 0-indexed matrix row for the file-row axis.
+    condSignSeqs: sequences.map(s => {
+      const signs = [], pos = [];
+      for (let i = 0; i < s.residuals.length; i++) {
+        const v = s.residuals[i];
+        if (v == null) continue;
+        const sg = v > 0 ? 1 : v < 0 ? -1 : 0;
+        if (sg === 0) continue;
+        signs.push(sg); pos.push(s.rowIdxs[i]);
+      }
+      return { label: s.label, signs, pos, runs: s.runs,
+        expected: Math.round(s.expected), z: s.z.toFixed(3), p: s.p };
+    }),
     details: [
       ...windowSig.slice(0, 20).map(w => ({ ...w, source: "window" })),
       ...sequences.map(s => ({

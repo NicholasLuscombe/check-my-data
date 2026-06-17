@@ -1,65 +1,105 @@
 import { MiniCardLayout } from "../shared/CardLayout.jsx";
 import { PlotLayout } from "../shared/PlotLayout.jsx";
 import { ChartLegend } from "../shared/ChartLegend.jsx";
-import { RowMeanTrendPlot } from "../plots/RowMeanTrendPlot.jsx";
-import { C, CC, FW, FF, SIGN } from "../../constants/tokens.js";
+import { SignStripPlot } from "../plots/SignStripPlot.jsx";
+import { EvidenceTable } from "../shared/EvidenceTable.jsx";
+import { CC, FW, FF, SIGN } from "../../constants/tokens.js";
+import { fmtP, ALPHA } from "../../constants/thresholds.js";
 import { makeRowMapper } from "../shared/coordinates.js";
-import { buildCondColorMap } from "../../constants/roles.js";
-import { SUB_HEAD } from "../shared/styles.js";
+import { SUB_HEAD, BLOCK_GAP, BLOCK_GAP_TIGHT } from "../shared/styles.js";
 
 
-// Match colours defined in RowMeanTrendPlot (S246: navy crossing / observed-blue run)
-const CROSSING_COLOR = SIGN.POS;
-const RUN_COLOR = CC.OBS;
+// Strip colours — observed-blue / salient-navy two-tone (S246), shared with
+// SignStripPlot. The runs test is on the sign of the DETRENDED row mean, so a
+// block is a run of rows holding above (+1) or below (−1) the fitted trend.
+const SIGN_POS = SIGN.POS; // Oxford navy (+1) — above the fitted trend
+const SIGN_NEG = CC.OBS;   // observed blue (−1) — below the fitted trend
 
 export function MiniCard_RowMean({ result, importConfig, rowMap }) {
-  const isAgg = result.groupsAssessed !== undefined;
+  // Coordinate mapping for original file row numbers (strip x-axis).
+  const { fileRow } = makeRowMapper(importConfig, rowMap);
+  const nMatrixRows = importConfig?.data?.length || 0;
+  const firstFileRow = nMatrixRows > 0 ? fileRow(0) : 1;
+  const lastFileRow = nMatrixRows > 0 ? fileRow(nMatrixRows - 1) : null;
 
-// Condition label for the best sequence
-const bestLabel = result.bestSequence?.replace(/^Cond:\s*/, "") || null;
+  // Per-condition sign sequences (engine, S247). Every condition is shown — the
+  // contrast between a streaky condition and a clean one IS the evidence.
+  const condSeqs = result.condSignSeqs || [];
+  const stripName = (label) => label.replace(/^Cond:\s*/, "");
+  const stripSeqs = condSeqs.map(c => ({
+    group: stripName(c.label),
+    signs: c.signs,
+    pos: c.pos,
+    runs: c.runs,
+    expected: c.expected,
+  }));
 
-// Coordinate mapping for original file row numbers.
-// `fileRow` for 0-indexed data-row indices (RowMeanTrendPlot's `rowIdxs`).
-const { fileRow } = makeRowMapper(importConfig, rowMap);
+  // Run-length evidence table. The per-condition p is the raw runs-test p — the
+  // global verdict gates on the smallest of these — so the header is a bare `p`.
+  // The Finding word fires when that p clears ALPHA.NOTE; the z sign names the
+  // direction (fewer runs = streaks, more runs = over-alternation).
+  const etRows = condSeqs.map(c => {
+    const flagged = c.p < ALPHA.NOTE;
+    const finding = !flagged
+      ? "As expected"
+      : parseFloat(c.z) < 0 ? "Fewer than expected" : "More than expected";
+    return [
+      { value: stripName(c.label), style: { fontFamily: FF.UI } },
+      c.runs,
+      c.expected,
+      c.z,
+      fmtP(c.p),
+      { value: finding, style: { fontFamily: FF.UI } },
+    ];
+  });
 
-// Row means trend plot (preferred) or null if data not available
-const hasRowMeans = result.bestRowMeans?.length > 0 && result.bestGrandMean != null;
-const mainPlot = hasRowMeans ? (
-  <RowMeanTrendPlot
-    rowMeans={result.bestRowMeans}
-    simMeans={result.bestSimMeans}
-    rowIdxs={result.bestRowIdxs}
-    grandMean={result.bestGrandMean}
-    fileRow={fileRow}
-  />
-) : null;
+  const footerContent = (result.flag !== "LOW" && result.flag !== "N/A")
+    ? "Row averages run in streaks rather than alternating"
+    : "Row averages alternate as expected";
 
-const legend = [
-  { color: CROSSING_COLOR, label: "Observed", swatchType: "line" },
-  { color: CC.EXP, label: "Simulated (permuted)", swatchType: "line" },
-  { color: CC.EXP, label: "Grand mean", swatchType: "line", dashed: true, opacity: 0.70 },
-];
+  return (
+    <MiniCardLayout result={result}
+      footer={footerContent}
+      lookFor="Long stretches where row means stay on the same side of the trend suggest sequential construction. Each block of one colour in the strip is a run of rows holding above or below the fitted trend — few, long runs mean the fabricator anchored each row's mean to the previous one. Compare those runs against the raw data: are the values suspiciously smooth or evenly spaced?"
+      implications="Row averages that hold in blocks rather than fluctuating randomly can result from time-dependent biological processes or batch effects within a condition. Too many alternations — averages switching side of the trend more than expected — can indicate values arranged to appear random rather than recorded in natural order.">
 
-// Condition colour for sub-heading
-const condColorMap = buildCondColorMap(importConfig?.condPerCol);
-const condColor = bestLabel ? condColorMap[bestLabel]?.text : null;
+      {/* What the test does — keeps the strips from reading as observed-vs-expected. */}
+      <div style={{ ...SUB_HEAD, fontWeight: FW.NORM }}>
+        Each condition's row averages are tested on their own for streaks against the
+        number of runs expected by chance; the card flags if any one condition clumps.
+      </div>
 
-return (
+      {/* Per-condition sign strips — one block per run, fed by the detrended sign
+          sequence. The framing line above already establishes these are
+          per-condition tests, so no strip-group caption. */}
+      {stripSeqs.length > 0 && (<>
+        <PlotLayout>
+          <SignStripPlot
+            groupSignSeqs={stripSeqs}
+            blocks
+            fileRow={fileRow}
+            firstFileRow={firstFileRow}
+            lastFileRow={lastFileRow}
+          />
+        </PlotLayout>
+        <ChartLegend items={[
+          { color: SIGN_POS, label: "Above trend", opacity: 0.8 },
+          { color: SIGN_NEG, label: "Below trend", opacity: 0.8 },
+        ]} />
+      </>)}
 
-  <MiniCardLayout result={result}
-    footer={result.flag !== "LOW" && result.flag !== "N/A"
-      ? "Row averages run in streaks rather than alternating"
-      : "Row averages alternate as expected"}
-    lookFor="Long stretches where row means stay on the same side of the grand mean suggest sequential construction. Bold segments in the chart mark crossings — few crossings means the fabricator anchored each row's mean to the previous one. Compare the faint regions against the raw data: are the values suspiciously smooth or trending?"
-    implications="Row averages that trend in blocks rather than fluctuating randomly can result from time-dependent biological processes or batch effects within a condition. Too many alternations — averages switching direction more than expected — can indicate values arranged to appear random rather than recorded in natural order.">
+      {/* Run-length evidence table — observed vs expected runs per condition. */}
+      {etRows.length > 0 && (
+        <div style={{ marginTop: BLOCK_GAP }}>
+          <div style={{ ...SUB_HEAD, fontWeight: FW.NORM, marginBottom: BLOCK_GAP_TIGHT }}>Runs by condition</div>
+          <EvidenceTable
+            columns={["Condition", "Runs", "Expected", "z", "p", "Finding"]}
+            rows={etRows}
+            identifierColumns={1}
+          />
+        </div>
+      )}
 
-    {bestLabel && isAgg && <div style={{...SUB_HEAD, ...(condColor ? {color: condColor} : {})}}>{bestLabel}</div>}
-    {mainPlot && <PlotLayout>{mainPlot}</PlotLayout>}
-    {mainPlot && <ChartLegend items={legend} />}
-
-
-  </MiniCardLayout>
-
-);
-
+    </MiniCardLayout>
+  );
 }

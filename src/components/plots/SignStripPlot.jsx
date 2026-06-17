@@ -39,7 +39,7 @@ function forwardFillSigns(signs) {
 // strips (MiniCard_Runs.jsx) carries the pooled statistic explicitly.
 // buildSimulatedSigns / buildSimStrip / randomPartition are removed.
 export function SignStripPlot({ groupSignSeqs, singleSeq, singleRuns, singleExp,
-  fileRow, firstFileRow, lastFileRow, defaultRowLabel="R1–R2" }) {
+  fileRow, firstFileRow, lastFileRow, defaultRowLabel="R1–R2", blocks=false }) {
   const rows = groupSignSeqs?.length
     ? groupSignSeqs
     : (singleSeq ? [{group:defaultRowLabel, signs:singleSeq, runs:singleRuns, expected:singleExp}] : []);
@@ -66,9 +66,34 @@ export function SignStripPlot({ groupSignSeqs, singleSeq, singleRuns, singleExp,
 
   const totalH = rowY(filledRows.length - 1) + ROW_H + PB;
 
-  // ── Render one rect per position, full strip width ─────────────
+  // ── Render the strip ───────────────────────────────────────────
+  // Default: one rect per position (per-cell). blocks: coalesce consecutive
+  // same-sign cells into runs and draw one rect per run, width proportional to
+  // run length, so a long run reads as one wide bar. Run-block layout stays in
+  // cell-coordinate space (start/len · STRIP_W) so the file-row x-axis below is
+  // preserved. No width floor beyond the 0.5px the per-cell path uses — a larger
+  // floor would re-inflate short-run slivers and recreate the dense texture.
   function renderStrip(filled, y, opacity = 0.80) {
-    const rectW = STRIP_W / filled.length;
+    const len = filled.length;
+    if (blocks) {
+      const rects = [];
+      let start = 0;
+      for (let i = 1; i <= len; i++) {
+        if (i === len || filled[i] !== filled[start]) {
+          rects.push(
+            <rect key={start}
+              x={LABEL_W + (start / len) * STRIP_W} y={y}
+              width={Math.max(0.5, ((i - start) / len) * STRIP_W)}
+              height={ROW_H}
+              fill={filled[start] === 1 ? SIGN_POS : SIGN_NEG}
+              opacity={opacity}/>
+          );
+          start = i;
+        }
+      }
+      return rects;
+    }
+    const rectW = STRIP_W / len;
     return filled.map((sign, i) => (
       <rect key={i}
         x={LABEL_W + i * rectW} y={y}
