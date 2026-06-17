@@ -476,6 +476,22 @@ export function testKurtosis(matrix, condCtx, rng) {
           Object.assign(condKurtosis, { promoted: true, promotedFlag: "MODERATE" });
         }
       }
+
+      // S248 — display-only across-condition correction for the per-condition
+      // p column. The column is read side-by-side across conditions (one
+      // multiple-comparison surface for the reader), so it shows the BH-FDR-
+      // adjusted p over the FULL condition set — every row in this table, not
+      // the platykurtic promotion subset above. Lands in a new field plus the
+      // displayed p; leaves condAdjP / condAdjPs / condPromoted / .promoted /
+      // finalFlag / primaryP untouched, so the verdict cannot move.
+      const fullRawPs = bestResults.map(c => c.rawP);
+      if (fullRawPs.every(p => p != null && isFinite(p))) {
+        const fullSetAdjPs = bhFDR(fullRawPs);
+        bestResults.forEach((c, i) => {
+          c.pAdjFull = fullSetAdjPs[i];
+          c.p = fullSetAdjPs[i].toFixed(4);
+        });
+      }
     }
   }
 

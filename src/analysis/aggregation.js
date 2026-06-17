@@ -2,7 +2,7 @@
 // Extracted from App.jsx — pure extraction, no logic changes.
 
 import { flagFromP, flagRankOf } from '../constants/thresholds.js';
-import { chiSquaredP, kurtosis, trimmedKurtosis } from '../stats/primitives.js';
+import { chiSquaredP, kurtosis, trimmedKurtosis, bhFDR } from '../stats/primitives.js';
 
 /** Yield to the browser between groups to prevent kill-dialog. */
 const tick = () => new Promise(r => requestAnimationFrame(() => setTimeout(r, 0)));
@@ -219,6 +219,20 @@ async function aggregatePerGroup(testFn, groups, parentCondCtx) {
       };
     })
     .sort((a, b) => parseFloat(a.kurtDeviation) - parseFloat(b.kurtDeviation));
+
+  // S248 — the per-condition p column is read side-by-side across conditions,
+  // i.e. one multiple-comparison surface for the reader. Display the across-
+  // condition BH-FDR-adjusted p (family = the conditions in this card's table)
+  // instead of the raw per-group pooledP. Verdict-inert: the aggregated flag is
+  // max(fisherFlag, worstGroupFlag) and reads none of condKurtosis; rawP keeps
+  // the undisplayed raw primaryP.
+  if (condKurtosis.length >= 2) {
+    const condRawPs = condKurtosis.map(c => parseFloat(c.p));
+    if (condRawPs.every(Number.isFinite)) {
+      const condAdjForDisplay = bhFDR(condRawPs);
+      condKurtosis.forEach((c, i) => { c.p = condAdjForDisplay[i].toFixed(4); });
+    }
+  }
 
   // Collect sign sequences per group (runs test strip plot)
   const groupSignSeqs = applicable

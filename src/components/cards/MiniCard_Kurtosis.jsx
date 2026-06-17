@@ -75,7 +75,7 @@ export function MiniCard_Kurtosis({ result, importConfig, rowMap }) {
           {(() => {
             const simK = result.simKurtosis;
             const expectedKStr = simK != null ? simK.toFixed(4) : "—";
-            const etCols = [{label:"Condition"},{label:"Rows",align:"right"},{label:"Observed κ",align:"right"},{label:"Expected κ",align:"right"},{label:"p",align:"right"},{label:"Finding"}];
+            const etCols = [{label:"Condition"},{label:"Rows",align:"right"},{label:"Observed κ",align:"right"},{label:"Expected κ",align:"right"},{label:"adj. p",align:"right"},{label:"Finding"}];
             const etRows = condK.map(c => {
               const isFlagged = c.verdict === "flagged";
               // S221: the platykurtic word and colour follow the corrected per-
