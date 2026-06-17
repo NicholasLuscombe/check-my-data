@@ -40,19 +40,19 @@ Red means "anomalous", in three forms of expression:
   anomaly axis (blue = low anomaly, red = high), making blue a *signal* in the ramp;
   slate stays neutral and reads as "off / not flagged" rather than as the cool end of a
   scale.
-Amber belongs to the anomaly/severity channel — the Moderate tier and the upper
-reach of the magnitude ramp. **The wall is about role, not hue.** A severity colour
-(red, amber, the cleared green) is reserved where severity is *read* — the verdict
-word, the dot ramp, the flag marks, the magnitude ramp. It is not reserved across the
-whole hue. A condition line, an observed series, or an expected curve may sit in the
-red / amber / green family, because a reader resolves a mark's meaning from what it is
-and where it sits (a line on a per-condition plot, a flag dot on the verdict ramp),
-not from hue alone. The only live constraint is local: a condition mark should be
-clear of a severity colour *when it would sit directly alongside a flag mark of that
-colour on the same plot* — an adjacency check, not a global exclusion. (This corrects
-the earlier "no condition in the severity family" framing, which was too broad: it
-banned green from conditions though a condition line never reads as "cleared", and the
-avoidance manufactured near-collisions worse than the natural hue.)
+  Amber belongs to the anomaly/severity channel — the Moderate tier and the upper
+  reach of the magnitude ramp. **The wall is about role, not hue.** A severity colour
+  (red, amber, the cleared green) is reserved where severity is *read* — the verdict
+  word, the dot ramp, the flag marks, the magnitude ramp. It is not reserved across the
+  whole hue. A condition line, an observed series, or an expected curve may sit in the
+  red / amber / green family, because a reader resolves a mark's meaning from what it is
+  and where it sits (a line on a per-condition plot, a flag dot on the verdict ramp),
+  not from hue alone. The only live constraint is local: a condition mark should be
+  clear of a severity colour *when it would sit directly alongside a flag mark of that
+  colour on the same plot* — an adjacency check, not a global exclusion. (This corrects
+  the earlier "no condition in the severity family" framing, which was too broad: it
+  banned green from conditions though a condition line never reads as "cleared", and the
+  avoidance manufactured near-collisions worse than the natural hue.)
 
 **2 — Condition identity. A wheel of distinct hues, end-to-end from import.**
 Which condition a mark belongs to. Drawn from `COND_COLORS` (see palette below),
@@ -64,15 +64,78 @@ across both surfaces. Hues are chosen for mutual separation as lines; a severity
 is allowed unless it would sit directly beside a flag mark of that colour (channel 1's
 role-not-hue rule). Past the palette depth, recycle hue with a line-style modifier.
 
-**3 — Data role. Teal for expected/null; grey for neutral reference.**
-- Expected / null-model prediction — the curve or line showing what clean data
-  would look like (LOESS fit, Poisson slope, simulated null, expected digit
-  frequency). Teal (`CC.EXP`), standardised. Simulated and analytic nulls share the
-  teal — a reader does not benefit from distinguishing them.
-- Neutral reference — a baseline that carries no verdict (zero line, grand-mean
-  line, expected-value line). Grey, dashed. Distinct from the flag-boundary red
-  reference of channel 1: a grey dashed line is "here is the baseline", a faded-red
-  dashed line is "here is the cutoff past which marks are flagged".
+**3 — Data role. Teal for the null; observed marks take channel 4.**
+A reference line on a plot is exactly one of two things, told apart by *function* —
+what the verdict is read against — not by geometry (a flat line vs a traced curve is
+not a meaningful distinction; a flat null is as much a prediction as a curved one).
+
+- **Null — what clean / fabrication-free data sits at, the value the verdict is read
+  as departure from.** Teal (`CC.EXP`), dashed, standardised. This is one role
+  regardless of shape: a simulated-null density, a LOESS fit, an analytic slope, a
+  flat κ≈0 / r=0 / ratio=1 line, the expected-uniform histogram line — all teal. "Null"
+  includes three readings, all the same colour: a *distance*-null (the verdict is the
+  observed mark's distance from it), a *crossing*-null (the verdict counts crossings of
+  it — the row-mean-runs grand-mean line), and the one *empirical central reference*
+  (the median-of-observed-SDs band the outlier whisker is judged against — derived from
+  observed data rather than a theoretical model, but it carries the verdict relationship,
+  so it is a null for colour purposes). Simulated and analytic nulls share the teal — a
+  reader does not benefit from distinguishing them.
+
+- **Flag boundary — the cutoff past which marks are flagged.** Faded / dashed red,
+  governed by channel 1, not here. A dip-gate ceiling, a significance threshold: the
+  data sits *below* it when clean and flags by *exceeding* it. This is not a null (the
+  data does not sit *at* it) — do not paint it teal.
+
+The grey neutral-reference sub-role is **retired.** It previously held "a baseline that
+carries no verdict (zero line, grand-mean, expected-value line) — grey dashed." That
+category was geometry masquerading as meaning: every line it named is in fact a null
+(the verdict *is* read against the grand-mean, the zero line, the expected value), so
+they belong in the teal null role. The one apparent survivor — a flat line that carried
+no verdict relationship — turned out to be a y-axis origin on a signed (±SD) scale, i.e.
+**axis furniture**, not a data-role reference at all; it routes to `C.AXIS` under the
+axis-furniture rules, not to a neutral channel-3 grey. With both gone, channel 3 has no
+grey sub-role. Recorded so it is not "restored" later as drift: there is no
+verdict-bearing reference line that should be grey — grey on a reference line was always
+either a mislabelled null (→ teal) or axis furniture (→ `C.AXIS`).
+
+**Style.** Observed data is solid (channel 4, blue); a null is dashed — the dash carries
+"this is the reference, not the measurement." Solid-vs-dashed encodes data-vs-reference,
+the one distinction a reader needs; it does not encode curve-vs-flat (which carries no
+meaning). One dash/width/opacity for all null lines, set at retoken and confirmed on the
+live render. A dashed *traced curve* (the sim-null density) may read busier than a dashed
+flat line; if it does on the live render, solid is permitted for that curve **as a
+meaning-free rendering concession, noted as such** — it is not a re-introduction of a
+solid-vs-dashed semantic. Decided at retoken on the screenshot, not asserted here.
+
+**Confidence intervals — a CI takes the colour of the mark it is the uncertainty of.**
+A CI is not its own channel; it is an error band on an existing mark and inherits that
+mark's role.
+
+- A CI around the **null** (the expected value's sampling tolerance — "clean data would
+  sit in this range") is part of the null surface: teal, lighter fill. Flagging is the
+  observed mark falling outside it. (The kurtosis expected band already renders this way.)
+- A CI around an **observed** statistic (the measurement's uncertainty) takes the observed
+  colour (blue `CC.OBS`, or the near-black verdict-mark treatment) — **not** teal.
+
+These must be different colours, and that is deliberate: on an observed-CI surface the
+verdict is read as *overlap* — does the observed CI clear / exclude the null line. The
+overlap reading is only legible if the interval and the line it is judged against are
+visually distinct. Painting the observed CI teal because it is *evaluated against* the
+teal null would collapse the two halves of the comparison into one hue and make the
+verdict unreadable. The observed CI does **not** change colour when it clears the null
+(no flag-red state): the flag is carried by the verdict word and the severity ramp, and
+clearance is already legible from the contrast. Fixed observed colour, both states.
+
+Because the verdict on these surfaces *is* the CI-vs-null overlap, the null line is
+**mandatory and at full null treatment** (teal, dashed, legible, legend-keyed) on any
+surface where the verdict is read as a CI clearing or excluding a reference. A null line
+drawn faint, thin, or unkeyed on such a surface hides half the verdict. `[PENDING CONFIRM —
+retoken CI sub-inventory]` The autocorrelation pooled-r1 surface is the known instance to
+correct: its r=0 line is the thinnest, faintest reference in the battery and carries no
+legend key, yet the CI's exclusion of it *is* the verdict — it must come up to full null
+treatment. The retoken's CI sub-inventory enumerates every other CI/band, classifies it
+(null-CI vs observed-CI), and for observed-CIs records whether the verdict is an
+overlap-with-a-null and whether that null is drawn at full treatment.
 
 **4 — Observed data. Blue.**
 The measured data itself — observed bars, scatter points, observed lines. Blue
@@ -202,22 +265,28 @@ would be premature.
 
 ## Reference lines — two kinds
 
-The audit found reference lines mixing two roles under one treatment. They split:
+This restates the channel-3 ruling in table form; channel 3 is canonical, this is the
+quick reference. Reference lines split by **function** (what the verdict is read against),
+not geometry. There are two kinds — plus axis furniture, which is not a reference line.
 
 | Kind | Role | Colour | Dash |
 |---|---|---|---|
-| Neutral baseline | zero, grand-mean, expected-value | grey (`C.AXIS`) | `CS.REF` (`4,3`) |
-| Expected / null curve | LOESS fit, Poisson slope, sim null | teal (`CC.EXP`) | solid or `CS.REF` |
-| Flag boundary | significance threshold, cutoff | faded/dashed red | `CS.REF`, reduced opacity |
+| **Null** (verdict measured against it) | LOESS fit, sim/analytic null, expected slope, flat κ≈0 / r=0 / ratio=1, expected-uniform, grand-mean (crossing-null), median-of-observed-SDs band (empirical central reference) | teal (`CC.EXP`) | dashed, one standardised treatment |
+| **Flag boundary** (cutoff marks flag past) | significance threshold, dip-gate ceiling | faded/dashed red | `CS.REF`, reduced opacity |
+| *(not a reference line)* axis furniture | y-origin on a signed scale (e.g. ±SD zero line) | `C.AXIS` | per axis-furniture rules |
 
-A flag-boundary line keeps red (it is about the same anomaly as the marks it
-bounds) but is dashed and faded so it reads as subordinate reference, not as a
-flagged mark. A neutral baseline never uses red. The neutral-baseline *line* reads
-`C.AXIS` (the dedicated axis-line token; the table above is corrected from a stale
-`C.TEXT_2`, which predated the token), while its *label* reads `C.TEXT_2` (amended
-S216 from `C.TEXT_3`): the label is axis text and shares the one axis-text darkness,
-the line is axis furniture stroke and sits one step lighter on `C.AXIS`. The line's
-subordination is carried by its dash, not by faint text (see "Axis furniture").
+A flag-boundary line keeps red (it is about the same anomaly as the marks it bounds) but
+is dashed and faded so it reads as subordinate reference, not as a flagged mark. A null
+line is teal — there is no grey null/baseline kind: the old "neutral baseline → grey"
+category was geometry masquerading as meaning (every line it named is in fact a null), and
+the one apparent survivor was an axis origin, i.e. axis furniture, not a reference line.
+See channel 3 for the full reasoning and the supersession note.
+
+The subordination of any dashed reference line is carried by its **dash**, not by faint
+text: a reference-line *label* reads `C.TEXT_2`, the one axis-text darkness (amended S216
+from `C.TEXT_3`), the same as ticks and titles. Where a line *is* axis furniture (the
+signed-scale origin), the line stroke reads `C.AXIS` (one step lighter than the text it
+carries) per "Axis furniture"; a teal null line reads `CC.EXP` and is not axis furniture.
 
 ## One severity scale (ruled)
 
@@ -323,19 +392,21 @@ What each live plot changes. "OK" = already conforms.
 
 | Plot | Current | Change |
 |---|---|---|
-| AutocorrDecayPlot | condition line reads `.border`; fallback `CHART.SERIES` | read `.text`; fallback to new `COND_COLORS` ordering |
-| ColumnStatBar | flagged bar = `SEV_VERDICT` tier ramp; neutral grey | OK — tier ramp confirmed; picks up unified `SEV_VERDICT` triple automatically |
-| DotStrip | outlier dot red `CC.THRESH`; expected band teal | OK — flag red now the unified `SEV_VERDICT` red |
-| HBarPlot | bars fixed blue `CC.OBS`; ref line teal | OK |
-| VBarPlot | expected line defaults to blue `CC.OBS` | expected line → teal `CC.EXP` (currently miscoloured as observed) |
-| KurtosisDistPlot | observed blue; sim-null teal solid | OK |
+| AutocorrDecayPlot | condition line reads `.border`; fallback `CHART.SERIES`; r=0 line grey `C.AXIS` | condition line → read `.text`; fallback to new `COND_COLORS` ordering. **r=0 line → teal `CC.EXP` dashed** (independence null, not a neutral baseline); legend swatch (`C.BORDER`) → match line |
+| ColumnStatBar | flagged bar = `SEV_VERDICT` tier ramp; ref line `C.TEXT_3` grey, used for Entropy "Expected (ratio = 1)", GoF "Null median (ratio = 1)", Modality "Multimodality threshold" | bar ramp OK (picks up unified `SEV_VERDICT`). **Entropy + GoF ref lines → teal `CC.EXP` dashed** (both are nulls). **Modality "Multimodality threshold" → faded/dashed red** (channel-1 flag boundary — data sits below it, flags by exceeding; currently miscast as grey). Per-consumer: the line colour is now role-dependent, not one shared grey |
+| DotStrip | outlier dot red `CC.THRESH`; expected band + centre line teal | flag red now unified `SEV_VERDICT`. Expected band/centre line OK as teal (null-CI + null line); confirm dash/width on the centre line match the standardised null treatment |
+| HBarPlot | bars fixed blue `CC.OBS`; "0 expected" ref line teal | OK — bars observed-blue, ref line is the null (teal); confirm dash/width match the standardised null treatment |
+| VBarPlot | expected line teal `CC.EXP` (blue→teal landed) | OK as teal (null line: Benford curve / uniform); confirm dash/width match standardised null treatment |
+| KurtosisDistPlot | observed blue; sim-null teal **solid** | sim-null → teal **dashed** (null line, standardised treatment); solid permitted for this traced curve only as the noted meaning-free concession if dashed reads messy on render |
+| PooledR1Marker (Autocorr CI surface) | r=0 line `C.AXIS`, width 0.8, opacity 1.0, **no legend key**; CI whisker/dot near-black observed | **r=0 → teal `CC.EXP` dashed at full null treatment + add legend key** (verdict-bearing null: the CI's exclusion of it *is* the verdict; currently the thinnest/faintest reference in the battery). CI whisker/dot stay observed/near-black (correct) |
+| CarlisleBalance | expected-uniform line teal, dashed `"4,3"`, opacity 0.6 | OK as teal (null); bring dash/width/opacity onto the standardised null treatment |
 | MahalanobisDistPlot | dots `.text`; outlier solid red; threshold line **faded/dashed red** (`CS.REF.dash`/`CS.REF.opacity`) | **DONE** — line already faded/dashed at source (the "solid" current-state flag was stale; confirmed S233); dots/outlier OK |
-| MeanVarianceScatter | observed blue; expected slope teal | OK |
+| MeanVarianceScatter | observed blue; expected slope teal dashed | OK — expected slope is a sloped null (single consumer, MiniCard_NoiseScaling); teal dashed, confirm dash/width on standardised null treatment |
 | MissingDataHeatmap | missing cells + block outline red | OK (red = anomalous, intensity/flag) |
 | NoiseProfilePlot | observed blue; LOESS teal; changepoints red | OK (changepoint = detected anomaly) |
-| NoiseSpreadPlot | flagged error bar = amber `CC.WARN` | "outlier" → align to red (currently amber, the two-colour-outlier split) |
+| NoiseSpreadPlot | flagged error bar amber `CC.WARN`; median band `C.BORDER` neutral; zero line `C.AXIS` | "outlier" → red (resolve amber/red split). **Median band → teal `CC.EXP`** (empirical central reference = null for colour; legend "Expected" stays). **Zero line → axis furniture `C.AXIS`** `[PENDING CONFIRM — it is the y-origin of the signed ±SD scale, not a coincidental reference]` |
 | RegionalNoiseStrip | window fill red, opacity-ramped | OK (red intensity ramp) |
-| RowMeanTrendPlot | sim line mint `CC.EXP_SOFT`; crossing/run two-tone neutral | mint → teal `CC.EXP` (fold simulated into expected); two-tone OK |
+| RowMeanTrendPlot | sim line teal `CC.EXP` (mint→teal landed); grand-mean line grey `C.AXIS`, swatch `C.TEXT_3`; crossing/run two-tone neutral | sim line OK as teal (confirm width off the one-off 1.5 onto standardised). **Grand-mean → teal `CC.EXP` dashed** (crossing-null — the runs verdict counts crossings of it); legend swatch (`C.TEXT_3`) → match line. Two-tone OK |
 | SignStripPlot | sign two-tone (Oxford/Cambridge blue), neutral | OK (neutral categorical, not flag) |
 | CorrMatrixSVG / consumers | cells via `TIER_COLOR` | `TIER_COLOR` is the two-regime slate→amber→red ramp (S214, corrected within session from the first single-hue red retoken) |
 | CoordResidualProfile | residual ramp; matrix via `rhoColor` | residual heatmap = canonical colours + gamma reserve (`RESID_GAMMA = 1.5`, floor `#DAE1EA`, nulls-to-floor; see "Dense magnitude surfaces"), NOT the `TIER_COLOR` two-regime ramp; matrix unchanged (`rhoColor`) |
@@ -383,11 +454,24 @@ What each live plot changes. "OK" = already conforms.
   via the helper rail (S216).
 
 **Per-plot tail** (individual edits):
-- VBarPlot expected line → teal.
-- MahalanobisDistPlot threshold line → faded/dashed red. **(DONE — already faded/dashed at
-  source; the conformance-table "solid" flag was stale, confirmed S233.)**
-- NoiseSpreadPlot outlier → red (resolve the amber/red outlier split).
-- RowMeanTrendPlot mint → teal.
+- NoiseSpreadPlot outlier → red (resolve the amber/red outlier split). *(Still live — colour arc.)*
+- VBarPlot expected → teal, RowMeanTrend mint → teal, MahalanobisDistPlot threshold → faded/dashed red: **all landed** (table rows reflect current state).
+
+**Reference-line retoken (this arc — channel-3 amendment):** every null line → teal `CC.EXP`,
+dashed, one standardised dash/width/opacity (set at retoken, confirmed on render). Reclassifications:
+AutocorrDecayPlot r=0, PooledR1Marker r=0 (+ full treatment + legend key), ColumnStatBar Entropy/GoF
+ref lines, RowMeanTrend grand-mean, NoiseSpread median band → **teal** (all nulls); ColumnStatBar
+Modality threshold → **faded/dashed red** (flag boundary); NoiseSpread zero line → **`C.AXIS` axis
+furniture** `[PENDING CONFIRM]`. Every legend swatch reads its line's colour (fixes the RowMean
+`C.TEXT_3` and Autocorr `C.BORDER` swatch-≠-line mismatches). Kurtosis sim-null curve: dashed first,
+solid concession only if messy on render. Two source confirms ride the retoken dispatch head
+(NoiseSpread y=0 is the axis origin; the CI sub-inventory).
+
+**Legend vocabulary (null role) — converge.** The null role currently carries ~18 distinct legend
+phrasings across cards, with bare "Expected" spanning four different colours. This is a cross-card
+legend-consistency defect, not a colour defect; the canonical short label set is authored Chat-side
+and wired in the same retoken. Until then, no card's null label is "correct" — they are inconsistent
+by construction.
 
 **Severity scale (ruled — see above):** edit `SEV_VERDICT` to the bright triple
 (`#EF4444` / `#F97316` / `#22C55E`); retoken `PLOT_FC` / `CC.THRESH` to read from
