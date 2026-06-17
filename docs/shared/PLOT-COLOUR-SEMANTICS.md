@@ -1,3 +1,15 @@
+<!-- ⚠ VERIFY BEFORE REPLACING. This full file = the source PLOT-COLOUR-SEMANTICS.md read at S247
+     close. Changes this pass: grand-mean → fitted-trend reconciliation for row-mean-runs (the crossing-null
+     example and the retired-grey-role clause — the statistic signs residuals around the fitted OLS trend,
+     not the grand mean, confirmed `rowMeanRuns.js:54`), and the RowMeanTrendPlot conformance row marked
+     RETIRED (the component was deleted in S247; RowMean redesigned to a per-condition SignStripPlot
+     block-width render). Before overwriting the tracked copy, confirm it has not drifted since:
+     `git log -1 -- docs/shared/PLOT-COLOUR-SEMANTICS.md` and diff. If anything landed after this read, merge
+     rather than overwrite. "Committed" ≠ "content-current."
+     Two placeholders are DELIBERATELY left blank (fill from a source grep at COMMIT time, not memory):
+     the four severity-red token names (§"Dense magnitude surfaces" → "Severity-red token names") and
+     the `FF.MONO` tick-rail precondition. Do not fill them from this file. -->
+
 # Plot colour semantics
 
 The colour system for plot interiors. Its job: every plot, read as a standalone
@@ -79,7 +91,8 @@ not a meaningful distinction; a flat null is as much a prediction as a curved on
   flat κ≈0 / r=0 / ratio=1 line, the expected-uniform histogram line — all teal. "Null"
   includes three readings, all the same colour: a *distance*-null (the verdict is the
   observed mark's distance from it), a *crossing*-null (the verdict counts crossings of
-  it — the row-mean-runs grand-mean line), and the one *empirical central reference*
+  it — for row-mean-runs this is the fitted OLS trend line, not the grand mean; the row
+  averages are signed above/below that fitted trend), and the one *empirical central reference*
   (the median-of-observed-SDs band the outlier whisker is judged against — derived from
   observed data rather than a theoretical model, but it carries the verdict relationship,
   so it is a null for colour purposes). Simulated and analytic nulls share the teal — a
@@ -91,9 +104,9 @@ not a meaningful distinction; a flat null is as much a prediction as a curved on
   data does not sit *at* it) — do not paint it teal.
 
 The grey neutral-reference sub-role is **retired.** It previously held "a baseline that
-carries no verdict (zero line, grand-mean, expected-value line) — grey dashed." That
+carries no verdict (zero line, fitted-trend / expected-value line) — grey dashed." That
 category was geometry masquerading as meaning: every line it named is in fact a null
-(the verdict *is* read against the grand-mean, the zero line, the expected value), so
+(the verdict *is* read against the fitted trend, the zero line, the expected value), so
 they belong in the teal null role. The one apparent survivor — a flat line that carried
 no verdict relationship — turned out to be a y-axis origin on a signed (±SD) scale, i.e.
 **axis furniture**, not a data-role reference at all; it routes to `C.AXIS` under the
@@ -443,8 +456,8 @@ What each live plot changes. "OK" = already conforms.
 | NoiseProfilePlot | observed blue; LOESS teal; changepoints red | OK (changepoint = detected anomaly) |
 | NoiseSpreadPlot | flagged error bar amber `CC.WARN`; median band `C.BORDER` neutral; zero line `C.AXIS` | "outlier" → red (resolve amber/red split). **Median band → teal `CC.EXP`** (empirical central reference = null for colour; legend "Expected" stays). **Zero line → axis furniture `C.AXIS`** (confirmed S245: it is `py(0)=midY`, the y-origin of the signed ±SD scale, not a coincidental reference). Error bars carry the data model (blue clear / red flagged) per channel 4 |
 | RegionalNoiseStrip | window fill red, opacity-ramped | OK (red intensity ramp) |
-| RowMeanTrendPlot | sim line teal `CC.EXP`; grand-mean line `C.AXIS` grey, swatch `C.TEXT_3`; crossing/run two-tone `SIGN.CROSSING`/`SIGN.RUN` | sim line OK teal. **Grand-mean → teal `CC.EXP` dashed** (crossing-null); swatch → match line. **Two-tone arc:** crossing/run → `CC.OBS` + Oxford navy (dark = crossing); retires indigo/lavender |
-| SignStripPlot | sign two-tone Oxford `#002147` / Cambridge `#A3C1DA`, neutral | **Two-tone arc:** → `CC.OBS` `#3B82F6` + Oxford navy `#002147` (dark = +1 by convention); retires Cambridge pale-blue (16b "blue isn't standard" culprit). Categorical encoding, legend stays sign-specific |
+| RowMeanTrendPlot | sim line teal `CC.EXP`; grand-mean line teal `CC.EXP` dashed, swatch matches line; crossing/run two-tone `SIGN.POS` navy (crossing) / `CC.OBS` blue (run) | **RETIRED S247 `<S247-HASH>`** — component deleted. RowMean redesigned to a per-condition `SignStripPlot` block-width render (one rect per run, width ∝ run length) + run-length evidence table; no sim line, no grand-mean line. The S246 conformance state is kept here for history only: it was colour-correct but illegible on the dense line, which is why the redesign superseded it (WALK Test22a/22b, both DONE S247). For the live render see the `SignStripPlot` row. |
+| SignStripPlot | sign two-tone `SIGN.POS` navy `#002147` (+1) / `CC.OBS` blue `#3B82F6` (−1), neutral | **Landed (two-tone arc, S246 `c4a3e7a`).** Unified onto `CC.OBS` `#3B82F6` + Oxford navy `#002147` `SIGN.POS` (dark = +1 by convention); retired Cambridge pale-blue `#A3C1DA` (the 16b "blue isn't standard" culprit). Categorical encoding, legend stays sign-specific. Screenshot-verified navy/blue distinct |
 | CorrMatrixSVG / consumers | cells via `TIER_COLOR` | `TIER_COLOR` is the two-regime slate→amber→red ramp (S214, corrected within session from the first single-hue red retoken) |
 | CoordResidualProfile | residual ramp; matrix via `rhoColor` | residual heatmap = canonical colours + gamma reserve (`RESID_GAMMA = 1.5`, floor `#DAE1EA`, nulls-to-floor; see "Dense magnitude surfaces"), NOT the `TIER_COLOR` two-regime ramp; matrix unchanged (`rhoColor`) |
 

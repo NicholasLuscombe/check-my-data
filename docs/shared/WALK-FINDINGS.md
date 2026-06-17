@@ -1,10 +1,11 @@
 # Walk Findings Log
 
-> **⚠ VERIFY BEFORE REPLACING.** This full file was rebuilt from the S244 working snapshot of
-> `docs/shared/WALK-FINDINGS.md`. Before overwriting the tracked copy, confirm it has not drifted:
-> `git log -1 -- docs/shared/WALK-FINDINGS.md` and diff the tracked content against this. If findings
-> were appended to the tracked copy after the snapshot, merge them in rather than overwriting — a
-> full replace would clobber them. "Committed" ≠ "content-current."
+> **⚠ VERIFY BEFORE REPLACING.** This full file = the source `docs/shared/WALK-FINDINGS.md` read at
+> S247 close; the S246 RowMean deferrals (Test22a + Test22b) are retagged `DONE S247 <S247-HASH>` this
+> pass — the RowMean plot-legibility redesign that resolved them shipped in S247. Before overwriting the
+> tracked copy, confirm it has not drifted since: `git log -1 -- docs/shared/WALK-FINDINGS.md` and diff.
+> If findings were appended to the tracked copy after this read, merge them in rather than overwriting —
+> a full replace would clobber them. "Committed" ≠ "content-current."
 
 One line per finding, appended as you walk. The screenshot is the same id (`test11a` → `test11a.png` in this folder) — no embedding, the name is the link. Paste the image into chat when you want my eyes on it; this file is the durable record.
 
@@ -106,9 +107,9 @@ Date optional; useful if the walk spans days. Routing (which arc each goes to) i
 | Test20b | DS01 | I don:t really understand what the table is showing. Condition Best window, Ratio. Not so meaningful in this case. |  |
 | Test21a | DS08 | Looks pretty good and straightforward. | NOT-A-DEFECT — clean |
 | Test21b | DS01 | Shows a change point even though its even throughout. | DONE S243 (changepoint marker gated on flag, 4079be7) |
-| Test22a | DS21 | Row averages run in streaks of what? I guess the expected is 0 and its spending too much time above or below? Plot is quite messy. Should you mark the blocks with shades? Should there be a table? |  |
-| Test22a | DS21 | Good How this test works explanation | NOT-A-DEFECT — clean |
-| Test22b | DS03 | The plot still shows a lot of jagged lines, so it doesn't convey how it is clear. |  |
+| Test22a | DS21 | Row averages run in streaks of what? I guess the expected is 0 and its spending too much time above or below? Plot is quite messy. Should you mark the blocks with shades? Should there be a table? | DONE S247 `<S247-HASH>` — RowMean redesigned: `RowMeanTrendPlot` retired; per-condition `SignStripPlot` block-width render (one rect per run, width ∝ run length — the "mark the blocks" ask) + run-length evidence table (the "should there be a table" ask). Streaks now legible: DS21 Control fat-block streak vs Treatment even comb. Screenshot-gated. |
+| Test22a | DS21 | Good How this test works explanation | DONE S247 `<S247-HASH>` — prior "clean" tag was a missed baseline error: the explainer described crossings of the "condition-wide mean" (grand mean), but the statistic signs residuals around the fitted OLS trend. Rewritten to fitted trend + Wald-Wolfowitz + expected-runs formula `1 + 2·n₊·n₋/n`. Caught at the S247 human-read gate. |
+| Test22b | DS03 | The plot still shows a lot of jagged lines, so it doesn't convey how it is clear. | DONE S247 `<S247-HASH>` — same component as Test22a (confirmed via read-only); same fix. DS03 (clear) now renders WT/KO as sparse fat-block alternation reading as "correctly not streaky", not dense jaggedness; the framing line orients that the clean read is correct. Screenshot-gated. |
 | Test23a | DS06 | Looks pretty clean | NOT-A-DEFECT — clean |
 | Test23b | DS01 | Good clean. Legend includes outlier and significance threshold not shown on plot. Should they be there? Wrapper doesn:t hug. | Arc A (wrapper) + Arc C (legend keys not on plot) |
 | Test24a | DS21 | Very similar to Test20. Plot row should start at 2? |  |
