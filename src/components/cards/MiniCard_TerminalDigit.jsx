@@ -45,7 +45,7 @@ return (
           obsColor={CC.OBS}
           expColor={CC.EXP}
           xlabel={xlabel}
-          ylabel="Count"/>
+          ylabel="Count" flag={result.flag}/>
     </PlotLayout>
     <ChartLegend items={[
       { color: CC.OBS, label: "Observed count", opacity: 0.35 },

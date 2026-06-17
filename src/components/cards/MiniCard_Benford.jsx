@@ -34,7 +34,7 @@ return (
           obsColor={CC.OBS}
           expColor={CC.EXP}
           xlabel={isSecond ? "Second digit (0–9)" : "Leading digit (1–9)"}
-          ylabel="Frequency (%)"/>
+          ylabel="Frequency (%)" flag={result.flag}/>
     </PlotLayout>
     <ChartLegend items={[
       { color: CC.OBS, label: "Observed %", opacity: 0.35 },

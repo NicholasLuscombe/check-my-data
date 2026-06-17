@@ -16,7 +16,7 @@ function fmtTick(v) {
 }
 
 // Vertical bar chart (digit frequencies)
-export function VBarPlot({ items, xKey, obsKey, expKey, xlabel, ylabel, obsColor, expColor, flagKey, barColorKey }) {
+export function VBarPlot({ items, xKey, obsKey, expKey, xlabel, ylabel, obsColor, expColor, flagKey, barColorKey, flag }) {
   if(!items?.length) return null;
   const W=CP.W_MD, H=110, PL=40, PR=8, PT=8, PB=30;
   const CW=W-PL-PR, CH=H-PT-PB;
@@ -51,7 +51,11 @@ export function VBarPlot({ items, xKey, obsKey, expKey, xlabel, ylabel, obsColor
       {/* observed bars */}
       {items.map((d,i)=>{
         const v=d[obsKey]||0;
+        // Data model (channel 4): when the card flags, observed bars go flat-red
+        // (global digit statistic — no per-bar attribution). barColorKey surfaces
+        // (decimal precision) keep their own per-bin colouring.
         const col = barColorKey ? (d[barColorKey]||CC.OBS)
+                  : (flag==="HIGH"||flag==="MODERATE") ? CC.THRESH
                   : obsColor ? obsColor
                   : (flagKey&&d[flagKey]?PLOT_FC[d[flagKey]]||CC.OBS:CC.OBS);
         const barH = v===0 ? 0 : Math.max(1,(v/mx)*CH);

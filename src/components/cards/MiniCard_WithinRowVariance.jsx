@@ -42,7 +42,7 @@ export function MiniCard_WithinRowVariance({ result, importConfig, rowMap }) {
           const h = (c / maxC) * plotH;
           const zMid = zMin + (i + 0.5) * binW;
           const isOutlier = Math.abs(zMid) > 3.5;
-          const fill = isOutlier ? SIGNAL.RED.dot : C.TEXT_3;
+          const fill = isOutlier ? SIGNAL.RED.dot : CC.OBS;
           return <rect key={i} x={x} y={padT + plotH - h} width={barW - 0.5} height={h}
             fill={fill} fillOpacity="0.35" stroke={fill} strokeWidth="1" />;
         })}

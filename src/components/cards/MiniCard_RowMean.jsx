@@ -8,9 +8,9 @@ import { buildCondColorMap } from "../../constants/roles.js";
 import { SUB_HEAD } from "../shared/styles.js";
 
 
-// Match colours defined in RowMeanTrendPlot
-const CROSSING_COLOR = SIGN.CROSSING;
-const RUN_COLOR = SIGN.RUN;
+// Match colours defined in RowMeanTrendPlot (S246: navy crossing / observed-blue run)
+const CROSSING_COLOR = SIGN.POS;
+const RUN_COLOR = CC.OBS;
 
 export function MiniCard_RowMean({ result, importConfig, rowMap }) {
   const isAgg = result.groupsAssessed !== undefined;

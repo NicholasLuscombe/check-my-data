@@ -1,10 +1,10 @@
-import { CP, CS, C, FF, CF, SIGN } from "../../constants/tokens.js";
+import { CC, CP, CS, C, FF, CF, SIGN } from "../../constants/tokens.js";
 import { PlotSVG } from "./PlotSVG.jsx";
 import { shortName } from "../shared/utils.js";
 
-// Strip colours — two colours only
-const SIGN_POS = SIGN.POS; // Oxford blue  (+1)
-const SIGN_NEG = SIGN.NEG; // Cambridge blue (−1)
+// Strip colours — observed-blue / salient-navy two-tone (S246)
+const SIGN_POS = SIGN.POS; // Oxford navy (+1) — the salient state
+const SIGN_NEG = CC.OBS;   // observed blue (−1)
 
 // ── Forward-fill sign array ──────────────────────────────────────
 function forwardFillSigns(signs) {

@@ -1,8 +1,13 @@
 import { CC, CP, CS, C, FF, CF } from "../../constants/tokens.js";
 import { PlotSVG } from "./PlotSVG.jsx";
 
-export function KurtosisDistPlot({ normDiffs, simDiffs }) {
+export function KurtosisDistPlot({ normDiffs, simDiffs, flag }) {
   if(!normDiffs?.length) return null;
+
+  // Data model (channel 4): observed bars blue when clear, flat-red when the
+  // verdict flags. Kurtosis is one global statistic with no per-bin attribution,
+  // so every bar reds together rather than a sub-region.
+  const obsCol = (flag === "HIGH" || flag === "MODERATE") ? CC.THRESH : CC.OBS;
 
   const W=CP.W, H=160;
   const PL=44, PR=12, PT=14, PB=28;
@@ -65,7 +70,7 @@ export function KurtosisDistPlot({ normDiffs, simDiffs }) {
         const bx=xs(x), bw=Math.max(0,xs(x+binW)-xs(x)-0.5);
         return <rect key={i} x={bx} y={ys(d)} width={bw}
           height={Math.max(0,(d/maxDens)*CH)}
-          fill={CC.OBS} fillOpacity="0.35" stroke={CC.OBS} strokeWidth="1"/>;
+          fill={obsCol} fillOpacity="0.35" stroke={obsCol} strokeWidth="1"/>;
       })}
 
       {/* simulated null (teal stepped line — solid: a stepped density doesn't read in dashes) */}

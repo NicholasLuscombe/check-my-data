@@ -19,7 +19,7 @@ import { FLAG_RANK } from "../../constants/thresholds.js";
 import { PlotSVG } from "./PlotSVG.jsx";
 import { PlotLayout } from "../shared/PlotLayout.jsx";
 
-const NEUTRAL = C.TEXT_3;
+const CLEARED_FILL = CC.OBS;   // data model (channel 4): cleared observed bars are blue
 const CLEARED_OPACITY = 0.4;
 
 function niceStep(range) {
@@ -130,7 +130,7 @@ export function ColumnStatBar({ items, skipped, cardFlag, refValue, refLabel, re
             if (s.kind === "tested") {
               const v = Number(s.value) || 0;
               const isFlagged = !!s.flagged;
-              const fill = isFlagged ? flaggedColor : NEUTRAL;
+              const fill = isFlagged ? flaggedColor : CLEARED_FILL;
               const fillOpacity = isFlagged ? 0.55 : CLEARED_OPACITY;
               const barH = v <= 0 ? 0 : Math.max(1, (v / mx) * CH);
               return (

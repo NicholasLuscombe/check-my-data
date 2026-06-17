@@ -15,8 +15,11 @@ function niceTicksTo(max) {
   return ticks;
 }
 
-export function HBarPlot({ items, accessor, xlabel, refVal, refLabel, maxOverride }) {
+export function HBarPlot({ items, accessor, xlabel, refVal, refLabel, maxOverride, flag }) {
   if(!items?.length) return null;
+  // Data model (channel 4): observed bars blue when clear, flat-red when the
+  // verdict flags (global statistic — no per-bar attribution).
+  const obsCol = (flag==="HIGH"||flag==="MODERATE") ? CC.THRESH : CC.OBS;
   const BH=13, GAP=3, LW=72, PL=6, PR=28, PT=12, PB=38;
   const vals = items.map(d=>accessor(d)||0);
   const mx = maxOverride || Math.max(...vals, refVal||0, 0.001);
@@ -43,7 +46,7 @@ export function HBarPlot({ items, accessor, xlabel, refVal, refLabel, maxOverrid
             <text x={LW-PL} y={y+BH*0.78} textAnchor="end" fontSize={CF.LABEL} fill={C.TEXT_2}
               fontFamily={FF.UI}>{shortName(d.group||d.col||`#${i+1}`)}</text>
             <rect x={LW} y={y} width={bw} height={BH} rx="2"
-              fill={CC.OBS} fillOpacity="0.35" stroke={CC.OBS} strokeWidth="1"/>
+              fill={obsCol} fillOpacity="0.35" stroke={obsCol} strokeWidth="1"/>
             <text x={LW+bw+4} y={y+BH*0.78} fontSize={CF.LABEL} fill={C.TEXT_2} fontFamily={FF.MONO}>
               {Number.isInteger(v)?v:v.toFixed?.(2)}
             </text>
