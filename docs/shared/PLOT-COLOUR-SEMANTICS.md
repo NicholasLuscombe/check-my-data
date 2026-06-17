@@ -53,6 +53,10 @@ Red means "anomalous", in three forms of expression:
   the earlier "no condition in the severity family" framing, which was too broad: it
   banned green from conditions though a condition line never reads as "cleared", and the
   avoidance manufactured near-collisions worse than the natural hue.)
+  *Note (data-model amendment, see channel 4): "the cleared green" is read on chrome —
+  verdict words, badges, the dot ramp — NOT on observed plot marks. On an observed mark
+  clear is blue, not green; green-clear is retired on marks. The list above keeps green
+  as a chrome severity colour; it is not a licence for green-clear on a plot mark.*
 
 **2 — Condition identity. A wheel of distinct hues, end-to-end from import.**
 Which condition a mark belongs to. Drawn from `COND_COLORS` (see palette below),
@@ -129,22 +133,54 @@ clearance is already legible from the contrast. Fixed observed colour, both stat
 Because the verdict on these surfaces *is* the CI-vs-null overlap, the null line is
 **mandatory and at full null treatment** (teal, dashed, legible, legend-keyed) on any
 surface where the verdict is read as a CI clearing or excluding a reference. A null line
-drawn faint, thin, or unkeyed on such a surface hides half the verdict. `[PENDING CONFIRM —
-retoken CI sub-inventory]` The autocorrelation pooled-r1 surface is the known instance to
-correct: its r=0 line is the thinnest, faintest reference in the battery and carries no
-legend key, yet the CI's exclusion of it *is* the verdict — it must come up to full null
-treatment. The retoken's CI sub-inventory enumerates every other CI/band, classifies it
-(null-CI vs observed-CI), and for observed-CIs records whether the verdict is an
-overlap-with-a-null and whether that null is drawn at full treatment.
+drawn faint, thin, or unkeyed on such a surface hides half the verdict. CI sub-inventory
+done (S245): the only two under-drawn CI-overlap nulls were the autocorrelation pooled-r1
+surface (r=0) and the Runs pooled-z surface (z=0) — both the thinnest/faintest references
+in the battery, unkeyed, with the CI's exclusion of them carrying the verdict. Both brought
+to full null treatment + a 2-item legend key (CI marker + the null line). Every other
+observed-CI either clears a properly-drawn null (MeanVariance, keyed teal) or is a flag
+threshold, not a CI.
 
-**4 — Observed data. Blue.**
-The measured data itself — observed bars, scatter points, observed lines. Blue
-(`CC.OBS`). Note observed-blue is not reserved *against* conditions: on a per-condition
-plot the line is observed data for that condition, so condition-blue and observed-blue
-are the same mark, not a collision. The only real constraint is the `TIER_COLOR` ramp
-floor (channel 1): a surface that overlays observed-blue marks on ramped cells needs
-its floor confirmed distinct from `CC.OBS` — but the audit found no `TIER_COLOR`
-surface does this, so it does not bite today.
+**4 — Observed data. Blue when clear, red when flagged (the data model).**
+The measured data itself — observed bars, scatter points, observed lines, the marks a
+histogram is built from. An observed mark carries the verdict in its own colour: **blue
+(`CC.OBS`) when the mark/card is clear, red when flagged.** There is no cleared-green and
+no neutral-grey resting state on an observed mark — a clean result is just the data sitting
+where data normally sits, drawn blue and unremarkable; the *only* colour that draws the eye
+is red, and it earns that salience by being the one non-blue thing on the plot ("nothing to
+see here" reads as quiet blue; "look here" reads as red). This is the **data model**: the
+colour tracks what the mark is and whether it is anomalous, blue→red.
+
+Flagged treatment splits by attribution: where the engine knows *which* marks drive the
+flag (per-bin, per-mark), the flag is a **red region** (the driving marks red, the rest
+blue); where the verdict is a single global statistic with no per-mark attribution, the
+flag is **flat-red** (every observed mark on the surface goes red, because the *surface*
+flagged and no sub-part is "the anomaly"). Per-mark surfaces that already flag individual
+marks (outlier dots, threshold-crossing bars) are this rule already.
+
+Observed-blue is not reserved *against* conditions: on a per-condition plot the line is
+observed data for that condition, so condition-blue and observed-blue are the same mark,
+not a collision. The only other constraint is the `TIER_COLOR` ramp floor (channel 1): a
+surface that overlays observed-blue marks on ramped cells needs its floor confirmed distinct
+from `CC.OBS` — the audit found no `TIER_COLOR` surface does this, so it does not bite today.
+
+**Marks vs chrome — the reconciliation (why marks have no green).** Cleared-green survives
+in *chrome* (verdict words, badges, the `SEV_VERDICT` triple) and is retired only on *plot
+marks*. These are different surfaces answering different questions: a verdict **badge**
+answers "what is the verdict?" and a green/amber/red traffic light is the right encoding for
+a status word; a plot **mark** answers "what does the data look like?" and the data model
+(blue normal / red anomaly) is right for it. So green stays in chrome, goes from marks —
+this is not a contradiction, it is two surfaces with two jobs. The earlier framing that
+listed "the cleared green" among severity colours reserved on plot marks (channel 1) is
+superseded by this: on marks there is no cleared green; clear is blue.
+
+**Supersession recorded (do not restore).** This overturns the S243/S244 ruling that a
+p-value-bin histogram is grey-because-not-observed-data (Test25b NOT-A-DEFECT). Under the
+data model a p-value histogram's bars *are* observed marks (they are what the card shows)
+and carry the verdict colour: blue when clear, red (region) when flagged. The grey-clear and
+green-clear resting states found across the battery (ColumnStatBar cleared bars, WithinRowVariance
+within-threshold bars, DotStrip cleared dots) are mislabelled — they go blue. A future reader
+tempted to restore grey/green clear should re-read this: clear is blue on an observed mark.
 
 **5 — Mechanism / cluster. Frame accent only.**
 Cluster identity (`MECH_COLOR`) stays card chrome — stripe, icon, breadcrumb — and
@@ -393,21 +429,22 @@ What each live plot changes. "OK" = already conforms.
 | Plot | Current | Change |
 |---|---|---|
 | AutocorrDecayPlot | condition line reads `.border`; fallback `CHART.SERIES`; r=0 line grey `C.AXIS` | condition line → read `.text`; fallback to new `COND_COLORS` ordering. **r=0 line → teal `CC.EXP` dashed** (independence null, not a neutral baseline); legend swatch (`C.BORDER`) → match line |
-| ColumnStatBar | flagged bar = `SEV_VERDICT` tier ramp; ref line `C.TEXT_3` grey, used for Entropy "Expected (ratio = 1)", GoF "Null median (ratio = 1)", Modality "Multimodality threshold" | bar ramp OK (picks up unified `SEV_VERDICT`). **Entropy + GoF ref lines → teal `CC.EXP` dashed** (both are nulls). **Modality "Multimodality threshold" → faded/dashed red** (channel-1 flag boundary — data sits below it, flags by exceeding; currently miscast as grey). Per-consumer: the line colour is now role-dependent, not one shared grey |
-| DotStrip | outlier dot red `CC.THRESH`; expected band + centre line teal | flag red now unified `SEV_VERDICT`. Expected band/centre line OK as teal (null-CI + null line); confirm dash/width on the centre line match the standardised null treatment |
-| HBarPlot | bars fixed blue `CC.OBS`; "0 expected" ref line teal | OK — bars observed-blue, ref line is the null (teal); confirm dash/width match the standardised null treatment |
-| VBarPlot | expected line teal `CC.EXP` (blue→teal landed) | OK as teal (null line: Benford curve / uniform); confirm dash/width match standardised null treatment |
-| KurtosisDistPlot | observed blue; sim-null teal **solid** | sim-null → teal **dashed** (null line, standardised treatment); solid permitted for this traced curve only as the noted meaning-free concession if dashed reads messy on render |
+| ColumnStatBar | flagged bar = `SEV_VERDICT` tier ramp; cleared bar `NEUTRAL`=`C.TEXT_3` grey; ref line `C.TEXT_3` grey (Entropy "Expected (ratio = 1)", GoF "Null median (ratio = 1)", Modality "Multimodality threshold") | flagged bar ramp OK. **Cleared bar grey → blue `CC.OBS`** (data-model arc; receives `cardFlag` already). **Entropy + GoF ref lines → teal `CC.EXP` dashed** (nulls). **Modality "Multimodality threshold" → faded/dashed red** (channel-1 flag boundary; was miscast grey). Line colour now role-dependent, not one shared grey |
+| DotStrip | outlier dot red `CC.THRESH`; cleared dot `SIGNAL.GREEN.dot` green; expected band + centre line teal | flag red OK (unified `SEV_VERDICT`). Expected band/centre line OK as teal (null). **Cleared dot green → blue `CC.OBS`** (data-model arc — retires green-clear; see channel 4) |
+| HBarPlot | bars fixed blue `CC.OBS` (no `flag` prop); "0 expected" ref line teal | ref line OK (null, teal). **Data-model arc:** thread `result.flag` into HBarPlot + flat-red branch (Kurtosis %-platykurtic — global verdict, no per-bar attribution → flat-red when flagged) |
+| VBarPlot | bars blue `CC.OBS` (no card-`flag` prop); expected line teal | expected line OK (null, teal). **Data-model arc:** thread `result.flag` + flat-red branch (Benford/TerminalDigit — global χ²/MAD, no per-digit attribution → flat-red when flagged; DecPrec already reds gap bins via `CHART.GAP`) |
+| KurtosisDistPlot | observed blue; sim-null teal | sim-null curve → teal **solid** (concession TAKEN, confirmed on render S245: dashed read bitty — a stepped density fragments into disconnected dashes and competes with the histogram, worst on the sparklines; solid is the meaning-free rendering concession, colour still carries the null role). Observed histogram bars carry the data model (blue clear / flat-red flagged — no per-bin attribution) per channel 4 |
 | PooledR1Marker (Autocorr CI surface) | r=0 line `C.AXIS`, width 0.8, opacity 1.0, **no legend key**; CI whisker/dot near-black observed | **r=0 → teal `CC.EXP` dashed at full null treatment + add legend key** (verdict-bearing null: the CI's exclusion of it *is* the verdict; currently the thinnest/faintest reference in the battery). CI whisker/dot stay observed/near-black (correct) |
-| CarlisleBalance | expected-uniform line teal, dashed `"4,3"`, opacity 0.6 | OK as teal (null); bring dash/width/opacity onto the standardised null treatment |
+| CarlisleBalance | expected-uniform line teal; p-value histogram bars: driving bin red `SIGNAL.RED.dot`, others `C.TEXT_3` grey | expected line OK teal (null). **Data-model arc:** non-driving bins grey → blue `CC.OBS`; 0.90–1.0 driving tail red **region** (engine emits per-bin `histBins`). Overturns Test25b NOT-A-DEFECT |
+| WithinRowVariance | z-histogram: outlier bins red `SIGNAL.RED.dot`, within-threshold `C.TEXT_3` grey; ±3.5σ line red dashed | ±3.5σ line OK (flag boundary, red). **Data-model arc:** within-threshold bins grey → blue `CC.OBS` (has `isOutlier` per bin — colour swap) |
 | MahalanobisDistPlot | dots `.text`; outlier solid red; threshold line **faded/dashed red** (`CS.REF.dash`/`CS.REF.opacity`) | **DONE** — line already faded/dashed at source (the "solid" current-state flag was stale; confirmed S233); dots/outlier OK |
 | MeanVarianceScatter | observed blue; expected slope teal dashed | OK — expected slope is a sloped null (single consumer, MiniCard_NoiseScaling); teal dashed, confirm dash/width on standardised null treatment |
 | MissingDataHeatmap | missing cells + block outline red | OK (red = anomalous, intensity/flag) |
 | NoiseProfilePlot | observed blue; LOESS teal; changepoints red | OK (changepoint = detected anomaly) |
-| NoiseSpreadPlot | flagged error bar amber `CC.WARN`; median band `C.BORDER` neutral; zero line `C.AXIS` | "outlier" → red (resolve amber/red split). **Median band → teal `CC.EXP`** (empirical central reference = null for colour; legend "Expected" stays). **Zero line → axis furniture `C.AXIS`** `[PENDING CONFIRM — it is the y-origin of the signed ±SD scale, not a coincidental reference]` |
+| NoiseSpreadPlot | flagged error bar amber `CC.WARN`; median band `C.BORDER` neutral; zero line `C.AXIS` | "outlier" → red (resolve amber/red split). **Median band → teal `CC.EXP`** (empirical central reference = null for colour; legend "Expected" stays). **Zero line → axis furniture `C.AXIS`** (confirmed S245: it is `py(0)=midY`, the y-origin of the signed ±SD scale, not a coincidental reference). Error bars carry the data model (blue clear / red flagged) per channel 4 |
 | RegionalNoiseStrip | window fill red, opacity-ramped | OK (red intensity ramp) |
-| RowMeanTrendPlot | sim line teal `CC.EXP` (mint→teal landed); grand-mean line grey `C.AXIS`, swatch `C.TEXT_3`; crossing/run two-tone neutral | sim line OK as teal (confirm width off the one-off 1.5 onto standardised). **Grand-mean → teal `CC.EXP` dashed** (crossing-null — the runs verdict counts crossings of it); legend swatch (`C.TEXT_3`) → match line. Two-tone OK |
-| SignStripPlot | sign two-tone (Oxford/Cambridge blue), neutral | OK (neutral categorical, not flag) |
+| RowMeanTrendPlot | sim line teal `CC.EXP`; grand-mean line `C.AXIS` grey, swatch `C.TEXT_3`; crossing/run two-tone `SIGN.CROSSING`/`SIGN.RUN` | sim line OK teal. **Grand-mean → teal `CC.EXP` dashed** (crossing-null); swatch → match line. **Two-tone arc:** crossing/run → `CC.OBS` + Oxford navy (dark = crossing); retires indigo/lavender |
+| SignStripPlot | sign two-tone Oxford `#002147` / Cambridge `#A3C1DA`, neutral | **Two-tone arc:** → `CC.OBS` `#3B82F6` + Oxford navy `#002147` (dark = +1 by convention); retires Cambridge pale-blue (16b "blue isn't standard" culprit). Categorical encoding, legend stays sign-specific |
 | CorrMatrixSVG / consumers | cells via `TIER_COLOR` | `TIER_COLOR` is the two-regime slate→amber→red ramp (S214, corrected within session from the first single-hue red retoken) |
 | CoordResidualProfile | residual ramp; matrix via `rhoColor` | residual heatmap = canonical colours + gamma reserve (`RESID_GAMMA = 1.5`, floor `#DAE1EA`, nulls-to-floor; see "Dense magnitude surfaces"), NOT the `TIER_COLOR` two-regime ramp; matrix unchanged (`rhoColor`) |
 
@@ -457,21 +494,60 @@ What each live plot changes. "OK" = already conforms.
 - NoiseSpreadPlot outlier → red (resolve the amber/red outlier split). *(Still live — colour arc.)*
 - VBarPlot expected → teal, RowMeanTrend mint → teal, MahalanobisDistPlot threshold → faded/dashed red: **all landed** (table rows reflect current state).
 
-**Reference-line retoken (this arc — channel-3 amendment):** every null line → teal `CC.EXP`,
-dashed, one standardised dash/width/opacity (set at retoken, confirmed on render). Reclassifications:
-AutocorrDecayPlot r=0, PooledR1Marker r=0 (+ full treatment + legend key), ColumnStatBar Entropy/GoF
-ref lines, RowMeanTrend grand-mean, NoiseSpread median band → **teal** (all nulls); ColumnStatBar
-Modality threshold → **faded/dashed red** (flag boundary); NoiseSpread zero line → **`C.AXIS` axis
-furniture** `[PENDING CONFIRM]`. Every legend swatch reads its line's colour (fixes the RowMean
-`C.TEXT_3` and Autocorr `C.BORDER` swatch-≠-line mismatches). Kurtosis sim-null curve: dashed first,
-solid concession only if messy on render. Two source confirms ride the retoken dispatch head
-(NoiseSpread y=0 is the axis origin; the CI sub-inventory).
+**Reference-line retoken (this arc — channel-3 amendment, S245).** Every null line → teal `CC.EXP`,
+dashed, one standardised dash/width/opacity. Reclassifications: AutocorrDecayPlot r=0, PooledR1Marker
+r=0 (+ full treatment + legend key), PooledZMarker z=0 in Runs (twin of PooledR1Marker, folded in
+same session under the CI-overlap rule), ColumnStatBar Entropy/GoF ref lines, RowMeanTrend grand-mean,
+NoiseSpread median band → **teal** (all nulls); ColumnStatBar Modality threshold → **faded/dashed red**
+(flag boundary); NoiseSpread zero line → **`C.AXIS` axis furniture** (confirmed: `py(0)` origin). Every
+legend swatch reads its line's colour. Kurtosis sim-null curve → **solid** (concession taken on render,
+see table). Both source confirms passed (NoiseSpread y=0 is the axis origin; CI sub-inventory clean —
+the only under-drawn CI-overlap nulls were PooledR1Marker r=0 and PooledZMarker z=0, both now at full
+treatment). Landed in worktree, batch 23/23, build clean; **pending promote after two-state screenshot
+approval** (flagged + cleared) — the batch is blind to presentational correctness.
 
 **Legend vocabulary (null role) — converge.** The null role currently carries ~18 distinct legend
 phrasings across cards, with bare "Expected" spanning four different colours. This is a cross-card
 legend-consistency defect, not a colour defect; the canonical short label set is authored Chat-side
 and wired in the same retoken. Until then, no card's null label is "correct" — they are inconsistent
 by construction.
+
+## Queued colour arcs (scoped S245, behind the reference-line promote)
+
+**Data-model arc (observed marks — blue clear / red flagged).** Channel 4's data model applied across
+the battery. Source inventory (S245 read-only) found 8 observed-bar/histogram surfaces and that the
+cleared state is currently grey or green, NOT blue, almost everywhere — so this is a real restyle, not
+a confirm. Surfaces:
+- *Colour-swap, state already available:* Carlisle p-value histogram (non-driving bins grey → blue,
+  0.90–1.0 driving tail stays/expands red — engine has per-bin `histBins`, so red-**region**);
+  WithinRowVariance z-histogram (within-threshold grey → blue, outlier bins red); ColumnStatBar
+  Entropy/GoF/Modality (cleared bars grey `C.TEXT_3` → blue, flagged red/amber); KurtosisDistPlot
+  (passes `flag` but ignores it — consume it, bars blue↔flat-red, no per-bin signal); Kurtosis
+  per-condition sparklines (already blue-clear/red-flagged — no change).
+- *Needs verdict-state plumbed (shared flag-agnostic components):* VBarPlot (Benford/TerminalDigit/
+  DecPrec — no card-`flag` prop; thread `result.flag`, flat-red branch); HBarPlot (Kurtosis %-platykurtic
+  — no `flag` prop; same).
+- *Flag treatment by attribution:* Carlisle → red region (per-bin signal exists); KurtosisDist / HBar /
+  VBar(Benford,TermDigit) → flat-red (global statistic, no per-mark attribution).
+- *DotStrip cleared dots → blue* (currently `SIGNAL.GREEN.dot` cleared-green — retires the green-clear
+  signal, the deliberate-signal case, see channel 4 supersession note).
+This overturns Test25b NOT-A-DEFECT (grey-because-not-observed); retag at the walk. Spec amendment
+(channel 4) is landed; the retoken is the next dispatch — spec-first, then build, two-state screenshot gate.
+
+**Two-tone observed encodings → `CC.OBS` + Oxford navy.** SignStripPlot (sign +1/−1, currently Oxford
+`#002147` / Cambridge `#A3C1DA`) and RowMeanTrendPlot (crossing/run, currently `SIGN.CROSSING` `#4A3D8F` /
+`SIGN.RUN` `#A0A0CC`) both move to one pairing: `CC.OBS` `#3B82F6` + Oxford navy `#002147`, dark = the
+salient state (crossing on RowMean; +1 on SignStrip by convention). Retires Cambridge pale-blue (the 16b
+"blue isn't standard" culprit — it sat close to `CC.OBS` and read as a wrong observed-blue) and the
+indigo/lavender. Colours unify; legends stay role-specific (sign vs crossing). The +1/−1 and crossing/run
+distinctions survive on the navy-vs-blue lightness gap; confirm contrast on render (same-hue light/dark —
+fallback only if a sign pair reads ambiguously). Separate from the data-model arc — these are categorical
+encodings, not clear/flag observed magnitude.
+
+**Row-13 provenance one-liner.** AutocorrDecayPlot's no-condition "All data" fallback line draws
+`COND_COLORS[0].text`; Mahalanobis's equivalent pooled "All data" series draws `CC.OBS`. Both render
+`#3B82F6` today (no visible difference) but read from two independently-defined literals — silent drift
+if either retokens. Point the AutocorrDecay fallback at `CC.OBS`. Rides with the two-tone arc.
 
 **Severity scale (ruled — see above):** edit `SEV_VERDICT` to the bright triple
 (`#EF4444` / `#F97316` / `#22C55E`); retoken `PLOT_FC` / `CC.THRESH` to read from
