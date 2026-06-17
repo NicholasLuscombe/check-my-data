@@ -34,10 +34,10 @@ export function NoiseSpreadPlot({ colDetails, flaggedCols, outlierCol, flag, W=C
 
   return (
     <PlotSVG W={W} H={H} responsive>
-      {/* Median reference band — only when flagged */}
+      {/* Median reference band — empirical central reference (null), teal */}
       {flag && flag !== "LOW" && (
         <rect x={PL} y={py(medianStd)} width={CW} height={py(-medianStd) - py(medianStd)}
-          fill={C.BORDER} opacity="0.25" rx="2"/>
+          fill={CC.EXP} opacity="0.25" rx="2"/>
       )}
       {/* Horizontal gridlines */}
       {yTicks.map((v, i) => (

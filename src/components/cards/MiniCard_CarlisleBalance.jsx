@@ -88,7 +88,7 @@ export function MiniCard_CarlisleBalance({ result, importConfig, rowMap }) {
         {(() => {
           const ey = padT + plotH - (expectedPerBin / maxC) * plotH;
           return <line x1={padL} y1={ey} x2={padL + plotW} y2={ey}
-            stroke={CC.EXP} strokeWidth={1} strokeDasharray="4,3" opacity={0.6} />;
+            stroke={CC.EXP} strokeWidth={CS.REF.w} strokeDasharray={CS.REF.dash} opacity={CS.REF.opacity} />;
         })()}
         {/* p-value axis tick marks + labels */}
         {xTicks.map(p => (

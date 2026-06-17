@@ -40,9 +40,9 @@ function PooledZMarker({ value, ci }) {
   const ticks = [-2, -1, 0, 1, 2].filter(t => t >= ZMIN && t <= ZMAX);
   return (
     <PlotSVG W={W} H={H}>
-      {/* z = 0 dashed reference */}
+      {/* z = 0 dashed reference — null anchor (teal, standardised CS.REF) */}
       <line x1={xs(0)} y1={PT} x2={xs(0)} y2={PT + 28}
-        stroke={C.AXIS} strokeWidth={CS.GRID.w} strokeDasharray="4,3"/>
+        stroke={CC.EXP} strokeWidth={CS.REF.w} strokeDasharray={CS.REF.dash} opacity={CS.REF.opacity}/>
       <text x={xs(0)} y={PT - 4} fontSize={CF.SMALL} fill={C.TEXT_2}
         textAnchor="middle" fontFamily={FF.MONO}>z = 0</text>
       {/* CI whisker */}
@@ -187,6 +187,10 @@ export function MiniCard_Runs({ result, importConfig, rowMap }) {
         <PlotLayout>
           <PooledZMarker value={pooledMeanZ} ci={result.pooledZCI_flag} />
         </PlotLayout>
+        <ChartLegend items={[
+          { color: C.TEXT, label: "Pooled mean-z ± verdict-edge CI", swatchType: "dot" },
+          { color: CC.EXP, label: "z = 0", swatchType: "line", dashed: true },
+        ]} />
       </>)}
 
       {/* Multi-strip with per-pair expected-frequency ticks */}

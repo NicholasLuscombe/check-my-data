@@ -100,9 +100,9 @@ export function RowMeanTrendPlot({ rowMeans, simMeans, rowIdxs, grandMean, fileR
           stroke={C.GRID} strokeWidth={CS.GRID.w} />
       ))}
 
-      {/* grand mean dashed line */}
+      {/* grand mean dashed line — null anchor (teal, standardised CS.REF) */}
       <line x1={PL} y1={gmY} x2={PL + plotW} y2={gmY}
-        stroke={C.AXIS} strokeWidth="1" strokeDasharray={CS.REF.dash} opacity={CS.REF.opacity} />
+        stroke={CC.EXP} strokeWidth={CS.REF.w} strokeDasharray={CS.REF.dash} opacity={CS.REF.opacity} />
 
       {/* simulated line — uniform teal, no crossing emphasis, no dots */}
       {simPts && simPts.map((pt, i) => {

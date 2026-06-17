@@ -104,7 +104,7 @@ if(result.colDetails?.length) {
       <ChartLegend items={[
         { color: CC.OBS, label: "As expected", swatchType: "line" },
         { color: CC.THRESH, label: "Differs from rest", swatchType: "line" },
-        ...(result.flag !== "LOW" ? [{ color: C.BORDER, label: "Expected", opacity: 0.25 }] : []),
+        ...(result.flag !== "LOW" ? [{ color: CC.EXP, label: "Expected", opacity: 0.25 }] : []),
       ]} />
       {perCol.length > 0 && result.flag !== "LOW" && result.flag !== "N/A" && (
         <div style={{marginTop: BLOCK_GAP}}>

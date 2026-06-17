@@ -1,4 +1,4 @@
-import { CP, CS, C, FF, CF } from "../../constants/tokens.js";
+import { CC, CP, CS, C, FF, CF } from "../../constants/tokens.js";
 import { COND_COLORS } from "../../constants/roles.js";
 import { PlotSVG } from "./PlotSVG.jsx";
 
@@ -67,8 +67,8 @@ export function AutocorrDecayPlot({ perGroupDecay, singleCurve, condColorMap }) 
       {yTicks.map(v=>(
         <g key={v}>
           <line x1={PL} y1={ys(v)} x2={PL+CW} y2={ys(v)}
-            stroke={v===0?C.AXIS:C.GRID} strokeWidth={v===0?1:CS.GRID.w}
-            strokeDasharray={v===0?"4,3":""}/>
+            stroke={v===0?CC.EXP:C.GRID} strokeWidth={v===0?CS.REF.w:CS.GRID.w}
+            strokeDasharray={v===0?CS.REF.dash:""} opacity={v===0?CS.REF.opacity:1}/>
           <text x={PL-4} y={ys(v)+3.5} fontSize={CF.LABEL} fill={C.TEXT_2}
             textAnchor="end" fontFamily={FF.MONO}>{v.toFixed(tickDp)}</text>
         </g>
