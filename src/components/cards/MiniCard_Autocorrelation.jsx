@@ -83,7 +83,7 @@ function PooledR1Marker({ value, ci }) {
 export function MiniCard_Autocorrelation({ result, importConfig, rowMap }) {
   const details = result.details || [];
   const sub = result.subDetails || [];
-  const condColorMap = buildCondColorMap(importConfig?.condPerCol);
+  const condColorMap = buildCondColorMap(importConfig);
   const meanR1 = typeof result.pooledMeanR1 === "number" ? result.pooledMeanR1 : parseFloat(result.pooledMeanR1);
 
   // ── Decay chart (Surface 2) ──

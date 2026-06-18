@@ -18,7 +18,7 @@ export function MiniCard_Kurtosis({ result, importConfig, rowMap }) {
   const sub = result.subDetails || [];
   const name = result.name;
   const isAgg = result.groupsAssessed !== undefined;
-  const condColorMap = buildCondColorMap(importConfig?.condPerCol);
+  const condColorMap = buildCondColorMap(importConfig);
   const normDiffs = result.normDiffs;
   const pk = result.pooledKurtosis;
   const condK = result.condKurtosis;
@@ -151,7 +151,7 @@ export function MiniCard_Kurtosis({ result, importConfig, rowMap }) {
                       return (
                         <div key={ci} style={{display:"flex",flexDirection:"column",alignItems:"center"}}>
                           <div style={{fontSize:FS.sm,fontWeight:FW.SEMI,marginBottom:"2px"}}>
-                            <span style={{color:condColorMap[c.condition]?.text||col}}>{c.condition}</span>
+                            <span style={{color:condColorMap[c.condition]?.text||C.TEXT}}>{c.condition}</span>
                             <span style={{color:col}}> ({cLabel})</span>
                           </div>
                           <PlotSVG W={W} H={H}>

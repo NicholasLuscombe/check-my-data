@@ -15,7 +15,7 @@ export function MiniCard_RankCorrelation({ result, importConfig, rowMap }) {
   const nPairs = result.nConditionPairs || details.length;
 
   // ── Build condition names and ρ lookup from pair details ──
-  const condColorMap = buildCondColorMap(importConfig?.condPerCol);
+  const condColorMap = buildCondColorMap(importConfig);
   const nameSet = new Set();
   const lookup = {};
   for (const d of details) {

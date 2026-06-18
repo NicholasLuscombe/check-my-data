@@ -15,7 +15,7 @@ export function MiniCard_RegionalNoise({ result, importConfig, rowMap }) {
   const details = result.details || [];
   const sub = result.subDetails || [];
   const isAgg = result.groupsAssessed !== undefined;
-  const condColorMap = buildCondColorMap(importConfig?.condPerCol);
+  const condColorMap = buildCondColorMap(importConfig);
 
   // Coordinate mapping
   const { fileRow, toFileRow } = makeRowMapper(importConfig, rowMap);

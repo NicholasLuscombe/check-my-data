@@ -7,7 +7,7 @@ import { buildCondColorMap } from "../../constants/roles.js";
 const RHO_DISPLAY_THRESHOLD = 0.3;
 
 export function MiniCard_ResidualSpike({ result, importConfig, rowMap }) {
-  const condColorMap = buildCondColorMap(importConfig?.condPerCol);
+  const condColorMap = buildCondColorMap(importConfig);
   const overlapN = result.nOverlap || 0;
 
   // Find ρ of the best overlap pair
