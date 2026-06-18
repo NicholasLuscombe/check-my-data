@@ -1,6 +1,10 @@
 import { mean, stddev, normalCDF, bhFDR } from "../stats/primitives.js";
 import { flagFromP } from "../constants/thresholds.js";
 
+// Flag cutoff: rows with |z| beyond this are outliers (Step 4). Exported so the
+// card plot draws its threshold line at the same value the verdict gates on.
+export const Z_THRESH = 4.0;
+
 /* Within-Row Variance Scan
    Detects rows where replicate spread is anomalous relative to the mean-variance
    relationship. Catches the "typed a number then added small noise to each replicate"
@@ -70,7 +74,6 @@ export function testWithinRowVariance(matrix, rng, rowSemantics = 'ordered') {
   // Step 3: For each row, interpolate expected SD and local dispersion from bins
   const flaggedRows = [];
   const zScores = [];
-  const Z_THRESH = 4.0;
   // Theoretical expected rate under N(0,1): P(|z| > 4.0) ≈ 6.33×10⁻⁵.
   const EXPECTED_RATE = 2 * (1 - normalCDF(Z_THRESH)); // ≈ 0.0000633
 
