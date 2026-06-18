@@ -38,7 +38,7 @@
        evidence to filter on. */
 
 import { useMemo, useState, useCallback, useLayoutEffect } from "react";
-import { GROUP_MARKERS, RANK_NUMS, TEST_RAW_VISIBILITY, DISPLAY_NAMES, POOLED_BY_DESIGN } from "../../constants/mechanisms.js";
+import { GROUP_MARKERS, RANK_NUMS, TEST_RAW_VISIBILITY, DISPLAY_NAMES } from "../../constants/mechanisms.js";
 // FW + MINIMAP_CALLOUT_TYPOGRAPHY imports retired in B2f C2 alongside the
 // caption render lift — StickySurface owns those now.
 import { buildConvergenceGridFromFindings } from "../../analysis/convergence.js";
@@ -104,16 +104,9 @@ export function guidanceCaption(finding) {
     return `${displayName} applies across the whole dataset — see the test card for the evidence.`;
   }
   if (finding.locality === "unscoped") {
-    // S166 B1: honest-unscoped-pooled split. Tests whose verdict is
-    // constructively pooled across replicate pairs (Runs Test today) land
-    // here by-design — there is no per-pair attribution to emit, so the
-    // generic "couldn't isolate specific rows" reads as found-nothing.
-    // Per POOLED_BY_DESIGN membership, emit an affirming caption that
-    // names the distributed-across-pairs character of the verdict
-    // instead. Non-member unscoped findings keep the existing string.
-    if (POOLED_BY_DESIGN.has(testName)) {
-      return `${displayName} flagged a pattern distributed across the replicate pairs — no single pair drives it. See the test card for the statistical detail.`;
-    }
+    // S253 (parked #9b): the pooled-vs-per-pair decoupling caption now lives
+    // on the test card (MiniCard_Runs / MiniCard_Autocorrelation); the
+    // investigation header no longer duplicates it.
     return `${displayName} flagged the data but couldn't isolate specific rows. See the test card for the statistical detail.`;
   }
   // S166 B2: Row-Mean Runs row-local override. The producer's flagged

@@ -1,4 +1,4 @@
-import { mean, acfAtLag, zToP, bhFDR, oneSampleT, stddev } from "../stats/primitives.js";
+import { mean, acfAtLag, zToP, bhFDR, oneSampleT, stddev, normalQuantile, tQuantileTwoSided } from "../stats/primitives.js";
 import { flagFromP, flagRankOf, ALPHA, EFFECT_SIZE } from "../constants/thresholds.js";
 
 /* 5. Autocorrelation */
@@ -53,14 +53,19 @@ export function testAutocorrelation(matrix) {
   // More powerful than proportion heuristic, especially for small nC.
   const pooled=allR1.length>=2?oneSampleT(allR1):{t:0,df:0,p:1};
   const pooledMeanR1=allR1.length?mean(allR1):0;
-  // S166 A1: additive 99.9% CI on the pooled lag-1 mean for the plot's verdict
-  // marker. Normal-approximation interval (mean ± 3.29·SE) — consistent with
-  // oneSampleT's df>30 z-approximation branch. CI's exclusion of zero IS the
-  // pooled-t verdict in visual form. Empty array when n<2 (no interval defined).
+  // S253 (parked #9c): band that pictures the verdict. The critical value
+  // mirrors the oneSampleT(allR1) verdict's per-branch convention — the normal
+  // quantile at df>30 (where the verdict's p uses zToP), the exact inverse-t
+  // otherwise (ALPHA.NOTE edge against the same pooledMeanR1, pooledR1SE and
+  // df the verdict reads). Display only — no flag logic reads this. Empty
+  // array when n<2 (no interval defined).
   const pooledR1SD = allR1.length >= 2 ? stddev(allR1) : 0;
   const pooledR1SE = allR1.length >= 2 ? pooledR1SD / Math.sqrt(allR1.length) : 0;
+  const r1Crit = pooled.df > 30
+    ? normalQuantile(1 - ALPHA.NOTE / 2)
+    : tQuantileTwoSided(ALPHA.NOTE, pooled.df);
   const pooledR1CI = allR1.length >= 2
-    ? [pooledMeanR1 - 3.29 * pooledR1SE, pooledMeanR1 + 3.29 * pooledR1SE]
+    ? [pooledMeanR1 - r1Crit * pooledR1SE, pooledMeanR1 + r1Crit * pooledR1SE]
     : null;
   // Flag: pooled t-test p-value with effect-size gate at large N .
   // At N > 500, genomic autocorrelation (co-regulated neighboring genes) produces

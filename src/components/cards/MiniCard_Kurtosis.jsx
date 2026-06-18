@@ -17,7 +17,6 @@ export function MiniCard_Kurtosis({ result, importConfig, rowMap }) {
   const details = result.details || [];
   const sub = result.subDetails || [];
   const name = result.name;
-  const isAgg = result.groupsAssessed !== undefined;
   const condColorMap = buildCondColorMap(importConfig);
   const normDiffs = result.normDiffs;
   const pk = result.pooledKurtosis;
@@ -65,7 +64,7 @@ export function MiniCard_Kurtosis({ result, importConfig, rowMap }) {
       })()}
 
       {/* ── Condition-stratified section ── */}
-      {condK?.length >= 2 && (isAgg || result.flag === "HIGH" || condK.some(c => c.verdict !== "clear")) && (
+      {condK?.length >= 2 && (result.flag === "HIGH" || condK.some(c => c.verdict !== "clear")) && (
         <div style={{marginTop: BLOCK_GAP}}>
           {/* S210 (multi-surface): secondary-surface heading demoted (Regular weight). */}
           <div style={{...SUB_HEAD, fontWeight: FW.NORM, marginBottom: BLOCK_GAP_TIGHT}}>
