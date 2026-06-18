@@ -163,7 +163,7 @@ export function extractAnalysisInputs({ data, roles, condPerCol, zeroAsMissing, 
 // Runs all 24 forensic tests on the prepared data, with progress
 // callbacks and VST-aware preprocessing.
 
-export async function runFullAnalysis(matrix, rawMatrix, condCtx, assay, onProgress, vst, opts={}, dataType='continuous', rowSemantics='ordered') {
+export async function runFullAnalysis(matrix, rawMatrix, condCtx, assay, onProgress, vst, opts={}, dataType='continuous', rowSemantics='ordered', skipHeavy=false) {
   // Validate and sanitise input matrix
   const validation = validateMatrix(matrix);
   if (!validation.valid) {
@@ -269,6 +269,22 @@ export async function runFullAnalysis(matrix, rawMatrix, condCtx, assay, onProgr
     if (!isArbitraryRowOrder) return null;
     if (!ROW_SEMANTICS_FULL_SKIP.has(testName)) return null;
     return { name: testName, category, flag: "N/A", description: ROW_SEMANTICS_SKIP_REASON };
+  }
+
+  // Dev-only perf skip (S251): the two long-pole tests (Blocked Mahalanobis
+  // ~38% of wall-clock, Excess Kurtosis ~21%) short-circuit to a cheap
+  // N/A-shaped result when skipHeavy is set, so the local visual-check loop
+  // renders fast. skipHeavy is computed in App.jsx (gated behind
+  // import.meta.env.DEV + ?skipHeavy URL presence) and passed in; it defaults
+  // false, so Node / the batch never take this path (no env, no window) and
+  // stay byte-identical. The result rides the same N/A filter as an
+  // applicability skip (no §3 card), but carries devSkipped:true to mark it
+  // apart from a genuine non-applicable N/A for anyone inspecting results.
+  // Math unchanged — the test body simply does not run.
+  function devSkip(testName, category) {
+    if (!skipHeavy) return null;
+    return { name: testName, category, flag: "N/A", devSkipped: true,
+      description: "Skipped in dev mode (skipHeavy) — test body not run." };
   }
 
   // Build column→group mapping for within-row breakdown (duplicate detection).
@@ -404,6 +420,7 @@ export async function runFullAnalysis(matrix, rawMatrix, condCtx, assay, onProgr
       // an async wrapper is transparent. onPermProgress threads the per-chunk
       // fraction back through the same onProgress hook used for the
       // top-level test progress, with a "(perms NN%)" suffix.
+      const dsBM = devSkip("Blocked Mahalanobis","replicate"); if (dsBM) return dsBM;
       const csBM = condSkip("Blocked Mahalanobis","replicate"); if (csBM) return csBM;
       const dtBM = dtSkip("Blocked Mahalanobis","replicate"); if (dtBM) return dtBM;
       const rsBM = rsSkip("Blocked Mahalanobis","replicate"); if (rsBM) return rsBM;
@@ -419,7 +436,7 @@ export async function runFullAnalysis(matrix, rawMatrix, condCtx, assay, onProgr
     }],
     // --- Cross-Replicate Comparisons + Distribution Shapes ---
     ["Noise Scaling With Measurement Size",   () => condSkip("Noise Scaling With Measurement Size","instrument") || dtSkip("Noise Scaling With Measurement Size","instrument") || testMeanVariance(matrix, assay)],
-    ["Kurtosis",                     async () => condSkip("Kurtosis","distributional") || dtSkip("Kurtosis","distributional") || tagVST(await runPairVST((m, childCtx) => testKurtosis(m, childCtx, rng), condCtx))],
+    ["Kurtosis",                     async () => devSkip("Kurtosis","distributional") || condSkip("Kurtosis","distributional") || dtSkip("Kurtosis","distributional") || tagVST(await runPairVST((m, childCtx) => testKurtosis(m, childCtx, rng), condCtx))],
     // S179 A1: distribution-shape trio per-condition routing. Mirrors the
     // Mahalanobis Row Outlier S127 Path 1 shape — when condCtx.rowGroups()
     // returns ≥2 row-groups each ≥3 rows, dispatch per-condition via
