@@ -1,11 +1,13 @@
-<!-- ⚠ VERIFY BEFORE REPLACING. This full file = the source PLOT-COLOUR-SEMANTICS.md read at S247
-     close. Changes this pass: grand-mean → fitted-trend reconciliation for row-mean-runs (the crossing-null
-     example and the retired-grey-role clause — the statistic signs residuals around the fitted OLS trend,
-     not the grand mean, confirmed `rowMeanRuns.js:54`), and the RowMeanTrendPlot conformance row marked
-     RETIRED (the component was deleted in S247; RowMean redesigned to a per-condition SignStripPlot
-     block-width render). Before overwriting the tracked copy, confirm it has not drifted since:
-     `git log -1 -- docs/shared/PLOT-COLOUR-SEMANTICS.md` and diff. If anything landed after this read, merge
-     rather than overwrite. "Committed" ≠ "content-current."
+<!-- ⚠ VERIFY BEFORE REPLACING. This full file = the live tracked PLOT-COLOUR-SEMANTICS.md as of
+     S250 close, with the S250 condition-colour edits merged in. Changes this pass (S250): channel 2
+     amended with the signal-sensitivity surface split + the tint-not-text rule for the import
+     span-header + condition identity declared a sanctioned non-signal channel; the `COND_COLORS`
+     palette table reordered (blue moved slot 0→5) with rationale updated; the AutocorrDecayPlot
+     conformance row and the row-13 provenance one-liner updated to reflect the fallback now reading
+     `CC.OBS` (S250). Prior pass (S247): grand-mean → fitted-trend reconciliation for row-mean-runs,
+     RowMeanTrendPlot RETIRED. Before overwriting the tracked copy, confirm it has not drifted since:
+     `git log -1 -- docs/shared/PLOT-COLOUR-SEMANTICS.md` and diff. If anything landed after this read,
+     merge rather than overwrite. "Committed" ≠ "content-current."
      Two placeholders are DELIBERATELY left blank (fill from a source grep at COMMIT time, not memory):
      the four severity-red token names (§"Dense magnitude surfaces" → "Severity-red token names") and
      the `FF.MONO` tick-rail precondition. Do not fill them from this file. -->
@@ -79,6 +81,55 @@ entry's `.bg` / `.border` are tints/shades of the same hue — one hue per condi
 across both surfaces. Hues are chosen for mutual separation as lines; a severity hue
 is allowed unless it would sit directly beside a flag mark of that colour (channel 1's
 role-not-hue rule). Past the palette depth, recycle hue with a line-style modifier.
+
+*Keying (S250). Condition colour is keyed for both file structures from one display-layer
+source. Column-grouped data (two-row header) populates `condPerCol`; row-grouped data
+(condition-in-a-column — DS21 `Condition`, DS03 `Group`) has no `condPerCol`, so a sibling
+derivation (`rowConditionLabels`) reconstructs the same per-row condition-label strings the
+engine derives (mirrors `engine.js:135-142` — same `" | "` join, `.trim()`, null-filter), and
+`buildCondColorMap(importConfig)` resolves either path to one map. Colour reads the grouping;
+it never writes it — condition colour is display-only, zero verdict-path contact. The derivation
+is mirrored, not threaded out of `condCtx.names`, because import-side surfaces build the map
+pre-analysis when no `condCtx` exists; the duplicated join logic is pinned with a comment naming
+its engine twin.*
+
+**Surface split: plot lines vs chrome cells (S250).** Condition identity occupies two kinds of
+surface, and the collision constraint differs between them. On a **plot line / mark** (a
+per-condition autocorrelation line, a D² series, a kurtosis sparkline) the hue reads
+unambiguously as series identity — there is no signal-coloured mark on the same plot to confuse
+it with, so a condition hue byte-equal to a signal hue (condition-blue == observed-blue
+`#3B82F6`) is benign. This is **signal-benign**. On a **chip, table cell, or coloured label**
+(import condition chip, a per-condition table's condition-name cell, the import span-header band)
+the same hue is decoded against the role/signal palette that shares the surface — there, blue is
+read as the data-role / observed hue, not as condition identity. A condition hue equal to a signal
+hue is a **collision**. This is **signal-sensitive**.
+
+Two rules follow:
+
+1. **Palette order keeps signal hues out of the common case.** `COND_COLORS` is ordered so the
+   hue byte-identical to a signal colour does not land on the first conditions. Blue (`.text`
+   `#3B82F6`, == `CC.OBS`) is at slot 5, not slot 0 — so the realistic 1–3-condition case
+   (lime/purple/cyan) carries no signal hue on any signal-sensitive surface. (S250 reorder; the
+   prior order had blue at slot 0, which lit the first condition on the data-role/observed channel
+   wherever it appeared on a chrome surface.)
+
+2. **On the most sensitive chrome surface, identity moves to the fill (tint-not-text).** The
+   import condition span-header band (`ColumnHeaders`) carries identity on `.bg` (the pale fill)
+   and renders its label in neutral `C.TEXT`, **not** the condition `.text` hue — because the band
+   sits one row directly above the data-role-blue chips, where a `#3B82F6` *label* is a second blue
+   identity claim competing with the role chip. Tint-not-text separates the channels (identity =
+   fill, role = chip) permanently, at any condition depth — it removes the channel conflict that a
+   reorder alone only relocates to a deeper index. The Zone-1 / Zone-4 summary chips still read
+   `.text`: they are not adjacent to a data-role-blue element, so the collision does not arise there
+   (S250: the collision is span-header-only; the chip tint was deliberately not applied — don't
+   apply the fix where there's nothing to fix).
+
+**Condition identity is a sanctioned non-signal channel on signal-sensitive surfaces.** A condition
+hue may equal a signal hue on a plot line (benign), but on a chip/cell/label it must stay clear of
+the signal hues — achieved by palette order (signal hues demoted past the common case) and, on the
+span-header, by tint-not-text. This is the channel-1 "role not hue" rule read from the condition
+side: the same hue is a collision or not depending on the surface's other marks, not on the hue
+alone.
 
 **3 — Data role. Teal for the null; observed marks take channel 4.**
 A reference line on a plot is exactly one of two things, told apart by *function* —
@@ -275,34 +326,47 @@ lone axis-furniture instance not yet on `C.AXIS` (it is Path B, outside the S216
 
 ## The condition palette
 
-`COND_COLORS`, eight entries, lighter register, ordered so the common first-three case
-spreads across the wheel. Hues are chosen for mutual separation as thin lines, not for
-avoiding the severity family (channel 1's role-not-hue rule). The line reads `.text`;
+`COND_COLORS`, eight entries, lighter register. Ordered (S250) so the hue byte-identical to a
+signal colour (blue `.text` `#3B82F6` == `CC.OBS`) is demoted out of the common first-three case —
+see channel 2's signal-sensitivity rule. Hues are chosen for mutual separation as thin lines, not
+for avoiding the severity family (channel 1's role-not-hue rule). The line reads `.text`;
 the import chip reads `.bg` (pale fill) + `.text` (label), so each entry's `.bg` /
 `.border` are tints/shades of its `.text` hue — one hue per condition across import and
-plot.
+plot. (Exception: the import span-header *band* renders its label neutral `C.TEXT`, identity on
+`.bg` only — the tint-not-text rule, channel 2.)
 
 | # | Hue | `.text` hex |
 |---|---|---|
-| 1 | blue | `#3B82F6` |
-| 2 | lime | `#84CC16` |
-| 3 | purple | `#A855F7` |
-| 4 | cyan | `#06B6D4` |
-| 5 | pink | `#EC4899` |
-| 6 | green | `#10B981` |
-| 7 | amber | `#D97706` |
+| 1 | lime | `#4D7C0F` |
+| 2 | purple | `#A855F7` |
+| 3 | cyan | `#06B6D4` |
+| 4 | pink | `#EC4899` |
+| 5 | green | `#10B981` |
+| 6 | blue | `#3B82F6` |
+| 7 | amber | `#B45309` |
 | 8 | slate | `#64748B` |
+
+(Slot order is 0-indexed in source: lime is `COND_COLORS[0]`, blue `COND_COLORS[5]`. The table
+numbers 1–8 for readability. `.text` hexes are the source-true values — lime and amber carry the
+darkened lime-700 / amber-700 `.text` for small-text contrast on white, per `roles.js`; earlier
+spec revisions listed the un-darkened `#84CC16` / `#D97706`, corrected here to match source.)
 
 The `.bg` (pale fill) and `.border` (mid shade) of each entry are regenerated to match
 its `.text` hue. Condition marks read the `.text` shade uniformly — the audit found
 `.border` used in one plot and `.text` in another; `.text` wins everywhere.
 
-Watch-pairs, both benign in the 22-set: lime (2) and green (6) only co-occur at 6+
-conditions; amber (7) is clear of severity amber unless a condition line sits directly
-beside an amber flag mark — neither bites at current fixture depth. The earlier dark
-palette swapped blue/green order to fix a blue↔dark-green line collapse; the lighter
-register and lime-in-slot-2 resolve that. Exact lighter hexes were set from swatches
-and confirmed on the live render at implementation.
+Watch-pairs under the S250 order. The cool family — blue (6), cyan (3), slate (8) — is kept
+mutually non-adjacent so two cool hues never sit on consecutive conditions; cyan (3) and green (5)
+are held apart by pink (4) so the two blue-greens don't muddy as adjacent lines. The one remaining
+adjacency is green (5) / blue (6): light emerald `#10B981` against blue, both out of the common
+1–3 case (only co-render at 5+ conditions, which no current fixture hits), confirmed distinct on
+the live Autocorr render. lime (1) and green (5) only co-occur at 5+ conditions; amber (7) is clear
+of severity amber unless a condition line sits directly beside an amber flag mark — neither bites
+at current fixture depth. The earlier dark palette swapped blue/green order to fix a
+blue↔dark-green line collapse; the lighter register resolved that, and the S250 reorder (blue→slot 5,
+0-indexed) keeps green and blue apart in the common case besides demoting the signal-hue collision. Exact hexes
+were set from swatches and confirmed on the live render at implementation — a chat-side swatch read
+does not settle thin-line separation; the live Autocorr/Mahalanobis render is the gate.
 
 **Overflow past 8 conditions.** Hue carries conditions 1–8. The realistic ceiling
 of mutually distinguishable hues on a white ground is about this many; adding
@@ -441,7 +505,7 @@ What each live plot changes. "OK" = already conforms.
 
 | Plot | Current | Change |
 |---|---|---|
-| AutocorrDecayPlot | condition line reads `.border`; fallback `CHART.SERIES`; r=0 line grey `C.AXIS` | condition line → read `.text`; fallback to new `COND_COLORS` ordering. **r=0 line → teal `CC.EXP` dashed** (independence null, not a neutral baseline); legend swatch (`C.BORDER`) → match line |
+| AutocorrDecayPlot | condition line reads `.border`; fallback `CHART.SERIES`; r=0 line grey `C.AXIS` | condition line → read `.text`; per-condition lines follow the S250 `COND_COLORS` order; **no-condition "All data" fallback → `CC.OBS`** (landed S246, row-13 drift guard — stays blue under the S250 reorder where `COND_COLORS[0]` is now lime). **r=0 line → teal `CC.EXP` dashed** (independence null, not a neutral baseline); legend swatch (`C.BORDER`) → match line |
 | ColumnStatBar | flagged bar = `SEV_VERDICT` tier ramp; cleared bar `NEUTRAL`=`C.TEXT_3` grey; ref line `C.TEXT_3` grey (Entropy "Expected (ratio = 1)", GoF "Null median (ratio = 1)", Modality "Multimodality threshold") | flagged bar ramp OK. **Cleared bar grey → blue `CC.OBS`** (data-model arc; receives `cardFlag` already). **Entropy + GoF ref lines → teal `CC.EXP` dashed** (nulls). **Modality "Multimodality threshold" → faded/dashed red** (channel-1 flag boundary; was miscast grey). Line colour now role-dependent, not one shared grey |
 | DotStrip | outlier dot red `CC.THRESH`; cleared dot `SIGNAL.GREEN.dot` green; expected band + centre line teal | flag red OK (unified `SEV_VERDICT`). Expected band/centre line OK as teal (null). **Cleared dot green → blue `CC.OBS`** (data-model arc — retires green-clear; see channel 4) |
 | HBarPlot | bars fixed blue `CC.OBS` (no `flag` prop); "0 expected" ref line teal | ref line OK (null, teal). **Data-model arc:** thread `result.flag` into HBarPlot + flat-red branch (Kurtosis %-platykurtic — global verdict, no per-bar attribution → flat-red when flagged) |
@@ -557,10 +621,13 @@ distinctions survive on the navy-vs-blue lightness gap; confirm contrast on rend
 fallback only if a sign pair reads ambiguously). Separate from the data-model arc — these are categorical
 encodings, not clear/flag observed magnitude.
 
-**Row-13 provenance one-liner.** AutocorrDecayPlot's no-condition "All data" fallback line draws
-`COND_COLORS[0].text`; Mahalanobis's equivalent pooled "All data" series draws `CC.OBS`. Both render
-`#3B82F6` today (no visible difference) but read from two independently-defined literals — silent drift
-if either retokens. Point the AutocorrDecay fallback at `CC.OBS`. Rides with the two-tone arc.
+**Row-13 provenance one-liner — LANDED.** AutocorrDecayPlot's no-condition "All data" fallback
+line and Mahalanobis's pooled "All data" series both draw `CC.OBS` (the fallback was retargeted
+off `COND_COLORS[0].text` onto `CC.OBS` in S246, the drift guard). This matters more after S250:
+`COND_COLORS[0]` is now lime `#4D7C0F`, not blue — so a fallback still reading `COND_COLORS[0].text`
+would have silently turned the "All data" line lime. It reads `CC.OBS` and stays blue, correctly.
+The two literals (`CC.OBS` and `COND_COLORS[5].text`, both `#3B82F6`) remain independently defined;
+the AutocorrDecay:79 comment noting this was corrected in S250 (it had referenced slot 0).
 
 **Severity scale (ruled — see above):** edit `SEV_VERDICT` to the bright triple
 (`#EF4444` / `#F97316` / `#22C55E`); retoken `PLOT_FC` / `CC.THRESH` to read from
