@@ -1,11 +1,15 @@
 # Walk Findings Log
 
-> **⚠ VERIFY BEFORE REPLACING.** This full file = the source `docs/shared/WALK-FINDINGS.md` read at
-> S247 close; the S246 RowMean deferrals (Test22a + Test22b) are retagged `DONE S247 f6c9614` this
-> pass — the RowMean plot-legibility redesign that resolved them shipped in S247. Before overwriting the
-> tracked copy, confirm it has not drifted since: `git log -1 -- docs/shared/WALK-FINDINGS.md` and diff.
-> If findings were appended to the tracked copy after this read, merge them in rather than overwriting —
-> a full replace would clobber them. "Committed" ≠ "content-current."
+> **⚠ VERIFY BEFORE REPLACING.** This full file = the source `docs/shared/WALK-FINDINGS.md` as of
+> S252 close. Drift check at S252: source was at `5b390a7` (17 Jun 2026, S247 hash-fill) — no drift
+> since the S247 snapshot, confirmed before this routing pass. **S252 routed the six possible-engine
+> rows (3a, 10a, 16a, 18b, 20a, 24b) and the three α-consistency rows (14b, 15b, 17a)** via two
+> read-only triages (`SESSION252-TRIAGE-READONLY.md`, `SESSION252-ALPHA-READONLY.md`). Headline: no
+> engine defect — every suspected wrong verdict resolved verdict-correct; what remained was display.
+> The 10a row's test identity was corrected (was mislabelled rankCorrelation; it is Column
+> Goodness-of-Fit). Before overwriting the tracked copy, confirm it has not drifted since:
+> `git log -1 -- docs/shared/WALK-FINDINGS.md` and diff. If findings were appended after this read,
+> merge them rather than overwriting. "Committed" ≠ "content-current."
 
 One line per finding, appended as you walk. The screenshot is the same id (`test11a` → `test11a.png` in this folder) — no embedding, the name is the link. Paste the image into chat when you want my eyes on it; this file is the durable record.
 
@@ -40,7 +44,7 @@ Date optional; useful if the walk spans days. Routing (which arc each goes to) i
 | Test 2a | Data | Should table show before and after and offset? It feels incomplete without showing the data itself. Maybe should be a bit like the display in duplicate data. <br /><br />With DS08, the offset is confusing because it is logged. <br /><br /> |  |
 | Test 2a | How this test works text, implications etc | "Checks for clusters of constant offsets. For each row, computes the difference between replicate pairs and checks whether that difference repeats in neighbouring rows. Significance assessed by shuffling row order (permutation test)." - the description is confusing. Also does it just test copy paste across columns? It could also happen that you copy an entire row copied? This affects all the descriptions. <br /><br />AImplications -> constant difference between replicates over consecutive rows can result from batch corrections or instrument drift adjustments applied uniformly to a block. It can also indicate that one row was copied and a fixed value added or subtracted to create neighbouring rows. | Arc B |
 | Test2b | Display balance | Fine - except for the same balance/clarity issue in test1b. |  |
-| Test3a | Verdict text | DS02 - The 5 noisiest rows are the same in every condition verdict seems wrong. Inhibitor_B is not correlated at all. Also which are the five noiseiest rows? It seems the correlation is throughout, rather than in spikes. |  |
+| Test3a | Verdict text | DS02 - The 5 noisiest rows are the same in every condition verdict seems wrong. Inhibitor_B is not correlated at all. Also which are the five noiseiest rows? It seems the correlation is throughout, rather than in spikes. | DONE S252 — CONFIRMED-DISPLAY (verdict-honesty), no engine defect. Flag gates on max pairwise top-K overlap (the best pair), not an all-conditions intersection (residualSpikeCorrelation.js:78 rejects the all-groups intersection as too stringent). Footer over-claimed "the same in every condition" while the statistic is one best pair — reworded to name the max-overlap pair ("shared by {bestPair} — the pair with the most overlap"). Inhibitor_B's low correlation is correct and does not enter the verdict (per-condition ρ is informational). The withheld row list now renders as the Overlap rows table (Row / Shared spike strength / Per-condition residual (z)); header corrected from "|residual|" (the values are signed standardised scores, negatives real). |
 | Test 3a | How this test works. | too wordy. Identifies which rows are unusually variable between replicate pairs and tests whether the same rows are noisy across multiple conditions. In typical data, noisy rows vary independently across conditions — coordinated residual spikes suggest shared structure. Significance assessed by shuffling row order (permutation test). The correlation between each row pair's residuals is measured as a rank correlation (Spearman ρ), so it responds to consistent co-movement rather than the size of individual spikes. This is distinct from Noise correlation and Noise sign-pattern, which look at how a single replicate pair behaves from one row to the next. This test instead asks whether the same rows are the noisiest ones across several different conditions — coincidence that points to a shared edited region rather than to genuine measurement noise. | Arc B |
 | Test3a | What to look for | Description mismatch - Blue shading shows where each condition has high residual noise. When multiple strips light up at the same row, that noise is coordinated. The heatmap below shows pairwise ρ — high values (≥ 0.4) between conditions that should be biologically independent suggest shared construction. |  |
 | Test3b | How this test works | Same issue re How this test works text but otherwise the testcard looks fine. | Arc B |
@@ -66,7 +70,7 @@ Date optional; useful if the walk spans days. Routing (which arc each goes to) i
 | Test9a | NA |  | no-anchor (fixture gap) |
 | Test9b | DS01 | Distinct numbers is categorised under Distribution shapes. Legend is off. Expected line is grey, column labels clash. Would it be useful to have the table also? | Reference-line arc S245 (grey expected line → teal null per channel-3 amendment, in the retoken); legend/labels → legend-vocab convergence |
 | Test10a | DS10 | Non-intuitive legend explanation. <br />Null median (ratio = 1)<br/>Col 6 skipped — near-uniform shape — too flat to fit a distribution<br/>Bar shows a single condition; full per-condition detail in the table below. |  |
-| Test10a | DS10 | Is the test working properly if the expected is ratio =1 and observed are >50. Seems a misfit of null. Also each column has mis of control and treatment, so it seems you are mixing conditions? |  |
+| Test10a | DS10 | Is the test working properly if the expected is ratio =1 and observed are >50. Seems a misfit of null. Also each column has mis of control and treatment, so it seems you are mixing conditions? | NOT-A-DEFECT (engine) S252 — TEST IDENTITY: this is Column Goodness-of-Fit (the S252 dispatch mislabelled it rankCorrelation; the ρ-matrix rank card has no ratio/Direction/bars — the engine path is columnGof.js). (1) "Mixing conditions" is false at source: DS10 is row-grouped, the shapes-trio dispatch routes per-condition via aggregatePerGroup (engine.js:454), so each fit is on one condition's row subset, not the pooled mixture. (2) "Ratio=1 expected, observed >50 = misfit": the ratio is an effect size (A²_obs / null median), not a fit residual — 1 = a column matching its null, large = strong shape mismatch; 50 is what a flagged column looks like. (3) The flag is a TRUE POSITIVE per DS10 ground-truth: col5 carries seeded fabrication (γ₁=1.497 past the pre-skip, AD ratio 105×, credited since S107). No fixture run needed — ground truth is the verification. Residual display gap (explain the ratio + make per-condition fit legible) → Arc B. |
 | Test10a | DS10 | Table the Direction is in the wrong place - that usually comes at the end of the table columns? |  |
 | Test10a | DS10 | How this test works etc are too long and jargony. | Arc B |
 | Test10a | DS20 | Similar comments to DS10, though the test seems to work more sensibly.I don:t understand the explanation for the skipped column. (screenshot test10a-3) |  |
@@ -86,24 +90,24 @@ Date optional; useful if the walk spans days. Routing (which arc each goes to) i
 | Test14a | DS11 | The line shows lag-k means across pairs; dots are per-lag values. The mean ± 95% CI marker at lag 1 carries the verdict — average serial correlation across pairs is reliably above zero when the interval excludes the dashed reference. - length text after the plot. | Arc B |
 | Test14a | DS11 | What is the pooled autocorrelation? Table content is non-intuitive and text after table is also non-intuitive. |  |
 | Test14a | DS11 | Long explanatory text in how this test works. | Arc B |
-| Test14b | DS01 | Similar comments as for test 14a. Previous comment CI should be centered on the expected line. Expected line is grey? Also CI should be 99% no, since alpha is 0.01. | Reference-line arc S245 (grey r=0 → teal null + PooledR1Marker brought to full treatment + legend key — the CI-vs-r=0 overlap IS the verdict); CI/α-consistency → blank (possible methodology, route after methodology read) |
+| Test14b | DS01 | Similar comments as for test 14a. Previous comment CI should be centered on the expected line. Expected line is grey? Also CI should be 99% no, since alpha is 0.01. | Reference-line arc S245 (grey r=0 → teal null + PooledR1Marker brought to full treatment + legend key — the CI-vs-r=0 overlap IS the verdict); CI/α-consistency RESOLVED S252 α-read: STALE — this is Autocorrelation, and the card already shows 99.9% CI (3.29·SE), not the "95%" the walk quoted. No engine inconsistency (verdict gates at 0.001/0.01 uniformly). A 99.9% band beside a 0.01 test is not wrong (band and threshold are independent), but the level is a bare 3.29 literal labelled precision-style → CI-band semantics, parked #9 (S253 classification: VERDICT-EDGE in intent but bare-literal; lean = derive from gating α like Runs). |
 | Test15a | NA |  | no-anchor (fixture gap) |
-| Test15b | DS01 | Looks fine. Is there a useful plot that could be shown? Also BH-FDR alpha at 0.05 - isn:t is 0.01 on all other test cards? |  |
-| Test15b | DS01 | All windows are consistent with independent noise in each pair (BH-FDR at α = 0.05). - this text is poorly placed. Should be together with the table title to explain whats in the table. |  |
+| Test15b | DS01 | Looks fine. Is there a useful plot that could be shown? Also BH-FDR alpha at 0.05 - isn:t is 0.01 on all other test cards? | RESOLVED S252 α-read: PARTLY STALE — this is Windowed Autocorrelation. The "BH-FDR at α=0.05" footer text is GONE from current source; the verdict gates on flagFromP(minAdjP) at 0.001/0.01, consistent with the suite. The 0.05 survives only as a per-window display marker (windowedAutocorrelation.js:178) painting amber (the signal colour) at a looser threshold than the verdict → READS-AS-VERDICT (S253 classification, Axis 4). Routed → parked #9 0.05-marker disposition (gate-to-verdict-α or mark-as-non-verdict). One of only two READS-AS-VERDICT cards (with Missing Data); not the five originally feared. |
+| Test15b | DS01 | All windows are consistent with independent noise in each pair (BH-FDR at α = 0.05). - this text is poorly placed. Should be together with the table title to explain whats in the table. | Arc B (text placement) — note the "(BH-FDR at α = 0.05)" parenthetical the walk quoted is no longer in source (see 15b row above); the placement point stands for the current cleared-state footer. |
 | Test15b | DS01 | How this test works is too long and refers to methodology.md. | Arc B |
-| Test16a | DS22 | Strange result. Noise signs clump plot shows Rep1-Rep5 but then in the table below rep1-rep5 adj p is as expected. No explanation of what the x is indicating. |  |
+| Test16a | DS22 | Strange result. Noise signs clump plot shows Rep1-Rep5 but then in the table below rep1-rep5 adj p is as expected. No explanation of what the x is indicating. | DONE S252 triage — CONFIRMED-DISPLAY (engine correct, pooled-by-design). This is the Runs Test. The verdict gates on the pooled mean-z across all pairs (runs.js:207); the strip plots the single most-extreme pair (runs.js:306), which reads "as expected" in the table because the table shows each pair's whole-column adj-p — three different views, no contradiction. No "x" glyph exists; the "x" is the unlabelled row axis. Card already carries the right sentence (MiniCard_Runs.jsx:234). Routed: caption dedup + clearer framing → legend-vocab/caption mop (parked #9, which now owns the Runs investigation-header-vs-card-caption doubling); strip axis label → Arc A. |
 | Test16a | DS22 | Again How this works text is too long. | Arc B |
 | Test16b | DS01 | Looks good except the test by condition was unexpected. Is it an aggregate p-value per condition? Shouldn:t that be shown even if its only one condition as in DS22? |  |
 | Test16b | DS01 | I though all the plots were going to use consistent colouring, but they still differ between testcards - the blue here isn't standard. | Two-tone arc S245 (root cause: SignStrip Cambridge pale-blue `#A3C1DA` sits close to `CC.OBS` and reads as a wrong observed-blue; → `CC.OBS` + Oxford navy. Observed blue itself already 100% on `CC.OBS` — audit found no stray observed blue) |
-| Test17a | DS06 | Looks good. But CI should be 99%? |  |
-| Test17a | DS06 | Each dot = one row (55 rows). Solid line = observed fit with 95% CI band. Dashed = expected for cell counting / viability. - non-standard legend. |  |
+| Test17a | DS06 | Looks good. But CI should be 99%? | RESOLVED S252 α-read: STALE — this is Noise Scaling With Measurement Size, and the caption already says 99.9% CI band (3.29·SE, card-side), not the "95%" the walk implied. No engine inconsistency. The S253 classification reclassified this band as a PRECISION band (uncertainty around the observed slope; the verdict is a separate z-test of slope vs expected), so it is legitimately NOT verdict-edge and the numeric level need not match an α — the fix is to label it clearly as precision, not to change the level → parked #9 CI-band semantics. |
+| Test17a | DS06 | Each dot = one row (55 rows). Solid line = observed fit with 95% CI band. Dashed = expected for cell counting / viability. - non-standard legend. | Legend-vocab convergence (parked #9, Axis 1). Note: the live caption reads 99.9% CI band, not the "95%" transcribed here (the walk text predates the S-update). |
 | Test17b | DS03 | Looks good similar comments to test 17a. |  |
 | Test18a | NA |  | no-anchor (fixture gap) |
-| Test18b | DS03 | Plot is very strange with no axes and unexplained threshold. what is each datapoint? How do you show unusually low spread? |  |
+| Test18b | DS03 | Plot is very strange with no axes and unexplained threshold. what is each datapoint? How do you show unusually low spread? | DONE S252 — CONFIRMED-DISPLAY (correctness), no engine defect. The plot drew its threshold at ±3.5 while the engine flags at \|z\|>4.0 — a genuine plot-vs-verdict mismatch (a displayed boundary the verdict doesn't use). Fixed: Z_THRESH lifted to a module export in withinRowVariance.js, threaded to the card; the two threshold lines, the bin colouring, and the legend now read the constant (renders "Outside ±4σ threshold"). Each datapoint is a histogram bar = count of rows in that z-bin; low spread is the left tail. Remaining axis/datapoint-cue gaps → Arc A. |
 | Test19a | DS20 | Plot x-axis labvels nearly clash. wrapper Doesn:t hug. Table looks good. | Arc A |
 | Test19b | DS01 | Distribtuion Shapes and Cross replicate Comparisons, Cross-condition cluster names have unusually large gap to icon.  (its probably when the title name text wraps) |  |
 | Test19b | DS01 | Why does this switch to bar chart from whisker plot? The different data presentation is surprising. |  |
-| Test20a | DS21 | One region noisier than the rest — rows 82–96 but plot shows two regions. Wrapper not hugging. Columns y-axis label is cut off. | Arc A (wrapper + axis) + blank (region-count substantive) |
+| Test20a | DS21 | One region noisier than the rest — rows 82–96 but plot shows two regions. Wrapper not hugging. Columns y-axis label is cut off. | Arc A (wrapper + axis) + DONE-routed S252 triage (region-count): CONFIRMED-DISPLAY copy mismatch, flag sound. Footer "One region … rows 82–96" reads the single best window (bestWindowRows, regionalNoise.js:218); the plot reads details = every window ≥50%·max (regionalNoise.js:197), so it legitimately shows two. Reconcile the copy (name the primary window, acknowledge the others) → Arc B. (Whether the second region is a real secondary anomaly vs a 50%-of-max artifact would need a DS21 run, but the count mismatch itself is display.) |
 | Test20b | DS01 | I don:t really understand what the table is showing. Condition Best window, Ratio. Not so meaningful in this case. |  |
 | Test21a | DS08 | Looks pretty good and straightforward. | NOT-A-DEFECT — clean |
 | Test21b | DS01 | Shows a change point even though its even throughout. | DONE S243 (changepoint marker gated on flag, 4079be7) |
@@ -113,7 +117,7 @@ Date optional; useful if the walk spans days. Routing (which arc each goes to) i
 | Test23a | DS06 | Looks pretty clean | NOT-A-DEFECT — clean |
 | Test23b | DS01 | Good clean. Legend includes outlier and significance threshold not shown on plot. Should they be there? Wrapper doesn:t hug. | Arc A (wrapper) + Arc C (legend keys not on plot) |
 | Test24a | DS21 | Very similar to Test20. Plot row should start at 2? |  |
-| Test24b | DS17 | Looks fine. But All windows are consistent with a single condition-wide covariance / mean structure. text after table doesn:t feel right. Should table be ordered by condition when not significant? SHould myu and sigma be in same table? |  |
+| Test24b | DS17 | Looks fine. But All windows are consistent with a single condition-wide covariance / mean structure. text after table doesn:t feel right. Should table be ordered by condition when not significant? SHould myu and sigma be in same table? | DONE S252 triage — CONFIRMED-DISPLAY, verdict untouched. DS17 is clean; the verdict is correctly LOW. The "text after table" is the clean-state footerText sitting under a table of specific windows, so it reads as if those windows were findings rather than a clean summary (copy/placement → Arc B). Adj-p ordering on a clean card carries little meaning; condition grouping would read better → Arc A/B layout. μ and σ are interleaved in one table distinguished by a Pass column; whether to split is a layout decision → Arc A. All three are presentation choices; nothing touches the verdict or statistic. |
 | Test25a | DS16 | Differences between conditions smaller than chance across most features but then plot shows a tall bar. I:m not sure how to interpret. | DONE S244 e8389d5 (sorted table + CV explain the tall bar) |
 | Test25a | DS16 | Plot right hand 1.00 truncated. Y-axis not labelled. | DONE S244 e8389d5 (Count axis labelled) + Arc A (x-axis 1.00 truncation, wrapper-hug) |
 | Test25a | DS16 | Bar height = count of features per p-value bin. Dashed line = expected under uniform. Highlighted bar = excess p-values near 1.0 (too balanced). How far the bars sit from the dashed expected line: p < 0.0001. - long txt description with no legend. | DONE S244 e8389d5 (ChartLegend added, caption gated + tightened) |
@@ -152,6 +156,27 @@ mistake as scoping a card from the opener (the S244 lesson). The blank rows fall
 Already-closed rows from earlier arcs are tagged: 12a/12b (S243 IRC), 21b (S243 LOESS),
 25a/25b (S244 Carlisle). The seven no-anchor rows (9a, 11a, 13a, 15a, 18a, 27 — and the example
 11a) close as a documented fixture gap, not failures.
+
+## Routing notes (S252 — possible-engine + α clusters cleared)
+
+The two clusters the S244 note left blank are now routed via two read-only triages
+(`SESSION252-TRIAGE-READONLY.md`, `SESSION252-ALPHA-READONLY.md`). **No engine defect in any row.**
+
+- **Possible-engine (3a, 10a, 16a, 18b, 20a, 24b):** all CONFIRMED-DISPLAY or NOT-A-DEFECT.
+  3a (footer over-claim + withheld row list) and 18b (plot threshold ±3.5 ≠ engine 4.0) were
+  display-correctness defects — both fixed and shipped S252. 10a is a true positive per DS10
+  ground-truth (col5 seeded fab); its only gap is display legibility. 16a/20a/24b are
+  copy/chrome, routed to existing arcs and parked #9. The 10a dispatch mislabel (rankCorrelation
+  → Column Goodness-of-Fit) is corrected in its row.
+- **α-consistency (14b, 15b, 17a):** mostly stale — the cards moved since the walk (14b and 17a
+  already show 99.9% CI, 15b's α=0.05 footer text is gone). Verdict α is uniform at 0.001/0.01
+  suite-wide; no inconsistency. Real residual content (CI-band level semantics; the live 0.05
+  per-window marker on Windowed Autocorr) routed to parked #9, informed by the S253
+  display-significance classification.
+
+This clears the possible-engine and α-consistency kinds entirely. The remaining blank rows are
+verdict-text rephrasings (4a/4b, 5a/5b, 6a/6b, 7b, 8a/8b) and assorted display rows still routed
+through Arc A/B and the reference-line/two-tone arcs.
 
 ---
 
