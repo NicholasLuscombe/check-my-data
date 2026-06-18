@@ -788,7 +788,7 @@ export function ExcerptTable({
     return spans;
   }, [condPerCol, visColIndices]);
 
-  const condColorMap = useMemo(() => buildCondColorMap(condPerCol), [condPerCol]);
+  const condColorMap = useMemo(() => buildCondColorMap({ condPerCol }), [condPerCol]);
 
   // ── Group data (must be before freeze computation) ──
   const groups = rawGroups || [];

@@ -32,7 +32,7 @@ const wins=(details||[]).filter(d=>d.source==="window");
 const hdrs = importConfig?.hdrs || [];
 const roles = importConfig?.roles || [];
 const condPerCol = importConfig?.condPerCol || null;
-const condColorMap = buildCondColorMap(condPerCol);
+const condColorMap = buildCondColorMap(importConfig);
 const condCell = (name) => { const color = condColorMap[name]?.text; return color ? {value: name, style: {color}} : name; };
 const dataColMap = roles.map((r,i) => r === "data" ? i : -1).filter(i => i >= 0);
 const condColNames = {};

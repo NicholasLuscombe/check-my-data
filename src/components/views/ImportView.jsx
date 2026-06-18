@@ -13,7 +13,7 @@ import { extractAnalysisInputs } from "../../analysis/engine.js";
 import { LongFormatModal } from "./LongFormatModal.jsx";
 import { C, FF, FW, FS, CR, CC, M, UI, BADGE, SIGNAL, ACCENT } from "../../constants/tokens.js";
 import { FLAG_STYLES } from "../../constants/thresholds.js";
-import { ROLES, ROLE_KEYS, COND_COLORS } from "../../constants/roles.js";
+import { ROLES, ROLE_KEYS, COND_COLORS, buildCondColorMap } from "../../constants/roles.js";
 import { MECHANISMS, MECHANISM_ORDER, TEST_MECHANISM, DISPLAY_NAMES } from "../../constants/mechanisms.js";
 import { buildCondSpans, colToExcelLetter, originalFileRow } from "../shared/coordinates.js";
 import { COL_W, FREEZE_COL_W, FREEZE_Z, countFrozenCols, colWidthFromMaxLen } from "../shared/styles.js";
@@ -374,6 +374,9 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
   const fams=useMemo(()=>{const f={};for(const t of tests){if(!f[t.fam])f[t.fam]={ok:0,n:0};f[t.fam].n++;if(t.ok)f[t.fam].ok++;}return f;},[tests]);
 
   const condSpans=useMemo(()=>buildCondSpans(condPerCol),[condPerCol]);
+  // Row-grouped-capable chip palette (Zone-4 condition chips). Column-grouped
+  // resolves via condPerCol; row-grouped (condition-in-a-column) via data+roles.
+  const condChipColorMap=useMemo(()=>buildCondColorMap({condPerCol,data,roles}),[condPerCol,data,roles]);
 
   // ── Frozen column computation — reactive to role changes ──
   // Sums the SAME per-column widths the colgroup applies, so sticky-left
@@ -987,7 +990,7 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
             <div style={{marginTop:"12px",display:"flex",alignItems:"center",flexWrap:"wrap",gap:"4px 8px"}}>
               <span style={{color:C.TEXT_3,fontSize:FS.base}}>Conditions</span>
               {sum.cNames.map((c,i)=>(
-                <span key={i} style={{display:"inline-block",background:condColorMap[c]?.bg||C.BG,color:condColorMap[c]?.text||C.TEXT_2,padding:"2px 6px",borderRadius:CR.S2,fontSize:FS.xs,fontWeight:FW.NORM,userSelect:"none"}}>{c}</span>
+                <span key={i} style={{display:"inline-block",background:condChipColorMap[c]?.bg||C.BG,color:condChipColorMap[c]?.text||C.TEXT_2,padding:"2px 6px",borderRadius:CR.S2,fontSize:FS.xs,fontWeight:FW.NORM,userSelect:"none"}}>{c}</span>
               ))}
             </div>
           )}

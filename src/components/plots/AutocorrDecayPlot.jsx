@@ -75,8 +75,10 @@ export function AutocorrDecayPlot({ perGroupDecay, singleCurve, condColorMap }) 
       ))}
       {/* group lines */}
       {curves.map((c,ci)=>{
-        // Row-13 drift guard (S246): the no-condition "All data" fallback reads
-        // observed-blue directly, not COND_COLORS[0].text (same hex, two literals).
+        // Row-13 drift guard (S246): the no-condition "All data" curve reads
+        // observed-blue (CC.OBS) directly, not via the COND_COLORS palette
+        // (slot 0 is lime since the S250 reorder) — keeps the dataset-wide
+        // curve on the observed-blue channel regardless of palette order.
         const col=c.group==="All data" ? CC.OBS : (condColorMap?.[c.group]?.text || GROUP_COLORS[ci%GROUP_COLORS.length]);
         const pts=c.curve.map((v,i)=>`${xs(i+1)},${ys(v)}`).join(" ");
         return (

@@ -83,7 +83,7 @@ function PooledZMarker({ value, ci }) {
 export function MiniCard_Runs({ result, importConfig, rowMap }) {
   const details = result.details || [];
   const isAgg = result.groupsAssessed !== undefined;
-  const condColorMap = buildCondColorMap(importConfig?.condPerCol);
+  const condColorMap = buildCondColorMap(importConfig);
   const pooledMeanZ = parseFloat(result.pooledMeanZ);
   const scanPNum = typeof result.windowScanP === 'number' ? result.windowScanP : parseFloat(result.windowScanP);
   const hasWindowed = scanPNum < 1 && result.windowSigCount > 0;

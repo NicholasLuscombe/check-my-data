@@ -9,7 +9,7 @@ export function MiniCard_ConstantOffset({ result, importConfig, rowMap }) {
   const details = result.details || [];
   const sub = result.subDetails || [];
   const isAgg = result.groupsAssessed !== undefined;
-  const condColorMap = buildCondColorMap(importConfig?.condPerCol);
+  const condColorMap = buildCondColorMap(importConfig);
   const condCell = (name) => { const color = condColorMap[name]?.text; return color ? {value: name, style: {color}} : name; };
   // Producer emits 1-indexed matrix rows in d.positions ("35–36"); render
   // file rows so the card matches the §2 highlight's `#` column.

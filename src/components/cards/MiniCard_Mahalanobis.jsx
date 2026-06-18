@@ -19,7 +19,7 @@ export function MiniCard_Mahalanobis({ result, importConfig, rowMap }) {
   const { fileRow } = makeRowMapper(importConfig, rowMap);
 
   // Condition colours
-  const condColorMap = buildCondColorMap(importConfig?.condPerCol);
+  const condColorMap = buildCondColorMap(importConfig);
 
   // Show per-condition chart only when stratified result won (isAgg).
   // When pooled wins, show single "All data" series to match pooled table/flag.
