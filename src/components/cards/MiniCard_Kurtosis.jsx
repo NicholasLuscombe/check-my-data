@@ -72,6 +72,7 @@ export function MiniCard_Kurtosis({ result, importConfig, rowMap }) {
             Noise shape by condition
             {condK.promoted && <span style={{marginLeft:"8px",fontSize:FS.xs,color:BADGE.PROMOTED.text,background:BADGE.PROMOTED.bg,border:`1px solid ${BADGE.PROMOTED.border}`,borderRadius:CR.SM,padding:"1px 5px"}}>differs between conditions — promoted</span>}
           </div>
+          <div style={{fontSize: FS.sm, color: C.TEXT_3, marginBottom: BLOCK_GAP_TIGHT}}>{"The Finding reflects how far each condition's noise shape departs from normal (effect size). The adj. p shows significance for context — a small p beside 'Normal' means a reliable but slight departure."}</div>
           {(() => {
             const simK = result.simKurtosis;
             const expectedKStr = simK != null ? simK.toFixed(4) : "—";

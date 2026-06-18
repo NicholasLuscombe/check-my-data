@@ -6,7 +6,7 @@ import { PlotLayout } from "../shared/PlotLayout.jsx";
 import { ChartLegend } from "../shared/ChartLegend.jsx";
 import { SignStripPlot } from "../plots/SignStripPlot.jsx";
 import { PlotSVG } from "../plots/PlotSVG.jsx";
-import { C, CC, CP, CS, CF, FW, FF, SIGN } from "../../constants/tokens.js";
+import { C, CC, CP, CS, CF, FW, FF, FS, SIGN } from "../../constants/tokens.js";
 import { fmtP, ALPHA } from "../../constants/thresholds.js";
 import { shortColName, makeRowMapper } from "../shared/coordinates.js";
 import { SUB_HEAD, BLOCK_GAP, BLOCK_GAP_TIGHT } from "../shared/styles.js";
@@ -141,12 +141,13 @@ export function MiniCard_Runs({ result, importConfig, rowMap }) {
     : ["Pair", "Runs", "Expected", "z", "Adj. p", "Finding"];
   const condIdentifierColumns = worstGroup ? 2 : 1;
   const etRows = allStats.map(p => {
-    // S218: the Finding word follows the verdict's per-pair significance \u2014 the
-    // BH-adjusted p against ALPHA.FLAG, the same predicate anyPairFlagged reads
-    // to promote the verdict (runs.js). A single gate decides flagged-or-not;
-    // the sign of z only labels the direction of an already-flagged pair. The
-    // raw-z (\u00b11.96) word is retired, and the p column now shows the adjusted
-    // value the decision is made on.
+    // S230: the Finding word gates at ALPHA.NOTE (0.01), aligned with the
+    // 'Significant pairs' strip admission \u2014 both per-pair surfaces describe the
+    // pairs, so both mark at the same 0.01 threshold. The card verdict's per-pair
+    // promotion stays at ALPHA.FLAG (0.001), unchanged (runs.js anyPairFlagged):
+    // strip and table describe the pairs, the verdict describes the card. The
+    // sign of z only labels the direction of an already-flagged pair; the p
+    // column shows the BH-adjusted value the per-pair decision is made on.
     const z = parseFloat(p.z);
     const flaggedPair = parseFloat(p.adjP) < ALPHA.NOTE;
     const finding = !flaggedPair
@@ -230,6 +231,7 @@ export function MiniCard_Runs({ result, importConfig, rowMap }) {
         <div style={{marginTop: BLOCK_GAP}}>
           {/* S210 (multi-surface): secondary-surface heading demoted (Regular weight). */}
           <div style={{...SUB_HEAD, fontWeight: FW.NORM, marginBottom: BLOCK_GAP_TIGHT}}>All replicate pairs</div>
+          <div style={{fontSize: FS.sm, color: C.TEXT_3, marginBottom: BLOCK_GAP_TIGHT}}>{"These rows describe individual replicate pairs. The card's verdict is the pooled test across all pairs — a pair can read 'as expected' while the pooled pattern is flagged."}</div>
           <EvidenceTable
             columns={condColumns}
             rows={etRows}
