@@ -43,7 +43,7 @@ export function MiniCard_RankCorrelation({ result, importConfig, rowMap }) {
 
   // ── Legend ──
   const legendItems = [
-    { color: TIER_COLOR.LOW, label: "Expected" },
+    { color: TIER_COLOR.LOW, label: "Within expected range" },
     { color: TIER_COLOR.MID, label: "Suspicious" },
   ];
 

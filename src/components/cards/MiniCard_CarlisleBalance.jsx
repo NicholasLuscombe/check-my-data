@@ -122,7 +122,7 @@ export function MiniCard_CarlisleBalance({ result, importConfig, rowMap }) {
           {histPlot}
         </PlotLayout>
         <ChartLegend items={[
-          { color: C.TEXT_3, label: "Features per p-value bin", opacity: 0.35 },
+          { color: CC.OBS, label: "Features per p-value bin", opacity: 0.35 },
           { color: CC.EXP, label: "Expected under uniform", swatchType: "line", dashed: true },
           ...(isFlagged ? [{ color: SIGNAL.RED.dot, label: "Excess balanced features", opacity: 0.35 }] : []),
         ]} />

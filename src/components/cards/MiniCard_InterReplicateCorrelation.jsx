@@ -93,7 +93,7 @@ const cellTxt = (p) => cellTextOn(cellBg(p));
 
 // Legend items
 const legend = [
-  { color: TIER_COLOR.LOW, label: "Expected" },
+  { color: TIER_COLOR.LOW, label: "Within expected range" },
 ];
 if (nSusp > 0) legend.push({ color: TIER_COLOR.HIGH, label: "Highly correlated (outlier pair)" });
 

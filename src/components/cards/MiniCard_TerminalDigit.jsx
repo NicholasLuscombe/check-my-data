@@ -49,7 +49,7 @@ return (
     </PlotLayout>
     <ChartLegend items={[
       { color: CC.OBS, label: "Observed count", opacity: 0.35 },
-      { color: CC.EXP, label: "Uniform expected", swatchType: "line" },
+      { color: CC.EXP, label: "Uniform expected", swatchType: "line", dashed: true },
     ]} />
 
 

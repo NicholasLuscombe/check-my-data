@@ -38,7 +38,7 @@ return (
     </PlotLayout>
     <ChartLegend items={[
       { color: CC.OBS, label: "Observed %", opacity: 0.35 },
-      { color: CC.EXP, label: "Benford expected", swatchType: "line" },
+      { color: CC.EXP, label: "Benford expected", swatchType: "line", dashed: true },
     ]} />
 
 
