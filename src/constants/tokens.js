@@ -185,14 +185,16 @@ export const MECH_COLOR = {
 // and a "no red/amber on numeric cells" violation, since the grid paints the
 // `text` colour onto the numbers themselves.
 //
-// Sourced verbatim from the first six COND_COLORS entries (blue, lime, purple,
-// cyan, pink, green) in roles.js — the locked group-identity palette, whose
-// hues are chosen away from the severity family by design. COND_COLORS' amber
-// entry is slot 6, which a six-wide `gi % length` rotation never reaches.
-// Copied rather than imported because tokens.js is the primitive leaf module
-// and roles.js already imports from it — importing back would be circular. The
-// full {bg, text, border} objects are kept (a literal slice); consumers read
-// `text` (cell text colour) and `bg` (cell background); `border` is inert here.
+// A frozen literal copy of the original (pre-S250) condition palette's first
+// six hues (blue, lime, purple, cyan, pink, green) — chosen away from the
+// severity family by design (no red/amber in the set). It is NOT kept in sync
+// with COND_COLORS: COND_COLORS was reordered in S250 (blue moved slot 0→5) and
+// this copy was intentionally left unchanged, so the duplicate-group rotation
+// stays stable regardless of the condition-palette order. Copied rather than
+// imported because tokens.js is the primitive leaf module and roles.js already
+// imports from it — importing back would be circular. The full
+// {bg, text, border} objects are kept (a literal slice); consumers read `text`
+// (cell text colour) and `bg` (cell background); `border` is inert here.
 export const DUP_GROUP_PALETTE = [
   { bg: "#DBEAFE", text: "#3B82F6", border: "#93C5FD" },  // blue
   { bg: "#ECFCCB", text: "#4D7C0F", border: "#BEF264" },  // lime (.text darkened to lime-700 for small-text contrast on white)

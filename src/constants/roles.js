@@ -8,13 +8,20 @@ export const ROLES = {
 };
 export const ROLE_KEYS = ["data", "label", "condition", "ignore"];
 
-// Condition colours: eight hues in a lighter register, ordered so the common
-// first-three case spreads across the wheel. Each entry: { bg, text, border };
+// Condition colours: eight hues in a lighter register, ordered (S250) so the
+// hue byte-identical to a signal colour (blue .text #3B82F6 == CC.OBS) is
+// demoted out of the common first-three case — see channel-2 signal-sensitivity
+// in PLOT-COLOUR-SEMANTICS.md. Each entry: { bg, text, border };
 // condition marks read the .text shade everywhere, the import chip reads .bg
 // (pale fill) + .text (label), so .bg / .border are tints/shades of the entry's
-// .text hue — one hue per condition across import and plot. Hues are picked for
-// mutual separation as thin lines, not for avoiding the severity family
-// (channel 1 is a role-not-hue rule). Ordering and .text anchors track
+// .text hue — one hue per condition across import and plot. Exception
+// (tint-not-text): the import condition span-header band renders identity on
+// .bg (fill) with a neutral C.TEXT label, not the .text hue, because it sits
+// directly above the data-role-blue chips (a channel-2 signal-sensitive
+// surface); the Zone-1/Zone-4 summary chips still read .text, not being
+// adjacent to a role-blue element (the collision is span-header-only). Hues are
+// picked for mutual separation as thin lines, not for avoiding the severity
+// family (channel 1 is a role-not-hue rule). Ordering and .text anchors track
 // PLOT-COLOUR-SEMANTICS.md (the condition palette table).
 export const COND_COLORS = [
   { bg: "#ECFCCB", text: "#4D7C0F", border: "#BEF264" },  // lime (.text darkened to lime-700 for small-text contrast on white)
