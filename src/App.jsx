@@ -45,10 +45,15 @@ export default function CheckMyData() {
       setImportConfig({...config, vst});
       setAnalysisMatrix(matrix);
       setRowMap(filteredIndices);
+      // Dev-only perf skip. import.meta.env.DEV is false in the production
+      // (GitHub Pages) build, so ?skipHeavy is dead there. .has() semantics:
+      // presence alone enables it — ?skipHeavy, ?skipHeavy=1, and ?skipHeavy=0
+      // all skip (=0 still skips; fine for a dev flag).
+      const skipHeavy = import.meta.env.DEV && new URLSearchParams(window.location.search).has('skipHeavy');
       const testResults=await runFullAnalysis(
         matrix,rawMatrix,condCtx,config.assay,setRunProgress,vst,
         {isPivoted:!!config.isPivoted},config.dataType||'continuous',
-        config.rowSemantics||'ordered'
+        config.rowSemantics||'ordered', skipHeavy
       );
       setResults(testResults);
       setPhase("report");
