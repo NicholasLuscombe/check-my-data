@@ -75,21 +75,15 @@ export function testRuns(matrix, condCtx, rng) {
   const nSig=res.filter(r=>r.significant).length;
   const pooled=allZ.length>=2?oneSampleT(allZ):{t:0,df:0,p:1};
   const pooledMeanZ=allZ.length?mean(allZ):0;
-  // S166 A5: additive 99.9% CI on the pooled mean-z for the headline marker.
-  // Normal-approximation interval (mean ± 3.29·SE) consistent with the
-  // oneSampleT df>30 branch. CI's relation to z=0 IS the pooled-t verdict
-  // (negative-of-zero = too few runs across pairs). Null when n<2.
+  // Pooled mean-z dispersion for the verdict-edge band below. Null when n<2.
   const pooledZSD = allZ.length >= 2 ? stddev(allZ) : 0;
   const pooledZSE = allZ.length >= 2 ? pooledZSD / Math.sqrt(allZ.length) : 0;
-  const pooledZCI95 = allZ.length >= 2
-    ? [pooledMeanZ - 3.29 * pooledZSE, pooledMeanZ + 3.29 * pooledZSE]
-    : null;
   // Band that pictures the verdict. tCrit mirrors the oneSampleT(allZ) verdict's
   // per-branch convention exactly: the normal quantile at df>30 (where the
   // verdict's p uses zToP), the exact inverse-t otherwise (where it uses
   // pooledTtoP). ALPHA.NOTE edge against the same pooledMeanZ, pooledZSE and df
   // the verdict reads, so the interval's relation to z = 0 IS the flag decision.
-  // Display only — no flag logic reads this. pooledZCI95 retained (retirement parked).
+  // Display only — no flag logic reads this.
   const tCrit = pooled.df > 30
     ? normalQuantile(1 - ALPHA.NOTE / 2)
     : tQuantileTwoSided(ALPHA.NOTE, pooled.df);
@@ -294,7 +288,7 @@ export function testRuns(matrix, condCtx, rng) {
     nRows: matrix.length,
     nSignificant:nSig, nPairs:res.length,
     pooledMeanZ:pooledMeanZ.toFixed(3), pooledT:pooled.t.toFixed(3), pooledP:pooled.p.toFixed(4), primaryP:bestP,
-    pooledZSD, pooledZSE, pooledZCI95, pooledZCI_flag,
+    pooledZSD, pooledZSE, pooledZCI_flag,
     // Observed/expected runs ratio over all pairs. Drives the N>=500
     // effect-size gate (runsRatio > 0.70 → LOW even when p-value would
     // otherwise flag). METHODOLOGY Tier 2 references this gate; field

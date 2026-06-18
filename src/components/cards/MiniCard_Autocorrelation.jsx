@@ -1,6 +1,6 @@
 /* ── MiniCard: Autocorrelation ── */
 
-import { C, CC, CP, CS, CF, FF, FW, SIGNAL } from "../../constants/tokens.js";
+import { C, CC, CP, CS, CF, FF, FW, FS, SIGNAL } from "../../constants/tokens.js";
 import { fmtP } from "../../constants/thresholds.js";
 import { MiniCardLayout } from "../shared/CardLayout.jsx";
 import { EvidenceTable } from "../shared/EvidenceTable.jsx";
@@ -16,7 +16,7 @@ import { SUB_HEAD, BLOCK_GAP, BLOCK_GAP_TIGHT } from "../shared/styles.js";
 
 // ── Pooled lag-1 verdict number-line (S232) ─────────────────────────
 // Dedicated horizontal 1-D r-axis carrying the producer's pooled lag-1
-// mean (one-sample t on allR1, autocorrelation.js) with its 99.9% CI
+// mean (one-sample t on allR1, autocorrelation.js) with its verdict-edge CI
 // whisker, against the dashed r = 0 reference. The interval's relation to
 // zero IS the verdict — when the CI excludes zero, average serial
 // correlation across pairs is reliably above independence. Mirrors the
@@ -87,7 +87,7 @@ export function MiniCard_Autocorrelation({ result, importConfig, rowMap }) {
   const meanR1 = typeof result.pooledMeanR1 === "number" ? result.pooledMeanR1 : parseFloat(result.pooledMeanR1);
 
   // ── Decay chart (Surface 2) ──
-  // The verdict statistic (pooled lag-1 mean ± 99.9% CI) now lives on its
+  // The verdict statistic (pooled lag-1 mean ± verdict-edge CI) now lives on its
   // own number-line surface above (PooledR1Marker); this plot carries only
   // the per-lag decay evidence.
   const hasDecay = result.perGroupDecay?.length || result.decayCurve;
@@ -139,7 +139,7 @@ export function MiniCard_Autocorrelation({ result, importConfig, rowMap }) {
 
       {/* Surface 1 (S232): pooled lag-1 verdict number-line — the verdict
           statistic (one-sample t on allR1, autocorrelation.js) drawn against
-          r = 0 with its 99.9% CI whisker. The interval-vs-zero relation IS the
+          r = 0 with its verdict-edge CI whisker. The interval-vs-zero relation IS the
           verdict; the per-lag decay surface below is the evidence. The footer
           fragment (LEAD_HEAD in MiniCardLayout) heads this primary surface, so
           no heading here (mirrors Runs). */}
@@ -149,7 +149,7 @@ export function MiniCard_Autocorrelation({ result, importConfig, rowMap }) {
           <PooledR1Marker value={meanR1} ci={result.pooledR1CI} />
         </PlotLayout>
         <ChartLegend items={[
-          { color: C.TEXT, label: "Pooled lag-1 mean ± 99.9% CI", swatchType: "dot" },
+          { color: C.TEXT, label: "Pooled lag-1 mean ± verdict-edge CI", swatchType: "dot" },
           { color: CC.EXP, label: "r = 0 (independent)", swatchType: "line", dashed: true },
         ]} />
         </>
@@ -210,6 +210,7 @@ export function MiniCard_Autocorrelation({ result, importConfig, rowMap }) {
           <>
             {/* S210 (multi-surface): secondary-surface heading demoted (Regular weight). */}
             <div style={{...SUB_HEAD, marginTop: BLOCK_GAP, fontWeight: FW.NORM, marginBottom: BLOCK_GAP_TIGHT}}>Pooled autocorrelation by lag</div>
+            <div style={{fontSize: FS.sm, color: C.TEXT_3, marginBottom: BLOCK_GAP_TIGHT}}>{"These rows show pooled autocorrelation by lag. The card's verdict is the pooled lag-1 test across all replicate pairs — an individual pair can read 'as expected' while the pooled pattern is flagged."}</div>
             <EvidenceTable columns={cols} rows={rows} identifierColumns={1} compact
               footerText={footerText} />
           </>

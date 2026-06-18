@@ -27,7 +27,7 @@ return (
           slopeSE={result.slopeSE}/>
     </PlotLayout>
     <div style={{fontSize:FS.sm,fontFamily:FF.UI,color:C.TEXT_2,marginTop:"4px"}}>
-      Each dot = one row ({result.nPoints} rows). Solid line = observed fit{se>0&&se<2?" with 99.9% CI band":""}. Dashed = expected for {assayLabel}.
+      Each dot = one row ({result.nPoints} rows). Solid line = observed fit{se>0&&se<2?"; shaded band shows how precisely the slope is estimated (99.9%)":""}. Dashed = expected for {assayLabel}.
     </div>
 
 

@@ -8,6 +8,7 @@ import { PlotSVG } from "../plots/PlotSVG.jsx";
 import { MissingDataHeatmap } from "../plots/MissingDataHeatmap.jsx";
 import { shortColName, makeRowMapper } from "../shared/coordinates.js";
 import { SUB_HEAD } from "../shared/styles.js";
+import { ALPHA } from "../../constants/thresholds.js";
 
 const MISSING_FILL = withAlpha(SIGNAL.RED.dot, 0.45);
 
@@ -83,7 +84,7 @@ export function MiniCard_MissingDataPattern({ result, importConfig, rowMap }) {
 
   // ── Spatial missing data heatmap with block annotations ──
   let heatmap = null;
-  const blockItems = result.blockHits || [];
+  const blockItems = (result.blockHits || []).filter(b => b.adjP < ALPHA.NOTE);
   if (rawData.length > 0 && dataColMap.length > 0 && result.nMissing > 0) {
     const missGrid = rawData.map(row =>
       dataColMap.map(ci => row[ci] === null || row[ci] === undefined || row[ci] === "")
@@ -102,7 +103,7 @@ export function MiniCard_MissingDataPattern({ result, importConfig, rowMap }) {
   return (
     <MiniCardLayout result={result}
       footer={(() => {
-        const blocks = result.blockHits || [];
+        const blocks = blockItems;
         const b = blocks.length
           ? blocks.reduce((m, x) => (x.adjP < m.adjP ? x : m), blocks[0])
           : null;

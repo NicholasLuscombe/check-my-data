@@ -1,7 +1,7 @@
 /* ── MiniCard: Windowed Autocorrelation ── */
 
 import { C, SIGNAL, FW } from "../../constants/tokens.js";
-import { fmtP } from "../../constants/thresholds.js";
+import { fmtP, ALPHA } from "../../constants/thresholds.js";
 import { MiniCardLayout } from "../shared/CardLayout.jsx";
 import { EvidenceTable } from "../shared/EvidenceTable.jsx";
 import { PlotLayout } from "../shared/PlotLayout.jsx";
@@ -34,7 +34,7 @@ export function MiniCard_WindowedAutocorr({ result, importConfig, rowMap }) {
   if (nRows > 0 && details.length > 0) {
     // Reuse: one row per pair, showing flagged windows along the row span.
     // Synthesize a ratio from |r| via 1 + |r|·10 so opacityForRatio scales.
-    const sig = details.filter(d => d.significant);
+    const sig = details.filter(d => d.adjP < ALPHA.NOTE);
     if (sig.length) {
       // Build per-pair unique index. Pass to strip as anomCol=index+1 and
       // colNames map so the Y axis shows the pair label.
@@ -64,7 +64,7 @@ export function MiniCard_WindowedAutocorr({ result, importConfig, rowMap }) {
   let table = null;
   if (tableSource.length) {
     const rows = tableSource.slice(0, 20).map(d => {
-      const sig = d.significant;
+      const sig = d.adjP < ALPHA.NOTE;
       const cell = v => sig ? { value: v, style: { color: SIGNAL.AMBER.text, fontWeight: FW.SEMI } } : v;
       const rowsLabel = `${toFileRow(d.startRow)}\u2013${toFileRow(d.endRow)}`;
       const base = [cell(d.pair), cell(rowsLabel), cell(d.r), cell(fmtP(d.adjP))];
@@ -88,7 +88,7 @@ export function MiniCard_WindowedAutocorr({ result, importConfig, rowMap }) {
 
   // Footer: plain finding. When flagged, name the row range of the most
   // significant window (details pre-sorted adj-p ascending by the producer).
-  const sigWins = details.filter(d => d.significant);
+  const sigWins = details.filter(d => d.adjP < ALPHA.NOTE);
   const flaggedRange = sigWins.length
     ? `${toFileRow(sigWins[0].startRow)}\u2013${toFileRow(sigWins[0].endRow)}`
     : null;

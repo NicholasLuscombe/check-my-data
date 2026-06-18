@@ -225,7 +225,9 @@ export function extractCellFlags(result, nRows, nCols) {
   }
 
   if (name === 'Missing Data Pattern' && result.blockHits?.length) {
-    for (const blk of result.blockHits) {
+    // S253 (parked #9d): gate the block-cell contribution to verdict α (adjP <
+    // ALPHA.NOTE), matching the card heatmap + footer markers.
+    for (const blk of result.blockHits.filter(b => b.adjP < ALPHA.NOTE)) {
       const rows = [];
       for (let r = blk.startRow - 1; r <= blk.endRow - 1; r++) rows.push(r);
       const cols = blk.cols?.map(c => c - 1) || null;
@@ -245,8 +247,8 @@ export function extractCellFlags(result, nRows, nCols) {
 
   if (name === 'Windowed Autocorrelation') {
     const dets = resultDetails(result);
-    // Only flag windows that actually survived BH-FDR at α=0.05.
-    for (const d of dets.filter(d => d.source === 'window' && d.significant && d.startRow != null)) {
+    // Only flag windows that survived BH-FDR at the verdict α (ALPHA.NOTE).
+    for (const d of dets.filter(d => d.source === 'window' && d.adjP < ALPHA.NOTE && d.startRow != null)) {
       const rows = [];
       for (let r = d.startRow - 1; r <= d.endRow - 1; r++) rows.push(r);
       const cols = d.pair ? parsePairCols(d.pair) : null;
