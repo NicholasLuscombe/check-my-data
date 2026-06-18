@@ -9,6 +9,7 @@ import { ChartLegend } from "../shared/ChartLegend.jsx";
 import { PlotSVG } from "../plots/PlotSVG.jsx";
 import { makeRowMapper } from "../shared/coordinates.js";
 import { SUB_HEAD, BLOCK_GAP, BLOCK_GAP_TIGHT } from "../shared/styles.js";
+import { Z_THRESH } from "../../tests/withinRowVariance.js";
 
 export function MiniCard_WithinRowVariance({ result, importConfig, rowMap }) {
   // Producer emits 1-indexed matrix rows in d.Row; render file rows so the
@@ -41,13 +42,13 @@ export function MiniCard_WithinRowVariance({ result, importConfig, rowMap }) {
           const x = padL + i * barW;
           const h = (c / maxC) * plotH;
           const zMid = zMin + (i + 0.5) * binW;
-          const isOutlier = Math.abs(zMid) > 3.5;
+          const isOutlier = Math.abs(zMid) > Z_THRESH;
           const fill = isOutlier ? SIGNAL.RED.dot : CC.OBS;
           return <rect key={i} x={x} y={padT + plotH - h} width={barW - 0.5} height={h}
             fill={fill} fillOpacity="0.35" stroke={fill} strokeWidth="1" />;
         })}
-        {/* Threshold lines at ±3.5 */}
-        {[-3.5, 3.5].map(z => {
+        {/* Threshold lines at ±Z_THRESH */}
+        {[-Z_THRESH, Z_THRESH].map(z => {
           const x = padL + ((z - zMin) / (zMax - zMin)) * plotW;
           return x > padL && x < W - padR ? (
             <line key={z} x1={x} y1={padT} x2={x} y2={padT + plotH}
@@ -85,7 +86,7 @@ export function MiniCard_WithinRowVariance({ result, importConfig, rowMap }) {
           {histPlot}
         </PlotLayout>
         <ChartLegend items={[
-          { color: SIGNAL.RED.dot, label: "Outside ±3.5σ threshold", opacity: 0.35 },
+          { color: SIGNAL.RED.dot, label: `Outside ±${Z_THRESH}σ threshold`, opacity: 0.35 },
           { color: C.TEXT_3, label: "Within expected range", opacity: 0.35 },
         ]} />
       </>}
