@@ -1,17 +1,22 @@
 <!-- ⚠ VERIFY BEFORE REPLACING. This full file = the live tracked PLOT-COLOUR-SEMANTICS.md as of
-     S250 close, with the S250 condition-colour edits merged in. Changes this pass (S250): channel 2
-     amended with the signal-sensitivity surface split + the tint-not-text rule for the import
-     span-header + condition identity declared a sanctioned non-signal channel; the `COND_COLORS`
-     palette table reordered (blue moved slot 0→5) with rationale updated; the AutocorrDecayPlot
-     conformance row and the row-13 provenance one-liner updated to reflect the fallback now reading
-     `CC.OBS` (S250). Prior pass (S247): grand-mean → fitted-trend reconciliation for row-mean-runs,
-     RowMeanTrendPlot RETIRED. Before overwriting the tracked copy, confirm it has not drifted since:
+     S258 close, with the S258 Arc 2 (observed dots + lines) edits merged in. Changes this pass (S258):
+     two treatments added to the `OBS.*` block — `OBS.dot` (CC.OBS @ 0.7) and `OBS.line` (CC.OBS @ 0.85,
+     width per-plot), render-gated values from SESSION258-OBSERVED-DOTLINE-SCOPE; the LOESS fit
+     reclassified from null (teal) to observed-derived line (blue, `OBS.line`) — removed from the
+     channel-3 null list and the reference-line table Null row, with a new channel-4 "Observed-derived
+     smooths" note distinguishing it from the median-of-observed-SDs band (traces vs judged-against);
+     NoiseProfilePlot conformance row updated to the reclassification + the dot/line treatment routing.
+     Prior pass (S250): channel 2 signal-sensitivity surface split + tint-not-text for the import
+     span-header + condition identity declared a sanctioned non-signal channel; `COND_COLORS` reordered
+     (blue slot 0→5); AutocorrDecayPlot conformance row + row-13 provenance one-liner updated to the
+     `CC.OBS` fallback. Prior pass (S247): grand-mean → fitted-trend reconciliation, RowMeanTrendPlot
+     RETIRED. Before overwriting the tracked copy, confirm it has not drifted since:
      `git log -1 -- docs/shared/PLOT-COLOUR-SEMANTICS.md` and diff. If anything landed after this read,
      merge rather than overwrite. "Committed" ≠ "content-current."
      Two placeholders are DELIBERATELY left blank (fill from a source grep at COMMIT time, not memory):
      the four severity-red token names (§"Dense magnitude surfaces" → "Severity-red token names") and
      the `FF.MONO` tick-rail precondition. Do not fill them from this file. -->
-
+     NOTE the OBS.dot/OBS.line values (dot 0.7, line 0.85) were screenshot-confirmed at S258 (DS08/DS07/DS21/DS15).
 # Plot colour semantics
 
 The colour system for plot interiors. Its job: every plot, read as a standalone
@@ -138,8 +143,14 @@ not a meaningful distinction; a flat null is as much a prediction as a curved on
 
 - **Null — what clean / fabrication-free data sits at, the value the verdict is read
   as departure from.** Teal (`CC.EXP`), dashed, standardised. This is one role
-  regardless of shape: a simulated-null density, a LOESS fit, an analytic slope, a
-  flat κ≈0 / r=0 / ratio=1 line, the expected-uniform histogram line — all teal. "Null"
+  regardless of shape: a simulated-null density, an analytic slope, a
+  flat κ≈0 / r=0 / ratio=1 line, the expected-uniform histogram line — all teal. (A
+  LOESS *fit* is NOT in this list — it traces the observed series rather than serving
+  as a reference the series is read against, so it is an observed-derived mark on
+  `OBS.line`, channel 4, not a null. See channel 4, "Observed-derived smooths". The
+  distinction from the median-of-observed-SDs band below is functional: the SD band is
+  a reference the outlier whisker is *judged against* — the reader reads the gap — while
+  a LOESS hugs the data and shows no gap to read.) "Null"
   includes three readings, all the same colour: a *distance*-null (the verdict is the
   observed mark's distance from it), a *crossing*-null (the verdict counts crossings of
   it — for row-mean-runs this is the fitted OLS trend line, not the grand mean; the row
@@ -215,6 +226,21 @@ is red, and it earns that salience by being the one non-blue thing on the plot (
 see here" reads as quiet blue; "look here" reads as red). This is the **data model**: the
 colour tracks what the mark is and whether it is anomalous, blue→red.
 
+**Observed-derived smooths — blue, not teal (S258).** A LOESS (or any smooth fitted
+*through* the observed series) is an observed mark, not a null. The test is functional,
+not geometric: a null is a reference the verdict is read *against* — the reader sees the
+gap between the observed mark and the reference (the observed value's distance from κ≈0,
+the outlier whisker's excess over the median-SD band). A smooth has no such gap to read:
+it hugs the data, so painting it the null teal would assert a reference relationship the
+geometry does not carry — the reader would see no daylight between "data" and "reference"
+because there is none. The smooth *is* the data, summarised. So it takes `OBS.line`
+(blue), following channel 4. This is what separates it from the median-of-observed-SDs
+band (channel 3): both are observed-derived, but the band is judged against (a null), the
+smooth traces (observed). Consequence on a shared surface: where a plot draws both the raw
+series and its smooth (NoiseProfile), both are `CC.OBS` — correct, both being observed —
+and they separate by strokeWidth, not hue (the smooth heavier); confirm the weight gap on
+the live render.
+
 **Observed-fill treatments (`OBS.*`, ruled S255).** The observed token `CC.OBS` is one hue; how it is
 *rendered* — fill opacity, and any stroke — is a named treatment, not a per-plot literal. Three
 treatments are defined once next to the token (`tokens.js`), and every observed mark references the
@@ -229,6 +255,24 @@ treatment for its mark type rather than hand-typing an opacity:
   stroked area fill), so a future solid-tile adjustment must not drag the area fills with it.
 - **`OBS.strip`** = `CC.OBS` at fill-opacity 0.35, no stroke. For sign-strip blocks (the observed pole
   of a two-tone strip). The other pole (navy `SIGN.POS`) is a separate channel and keeps its own weight.
+- **`OBS.dot`** = `CC.OBS` at opacity 0.7, with any per-plot white separator stroke retained (it
+  separates overlapping dots — geometry, not colour, so it stays local). For observed marks drawn as
+  discrete points: scatter points, distance dots, per-pair strip dots, per-lag decay dots (S258).
+- **`OBS.line`** = `CC.OBS` at opacity 0.85, strokeWidth per-plot. For observed series lines, observed
+  slope lines, and observed-derived smooths (the LOESS fit, see channel 4). Width stays local because a
+  raw series and a heavier smooth both read `OBS.line` but differ in weight — centralize the opacity,
+  keep the width where the plot sets it (S258).
+
+*Values (S258, confirmed).* Dot 0.7 and line 0.85 were set from the observed dot/line surface read
+(`SESSION258-OBSERVED-DOTLINE-SCOPE.md`): dot 0.7 is DotStrip's already-settled value on the most
+dot-dense surface; line 0.85 matches the LOESS's prior opacity so the channel-4 reclassification moves
+only the hue (teal → blue), not the opacity. Confirmed on two-state renders at S258 (DS08, DS07 for the
+LOESS reclassification and weight separation; DS21 for per-condition hue survival; DS15 for the softened
+Mahalanobis normal dots beside the untouched red flag pole), the way the Arc 1 fills converged on 0.35.
+Before S258 the
+same observed series was drawn at two opacities on three surfaces (NoiseProfile line 0.4 / dots 0.5,
+AutocorrDecay line 0.7 / dots 0.8); that gap was per-plot drift, not a designed distinction, and
+collapses to the two treatment values.
 
 The principle: **centralize the definition, keep the selection local.** The treatment (token + opacity +
 stroke) is defined once; each plot still chooses WHICH treatment its mark is (an area fill knows it is an
@@ -432,7 +476,7 @@ not geometry. There are two kinds — plus axis furniture, which is not a refere
 
 | Kind | Role | Colour | Dash |
 |---|---|---|---|
-| **Null** (verdict measured against it) | LOESS fit, sim/analytic null, expected slope, flat κ≈0 / r=0 / ratio=1, expected-uniform, grand-mean (crossing-null), median-of-observed-SDs band (empirical central reference) | teal (`CC.EXP`) | dashed, one standardised treatment |
+| **Null** (verdict measured against it) | sim/analytic null, expected slope, flat κ≈0 / r=0 / ratio=1, expected-uniform, grand-mean (crossing-null), median-of-observed-SDs band (empirical central reference) | teal (`CC.EXP`) | dashed, one standardised treatment |
 | **Flag boundary** (cutoff marks flag past) | significance threshold, dip-gate ceiling | faded/dashed red | `CS.REF`, reduced opacity |
 | *(not a reference line)* axis furniture | y-origin on a signed scale (e.g. ±SD zero line) | `C.AXIS` | per axis-furniture rules |
 
@@ -578,7 +622,7 @@ What each live plot changes. "OK" = already conforms.
 | MahalanobisDistPlot | dots `.text`; outlier solid red; threshold line **faded/dashed red** (`CS.REF.dash`/`CS.REF.opacity`) | **DONE** — line already faded/dashed at source (the "solid" current-state flag was stale; confirmed S233); dots/outlier OK |
 | MeanVarianceScatter | observed blue; expected slope teal dashed | OK — expected slope is a sloped null (single consumer, MiniCard_NoiseScaling); teal dashed, confirm dash/width on standardised null treatment |
 | MissingDataHeatmap | missing cells + block outline red | OK (red = anomalous, intensity/flag) |
-| NoiseProfilePlot | observed blue; LOESS teal; changepoints red | OK (changepoint = detected anomaly) |
+| NoiseProfilePlot | observed series blue (line + dots); LOESS smooth **teal** (current); changepoints red | **Data-model / Arc 2 (S258):** the LOESS is an observed-*derived* smooth, not a null — reclassified teal → blue `CC.OBS` on `OBS.line` (channel 4, "Observed-derived smooths"). Observed series → `OBS.line` (0.85) + `OBS.dot` (0.7), collapsing the prior line-0.4/dots-0.5 gap. Raw series and smooth then both blue — separate by strokeWidth (smooth heavier), confirm weight gap on render. Changepoints red OK (detected anomaly) |
 | NoiseSpreadPlot | flagged error bar amber `CC.WARN`; median band `C.BORDER` neutral; zero line `C.AXIS` | "outlier" → red (resolve amber/red split). **Median band → teal `CC.EXP`** (empirical central reference = null for colour; legend "Expected" stays). **Zero line → axis furniture `C.AXIS`** (confirmed S245: it is `py(0)=midY`, the y-origin of the signed ±SD scale, not a coincidental reference). Error bars carry the data model (blue clear / red flagged) per channel 4 |
 | RegionalNoiseStrip | window fill red, opacity-ramped | OK (red intensity ramp) |
 | RowMeanTrendPlot | sim line teal `CC.EXP`; grand-mean line teal `CC.EXP` dashed, swatch matches line; crossing/run two-tone `SIGN.POS` navy (crossing) / `CC.OBS` blue (run) | **RETIRED S247 `f6c9614`** — component deleted. RowMean redesigned to a per-condition `SignStripPlot` block-width render (one rect per run, width ∝ run length) + run-length evidence table; no sim line, no grand-mean line. The S246 conformance state is kept here for history only: it was colour-correct but illegible on the dense line, which is why the redesign superseded it (WALK Test22a/22b, both DONE S247). For the live render see the `SignStripPlot` row. |
