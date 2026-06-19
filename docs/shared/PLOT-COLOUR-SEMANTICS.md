@@ -215,6 +215,19 @@ is red, and it earns that salience by being the one non-blue thing on the plot (
 see here" reads as quiet blue; "look here" reads as red). This is the **data model**: the
 colour tracks what the mark is and whether it is anomalous, blue→red.
 
+**Opacity varies by mark type (observed S254; values open under #14).** The observed token
+(`CC.OBS`) is shared across all observed surfaces, but it renders at different opacities by mark
+type: area fills carrying an overlaid reference line (histograms, bar fills) draw it lighter so
+the same-token full-opacity stroke reads through the fill, while solid/categorical marks with
+nothing overlaid (matrix verdict tiles, sign-strip blocks, dots) carry it heavier. The S254
+observed-blue audit confirmed all ten observed surfaces route through `CC.OBS` with no inline
+literal — so the visible difference between a saturated tile and a pale histogram is opacity,
+never hue: a surface reading too light or too dark for its mark type is an opacity bug, but a
+wrong-hue surface cannot occur while the token stays shared. Whether the specific opacity values
+in use are each intended or partly drift (e.g. ColumnStatBar 0.4 vs the general 0.35) is an open
+design question owned by parked #14; this paragraph rules only the shared-token/hue-safe
+structure, not the values.
+
 Flagged treatment splits by attribution: where the engine knows *which* marks drive the
 flag (per-bin, per-mark), the flag is a **red region** (the driving marks red, the rest
 blue); where the verdict is a single global statistic with no per-mark attribution, the
@@ -459,7 +472,10 @@ rationale was about a dense card carrying observed-blue marks alongside the ramp
 correlation cell is a standalone verdict tile with no observed-blue overlaid, so
 "cleared is blue" (the suite-wide observed-mark rule, channel 4) applies here with no
 collision. The slate floor remains the rule for dense `TIER_COLOR` surfaces that DO
-overlay observed marks.
+overlay observed marks. The cleared cell renders full-opacity solid (`SvgHeatmapCell` draws a bare `fill` rect, no
+alpha), matching the flagged tiles beside it — so its saturation is the draw mechanic, not an
+off-token hue. (Whether full-opacity is the intended final treatment is in scope for the #14
+opacity-value pass, not settled here.)
 
 ## Dense magnitude surfaces — reserve by curve, not by tier (ruled — S214)
 
