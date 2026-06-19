@@ -164,7 +164,7 @@ export function MiniCard_Kurtosis({ result, importConfig, rowMap }) {
                             {/* observed bars */}
                             {obsDens.map((d,i)=>{
                               const bx=xs(XMIN+i*binW), bw=Math.max(0,xs(XMIN+(i+1)*binW)-xs(XMIN+i*binW)-0.4);
-                              return <rect key={i} x={bx} y={ys(d)} width={bw} height={Math.max(0,(d/yMax)*CH)} fill={col} fillOpacity="0.35" stroke={col} strokeWidth="1"/>;
+                              return <rect key={i} x={bx} y={ys(d)} width={bw} height={Math.max(0,(d/yMax)*CH)} fill={col} fillOpacity={OBS.areaFill.fillOpacity} stroke={col} strokeWidth="1"/>;
                             })}
                             {/* sim null stepped line (teal solid — stepped density doesn't read in dashes) */}
                             {miniSimPath && <path d={miniSimPath} fill="none" stroke={EXP.curve.stroke} strokeWidth={CS.FIT.w} strokeOpacity={EXP.curve.strokeOpacity}/>}

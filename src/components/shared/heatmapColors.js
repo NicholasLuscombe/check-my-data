@@ -15,7 +15,7 @@
  *         (suspicious flag → HIGH, r > ICC+0.01 → MID, else LOW)
  */
 
-import { HEATMAP_TIER, C, SIGNAL, ACCENT } from "../../constants/tokens.js";
+import { HEATMAP_TIER, C, SIGNAL, ACCENT, withAlpha } from "../../constants/tokens.js";
 
 /** Flat fill colour constants — imported by both IRC and CCR. */
 export const TIER_COLOR = {
@@ -129,7 +129,7 @@ export const IDENTITY_BORDER = "#4C1D95";
 // purple wash signals "the test fired across the data, nothing to
 // isolate" without lighting nothing. Lighter than the count-1 swatch
 // so it reads as a wash, not an unintended density signal.
-export const LOCALITY_WHOLE_TABLE_WASH = "rgba(139, 92, 246, 0.08)";
+export const LOCALITY_WHOLE_TABLE_WASH = withAlpha(ACCENT.PURPLE.color, 0.08);
 
 /** Get { color, opacity } for a convergence flag count (detail table cells).
  *  S163 B2b: floor lift — count=1 opacity 0.35 → 0.55, count=2 0.55 → 0.7,
@@ -166,5 +166,5 @@ export function convergenceCellBg(cell) {
 /** Text color for a convergence cell: white on warm/dark, dark on light */
 export function convergenceCellTextColor(cell) {
   if (!cell || cell.count === 0) return C.TEXT;
-  return cell.count >= 3 ? "#FFFFFF" : C.TEXT;
+  return cell.count >= 3 ? C.WHITE : C.TEXT;
 }
