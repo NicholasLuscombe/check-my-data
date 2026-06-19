@@ -1,5 +1,12 @@
 <!-- ⚠ VERIFY BEFORE REPLACING. This full file = the live tracked PLOT-COLOUR-SEMANTICS.md as of
-     S258 close, with the S258 Arc 2 (observed dots + lines) edits merged in. Changes this pass (S258):
+     S259 close, with the S259 Arc 3 (`EXP.*` null treatments) edits merged in. Changes this pass (S259):
+     `EXP.band` (CC.EXP @ 0.25, no stroke) + `EXP.curve` (CC.EXP @ 0.85, width per-plot via CS.FIT.w)
+     added next to the `OBS.*` block as the teal-channel null analogue; five null surfaces routed
+     (Selective-Noise median band + DotStrip expected band → EXP.band; Kurtosis main + per-condition
+     sparkline sim-null density → EXP.curve); the Within-Row-Variance ±Z flag-boundary line's opacity
+     sourced through `CS.REF.opacity` (byte-identical, width/dash left local). Band 0.25
+     Selective-Noise-confirmed (DS08; DotStrip routed-but-unanchored), curve 0.85 Kurtosis-confirmed
+     (DS01). Prior pass (S258), Arc 2 (observed dots + lines):
      two treatments added to the `OBS.*` block — `OBS.dot` (CC.OBS @ 0.7) and `OBS.line` (CC.OBS @ 0.85,
      width per-plot), render-gated values from SESSION258-OBSERVED-DOTLINE-SCOPE; the LOESS fit
      reclassified from null (teal) to observed-derived line (blue, `OBS.line`) — removed from the
@@ -17,6 +24,7 @@
      the four severity-red token names (§"Dense magnitude surfaces" → "Severity-red token names") and
      the `FF.MONO` tick-rail precondition. Do not fill them from this file. -->
      NOTE the OBS.dot/OBS.line values (dot 0.7, line 0.85) were screenshot-confirmed at S258 (DS08/DS07/DS21/DS15).
+     NOTE the EXP.band/EXP.curve values (band 0.25, curve 0.85) were screenshot-confirmed at S259 (Selective-Noise band DS08, Kurtosis density DS01); DotStrip band routed but unanchored.
 # Plot colour semantics
 
 The colour system for plot interiors. Its job: every plot, read as a standalone
@@ -280,6 +288,39 @@ area fill). This is the same split that centralizes the hue — `CC.OBS` is one 
 whether a mark is observed — extended to opacity. Opacity is not a property of the colour (baking it into
 the token would break every solid use); it is a property of how the mark type renders.
 
+**Non-observed null treatments (`EXP.*`, ruled S259).** The same split applies to the null
+channel. The null token `CC.EXP` (teal, `#0D9488`) is one hue; how a null *band* or *curve*
+renders — its fill or stroke opacity — is a named treatment, not a per-plot literal. Arc 3 of the
+fill-treatment programme found there was no centralized null fill/curve treatment: `CS.REF`
+centralizes the dashed reference *lines* (width, dash, opacity — no colour), so the reference
+lines were already routed, but the null *bands* and *density curves* sat on bare opacity literals.
+Two treatments close that gap, defined next to `OBS.*`:
+
+- **`EXP.band`** = `CC.EXP` at fill-opacity 0.25, no stroke. For the null tolerance bands — the
+  "clean data sits in this range" fill: the Selective-Noise per-column median-of-observed-SDs band,
+  the DotStrip expected band. The teal-channel analogue of `OBS.areaFill`'s fill (a null band is to
+  the null channel what the observed area fill is to the observed channel).
+- **`EXP.curve`** = `CC.EXP` at stroke-opacity 0.85, strokeWidth per-plot (`CS.FIT.w`). For the
+  simulated-null density curves drawn as strokes over an observed histogram — the Kurtosis
+  distribution sim-null curve and its per-condition sparkline. The teal-channel analogue of
+  `OBS.line`; width stays local for the same reason it does on `OBS.line`.
+
+The same one-token rule holds, and it has a specific trap here: **soften by opacity on `CC.EXP`,
+never reach for `CC.EXP_SOFT`.** A lighter teal hex sits in the palette (`CC.EXP_SOFT`, `#7BC8A4`);
+routing a band to it would reintroduce exactly the second-hex drift the programme removes. A faint
+null band is `CC.EXP` at reduced fill-opacity, full stop — the lighter appearance is the opacity,
+not a second token.
+
+*Values (S259).* Band 0.25 was confirmed on the Selective-Noise median band (DS08), which reads as a
+soft tolerance zone that the observed dots and whiskers sit inside without the band competing. Curve
+0.85 was confirmed on the Kurtosis sim-null density (DS01 cleared card — the curve renders regardless
+of verdict), reading clearly over the observed histogram on both the main plot and the three
+per-condition sparklines. The DotStrip expected band is routed through `EXP.band` but had no visible
+band to confirm on its host render, so 0.25 is the Selective-Noise-confirmed value; if the DotStrip
+band ever surfaces visibly and reads wrong at 0.25, the band-value question reopens (it was 0.15
+before Arc 3 — a per-plot difference from NoiseSpread's 0.25, collapsed to one value on the one-token
+rule, pending a two-state DotStrip render).
+
 A consequence: because every observed mark composes from the shared token at a treatment opacity, a
 wrong-*hue* observed mark cannot occur, and a surface reading too light or too dark for its mark type is a
 treatment-routing bug, not a colour defect. The three opacities converged on 0.35 at S255 (matrix
@@ -486,6 +527,13 @@ line is teal — there is no grey null/baseline kind: the old "neutral baseline 
 category was geometry masquerading as meaning (every line it named is in fact a null), and
 the one apparent survivor was an axis origin, i.e. axis furniture, not a reference line.
 See channel 3 for the full reasoning and the supersession note.
+
+The Within-Row-Variance ±Z flag-boundary line was the one flag boundary still drawing on fully bare
+literals (token, width, dash, opacity); S259 routed its **opacity** through `CS.REF.opacity` (0.7,
+byte-identical — the literal was already 0.7). Its width and dash stay local pending the census,
+where the flag-boundary channel is conformed UI-wide; the line renders no card on any current
+fixture (Within-Row Variance is pending-fixture), so the weight conformance has no positive anchor
+to verify against yet.
 
 The subordination of any dashed reference line is carried by its **dash**, not by faint
 text: a reference-line *label* reads `C.TEXT_2`, the one axis-text darkness (amended S216
