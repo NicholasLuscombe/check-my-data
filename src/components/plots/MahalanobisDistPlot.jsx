@@ -1,4 +1,4 @@
-import { CC, CP, CS, C, FF, CF, FW } from "../../constants/tokens.js";
+import { CC, CP, CS, C, FF, CF, FW, OBS } from "../../constants/tokens.js";
 import { COND_COLORS } from "../../constants/roles.js";
 import { PlotSVG } from "./PlotSVG.jsx";
 
@@ -201,7 +201,7 @@ export function MahalanobisDistPlot({ allCondD2, condColorMap, plotD2, plotD2Row
                   fill={CC.THRESH} stroke={C.WHITE} strokeWidth={1.5} opacity={0.85} />
               ) : (
                 <circle key={`d${i}`} cx={xscale(i)} cy={yscale(v)}
-                  r={2.5} fill={s.color} opacity={0.5} />
+                  r={2.5} fill={s.color} fillOpacity={OBS.dot.fillOpacity} />
               );
             })}
 

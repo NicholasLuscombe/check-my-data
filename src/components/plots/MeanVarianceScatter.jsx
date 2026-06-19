@@ -1,4 +1,4 @@
-import { CC, CP, CS, C, FF, CF } from "../../constants/tokens.js";
+import { CC, CP, CS, C, FF, CF, OBS } from "../../constants/tokens.js";
 import { arrayMin, arrayMax } from "../../stats/primitives.js";
 import { PlotSVG } from "./PlotSVG.jsx";
 
@@ -100,7 +100,7 @@ export function MeanVarianceScatter({ logPoints, logCentroid, observedSlope, exp
       )}
       {/* data points */}
       {logPoints.map((p,i)=>(
-        <circle key={i} cx={px(p.lm)} cy={py(p.lv)} r={CS.PT.r} fill={CC.OBS} opacity="0.35" stroke="none"/>
+        <circle key={i} cx={px(p.lm)} cy={py(p.lv)} r={CS.PT.r} fill={OBS.dot.fill} fillOpacity={OBS.dot.fillOpacity} stroke="none"/>
       ))}
       {/* expected slope line (dashed green) */}
       {expL&&(
@@ -109,11 +109,11 @@ export function MeanVarianceScatter({ logPoints, logCentroid, observedSlope, exp
       )}
       {/* observed slope line */}
       <line x1={obs[0].x} y1={obs[0].y} x2={obs[1].x} y2={obs[1].y}
-        stroke={obsCol} strokeWidth={CS.FIT.w} opacity="0.95"/>
+        stroke={obsCol} strokeWidth={CS.FIT.w} strokeOpacity={OBS.line.strokeOpacity}/>
       {/* centroid dot */}
       <circle cx={px(cx)} cy={py(cy)} r={CS.PT_LG.r} fill={C.WHITE} stroke={C.TEXT_2} strokeWidth="1.4"/>
       {/* legend */}
-      <line x1={PL+4} y1={PT+10} x2={PL+20} y2={PT+10} stroke={obsCol} strokeWidth={CS.FIT.w}/>
+      <line x1={PL+4} y1={PT+10} x2={PL+20} y2={PT+10} stroke={obsCol} strokeWidth={CS.FIT.w} strokeOpacity={OBS.line.strokeOpacity}/>
       <text x={PL+24} y={PT+14} fontSize={CF.AXIS} fill={obsCol} fontFamily={FF.UI}>
         Observed slope {parseFloat(observedSlope).toFixed(2)}{hasCINumbers?` (99.9% CI: ${ciLo.toFixed(2)} – ${ciHi.toFixed(2)})`:""}
       </text>

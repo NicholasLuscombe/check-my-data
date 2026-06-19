@@ -3,7 +3,7 @@ import { EvidenceTable } from "../shared/EvidenceTable.jsx";
 import { PlotLayout } from "../shared/PlotLayout.jsx";
 import { ChartLegend } from "../shared/ChartLegend.jsx";
 import { NoiseProfilePlot } from "../plots/NoiseProfilePlot.jsx";
-import { CC, FF, FW } from "../../constants/tokens.js";
+import { CC, FF, FW, OBS } from "../../constants/tokens.js";
 import { makeRowMapper } from "../shared/coordinates.js";
 import { SUB_HEAD, BLOCK_GAP, BLOCK_GAP_TIGHT } from "../shared/styles.js";
 
@@ -47,8 +47,8 @@ export function MiniCard_LOESS({ result, importConfig, rowMap }) {
             toFileRow={toFileRow}/>
         </PlotLayout>
         <ChartLegend items={[
-          { color: CC.OBS, label: "Row noise", opacity: 0.5, swatchType: "line" },
-          { color: CC.EXP, label: "LOESS trend", swatchType: "line" },
+          { color: CC.OBS, label: "Row noise", opacity: OBS.line.strokeOpacity, swatchType: "line" },
+          { color: CC.OBS, label: "LOESS trend", opacity: OBS.line.strokeOpacity, swatchType: "line" },
           ...(showChangepoint ? [{ color: CC.THRESH, label: "Changepoint", swatchType: "line" }] : []),
         ]} />
       </>}

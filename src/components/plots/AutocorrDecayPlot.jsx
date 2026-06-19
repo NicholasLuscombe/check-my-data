@@ -1,4 +1,4 @@
-import { CC, CP, CS, C, FF, CF } from "../../constants/tokens.js";
+import { CC, CP, CS, C, FF, CF, OBS } from "../../constants/tokens.js";
 import { COND_COLORS } from "../../constants/roles.js";
 import { PlotSVG } from "./PlotSVG.jsx";
 
@@ -83,9 +83,9 @@ export function AutocorrDecayPlot({ perGroupDecay, singleCurve, condColorMap }) 
         const pts=c.curve.map((v,i)=>`${xs(i+1)},${ys(v)}`).join(" ");
         return (
           <g key={ci}>
-            <polyline points={pts} fill="none" stroke={col} strokeWidth={CS.DATA.w} opacity="0.7"/>
+            <polyline points={pts} fill="none" stroke={col} strokeWidth={CS.DATA.w} strokeOpacity={OBS.line.strokeOpacity}/>
             {c.curve.map((v,i)=>(
-              <circle key={i} cx={xs(i+1)} cy={ys(v)} r={CS.PT_SM.r} fill={col} opacity="0.8"/>
+              <circle key={i} cx={xs(i+1)} cy={ys(v)} r={CS.PT_SM.r} fill={col} fillOpacity={OBS.dot.fillOpacity}/>
             ))}
           </g>
         );

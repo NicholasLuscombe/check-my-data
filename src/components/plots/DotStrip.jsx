@@ -1,4 +1,4 @@
-import { CC, CP, CS, C, FF, CF } from "../../constants/tokens.js";
+import { CC, CP, CS, C, FF, CF, OBS } from "../../constants/tokens.js";
 import { PLOT_FC } from "../../constants/thresholds.js";
 import { PlotSVG } from "./PlotSVG.jsx";
 
@@ -36,7 +36,7 @@ export function DotStrip({ items, valueKey, refMin, refMax, refLabel, xlabel, co
         const sig=d.significant||d[colorKey];
         const col=sig===true?CC.THRESH:sig===false?CC.OBS:PLOT_FC[d.flag]||CC.OBS;
         return <circle key={i} cx={xscale(v)} cy={cy+Math.sin(i*2.5)*5} r={CS.PT_LG.r}
-          fill={col} opacity="0.7" stroke={C.WHITE} strokeWidth="0.8"/>;
+          fill={col} opacity={OBS.dot.fillOpacity} stroke={C.WHITE} strokeWidth="0.8"/>;
       })}
       {/* axis */}
       <line x1={PL} y1={PT+22} x2={W-PR} y2={PT+22} stroke={C.AXIS} strokeWidth={CS.GRID.w}/>
