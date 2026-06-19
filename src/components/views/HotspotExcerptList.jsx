@@ -35,7 +35,7 @@ function cellBg(cell) {
 
 function cellTextColor(cell) {
   if (!cell || cell.count <= 0) return C.TEXT_3;
-  return intensityOpacity(cell.count) >= 0.45 ? "#FFFFFF" : C.TEXT;
+  return intensityOpacity(cell.count) >= 0.45 ? C.WHITE : C.TEXT;
 }
 
 function fmtLoc(h, coordCtx) {

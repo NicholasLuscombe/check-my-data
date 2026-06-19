@@ -6,7 +6,7 @@
  * from the spec — no component reads test result details for highlight decisions.
  */
 
-import { C } from "../constants/tokens.js";
+import { C, CC, SIGNAL, ACCENT, withAlpha } from "../constants/tokens.js";
 import { LOCALITY_WHOLE_TABLE_WASH } from "../components/shared/heatmapColors.js";
 
 // ── Test names ──────────────────────────────────────────────────────
@@ -26,29 +26,29 @@ export const IRC_TINT = "rgb(254,238,227)";
 
 // LOESS two-tone changepoint tints
 export const LOESS_ANOMALOUS_TINT = "rgba(245,158,11,0.15)"; // warm — noisier/anomalous
-export const LOESS_EXPECTED_TINT  = "rgba(59,130,246,0.10)";  // cool — expected
+export const LOESS_EXPECTED_TINT  = withAlpha(CC.OBS, 0.10);  // cool — expected
 
 // DupDet group row tints (cycles for groups beyond 3)
 export const DUP_GROUP_TINTS = [
-  "rgba(239,68,68,0.12)",   // pink  — group Ⓐ
-  "rgba(59,130,246,0.12)",  // blue  — group Ⓑ
-  "rgba(34,197,94,0.12)",   // green — group Ⓒ
+  withAlpha(SIGNAL.RED.dot, 0.12),    // pink  — group Ⓐ
+  withAlpha(CC.OBS, 0.12),            // blue  — group Ⓑ
+  withAlpha(SIGNAL.GREEN.dot, 0.12),  // green — group Ⓒ
 ];
 export const DUP_COUNTERPART_TINTS = [
-  "rgba(239,68,68,0.07)",
-  "rgba(59,130,246,0.07)",
-  "rgba(34,197,94,0.07)",
+  withAlpha(SIGNAL.RED.dot, 0.07),
+  withAlpha(CC.OBS, 0.07),
+  withAlpha(SIGNAL.GREEN.dot, 0.07),
 ];
 export const DUP_COUNTERPART_BORDERS = [
-  "rgba(239,68,68,0.5)",
-  "rgba(59,130,246,0.5)",
-  "rgba(34,197,94,0.5)",
+  withAlpha(SIGNAL.RED.dot, 0.5),
+  withAlpha(CC.OBS, 0.5),
+  withAlpha(SIGNAL.GREEN.dot, 0.5),
 ];
 export const DUP_WITHIN_ROW_PALETTE = [
-  "rgba(139,92,246,0.25)",   // violet
-  "rgba(20,184,166,0.25)",   // teal
-  "rgba(245,158,11,0.25)",   // amber
-  "rgba(244,63,94,0.25)",    // rose
+  withAlpha(ACCENT.PURPLE.color, 0.25),  // violet
+  withAlpha(ACCENT.TEAL.color, 0.25),    // teal
+  "rgba(245,158,11,0.25)",   // amber  (no token — left inline)
+  "rgba(244,63,94,0.25)",    // rose   (no token — left inline)
 ];
 export const DUP_DIM_OPACITY = 0.35;
 
@@ -57,7 +57,7 @@ export const DUP_DIM_OPACITY = 0.35;
 // active-finding cells read as a saturated step on the same axis
 // rather than a competing severity hue). ACCENT.PURPLE.color blended
 // at ~0.20 sits a touch above the count-1 swatch.
-export const HIGHLIGHT_TINT = "rgba(139, 92, 246, 0.22)";
+export const HIGHLIGHT_TINT = withAlpha(ACCENT.PURPLE.color, 0.22);
 
 // RSC cell color ramp: SIGNAL.RED.bg → CC.THRESH
 export function rscCellColor(intensity) {

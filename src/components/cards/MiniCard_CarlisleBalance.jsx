@@ -1,6 +1,6 @@
 /* ── MiniCard: Carlisle Baseline Balance ── */
 
-import { C, CC, CF, CS, FS, FW, FF, SIGNAL } from "../../constants/tokens.js";
+import { C, CC, CF, CS, FS, FW, FF, OBS, SIGNAL } from "../../constants/tokens.js";
 import { fmtP, fmtPBadge } from "../../constants/thresholds.js";
 import { MiniCardLayout } from "../shared/CardLayout.jsx";
 import { DataTable } from "../shared/DataTable.jsx";
@@ -83,7 +83,7 @@ export function MiniCard_CarlisleBalance({ result, importConfig, rowMap }) {
           // region); every other bin sits at observed-blue.
           const fill = (i === 9 && isFlagged) ? SIGNAL.RED.dot : CC.OBS;
           return <rect key={i} x={x} y={padT + plotH - h} width={barW - 1} height={h}
-            fill={fill} fillOpacity="0.35" stroke={fill} strokeWidth="1" />;
+            fill={fill} fillOpacity={OBS.areaFill.fillOpacity} stroke={fill} strokeWidth="1" />;
         })}
         {/* Expected uniform line */}
         {(() => {
@@ -123,7 +123,7 @@ export function MiniCard_CarlisleBalance({ result, importConfig, rowMap }) {
         </PlotLayout>
         <ChartLegend items={[
           { color: CC.OBS, label: "Features per p-value bin", opacity: 0.35 },
-          ...(isFlagged ? [{ color: SIGNAL.RED.dot, label: "Excess balanced features", opacity: 0.35 }] : []),
+          ...(isFlagged ? [{ color: SIGNAL.RED.dot, label: "Excess balanced features", opacity: OBS.areaFill.fillOpacity }] : []),
           { color: CC.EXP, label: "Expected under uniform", swatchType: "line", dashed: true },
         ]} />
         <div style={{fontSize:FS.sm,fontFamily:FF.UI,color:C.TEXT_2,marginTop:"4px"}}>

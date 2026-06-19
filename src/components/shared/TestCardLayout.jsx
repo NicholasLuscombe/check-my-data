@@ -62,7 +62,7 @@ export function TestCardLayout({ result, mode, mk, expanded, onToggle, footer, c
   const clusterLabel = mk && MECHANISMS[mk] ? MECHANISMS[mk].label : null;
   return (
     <div style={{
-      background: "#FFFFFF",
+      background: C.WHITE,
       border: "1px solid #E5E7EB",
       ...(mechStripe ? { borderLeft: `3px solid ${mechStripe}` } : {}),
       borderRadius: "6px",
