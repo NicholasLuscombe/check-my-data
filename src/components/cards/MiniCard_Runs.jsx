@@ -6,7 +6,7 @@ import { PlotLayout } from "../shared/PlotLayout.jsx";
 import { ChartLegend } from "../shared/ChartLegend.jsx";
 import { SignStripPlot } from "../plots/SignStripPlot.jsx";
 import { PlotSVG } from "../plots/PlotSVG.jsx";
-import { C, CC, CP, CS, CF, FW, FF, FS, SIGN } from "../../constants/tokens.js";
+import { C, CC, CP, CS, CF, FW, FF, FS, SIGN, OBS } from "../../constants/tokens.js";
 import { fmtP, ALPHA } from "../../constants/thresholds.js";
 import { shortColName, makeRowMapper } from "../shared/coordinates.js";
 import { SUB_HEAD, BLOCK_GAP, BLOCK_GAP_TIGHT } from "../shared/styles.js";
@@ -208,7 +208,7 @@ export function MiniCard_Runs({ result, importConfig, rowMap }) {
         </PlotLayout>
         <ChartLegend items={[
           { color: SIGN_POS, label: posLabel, opacity: 0.8 },
-          { color: SIGN_NEG, label: negLabel, opacity: 0.8 },
+          { color: SIGN_NEG, label: negLabel, opacity: OBS.strip.fillOpacity },
         ]} />
       </>) : result.firstPairSigns?.length ? (<>
         {/* Fallback: single pair strip */}
@@ -222,7 +222,7 @@ export function MiniCard_Runs({ result, importConfig, rowMap }) {
         </PlotLayout>
         <ChartLegend items={[
           { color: SIGN_POS, label: posLabel, opacity: 0.8 },
-          { color: SIGN_NEG, label: negLabel, opacity: 0.8 },
+          { color: SIGN_NEG, label: negLabel, opacity: OBS.strip.fillOpacity },
         ]} />
       </>) : null}
 

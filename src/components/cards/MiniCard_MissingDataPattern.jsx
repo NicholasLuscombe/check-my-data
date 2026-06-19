@@ -1,6 +1,6 @@
 /* ── MiniCard: Missing Data Pattern ── */
 
-import { C, CC, FW, FF, CF, CP, CS, SIGNAL, withAlpha } from "../../constants/tokens.js";
+import { C, FW, FF, CF, CP, CS, SIGNAL, withAlpha, OBS } from "../../constants/tokens.js";
 import { MiniCardLayout } from "../shared/CardLayout.jsx";
 import { PlotLayout } from "../shared/PlotLayout.jsx";
 import { ChartLegend } from "../shared/ChartLegend.jsx";
@@ -67,7 +67,8 @@ export function MiniCard_MissingDataPattern({ result, importConfig, rowMap }) {
           const x = bx(i);
           const h = (pct / yMax) * plotH;
           return <rect key={i} x={x} y={py(pct)} width={barW} height={Math.max(h, 0.5)}
-            fill={CC.OBS} fillOpacity="0.35" stroke={CC.OBS} strokeWidth="1" />;
+            fill={OBS.areaFill.fill} fillOpacity={OBS.areaFill.fillOpacity}
+            stroke={OBS.areaFill.stroke} strokeWidth="1" />;
         })}
         <line x1={PL} y1={PT + plotH} x2={PL + plotW} y2={PT + plotH}
           stroke={C.BORDER} strokeWidth={CS.GRID.w} />

@@ -1,4 +1,4 @@
-import { CC, CP, CS, C, FF, CF } from "../../constants/tokens.js";
+import { CC, CP, CS, C, FF, CF, OBS } from "../../constants/tokens.js";
 import { PlotSVG } from "./PlotSVG.jsx";
 
 export function KurtosisDistPlot({ normDiffs, simDiffs, flag }) {
@@ -70,7 +70,7 @@ export function KurtosisDistPlot({ normDiffs, simDiffs, flag }) {
         const bx=xs(x), bw=Math.max(0,xs(x+binW)-xs(x)-0.5);
         return <rect key={i} x={bx} y={ys(d)} width={bw}
           height={Math.max(0,(d/maxDens)*CH)}
-          fill={obsCol} fillOpacity="0.35" stroke={obsCol} strokeWidth="1"/>;
+          fill={obsCol} fillOpacity={OBS.areaFill.fillOpacity} stroke={obsCol} strokeWidth="1"/>;
       })}
 
       {/* simulated null (teal stepped line — solid: a stepped density doesn't read in dashes) */}

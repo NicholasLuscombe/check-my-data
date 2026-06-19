@@ -2,7 +2,7 @@ import { MiniCardLayout } from "../shared/CardLayout.jsx";
 import { PlotLayout } from "../shared/PlotLayout.jsx";
 import { ChartLegend } from "../shared/ChartLegend.jsx";
 import { VBarPlot } from "../plots/VBarPlot.jsx";
-import { CC } from "../../constants/tokens.js";
+import { CC, OBS } from "../../constants/tokens.js";
 
 
 export function MiniCard_Benford({ result, importConfig, rowMap }) {
@@ -37,7 +37,7 @@ return (
           ylabel="Frequency (%)" flag={result.flag}/>
     </PlotLayout>
     <ChartLegend items={[
-      { color: CC.OBS, label: "Observed %", opacity: 0.35 },
+      { color: CC.OBS, label: "Observed %", opacity: OBS.areaFill.fillOpacity },
       { color: CC.EXP, label: "Benford expected", swatchType: "line", dashed: true },
     ]} />
 

@@ -1,7 +1,7 @@
 /* ── MiniCard: Rank Correlation ── */
 
-import { C, CC, FW, FF } from "../../constants/tokens.js";
-import { TIER_COLOR, cellTextOn } from "../shared/heatmapColors.js";
+import { C, CC, FW, FF, OBS } from "../../constants/tokens.js";
+import { TIER_COLOR, cellTextOn, compositeOver } from "../shared/heatmapColors.js";
 import { buildCondColorMap } from "../../constants/roles.js";
 import { MiniCardLayout, CardBanner } from "../shared/CardLayout.jsx";
 import { CorrMatrixSVG } from "../plots/CorrMatrixSVG.jsx";
@@ -38,12 +38,17 @@ export function MiniCard_RankCorrelation({ result, importConfig, rowMap }) {
     if (!val) return C.BORDER_L;
     return val.suspicious ? TIER_COLOR.MID : CC.OBS;
   };
-  const cellTxt = (val) => cellTextOn(cellBg(val));
+  // Cleared (observed CC.OBS) tiles render at OBS.solid opacity; flagged tiles
+  // stay full-opacity tier colour. Digit colour is picked off the COMPOSITED
+  // appearance (token at its opacity over C.BG) so it stays legible as the tile
+  // softens; compositeOver at alpha 1 returns the bg unchanged (flagged path).
+  const cellOp = (val) => (val && !val.suspicious) ? OBS.solid.fillOpacity : 1;
+  const cellTxt = (val) => cellTextOn(compositeOver(cellBg(val), cellOp(val), C.BG));
   const cellBold = (val) => !!val?.suspicious;
 
   // ── Legend ──
   const legendItems = [
-    { color: CC.OBS, label: "Within expected range" },
+    { color: CC.OBS, label: "Within expected range", opacity: OBS.solid.fillOpacity },
     { color: TIER_COLOR.MID, label: "Suspicious" },
   ];
 
@@ -80,6 +85,7 @@ export function MiniCard_RankCorrelation({ result, importConfig, rowMap }) {
               cellBg={cellBg}
               cellText={cellTxt}
               cellBold={cellBold}
+              cellOpacity={cellOp}
               labelColors={labelColors}
             />
           </PlotLayout>

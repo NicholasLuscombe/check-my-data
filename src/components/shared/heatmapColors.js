@@ -46,6 +46,22 @@ export function cellTextOn(bg) {
   return L < 0.5 ? C.WHITE : C.TEXT;
 }
 
+// Flatten hex `fg` at `alpha` (0..1) over hex `bg` → resulting #RRGGBB. Lets a
+// luminance test (cellTextOn) see a mark AS RENDERED at its treatment opacity,
+// not the bare solid token — so overlaid text flips correctly when a shared-token
+// fill is softened by opacity (S255 OBS.solid). alpha 1 returns `fg` unchanged.
+export function compositeOver(fg, alpha, bg) {
+  if (typeof fg !== "string" || fg[0] !== "#" || fg.length < 7) return fg;
+  if (typeof bg !== "string" || bg[0] !== "#" || bg.length < 7) return fg;
+  const a = Math.max(0, Math.min(1, alpha));
+  const mix = (i) => {
+    const f = parseInt(fg.slice(1 + i * 2, 3 + i * 2), 16);
+    const b = parseInt(bg.slice(1 + i * 2, 3 + i * 2), 16);
+    return Math.round(a * f + (1 - a) * b).toString(16).padStart(2, "0");
+  };
+  return `#${mix(0)}${mix(1)}${mix(2)}`;
+}
+
 /**
  * Legend items for a ρ matrix, filtered to tiers present in the data.
  * @param {number[]} rhoValues — flat array of all ρ values in the matrix

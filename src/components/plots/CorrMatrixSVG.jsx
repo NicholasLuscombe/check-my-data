@@ -9,6 +9,7 @@
  * @param {function} cellBg        — value → fill colour
  * @param {function} cellText      — value → text colour
  * @param {function} cellBold      — value → boolean
+ * @param {function} [cellOpacity] — value → rect fill opacity (default 1; S255 OBS.solid)
  * @param {string}  [title]        — condition group name above matrix
  * @param {string}  [titleColor]   — COND_COLORS text colour for title
  * @param {Array<{color,label}>} [legend] — legend items below matrix
@@ -23,7 +24,7 @@ import { SvgLegend } from "../shared/SvgLegend.jsx";
 
 const CHAR_W = 6; // must match SvgAxis heuristic
 
-export function CorrMatrixSVG({ labels, getValue, formatCell, cellBg, cellText, cellBold, title, titleColor, legend, labelColors }) {
+export function CorrMatrixSVG({ labels, getValue, formatCell, cellBg, cellText, cellBold, cellOpacity, title, titleColor, legend, labelColors }) {
   if (!labels || labels.length < 2) return null;
   const n = labels.length;
   const fmt = formatCell || (v => v != null && typeof v === "number" ? v.toFixed(2) : "");
@@ -107,6 +108,7 @@ export function CorrMatrixSVG({ labels, getValue, formatCell, cellBg, cellText, 
                   x={gridX + ci * (CELL + GAP)} y={rowY}
                   width={CELL} height={CELL}
                   fill={cellBg(val)}
+                  fillOpacity={cellOpacity ? cellOpacity(val) : 1}
                   value={fmt(val)}
                   valueFill={cellText(val)}
                   fontWeight={cellBold(val) ? FW.BOLD : FW.NORM}

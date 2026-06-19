@@ -163,6 +163,29 @@ export const CR = {
 
 export const CC = { OBS:ACCENT.BLUE.color, EXP:CHART.EXP, EXP_SOFT:"#7BC8A4", THRESH:SIGNAL.RED.dot, WARN:SIGNAL.AMBER.dot };
 
+// OBS.* — observed-mark fill TREATMENTS (S255, arc 1 of the token-composition
+// programme). The observed HUE is already one token (CC.OBS #3B82F6); these
+// bundle the opacity + stroke that were per-plot literals, so a surface routes
+// the whole observed treatment, not a bare alpha. Selection of WHICH bundle a
+// mark gets stays per-plot.
+//   areaFill — muted fill + crisp full-opacity same-token 1px stroke, so an
+//              overlaid reference line reads through (VBar, HBar, KurtosisDist,
+//              MissingData per-column bars, ColumnStatBar cleared bars).
+//   solid    — verdict tile (correlation matrices); no stroke, carries digits.
+//              fillOpacity softened from the old 1.0 to 0.35 (Nick-approved) — i.e.
+//              areaFill's weight without the stroke; the digit colour auto-contrasts
+//              off the COMPOSITED render via cellTextOn(compositeOver(...)).
+//   strip    — sign-strip observed (−1) block; no stroke, no overlay, hue carries
+//              the two-tone so opacity is free. SIGN.POS (+1, salient navy) is a
+//              separate channel and keeps its own weight — not part of OBS.
+export const OBS = {
+  areaFill: { fill: CC.OBS, fillOpacity: 0.35, stroke: CC.OBS, strokeOpacity: 1 },
+  // solid 0.35 stays below the ~0.47–0.50 luminance crossover over C.BG (below →
+  // dark digits, above → white, between → low contrast) — safely in the dark zone.
+  solid:    { fill: CC.OBS, fillOpacity: 0.35, stroke: "none" },
+  strip:    { fill: CC.OBS, fillOpacity: 0.35, stroke: "none" },
+};
+
 /* Mechanism category visual identity — keyed by mechanism slug */
 // MECH_COLOR is keyed by MECHANISM_ORDER (mechanisms.js): five distinct hues
 // so the §1 mechanism-count strip and §2 chip/pill mechanism layer can encode

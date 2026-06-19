@@ -1,10 +1,14 @@
-import { CC, CP, CS, C, FF, CF, SIGN } from "../../constants/tokens.js";
+import { CC, CP, CS, C, FF, CF, SIGN, OBS } from "../../constants/tokens.js";
 import { PlotSVG } from "./PlotSVG.jsx";
 import { shortName } from "../shared/utils.js";
 
 // Strip colours — observed-blue / salient-navy two-tone (S246)
 const SIGN_POS = SIGN.POS; // Oxford navy (+1) — the salient state
 const SIGN_NEG = CC.OBS;   // observed blue (−1)
+// Per-pole opacity (S255): −1 (observed blue) routes OBS.strip, softened toward
+// the area-fill family; +1 (salient navy) keeps its heavier weight so the two-
+// tone reads. SIGN.POS is a separate channel, not part of the OBS bundle.
+const POS_OPACITY = 0.80;
 
 // ── Forward-fill sign array ──────────────────────────────────────
 function forwardFillSigns(signs) {
@@ -73,7 +77,7 @@ export function SignStripPlot({ groupSignSeqs, singleSeq, singleRuns, singleExp,
   // cell-coordinate space (start/len · STRIP_W) so the file-row x-axis below is
   // preserved. No width floor beyond the 0.5px the per-cell path uses — a larger
   // floor would re-inflate short-run slivers and recreate the dense texture.
-  function renderStrip(filled, y, opacity = 0.80) {
+  function renderStrip(filled, y) {
     const len = filled.length;
     if (blocks) {
       const rects = [];
@@ -86,7 +90,7 @@ export function SignStripPlot({ groupSignSeqs, singleSeq, singleRuns, singleExp,
               width={Math.max(0.5, ((i - start) / len) * STRIP_W)}
               height={ROW_H}
               fill={filled[start] === 1 ? SIGN_POS : SIGN_NEG}
-              opacity={opacity}/>
+              opacity={filled[start] === 1 ? POS_OPACITY : OBS.strip.fillOpacity}/>
           );
           start = i;
         }
@@ -100,7 +104,7 @@ export function SignStripPlot({ groupSignSeqs, singleSeq, singleRuns, singleExp,
         width={Math.max(0.5, rectW)}
         height={ROW_H}
         fill={sign === 1 ? SIGN_POS : SIGN_NEG}
-        opacity={opacity}/>
+        opacity={sign === 1 ? POS_OPACITY : OBS.strip.fillOpacity}/>
     ));
   }
 

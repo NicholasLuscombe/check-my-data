@@ -215,18 +215,53 @@ is red, and it earns that salience by being the one non-blue thing on the plot (
 see here" reads as quiet blue; "look here" reads as red). This is the **data model**: the
 colour tracks what the mark is and whether it is anomalous, blue→red.
 
-**Opacity varies by mark type (observed S254; values open under #14).** The observed token
-(`CC.OBS`) is shared across all observed surfaces, but it renders at different opacities by mark
-type: area fills carrying an overlaid reference line (histograms, bar fills) draw it lighter so
-the same-token full-opacity stroke reads through the fill, while solid/categorical marks with
-nothing overlaid (matrix verdict tiles, sign-strip blocks, dots) carry it heavier. The S254
-observed-blue audit confirmed all ten observed surfaces route through `CC.OBS` with no inline
-literal — so the visible difference between a saturated tile and a pale histogram is opacity,
-never hue: a surface reading too light or too dark for its mark type is an opacity bug, but a
-wrong-hue surface cannot occur while the token stays shared. Whether the specific opacity values
-in use are each intended or partly drift (e.g. ColumnStatBar 0.4 vs the general 0.35) is an open
-design question owned by parked #14; this paragraph rules only the shared-token/hue-safe
-structure, not the values.
+**Observed-fill treatments (`OBS.*`, ruled S255).** The observed token `CC.OBS` is one hue; how it is
+*rendered* — fill opacity, and any stroke — is a named treatment, not a per-plot literal. Three
+treatments are defined once next to the token (`tokens.js`), and every observed mark references the
+treatment for its mark type rather than hand-typing an opacity:
+
+- **`OBS.areaFill`** = `CC.OBS` at fill-opacity 0.35 + a same-token (`CC.OBS`) 1px stroke at full
+  opacity. For area fills with an overlaid reference line (histograms, bar fills): the muted fill lets
+  the overlaid null/expected line read through, the crisp full-opacity stroke holds the mark's edge.
+- **`OBS.solid`** = `CC.OBS` at fill-opacity 0.35, no stroke. For solid verdict tiles (correlation
+  matrices) — a tile carrying a value in text, with nothing overlaid. Kept a separate constant from
+  `areaFill` even though the fill opacity now matches: the distinction is semantic (solid tile vs
+  stroked area fill), so a future solid-tile adjustment must not drag the area fills with it.
+- **`OBS.strip`** = `CC.OBS` at fill-opacity 0.35, no stroke. For sign-strip blocks (the observed pole
+  of a two-tone strip). The other pole (navy `SIGN.POS`) is a separate channel and keeps its own weight.
+
+The principle: **centralize the definition, keep the selection local.** The treatment (token + opacity +
+stroke) is defined once; each plot still chooses WHICH treatment its mark is (an area fill knows it is an
+area fill). This is the same split that centralizes the hue — `CC.OBS` is one token, each plot decides
+whether a mark is observed — extended to opacity. Opacity is not a property of the colour (baking it into
+the token would break every solid use); it is a property of how the mark type renders.
+
+A consequence: because every observed mark composes from the shared token at a treatment opacity, a
+wrong-*hue* observed mark cannot occur, and a surface reading too light or too dark for its mark type is a
+treatment-routing bug, not a colour defect. The three opacities converged on 0.35 at S255 (matrix
+softened from a former solid 1.0 down to the area-fill weight on Nick's render call); the system now
+carries one observed fill weight with red reserved for flags.
+
+**Digit contrast composes from the rendered appearance, not the bare token (S255).** A solid tile that
+carries text (the correlation-matrix ρ/r value) picks its text colour by luminance, and that test must
+read the *composited* appearance — `CC.OBS` at the treatment's opacity over the cell background
+(`C.BG`) — not the bare solid token. Reading the bare token would leave digits white on a tile that has
+been softened to a pale fill (silent under-contrast); reading the composite flips them to dark
+automatically when the softened fill crosses the luminance threshold. This is the mechanism that lets
+opacity compose on a shared token for *any* mark, not just this one — it closes the one place the
+token-plus-treatment model would otherwise leak. Implementation: `compositeOver(fg, alpha, bg)` flattens
+the token to a hex for the luminance test (`heatmapColors.js`). One constraint recorded at the
+`OBS.solid` definition: the tile opacity must stay clear of the ~0.47–0.50 luminance crossover over
+`C.BG` (below → dark digits, above → white, between → low contrast); 0.35 is safely in the dark-digit
+zone.
+
+**A legend swatch samples its mark (S255).** A swatch in a card legend is a sample of the mark it
+labels, so it renders the mark's treatment constant (`OBS.solid` / `OBS.areaFill` / `OBS.strip`) — never
+a bare `CC.OBS` at a hand-typed opacity. `ChartLegend` honours a per-item opacity, so the swatch and its
+mark stay equal by construction: soften a mark's treatment and the swatch moves with it. (S255 surfaced
+the inverse as a defect — softening the matrix and sign-strip marks while their swatches stayed at the
+old full opacity, so a saturated swatch sat beside a pale mark. Routing the swatch through the same
+treatment fixes it permanently, not per-card.)
 
 Flagged treatment splits by attribution: where the engine knows *which* marks drive the
 flag (per-bin, per-mark), the flag is a **red region** (the driving marks red, the rest
@@ -472,10 +507,11 @@ rationale was about a dense card carrying observed-blue marks alongside the ramp
 correlation cell is a standalone verdict tile with no observed-blue overlaid, so
 "cleared is blue" (the suite-wide observed-mark rule, channel 4) applies here with no
 collision. The slate floor remains the rule for dense `TIER_COLOR` surfaces that DO
-overlay observed marks. The cleared cell renders full-opacity solid (`SvgHeatmapCell` draws a bare `fill` rect, no
-alpha), matching the flagged tiles beside it — so its saturation is the draw mechanic, not an
-off-token hue. (Whether full-opacity is the intended final treatment is in scope for the #14
-opacity-value pass, not settled here.)
+overlay observed marks. The cleared cell renders through `OBS.solid` (`CC.OBS` at fill-opacity 0.35, no stroke) via
+`SvgHeatmapCell`'s `fillOpacity` prop, with the tile's digit colour composed from the rendered
+appearance (see the digit-contrast mechanism in channel 4); the flagged tiles keep amber→red at full
+saturation. The S254 "full-opacity solid" note is superseded — the tile was softened to the observed
+area-fill weight at S255.
 
 ## Dense magnitude surfaces — reserve by curve, not by tier (ruled — S214)
 
