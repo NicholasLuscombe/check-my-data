@@ -1,18 +1,19 @@
 <!-- ⚠ VERIFY BEFORE REPLACING. This full file = the live tracked PLOT-COLOUR-SEMANTICS.md as of
-     S259 close, with the S259 Arc 3 (`EXP.*` null treatments) edits merged in. Changes this pass (S259):
-     `EXP.band` (CC.EXP @ 0.25, no stroke) + `EXP.curve` (CC.EXP @ 0.85, width per-plot via CS.FIT.w)
-     added next to the `OBS.*` block as the teal-channel null analogue; five null surfaces routed
-     (Selective-Noise median band + DotStrip expected band → EXP.band; Kurtosis main + per-condition
-     sparkline sim-null density → EXP.curve); the Within-Row-Variance ±Z flag-boundary line's opacity
-     sourced through `CS.REF.opacity` (byte-identical, width/dash left local). Band 0.25
-     Selective-Noise-confirmed (DS08; DotStrip routed-but-unanchored), curve 0.85 Kurtosis-confirmed
-     (DS01). Prior pass (S258), Arc 2 (observed dots + lines):
-     two treatments added to the `OBS.*` block — `OBS.dot` (CC.OBS @ 0.7) and `OBS.line` (CC.OBS @ 0.85,
-     width per-plot), render-gated values from SESSION258-OBSERVED-DOTLINE-SCOPE; the LOESS fit
-     reclassified from null (teal) to observed-derived line (blue, `OBS.line`) — removed from the
-     channel-3 null list and the reference-line table Null row, with a new channel-4 "Observed-derived
-     smooths" note distinguishing it from the median-of-observed-SDs band (traces vs judged-against);
-     NoiseProfilePlot conformance row updated to the reclassification + the dot/line treatment routing.
+     S259 close, with the S259 Arc 3 (non-observed null fills) edits merged in. Changes this pass (S259):
+     a new `EXP.*` treatment block added after the `OBS.*` block — `EXP.band` (CC.EXP @ fillOpacity 0.25)
+     for null tolerance bands and `EXP.curve` (CC.EXP @ strokeOpacity 0.85) for simulated-null density
+     curves, the teal-channel analogue of the `OBS.*` treatments; the swatch-samples-its-mark rule
+     extended to cover the `EXP.*` treatments; the flag-boundary reference-line row noted with the
+     Within-Row-Variance ±Z opacity-only routing through `CS.REF.opacity` (byte-identical, width/dash
+     deferred to the census). Band 0.25 screenshot-confirmed on the Selective-Noise median band (DS08);
+     curve 0.85 confirmed on the Kurtosis sim-null density + sparkline (DS01 cleared card).
+     Prior pass (S258): two treatments added to the `OBS.*` block — `OBS.dot` (CC.OBS @ 0.7) and
+     `OBS.line` (CC.OBS @ 0.85, width per-plot), render-gated values from SESSION258-OBSERVED-DOTLINE-
+     SCOPE; the LOESS fit reclassified from null (teal) to observed-derived line (blue, `OBS.line`) —
+     removed from the channel-3 null list and the reference-line table Null row, with a new channel-4
+     "Observed-derived smooths" note distinguishing it from the median-of-observed-SDs band (traces vs
+     judged-against); NoiseProfilePlot conformance row updated to the reclassification + the dot/line
+     treatment routing.
      Prior pass (S250): channel 2 signal-sensitivity surface split + tint-not-text for the import
      span-header + condition identity declared a sanctioned non-signal channel; `COND_COLORS` reordered
      (blue slot 0→5); AutocorrDecayPlot conformance row + row-13 provenance one-liner updated to the
@@ -23,8 +24,7 @@
      Two placeholders are DELIBERATELY left blank (fill from a source grep at COMMIT time, not memory):
      the four severity-red token names (§"Dense magnitude surfaces" → "Severity-red token names") and
      the `FF.MONO` tick-rail precondition. Do not fill them from this file. -->
-     NOTE the OBS.dot/OBS.line values (dot 0.7, line 0.85) were screenshot-confirmed at S258 (DS08/DS07/DS21/DS15).
-     NOTE the EXP.band/EXP.curve values (band 0.25, curve 0.85) were screenshot-confirmed at S259 (Selective-Noise band DS08, Kurtosis density DS01); DotStrip band routed but unanchored.
+     NOTE the EXP.band/EXP.curve values (band 0.25, curve 0.85) were screenshot-confirmed at S259 (DS08 band, DS01 curve); OBS.dot/OBS.line (0.7/0.85) confirmed S258.
 # Plot colour semantics
 
 The colour system for plot interiors. Its job: every plot, read as a standalone
@@ -288,38 +288,38 @@ area fill). This is the same split that centralizes the hue — `CC.OBS` is one 
 whether a mark is observed — extended to opacity. Opacity is not a property of the colour (baking it into
 the token would break every solid use); it is a property of how the mark type renders.
 
-**Non-observed null treatments (`EXP.*`, ruled S259).** The same split applies to the null
-channel. The null token `CC.EXP` (teal, `#0D9488`) is one hue; how a null *band* or *curve*
-renders — its fill or stroke opacity — is a named treatment, not a per-plot literal. Arc 3 of the
-fill-treatment programme found there was no centralized null fill/curve treatment: `CS.REF`
-centralizes the dashed reference *lines* (width, dash, opacity — no colour), so the reference
-lines were already routed, but the null *bands* and *density curves* sat on bare opacity literals.
-Two treatments close that gap, defined next to `OBS.*`:
+**Non-observed null treatments (`EXP.*`, ruled S259).** The same split applies to the null channel.
+The null token `CC.EXP` (teal, `#0D9488`) is one hue; how a null *band* or *curve* renders — its fill
+or stroke opacity — is a named treatment, not a per-plot literal. Arc 3 of the fill-treatment programme
+found there was no centralized null fill/curve treatment: `CS.REF` centralizes the dashed reference
+*lines* (width, dash, opacity — no colour), so the reference lines were already routed, but the null
+*bands* and *density curves* sat on bare opacity literals. Two treatments close that gap, defined next to
+`OBS.*` in `tokens.js`:
 
-- **`EXP.band`** = `CC.EXP` at fill-opacity 0.25, no stroke. For the null tolerance bands — the
-  "clean data sits in this range" fill: the Selective-Noise per-column median-of-observed-SDs band,
-  the DotStrip expected band. The teal-channel analogue of `OBS.areaFill`'s fill (a null band is to
-  the null channel what the observed area fill is to the observed channel).
+- **`EXP.band`** = `CC.EXP` at fill-opacity 0.25, no stroke. For the null tolerance bands — the "clean
+  data sits in this range" fill: the Selective-Noise per-column median-of-observed-SDs band, the DotStrip
+  expected band. The teal-channel analogue of `OBS.areaFill`'s fill — a null band is to the null channel
+  what the observed area fill is to the observed channel.
 - **`EXP.curve`** = `CC.EXP` at stroke-opacity 0.85, strokeWidth per-plot (`CS.FIT.w`). For the
-  simulated-null density curves drawn as strokes over an observed histogram — the Kurtosis
-  distribution sim-null curve and its per-condition sparkline. The teal-channel analogue of
-  `OBS.line`; width stays local for the same reason it does on `OBS.line`.
+  simulated-null density curves drawn as strokes over an observed histogram — the Kurtosis distribution
+  sim-null curve and its per-condition sparkline. The teal-channel analogue of `OBS.line`; width stays
+  local for the same reason it does on `OBS.line`.
 
-The same one-token rule holds, and it has a specific trap here: **soften by opacity on `CC.EXP`,
+The same one-token rule holds, with a trap specific to this channel: **soften by opacity on `CC.EXP`,
 never reach for `CC.EXP_SOFT`.** A lighter teal hex sits in the palette (`CC.EXP_SOFT`, `#7BC8A4`);
-routing a band to it would reintroduce exactly the second-hex drift the programme removes. A faint
-null band is `CC.EXP` at reduced fill-opacity, full stop — the lighter appearance is the opacity,
-not a second token.
+routing a band to it would reintroduce exactly the second-hex drift the programme removes. A faint null
+band is `CC.EXP` at reduced fill-opacity, full stop — the lighter appearance is the opacity, not a second
+token.
 
-*Values (S259).* Band 0.25 was confirmed on the Selective-Noise median band (DS08), which reads as a
-soft tolerance zone that the observed dots and whiskers sit inside without the band competing. Curve
-0.85 was confirmed on the Kurtosis sim-null density (DS01 cleared card — the curve renders regardless
-of verdict), reading clearly over the observed histogram on both the main plot and the three
-per-condition sparklines. The DotStrip expected band is routed through `EXP.band` but had no visible
-band to confirm on its host render, so 0.25 is the Selective-Noise-confirmed value; if the DotStrip
-band ever surfaces visibly and reads wrong at 0.25, the band-value question reopens (it was 0.15
-before Arc 3 — a per-plot difference from NoiseSpread's 0.25, collapsed to one value on the one-token
-rule, pending a two-state DotStrip render).
+*Values (S259, confirmed).* Band 0.25 was confirmed on the Selective-Noise median band (DS08), which
+reads as a soft tolerance zone the observed dots and whiskers sit inside without the band competing.
+Curve 0.85 was confirmed on the Kurtosis sim-null density (DS01 cleared card — the curve renders
+regardless of verdict), reading clearly over the observed histogram on both the main plot and the three
+per-condition sparklines. The DotStrip expected band is routed through `EXP.band` but had no visible band
+to confirm on its host render, so 0.25 is the Selective-Noise-confirmed value; it was 0.15 before Arc 3
+(a per-plot difference from NoiseSpread's 0.25, collapsed to one value on the one-token rule). If the
+DotStrip band ever surfaces visibly and reads wrong at 0.25, that collapse reopens. Curve 0.85 collapsed
+the prior 0.85 / 0.9 pair (KurtosisDist 0.9, sparkline 0.85) the same way.
 
 A consequence: because every observed mark composes from the shared token at a treatment opacity, a
 wrong-*hue* observed mark cannot occur, and a surface reading too light or too dark for its mark type is a
@@ -346,7 +346,10 @@ a bare `CC.OBS` at a hand-typed opacity. `ChartLegend` honours a per-item opacit
 mark stay equal by construction: soften a mark's treatment and the swatch moves with it. (S255 surfaced
 the inverse as a defect — softening the matrix and sign-strip marks while their swatches stayed at the
 old full opacity, so a saturated swatch sat beside a pale mark. Routing the swatch through the same
-treatment fixes it permanently, not per-card.)
+treatment fixes it permanently, not per-card.) The rule extends to the null channel: an `EXP.band` or
+`EXP.curve` swatch samples its mark's treatment opacity, not a bare `CC.EXP` at full. S259 surfaced the
+same inverse defect on the Kurtosis curve swatch — it had rendered at full opacity beside a curve drawn
+below full; routing it through `EXP.curve` (0.85) moved the swatch onto the mark, same fix.
 
 Flagged treatment splits by attribution: where the engine knows *which* marks drive the
 flag (per-bin, per-mark), the flag is a **red region** (the driving marks red, the rest
@@ -521,19 +524,20 @@ not geometry. There are two kinds — plus axis furniture, which is not a refere
 | **Flag boundary** (cutoff marks flag past) | significance threshold, dip-gate ceiling | faded/dashed red | `CS.REF`, reduced opacity |
 | *(not a reference line)* axis furniture | y-origin on a signed scale (e.g. ±SD zero line) | `C.AXIS` | per axis-furniture rules |
 
+The Within-Row-Variance ±Z flag-boundary line was the one flag boundary still drawing on fully bare
+literals (token, width, dash, opacity). S259 routed its **opacity** through `CS.REF.opacity` (0.7,
+byte-identical — the literal was already 0.7); its width (`1`) and dash (`"3,2"`) stay local, unconformed
+to `CS.REF`'s `1.5` / `4,3`. The weight conformance deferred to the census, where the flag-boundary
+channel is done UI-wide: Within-Row Variance renders no card on any current fixture (it is pending-fixture
+— no flagged firing, N/A on ordinal), so the heavier line has no positive anchor to verify against, and
+shipping it unseen was declined.
+
 A flag-boundary line keeps red (it is about the same anomaly as the marks it bounds) but
 is dashed and faded so it reads as subordinate reference, not as a flagged mark. A null
 line is teal — there is no grey null/baseline kind: the old "neutral baseline → grey"
 category was geometry masquerading as meaning (every line it named is in fact a null), and
 the one apparent survivor was an axis origin, i.e. axis furniture, not a reference line.
 See channel 3 for the full reasoning and the supersession note.
-
-The Within-Row-Variance ±Z flag-boundary line was the one flag boundary still drawing on fully bare
-literals (token, width, dash, opacity); S259 routed its **opacity** through `CS.REF.opacity` (0.7,
-byte-identical — the literal was already 0.7). Its width and dash stay local pending the census,
-where the flag-boundary channel is conformed UI-wide; the line renders no card on any current
-fixture (Within-Row Variance is pending-fixture), so the weight conformance has no positive anchor
-to verify against yet.
 
 The subordination of any dashed reference line is carried by its **dash**, not by faint
 text: a reference-line *label* reads `C.TEXT_2`, the one axis-text darkness (amended S216
