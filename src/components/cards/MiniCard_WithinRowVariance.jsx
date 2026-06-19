@@ -1,6 +1,6 @@
 /* ── MiniCard: Within-Row Variance ── */
 
-import { C, CC, CF, FW, FF, SIGNAL } from "../../constants/tokens.js";
+import { C, CC, CF, CS, FW, FF, SIGNAL } from "../../constants/tokens.js";
 import { MiniCardLayout } from "../shared/CardLayout.jsx";
 import { EvidenceTable } from "../shared/EvidenceTable.jsx";
 import { PlotLayout } from "../shared/PlotLayout.jsx";
@@ -52,7 +52,7 @@ export function MiniCard_WithinRowVariance({ result, importConfig, rowMap }) {
           const x = padL + ((z - zMin) / (zMax - zMin)) * plotW;
           return x > padL && x < W - padR ? (
             <line key={z} x1={x} y1={padT} x2={x} y2={padT + plotH}
-              stroke={SIGNAL.RED.dot} strokeWidth={1} strokeDasharray="3,2" opacity={0.7} />
+              stroke={SIGNAL.RED.dot} strokeWidth={1} strokeDasharray="3,2" opacity={CS.REF.opacity} />
           ) : null;
         })}
         {/* Labels */}

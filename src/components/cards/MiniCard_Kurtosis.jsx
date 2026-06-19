@@ -1,6 +1,6 @@
 /* ── MiniCard: Kurtosis ── */
 
-import { C, CC, FS, FW, FF, M, CP, CS, CF, CR, SIGNAL, BADGE, OBS, observedSwatchColor } from "../../constants/tokens.js";
+import { C, CC, FS, FW, FF, M, CP, CS, CF, CR, SIGNAL, BADGE, OBS, EXP, observedSwatchColor } from "../../constants/tokens.js";
 import { MiniCardLayout } from "../shared/CardLayout.jsx";
 import { buildCondColorMap } from "../../constants/roles.js";
 import { EvidenceTable } from "../shared/EvidenceTable.jsx";
@@ -28,7 +28,7 @@ export function MiniCard_Kurtosis({ result, importConfig, rowMap }) {
   // ── Chart legend ──
   const legendItems = [
     { color: observedSwatchColor(result.flag), label: "Observed", opacity: OBS.areaFill.fillOpacity },
-    { color: CC.EXP, label: "Expected (simulated null)", swatchType: "line" },
+    { color: EXP.curve.stroke, label: "Expected (simulated null)", swatchType: "line", opacity: EXP.curve.strokeOpacity },
   ];
 
   return (
@@ -167,7 +167,7 @@ export function MiniCard_Kurtosis({ result, importConfig, rowMap }) {
                               return <rect key={i} x={bx} y={ys(d)} width={bw} height={Math.max(0,(d/yMax)*CH)} fill={col} fillOpacity="0.35" stroke={col} strokeWidth="1"/>;
                             })}
                             {/* sim null stepped line (teal solid — stepped density doesn't read in dashes) */}
-                            {miniSimPath && <path d={miniSimPath} fill="none" stroke={CC.EXP} strokeWidth={CS.FIT.w} opacity="0.85"/>}
+                            {miniSimPath && <path d={miniSimPath} fill="none" stroke={EXP.curve.stroke} strokeWidth={CS.FIT.w} strokeOpacity={EXP.curve.strokeOpacity}/>}
                             {/* axes */}
                             <line x1={PL} y1={PT+CH} x2={PL+CW} y2={PT+CH} stroke={C.BORDER} strokeWidth={CS.GRID.w}/>
                             <line x1={PL} y1={PT} x2={PL} y2={PT+CH} stroke={C.BORDER} strokeWidth={CS.GRID.w}/>

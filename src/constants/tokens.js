@@ -193,6 +193,30 @@ export const OBS = {
   line:     { stroke: CC.OBS, strokeOpacity: 0.85 },
 };
 
+// EXP.* — non-observed null fill/stroke TREATMENTS (S259, arc 3 of the
+// token-composition programme). The teal-channel siblings of OBS.*: the null
+// HUE is already one token (CC.EXP #0D9488); these bundle the opacity that was a
+// per-plot literal on the null bands and the simulated-null density curves, so a
+// surface routes the whole null treatment, not a bare alpha. As with OBS, soften
+// by OPACITY on the shared CC.EXP token — never a second lighter teal. CC.EXP_SOFT
+// (#7BC8A4) stays unused on purpose: a second hex reintroduces the hue drift this
+// programme exists to remove.
+//   band  — null tolerance fill, where clean data sits: the DotStrip expected
+//           band and the NoiseSpread median-of-observed-SDs band. No stroke —
+//           neither band overlays a line through its own fill. fillOpacity is
+//           PROVISIONAL: the two bands were 0.15 / 0.25, collapsed onto one value
+//           pending Nick's two-state screenshot call, the render-gated decision
+//           arc 2 made on its dot/line values. 0.25 is the placeholder (the more
+//           legible of the two), not a settled value.
+//   curve — simulated-null density stroke: the Kurtosis distribution sim curve
+//           and its per-condition sparkline twin. No strokeWidth: weight stays
+//           per-plot (CS.FIT.w), the same split OBS.line keeps. 0.85 collapses the
+//           prior 0.85 / 0.9 pair onto the lighter value.
+export const EXP = {
+  band:  { fill: CC.EXP, fillOpacity: 0.25 },
+  curve: { stroke: CC.EXP, strokeOpacity: 0.85 },
+};
+
 // observedSwatchColor — resolves an observed legend swatch's colour from the
 // mark's flag state, the colour-channel sibling of the OBS opacity treatment
 // above. Flat-red flip: the whole observed series turns CC.THRESH when the test
