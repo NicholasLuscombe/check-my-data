@@ -1,7 +1,7 @@
 /* ── MiniCard: Inter-Replicate Correlation ── */
 
-import { C, FS, FW, FF } from "../../constants/tokens.js";
-import { TIER_COLOR, cellTextOn } from "../shared/heatmapColors.js";
+import { C, CC, FS, FW, FF, OBS } from "../../constants/tokens.js";
+import { TIER_COLOR, cellTextOn, compositeOver } from "../shared/heatmapColors.js";
 import { COND_COLORS, buildCondColorMap } from "../../constants/roles.js";
 import { MiniCardLayout, CardBanner } from "../shared/CardLayout.jsx";
 import { CorrMatrixSVG } from "../plots/CorrMatrixSVG.jsx";
@@ -87,13 +87,17 @@ const matrices = condNames.map(cond => {
 const cellBg = (p) => {
   if (!p) return C.BORDER_L;
   if (p.suspicious) return TIER_COLOR.HIGH;
-  return TIER_COLOR.LOW;
+  return CC.OBS;
 };
-const cellTxt = (p) => cellTextOn(cellBg(p));
+// Cleared (observed CC.OBS) tiles render at OBS.solid opacity; flagged tiles stay
+// full-opacity tier colour. Digit colour is picked off the COMPOSITED appearance
+// so it stays legible as the tile softens (compositeOver α=1 → bg unchanged).
+const cellOp = (p) => (p && !p.suspicious) ? OBS.solid.fillOpacity : 1;
+const cellTxt = (p) => cellTextOn(compositeOver(cellBg(p), cellOp(p), C.BG));
 
 // Legend items
 const legend = [
-  { color: TIER_COLOR.LOW, label: "Expected" },
+  { color: CC.OBS, label: "Within expected range", opacity: OBS.solid.fillOpacity },
 ];
 if (nSusp > 0) legend.push({ color: TIER_COLOR.HIGH, label: "Highly correlated (outlier pair)" });
 
@@ -130,6 +134,7 @@ const matrixSurface = (
                   getValue={(rowL, colL) => mat[nameToIdx[rowL]]?.[nameToIdx[colL]] || null}
                   formatCell={p => { const r = p ? parseFloat(p.r) : null; return r != null ? r.toFixed(2) : ""; }}
                   cellBg={cellBg} cellText={cellTxt} cellBold={p => !!p?.suspicious}
+                  cellOpacity={cellOp}
                   title={condNames.length > 1 ? cond : undefined}
                   titleColor={condNames.length > 1 ? (condColorMap[cond]?.text || COND_COLORS[condNames.indexOf(cond) % COND_COLORS.length].text) : undefined}
                 />

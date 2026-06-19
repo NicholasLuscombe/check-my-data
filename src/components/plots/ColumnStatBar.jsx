@@ -13,14 +13,15 @@
    v1.x distribution-histogram with fitted-reference overlay is out
    of scope here. */
 
-import { C, CC, CP, CS, CF, FS, FF } from "../../constants/tokens.js";
+import { C, CC, CP, CS, CF, FS, FF, OBS } from "../../constants/tokens.js";
 import { SEV_VERDICT } from "../../constants/tokens.js";
 import { FLAG_RANK } from "../../constants/thresholds.js";
 import { PlotSVG } from "./PlotSVG.jsx";
 import { PlotLayout } from "../shared/PlotLayout.jsx";
 
-const CLEARED_FILL = CC.OBS;   // data model (channel 4): cleared observed bars are blue
-const CLEARED_OPACITY = 0.4;
+// Cleared bars route the shared OBS.areaFill treatment (token + 0.35 + same-token
+// stroke). The prior local CLEARED_OPACITY=0.4 was undocumented drift off that
+// family (S255 Q3) — collapsed here so the only deviation, the 0.4, disappears.
 
 function niceStep(range) {
   if (range <= 0) return 1;
@@ -130,8 +131,8 @@ export function ColumnStatBar({ items, skipped, cardFlag, refValue, refLabel, re
             if (s.kind === "tested") {
               const v = Number(s.value) || 0;
               const isFlagged = !!s.flagged;
-              const fill = isFlagged ? flaggedColor : CLEARED_FILL;
-              const fillOpacity = isFlagged ? 0.55 : CLEARED_OPACITY;
+              const fill = isFlagged ? flaggedColor : OBS.areaFill.fill;
+              const fillOpacity = isFlagged ? 0.55 : OBS.areaFill.fillOpacity;
               const barH = v <= 0 ? 0 : Math.max(1, (v / mx) * CH);
               return (
                 <g key={i}>

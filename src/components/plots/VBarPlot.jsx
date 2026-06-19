@@ -1,4 +1,4 @@
-import { CC, CP, CS, C, FF, CF } from "../../constants/tokens.js";
+import { CC, CP, CS, C, FF, CF, OBS } from "../../constants/tokens.js";
 import { PLOT_FC } from "../../constants/thresholds.js";
 import { PlotSVG } from "./PlotSVG.jsx";
 
@@ -62,7 +62,7 @@ export function VBarPlot({ items, xKey, obsKey, expKey, xlabel, ylabel, obsColor
         return (
           <g key={i}>
             {barH>0&&<rect x={PL+i*(bw+2)} y={yscale(v)} width={bw} height={barH}
-              rx="1" fill={col} fillOpacity="0.35" stroke={col} strokeWidth="1"/>}
+              rx="1" fill={col} fillOpacity={OBS.areaFill.fillOpacity} stroke={col} strokeWidth="1"/>}
             <text x={PL+i*(bw+2)+bw/2} y={H-PB+11} fontSize={CF.LABEL} fill={C.TEXT_2}
               textAnchor="middle" fontFamily={FF.MONO}>{d[xKey]}</text>
           </g>

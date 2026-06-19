@@ -215,6 +215,54 @@ is red, and it earns that salience by being the one non-blue thing on the plot (
 see here" reads as quiet blue; "look here" reads as red). This is the **data model**: the
 colour tracks what the mark is and whether it is anomalous, blue→red.
 
+**Observed-fill treatments (`OBS.*`, ruled S255).** The observed token `CC.OBS` is one hue; how it is
+*rendered* — fill opacity, and any stroke — is a named treatment, not a per-plot literal. Three
+treatments are defined once next to the token (`tokens.js`), and every observed mark references the
+treatment for its mark type rather than hand-typing an opacity:
+
+- **`OBS.areaFill`** = `CC.OBS` at fill-opacity 0.35 + a same-token (`CC.OBS`) 1px stroke at full
+  opacity. For area fills with an overlaid reference line (histograms, bar fills): the muted fill lets
+  the overlaid null/expected line read through, the crisp full-opacity stroke holds the mark's edge.
+- **`OBS.solid`** = `CC.OBS` at fill-opacity 0.35, no stroke. For solid verdict tiles (correlation
+  matrices) — a tile carrying a value in text, with nothing overlaid. Kept a separate constant from
+  `areaFill` even though the fill opacity now matches: the distinction is semantic (solid tile vs
+  stroked area fill), so a future solid-tile adjustment must not drag the area fills with it.
+- **`OBS.strip`** = `CC.OBS` at fill-opacity 0.35, no stroke. For sign-strip blocks (the observed pole
+  of a two-tone strip). The other pole (navy `SIGN.POS`) is a separate channel and keeps its own weight.
+
+The principle: **centralize the definition, keep the selection local.** The treatment (token + opacity +
+stroke) is defined once; each plot still chooses WHICH treatment its mark is (an area fill knows it is an
+area fill). This is the same split that centralizes the hue — `CC.OBS` is one token, each plot decides
+whether a mark is observed — extended to opacity. Opacity is not a property of the colour (baking it into
+the token would break every solid use); it is a property of how the mark type renders.
+
+A consequence: because every observed mark composes from the shared token at a treatment opacity, a
+wrong-*hue* observed mark cannot occur, and a surface reading too light or too dark for its mark type is a
+treatment-routing bug, not a colour defect. The three opacities converged on 0.35 at S255 (matrix
+softened from a former solid 1.0 down to the area-fill weight on Nick's render call); the system now
+carries one observed fill weight with red reserved for flags.
+
+**Digit contrast composes from the rendered appearance, not the bare token (S255).** A solid tile that
+carries text (the correlation-matrix ρ/r value) picks its text colour by luminance, and that test must
+read the *composited* appearance — `CC.OBS` at the treatment's opacity over the cell background
+(`C.BG`) — not the bare solid token. Reading the bare token would leave digits white on a tile that has
+been softened to a pale fill (silent under-contrast); reading the composite flips them to dark
+automatically when the softened fill crosses the luminance threshold. This is the mechanism that lets
+opacity compose on a shared token for *any* mark, not just this one — it closes the one place the
+token-plus-treatment model would otherwise leak. Implementation: `compositeOver(fg, alpha, bg)` flattens
+the token to a hex for the luminance test (`heatmapColors.js`). One constraint recorded at the
+`OBS.solid` definition: the tile opacity must stay clear of the ~0.47–0.50 luminance crossover over
+`C.BG` (below → dark digits, above → white, between → low contrast); 0.35 is safely in the dark-digit
+zone.
+
+**A legend swatch samples its mark (S255).** A swatch in a card legend is a sample of the mark it
+labels, so it renders the mark's treatment constant (`OBS.solid` / `OBS.areaFill` / `OBS.strip`) — never
+a bare `CC.OBS` at a hand-typed opacity. `ChartLegend` honours a per-item opacity, so the swatch and its
+mark stay equal by construction: soften a mark's treatment and the swatch moves with it. (S255 surfaced
+the inverse as a defect — softening the matrix and sign-strip marks while their swatches stayed at the
+old full opacity, so a saturated swatch sat beside a pale mark. Routing the swatch through the same
+treatment fixes it permanently, not per-card.)
+
 Flagged treatment splits by attribution: where the engine knows *which* marks drive the
 flag (per-bin, per-mark), the flag is a **red region** (the driving marks red, the rest
 blue); where the verdict is a single global statistic with no per-mark attribution, the
@@ -452,6 +500,19 @@ flagged", not "low anomaly". Per-consumer caveat: any `TIER_COLOR` surface that
 overlays observed marks (`CC.OBS` blue) on the ramped cells must confirm the slate
 floor reads distinct from `CC.OBS` on that surface.
 
+Matrix carve-out (ruled S254): the discrete-verdict correlation matrices (Rank
+Correlation, IRC) do NOT take the slate floor — their cleared cells are `CC.OBS` blue,
+flagged cells keep the amber→red flagged tier. The S214 "no fourth competing blue"
+rationale was about a dense card carrying observed-blue marks alongside the ramp; a
+correlation cell is a standalone verdict tile with no observed-blue overlaid, so
+"cleared is blue" (the suite-wide observed-mark rule, channel 4) applies here with no
+collision. The slate floor remains the rule for dense `TIER_COLOR` surfaces that DO
+overlay observed marks. The cleared cell renders through `OBS.solid` (`CC.OBS` at fill-opacity 0.35, no stroke) via
+`SvgHeatmapCell`'s `fillOpacity` prop, with the tile's digit colour composed from the rendered
+appearance (see the digit-contrast mechanism in channel 4); the flagged tiles keep amber→red at full
+saturation. The S254 "full-opacity solid" note is superseded — the tile was softened to the observed
+area-fill weight at S255.
+
 ## Dense magnitude surfaces — reserve by curve, not by tier (ruled — S214)
 
 `TIER_COLOR`'s two-regime ramp suits a *sparse categorical* surface: a handful of
@@ -522,7 +583,7 @@ What each live plot changes. "OK" = already conforms.
 | RegionalNoiseStrip | window fill red, opacity-ramped | OK (red intensity ramp) |
 | RowMeanTrendPlot | sim line teal `CC.EXP`; grand-mean line teal `CC.EXP` dashed, swatch matches line; crossing/run two-tone `SIGN.POS` navy (crossing) / `CC.OBS` blue (run) | **RETIRED S247 `f6c9614`** — component deleted. RowMean redesigned to a per-condition `SignStripPlot` block-width render (one rect per run, width ∝ run length) + run-length evidence table; no sim line, no grand-mean line. The S246 conformance state is kept here for history only: it was colour-correct but illegible on the dense line, which is why the redesign superseded it (WALK Test22a/22b, both DONE S247). For the live render see the `SignStripPlot` row. |
 | SignStripPlot | sign two-tone `SIGN.POS` navy `#002147` (+1) / `CC.OBS` blue `#3B82F6` (−1), neutral | **Landed (two-tone arc, S246 `c4a3e7a`).** Unified onto `CC.OBS` `#3B82F6` + Oxford navy `#002147` `SIGN.POS` (dark = +1 by convention); retired Cambridge pale-blue `#A3C1DA` (the 16b "blue isn't standard" culprit). Categorical encoding, legend stays sign-specific. Screenshot-verified navy/blue distinct |
-| CorrMatrixSVG / consumers | cells via `TIER_COLOR` | `TIER_COLOR` is the two-regime slate→amber→red ramp (S214, corrected within session from the first single-hue red retoken) |
+| CorrMatrixSVG / consumers | cells via `TIER_COLOR`; cleared cell `CC.OBS` blue (S254) | Flagged tiers via `TIER_COLOR` amber→red. **Cleared cell → `CC.OBS` blue (S254 matrix carve-out)** — discrete-verdict tiles, no observed-blue overlay, so the channel-4 "cleared is blue" rule applies; the S214 slate floor is retained only for dense overlay surfaces. Rank Correlation / IRC cleared branch + legend swatch both `CC.OBS` |
 | CoordResidualProfile | residual ramp; matrix via `rhoColor` | residual heatmap = canonical colours + gamma reserve (`RESID_GAMMA = 1.5`, floor `#DAE1EA`, nulls-to-floor; see "Dense magnitude surfaces"), NOT the `TIER_COLOR` two-regime ramp; matrix unchanged (`rhoColor`) |
 
 **Axis-furniture state (S216 — across Path A inline plots):**

@@ -3,7 +3,7 @@ import { PlotLayout } from "../shared/PlotLayout.jsx";
 import { ChartLegend } from "../shared/ChartLegend.jsx";
 import { SignStripPlot } from "../plots/SignStripPlot.jsx";
 import { EvidenceTable } from "../shared/EvidenceTable.jsx";
-import { CC, FW, FF, SIGN } from "../../constants/tokens.js";
+import { CC, FW, FF, SIGN, OBS } from "../../constants/tokens.js";
 import { fmtP, ALPHA } from "../../constants/thresholds.js";
 import { makeRowMapper } from "../shared/coordinates.js";
 import { SUB_HEAD, BLOCK_GAP, BLOCK_GAP_TIGHT } from "../shared/styles.js";
@@ -84,7 +84,7 @@ export function MiniCard_RowMean({ result, importConfig, rowMap }) {
         </PlotLayout>
         <ChartLegend items={[
           { color: SIGN_POS, label: "Above trend", opacity: 0.8 },
-          { color: SIGN_NEG, label: "Below trend", opacity: 0.8 },
+          { color: SIGN_NEG, label: "Below trend", opacity: OBS.strip.fillOpacity },
         ]} />
       </>)}
 

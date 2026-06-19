@@ -2,7 +2,7 @@ import { MiniCardLayout } from "../shared/CardLayout.jsx";
 import { PlotLayout } from "../shared/PlotLayout.jsx";
 import { ChartLegend } from "../shared/ChartLegend.jsx";
 import { VBarPlot } from "../plots/VBarPlot.jsx";
-import { CC, C, FF, FW } from "../../constants/tokens.js";
+import { CC, C, FF, FW, OBS } from "../../constants/tokens.js";
 
 
 export function MiniCard_TerminalDigit({ result, importConfig, rowMap }) {
@@ -48,8 +48,8 @@ return (
           ylabel="Count" flag={result.flag}/>
     </PlotLayout>
     <ChartLegend items={[
-      { color: CC.OBS, label: "Observed count", opacity: 0.35 },
-      { color: CC.EXP, label: "Uniform expected", swatchType: "line" },
+      { color: CC.OBS, label: "Observed count", opacity: OBS.areaFill.fillOpacity },
+      { color: CC.EXP, label: "Uniform expected", swatchType: "line", dashed: true },
     ]} />
 
 

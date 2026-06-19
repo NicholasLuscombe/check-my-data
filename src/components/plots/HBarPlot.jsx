@@ -1,4 +1,4 @@
-import { CC, CP, CS, C, FF, CF } from "../../constants/tokens.js";
+import { CC, CP, CS, C, FF, CF, OBS } from "../../constants/tokens.js";
 import { PlotSVG } from "./PlotSVG.jsx";
 import { shortName } from "../shared/utils.js";
 
@@ -46,7 +46,7 @@ export function HBarPlot({ items, accessor, xlabel, refVal, refLabel, maxOverrid
             <text x={LW-PL} y={y+BH*0.78} textAnchor="end" fontSize={CF.LABEL} fill={C.TEXT_2}
               fontFamily={FF.UI}>{shortName(d.group||d.col||`#${i+1}`)}</text>
             <rect x={LW} y={y} width={bw} height={BH} rx="2"
-              fill={obsCol} fillOpacity="0.35" stroke={obsCol} strokeWidth="1"/>
+              fill={obsCol} fillOpacity={OBS.areaFill.fillOpacity} stroke={obsCol} strokeWidth="1"/>
             <text x={LW+bw+4} y={y+BH*0.78} fontSize={CF.LABEL} fill={C.TEXT_2} fontFamily={FF.MONO}>
               {Number.isInteger(v)?v:v.toFixed?.(2)}
             </text>

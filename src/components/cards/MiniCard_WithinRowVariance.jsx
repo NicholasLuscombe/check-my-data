@@ -87,7 +87,7 @@ export function MiniCard_WithinRowVariance({ result, importConfig, rowMap }) {
         </PlotLayout>
         <ChartLegend items={[
           { color: SIGNAL.RED.dot, label: `Outside ±${Z_THRESH}σ threshold`, opacity: 0.35 },
-          { color: C.TEXT_3, label: "Within expected range", opacity: 0.35 },
+          { color: CC.OBS, label: "Within expected range", opacity: 0.35 },
         ]} />
       </>}
 

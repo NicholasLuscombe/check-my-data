@@ -102,7 +102,7 @@ if(result.colDetails?.length) {
             flag={result.flag}/>
       </PlotLayout>
       <ChartLegend items={[
-        { color: CC.OBS, label: "As expected", swatchType: "line" },
+        { color: CC.OBS, label: "Consistent with rest", swatchType: "line" },
         { color: CC.THRESH, label: "Differs from rest", swatchType: "line" },
         ...(result.flag !== "LOW" ? [{ color: CC.EXP, label: "Expected", opacity: 0.25 }] : []),
       ]} />
