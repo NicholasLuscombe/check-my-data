@@ -186,6 +186,17 @@ export const OBS = {
   strip:    { fill: CC.OBS, fillOpacity: 0.35, stroke: "none" },
 };
 
+// observedSwatchColor — resolves an observed legend swatch's colour from the
+// mark's flag state, the colour-channel sibling of the OBS opacity treatment
+// above. Flat-red flip: the whole observed series turns CC.THRESH when the test
+// flags (a global statistic with no per-mark attribution — the series flips, not
+// individual marks), else cleared CC.OBS. The HIGH/MODERATE predicate matches
+// the observed bars in VBarPlot and KurtosisDistPlot verbatim, so the swatch and
+// the mark render the identical token in both states. The next step routes the
+// companion-swatch cards through the same resolver, retiring their second swatch.
+export const observedSwatchColor = (flag) =>
+  flag === "HIGH" || flag === "MODERATE" ? CC.THRESH : CC.OBS;
+
 /* Mechanism category visual identity — keyed by mechanism slug */
 // MECH_COLOR is keyed by MECHANISM_ORDER (mechanisms.js): five distinct hues
 // so the §1 mechanism-count strip and §2 chip/pill mechanism layer can encode

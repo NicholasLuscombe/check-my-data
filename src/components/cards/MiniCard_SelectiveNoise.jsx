@@ -102,9 +102,9 @@ if(result.colDetails?.length) {
             flag={result.flag}/>
       </PlotLayout>
       <ChartLegend items={[
+        ...(result.flag !== "LOW" ? [{ color: CC.EXP, label: "Expected", opacity: 0.25 }] : []),
         { color: CC.OBS, label: "Consistent with rest", swatchType: "line" },
         { color: CC.THRESH, label: "Differs from rest", swatchType: "line" },
-        ...(result.flag !== "LOW" ? [{ color: CC.EXP, label: "Expected", opacity: 0.25 }] : []),
       ]} />
       {perCol.length > 0 && result.flag !== "LOW" && result.flag !== "N/A" && (
         <div style={{marginTop: BLOCK_GAP}}>

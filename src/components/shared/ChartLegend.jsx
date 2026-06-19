@@ -14,7 +14,7 @@ import { C, FF, FS, FW } from "../../constants/tokens.js";
 const SWATCH = 12;
 
 export function ChartLegend({ items, gradient, swatchType }) {
-  const wrap = { marginBottom: "8px" };
+  const wrap = { marginBottom: "8px", justifyContent: "flex-start" };
 
   if (gradient) {
     return (
