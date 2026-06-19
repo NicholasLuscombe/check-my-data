@@ -85,6 +85,19 @@ Red means "anomalous", in three forms of expression:
   clear is blue, not green; green-clear is retired on marks. The list above keeps green
   as a chrome severity colour; it is not a licence for green-clear on a plot mark.*
 
+  *History (S221) — the rule is "no *non-signal* red/amber", not "no red/amber on numeric
+  cells". An earlier S217 palette fix banked the constraint as "no red/amber on numeric
+  cells", which reads as categorical and is too broad. The correct statement is the
+  role-not-hue rule above: red is reserved for a flagged mark — a genuinely flagged numeric
+  cell may carry it, because the cell *is* the finding — and the severity family is reserved
+  where severity is read, not across the whole card. The real fault the S217 fix addressed was
+  narrower: in the within-row duplicate grid, arbitrary group identity wore a flag colour —
+  red/amber with no decodable meaning — not red/amber on a numeral as such. A later S221 render
+  check read the "identical columns" table painting columns A and C red and queried it as a
+  fresh violation; source-confirm showed it is the sanctioned flag-on-flagged-cell use (the
+  columns are the finding) and there was nothing to fix. The decodable-meaning test, not the
+  cell's numeric type, is the line.*
+
 **2 — Condition identity. A wheel of distinct hues, end-to-end from import.**
 Which condition a mark belongs to. Drawn from `COND_COLORS` (see palette below),
 the same map the import-view condition chips use — so "Treatment = lime" on the
