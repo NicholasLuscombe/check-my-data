@@ -1,6 +1,6 @@
 /* ── MiniCard: Kurtosis ── */
 
-import { C, CC, FS, FW, FF, M, CP, CS, CF, CR, SIGNAL, BADGE, OBS } from "../../constants/tokens.js";
+import { C, CC, FS, FW, FF, M, CP, CS, CF, CR, SIGNAL, BADGE, OBS, observedSwatchColor } from "../../constants/tokens.js";
 import { MiniCardLayout } from "../shared/CardLayout.jsx";
 import { buildCondColorMap } from "../../constants/roles.js";
 import { EvidenceTable } from "../shared/EvidenceTable.jsx";
@@ -27,7 +27,7 @@ export function MiniCard_Kurtosis({ result, importConfig, rowMap }) {
 
   // ── Chart legend ──
   const legendItems = [
-    { color: CC.OBS, label: "Observed", opacity: OBS.areaFill.fillOpacity },
+    { color: observedSwatchColor(result.flag), label: "Observed", opacity: OBS.areaFill.fillOpacity },
     { color: CC.EXP, label: "Expected (simulated null)", swatchType: "line" },
   ];
 
