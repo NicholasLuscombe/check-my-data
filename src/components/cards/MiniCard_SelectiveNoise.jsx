@@ -1,6 +1,6 @@
 /* ── MiniCard: Selective Noise ── */
 
-import { C, FW, FF, CC } from "../../constants/tokens.js";
+import { C, FW, FF, CC, EXP } from "../../constants/tokens.js";
 import { MiniCardLayout, CardBanner } from "../shared/CardLayout.jsx";
 import { EvidenceTable } from "../shared/EvidenceTable.jsx";
 import { PlotLayout } from "../shared/PlotLayout.jsx";
@@ -102,7 +102,7 @@ if(result.colDetails?.length) {
             flag={result.flag}/>
       </PlotLayout>
       <ChartLegend items={[
-        ...(result.flag !== "LOW" ? [{ color: CC.EXP, label: "Expected", opacity: 0.25 }] : []),
+        ...(result.flag !== "LOW" ? [{ color: EXP.band.fill, label: "Expected", opacity: EXP.band.fillOpacity }] : []),
         { color: CC.OBS, label: "Consistent with rest", swatchType: "line" },
         { color: CC.THRESH, label: "Differs from rest", swatchType: "line" },
       ]} />

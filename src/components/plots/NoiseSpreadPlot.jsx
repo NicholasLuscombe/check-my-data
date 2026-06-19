@@ -1,4 +1,4 @@
-import { CC, CP, CS, C, FF, CF, SIGNAL, OBS } from "../../constants/tokens.js";
+import { CC, CP, CS, C, FF, CF, SIGNAL, OBS, EXP } from "../../constants/tokens.js";
 import { PlotSVG } from "./PlotSVG.jsx";
 
 /* ── Noise Spread Plot — error-bar style per-column residual spread ── */
@@ -37,7 +37,7 @@ export function NoiseSpreadPlot({ colDetails, flaggedCols, outlierCol, flag, W=C
       {/* Median reference band — empirical central reference (null), teal */}
       {flag && flag !== "LOW" && (
         <rect x={PL} y={py(medianStd)} width={CW} height={py(-medianStd) - py(medianStd)}
-          fill={CC.EXP} opacity="0.25" rx="2"/>
+          fill={EXP.band.fill} fillOpacity={EXP.band.fillOpacity} rx="2"/>
       )}
       {/* Horizontal gridlines */}
       {yTicks.map((v, i) => (

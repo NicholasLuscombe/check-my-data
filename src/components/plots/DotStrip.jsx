@@ -1,4 +1,4 @@
-import { CC, CP, CS, C, FF, CF, OBS } from "../../constants/tokens.js";
+import { CC, CP, CS, C, FF, CF, OBS, EXP } from "../../constants/tokens.js";
 import { PLOT_FC } from "../../constants/thresholds.js";
 import { PlotSVG } from "./PlotSVG.jsx";
 
@@ -19,7 +19,7 @@ export function DotStrip({ items, valueKey, refMin, refMax, refLabel, xlabel, co
       {/* reference band */}
       {refMin!==undefined&&refMax!==undefined&&(
         <rect x={xscale(refMin)} y={PT} width={Math.max(1,xscale(refMax)-xscale(refMin))} height={20}
-          fill={CC.EXP} opacity="0.15" rx="2"/>
+          fill={EXP.band.fill} fillOpacity={EXP.band.fillOpacity} rx="2"/>
       )}
       {/* zero / ref line */}
       {refMin!==undefined&&(

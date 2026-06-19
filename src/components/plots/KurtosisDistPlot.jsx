@@ -1,4 +1,4 @@
-import { CC, CP, CS, C, FF, CF, OBS } from "../../constants/tokens.js";
+import { CC, CP, CS, C, FF, CF, OBS, EXP } from "../../constants/tokens.js";
 import { PlotSVG } from "./PlotSVG.jsx";
 
 export function KurtosisDistPlot({ normDiffs, simDiffs, flag }) {
@@ -74,7 +74,7 @@ export function KurtosisDistPlot({ normDiffs, simDiffs, flag }) {
       })}
 
       {/* simulated null (teal stepped line — solid: a stepped density doesn't read in dashes) */}
-      {simPath && <path d={simPath} fill="none" stroke={CC.EXP} strokeWidth={CS.FIT.w} opacity="0.9"/>}
+      {simPath && <path d={simPath} fill="none" stroke={EXP.curve.stroke} strokeWidth={CS.FIT.w} strokeOpacity={EXP.curve.strokeOpacity}/>}
 
       {/* axes */}
       <line x1={PL} y1={PT+CH} x2={PL+CW} y2={PT+CH} stroke={C.AXIS} strokeWidth={CS.GRID.w}/>
