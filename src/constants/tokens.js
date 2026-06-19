@@ -184,6 +184,13 @@ export const OBS = {
   // dark digits, above → white, between → low contrast) — safely in the dark zone.
   solid:    { fill: CC.OBS, fillOpacity: 0.35, stroke: "none" },
   strip:    { fill: CC.OBS, fillOpacity: 0.35, stroke: "none" },
+  // dot — discrete observed point (scatter, distance, strip, per-lag). No
+  //       stroke: the per-plot white separator stroke is geometry, stays local.
+  // line — observed series / slope / observed-derived smooth. No strokeWidth:
+  //       weight stays per-plot (a raw series and a heavier smooth both read
+  //       OBS.line but differ in weight).
+  dot:      { fill: CC.OBS, fillOpacity: 0.7 },
+  line:     { stroke: CC.OBS, strokeOpacity: 0.85 },
 };
 
 // observedSwatchColor — resolves an observed legend swatch's colour from the

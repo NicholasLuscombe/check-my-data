@@ -3,7 +3,7 @@ import { EvidenceTable } from "../shared/EvidenceTable.jsx";
 import { PlotLayout } from "../shared/PlotLayout.jsx";
 import { ChartLegend } from "../shared/ChartLegend.jsx";
 import { MahalanobisDistPlot } from "../plots/MahalanobisDistPlot.jsx";
-import { C, CC, FW, FF } from "../../constants/tokens.js";
+import { C, CC, FW, FF, OBS } from "../../constants/tokens.js";
 import { COND_COLORS, buildCondColorMap } from "../../constants/roles.js";
 import { makeRowMapper } from "../shared/coordinates.js";
 import { SUB_HEAD, BLOCK_GAP, BLOCK_GAP_TIGHT } from "../shared/styles.js";
@@ -46,12 +46,12 @@ export function MiniCard_Mahalanobis({ result, importConfig, rowMap }) {
   if (hasAllCond) {
     result.allCondD2.forEach((cd, ci) => {
       const color = condColorMap[cd.condition]?.text || COND_COLORS[ci % COND_COLORS.length].text;
-      legendItems.push({ color, label: cd.condition, swatchType: "dot" });
+      legendItems.push({ color, label: cd.condition, swatchType: "dot", opacity: OBS.dot.fillOpacity });
     });
   } else if (hasSinglePlot) {
-    legendItems.push({ color: CC.OBS, label: "Normal", swatchType: "dot", opacity: 0.55 });
+    legendItems.push({ color: CC.OBS, label: "Normal", swatchType: "dot", opacity: OBS.dot.fillOpacity });
   }
-  legendItems.push({ color: CC.THRESH, label: "Outlier", swatchType: "dot" });
+  legendItems.push({ color: CC.THRESH, label: "Outlier", swatchType: "dot", opacity: 0.85 });
   legendItems.push({ color: CC.THRESH, label: "Significance threshold", swatchType: "line", dashed: true, opacity: 0.7 });
 
   return (

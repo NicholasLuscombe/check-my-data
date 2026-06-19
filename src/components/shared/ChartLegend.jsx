@@ -58,9 +58,9 @@ export function ChartLegend({ items, gradient, swatchType }) {
           ) : isLine ? (
             <svg width="20" height={SWATCH} style={{flexShrink: 0, opacity: item.opacity ?? 1}}>
               <line x1="0" y1={SWATCH / 2} x2="20" y2={SWATCH / 2}
-                stroke={item.color} strokeWidth="2"
+                stroke={item.color} strokeWidth={item.strokeWidth ?? 2}
                 {...(item.dashed ? {strokeDasharray: "4,3"} : {})} />
-              {!item.dashed && <circle cx="10" cy={SWATCH / 2} r="3"
+              {!item.dashed && item.showDot !== false && <circle cx="10" cy={SWATCH / 2} r="3"
                 fill={item.color} />}
             </svg>
           ) : (

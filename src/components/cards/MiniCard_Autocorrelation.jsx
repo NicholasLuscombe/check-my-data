@@ -1,6 +1,6 @@
 /* ── MiniCard: Autocorrelation ── */
 
-import { C, CC, CP, CS, CF, FF, FW, FS, SIGNAL } from "../../constants/tokens.js";
+import { C, CC, CP, CS, CF, FF, FW, FS, SIGNAL, OBS } from "../../constants/tokens.js";
 import { fmtP } from "../../constants/thresholds.js";
 import { MiniCardLayout } from "../shared/CardLayout.jsx";
 import { EvidenceTable } from "../shared/EvidenceTable.jsx";
@@ -120,7 +120,7 @@ export function MiniCard_Autocorrelation({ result, importConfig, rowMap }) {
     ...(result.perGroupDecay || [{ group: "All data" }]).map((c, ci) => ({
       color: condColorMap[c.group]?.text || COND_COLORS[ci % COND_COLORS.length].text,
       label: shortName(c.group),
-      opacity: 0.7,
+      opacity: OBS.line.strokeOpacity,
       swatchType: "line",
     })),
     { color: CC.EXP, label: "r = 0 (independent)", swatchType: "line", dashed: true },

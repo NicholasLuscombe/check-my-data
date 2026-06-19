@@ -1,4 +1,4 @@
-import { CC, CP, CS, C, FF, CF } from "../../constants/tokens.js";
+import { CC, CP, CS, C, FF, CF, OBS } from "../../constants/tokens.js";
 import { PlotSVG } from "./PlotSVG.jsx";
 
 export function NoiseProfilePlot({ noiseProfile, changepointRow, secondaryRow, toFileRow, W=CP.W, H=180 }) {
@@ -50,12 +50,12 @@ export function NoiseProfilePlot({ noiseProfile, changepointRow, secondaryRow, t
         </g>
       ))}
       {/* Observed noise — dots + line */}
-      <path d={obsPath} fill="none" stroke={CC.OBS} strokeWidth={CS.DATA.w} opacity="0.4"/>
+      <path d={obsPath} fill="none" stroke={OBS.line.stroke} strokeWidth={CS.DATA.w} strokeOpacity={OBS.line.strokeOpacity}/>
       {pts.length <= 120 && pts.map((p, i) => (
-        <circle key={i} cx={px(p.row)} cy={py(p.noise)} r={CS.PT_SM.r} fill={CC.OBS} opacity="0.5"/>
+        <circle key={i} cx={px(p.row)} cy={py(p.noise)} r={CS.PT_SM.r} fill={OBS.dot.fill} fillOpacity={OBS.dot.fillOpacity}/>
       ))}
       {/* LOESS fit */}
-      <path d={fitPath} fill="none" stroke={CC.EXP} strokeWidth={CS.FIT.w} opacity="0.85"/>
+      <path d={fitPath} fill="none" stroke={OBS.line.stroke} strokeWidth={CS.FIT.w} strokeOpacity={OBS.line.strokeOpacity}/>
       {/* Changepoint line */}
       {cpRow != null && (
         <g>

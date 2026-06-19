@@ -1,4 +1,4 @@
-import { CC, CP, CS, C, FF, CF, SIGNAL } from "../../constants/tokens.js";
+import { CC, CP, CS, C, FF, CF, SIGNAL, OBS } from "../../constants/tokens.js";
 import { PlotSVG } from "./PlotSVG.jsx";
 
 /* ── Noise Spread Plot — error-bar style per-column residual spread ── */
@@ -75,7 +75,7 @@ export function NoiseSpreadPlot({ colDetails, flaggedCols, outlierCol, flag, W=C
               stroke={color} strokeWidth={isOutlier ? 2.5 : 2} opacity={isOutlier ? 1 : 0.8}/>
             {/* Centre dot */}
             <circle cx={x} cy={midY} r={isOutlier ? CS.PT_LG.r : CS.PT.r}
-              fill={color} stroke={C.WHITE} strokeWidth="1"/>
+              fill={color} fillOpacity={isOutlier ? 1 : OBS.dot.fillOpacity} stroke={C.WHITE} strokeWidth="1"/>
             {/* Column label */}
             <text x={x} y={H-PB+15} textAnchor="middle" fontSize={CF.AXIS}
               fill={isOutlier ? SIGNAL.RED.dot : C.TEXT_2} fontWeight={isOutlier ? 700 : 400} fontFamily={FF.UI}>
