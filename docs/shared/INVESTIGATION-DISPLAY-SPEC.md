@@ -1684,6 +1684,92 @@ blocks is the single locked unit.
 
 ---
 
+## Relocated surface-design disciplines (caption, composition, scale)
+
+Three discipline sets that govern how a surface is read before it is drawn or relabelled. They are the
+companions to the signal-gating rule (§ "Signal-reading display elements gate on the verdict's
+significance") — that rule governs what an element may *assert*; these govern how its caption reads,
+how the card composes, and whether a render will read at the surface's actual scale.
+
+### Caption discipline (S204)
+
+- **A caption or heading reads the table; it never names the method.** A plot caption or table heading
+  states what the reader is looking at — the contents or finding — while the statistic's identity
+  (Spearman ρ, Pearson r, ANOVA) and any method constraint (a permutation tier ceiling) live once, on
+  the in-card How-this-works (`TEST_METHODS`). This is the three-jobs map's "EXPOUND owns the method,
+  ORIENT stays state-neutral" rule applied to the caption surface. The house style already lived in the
+  clean reference-line labels — "0 (independent)", "≈ 0 (bell-shaped)", "Expected (ratio = 1)" — plain
+  meaning leads, technical value in parentheses; a method-naming heading violates it by leading with the
+  statistic.
+- **Honest, not accusatory.** A screening-tool caption states the observation ("more alike across
+  conditions than chance usually produces"), never the causal verdict ("too similar to have arisen
+  honestly"). The fabrication-versus-legitimate-biology call belongs to the investigator with domain
+  context, downstream at the screening-to-investigation handoff. Frame an expected-direction finding as
+  expected — what real treatments do — not merely as "not suspicious". (Origin: the first S204 CCC
+  legend rewrite overreached into accusation and was corrected before ship.)
+- **"METHODOLOGY names it" is not "the card names it."** Before relocating a statistic name off a
+  caption or heading surface, confirm the in-card How-this-works (`TEST_METHODS`) actually names it —
+  the deep METHODOLOGY.md reference does not count, it is not on the card. The reusable guard: gate a
+  display-surface removal on first confirming the destination surface carries the content. RSC
+  ("permutation test", no Spearman) and Carlisle ("Carlisle's method", no ANOVA) both failed this check
+  though METHODOLOGY.md named both; the heading drops were held until How-this-works was amended.
+
+### Card-composition discipline (S210)
+
+- **Tune a battery-wide frame on a representative case, not the emptiest.** The S210 frame was tuned on
+  a two-test cluster — the emptiest, least representative case — across about eight live-eyeball passes,
+  and several late passes (gutter width, empty left channel, icon placement) were chasing tidiness that
+  read as a problem only because the prototype had so little content beside the chrome. The loop
+  "eyeball, spot one more thing, tune" has no natural stop on a sparse prototype. Stopping rule: once
+  the frame is sound and nothing is broken, stop and re-judge on a dense case rather than optimising
+  against the sparse artifact. Generalises to any shared-component surface pass.
+- **The rank between two stacked elements comes from the lower one dropping, not the upper one rising.**
+  Ranking the test name above its sub-header question by enlarging the name made the name read larger
+  than its own cluster header — a parent/child inversion. The name had two constraints (below the
+  cluster header, above its question); both are met by keeping the name fixed and dropping the question
+  one size step. When a child must rank below a parent and above its own child, move the grandchild, not
+  the child. (Settled in § "Card composition" → "Header-line type ranking".)
+- **A clean component makes its ragged surroundings visible.** Tidying the card frame exposed the
+  section-level left-edge raggedness (four independent left-chrome chains landing title text at four
+  x-positions) and the single-test cleared-strip bulk — neither a card-internal composition issue. The
+  discipline: when a pass makes one surface clean, expect it to reveal adjacent-surface problems, and
+  route those to their own arcs rather than letting the clean pass sprawl to absorb them.
+
+### Surface scale-prediction discipline (S247)
+
+- **Predict a surface's scale behaviour before scoping the fix — and re-predict for the fix to the
+  failed fix.** The per-cell sign strip was illegible at ~200 rows per condition; block-width (one rect
+  per run, width proportional to run length) fixed it on RowMean because Control's length-21 run became
+  a 40px bar against Treatment's 15px ceiling. The same block-width render was a visual no-op on the
+  Runs sibling at ~170 runs per pair — no run long enough to make a fat bar — and was reverted. The
+  fix's success was geometry-dependent, and the geometry differs per card. Every render fix is a scale
+  prediction; compute it per surface, including the surface you are extending the fix onto.
+- **A "free sibling win" is a hypothesis until gated on the sibling's own scale and screenshot.**
+  Enabling blocks on Runs was predicted free from RowMean's geometry and from the sibling-consistency
+  argument (same Wald-Wolfowitz statistic, same component). It was neither free nor a win there. Sibling
+  consistency is a reason to try the same render, not evidence it will read — the sibling needs its own
+  scale-prediction and its own screenshot gate before the shared change ships on it.
+- **The same wrong mental model propagates across surfaces; fixing one instance is not fixing the
+  model.** The RowMean statistic signs residuals around the fitted OLS trend, not the grand mean — yet
+  the grand-mean framing appeared in three independent places: the plot legend, the `TEST_METHODS`
+  expander (`mechanisms.js`), and PLOT-COLOUR-SEMANTICS. Three surfaces, one wrong model. When
+  correcting a framing or baseline error, grep every surface that describes the statistic, not just the
+  one in front of you — the un-looked-at ones carry the highest risk of the same error.
+- **Trace a colour to its source before building a feature that keys to it.** The deferred RowMean
+  condition swatch was scoped to mirror the import-table chip colour, but `buildCondColorMap` is
+  column-fed and returns `{}` for row-grouped conditions, so there was no chip colour to mirror — and
+  the card's prior `condColorMap[label]?.text` was already a silent no-op against the same empty map. A
+  colour-key feature is only as real as its source map; confirm the source resolves for the data the
+  feature runs on before scoping the feature.
+- **A confident "already correct / clean / done" is a verification trigger — including a prior walk-log
+  "NOT-A-DEFECT".** The Test22a "How this test works" walk finding was tagged not-a-defect at the S242
+  walk, but the explainer it cleared described the grand mean (the wrong baseline) — caught only at the
+  S247 human-read gate when the expander was opened. A clean tag on a surface that was never opened at
+  source is an unverified claim wearing a verified label.
+
+---
+
+
 ## Implementation note (for the Code prompt that follows)
 
 This is a render/layout change across the card frame and the disclosure component — logic-
