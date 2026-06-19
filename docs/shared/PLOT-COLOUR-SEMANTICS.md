@@ -452,6 +452,15 @@ flagged", not "low anomaly". Per-consumer caveat: any `TIER_COLOR` surface that
 overlays observed marks (`CC.OBS` blue) on the ramped cells must confirm the slate
 floor reads distinct from `CC.OBS` on that surface.
 
+Matrix carve-out (ruled S254): the discrete-verdict correlation matrices (Rank
+Correlation, IRC) do NOT take the slate floor — their cleared cells are `CC.OBS` blue,
+flagged cells keep the amber→red flagged tier. The S214 "no fourth competing blue"
+rationale was about a dense card carrying observed-blue marks alongside the ramp; a
+correlation cell is a standalone verdict tile with no observed-blue overlaid, so
+"cleared is blue" (the suite-wide observed-mark rule, channel 4) applies here with no
+collision. The slate floor remains the rule for dense `TIER_COLOR` surfaces that DO
+overlay observed marks.
+
 ## Dense magnitude surfaces — reserve by curve, not by tier (ruled — S214)
 
 `TIER_COLOR`'s two-regime ramp suits a *sparse categorical* surface: a handful of
@@ -522,7 +531,7 @@ What each live plot changes. "OK" = already conforms.
 | RegionalNoiseStrip | window fill red, opacity-ramped | OK (red intensity ramp) |
 | RowMeanTrendPlot | sim line teal `CC.EXP`; grand-mean line teal `CC.EXP` dashed, swatch matches line; crossing/run two-tone `SIGN.POS` navy (crossing) / `CC.OBS` blue (run) | **RETIRED S247 `f6c9614`** — component deleted. RowMean redesigned to a per-condition `SignStripPlot` block-width render (one rect per run, width ∝ run length) + run-length evidence table; no sim line, no grand-mean line. The S246 conformance state is kept here for history only: it was colour-correct but illegible on the dense line, which is why the redesign superseded it (WALK Test22a/22b, both DONE S247). For the live render see the `SignStripPlot` row. |
 | SignStripPlot | sign two-tone `SIGN.POS` navy `#002147` (+1) / `CC.OBS` blue `#3B82F6` (−1), neutral | **Landed (two-tone arc, S246 `c4a3e7a`).** Unified onto `CC.OBS` `#3B82F6` + Oxford navy `#002147` `SIGN.POS` (dark = +1 by convention); retired Cambridge pale-blue `#A3C1DA` (the 16b "blue isn't standard" culprit). Categorical encoding, legend stays sign-specific. Screenshot-verified navy/blue distinct |
-| CorrMatrixSVG / consumers | cells via `TIER_COLOR` | `TIER_COLOR` is the two-regime slate→amber→red ramp (S214, corrected within session from the first single-hue red retoken) |
+| CorrMatrixSVG / consumers | cells via `TIER_COLOR`; cleared cell `CC.OBS` blue (S254) | Flagged tiers via `TIER_COLOR` amber→red. **Cleared cell → `CC.OBS` blue (S254 matrix carve-out)** — discrete-verdict tiles, no observed-blue overlay, so the channel-4 "cleared is blue" rule applies; the S214 slate floor is retained only for dense overlay surfaces. Rank Correlation / IRC cleared branch + legend swatch both `CC.OBS` |
 | CoordResidualProfile | residual ramp; matrix via `rhoColor` | residual heatmap = canonical colours + gamma reserve (`RESID_GAMMA = 1.5`, floor `#DAE1EA`, nulls-to-floor; see "Dense magnitude surfaces"), NOT the `TIER_COLOR` two-regime ramp; matrix unchanged (`rhoColor`) |
 
 **Axis-furniture state (S216 — across Path A inline plots):**

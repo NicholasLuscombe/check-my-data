@@ -1,6 +1,6 @@
 /* ── MiniCard: Inter-Replicate Correlation ── */
 
-import { C, FS, FW, FF } from "../../constants/tokens.js";
+import { C, CC, FS, FW, FF } from "../../constants/tokens.js";
 import { TIER_COLOR, cellTextOn } from "../shared/heatmapColors.js";
 import { COND_COLORS, buildCondColorMap } from "../../constants/roles.js";
 import { MiniCardLayout, CardBanner } from "../shared/CardLayout.jsx";
@@ -87,13 +87,13 @@ const matrices = condNames.map(cond => {
 const cellBg = (p) => {
   if (!p) return C.BORDER_L;
   if (p.suspicious) return TIER_COLOR.HIGH;
-  return TIER_COLOR.LOW;
+  return CC.OBS;
 };
 const cellTxt = (p) => cellTextOn(cellBg(p));
 
 // Legend items
 const legend = [
-  { color: TIER_COLOR.LOW, label: "Within expected range" },
+  { color: CC.OBS, label: "Within expected range" },
 ];
 if (nSusp > 0) legend.push({ color: TIER_COLOR.HIGH, label: "Highly correlated (outlier pair)" });
 

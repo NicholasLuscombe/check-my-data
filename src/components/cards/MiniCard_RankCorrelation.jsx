@@ -1,6 +1,6 @@
 /* ── MiniCard: Rank Correlation ── */
 
-import { C, FW, FF } from "../../constants/tokens.js";
+import { C, CC, FW, FF } from "../../constants/tokens.js";
 import { TIER_COLOR, cellTextOn } from "../shared/heatmapColors.js";
 import { buildCondColorMap } from "../../constants/roles.js";
 import { MiniCardLayout, CardBanner } from "../shared/CardLayout.jsx";
@@ -36,14 +36,14 @@ export function MiniCard_RankCorrelation({ result, importConfig, rowMap }) {
   // ── Cell colouring — two tiers: Expected / Elevated ──
   const cellBg = (val) => {
     if (!val) return C.BORDER_L;
-    return val.suspicious ? TIER_COLOR.MID : TIER_COLOR.LOW;
+    return val.suspicious ? TIER_COLOR.MID : CC.OBS;
   };
   const cellTxt = (val) => cellTextOn(cellBg(val));
   const cellBold = (val) => !!val?.suspicious;
 
   // ── Legend ──
   const legendItems = [
-    { color: TIER_COLOR.LOW, label: "Within expected range" },
+    { color: CC.OBS, label: "Within expected range" },
     { color: TIER_COLOR.MID, label: "Suspicious" },
   ];
 
