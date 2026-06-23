@@ -178,8 +178,8 @@ return (
     footer={result.flag !== "LOW" && result.flag !== "N/A"
       ? "Replicates correlate more closely than expected"
       : "Replicates correlate as expected"}
-    lookFor={wins.length > 0 ? "The windowed scan found a stretch of rows where replicates agree more closely than elsewhere. Check whether those rows correspond to a particular experimental group or were added later. Ask for the raw instrument output to verify that the submitted replicates are distinct measurements." : "One or more replicate pairs correlate more strongly than the dataset's signal-to-noise ratio predicts. Check whether those columns might be copies or near-copies of each other. Compare the original instrument files against the submitted data to confirm independent measurements." }
-    implications="Replicates that track each other unusually closely can reflect a high signal-to-noise ratio experiment where the true biological signal dominates random noise. They can also indicate that one replicate was derived from another — for example, by copying a column and adding small perturbations.">
+    lookFor={wins.length > 0 ? "The scan found a stretch of rows where replicates agree more closely than elsewhere. Inspect the raw data files for those rows: check whether they match a particular condition, were added from a different source, or are copies of one another." : "One or more replicate pairs correlate more strongly than the dataset's signal-to-noise ratio expects. Check whether those columns might be copies or near-copies. Inspect the raw data files to confirm the submitted values arise from independent measurements." }
+    implications="Replicates that correlate unusually closely can reflect a high signal-to-noise experiment, where a strong biological signal dominates the random scatter. They can also indicate that one replicate was derived from another; e.g., copied and given small perturbations to make it look like an independent measurement.">
 
     {result.highSNRWarning&&(
       <CardBanner type="warn">

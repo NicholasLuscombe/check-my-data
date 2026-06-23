@@ -70,8 +70,8 @@ export function MiniCard_ValueFrequency({ result, importConfig, rowMap }) {
   return (
     <MiniCardLayout result={result}
       footer={footerText}
-      lookFor="Check whether the over-represented values are round numbers (10, 50, 100) or follow a numpad pattern (12, 23, 34). For digit-pass spikes, look at whether the same fractional substring repeats across otherwise-unrelated rows — template-copied fabrication. Cross-reference with the terminal digit test — if both flag, the evidence for manual entry is stronger. Look at where these values appear in the dataset: are they clustered in specific rows or conditions?"
-      implications="Individual values that spike above their neighbours can reflect natural modes in the data — for example, a detection limit that many samples hit. They can also indicate keyboard-entry patterns, where certain values are typed more often due to motor habits or cognitive biases. Spikes at adjacent numpad values (e.g. 67 and 78) are particularly characteristic of manual entry. A digit-substring spike (same fractional digits across differing integer parts) is characteristic of template-copied fabrication.">
+      lookFor="Check whether the over-used values are round numbers or sit on adjacent numpad keys. For the recurring-fraction case, look for the same digits after the decimal point across unrelated rows. Cross-reference the last-digit test — if both flag, the case for manual entry is stronger. Check whether the over-used values cluster in particular rows or conditions, or run throughout."
+      implications="A value that appears far more often than its neighbours can reflect a natural mode in the data, such as a detection limit many samples reach. It can also indicate values entered by hand: e.g., spikes at adjacent numpad keys point to manual entry, and the same fractional part recurring across unrelated rows points to a copied template.">
 
       {details.length > 0 && (<>
         {result.keyboardPattern && (

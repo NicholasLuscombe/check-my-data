@@ -67,12 +67,8 @@ const footerText = isCleared
   ? "Noise levels are even across columns"
   : "Noise levels differ across columns more than expected";
 const namesColumn = flaggedCols.size > 0;
-const lookForText = !namesColumn
-  ? `Look for one or more columns whose noise differs from the rest — some appearing smoother or rounder, or one noticeably more variable, at similar signal levels. Compare each replicate column's raw values against the instrument output file to check whether any column was smoothed, averaged, or had noise added.`
-  : outlierDir === "quieter"
-  ? `${outlierName || "One column"} has less noise than the others — this can happen when a column's values were smoothed, averaged, or manually adjusted. Compare the flagged column's raw values against the instrument output file. Check whether the quiet column's values are rounder or less variable than the others at similar signal levels.`
-  : `${outlierName || "One column"} has more noise than the others — this can happen when noise was added to one column to disguise data concerns, or when that column was measured under different conditions. Check whether the noisy column corresponds to a different instrument, operator, or date.`;
-const implicationsText = "Unequal variability across replicate columns can result from different instruments, operators, or measurement conditions per column — for example, one plate reader producing noisier readings than another. It can also indicate that one column's values have a different origin from the others — for example, one replicate measured and the others constructed.";
+const lookForText = "Identify which column is the outlier and whether it is quiet or noisy. Inspect the raw data files for that column and compare it against the others to confirm it was measured the same way.";
+const implicationsText = "A column varying more or less than the others can arise from a real difference in how a replicate was run: e.g., a different operator, instrument, or day. It can also indicate a fabricated column: e.g., values typed with too little noise come out quieter than real replicates, and values padded with added noise come out louder.";
 
 if(isAgg) {
   const items=details.map(d=>({...d, ratio:parseFloat(d.varRatio)||0}));
