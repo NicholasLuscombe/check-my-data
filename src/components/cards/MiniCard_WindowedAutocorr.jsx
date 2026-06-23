@@ -101,8 +101,8 @@ export function MiniCard_WindowedAutocorr({ result, importConfig, rowMap }) {
   return (
     <MiniCardLayout result={result}
       footer={footer}
-      lookFor="Localised lag-1 autocorrelation means the replicate differences follow a predictable pattern in a stretch of rows — typically a template-copied region or a hand-jittered block. Check whether the flagged window rows correspond to an identifiable sub-experiment, plate segment, or batch. Compare the values against a fresh instrument export to rule out post-processing ordering."
-      implications="Within-window serial structure can result from time-dependent biological processes affecting adjacent rows (e.g., temperature drift, a single plate read out-of-order). It can also indicate that values in that stretch were generated from a formula linking each row to its neighbour rather than recorded independently.">
+      lookFor="Check whether the flagged window matches a sub-experiment, plate segment, or batch. Inspect those rows in the raw data files, obtain a fresh export to rule out a post-processing re-order, and examine them for values that follow too smooth a sequence."
+      implications="A row-to-row correlation within one window can arise from a time-dependent process affecting neighbouring rows, or a plate read out of order. It can also indicate that values in that stretch were edited or built — a region drawn from a smooth curve, or one block given correlated noise — while the rest of the data was obtained independently.">
 
       {strip && (
         <>

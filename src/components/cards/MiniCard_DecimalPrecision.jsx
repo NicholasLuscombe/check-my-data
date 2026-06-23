@@ -19,7 +19,7 @@ export function MiniCard_DecimalPrecision({ result, importConfig, rowMap }) {
   const hasGap = filledItems.some(d => d.isGap);
 
   const gapCount = (result.perLevel || []).filter(l => l.adjP < 0.001).length;
-  const implications = `${gapCount || "Some"} precision level${gapCount !== 1 ? "s" : ""} show${gapCount === 1 ? "s" : ""} fewer values than the trailing-zero model predicts. A dataset recorded by a single instrument at consistent settings typically shows one dominant precision level with a smooth tail from trailing-zero stripping. Gaps or deficits in this pattern can indicate values from different sources, manual editing, or changes in recording precision mid-experiment.`;
+  const implications = "A shortfall at an intermediate precision level can arise from a change in recording precision partway through a study, or from an instrument that re-ranges automatically. It can also indicate values from more than one source merged into one column: e.g., hand-entered numbers rarely follow the trailing-zero pattern a single instrument produces.";
 
   return (
     <MiniCardLayout result={result}
@@ -27,7 +27,7 @@ export function MiniCard_DecimalPrecision({ result, importConfig, rowMap }) {
       footer={result.flag !== "LOW" && result.flag !== "N/A"
         ? `Mixed precision — ${details.length} levels, suggesting more than one source`
         : "Consistent precision throughout"}
-      lookFor={hasGap ? "A precision gap (e.g. values at 1dp and 3dp but none at 2dp) is impossible from a single instrument. It suggests values were transcribed from different sources or manually constructed with inconsistent rounding." : "Check whether the spread of precision levels is consistent with the stated instrument. A single instrument should produce values at one fixed precision (which then gets trailing-zero-stripped by Excel into 1–2 adjacent levels)."}>
+      lookFor={hasGap ? "A precision gap — values at one and three decimal places but none at two — cannot come from a single instrument. Inspect the raw data files to check whether the values were transcribed from more than one source or entered by hand." : "The precision levels fall short of the single-instrument pattern without a clean gap. Inspect the raw data files to check whether the precision matches the stated instrument — one instrument should produce a single dominant precision, stripped into one or two adjacent levels."}>
 
       {/* S210 (single-surface): section heading dropped — the footer
           fragment (LEAD_HEAD in MiniCardLayout) heads this sole plot. */}

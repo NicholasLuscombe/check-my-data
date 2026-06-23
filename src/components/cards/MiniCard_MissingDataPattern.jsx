@@ -114,8 +114,8 @@ export function MiniCard_MissingDataPattern({ result, importConfig, rowMap }) {
           ? `Missing values concentrated in rows ${fileRow(b.startRow - 1)}–${fileRow(b.endRow - 1)}`
           : "Missing values follow a non-random pattern";
       })()}
-      lookFor="Check if missing data clusters in specific conditions, rows, or column groups. Block missingness — where a rectangular region is entirely empty — is a strong indicator of selective deletion. If missingness is condition-dependent (e.g., more missing in the treatment group), this may indicate data was removed to change results."
-      implications="Missing values that cluster spatially can result from systematic instrument failures — for example, a plate reader losing signal in adjacent wells, or a sample batch that failed processing. They can also indicate selective deletion, where inconvenient values were removed rather than reported.">
+      lookFor="Note where the missing values cluster and whether they form a block or a region. Check whether the gap matches a known event — a failed plate, a sample lost in transit. Inspect the raw data files for those rows and check whether values were present in the original and removed, rather than never recorded."
+      implications="Missing values normally scatter: a failed well here, an unreadable cell there. A rectangular block of missing values, or missingness concentrated in one stretch, can arise innocently from a plate that was never run or a section dropped during collection. It can also indicate selective deletion — rows or values removed because they did not fit, leaving a clean gap where data was taken out.">
 
       {colBarPlot && <>
         <div style={SUB_HEAD}>Per-column missing rate</div>

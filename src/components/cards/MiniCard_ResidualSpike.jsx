@@ -22,8 +22,8 @@ export function MiniCard_ResidualSpike({ result, importConfig, rowMap }) {
   const isGlobalMode = bestPairRho > RHO_DISPLAY_THRESHOLD;
 
   const lookFor = isGlobalMode
-    ? "Blue shading shows where each condition has high residual noise. When multiple strips light up at the same row, that noise is coordinated. The heatmap below shows pairwise ρ — high values (≥ 0.4) between conditions that should be biologically independent suggest shared construction."
-    : "Blue shading shows where each condition has high residual noise. When multiple strips light up at the same row, that noise is coordinated. Focus on the strip alignment, not the ρ matrix — overall correlation is low because the signal is concentrated in a subset of rows.";
+    ? "The heat-map marks each condition's noisiest rows, and the matrix below shows how much those sets overlap between conditions. The signal is the high overlap between conditions that should be independent. Check which rows and conditions are highlighted, and inspect the raw data files for those rows to confirm they were measured independently in each condition."
+    : "The heat-map marks each condition's noisiest rows; the matrix below shows how much those sets overlap. The signal is the unusually high noise in a few shared rows. The number of overlapping rows is small and the overall correlation between conditions is low. Find the noisiest rows across multiple conditions and inspect the raw data files to confirm that they were measured independently in each condition.";
 
   return (
     <MiniCardLayout result={result}
@@ -31,7 +31,7 @@ export function MiniCard_ResidualSpike({ result, importConfig, rowMap }) {
         ? `The ${overlapN} noisiest rows are shared by ${result.bestPair} — the pair with the most overlap`
         : "No shared noisy rows"}
       lookFor={lookFor}
-      implications="Rows that are noisy in one condition and noisy in others can reflect genuine biological covariates — for example, an outlier sample that affects all measurements. They can also indicate that specific rows were edited across multiple conditions, leaving correlated residual patterns even if the edits differ in magnitude.">
+      implications="In typical data, the noisy rows differ from one condition to the next. The same rows being noisy everywhere suggests shared structure. This can arise when an outlier sample or outlier rows affect every measurement. It can also indicate that specific rows were edited across several conditions at once, leaving the same fingerprint of noise across conditions.">
 
       {/* S210: section heading dropped — the footer fragment (LEAD_HEAD in
           MiniCardLayout) heads this primary surface. */}

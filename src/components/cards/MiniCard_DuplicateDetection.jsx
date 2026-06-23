@@ -143,8 +143,8 @@ return (
 
   <MiniCardLayout result={result}
     footer={footer}
-    lookFor="Exact duplicates of entire rows or rectangular blocks of data are a strong indicator of copy-paste fabrication. Check whether the duplicated rows appear in the same experimental condition or across conditions. Ask for raw instrument files to verify that the submitted values are independent measurements."
-    implications="Repeated values can occur naturally in integer or bounded-scale data where few distinct values are possible, or when measurements hit a detection limit. They can also result from accidental row duplication during data assembly — for example, copy-pasting between spreadsheets or merging files with overlapping row ranges.">
+    lookFor="Identical whole rows or rectangular blocks are a strong sign of copy-paste. Check whether the duplicated rows sit in specific conditions or span several. Inspect the raw data files to confirm the submitted values arise from independent measurements."
+    implications="Repeated values can arise naturally: integer or bounded scales allow only so many distinct values, and measurements at a detection limit can pile up. Duplication can arise accidentally: e.g., pasting between spreadsheets, or merging files with overlapping rows. Repeated whole rows or blocks can also be deliberate: e.g., rows copied to pad a thin dataset, inflate the sample size, or manufacture replicates that were never measured.">
 
     {/* ── Duplicated blocks of data evidence ── */}
     {(structuralBlocks.length > 0 || hasRowDups) && (() => {

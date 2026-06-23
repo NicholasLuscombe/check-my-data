@@ -31,7 +31,7 @@ export function MiniCard_Modality({ result, importConfig, rowMap }) {
   // Implications copy renders only when the card is flagged (gated by
   // MiniCardLayout on isFlagged), so the only meaningful branch is the
   // nFlagged > 0 one.
-  const implications = `Values in ${flaggedColStr} are non-unimodal — the distribution shows multiple peaks or a dip exceeding the uniform-reference ceiling. Hartigan's dip statistic exceeding the uniform null is a strong fingerprint of mixture fabrication: two genuinely different sources (different cohorts, batches, or instrument runs) combined and presented as a single declared condition. Examine the column histograms for two or more peaks separated by a clear gap.`;
+  const implications = `Values in ${flaggedColStr} have more than one peak or a gap too deep for a single-peaked distribution. This can arise from real sub-populations within a condition: e.g., multiple populations or batches that behave differently. It can also indicate two separate sources — e.g., different cohorts, runs, or conditions — combined and presented as one declared condition.`;
 
   // Per-condition routing path: aggregator rebuilds `details` as the
   // per-group summary, so we bind the table to `subDetails` (per-row
@@ -58,7 +58,7 @@ export function MiniCard_Modality({ result, importConfig, rowMap }) {
             ? "1 column has more than one peak"
             : `${nFlagged} columns have more than one peak`)
         : "All columns single-peaked"}
-      lookFor="Flagged columns have a Hartigan dip statistic exceeding the uniform-reference null — a unimodal distribution cannot produce dip values that high. Examine the column histogram: look for two or more peaks separated by a clear gap, or for asymmetry consistent with mixing two distributions of different mean or scale."
+      lookFor="Check whether the flagged columns carry the key results. Inspect the histogram to confirm two distinct peaks rather than one skewed spread, then check whether the two groups map onto a recorded split — a batch, plate, or date. Two peaks that cut across a single declared condition with no recorded reason are the concern; two that line up with a known sub-group are likely genuine. Cross-reference the Distribution-shape test, which flags the same columns when the extra peak distorts the overall shape."
       implications={implications}>
 
       {(barItems.length > 0 || skippedItems.length > 0) && (

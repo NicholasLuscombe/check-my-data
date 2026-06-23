@@ -51,8 +51,8 @@ export function MiniCard_RegionalNoise({ result, importConfig, rowMap }) {
       footer={result.flag !== "LOW" && result.flag !== "N/A"
         ? `One region ${parseFloat(bestVarRatio) > 1 ? "noisier" : "quieter"} than the rest — rows ${bestRowsDisplay}`
         : "Noise even across regions"}
-      lookFor={`${bestColName} in rows ${bestRowsDisplay} has unusually ${parseFloat(bestVarRatio) > 1 ? "high" : "low"} noise compared to its own average. Examine that column in that region — are the values smoother, rounder, or more variable than the rest of the column? If multiple windows flag the same column, that column may have been selectively edited in those rows.`}
-      implications="A region that is noisier or quieter than the column average can result from plate edge effects, batch boundaries, or changes in sample quality across the run. It can also indicate that a stretch of values in one column was smoothed or replaced while the rest was left intact.">
+      lookFor="Note which column and which stretch of rows are identified, and whether the stretch is quieter or noisier than the column overall. Check whether it lines up with a batch, plate segment, or run break. Inspect those rows in the raw data files and compare their spread against the rest of the column."
+      implications="A stretch of rows that is noisier or quieter than the rest of its column can arise from a real change partway through: e.g., a reagent batch, recalibration, run break. It can also indicate localised fabrication: e.g., one column smoothed or padded for a block of rows while the rest was left as measured.">
 
       {result.flag !== "LOW" && result.flag !== "N/A" && (() => {
         const windowData = isAgg ? sub : details;

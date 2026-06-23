@@ -96,8 +96,8 @@ export function MiniCard_Runs({ result, importConfig, rowMap }) {
 
   const tooFew = result.firstPairRuns != null && result.firstPairExp != null && result.firstPairRuns < result.firstPairExp;
   const runsImplications = tooFew
-    ? "Long stretches where the same replicate is consistently larger suggest that the difference between replicates is not random across those rows — the pattern is more block-like than independent noise would produce."
-    : "Excessive switching between which replicate is larger suggests values may have been arranged to appear random rather than recorded in their natural order.";
+    ? "Long stretches where the same replicate stays larger mean the difference between replicates is more block-like than independent measurement would produce. This can arise from a slow drift across neighbouring samples; it can also indicate values typed row by row, each anchored to the last."
+    : "The lead switches far more often than chance. There is no common innocent cause for this: over-alternation is itself the signal, and points to values arranged to look random rather than recorded in their natural order.";
 
   // Resolve replicate names
   const hdrs = importConfig?.hdrs || [];
@@ -174,7 +174,7 @@ export function MiniCard_Runs({ result, importConfig, rowMap }) {
   return (
     <MiniCardLayout result={result}
       footer={footerContent}
-      lookFor={hasWindowed ? `Rows ${details.find(d=>d.source==="window")?.startRow||"?"}\u2013${details.find(d=>d.source==="window")?.endRow||"?"} show unusually long stretches where one replicate stays above the other. Examine those rows for signs of sequential construction — are the values suspiciously smooth, evenly spaced, or trending in one direction? Compare the sign pattern in that region against the rest of the dataset.` : "Too few sign changes means replicate differences persist in the same direction for long stretches. This is the signature of values typed row-by-row, where each value is anchored to the previous one. Ask for the original instrument files and compare the row ordering — if the data was re-sorted before submission, that alone can explain the pattern."}
+      lookFor={hasWindowed ? `Rows ${details.find(d=>d.source==="window")?.startRow||"?"}\u2013${details.find(d=>d.source==="window")?.endRow||"?"} show long stretches where one replicate stays larger. Inspect those rows in the raw data files for signs of sequential construction — values unusually smooth, evenly spaced, or trending one way — and compare the lead pattern there against the rest of the dataset.` : "This is a dataset-wide verdict on the sign pattern, not a flag on particular rows. Inspect the raw data files and compare the row order against the submitted data: re-sorted data can explain the pattern on its own. Otherwise, examine the data for values that run too smoothly from one row to the next to have been measured independently."}
       implications={runsImplications}>
 
       {/* Pooled mean-z headline marker: the one-sample t on per-pair z (runs.js)

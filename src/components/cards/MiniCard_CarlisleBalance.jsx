@@ -114,8 +114,8 @@ export function MiniCard_CarlisleBalance({ result, importConfig, rowMap }) {
       footer={result.flag !== "LOW" && result.flag !== "N/A"
         ? "Differences between conditions smaller than chance across most features"
         : "Balance as expected"}
-      lookFor="If most p-values cluster near 1.0, the conditions are suspiciously identical — as if someone fabricated the data to ensure perfect balance. In clinical trials, this is a hallmark of Carlisle-type fabrication. If p-values cluster near 0, allocation may not be random."
-      implications="Groups that match more closely than random assignment predicts can occasionally occur by chance, particularly with small sample sizes or when stratified randomisation was used. Consistently near-perfect balance across many features, however, is unlikely under genuine random assignment and may indicate that group allocations were adjusted after the data was observed.">
+      lookFor="This is a screening signal across the whole table, not a single feature. Confirm the conditions are meant to be randomised groups — a comparison where balance is not expected is the most common innocent cause. If they are, inspect the raw data files and the reported per-variable results, and weigh the finding alongside the other tests rather than on its own. Cross-reference Profile rank agreement and Cross-condition similarity: these three read condition similarity from different angles, and groups that look engineered across all three are far harder to explain as careful randomisation than any one alone."
+      implications="Groups that are too evenly matched across many features can arise from careful stratified randomisation or a large, well-balanced study. They can also indicate baselines adjusted to look matched — the signature of groups tuned after the fact, where real random allocation would leave more feature-to-feature variation.">
 
       {histPlot && <>
         <PlotLayout fitContent>

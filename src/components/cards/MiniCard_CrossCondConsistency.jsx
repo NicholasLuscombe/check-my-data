@@ -41,24 +41,10 @@ import { MiniCardLayout } from "../shared/CardLayout.jsx";
 import { EvidenceTable } from "../shared/EvidenceTable.jsx";
 
 const LOOK_FOR =
-  "A 'too similar' flag between conditions that should produce different " +
-  "biological responses suggests one condition's values may have been " +
-  "derived from the other — the shape of their distributions is closer than " +
-  "random re-assignment between pooled values would produce. Cross-reference " +
-  "flagged pairs with Cross-Condition Rank Correlation and Baseline Balance " +
-  "— convergent signals across Dim IV tests harden the finding. 'Too " +
-  "different' pairs are shown as informational only: on location and scale " +
-  "properties, real treatment effects produce large inter-condition " +
-  "differences by design.";
+  "Note which pair of conditions flagged and on which property. Inspect those conditions in the raw data files and check whether the similarity has a recorded reason — shared controls, a common reference. Cross-reference the duplicate and offset tests: conditions that also share rows or a constant offset point to one built from another. Cross-reference Profile rank agreement and Baseline balance: these three read condition similarity from different angles, and a finding that holds across them is far harder to explain as biology than any one alone.";
 
 const IMPLICATIONS =
-  "Conditions that differ in biology will produce large inter-condition " +
-  "span / MAD / CDF differences — that is the expected fingerprint of a " +
-  "treatment effect on location or scale, not evidence of fabrication. For " +
-  "Stage 1 properties this card flags only the reverse case: pairs that are " +
-  "suspiciously close to each other on a property that honest conditions " +
-  "generally distinguish. Interpret alongside experimental design and any " +
-  "convergent signals from other cross-condition comparisons tests.";
+  "Conditions that are more alike than independent measurement allows can arise when they genuinely share structure — the same control samples, a shared baseline. They can also indicate one condition copied from another, or several conditions generated from one template, leaving them matched on properties that real treatments would separate.";
 
 export function MiniCard_CrossCondConsistency({ result }) {
   const details = result.details || [];
