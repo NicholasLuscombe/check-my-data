@@ -48,7 +48,7 @@ export function MiniCard_Entropy({ result, importConfig, rowMap }) {
             ? "1 column has too few or too many distinct numbers"
             : `${nFlagged} columns have too few or too many distinct numbers`)
         : "Value variety normal across columns"}
-      lookFor="Check whether flagged columns carry the key results or a particular treatment group. For a low-diversity column, cross-reference the Over-used-numbers test — if the same columns flag there, the case for hand entry is stronger. For a high-diversity column, look for values spaced more finely than the instrument's precision should allow."
+      lookFor="Check whether flagged columns carry the key results or a particular treatment group. For a low-diversity column, cross-reference Over-used numbers — if the same columns flag there, the case for hand entry is stronger. For a high-diversity column, look for values spaced more finely than the instrument's precision should allow."
       implications={entropyImplications}>
 
       {barItems.length > 0 && (
