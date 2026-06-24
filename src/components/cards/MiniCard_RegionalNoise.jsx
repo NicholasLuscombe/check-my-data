@@ -58,7 +58,7 @@ export function MiniCard_RegionalNoise({ result, importConfig, rowMap }) {
         return <>
           {/* S210 (multi-surface): primary-surface heading dropped — the footer
               fragment (LEAD_HEAD in MiniCardLayout) heads this primary plot. */}
-          <PlotLayout>
+          <PlotLayout fitContent>
             <RegionalNoiseStrip details={windowData} nRows={result.nRows}
               colNames={colNames} toFileRow={toFileRow} />
           </PlotLayout>

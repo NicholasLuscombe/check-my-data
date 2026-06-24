@@ -185,7 +185,7 @@ export function MiniCard_Runs({ result, importConfig, rowMap }) {
       {!isAgg && Number.isFinite(pooledMeanZ) && Array.isArray(result.pooledZCI_flag) && (<>
         {/* S210 (multi-surface): primary-surface heading dropped — the footer
             fragment (LEAD_HEAD in MiniCardLayout) heads this primary plot. */}
-        <PlotLayout>
+        <PlotLayout fitContent>
           <PooledZMarker value={pooledMeanZ} ci={result.pooledZCI_flag} />
         </PlotLayout>
         <ChartLegend items={[
@@ -198,7 +198,7 @@ export function MiniCard_Runs({ result, importConfig, rowMap }) {
       {stripSeqs.length > 0 ? (<>
         {/* S210 (multi-surface): secondary-surface heading demoted (Regular weight). */}
         <div style={{...SUB_HEAD, marginTop: BLOCK_GAP, fontWeight: FW.NORM, marginBottom: BLOCK_GAP_TIGHT}}>Significant pairs</div>
-        <PlotLayout>
+        <PlotLayout fitContent>
           <SignStripPlot
             groupSignSeqs={stripSeqs}
             fileRow={fileRow}
@@ -212,7 +212,7 @@ export function MiniCard_Runs({ result, importConfig, rowMap }) {
         ]} />
       </>) : result.firstPairSigns?.length ? (<>
         {/* Fallback: single pair strip */}
-        <PlotLayout>
+        <PlotLayout fitContent>
           <SignStripPlot singleSeq={result.firstPairSigns}
             singleRuns={result.firstPairRuns} singleExp={result.firstPairExp}
             defaultRowLabel={`${repName(c1)}\u2013${repName(c2)}`}

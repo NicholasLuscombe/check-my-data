@@ -98,7 +98,7 @@ export function MiniCard_BlockedMahalanobis({ result, importConfig, rowMap }) {
         <>
           {/* S210 (multi-surface): primary-surface heading dropped — the footer
               fragment (LEAD_HEAD in MiniCardLayout) heads this primary plot. */}
-          <PlotLayout>{strip}</PlotLayout>
+          <PlotLayout fitContent>{strip}</PlotLayout>
           <ChartLegend items={[
             { color: CC.THRESH, label: "Row range of flagged block (darker = larger scan statistic)" },
           ]} />

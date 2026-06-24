@@ -33,7 +33,7 @@ export function MiniCard_LOESS({ result, importConfig, rowMap }) {
       {result.noiseProfile?.length > 0 && <>
         {/* S210 (multi-surface): primary-surface heading dropped — the footer
             fragment (LEAD_HEAD in MiniCardLayout) heads this primary plot. */}
-        <PlotLayout>
+        <PlotLayout fitContent>
           <NoiseProfilePlot noiseProfile={result.noiseProfile}
             changepointRow={showChangepoint ? cpRow : null}
             secondaryRow={result.secondaryRow || null}

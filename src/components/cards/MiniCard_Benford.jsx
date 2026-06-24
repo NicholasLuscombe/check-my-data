@@ -26,7 +26,7 @@ return (
 
     {/* S210 (single-surface): section heading dropped — the footer
         fragment (LEAD_HEAD in MiniCardLayout) heads this sole plot. */}
-    <PlotLayout>
+    <PlotLayout fitContent>
         <VBarPlot
           items={items}
           xKey="digit" obsKey="obsNum"

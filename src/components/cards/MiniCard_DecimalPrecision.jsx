@@ -30,7 +30,7 @@ export function MiniCard_DecimalPrecision({ result, importConfig, rowMap }) {
 
       {/* S210 (single-surface): section heading dropped — the footer
           fragment (LEAD_HEAD in MiniCardLayout) heads this sole plot. */}
-      <PlotLayout>
+      <PlotLayout fitContent>
         <VBarPlot
           items={filledItems} xKey="decimalPlaces" obsKey="count"
           barColorKey="barColor"
