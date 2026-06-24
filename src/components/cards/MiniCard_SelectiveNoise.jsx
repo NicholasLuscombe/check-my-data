@@ -58,7 +58,7 @@ if(result.colDetails?.length) {
       {pivotBanner}
       {/* S210 (multi-surface): primary-surface heading dropped — the footer
           fragment (LEAD_HEAD in MiniCardLayout) heads this primary plot. */}
-      <PlotLayout>
+      <PlotLayout fitContent>
           <NoiseSpreadPlot colDetails={labelledCols}
             flaggedCols={flaggedCols.size > 0 ? flaggedCols : undefined}
             flag={result.flag}/>

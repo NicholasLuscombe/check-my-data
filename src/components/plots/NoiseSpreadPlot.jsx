@@ -33,7 +33,7 @@ export function NoiseSpreadPlot({ colDetails, flaggedCols, outlierCol, flag, W=C
   };
 
   return (
-    <PlotSVG W={W} H={H} responsive>
+    <PlotSVG W={W} H={H}>
       {/* Median reference band — empirical central reference (null), teal */}
       {flag && flag !== "LOW" && (
         <rect x={PL} y={py(medianStd)} width={CW} height={py(-medianStd) - py(medianStd)}
