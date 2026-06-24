@@ -79,9 +79,9 @@ export function ColumnStatBar({ items, skipped, cardFlag, refValue, refLabel, re
     return 0;
   });
 
-  const W = CP.W_MD, H = 140, PL = 44, PR = 12, PT = 10, PB = 34;
+  const W = CP.W_MD, PL = 44, PR = 12, PT = 10;
   const CW = W - PL - PR;
-  const CH = H - PT - PB;
+  const CH = 96; // plot-area height (was H 140 − PT 10 − PB 34, the horizontal-label case)
   const vals = slotsTested.map(d => Number(d.value) || 0);
   const rawMax = Math.max(...vals, refValue || 0, 1e-6);
   const step = niceStep(rawMax);
@@ -92,6 +92,25 @@ export function ColumnStatBar({ items, skipped, cardFlag, refValue, refLabel, re
   if (ticks[ticks.length - 1] < rawMax) ticks.push(ticks[ticks.length - 1] + step);
   const mx = ticks[ticks.length - 1] || 1;
   const bw = Math.max(2, Math.floor(CW / allSlots.length) - 4);
+
+  // Rotate the per-bar column labels when a label is wider than the bar slot it
+  // sits under — the same crowd test SvgAxis applies to its categorical
+  // bottom-col labels. Uncrowded charts keep the labels horizontal exactly as
+  // before; only a crowded chart rotates and grows its bottom gutter.
+  const CHAR_W = 6; // px per char at CF.LABEL — must match SvgAxis heuristic
+  const slotPitch = bw + 4;
+  const maxLabelLen = Math.max(...allSlots.map(s => String(s.colLabel || "").length), 1);
+  const rotateLabels = maxLabelLen * CHAR_W > slotPitch;
+
+  // Bottom gutter: fixed 34 for horizontal labels. When rotated, reserve the
+  // labels' vertical extent (about 0.75 of label width at 45 degrees) so they
+  // sit inside the SVG box instead of overflowing it, plus one extra line when
+  // skipped slots add their "skipped" sub-label below the column name.
+  const ROT_GAP = 4; // baseline to rotated-label anchor
+  const PB = rotateLabels
+    ? Math.max(34, ROT_GAP + Math.ceil(0.75 * maxLabelLen * CHAR_W) + 12 + (slotsSkipped.length ? 11 : 0))
+    : 34;
+  const H = PT + CH + PB;
   const yscale = v => PT + CH - (v / mx) * CH;
   const baselineY = PT + CH;
 
@@ -124,7 +143,14 @@ export function ColumnStatBar({ items, skipped, cardFlag, refValue, refLabel, re
           {allSlots.map((s, i) => {
             const x = PL + i * (bw + 4) + 2;
             const cx = x + bw / 2;
-            const labelText = (
+            const rightEdge = x + bw;
+            // Horizontal under the bar centre when uncrowded; rotated -45 at the
+            // bar's right edge when crowded (the SvgAxis bottom-col convention).
+            const labelText = rotateLabels ? (
+              <text x={rightEdge} y={baselineY + ROT_GAP} fontSize={CF.LABEL} fill={C.TEXT_2}
+                textAnchor="end" fontFamily={FF.UI}
+                transform={`rotate(-45,${rightEdge},${baselineY + ROT_GAP})`}>{s.colLabel}</text>
+            ) : (
               <text x={cx} y={H - PB + 12} fontSize={CF.LABEL} fill={C.TEXT_2}
                 textAnchor="middle" fontFamily={FF.UI}>{s.colLabel}</text>
             );
@@ -154,8 +180,14 @@ export function ColumnStatBar({ items, skipped, cardFlag, refValue, refLabel, re
                 <line x1={cx} y1={baselineY} x2={cx} y2={baselineY + tickH}
                   stroke={C.TEXT_3} strokeWidth="1" />
                 {labelText}
-                <text x={cx} y={H - PB + 22} fontSize={CF.TINY} fill={C.TEXT_3}
-                  textAnchor="middle" fontFamily={FF.UI} fontStyle="italic">skipped</text>
+                {rotateLabels ? (
+                  <text x={rightEdge} y={baselineY + ROT_GAP + 11} fontSize={CF.TINY} fill={C.TEXT_3}
+                    textAnchor="end" fontFamily={FF.UI} fontStyle="italic"
+                    transform={`rotate(-45,${rightEdge},${baselineY + ROT_GAP + 11})`}>skipped</text>
+                ) : (
+                  <text x={cx} y={H - PB + 22} fontSize={CF.TINY} fill={C.TEXT_3}
+                    textAnchor="middle" fontFamily={FF.UI} fontStyle="italic">skipped</text>
+                )}
               </g>
             );
           })}
