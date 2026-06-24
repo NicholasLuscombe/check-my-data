@@ -13,7 +13,10 @@ export function MiniCard_Entropy({ result, importConfig, rowMap }) {
   const nLow = result.nLow || 0;
   const nHigh = result.nHigh || 0;
 
-  const flaggedCols = (result.details || []).filter(d => d.flag === "HIGH" || d.flag === "MODERATE").map(d => d.column || d.col).filter(Boolean);
+  // On the aggregated (per-condition) path the aggregator rebuilds `details`
+  // as the per-group summary with no per-column field — the per-column rows
+  // live in `subDetails`. Read the per-column source on whichever path is active.
+  const flaggedCols = ((result.groupsAssessed !== undefined ? result.subDetails : result.details) || []).filter(d => d.flag === "HIGH" || d.flag === "MODERATE").map(d => d.column || d.col).filter(Boolean);
   const flaggedColStr = flaggedCols.length ? flaggedCols.join(", ") : "flagged columns";
   const entropyImplications = nLow > 0 && nHigh === 0
     ? `Fewer distinct values than expected: entries in ${flaggedColStr} repeat more than the distribution predicts. This can arise from instrument resolution limits or heavy rounding. It can also indicate values entered by hand: e.g., reuse of a small set of favourite numbers rather than the full spread a typical measurement generates.`

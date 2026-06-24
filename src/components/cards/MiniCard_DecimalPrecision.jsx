@@ -18,7 +18,6 @@ export function MiniCard_DecimalPrecision({ result, importConfig, rowMap }) {
   });
   const hasGap = filledItems.some(d => d.isGap);
 
-  const gapCount = (result.perLevel || []).filter(l => l.adjP < 0.001).length;
   const implications = "A shortfall at an intermediate precision level can arise from a change in recording precision partway through a study, or from an instrument that re-ranges automatically. It can also indicate values from more than one source merged into one column: e.g., hand-entered numbers rarely follow the trailing-zero pattern a single instrument produces.";
 
   return (

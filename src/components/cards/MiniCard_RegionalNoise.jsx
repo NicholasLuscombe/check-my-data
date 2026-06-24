@@ -37,14 +37,12 @@ export function MiniCard_RegionalNoise({ result, importConfig, rowMap }) {
   }
 
   const bestRows = result.bestWindowRows || "—";
-  const bestCol = result.bestAnomCol || "—";
   const bestVarRatio = result.bestVarRatio || "—";
 
   const bestRowsParts = String(bestRows).match(/(\d+)\D+(\d+)/);
   const bestRowsDisplay = bestRowsParts
     ? `${toFileRow(parseInt(bestRowsParts[1]))}–${toFileRow(parseInt(bestRowsParts[2]))}`
     : bestRows;
-  const bestColName = typeof bestCol === "number" || /^\d+$/.test(bestCol) ? cn(parseInt(bestCol)) : bestCol;
 
   return (
     <MiniCardLayout result={result}

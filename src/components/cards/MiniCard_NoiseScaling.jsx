@@ -6,7 +6,6 @@ import { C, FS, FF } from "../../constants/tokens.js";
 
 export function MiniCard_NoiseScaling({ result, importConfig, rowMap }) {
 if(!result.logPoints||!result.logPoints.length) return null;
-const obs=parseFloat(result.observedSlope)||0;
 const se=parseFloat(result.slopeSE)||0;
 const assayLabel = result.assay === "general" ? "this measurement type" : (ASSAYS.find(a=>a.v===result.assay)?.l || result.assay).toLowerCase();
 return (

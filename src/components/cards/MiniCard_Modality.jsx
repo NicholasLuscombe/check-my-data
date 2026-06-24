@@ -21,7 +21,10 @@ import { DIP_GATE } from "../../tests/modality.js";
 export function MiniCard_Modality({ result, importConfig, rowMap }) {
   const nFlagged = result.nFlagged || 0;
 
-  const flaggedColLabels = (result.details || [])
+  // On the aggregated (per-condition) path the aggregator rebuilds `details`
+  // as the per-group summary with no `.Col` field — the per-column labels live
+  // in `subDetails`. Read the per-column source on whichever path is active.
+  const flaggedColLabels = ((result.groupsAssessed !== undefined ? result.subDetails : result.details) || [])
     .map(d => `Col ${d.Col}`)
     .filter(Boolean);
   const flaggedColStr = flaggedColLabels.length

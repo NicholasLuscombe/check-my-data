@@ -28,45 +28,11 @@ const cn = (di) => dataHeaders[dColMap[di]] || `Column ${di+1}`;
 // Per-column Levene results (available on single-run path)
 const perCol = result.perColumnResults || [];
 const flaggedCols = new Set(perCol.filter(c => c.flagged).map(c => c.col));
-const flaggedNames = [...flaggedCols].map(c => cn(c - 1));
 
-// Identify the worst outlier for the lookFor / footer copy (from per-column results if available, else heuristic)
-const cds = result.colDetails || [];
-let outlierName = "", outlierDir = "";
-if (flaggedNames.length === 1) {
-  outlierName = flaggedNames[0];
-  const fc = perCol.find(c => c.flagged);
-  outlierDir = fc?.direction || "anomalous";
-} else if (flaggedNames.length > 1) {
-  outlierName = flaggedNames.join(", ");
-  outlierDir = "anomalous";
-} else if (cds.length >= 2) {
-  // Legacy heuristic fallback (aggregated path or no per-column results)
-  const vars = cds.map(d => ({ col: d.col, v: Math.pow(parseFloat(d.residualStd)||0, 2) }));
-  vars.sort((a,b) => a.v - b.v);
-  const medianV = vars[Math.floor(vars.length/2)].v;
-  const maxV = vars[vars.length-1].v, minV = vars[0].v;
-  const maxRatio = medianV > 0 ? maxV / medianV : 0;
-  const minRatio = minV > 0 ? medianV / minV : 0;
-  if (maxRatio >= minRatio) {
-    outlierName = cn(vars[vars.length-1].col - 1);
-    outlierDir = "noisier";
-  } else {
-    outlierName = cn(vars[0].col - 1);
-    outlierDir = "quieter";
-  }
-}
-
-// outlierName / outlierDir (computed above) now feed only the lookFor copy
-// below — the footer no longer names a column. The footer-register sweep
-// (S209) retired the per-column naming: the flag derives from the omnibus
-// Bartlett statistic, not the display-only per-column Levene, so a named
-// column could fire on a global-only result the engine never localised.
 const isCleared = result.flag === "LOW" || result.flag === "N/A";
 const footerText = isCleared
   ? "Noise levels are even across columns"
   : "Noise levels differ across columns more than expected";
-const namesColumn = flaggedCols.size > 0;
 const lookForText = "Identify which column is the outlier and whether it is quiet or noisy. Inspect the raw data files for that column and compare it against the others to confirm it was measured the same way.";
 const implicationsText = "A column varying more or less than the others can arise from a real difference in how a replicate was run: e.g., a different operator, instrument, or day. It can also indicate a fabricated column: e.g., values typed with too little noise come out quieter than real replicates, and values padded with added noise come out louder.";
 
