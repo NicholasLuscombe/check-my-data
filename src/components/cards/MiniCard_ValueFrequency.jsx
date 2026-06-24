@@ -70,7 +70,7 @@ export function MiniCard_ValueFrequency({ result, importConfig, rowMap }) {
   return (
     <MiniCardLayout result={result}
       footer={footerText}
-      lookFor="Check whether the over-used values are round numbers or sit on adjacent numpad keys. For the recurring-fraction case, look for the same digits after the decimal point across unrelated rows. Cross-reference the last-digit test — if both flag, the case for manual entry is stronger. Check whether the over-used values cluster in particular rows or conditions, or run throughout."
+      lookFor="Check whether the over-used values are round numbers or sit on adjacent numpad keys. For the recurring-fraction case, look for the same digits after the decimal point across unrelated rows. Cross-reference Last-digit pattern — if both flag, the case for manual entry is stronger. Check whether the over-used values cluster in particular rows or conditions, or run throughout."
       implications="A value that appears far more often than its neighbours can reflect a natural mode in the data, such as a detection limit many samples reach. It can also indicate values entered by hand: e.g., spikes at adjacent numpad keys point to manual entry, and the same fractional part recurring across unrelated rows points to a copied template.">
 
       {details.length > 0 && (<>

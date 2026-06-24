@@ -41,7 +41,7 @@ import { MiniCardLayout } from "../shared/CardLayout.jsx";
 import { EvidenceTable } from "../shared/EvidenceTable.jsx";
 
 const LOOK_FOR =
-  "Note which pair of conditions flagged and on which property. Inspect those conditions in the raw data files and check whether the similarity has a recorded reason — shared controls, a common reference. Cross-reference the duplicate and offset tests: conditions that also share rows or a constant offset point to one built from another. Cross-reference Profile rank agreement and Baseline balance: these three read condition similarity from different angles, and a finding that holds across them is far harder to explain as biology than any one alone.";
+  "Note which pair of conditions flagged and on which property. Inspect those conditions in the raw data files and check whether the similarity has a recorded reason — shared controls, a common reference. Cross-reference Duplicate values and Offset copies: conditions that also share rows or a constant offset point to one built from another. Cross-reference Profile rank agreement and Baseline balance: these three read condition similarity from different angles, and a finding that holds across them is far harder to explain as biology than any one alone.";
 
 const IMPLICATIONS =
   "Conditions that are more alike than independent measurement allows can arise when they genuinely share structure — the same control samples, a shared baseline. They can also indicate one condition copied from another, or several conditions generated from one template, leaving them matched on properties that real treatments would separate.";

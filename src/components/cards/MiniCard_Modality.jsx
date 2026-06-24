@@ -61,7 +61,7 @@ export function MiniCard_Modality({ result, importConfig, rowMap }) {
             ? "1 column has more than one peak"
             : `${nFlagged} columns have more than one peak`)
         : "All columns single-peaked"}
-      lookFor="Check whether the flagged columns carry the key results. Inspect the histogram to confirm two distinct peaks rather than one skewed spread, then check whether the two groups map onto a recorded split — a batch, plate, or date. Two peaks that cut across a single declared condition with no recorded reason are the concern; two that line up with a known sub-group are likely genuine. Cross-reference the Distribution-shape test, which flags the same columns when the extra peak distorts the overall shape."
+      lookFor="Check whether the flagged columns carry the key results. Inspect the histogram to confirm two distinct peaks rather than one skewed spread, then check whether the two groups map onto a recorded split — a batch, plate, or date. Two peaks that cut across a single declared condition with no recorded reason are the concern; two that line up with a known sub-group are likely genuine. Cross-reference Distribution shape, which flags the same columns when the extra peak distorts the overall shape."
       implications={implications}>
 
       {(barItems.length > 0 || skippedItems.length > 0) && (
