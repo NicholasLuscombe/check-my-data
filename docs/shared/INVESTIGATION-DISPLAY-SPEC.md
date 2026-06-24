@@ -787,6 +787,35 @@ single small-multiples surface.
 
 ---
 
+### Every plot caps at its intrinsic width — no responsive mode (S266)
+
+Every plot in the suite uses `PlotLayout fitContent`. A plot computes its own **intrinsic width** —
+the width its geometry requires: the data region plus its reserved gutters (axis labels, titles,
+legend strip) — caps there, and centres in whatever card width it is given. Plots never stretch to
+fill the card.
+
+**There is no responsive plot mode.** A plot that appears to want `width:100%` is a fixed-shape plot
+whose intrinsic width has not been computed yet — not a plot that genuinely scales with the card.
+This was the #27 lesson (S265): NoiseSpreadPlot wore `width:100%` and read as a third "responsive"
+category, but it caps at `CP.W` and renders a fixed shape; dropping the inherited `responsive` flag
+and flipping to `fitContent` was the whole fix. The apparent category dissolved.
+
+**The categorical correlation grid is not an exception — it is one more geometry.** CorrMatrixSVG /
+`SvgAxis` also caps at an intrinsic width and centres; it simply computes that width by counting
+cells (cell size × count + label gutters) rather than by measuring a data region. The rule is
+geometry-independent: *cap at intrinsic width, centre, never fill*. How a given plot computes its
+intrinsic width is a local implementation detail, not a category choice.
+
+**Why fill is forbidden.** A plot that fills a wide card and a narrow card reads as two different
+objects, breaking the Bik crop standard (an evidence visual must read as one standalone unit in a
+crop). Filling also destabilises legend adjacency. Capping at intrinsic width keeps a plot the same
+object at every card width.
+
+Live distribution at S266: 29 `fitContent` / 1 `SvgAxis` grid / 0 responsive-held / 0 accidental
+defaults. The rule is descriptive of the suite as it stands, not aspirational — nothing fills.
+
+---
+
 ## Font System (S71)
 
 ### Font split rule
