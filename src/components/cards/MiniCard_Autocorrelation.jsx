@@ -24,7 +24,7 @@ import { SUB_HEAD, BLOCK_GAP, BLOCK_GAP_TIGHT } from "../shared/styles.js";
 // its CI run small, ~0.06, so a fixed integer scale would be illegible).
 function PooledR1Marker({ value, ci }) {
   if (!Number.isFinite(value)) return null;
-  const W = CP.W_LG, H = 60;
+  const W = CP.W, H = 60;
   const PL = 50, PR = 50, PT = 16;
   const CW = W - PL - PR;
   // Symmetric r-axis around 0; floor keeps near-zero CIs legible (mirrors
@@ -145,7 +145,7 @@ export function MiniCard_Autocorrelation({ result, importConfig, rowMap }) {
           no heading here (mirrors Runs). */}
       {Number.isFinite(meanR1) && Array.isArray(result.pooledR1CI) && (
         <>
-        <PlotLayout>
+        <PlotLayout fitContent>
           <PooledR1Marker value={meanR1} ci={result.pooledR1CI} />
         </PlotLayout>
         <ChartLegend items={[

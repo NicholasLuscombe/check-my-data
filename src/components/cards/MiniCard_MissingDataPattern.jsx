@@ -119,7 +119,7 @@ export function MiniCard_MissingDataPattern({ result, importConfig, rowMap }) {
 
       {colBarPlot && <>
         <div style={SUB_HEAD}>Per-column missing rate</div>
-        <PlotLayout>{colBarPlot}</PlotLayout>
+        <PlotLayout fitContent>{colBarPlot}</PlotLayout>
       </>}
 
       {heatmap && <>

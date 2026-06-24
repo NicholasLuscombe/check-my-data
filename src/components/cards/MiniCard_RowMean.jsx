@@ -73,7 +73,7 @@ export function MiniCard_RowMean({ result, importConfig, rowMap }) {
           sequence. The framing line above already establishes these are
           per-condition tests, so no strip-group caption. */}
       {stripSeqs.length > 0 && (<>
-        <PlotLayout>
+        <PlotLayout fitContent>
           <SignStripPlot
             groupSignSeqs={stripSeqs}
             blocks

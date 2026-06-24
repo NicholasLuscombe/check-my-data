@@ -17,7 +17,7 @@ return (
     lookFor="The wrong assay setting is the most common innocent cause: confirm the assay type is set correctly, since the expected slope depends on it. If the assay is right, inspect the raw data files for whether the noise tracks the signal as it should. Values with the same noise at high and low signal point to a uniform noise figure added by hand."
     implications="A slope below what the assay predicts can arise when values are entered with a uniform amount of noise regardless of signal level: it is the mark of a single noise figure applied across the board, rather than the signal-dependent spread real measurement produces. A slope above the expected value can arise from mixing samples of very different quality, or from values built to exaggerate the spread at high signal.">
 
-    <PlotLayout>
+    <PlotLayout fitContent>
         <MeanVarianceScatter
           logPoints={result.logPoints}
           logCentroid={result.logCentroid}

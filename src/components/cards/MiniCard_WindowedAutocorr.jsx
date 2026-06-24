@@ -108,7 +108,7 @@ export function MiniCard_WindowedAutocorr({ result, importConfig, rowMap }) {
         <>
           {/* S210 (multi-surface): primary-surface heading dropped — the footer
               fragment (LEAD_HEAD in MiniCardLayout) heads this primary plot. */}
-          <PlotLayout>{strip}</PlotLayout>
+          <PlotLayout fitContent>{strip}</PlotLayout>
           <ChartLegend items={[
             { color: C.TEXT_3, label: "Row range of flagged window (darker = larger |r|)" },
           ]} />
