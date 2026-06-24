@@ -16,7 +16,6 @@ export function MiniCard_WithinRowVariance({ result, importConfig, rowMap }) {
   // card matches the §2 highlight's `#` column.
   const { toFileRow } = makeRowMapper(importConfig, rowMap);
   const nOut = result.nOutliers || 0;
-  const nSmooth = (result.flaggedRows || []).filter(r => r.direction === "too smooth").length;
 
   // Z-score histogram
   const zScores = result.zScores || [];

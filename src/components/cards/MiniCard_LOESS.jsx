@@ -21,14 +21,6 @@ export function MiniCard_LOESS({ result, importConfig, rowMap }) {
   const showChangepoint = hasCP && result.flag !== "LOW" && result.flag !== "N/A";
   const regions = result.regionComparison || [];
 
-  // Coordinate-mapped display values
-  const cpRowDisplay = hasCP ? toFileRow(cpRow) : null;
-  const cpBetween = hasCP ? `between rows ${toFileRow(cpRow - 1)} and ${cpRowDisplay}` : null;
-  const bestWinParts = result.bestWindowRows ? String(result.bestWindowRows).match(/(\d+)\D+(\d+)/) : null;
-  const bestWinDisplay = bestWinParts
-    ? `${toFileRow(parseInt(bestWinParts[1]))}–${toFileRow(parseInt(bestWinParts[2]))}`
-    : result.bestWindowRows || "—";
-
   return (
     <MiniCardLayout result={result}
       footer={result.flag !== "LOW" && result.flag !== "N/A"

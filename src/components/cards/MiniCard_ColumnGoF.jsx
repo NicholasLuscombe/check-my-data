@@ -42,7 +42,10 @@ export function MiniCard_ColumnGoF({ result, importConfig, rowMap }) {
   const nHigh = result.nHigh || 0;
   const nLow = result.nLow || 0;
 
-  const flaggedColLabels = (result.details || [])
+  // On the aggregated (per-condition) path the aggregator rebuilds `details`
+  // as the per-group summary with no `.Col` field — the per-column labels live
+  // in `subDetails`. Read the per-column source on whichever path is active.
+  const flaggedColLabels = ((result.groupsAssessed !== undefined ? result.subDetails : result.details) || [])
     .map(d => `Col ${d.Col}`)
     .filter(Boolean);
   const flaggedColStr = flaggedColLabels.length
