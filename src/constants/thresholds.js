@@ -13,7 +13,7 @@ export const FLAG_STYLES = {
   MODERATE: { bg:SIGNAL.AMBER.bg, border:SIGNAL.AMBER.border, text:SIGNAL.AMBER.text, dot:SIGNAL.AMBER.dot, label:"Moderate" },
   LOW:      { bg:SIGNAL.GREEN.bg, border:SIGNAL.GREEN.border, text:SIGNAL.GREEN.text, dot:SIGNAL.GREEN.dot, label:"Clear" },
   "N/A":    { bg:C.BG,            border:C.BORDER,            text:C.TEXT_3,           dot:C.TEXT_3,         label:"N/A" },
-  ERROR:    { bg:SIGNAL.RED.bg,   border:SIGNAL.ERROR.border, text:SIGNAL.RED.text,    dot:SIGNAL.ERROR.dot, label:"ERROR" },
+  ERROR:    { bg:SIGNAL.RED.bg,   border:SIGNAL.RED.border,   text:SIGNAL.RED.text,    dot:SIGNAL.RED.dot,   label:"ERROR" },
 };
 export const PLOT_FC = { HIGH:SIGNAL.RED.dot, MODERATE:SIGNAL.AMBER.dot, LOW:SIGNAL.GREEN.dot, "N/A":C.TEXT_3 };
 
