@@ -1,6 +1,6 @@
 /* ── MiniCard: Missing Data Pattern ── */
 
-import { C, FW, FF, CF, CP, CS, SIGNAL, withAlpha, OBS } from "../../constants/tokens.js";
+import { C, CC, FW, FF, CF, CP, CS, SIGNAL, withAlpha, OBS } from "../../constants/tokens.js";
 import { MiniCardLayout } from "../shared/CardLayout.jsx";
 import { PlotLayout } from "../shared/PlotLayout.jsx";
 import { ChartLegend } from "../shared/ChartLegend.jsx";
@@ -127,7 +127,7 @@ export function MiniCard_MissingDataPattern({ result, importConfig, rowMap }) {
         <PlotLayout fitContent>{heatmap}</PlotLayout>
         <ChartLegend items={[
           { color: MISSING_FILL, label: "Missing cell" },
-          ...(blockItems.length > 0 ? [{ color: "transparent", label: "Significant block", stroke: SIGNAL.RED.dot }] : []),
+          ...(blockItems.length > 0 ? [{ color: "transparent", label: "Significant block", stroke: CC.THRESH }] : []),
         ]} />
       </>}
 

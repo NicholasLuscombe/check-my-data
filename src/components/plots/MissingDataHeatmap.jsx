@@ -1,10 +1,10 @@
-import { C, FF, CF, CS, SIGNAL, withAlpha } from "../../constants/tokens.js";
+import { C, CC, FF, CF, CS, SIGNAL, withAlpha } from "../../constants/tokens.js";
 import { PlotSVG } from "./PlotSVG.jsx";
 
 // Cell colours
 const PRESENT_FILL = C.BG_L; // near-white — almost invisible (slate-50, identical hex)
 const MISSING_FILL = withAlpha(SIGNAL.RED.dot, 0.45); // visible pink at compressed row heights
-const BLOCK_STROKE = SIGNAL.RED.dot; // bold red outline for significant blocks
+const BLOCK_STROKE = CC.THRESH; // bold red outline for significant blocks
 
 /**
  * Spatial heatmap of missing data — rows × columns grid with
