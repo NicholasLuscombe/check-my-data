@@ -50,10 +50,6 @@ export const SIGNAL = {
   RED:   { text:"#991B1B", dot:"#EF4444", bg:"#FEF2F2", border:"#FECACA" },
   AMBER: { text:"#713F12", dot:"#F97316", bg:"#FEFCE8", border:"#FEF08A" },
   GREEN: { text:"#166534", dot:"#22C55E", bg:"#F0FDF4", border:"#BBF7D0" },
-  // ERROR — error-PATH alarm state, deliberately distinct from fabrication-severity
-  // red (lighter border / darker dot). Only the two distinct shades live here; the
-  // ERROR badge's bg/text reuse SIGNAL.RED (see FLAG_STYLES.ERROR).
-  ERROR: { dot:"#dc2626", border:"#fca5a5" },
 };
 
 // 3. ACCENT — 5 functional hues for UI chrome, roles, badges, mechanisms.
