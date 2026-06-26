@@ -1,6 +1,6 @@
 /* ── MiniCard: Within-Row Variance ── */
 
-import { C, CC, CF, CS, FW, FF, OBS, SIGNAL } from "../../constants/tokens.js";
+import { C, CC, CF, CS, FW, FF, OBS } from "../../constants/tokens.js";
 import { MiniCardLayout } from "../shared/CardLayout.jsx";
 import { EvidenceTable } from "../shared/EvidenceTable.jsx";
 import { PlotLayout } from "../shared/PlotLayout.jsx";
@@ -42,7 +42,7 @@ export function MiniCard_WithinRowVariance({ result, importConfig, rowMap }) {
           const h = (c / maxC) * plotH;
           const zMid = zMin + (i + 0.5) * binW;
           const isOutlier = Math.abs(zMid) > Z_THRESH;
-          const fill = isOutlier ? SIGNAL.RED.dot : CC.OBS;
+          const fill = isOutlier ? CC.THRESH : CC.OBS;
           return <rect key={i} x={x} y={padT + plotH - h} width={barW - 0.5} height={h}
             fill={fill} fillOpacity={OBS.areaFill.fillOpacity} stroke={fill} strokeWidth="1" />;
         })}
@@ -51,7 +51,7 @@ export function MiniCard_WithinRowVariance({ result, importConfig, rowMap }) {
           const x = padL + ((z - zMin) / (zMax - zMin)) * plotW;
           return x > padL && x < W - padR ? (
             <line key={z} x1={x} y1={padT} x2={x} y2={padT + plotH}
-              stroke={SIGNAL.RED.dot} strokeWidth={1} strokeDasharray="3,2" opacity={CS.REF.opacity} />
+              stroke={CC.THRESH} strokeWidth={1} strokeDasharray="3,2" opacity={CS.REF.opacity} />
           ) : null;
         })}
         {/* Labels */}
@@ -85,7 +85,7 @@ export function MiniCard_WithinRowVariance({ result, importConfig, rowMap }) {
           {histPlot}
         </PlotLayout>
         <ChartLegend items={[
-          { color: SIGNAL.RED.dot, label: `Outside ±${Z_THRESH}σ threshold`, opacity: OBS.areaFill.fillOpacity },
+          { color: CC.THRESH, label: `Outside ±${Z_THRESH}σ threshold`, opacity: OBS.areaFill.fillOpacity },
           { color: CC.OBS, label: "Within expected range", opacity: OBS.areaFill.fillOpacity },
         ]} />
       </>}

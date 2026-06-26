@@ -1,4 +1,4 @@
-import { CC, CP, CS, C, FF, CF, SIGNAL, OBS, EXP } from "../../constants/tokens.js";
+import { CC, CP, CS, C, FF, CF, OBS, EXP } from "../../constants/tokens.js";
 import { PlotSVG } from "./PlotSVG.jsx";
 
 /* ── Noise Spread Plot — error-bar style per-column residual spread ── */
@@ -78,7 +78,7 @@ export function NoiseSpreadPlot({ colDetails, flaggedCols, outlierCol, flag, W=C
               fill={color} fillOpacity={isOutlier ? 1 : OBS.dot.fillOpacity} stroke={C.WHITE} strokeWidth="1"/>
             {/* Column label */}
             <text x={x} y={H-PB+15} textAnchor="middle" fontSize={CF.AXIS}
-              fill={isOutlier ? SIGNAL.RED.dot : C.TEXT_2} fontWeight={isOutlier ? 700 : 400} fontFamily={FF.UI}>
+              fill={isOutlier ? CC.THRESH : C.TEXT_2} fontWeight={isOutlier ? 700 : 400} fontFamily={FF.UI}>
               {d.label || ("Col " + d.col)}
             </text>
             <text x={x} y={H-PB+28} textAnchor="middle" fontSize={CF.TICK} fill={C.TEXT_3} fontFamily={FF.MONO}>
@@ -86,7 +86,7 @@ export function NoiseSpreadPlot({ colDetails, flaggedCols, outlierCol, flag, W=C
             </text>
             {/* SD value */}
             <text x={x} y={py(sd)-7} textAnchor="middle" fontSize={CF.TICK} fontFamily={FF.MONO}
-              fill={isOutlier ? SIGNAL.RED.dot : C.TEXT_3} fontWeight={isOutlier ? 600 : 400}>
+              fill={isOutlier ? CC.THRESH : C.TEXT_3} fontWeight={isOutlier ? 600 : 400}>
               {sd.toFixed(2)}
             </text>
           </g>
