@@ -409,6 +409,8 @@ The settled design the sub-header/footer arc executes against. Authored S199 aga
 | 7 | Decimal precision | Do the numbers share a consistent precision? | mixed precision — {N} levels, suggesting more than one source | consistent precision throughout |
 | 8 | Over-used numbers | Does any number or digit combination recur more than chance allows? | {N} numbers appear more often than chance allows (full pass) / {N} digit combinations recur more often than chance allows (digit pass) | no number over-represented |
 
+**Casing note (S268).** The cleared-state strings in the rightmost column are written lowercase here because they sit mid-sentence in this budget. The card renders each cleared footer as a standalone line, leading-capitalised ("No unusual rows", "No number over-represented"). The rendered card string is canonical; do not reconcile the card to this table's lowercase — doing so changes every already-correct cleared cell. (Footers gate on the card flag, not a per-unit count — S268, `MiniCard_Mahalanobis.jsx:64` / `MiniCard_ValueFrequency.jsx:55`.)
+
 #8 is a two-pass test (whole-value spikes + recurring fractional digit combinations). "Over-used" (frequency) separates it from #1 Duplicated (structure).
 
 **Cluster 3 — Distribution Shapes** *(header operand: the numbers in each column)*
