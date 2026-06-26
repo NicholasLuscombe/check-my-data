@@ -158,7 +158,7 @@ export function ColumnStatBar({ items, skipped, cardFlag, refValue, refLabel, re
               const v = Number(s.value) || 0;
               const isFlagged = !!s.flagged;
               const fill = isFlagged ? flaggedColor : OBS.areaFill.fill;
-              const fillOpacity = isFlagged ? 0.55 : OBS.areaFill.fillOpacity;
+              const fillOpacity = isFlagged ? 1 : OBS.areaFill.fillOpacity;
               const barH = v <= 0 ? 0 : Math.max(1, (v / mx) * CH);
               return (
                 <g key={i}>

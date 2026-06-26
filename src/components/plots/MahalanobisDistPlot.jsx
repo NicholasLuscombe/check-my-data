@@ -198,7 +198,7 @@ export function MahalanobisDistPlot({ allCondD2, condColorMap, plotD2, plotD2Row
             {s.d2.map((v, i) => {
               return isOutlierAt(i) ? (
                 <circle key={`d${i}`} cx={xscale(i)} cy={yscale(v)} r={4}
-                  fill={CC.THRESH} stroke={C.WHITE} strokeWidth={1.5} opacity={0.85} />
+                  fill={CC.THRESH} stroke={C.WHITE} strokeWidth={1.5} opacity={1} />
               ) : (
                 <circle key={`d${i}`} cx={xscale(i)} cy={yscale(v)}
                   r={2.5} fill={s.color} fillOpacity={OBS.dot.fillOpacity} />

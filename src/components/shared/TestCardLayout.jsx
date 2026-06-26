@@ -63,7 +63,7 @@ export function TestCardLayout({ result, mode, mk, expanded, onToggle, footer, c
   return (
     <div style={{
       background: C.WHITE,
-      border: "1px solid #E5E7EB",
+      border: `1px solid ${C.BORDER_L}`,
       ...(mechStripe ? { borderLeft: `3px solid ${mechStripe}` } : {}),
       borderRadius: "6px",
       padding: mechStripe ? `8px ${RAIL_RIGHT} 8px 10px` : `8px ${RAIL_RIGHT}`,

@@ -55,7 +55,7 @@ export function MiniCard_Mahalanobis({ result, importConfig, rowMap }) {
   // === null → no threshold line, empty outlierRows → no dots). Gate the keys on
   // the same survivor count so the legend never lists an undrawn mark.
   if (totalOutliers > 0) {
-    legendItems.push({ color: CC.THRESH, label: "Outlier", swatchType: "dot", opacity: 0.85 });
+    legendItems.push({ color: CC.THRESH, label: "Outlier", swatchType: "dot", opacity: 1 });
     legendItems.push({ color: CC.THRESH, label: "Significance threshold", swatchType: "line", dashed: true, opacity: 0.7 });
   }
 
