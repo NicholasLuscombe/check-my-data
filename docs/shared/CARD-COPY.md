@@ -22,6 +22,12 @@ Chat-owned, tracked. Grouped by UI family in display order.
 Noise / variability / spread: **noise** = replicate/measurement error; **variability** = possibly-genuine
 (biological) dispersion; **spread** = the distribution-shape sense. Orwell override above all.
 
+**Transcription note.** Markdown emphasis markers (`*word*`) here are doc-only — they aid the human
+reading this source. Strip them (keep the words) when transcribing to `TEST_METHODS`: `methodText`
+renders raw in a div (`CardLayout.jsx`), so literal asterisks would show in the card. Entries carrying
+emphasis are therefore intentionally **not** byte-identical between this doc and `TEST_METHODS`; that
+is not drift. (Strip the leading `**How this test works.**` label on the same basis.)
+
 **Parked (not locked):**
 - **Row-block shift (Row-Mean Runs)** — copy held pending the engine broadening to column-grouped data
   (BANKED). Stub only below.
@@ -179,7 +185,7 @@ Noise / variability / spread: **noise** = replicate/measurement error; **variabi
 
 ### Noise correlation (Autocorrelation)
 
-**How this test works.** Takes the difference between each replicate pair and checks whether that difference is correlated from one row to the next — in independent measurements, one row's difference tells you nothing about the next (lag-1 autocorrelation, one-sample t-test). It pools all rows into a single dataset-wide measure, rather than locating where the correlation sits; a pattern confined to one stretch is the windowed test's job. It runs only when the rows are in a meaningful order — plate position, run sequence, or time — which you set at import; in an arbitrary order, such as a gene list or an alphabetised index, row-to-row correlation has no meaning.
+**How this test works.** Takes the difference between each replicate pair and checks whether that difference is correlated from one row to the next (lag-1 autocorrelation, one-sample t-test). In independent measurements, one row's difference tells you nothing about the next. It pools all rows into a single dataset-wide measure rather than locating where the correlation sits — a pattern confined to one stretch is the windowed test's job. It runs only when the rows are in a meaningful order set at import; in an arbitrary order, such as a gene list, row-to-row correlation has no meaning.
 
 **What a positive result means.** A correlation from row to row can arise from a time-dependent process: e.g., temperature drift or reagent degradation affecting neighbouring samples. It can also indicate values edited row by row, each nudged slightly from the one above — hand editing that follows a hidden template leaves exactly this kind of serial trail, which independent measurement does not.
 
@@ -330,7 +336,7 @@ Noise / variability / spread: **noise** = replicate/measurement error; **variabi
 
 ### Cross-condition similarity (Cross-Condition Consistency)
 
-**How this test works.** Compares conditions against each other on a set of properties — their spread, their shape, their digit patterns, the way noise scales with signal — and checks whether any pair is more alike, or for some properties more different, than independent conditions should be (pairwise comparison across conditions, permutation null, corrected across all property-and-pair comparisons). For spread and shape, only unusual *similarity* counts as a forensic signal, since real treatments are expected to differ; for properties that should hold across conditions regardless of treatment, both too-similar and too-different count.
+**How this test works.** Compares conditions against each other on a set of properties — their spread, their shape, their digit patterns, the way noise scales with signal — and checks whether any pair is more alike, or for some properties more different, than independent conditions should be (pairwise comparison across conditions, permutation null, corrected across all property-and-pair comparisons). For spread and shape, only unusual *similarity* counts as a signal, since real treatments are expected to differ. For properties that should hold across conditions regardless of treatment, both too-similar and too-different count.
 
 **What a positive result means.** Conditions that are more alike than independent measurement allows can arise when they genuinely share structure — the same control samples, a shared baseline. They can also indicate one condition copied from another, or several conditions generated from one template, leaving them matched on properties that real treatments would separate.
 
@@ -340,7 +346,7 @@ Noise / variability / spread: **noise** = replicate/measurement error; **variabi
 
 ### Baseline balance (Baseline Balance)
 
-**How this test works.** Tests each measured variable — each baseline characteristic, such as age, weight, or a marker level — for a difference between the conditions, then checks the spread of those results across all of them. Under honest random allocation the differences vary feature to feature; a set of features that are all *too* well matched between conditions is the signal (per-feature ANOVA across conditions, then a test for an excess of near-perfect matches against the uniform spread honest allocation produces). It looks for overall over-balance, not for any single matched variable.
+**How this test works.** Tests each measured variable — each baseline characteristic, such as age, weight, or a marker level — for a difference between the conditions (per-feature ANOVA across conditions). It then checks the spread of those per-feature results: under honest random allocation the differences vary feature to feature, and a set of features that are all *too* well matched between conditions is the signal (a test for an excess of near-perfect matches against the uniform spread honest allocation produces). It looks for overall over-balance, not for any single matched variable.
 
 **What a positive result means.** Groups that are too evenly matched across many features can arise from careful stratified randomisation or a large, well-balanced study. They can also indicate baselines adjusted to look matched — the signature of groups tuned after the fact, where real random allocation would leave more feature-to-feature variation.
 
