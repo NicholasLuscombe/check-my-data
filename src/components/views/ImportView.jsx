@@ -706,7 +706,7 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
 
       {data&&<div style={zoneGap}/>}
       {data&&(
-        <div style={{...zonePanel,...(sum&&sum.nDC<2?{borderLeft:`3px solid #F59E0B`}:{})}}>
+        <div style={{...zonePanel,...(sum&&sum.nDC<2?{borderLeft:`3px solid ${BADGE.REQUIRED.rule}`}:{})}}>
         {zoneHeader("2", "Review columns")}
         <div style={{marginBottom:"0"}}>
           <div style={{display:"flex",alignItems:"center",gap:"8px",marginBottom:"6px",flexWrap:"wrap"}}>
@@ -791,7 +791,7 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
           const isAuto = colRelAutoSet;
           const isRequired = !colRelationship && !isAuto;
           return (
-          <div style={{background:C.WHITE, border:`1px solid ${C.BORDER_L}`, borderLeft:isRequired?`3px solid #F59E0B`:`3px solid ${C.BORDER_L}`, borderRadius:CR.LG,padding:"14px 18px",marginBottom:"8px"}}>
+          <div style={{background:C.WHITE, border:`1px solid ${C.BORDER_L}`, borderLeft:isRequired?`3px solid ${BADGE.REQUIRED.rule}`:`3px solid ${C.BORDER_L}`, borderRadius:CR.LG,padding:"14px 18px",marginBottom:"8px"}}>
             <div style={{fontSize:FS.base,color:C.TEXT,marginBottom:"10px",lineHeight:"1.5",display:"flex",alignItems:"baseline",gap:"8px",flexWrap:"wrap"}}>
               <span>Are the {sum.nDC} DATA columns <strong>replicates</strong> or <strong>non-replicates</strong>?</span>
               {isRequired&&<span style={{display:"inline-block",fontSize:FS.xs,background:BADGE.REQUIRED.bg,color:BADGE.REQUIRED.text,borderRadius:CR.S2,padding:"2px 6px",fontWeight:FW.MED,userSelect:"none"}}>REQUIRED</span>}
@@ -849,7 +849,7 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
               : null)
             : null;
           return (
-          <div style={{background:C.WHITE, border:`1px solid ${C.BORDER_L}`, borderLeft:isRequired?`3px solid #F59E0B`:`3px solid ${C.BORDER_L}`, borderRadius:CR.LG,padding:"14px 18px",marginBottom:"8px"}}>
+          <div style={{background:C.WHITE, border:`1px solid ${C.BORDER_L}`, borderLeft:isRequired?`3px solid ${BADGE.REQUIRED.rule}`:`3px solid ${C.BORDER_L}`, borderRadius:CR.LG,padding:"14px 18px",marginBottom:"8px"}}>
             <div style={{fontSize:FS.base,color:C.TEXT,marginBottom:autoSubText?"4px":"10px",lineHeight:"1.5",display:"flex",alignItems:"baseline",gap:"8px",flexWrap:"wrap"}}>
               <span>Is the row order <strong>meaningful</strong> (plate position, instrument sequence, dose gradient) or <strong>arbitrary</strong> (gene list, alphabetised protein IDs, subject ID)?</span>
               {isRequired&&<span style={{display:"inline-block",fontSize:FS.xs,background:BADGE.REQUIRED.bg,color:BADGE.REQUIRED.text,borderRadius:CR.S2,padding:"2px 6px",fontWeight:FW.MED,userSelect:"none"}}>REQUIRED</span>}

@@ -1099,7 +1099,7 @@ export function ReportView({ results, importConfig, matrix, rowMap, onBack, onCh
                   const catResults = results.filter(r => TEST_MECHANISM[r.name] === mk && r.flag !== "N/A");
                   return (
                     <div key={mk}>
-                      {idx > 0 && <div style={{borderTop:"1px solid #E0E0E0",margin:"8px 0"}}/>}
+                      {idx > 0 && <div style={{borderTop:`1px solid ${C.BORDER_L}`,margin:"8px 0"}}/>}
                       <CategoryRow mk={mk} mode="qc"
                         label={MECHANISMS[mk]?.label || mk} isFlagged={isFl} hasHigh={hasHigh}
                         description={catDescs[mk]}
@@ -1203,7 +1203,7 @@ export function ReportView({ results, importConfig, matrix, rowMap, onBack, onCh
                 const { group, flagged, applicable, isFlagged } = cat;
                 return (
                   <div key={mk}>
-                    {idx > 0 && <div style={{borderTop:"1px solid #E0E0E0",margin:"8px 0"}}/>}
+                    {idx > 0 && <div style={{borderTop:`1px solid ${C.BORDER_L}`,margin:"8px 0"}}/>}
                     <CategoryRow mk={mk} mode="review"
                       label={group.label} isFlagged={isFlagged} hasHigh={flagged.length > 0}
                       description={catDescsR[mk]}
