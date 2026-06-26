@@ -51,8 +51,13 @@ export function MiniCard_Mahalanobis({ result, importConfig, rowMap }) {
   } else if (hasSinglePlot) {
     legendItems.push({ color: CC.OBS, label: "Normal", swatchType: "dot", opacity: OBS.dot.fillOpacity });
   }
-  legendItems.push({ color: CC.THRESH, label: "Outlier", swatchType: "dot", opacity: 0.85 });
-  legendItems.push({ color: CC.THRESH, label: "Significance threshold", swatchType: "line", dashed: true, opacity: 0.7 });
+  // S267: the plot drops both marks in the zero-survivor state (outlierThreshold
+  // === null → no threshold line, empty outlierRows → no dots). Gate the keys on
+  // the same survivor count so the legend never lists an undrawn mark.
+  if (totalOutliers > 0) {
+    legendItems.push({ color: CC.THRESH, label: "Outlier", swatchType: "dot", opacity: 0.85 });
+    legendItems.push({ color: CC.THRESH, label: "Significance threshold", swatchType: "line", dashed: true, opacity: 0.7 });
+  }
 
   return (
     <MiniCardLayout result={result}
