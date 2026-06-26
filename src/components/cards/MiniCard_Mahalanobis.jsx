@@ -61,7 +61,7 @@ export function MiniCard_Mahalanobis({ result, importConfig, rowMap }) {
 
   return (
     <MiniCardLayout result={result}
-      footer={totalOutliers > 0
+      footer={(result.flag !== "LOW" && result.flag !== "N/A")
         ? `${totalOutliers} row${totalOutliers !== 1 ? "s have" : " has"} an unusual combination of values`
         : "No unusual rows"}
       lookFor="The test names the specific rows. Inspect those rows in the raw data files and check whether each is a recorded anomaly — a known bad sample, a flagged well — or has no explanation. Cross-reference the other row-level tests: a row that also flags for smoothness or duplication is more than a lone outlier. Cross-reference Covariance anomalies as well — a row that sits inside a block flagged there is part of a structured anomaly, not a stray point, which the per-row view alone cannot tell you."

@@ -52,7 +52,7 @@ export function MiniCard_ValueFrequency({ result, importConfig, rowMap }) {
     g.rows.add(fileRow(c.row));
   }
 
-  const footerText = nSpikes === 0
+  const footerText = (result.flag === "LOW" || result.flag === "N/A")
     ? "No number over-represented"
     : result.drivingPass === "digit"
       ? `${nSpikes} digit combination${nSpikes !== 1 ? "s" : ""} recur${nSpikes !== 1 ? "" : "s"} more often than chance allows`
