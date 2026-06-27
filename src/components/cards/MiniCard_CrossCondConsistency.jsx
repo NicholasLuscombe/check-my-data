@@ -97,12 +97,12 @@ export function MiniCard_CrossCondConsistency({ result }) {
   // leftover and wraps long skip-reason strings (per-cell whiteSpace override
   // below). Five declared widths sum to 640px.
   const columns = [
-    { label: "Property",    align: "left",  width: "180px" },
-    { label: "Pair",        align: "left",  width: "195px" },
-    { label: "Observed",    align: "right", width: "85px"  },
-    { label: "Null median", align: "right", width: "105px" },
-    { label: "Adj. p",      align: "right", width: "75px"  },
-    { label: "Finding",     align: "left"                  },
+    { label: "Property",    align: "left", width: "180px" },
+    { label: "Pair",        align: "left", width: "195px" },
+    { label: "Observed",                   width: "85px"  },
+    { label: "Null median",                width: "105px" },
+    { label: "Adj. p",                     width: "75px"  },
+    { label: "Finding",     align: "left"                 },
   ];
 
   const AMBER_BG       = SIGNAL.AMBER.bg;
