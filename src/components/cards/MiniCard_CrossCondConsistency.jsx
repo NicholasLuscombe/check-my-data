@@ -35,7 +35,7 @@
    mistaking it for a forensic finding. Skipped / degenerate rows sink to
    the bottom. */
 
-import { C, FS, FW, FF, SIGNAL } from "../../constants/tokens.js";
+import { C, FW, FF, SIGNAL } from "../../constants/tokens.js";
 import { fmtP } from "../../constants/thresholds.js";
 import { MiniCardLayout } from "../shared/CardLayout.jsx";
 import { EvidenceTable } from "../shared/EvidenceTable.jsx";
@@ -63,7 +63,12 @@ export function MiniCard_CrossCondConsistency({ result }) {
   const amber       = running.filter(d => isAmberRow(d)).sort(byAdjP);
   const forensicLow = running.filter(d => d.forensic && !isAmberRow(d)).sort(byAdjP);
   const informational = running.filter(d => !d.forensic).sort(byAdjP);
-  const ordered = [...amber, ...forensicLow, ...informational, ...skipped];
+  // Show only measures that ran; skipped measures drop out of the table into the
+  // skip-count note below it. Order unchanged: amber-first, then as-expected
+  // (forensic-LOW + informational).
+  const ordered = [...amber, ...forensicLow, ...informational];
+  const skippedCount = skipped.length;
+  const totalMeasures = details.length;
   // nAmber: count surfaced in the footer. Derived from the same predicate
   // that tints rows amber, so footer / table / verdict agree. Engine's
   // result.nFlagged keys on ALPHA.FLAG (HIGH-only) and reads 0 here because
@@ -84,29 +89,45 @@ export function MiniCard_CrossCondConsistency({ result }) {
   // the flag tier, and the muted-text styling on informational rows
   // distinguishes them from forensic-LOW. Dropping the column also
   // resolves the right-edge clip on narrow viewports.
+  // Column width set. Pair sized for the 26-char max ("Treatment_A vs
+  // Treatment_B" / "Inhibitor_A vs Inhibitor_B", confirmed rendering on DS01/02/
+  // 16/17). Pair and Finding both carry a per-cell whiteSpace override (below) so
+  // long pairs and skip-reason strings wrap within their width rather than clip;
+  // Finding carries NO width — under tableLayout:fixed it absorbs the leftover.
+  // Five declared widths sum to 535px.
   const columns = [
-    { label: "Property", align: "left" },
-    { label: "Pair",     align: "left" },
-    { label: "Observed" },
-    { label: "Null median" },
-    { label: "Adj. p" },
-    { label: "Finding" },
+    { label: "Property",    align: "left", width: "160px" },
+    { label: "Pair",        align: "left", width: "140px" },
+    { label: "Observed",                   width: "75px"  },
+    { label: "Null median",                width: "90px"  },
+    { label: "Adj. p",                     width: "70px"  },
+    { label: "Finding",     align: "left"                 },
   ];
 
-  const AMBER_BG       = SIGNAL.AMBER.bg;
   const INFORMATIONAL_COLOR = C.TEXT_3; // muted secondary text
-  const rows = ordered.map(d => {
+  const buildRow = (d) => {
     const amberHere = isAmberRow(d);
-    // Style per cell is either amber-bg (amber row) or muted-color (informational row).
-    // Ran-but-ran-forensic-LOW rows use the default EvidenceTable styling (no override).
+    // Style per cell: amber text + Semibold on flagged rows (the shared MiniCard
+    // flagged-row treatment — matches Blocked Mahalanobis / Windowed Autocorrelation
+    // / Autocorrelation), muted colour on informational rows. Text-only, so the
+    // zebra stripe shows through. Ran-but-forensic-LOW rows use the default
+    // EvidenceTable styling (no override).
     let cellStyle;
-    if (amberHere) cellStyle = { background: AMBER_BG };
+    if (amberHere) cellStyle = { color: SIGNAL.AMBER.text, fontWeight: FW.SEMI };
     else if (d.ran && !d.forensic) cellStyle = { color: INFORMATIONAL_COLOR };
     const cell = (v) => cellStyle ? { value: v, style: cellStyle } : v;
+    // Pair holds a "{condA} vs {condB}" label up to 26 chars ("Treatment_A vs
+    // Treatment_B"); whiteSpace:"normal" lets it wrap within its 140px column
+    // rather than overflow-clip under tableLayout:fixed. Preserves the row's
+    // amber-bg / muted-colour styling.
+    const cellPair = (v) => ({ value: v, style: { ...(cellStyle || {}), whiteSpace: "normal" } });
     // Finding is a non-contiguous text column (past identifierColumns); force
     // FF.UI so it reads sans-serif like every other card's Finding word, while
-    // preserving the row's amber-bg / muted-colour styling.
-    const cellFinding = (v) => ({ value: v, style: { ...(cellStyle || {}), fontFamily: FF.UI } });
+    // preserving the row's amber-bg / muted-colour styling. whiteSpace:"normal"
+    // overrides EvidenceTable's default nowrap so long skip-reason strings wrap
+    // within Finding's leftover share under tableLayout:fixed (rather than
+    // overflowing and clipping). The five fixed columns are unaffected.
+    const cellFinding = (v) => ({ value: v, style: { ...(cellStyle || {}), fontFamily: FF.UI, whiteSpace: "normal" } });
 
     // S219 (per-unit principle, INVESTIGATION-DISPLAY-SPEC:525): the Finding word
     // follows the corrected significance the verdict uses (isAmberRow — the
@@ -126,23 +147,29 @@ export function MiniCard_CrossCondConsistency({ result }) {
 
     return [
       cell(d.property),
-      cell(d.pair),
+      cellPair(d.pair),
       cell(d.observed),
       cell(d.nullMedian),
       cell(d.ran && d.adjP != null ? fmtP(d.adjP) : "—"),
       cellFinding(finding),
     ];
-  });
+  };
+
+  // One table, amber-first. `ordered` is [...amber, ...forensicLow,
+  // ...informational, ...skipped], so flagged rows sort to the top and stay in
+  // view; the amber per-cell shade (buildRow) marks them. No separate flagged
+  // table — the shade does what a second header chrome would have duplicated.
+  const rows = ordered.map(buildRow);
 
   const identifierColumns = 2; // Property, Pair — sans-serif
 
-  const legendStyle = {
-    fontSize: FS.sm,
-    fontFamily: FF.UI,
-    color: C.TEXT_2,
-    marginTop: "4px",
-    lineHeight: "1.5",
-  };
+  // One caption surface: the highlighted-rows sentence (when any row is flagged)
+  // and the skip-count sentence (when any measure was skipped) flow together and
+  // wrap as one block. Each half keeps its own gate.
+  const captionParts = [];
+  if (amber.length > 0) captionParts.push("Highlighted rows are the condition pairs flagged as too alike; lowest adjusted p first.");
+  if (skippedCount > 0) captionParts.push(`${skippedCount} of ${totalMeasures} measures could not be tested — too few replicates or too little spread to assess.`);
+  const caption = captionParts.join(" ");
 
   return (
     <MiniCardLayout result={result}
@@ -151,19 +178,17 @@ export function MiniCard_CrossCondConsistency({ result }) {
       implications={IMPLICATIONS}>
 
       {result.flag !== "N/A" && rows.length > 0 && (
-        <>
-          {/* S210 (single-surface): section heading dropped — the footer
-              fragment (LEAD_HEAD in MiniCardLayout) heads this sole table. */}
-          <EvidenceTable
-            columns={columns}
-            rows={rows}
-            identifierColumns={identifierColumns}
-            maxHeight={260}
-          />
-          <div style={legendStyle}>
-            Amber rows flagged: two conditions more alike than expected. Muted rows compare conditions that real treatments separate, so they're never flagged.
-          </div>
-        </>
+        // maxHeight 300px ≈ 12 single-line rows: the common short tables (incl.
+        // both flagged fixtures) render in full, while the three-condition
+        // fixtures (up to 21 ran rows) cap into a scroll rather than a wall.
+        // Amber sorts to the top, so flagged rows stay above any scroll.
+        <EvidenceTable
+          columns={columns}
+          rows={rows}
+          identifierColumns={identifierColumns}
+          maxHeight={300}
+          footerText={caption || undefined}
+        />
       )}
 
     </MiniCardLayout>
