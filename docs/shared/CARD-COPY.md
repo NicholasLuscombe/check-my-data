@@ -89,6 +89,8 @@ is not drift. (Strip the leading `**How this test works.**` label on the same ba
 
 **How this test works.** Pools the last digit of every value across the dataset and counts how often the digits 0-9 appear, comparing with the flat spread expected in typical datasets: each digit should turn up about equally often (chi-squared goodness-of-fit against a uniform spread). It counts digits 1-9 only if the data appears to have stripped trailing zeros.
 
+**Verdict headline.** Flagged: "Last digits are not evenly spread". Cleared: "Last digits are evenly spread".
+
 **What a positive result means.** An uneven spread of last digits can arise from instrument truncations or file conversions: e.g., strip trailing zeros, rounding during export. It can also indicate manually entered values: e.g., typed numbers display patterns favouring some digits and avoiding others.
 
 **What to look for.** Check which digits are over- or under-used. A trend toward 0 and 5 suggests rounding. A trend across other digits points to manual entry, with trends involving several digits being more indicative.
@@ -98,6 +100,8 @@ is not drift. (Strip the leading `**How this test works.**` label on the same ba
 ### First-digit pattern (Benford's Law (First Digit))
 
 **How this test works.** Within each column, counts how often the digits 1-9 appear as the first digit and compares with the Benford pattern — lower first digits typically occur more often than higher ones (mean absolute deviation from Benford against a simulated null). It tests each column separately and names the columns that depart from the pattern; it applies only to wide-range, positive data and does not run on whole numbers.
+
+**Verdict headline.** Flagged: "Leading digits depart from the expected pattern". Cleared: "Leading digits match the expected pattern".
 
 **What a positive result means.** A departure from the Benford pattern can arise in data with a narrow range or a bounded scale, where the pattern does not apply. It can also indicate chosen or manually generated values: e.g., typed numbers rarely reproduce the trend toward low first digits.
 
@@ -109,6 +113,8 @@ is not drift. (Strip the leading `**How this test works.**` label on the same ba
 
 **How this test works.** Within each column, counts how often each digit 0–9 appears as the second digit and compares with the expected pattern — lower second digits occur slightly more often than higher ones (mean absolute deviation from the expected pattern against a simulated null). It tests each column separately and names the columns that depart; it applies only to wide-range, positive data and does not run on whole numbers, where second digits concentrate at 0. Most powerful on large datasets, where small departures become detectable.
 
+**Verdict headline.** Flagged: "Second digits depart from the expected pattern". Cleared: "Second digits match the expected pattern".
+
 **What a positive result means.** Departure from the Benford second digit pattern can arise in data with a narrow range or a bounded scale, where the pattern does not apply. It can also indicate chosen or manually generated values and it is harder to mimic than the first digit pattern: e.g., adjustments to the first digits to look natural often leave the less-familiar second-digit pattern wrong.
 
 **What to look for.** As with First-digit pattern, treat the positive test as a screening signal: confirm the data really is wide-range positive — the pattern does not apply otherwise and that is the most common innocent cause — and weigh it alongside the other tests rather than on its own. A second-digit flag is corroborating evidence, not a standalone finding.
@@ -118,6 +124,8 @@ is not drift. (Strip the leading `**How this test works.**` label on the same ba
 ### Decimal precision (Decimal Precision Consistency)
 
 **How this test works.** A single instrument records every value in a column at the same precision, and export tools then strip trailing zeros at predictable rates, leaving a smooth tail of shorter values. Within each column, this test checks whether the decimal places follow that pattern, or whether some precision levels are oddly underused (one-tailed binomial deficit test against the trailing-zero model). It tests each column separately and names the columns that fall short.
+
+**Verdict headline.** Flagged: "Mixed precision — {n} levels, suggesting more than one source". Cleared: "Precision is consistent throughout".
 
 **What a positive result means.** A shortfall at an intermediate precision level can arise from a change in recording precision partway through a study, or from an instrument that re-ranges automatically. It can also indicate values from more than one source merged into one column: e.g., hand-entered numbers rarely follow the trailing-zero pattern a single instrument produces.
 
@@ -130,6 +138,8 @@ is not drift. (Strip the leading `**How this test works.**` label on the same ba
 ### Over-used numbers (Value-Frequency Spike)
 
 **How this test works.** Checks whether any value appears far more often than the values immediately around it (Poisson tail test against a local smoothed expectation). A second pass checks whether the same digits after the decimal point recur across unrelated whole numbers. It runs on mostly-whole-number data, where hand entry leaves the clearest trace.
+
+**Verdict headline.** Flagged: "{n} numbers appear more often than expected" / "{n} digit combinations recur more often than expected". Cleared: "No numbers appear more often than expected".
 
 **What a positive result means.** A value that appears far more often than its neighbours can reflect a natural mode in the data, such as a detection limit many samples reach. It can also indicate values entered by hand: e.g., spikes at adjacent numpad keys point to manual entry, and the same fractional part recurring across unrelated rows points to a copied template.
 
