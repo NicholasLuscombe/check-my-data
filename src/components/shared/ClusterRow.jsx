@@ -84,14 +84,14 @@ export function ClusterRow({
         </span>
         {/* Text group — starts on the rail (gutter's right edge). Keeps the
             label↔count↔description rhythm and the right-pinned word badge. */}
-        <div style={{ display: "flex", alignItems: "center", gap: "8px", flex: 1, minWidth: 0 }}>
+        <div style={{ display: "flex", alignItems: "flex-start", gap: "8px", flex: 1, minWidth: 0 }}>
           <span style={{ ...LANE_LABEL_TYPOGRAPHY }}>
             {label}
           </span>
           {/* S157/S210: cluster-identity icon — now immediately AFTER the title,
               before the count: [title] [icon] (N tests). 20px (mechIconSize +2
               for digits), MECH_COLOR hue via the mk key. */}
-          {mk && <MechIcon mk={mk} size={mechIconSize(mk, 20)} />}
+          {mk && <span style={{ flexShrink: 0, display: "inline-flex" }}><MechIcon mk={mk} size={mechIconSize(mk, 20)} /></span>}
           <span style={{ fontSize: FS.base, fontWeight: FW.NORM, color: C.TEXT_3, flexShrink: 0 }}>
             ({count} {noun}{count !== 1 ? "s" : ""})
           </span>

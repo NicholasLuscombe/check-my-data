@@ -45,8 +45,6 @@ const _condRowNum = _hdr >= 2 ? _skip + 1 : null;
 // ── Helper: column name from matrix index ──
 const colName = (matIdx) => hdrs[dataColMap[matIdx]] || `Column ${matIdx+1}`;
 
-const nDupRows = rowGroups.reduce((s,g) => s + g.count - 1, 0);
-
 // ── Footer ──
 const dupBlock = structuralBlocks[0];
 const rowDupClause = hasRowDups
@@ -123,9 +121,9 @@ const DataRow = ({ri, highlightCols=[], colorMap={}, bg=C.WHITE, visCols=null}) 
         return <td key={ci} style={{...base,
           color:cm?cm.text:isHlCol?CC.THRESH:roles[ci]==="data"?C.TEXT:C.TEXT_3,
           fontWeight:cm?FW.BOLD:FW.NORM,
-          background:cm?cm.bg:isHlCol?"#FCEBEB":"transparent",
-          ...(isHlCol && ci===hlMin?{borderLeft:"2px solid #E24B4A"}:{}),
-          ...(isHlCol && ci===hlMax?{borderRight:"2px solid #E24B4A"}:{})}}>{row[ci]!=null?String(row[ci]):"—"}</td>;
+          background:cm?cm.bg:isHlCol?SIGNAL.RED.bg:"transparent",
+          ...(isHlCol && ci===hlMin?{borderLeft:`2px solid ${SIGNAL.RED.dot}`}:{}),
+          ...(isHlCol && ci===hlMax?{borderRight:`2px solid ${SIGNAL.RED.dot}`}:{})}}>{row[ci]!=null?String(row[ci]):"—"}</td>;
       })}
     </tr>
   );
