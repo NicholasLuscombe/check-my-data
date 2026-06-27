@@ -35,7 +35,7 @@
    mistaking it for a forensic finding. Skipped / degenerate rows sink to
    the bottom. */
 
-import { C, FW, FF, SIGNAL } from "../../constants/tokens.js";
+import { C, FS, FF, SEV_VERDICT } from "../../constants/tokens.js";
 import { fmtP } from "../../constants/thresholds.js";
 import { MiniCardLayout } from "../shared/CardLayout.jsx";
 import { EvidenceTable } from "../shared/EvidenceTable.jsx";
@@ -63,7 +63,12 @@ export function MiniCard_CrossCondConsistency({ result }) {
   const amber       = running.filter(d => isAmberRow(d)).sort(byAdjP);
   const forensicLow = running.filter(d => d.forensic && !isAmberRow(d)).sort(byAdjP);
   const informational = running.filter(d => !d.forensic).sort(byAdjP);
-  const ordered = [...amber, ...forensicLow, ...informational, ...skipped];
+  // Show only measures that ran; skipped measures drop out of the table into the
+  // skip-count note below it. Order unchanged: amber-first, then as-expected
+  // (forensic-LOW + informational).
+  const ordered = [...amber, ...forensicLow, ...informational];
+  const skippedCount = skipped.length;
+  const totalMeasures = details.length;
   // nAmber: count surfaced in the footer. Derived from the same predicate
   // that tints rows amber, so footer / table / verdict agree. Engine's
   // result.nFlagged keys on ALPHA.FLAG (HIGH-only) and reads 0 here because
@@ -102,12 +107,12 @@ export function MiniCard_CrossCondConsistency({ result }) {
   const INFORMATIONAL_COLOR = C.TEXT_3; // muted secondary text
   const buildRow = (d) => {
     const amberHere = isAmberRow(d);
-    // Style per cell: amber text + Semibold on flagged rows (the shared MiniCard
-    // flagged-row treatment — matches Autocorrelation / Blocked Mahalanobis /
-    // Windowed Autocorrelation), muted colour on informational rows. Ran-but-
-    // forensic-LOW rows use the default EvidenceTable styling (no override).
+    // Style per cell: a whole-row moderate-tier tint on flagged rows (the
+    // flagged rows here are always moderate — BH-FDR at B=999 cannot reach the
+    // high band), muted colour on informational rows. Ran-but-forensic-LOW rows
+    // use the default EvidenceTable styling (no override).
     let cellStyle;
-    if (amberHere) cellStyle = { color: SIGNAL.AMBER.text, fontWeight: FW.SEMI };
+    if (amberHere) cellStyle = { background: SEV_VERDICT[2].bg };
     else if (d.ran && !d.forensic) cellStyle = { color: INFORMATIONAL_COLOR };
     const cell = (v) => cellStyle ? { value: v, style: cellStyle } : v;
     // Pair holds a "{condA} vs {condB}" label up to 26 chars ("Treatment_A vs
@@ -164,19 +169,29 @@ export function MiniCard_CrossCondConsistency({ result }) {
       implications={IMPLICATIONS}>
 
       {result.flag !== "N/A" && rows.length > 0 && (
-        // maxHeight 300px ≈ 12 single-line rows: the common 7-row tables (incl.
-        // both flagged fixtures) render in full, while the three-condition
-        // fixtures (21 rows, no amber) cap into a scroll rather than a wall.
-        // Amber sorts to the top, so flagged rows stay above any scroll.
-        <EvidenceTable
-          columns={columns}
-          rows={rows}
-          identifierColumns={identifierColumns}
-          maxHeight={300}
-          footerText={amber.length > 0
-            ? "Highlighted rows are the condition pairs flagged as too alike; lowest adjusted p first."
-            : undefined}
-        />
+        <>
+          {/* maxHeight 300px ≈ 12 single-line rows: the common short tables (incl.
+              both flagged fixtures) render in full, while the three-condition
+              fixtures (up to 21 ran rows) cap into a scroll rather than a wall.
+              Amber sorts to the top, so flagged rows stay above any scroll. */}
+          <EvidenceTable
+            columns={columns}
+            rows={rows}
+            identifierColumns={identifierColumns}
+            maxHeight={300}
+            footerText={amber.length > 0
+              ? "Highlighted rows are the condition pairs flagged as too alike; lowest adjusted p first."
+              : undefined}
+          />
+          {skippedCount > 0 && (
+            /* CHAT-COPY: skip-count note. Renders only when measures were skipped,
+               so hiding their rows does not imply they came back clean. Chat
+               authors the final string; {skippedCount} of {totalMeasures} wired. */
+            <div style={{ fontSize: FS.sm, fontFamily: FF.UI, color: C.TEXT_2, marginTop: "6px" }}>
+              {`[CHAT-COPY: skip-count note] — ${skippedCount} of ${totalMeasures} measures not tested`}
+            </div>
+          )}
+        </>
       )}
 
     </MiniCardLayout>
