@@ -1,9 +1,8 @@
 /* ── MiniCard: Duplicate Detection ── */
 
 import { C, CC, FS, FW, FF, M, CP, CR, SIGNAL, DUP_GROUP_PALETTE } from "../../constants/tokens.js";
-import { TD_NUM_CELL, TD_ID_CELL } from "../shared/styles.js";
+import { TD_NUM_CELL, TD_ID_CELL, LEAD_HEAD } from "../shared/styles.js";
 import { EvidenceBlock } from "../shared/EvidenceBlock.jsx";
-import { FLAG_STYLES } from "../../constants/thresholds.js";
 import { MiniCardLayout } from "../shared/CardLayout.jsx";
 import { ColumnHeaders } from "../shared/ColumnHeaders.jsx";
 import { colToExcelLetter, buildOriginalColMap, buildCondSpansForColumns, makeRowMapper } from "../shared/coordinates.js";
@@ -51,7 +50,7 @@ const nDupRows = rowGroups.reduce((s,g) => s + g.count - 1, 0);
 // ── Footer ──
 const dupBlock = structuralBlocks[0];
 const rowDupClause = hasRowDups
-  ? (nDupRows === 1 ? "1 row is an exact duplicate" : `${nDupRows} rows are exact duplicates`)
+  ? (rowGroups.length === 1 ? "1 group of duplicate rows" : `${rowGroups.length} groups of duplicate rows`)
   : null;
 let blockClause = null;
 if (dupBlock) {
@@ -104,6 +103,8 @@ const getVisibleCols = (highlightCols=[], colorMapKeys=[]) => {
 const DataRow = ({ri, highlightCols=[], colorMap={}, bg=C.WHITE, visCols=null}) => {
   const row = rawData?.[ri]; if(!row) return null;
   const vc = visCols;
+  const hlMin = highlightCols.length ? Math.min(...highlightCols) : null;
+  const hlMax = highlightCols.length ? Math.max(...highlightCols) : null;
   let insertedEllipsis = false;
   return (
     <tr style={{background:bg}}>
@@ -117,12 +118,14 @@ const DataRow = ({ri, highlightCols=[], colorMap={}, bg=C.WHITE, visCols=null}) 
         }
         insertedEllipsis = false;
         const cm = colorMap[ci];
-        const isHl = cm || highlightCols.includes(ci);
+        const isHlCol = highlightCols.includes(ci);
         const base = roles[ci]==="data" ? TD_NUM_CELL : TD_ID_CELL;
         return <td key={ci} style={{...base,
-          color:cm?cm.text:highlightCols.includes(ci)?CC.THRESH:roles[ci]==="data"?C.TEXT:C.TEXT_3,
-          fontWeight:isHl?FW.BOLD:FW.NORM,
-          background:cm?cm.bg:highlightCols.includes(ci)?FLAG_STYLES.HIGH.bg:"transparent"}}>{row[ci]!=null?String(row[ci]):"—"}</td>;
+          color:cm?cm.text:isHlCol?CC.THRESH:roles[ci]==="data"?C.TEXT:C.TEXT_3,
+          fontWeight:cm?FW.BOLD:FW.NORM,
+          background:cm?cm.bg:isHlCol?"#FCEBEB":"transparent",
+          ...(isHlCol && ci===hlMin?{borderLeft:"2px solid #E24B4A"}:{}),
+          ...(isHlCol && ci===hlMax?{borderRight:"2px solid #E24B4A"}:{})}}>{row[ci]!=null?String(row[ci]):"—"}</td>;
       })}
     </tr>
   );
@@ -152,11 +155,10 @@ return (
       const summaryParts = [];
       if (structuralBlocks.length > 0) {
         const totalBlockRows = structuralBlocks.reduce((s, b) => s + b.height, 0);
-        summaryParts.push(`${structuralBlocks.length} copied block${structuralBlocks.length!==1?"s":""} (${totalBlockRows} rows)`);
+        summaryParts.push(`${structuralBlocks.length} repeated block${structuralBlocks.length!==1?"s":""} (${totalBlockRows} rows)`);
       }
       if (hasRowDups) {
-        const rowsInvolved = rowGroups.reduce((s,g) => s + g.count, 0);
-        summaryParts.push(`${rowGroups.length} duplicate group${rowGroups.length!==1?"s":""} · ${rowsInvolved} row${rowsInvolved!==1?"s":""} · ${nDupRows} ${nDupRows!==1?"are copies":"is a copy"} of ${rowGroups.length!==1?"earlier rows":"an earlier row"}`);
+        summaryParts.push(`${rowGroups.length} group${rowGroups.length!==1?"s":""} of duplicate rows`);
       }
       const totalItems = structuralBlocks.length + (hasRowDups?1:0);
       return (
@@ -179,10 +181,10 @@ return (
             return (
               <div key={`blk${bi}`} style={{marginBottom:"12px"}}>
                 {totalItems > 1 && <div style={{fontSize:FS.sm,fontFamily:FF.UI,marginBottom:"4px"}}>
-                  <span style={{color:C.TEXT,fontWeight:FW.SEMI}}>
+                  <span style={LEAD_HEAD}>
                     {srcName} = {dstName} for rows {fileRow(srcStart)}–{fileRow(srcEnd)}
                   </span>
-                  <span style={{color:C.TEXT_2}}>{` — ${blk.height} consecutive rows`}</span>
+                  <span style={{fontSize:FS.xs,color:C.TEXT_3}}>{` — ${blk.height} consecutive rows`}</span>
                 </div>}
                 <table style={{borderCollapse:"separate",borderSpacing:"0",fontFamily:FF.UI,width:"100%"}}>
                   <ColumnHeaders columns={colDefs} highlightCols={mapHighlightCols(rawCols)} visCols={mapVisCols(vc)} condSpans={condSpans} condRowNum={_condRowNum} nameRowNum={_nameRowNum}/>
@@ -203,10 +205,10 @@ return (
           return (
             <div key={`blk${bi}`} style={{marginBottom:"12px"}}>
               {totalItems > 1 && <div style={{fontSize:FS.sm,fontFamily:FF.UI,marginBottom:"4px"}}>
-                <span style={{color:C.TEXT,fontWeight:FW.SEMI}}>
+                <span style={LEAD_HEAD}>
                   Rows {fileRow(srcStart)}–{fileRow(srcEnd)} = Rows {fileRow(dstStart)}–{fileRow(dstEnd)}
                 </span>
-                {!blk.isFullRow && <span style={{color:C.TEXT_2}}>
+                {!blk.isFullRow && <span style={{fontSize:FS.xs,color:C.TEXT_3}}>
                   {` — ${blk.height}×${blk.width} block (${blk.cols.length} of ${roles.filter(r=>r==="data").length} columns)`}
                 </span>}
               </div>}
@@ -245,7 +247,7 @@ return (
           const allDataCols = roles.map((_,ci) => ci).filter(ci => roles[ci]==="data");
           return (
           <div key={`row${gi}`} style={{marginBottom:"12px"}}>
-            {totalItems > 1 && <div style={{fontSize:FS.sm,fontFamily:FF.UI,color:C.TEXT,fontWeight:FW.SEMI,marginBottom:"4px"}}>
+            {totalItems > 1 && <div style={{...LEAD_HEAD,marginBottom:"4px"}}>
               {grp.count} rows with identical values
             </div>}
             <table style={{borderCollapse:"separate",borderSpacing:"0",fontFamily:FF.UI,width:"100%"}}>
