@@ -41,10 +41,10 @@ import { MiniCardLayout } from "../shared/CardLayout.jsx";
 import { EvidenceTable } from "../shared/EvidenceTable.jsx";
 import { SUB_HEAD } from "../shared/styles.js";
 
-// Headings for the two stacked tables — co-equal surface labels (both SUB_HEAD),
-// one above each table, sitting one tier below the card's verdict lead.
-const FLAGGED_HEADING = "Conditions more similar than expected";
-const TAIL_HEADING    = "Conditions as expected, or not tested";
+// Tail-table sub-heading — distinguishes the tail from the flagged table, so it
+// renders only on the split path. The flagged table is headingless (the card
+// verdict lead already names the finding).
+const TAIL_HEADING = "Conditions as expected, or not tested";
 
 const LOOK_FOR =
   "Note which pair of conditions flagged and on which property. Inspect those conditions in the raw data files and check whether the similarity has a recorded reason — shared controls, a common reference. Cross-reference Duplicate values and Offset copies: conditions that also share rows or a constant offset point to one built from another. Cross-reference Profile rank agreement and Baseline balance: these three read condition similarity from different angles, and a finding that holds across them is far harder to explain as biology than any one alone.";
@@ -174,26 +174,23 @@ export function MiniCard_CrossCondConsistency({ result }) {
 
       {result.flag !== "N/A" && (flaggedRows.length > 0 || tailRows.length > 0) && (
         <>
-          {/* Flagged table — un-capped (never scrolls), so the point of the card
-              stays in view. Lead-tier heading. Collapse guard: when no rows are
+          {/* Flagged table — un-capped (never scrolls) and headingless: it is the
+              verdict's own evidence, sitting directly under the card verdict lead,
+              which already names the finding. Collapse guard: when no rows are
               flagged this whole block drops and only the tail table renders,
               exactly as the single-table card did before the split. */}
           {flaggedRows.length > 0 && (
-            <>
-              {/* Flagged-table heading — same tier as the tail heading (SUB_HEAD);
-                  the card verdict lead stays the sole top tier above both. */}
-              <div style={{ ...SUB_HEAD, marginBottom: "8px" }}>{FLAGGED_HEADING}</div>
-              <EvidenceTable
-                columns={columns}
-                rows={flaggedRows}
-                identifierColumns={identifierColumns}
-                maxHeight={0}
-              />
-            </>
+            <EvidenceTable
+              columns={columns}
+              rows={flaggedRows}
+              identifierColumns={identifierColumns}
+              maxHeight={0}
+            />
           )}
-          {/* Tail table — capped + scrolls (context / as-expected / skipped). The
-              demoted sub-heading appears only when the flagged table is also
-              present; in the collapse case the tail renders headingless. */}
+          {/* Tail table — un-capped (a handful of rows; the shared 200px cap
+              clipped a row under the sticky header). Its sub-heading distinguishes
+              it from the flagged table, so it appears only on the split path; on
+              the collapse path the lone table renders headingless under the lead. */}
           {tailRows.length > 0 && (
             <>
               {flaggedRows.length > 0 && (
@@ -204,7 +201,7 @@ export function MiniCard_CrossCondConsistency({ result }) {
                 columns={columns}
                 rows={tailRows}
                 identifierColumns={identifierColumns}
-                maxHeight={260}
+                maxHeight={0}
               />
             </>
           )}
