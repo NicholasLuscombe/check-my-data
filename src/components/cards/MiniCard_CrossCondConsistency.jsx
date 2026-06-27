@@ -35,7 +35,7 @@
    mistaking it for a forensic finding. Skipped / degenerate rows sink to
    the bottom. */
 
-import { C, FF, SEV_VERDICT } from "../../constants/tokens.js";
+import { C, FW, FF, SIGNAL } from "../../constants/tokens.js";
 import { fmtP } from "../../constants/thresholds.js";
 import { MiniCardLayout } from "../shared/CardLayout.jsx";
 import { EvidenceTable } from "../shared/EvidenceTable.jsx";
@@ -107,12 +107,13 @@ export function MiniCard_CrossCondConsistency({ result }) {
   const INFORMATIONAL_COLOR = C.TEXT_3; // muted secondary text
   const buildRow = (d) => {
     const amberHere = isAmberRow(d);
-    // Style per cell: a whole-row moderate-tier tint on flagged rows (the
-    // flagged rows here are always moderate — BH-FDR at B=999 cannot reach the
-    // high band), muted colour on informational rows. Ran-but-forensic-LOW rows
-    // use the default EvidenceTable styling (no override).
+    // Style per cell: amber text + Semibold on flagged rows (the shared MiniCard
+    // flagged-row treatment — matches Blocked Mahalanobis / Windowed Autocorrelation
+    // / Autocorrelation), muted colour on informational rows. Text-only, so the
+    // zebra stripe shows through. Ran-but-forensic-LOW rows use the default
+    // EvidenceTable styling (no override).
     let cellStyle;
-    if (amberHere) cellStyle = { background: SEV_VERDICT[2].bg };
+    if (amberHere) cellStyle = { color: SIGNAL.AMBER.text, fontWeight: FW.SEMI };
     else if (d.ran && !d.forensic) cellStyle = { color: INFORMATIONAL_COLOR };
     const cell = (v) => cellStyle ? { value: v, style: cellStyle } : v;
     // Pair holds a "{condA} vs {condB}" label up to 26 chars ("Treatment_A vs
