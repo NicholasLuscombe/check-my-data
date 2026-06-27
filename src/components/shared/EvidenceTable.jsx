@@ -29,6 +29,7 @@ const TD_ID   = { padding:"4px 8px", fontSize:FS.xs, fontFamily:FF.UI, textAlign
 export function EvidenceTable({ columns, rows, identifierColumns = 0, maxHeight = 200, rowBg, compact, footerText }) {
   if (!rows?.length) return null;
   const cols = columns.map(c => typeof c === "string" ? { label: c } : c);
+  const hasWidths = cols.some(c => c.width);
   const thPad = compact ? "3px 4px" : undefined;
   const tdPad = compact ? "2px 4px" : undefined;
   const containerStyle = {
@@ -40,7 +41,7 @@ export function EvidenceTable({ columns, rows, identifierColumns = 0, maxHeight 
   return (
     <>
       <div style={containerStyle}>
-        <table style={{ borderCollapse: "collapse", width: "100%" }}>
+        <table style={{ borderCollapse: "collapse", width: "100%", ...(hasWidths ? { tableLayout: "fixed" } : {}) }}>
           <thead>
             <tr style={{ background: C.BG_L }}>
               {cols.map((c, i) => (
