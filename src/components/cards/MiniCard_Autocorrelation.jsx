@@ -1,6 +1,6 @@
 /* ── MiniCard: Autocorrelation ── */
 
-import { C, CC, CP, CS, CF, FF, FW, FS, SIGNAL, OBS } from "../../constants/tokens.js";
+import { C, CC, CP, CS, CF, FF, FW, FS, SEV_VERDICT, OBS } from "../../constants/tokens.js";
 import { fmtP } from "../../constants/thresholds.js";
 import { MiniCardLayout } from "../shared/CardLayout.jsx";
 import { EvidenceTable } from "../shared/EvidenceTable.jsx";
@@ -186,11 +186,17 @@ export function MiniCard_Autocorrelation({ result, importConfig, rowMap }) {
 
       {result.lagTable?.length > 0 && (() => {
         const cols = [{label:"Lag"}, {label:"Pooled r"}, {label:"Pairs sig."}, {label:"Adj. p"}];
+        // S276: flagged row marked by a 2px left edge in the card's verdict-tier
+        // colour (red at High, amber at Moderate), from the same SEV_VERDICT scale
+        // the verdict word uses. Numerals stay body colour; Semibold is the cue.
+        const flagColor = result.flag === "HIGH" ? SEV_VERDICT[3].color : SEV_VERDICT[2].color;
         const rows = result.lagTable.map(r => {
           const sig = r.isPromotionTrigger === true;
-          const cell = v => sig ? { value: v, style:{ color: SIGNAL.AMBER.text, fontWeight: FW.SEMI } } : v;
+          const cell = v => sig ? { value: v, style:{ fontWeight: FW.SEMI } } : v;
           const pairsStr = r.pairsSig == null ? "—" : `${r.pairsSig}/${r.pairsTotal}`;
-          return [cell(r.lag), cell(Number(r.pooledR).toFixed(2)), cell(pairsStr), cell(fmtP(r.rawAdjP))];
+          const row = [cell(r.lag), cell(Number(r.pooledR).toFixed(2)), cell(pairsStr), cell(fmtP(r.rawAdjP))];
+          if (sig) row[0] = { ...row[0], style: { ...row[0].style, borderLeft: `2px solid ${flagColor}` } };
+          return row;
         });
         // S166 A2: condition the "promoted to MODERATE" string on the
         // producer's `higherLagWasDecisive` boolean — true only when

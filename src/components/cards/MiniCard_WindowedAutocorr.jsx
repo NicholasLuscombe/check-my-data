@@ -1,6 +1,6 @@
 /* ── MiniCard: Windowed Autocorrelation ── */
 
-import { C, SIGNAL, FW } from "../../constants/tokens.js";
+import { C, SEV_VERDICT, FW } from "../../constants/tokens.js";
 import { fmtP, ALPHA } from "../../constants/thresholds.js";
 import { MiniCardLayout } from "../shared/CardLayout.jsx";
 import { EvidenceTable } from "../shared/EvidenceTable.jsx";
@@ -63,12 +63,18 @@ export function MiniCard_WindowedAutocorr({ result, importConfig, rowMap }) {
   // remap would need attention if the test ever flags per-condition.
   let table = null;
   if (tableSource.length) {
+    // S276: flagged row marked by a 2px left edge in the card's verdict-tier
+    // colour, from the same SEV_VERDICT scale the verdict word uses. Numerals
+    // stay body colour; Semibold is the cue.
+    const flagColor = result.flag === "HIGH" ? SEV_VERDICT[3].color : SEV_VERDICT[2].color;
     const rows = tableSource.slice(0, 20).map(d => {
       const sig = d.adjP < ALPHA.NOTE;
-      const cell = v => sig ? { value: v, style: { color: SIGNAL.AMBER.text, fontWeight: FW.SEMI } } : v;
+      const cell = v => sig ? { value: v, style: { fontWeight: FW.SEMI } } : v;
       const rowsLabel = `${toFileRow(d.startRow)}\u2013${toFileRow(d.endRow)}`;
       const base = [cell(d.pair), cell(rowsLabel), cell(d.r), cell(fmtP(d.adjP))];
-      return isAgg ? [cell(d.group), ...base] : base;
+      const row = isAgg ? [cell(d.group), ...base] : base;
+      if (sig) row[0] = { ...row[0], style: { ...row[0].style, borderLeft: `2px solid ${flagColor}` } };
+      return row;
     });
     const cols = isAgg
       ? [{label:"Condition"}, {label:"Pair"}, {label:"Rows"}, {label:"r"}, {label:"Adj. p"}]

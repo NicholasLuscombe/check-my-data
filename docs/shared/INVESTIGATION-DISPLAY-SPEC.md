@@ -66,6 +66,48 @@ flag marks (`PLOT_FC` / `CC.THRESH`) read from `SEV_VERDICT`. Plot-interior colo
 generally is governed by `PLOT-COLOUR-SEMANTICS.md`; this table is the chrome
 consumer of the same scale.
 
+**Flagged-row/cell mark on evidence tables (S276).** A flagged row or cell in an
+evidence table is marked by a **2px left edge in the card's verdict-tier colour**,
+read from `SEV_VERDICT[card.flag].color` — the same scale and token as the verdict
+word and the plot flag marks (the one-scale rule above, now reaching the evidence
+table). High-flagging cards draw a red edge (`#EF4444`); Moderate-flagging cards draw
+an amber edge (`#F97316`). The flagged numerals themselves render in normal body
+colour; the edge carries the flag, not the text. Semibold weight is kept on the
+flagged row as a secondary cue (it carries no hue, so it never competes with the
+edge colour).
+
+The edge colour is the CARD's verdict tier, not the per-row tier — one edge colour
+per table, matching the verdict word at the top of that card. A card whose individual
+rows reach different tiers (e.g. Cross-Condition Consistency, where per-unit rows can
+be High while the card verdict is Moderate) still draws ONE edge colour from the card
+verdict, not a mix; the per-row tier is read from the data, not the edge. This keeps a
+single flag colour per table and never sets up a two-colour edge within one card.
+
+This RETIRES the prior `SIGNAL.AMBER.text` (`#713F12`) flagged-numeral treatment, which
+was a dark brown OFF the `SEV_VERDICT` scale — the same two-ambers fragmentation S213
+ruled out for chrome words, surviving on the evidence table. It read as detached from
+the amber verdict word and carried no structural cue against the zebra stripe.
+
+**Amber-Moderate vs red-High is tier-correct, NOT a divergence.** That a flagged
+row most often shows an amber edge and Duplicated Data shows red is the one-scale rule
+working: the edge colour tracks each card's verdict tier, which is Moderate (amber) on
+the common case and High (red) when the card flags High. Duplicated Data flags High, so
+its edge is red; the four EvidenceTable cards flag amber when their verdict is Moderate
+and red when it reaches High — the edge follows the verdict in every case, so the same
+card can show an amber or a red edge across fixtures. This is not a colour inconsistency to consolidate to
+one hue — consolidating to a single colour would break severity semantics
+(PLOT-COLOUR-SEMANTICS channel 1: the severity colour is reserved where severity is
+read). What IS consolidated is the GEOMETRY: every flagged row/cell uses the same left-
+edge mark, tier-coloured. Do not re-scope the colour difference as a divergence.
+
+**Scope note.** This governs evidence-table row/cell flags (`EvidenceTable` and Duplicated
+Data's hand-built grid, whose existing red column-band bracket already conforms). It does
+NOT govern: tables that list only flagged rows (Within-Row Variance, Correlated Residuals —
+every row is already the finding, so weight-only emphasis on key columns stands, no
+discriminating edge); the missing-data heatmap (a spatial grid, its own surface class); or
+the §2 excerpt detail tables with a row-index column (the whole-row tier tint keyed on the
+row-index cell, scoped separately in TYPOGRAPHY-SYSTEM).
+
 Engine identifier `r.flag === "HIGH" / "MED" / "LOW"` stays the load-bearing string identity at the dispatch layer (S129 convention); display-label transform happens at the chrome edge.
 
 ### Dataset-level outcome (overall severity score)
