@@ -30,7 +30,7 @@ return (
   <MiniCardLayout result={result}
     implications={implications}
     footer={<>
-      {result.flag !== "LOW" && result.flag !== "N/A" ? "Last digits are not evenly spread" : "Last digits evenly spread"}
+      {result.flag !== "LOW" && result.flag !== "N/A" ? "Last digits are not evenly spread" : "Last digits are evenly spread"}
       {result.trailingZeroWarning && <span style={{color:C.TEXT_3,fontFamily:FF.UI}}> · 9-digit test (digit 0 excluded)</span>}
     </>}
     lookFor="Check which digits are over- or under-used. A trend toward 0 and 5 suggests rounding. A trend across other digits points to manual entry, with trends involving several digits being more indicative.">

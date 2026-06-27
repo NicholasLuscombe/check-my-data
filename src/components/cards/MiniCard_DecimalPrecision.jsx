@@ -25,7 +25,7 @@ export function MiniCard_DecimalPrecision({ result, importConfig, rowMap }) {
       implications={implications}
       footer={result.flag !== "LOW" && result.flag !== "N/A"
         ? `Mixed precision — ${details.length} levels, suggesting more than one source`
-        : "Consistent precision throughout"}
+        : "Precision is consistent throughout"}
       lookFor={hasGap ? "A precision gap — values at one and three decimal places but none at two — cannot come from a single instrument. Inspect the raw data files to check whether the values were transcribed from more than one source or entered by hand." : "The precision levels fall short of the single-instrument pattern without a clean gap. Inspect the raw data files to check whether the precision matches the stated instrument — one instrument should produce a single dominant precision, stripped into one or two adjacent levels."}>
 
       {/* S210 (single-surface): section heading dropped — the footer

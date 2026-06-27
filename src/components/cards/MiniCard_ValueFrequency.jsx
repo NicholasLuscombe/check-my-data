@@ -53,10 +53,10 @@ export function MiniCard_ValueFrequency({ result, importConfig, rowMap }) {
   }
 
   const footerText = (result.flag === "LOW" || result.flag === "N/A")
-    ? "No number over-represented"
+    ? "No numbers appear more often than expected"
     : result.drivingPass === "digit"
-      ? `${nSpikes} digit combination${nSpikes !== 1 ? "s" : ""} recur${nSpikes !== 1 ? "" : "s"} more often than chance allows`
-      : `${nSpikes} number${nSpikes !== 1 ? "s" : ""} appear${nSpikes !== 1 ? "" : "s"} more often than chance allows`;
+      ? `${nSpikes} digit combination${nSpikes !== 1 ? "s" : ""} recur${nSpikes !== 1 ? "" : "s"} more often than expected`
+      : `${nSpikes} number${nSpikes !== 1 ? "s" : ""} appear${nSpikes !== 1 ? "" : "s"} more often than expected`;
 
   // Column order: Value · Pass · Rows · Observed · Expected · Ratio · Adj P
   // Leading text cols (identifier): Value, Pass, Rows → identifierColumns=3.
