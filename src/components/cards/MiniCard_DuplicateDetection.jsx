@@ -151,18 +151,11 @@ return (
 
     {/* ── Duplicated blocks of data evidence ── */}
     {(structuralBlocks.length > 0 || hasRowDups) && (() => {
-      // Concise count summary for description line
-      const summaryParts = [];
-      if (structuralBlocks.length > 0) {
-        const totalBlockRows = structuralBlocks.reduce((s, b) => s + b.height, 0);
-        summaryParts.push(`${structuralBlocks.length} repeated block${structuralBlocks.length!==1?"s":""} (${totalBlockRows} rows)`);
-      }
-      if (hasRowDups) {
-        summaryParts.push(`${rowGroups.length} group${rowGroups.length!==1?"s":""} of duplicate rows`);
-      }
+      // Footer (one-line result) already states the counts; the lead block drops
+      // its detail to avoid repeating the footer string verbatim.
       const totalItems = structuralBlocks.length + (hasRowDups?1:0);
       return (
-      <EvidenceBlock label="Duplicated blocks of data" detail={summaryParts.join("; ")} lead>
+      <EvidenceBlock label="Duplicated blocks of data" lead>
         {/* Multi-row or partial-width blocks — side-by-side display */}
         {structuralBlocks.slice(0,5).map((blk,bi) => {
           const rawCols = blk.cols.map(c => dataColMap[c] ?? c);
@@ -287,8 +280,8 @@ return (
       return (
       <EvidenceBlock label="Duplicate values within a row"
         detail={<>
-          {`${wrTotal} duplicate pair${wrTotal!==1?"s":""} within a row (${wrExp.toFixed(0)} expected)`}
-          <div style={{fontSize:FS.sm,color:C.TEXT_3,marginTop:"2px"}}>Colours mark separate groups of within-row duplicates.</div>
+          {`${wrTotal} repeated value-pair${wrTotal!==1?"s":""} within rows (${wrExp.toFixed(0)} expected by chance)`}
+          <div style={{fontSize:FS.sm,color:C.TEXT_3,marginTop:"2px"}}>{allDupRows.length} row{allDupRows.length!==1?"s":""} affected — colours mark separate groups of repeats.</div>
         </>}>
         <table style={{borderCollapse:"separate",borderSpacing:"0",fontFamily:FF.UI,width:"100%"}}>
           <ColumnHeaders columns={colDefs} visCols={mapVisCols(wrVc)} condSpans={condSpans} condRowNum={_condRowNum} nameRowNum={_nameRowNum}/>
