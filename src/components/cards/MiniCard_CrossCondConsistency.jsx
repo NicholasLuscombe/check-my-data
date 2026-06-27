@@ -99,14 +99,15 @@ export function MiniCard_CrossCondConsistency({ result }) {
     { label: "Finding",     align: "left"                 },
   ];
 
-  const AMBER_BG       = SIGNAL.AMBER.bg;
   const INFORMATIONAL_COLOR = C.TEXT_3; // muted secondary text
   const buildRow = (d) => {
     const amberHere = isAmberRow(d);
-    // Style per cell is either amber-bg (amber row) or muted-color (informational row).
-    // Ran-but-ran-forensic-LOW rows use the default EvidenceTable styling (no override).
+    // Style per cell: amber text + Semibold on flagged rows (the shared MiniCard
+    // flagged-row treatment — matches Autocorrelation / Blocked Mahalanobis /
+    // Windowed Autocorrelation), muted colour on informational rows. Ran-but-
+    // forensic-LOW rows use the default EvidenceTable styling (no override).
     let cellStyle;
-    if (amberHere) cellStyle = { background: AMBER_BG };
+    if (amberHere) cellStyle = { color: SIGNAL.AMBER.text, fontWeight: FW.SEMI };
     else if (d.ran && !d.forensic) cellStyle = { color: INFORMATIONAL_COLOR };
     const cell = (v) => cellStyle ? { value: v, style: cellStyle } : v;
     // Pair holds a "{condA} vs {condB}" label up to 26 chars ("Treatment_A vs
@@ -172,6 +173,9 @@ export function MiniCard_CrossCondConsistency({ result }) {
           rows={rows}
           identifierColumns={identifierColumns}
           maxHeight={300}
+          footerText={amber.length > 0
+            ? "Highlighted rows are the condition pairs flagged as too alike; lowest adjusted p first."
+            : undefined}
         />
       )}
 
