@@ -184,11 +184,10 @@ export function MiniCard_CrossCondConsistency({ result }) {
               : undefined}
           />
           {skippedCount > 0 && (
-            /* CHAT-COPY: skip-count note. Renders only when measures were skipped,
-               so hiding their rows does not imply they came back clean. Chat
-               authors the final string; {skippedCount} of {totalMeasures} wired. */
+            /* Skip-count note — renders only when measures were skipped, so
+               hiding their rows does not imply they came back clean. */
             <div style={{ fontSize: FS.sm, fontFamily: FF.UI, color: C.TEXT_2, marginTop: "6px" }}>
-              {`[CHAT-COPY: skip-count note] — ${skippedCount} of ${totalMeasures} measures not tested`}
+              {`${skippedCount} of ${totalMeasures} measures could not be tested — too few replicates or too little spread to assess.`}
             </div>
           )}
         </>
