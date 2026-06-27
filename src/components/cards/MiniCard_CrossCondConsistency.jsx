@@ -39,12 +39,6 @@ import { C, FW, FF, SIGNAL } from "../../constants/tokens.js";
 import { fmtP } from "../../constants/thresholds.js";
 import { MiniCardLayout } from "../shared/CardLayout.jsx";
 import { EvidenceTable } from "../shared/EvidenceTable.jsx";
-import { SUB_HEAD } from "../shared/styles.js";
-
-// Tail-table sub-heading — distinguishes the tail from the flagged table, so it
-// renders only on the split path. The flagged table is headingless (the card
-// verdict lead already names the finding).
-const TAIL_HEADING = "Conditions as expected, or not tested";
 
 const LOOK_FOR =
   "Note which pair of conditions flagged and on which property. Inspect those conditions in the raw data files and check whether the similarity has a recorded reason — shared controls, a common reference. Cross-reference Duplicate values and Offset copies: conditions that also share rows or a constant offset point to one built from another. Cross-reference Profile rank agreement and Baseline balance: these three read condition similarity from different angles, and a finding that holds across them is far harder to explain as biology than any one alone.";
@@ -90,8 +84,7 @@ export function MiniCard_CrossCondConsistency({ result }) {
   // the flag tier, and the muted-text styling on informational rows
   // distinguishes them from forensic-LOW. Dropping the column also
   // resolves the right-edge clip on narrow viewports.
-  // Shared width set — both stacked tables declare the SAME five widths so their
-  // columns register vertically. Pair sized for the 26-char max ("Treatment_A vs
+  // Column width set. Pair sized for the 26-char max ("Treatment_A vs
   // Treatment_B" / "Inhibitor_A vs Inhibitor_B", confirmed rendering on DS01/02/
   // 16/17). Pair and Finding both carry a per-cell whiteSpace override (below) so
   // long pairs and skip-reason strings wrap within their width rather than clip;
@@ -155,14 +148,11 @@ export function MiniCard_CrossCondConsistency({ result }) {
     ];
   };
 
-  // ── Partition into two stacked tables ───────────────────────────
-  // Same predicate that drives the amber tint (isAmberRow) decides membership,
-  // so the split matches the existing highlight exactly. Flagged rows stay in
-  // view (un-capped); the tail (forensic-LOW + informational + skipped) scrolls.
-  const flaggedDetails = ordered.filter(d => isAmberRow(d));
-  const tailDetails    = ordered.filter(d => !isAmberRow(d));
-  const flaggedRows = flaggedDetails.map(buildRow);
-  const tailRows    = tailDetails.map(buildRow);
+  // One table, amber-first. `ordered` is [...amber, ...forensicLow,
+  // ...informational, ...skipped], so flagged rows sort to the top and stay in
+  // view; the amber per-cell shade (buildRow) marks them. No separate flagged
+  // table — the shade does what a second header chrome would have duplicated.
+  const rows = ordered.map(buildRow);
 
   const identifierColumns = 2; // Property, Pair — sans-serif
 
@@ -172,40 +162,17 @@ export function MiniCard_CrossCondConsistency({ result }) {
       lookFor={LOOK_FOR}
       implications={IMPLICATIONS}>
 
-      {result.flag !== "N/A" && (flaggedRows.length > 0 || tailRows.length > 0) && (
-        <>
-          {/* Flagged table — un-capped (never scrolls) and headingless: it is the
-              verdict's own evidence, sitting directly under the card verdict lead,
-              which already names the finding. Collapse guard: when no rows are
-              flagged this whole block drops and only the tail table renders,
-              exactly as the single-table card did before the split. */}
-          {flaggedRows.length > 0 && (
-            <EvidenceTable
-              columns={columns}
-              rows={flaggedRows}
-              identifierColumns={identifierColumns}
-              maxHeight={0}
-            />
-          )}
-          {/* Tail table — un-capped (a handful of rows; the shared 200px cap
-              clipped a row under the sticky header). Its sub-heading distinguishes
-              it from the flagged table, so it appears only on the split path; on
-              the collapse path the lone table renders headingless under the lead. */}
-          {tailRows.length > 0 && (
-            <>
-              {flaggedRows.length > 0 && (
-                /* Tail-table sub-heading (demoted, sentence case) */
-                <div style={{ ...SUB_HEAD, marginTop: "12px" }}>{TAIL_HEADING}</div>
-              )}
-              <EvidenceTable
-                columns={columns}
-                rows={tailRows}
-                identifierColumns={identifierColumns}
-                maxHeight={0}
-              />
-            </>
-          )}
-        </>
+      {result.flag !== "N/A" && rows.length > 0 && (
+        // maxHeight 300px ≈ 12 single-line rows: the common 7-row tables (incl.
+        // both flagged fixtures) render in full, while the three-condition
+        // fixtures (21 rows, no amber) cap into a scroll rather than a wall.
+        // Amber sorts to the top, so flagged rows stay above any scroll.
+        <EvidenceTable
+          columns={columns}
+          rows={rows}
+          identifierColumns={identifierColumns}
+          maxHeight={300}
+        />
       )}
 
     </MiniCardLayout>
