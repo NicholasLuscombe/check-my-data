@@ -161,7 +161,7 @@ export function MiniCard_CrossCondConsistency({ result }) {
             maxHeight={260}
           />
           <div style={legendStyle}>
-            Amber rows are more alike across conditions than chance usually produces. Muted rows differ between conditions — which is what real treatments normally do — so they're shown for context, not flagged. 'Finding' reads off the corrected significance test — flagged pairs show 'Too similar', the rest read 'As expected'; 'Null median' is the midpoint of the chance range.
+            Amber rows flagged: two conditions more alike than expected. Muted rows compare conditions that real treatments separate, so they're never flagged.
           </div>
         </>
       )}
