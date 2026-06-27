@@ -1,7 +1,7 @@
 /* ── MiniCard: Duplicate Detection ── */
 
 import { C, CC, FS, FW, FF, M, CP, CR, SIGNAL, DUP_GROUP_PALETTE } from "../../constants/tokens.js";
-import { TD_NUM_CELL, TD_ID_CELL, LEAD_HEAD } from "../shared/styles.js";
+import { TD_NUM_CELL, TD_ID_CELL, LEAD_HEAD, BLOCK_GAP, BLOCK_GAP_TIGHT } from "../shared/styles.js";
 import { EvidenceBlock } from "../shared/EvidenceBlock.jsx";
 import { MiniCardLayout } from "../shared/CardLayout.jsx";
 import { ColumnHeaders } from "../shared/ColumnHeaders.jsx";
@@ -14,7 +14,6 @@ export function MiniCard_DuplicateDetection({ result, importConfig, rowMap }) {
   const name = result.name;
   const isAgg = result.groupsAssessed !== undefined;
 const wrTotal = result.withinRowMatches || 0;
-const wrExp = parseFloat(result.withinRowExpected) || 0;
 const withinDups = result.withinRowLocs || [];
 const blocks = result.blockCopies || [];
 const rowGroups = result.rowDupGroupList || [];
@@ -61,9 +60,14 @@ if (dupBlock) {
     blockClause = `${_n} repeated block${_n !== 1 ? "s" : ""}`;
   }
 }
-const footer = (rowDupClause && blockClause)
+// S274: the assembled count tally is a stats clause, not a heading — it no longer
+// promotes to the body lead (peer-surface + stats-clause rulings, see
+// INVESTIGATION-DISPLAY-SPEC §"Section headings"). It rides as the blocks surface's own
+// detail line (below heading weight), parallel to the within-row surface's detail; each
+// peer surface carries its own dark lead-tier title instead.
+const blockCountClause = (rowDupClause && blockClause)
   ? `${rowDupClause} · ${blockClause}`
-  : (rowDupClause || blockClause || "No duplicates found");
+  : (rowDupClause || blockClause || null);
 
 // ── Shared styles ──
 const stickyRow = {position:"sticky",left:0,zIndex:2,background:"inherit"};
@@ -143,17 +147,23 @@ const mapVisCols = (vc) => {
 return (
 
   <MiniCardLayout result={result}
-    footer={footer}
+    footer={(structuralBlocks.length > 0 || hasRowDups || withinDups.length > 0) ? undefined : "No duplicates found"}
     lookFor="Identical whole rows or rectangular blocks are a strong sign of copy-paste. Check whether the duplicated rows sit in specific conditions or span several. Inspect the raw data files to confirm the submitted values arise from independent measurements."
     implications="Repeated values can arise naturally: integer or bounded scales allow only so many distinct values, and measurements at a detection limit can pile up. Duplication can arise accidentally: e.g., pasting between spreadsheets, or merging files with overlapping rows. Repeated whole rows or blocks can also be deliberate: e.g., rows copied to pad a thin dataset, inflate the sample size, or manufacture replicates that were never measured.">
 
     {/* ── Duplicated blocks of data evidence ── */}
     {(structuralBlocks.length > 0 || hasRowDups) && (() => {
-      // Footer (one-line result) already states the counts; the lead block drops
-      // its detail to avoid repeating the footer string verbatim.
+      // S274: co-equal peer surface — its own dark lead-tier title, mounted inline
+      // (EvidenceBlock has no dark-label mode; `lead` suppresses its muted label).
+      // The count tally rides as this block's detail line, below heading weight.
       const totalItems = structuralBlocks.length + (hasRowDups?1:0);
       return (
-      <EvidenceBlock label="Duplicated blocks of data" lead>
+      <>
+      <div style={{...LEAD_HEAD, marginBottom: BLOCK_GAP_TIGHT}}>
+        Duplicated blocks of data
+        {blockCountClause && <span style={{fontWeight: FW.NORM, color: C.TEXT_2}}> — {blockCountClause}</span>}
+      </div>
+      <EvidenceBlock lead>
         {/* Multi-row or partial-width blocks — side-by-side display */}
         {structuralBlocks.slice(0,5).map((blk,bi) => {
           const rawCols = blk.cols.map(c => dataColMap[c] ?? c);
@@ -253,6 +263,7 @@ return (
         })}
         {/* Column-pair duplicates removed — superseded by column-segment hash detector */}
       </EvidenceBlock>
+      </>
       );
     })()}
 
@@ -276,11 +287,12 @@ return (
       cappedDupRows.forEach(fdr => fdr.filteredGroups.forEach(g => g.cols.forEach(c => allCmKeys.add(dataColMap[c] ?? c))));
       const wrVc = getVisibleCols([], [...allCmKeys]);
       return (
-      <EvidenceBlock label="Duplicate values within a row"
-        detail={<>
-          {`${wrTotal} repeated value-pair${wrTotal!==1?"s":""} within rows (${wrExp.toFixed(0)} expected by chance)`}
-          <div style={{fontSize:FS.sm,color:C.TEXT_3,marginTop:"2px"}}>{allDupRows.length} row{allDupRows.length!==1?"s":""} affected — colours mark separate groups of repeats.</div>
-        </>}>
+      <>
+      <div style={{...LEAD_HEAD, marginTop: BLOCK_GAP, marginBottom: BLOCK_GAP_TIGHT}}>
+        Duplicate values within a row
+        <span style={{fontWeight: FW.NORM, color: C.TEXT_2}}> — {`${wrTotal} repeated value-pair${wrTotal!==1?"s":""} within ${allDupRows.length} row${allDupRows.length!==1?"s":""}`}</span>
+      </div>
+      <EvidenceBlock lead>
         <table style={{borderCollapse:"separate",borderSpacing:"0",fontFamily:FF.UI,width:"100%"}}>
           <ColumnHeaders columns={colDefs} visCols={mapVisCols(wrVc)} condSpans={condSpans} condRowNum={_condRowNum} nameRowNum={_nameRowNum}/>
           <tbody>
@@ -296,6 +308,7 @@ return (
           </tbody>
         </table>
       </EvidenceBlock>
+      </>
       );
     })()}
 

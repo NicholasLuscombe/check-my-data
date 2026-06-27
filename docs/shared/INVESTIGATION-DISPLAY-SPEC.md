@@ -1638,11 +1638,46 @@ test-name weight — two competing headings per card. Resolve by surface count:
   "Spread compared to expected, per column" table): the footer fragment heads the **primary
   surface** (the plot); the **secondary surface keeps its heading, demoted** to a tier clearly
   below the footer/lead so it labels the table without competing with the body lead.
+- **Peer-surface cards** (two or more surfaces of the *same kind* with no primary/
+  secondary relationship — e.g. Duplicated Data's two result tables, "Duplicated blocks
+  of data" and "Duplicate values within a row", which are co-equal kinds of duplication,
+  neither supporting the other): each peer carries its own **lead-tier** heading; none
+  demotes. The multi-surface demote rule above assumes one primary surface and a
+  supporting secondary; when surfaces are true peers, demoting one invents a hierarchy
+  the content does not have, and the demoted heading reads wrongly subordinate. So "one
+  lead per card" relaxes to **one lead per surface *group*** — co-equal peers each take a
+  lead-tier heading; a genuine primary-plus-secondary group still gets one lead and
+  demotes the rest. The discriminating question is the content relationship (peers vs
+  primary-plus-supporting), not the surface count. (Diagnostic tell for the peer case:
+  the tier difference fell out of a `lead`/non-`lead` mount asymmetry — `EvidenceBlock`'s
+  non-`lead` branch renders the muted `SUB_HEAD` — rather than a deliberate
+  primary/secondary judgement. Where no one decided a surface was secondary, it probably
+  isn't.)
 
 Content-truth check (verify per card during the visual walk): the footer fragment must
 actually describe the primary surface it now heads. Any card where the footer does not
 describe its primary surface keeps an explicit heading instead — flag at the walk rather than
 forcing the rule.
+
+**Stats-clause check (a second qualification on the promotion).** Footer-as-lead assumes
+the promoted fragment is heading-shaped — it names the finding ("Last digits are
+distributed as expected"). Where the fragment is instead a **stats clause** — a count or
+quantity summary ("1 group of duplicate rows · 2 repeated blocks") — it is not heading
+material, and promoting it to the lead slot puts a count where a title belongs. Such a
+card does **not** promote its footer fragment to head the body; it mounts a real,
+descriptive section heading (dark lead-tier, hand-rolled inline where `EvidenceBlock`
+offers no dark-label mode), and the stats clause moves to where a count belongs — the
+verdict footer at the foot of the card, or a quiet summary line visibly below heading
+weight. The discriminator: strip the numbers from the fragment. If a finding-naming
+sentence survives ("columns don't fit their expected shape"), it is heading-shaped — keep
+the promotion, even when the flagged form leads with a count ("3 columns don't fit…"); a
+count-led sentence is still a sentence. If only a bare tally remains with no finding named
+("1 group of duplicate rows · 2 repeated blocks" — quantities joined, no verb, nothing
+concluded), it is a stats clause — do not promote. The tell is not the presence of a
+number but whether a finding is named once the number is removed. This is battery-wide and found by a
+classification pass over every footer-as-lead card, not card by card; Duplicated Data is
+the first instance (its footer is an assembled count clause). Genuinely mixed fragments
+flag for a judgement call rather than auto-sorting.
 
 **Applied battery-wide (S211).** The rule was prototyped on two S210 cards (Over-used numbers
 single-surface, Column-to-column multi-surface) and rolled out across the remaining cards in
