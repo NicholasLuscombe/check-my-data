@@ -10,7 +10,7 @@ import { SUB_HEAD, BLOCK_GAP, BLOCK_GAP_TIGHT } from "./styles.js";
 export const EvidenceBlock = ({label, detail, children, lead=false}) => (
   <div style={{marginTop: lead ? 0 : BLOCK_GAP}}>
     {!lead && <div style={{...SUB_HEAD, fontWeight: FW.NORM, marginBottom: BLOCK_GAP_TIGHT}}>{label}</div>}
-    {detail && <div style={{fontSize:FS.base,fontFamily:FF.UI,color:C.TEXT_2,marginBottom:"8px"}}>{detail}</div>}
+    {detail && <div style={{fontSize:FS.sm,fontFamily:FF.UI,color:C.TEXT_2,marginBottom:"8px"}}>{detail}</div>}
     <div style={{border:`1px solid ${C.BORDER_L}`,borderRadius:CR.MD,padding:0,overflowX:"auto",overflowY:"auto",maxHeight:"200px",background:C.WHITE,position:"relative"}}>{children}</div>
   </div>
 );
