@@ -35,16 +35,16 @@
    mistaking it for a forensic finding. Skipped / degenerate rows sink to
    the bottom. */
 
-import { C, FS, FW, FF, SIGNAL } from "../../constants/tokens.js";
+import { C, FW, FF, SIGNAL } from "../../constants/tokens.js";
 import { fmtP } from "../../constants/thresholds.js";
 import { MiniCardLayout } from "../shared/CardLayout.jsx";
 import { EvidenceTable } from "../shared/EvidenceTable.jsx";
 import { SUB_HEAD, LEAD_HEAD } from "../shared/styles.js";
 
-// CHAT-COPY placeholders — Chat authors both heading strings. The split mounts
-// the structure; the words are filled in editorially.
-const FLAGGED_HEADING = "[ CHAT-COPY: flagged-table heading ]";
-const TAIL_HEADING    = "[ CHAT-COPY: tail-table sub-heading ]";
+// Headings for the two stacked tables — flagged set on top (lead-tier), the
+// as-expected / not-tested tail beneath (demoted).
+const FLAGGED_HEADING = "Conditions more similar than expected";
+const TAIL_HEADING    = "Conditions as expected, or not tested";
 
 const LOOK_FOR =
   "Note which pair of conditions flagged and on which property. Inspect those conditions in the raw data files and check whether the similarity has a recorded reason — shared controls, a common reference. Cross-reference Duplicate values and Offset copies: conditions that also share rows or a constant offset point to one built from another. Cross-reference Profile rank agreement and Baseline balance: these three read condition similarity from different angles, and a finding that holds across them is far harder to explain as biology than any one alone.";
@@ -93,12 +93,13 @@ export function MiniCard_CrossCondConsistency({ result }) {
   // Shared width set — both stacked tables declare the SAME five widths so their
   // columns register vertically. Pair sized for the 26-char max ("Treatment_A vs
   // Treatment_B" / "Inhibitor_A vs Inhibitor_B", confirmed rendering on DS01/02/
-  // 16/17). Finding carries NO width — under tableLayout:fixed it absorbs the
-  // leftover and wraps long skip-reason strings (per-cell whiteSpace override
-  // below). Five declared widths sum to 640px.
+  // 16/17). Pair and Finding both carry a per-cell whiteSpace override (below) so
+  // long pairs and skip-reason strings wrap within their width rather than clip;
+  // Finding carries NO width — under tableLayout:fixed it absorbs the leftover.
+  // Five declared widths sum to 565px.
   const columns = [
-    { label: "Property",    align: "left", width: "180px" },
-    { label: "Pair",        align: "left", width: "195px" },
+    { label: "Property",    align: "left", width: "160px" },
+    { label: "Pair",        align: "left", width: "140px" },
     { label: "Observed",                   width: "85px"  },
     { label: "Null median",                width: "105px" },
     { label: "Adj. p",                     width: "75px"  },
@@ -115,6 +116,11 @@ export function MiniCard_CrossCondConsistency({ result }) {
     if (amberHere) cellStyle = { background: AMBER_BG };
     else if (d.ran && !d.forensic) cellStyle = { color: INFORMATIONAL_COLOR };
     const cell = (v) => cellStyle ? { value: v, style: cellStyle } : v;
+    // Pair holds a "{condA} vs {condB}" label up to 26 chars ("Treatment_A vs
+    // Treatment_B"); whiteSpace:"normal" lets it wrap within its 140px column
+    // rather than overflow-clip under tableLayout:fixed. Preserves the row's
+    // amber-bg / muted-colour styling.
+    const cellPair = (v) => ({ value: v, style: { ...(cellStyle || {}), whiteSpace: "normal" } });
     // Finding is a non-contiguous text column (past identifierColumns); force
     // FF.UI so it reads sans-serif like every other card's Finding word, while
     // preserving the row's amber-bg / muted-colour styling. whiteSpace:"normal"
@@ -141,7 +147,7 @@ export function MiniCard_CrossCondConsistency({ result }) {
 
     return [
       cell(d.property),
-      cell(d.pair),
+      cellPair(d.pair),
       cell(d.observed),
       cell(d.nullMedian),
       cell(d.ran && d.adjP != null ? fmtP(d.adjP) : "—"),
@@ -160,14 +166,6 @@ export function MiniCard_CrossCondConsistency({ result }) {
 
   const identifierColumns = 2; // Property, Pair — sans-serif
 
-  const legendStyle = {
-    fontSize: FS.sm,
-    fontFamily: FF.UI,
-    color: C.TEXT_2,
-    marginTop: "4px",
-    lineHeight: "1.5",
-  };
-
   return (
     <MiniCardLayout result={result}
       footer={footer}
@@ -182,7 +180,7 @@ export function MiniCard_CrossCondConsistency({ result }) {
               exactly as the single-table card did before the split. */}
           {flaggedRows.length > 0 && (
             <>
-              {/* CHAT-COPY: flagged-table heading (lead-tier, names the flagged set) */}
+              {/* Flagged-table heading (lead-tier, names the flagged set) */}
               <div style={{ ...LEAD_HEAD, marginBottom: "8px" }}>{FLAGGED_HEADING}</div>
               <EvidenceTable
                 columns={columns}
@@ -198,7 +196,7 @@ export function MiniCard_CrossCondConsistency({ result }) {
           {tailRows.length > 0 && (
             <>
               {flaggedRows.length > 0 && (
-                /* CHAT-COPY: tail-table sub-heading (demoted, sentence case) */
+                /* Tail-table sub-heading (demoted, sentence case) */
                 <div style={{ ...SUB_HEAD, marginTop: "12px" }}>{TAIL_HEADING}</div>
               )}
               <EvidenceTable
@@ -209,9 +207,6 @@ export function MiniCard_CrossCondConsistency({ result }) {
               />
             </>
           )}
-          <div style={legendStyle}>
-            Amber rows flagged: two conditions more alike than expected. Muted rows compare conditions that real treatments separate, so they're never flagged.
-          </div>
         </>
       )}
 
