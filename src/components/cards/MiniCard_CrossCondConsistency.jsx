@@ -35,7 +35,7 @@
    mistaking it for a forensic finding. Skipped / degenerate rows sink to
    the bottom. */
 
-import { C, FS, FF, SEV_VERDICT } from "../../constants/tokens.js";
+import { C, FF, SEV_VERDICT } from "../../constants/tokens.js";
 import { fmtP } from "../../constants/thresholds.js";
 import { MiniCardLayout } from "../shared/CardLayout.jsx";
 import { EvidenceTable } from "../shared/EvidenceTable.jsx";
@@ -162,6 +162,14 @@ export function MiniCard_CrossCondConsistency({ result }) {
 
   const identifierColumns = 2; // Property, Pair — sans-serif
 
+  // One caption surface: the highlighted-rows sentence (when any row is flagged)
+  // and the skip-count sentence (when any measure was skipped) flow together and
+  // wrap as one block. Each half keeps its own gate.
+  const captionParts = [];
+  if (amber.length > 0) captionParts.push("Highlighted rows are the condition pairs flagged as too alike; lowest adjusted p first.");
+  if (skippedCount > 0) captionParts.push(`${skippedCount} of ${totalMeasures} measures could not be tested — too few replicates or too little spread to assess.`);
+  const caption = captionParts.join(" ");
+
   return (
     <MiniCardLayout result={result}
       footer={footer}
@@ -169,28 +177,17 @@ export function MiniCard_CrossCondConsistency({ result }) {
       implications={IMPLICATIONS}>
 
       {result.flag !== "N/A" && rows.length > 0 && (
-        <>
-          {/* maxHeight 300px ≈ 12 single-line rows: the common short tables (incl.
-              both flagged fixtures) render in full, while the three-condition
-              fixtures (up to 21 ran rows) cap into a scroll rather than a wall.
-              Amber sorts to the top, so flagged rows stay above any scroll. */}
-          <EvidenceTable
-            columns={columns}
-            rows={rows}
-            identifierColumns={identifierColumns}
-            maxHeight={300}
-            footerText={amber.length > 0
-              ? "Highlighted rows are the condition pairs flagged as too alike; lowest adjusted p first."
-              : undefined}
-          />
-          {skippedCount > 0 && (
-            /* Skip-count note — renders only when measures were skipped, so
-               hiding their rows does not imply they came back clean. */
-            <div style={{ fontSize: FS.sm, fontFamily: FF.UI, color: C.TEXT_2, marginTop: "6px" }}>
-              {`${skippedCount} of ${totalMeasures} measures could not be tested — too few replicates or too little spread to assess.`}
-            </div>
-          )}
-        </>
+        // maxHeight 300px ≈ 12 single-line rows: the common short tables (incl.
+        // both flagged fixtures) render in full, while the three-condition
+        // fixtures (up to 21 ran rows) cap into a scroll rather than a wall.
+        // Amber sorts to the top, so flagged rows stay above any scroll.
+        <EvidenceTable
+          columns={columns}
+          rows={rows}
+          identifierColumns={identifierColumns}
+          maxHeight={300}
+          footerText={caption || undefined}
+        />
       )}
 
     </MiniCardLayout>
