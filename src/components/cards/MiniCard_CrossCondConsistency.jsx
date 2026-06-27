@@ -39,10 +39,10 @@ import { C, FW, FF, SIGNAL } from "../../constants/tokens.js";
 import { fmtP } from "../../constants/thresholds.js";
 import { MiniCardLayout } from "../shared/CardLayout.jsx";
 import { EvidenceTable } from "../shared/EvidenceTable.jsx";
-import { SUB_HEAD, LEAD_HEAD } from "../shared/styles.js";
+import { SUB_HEAD } from "../shared/styles.js";
 
-// Headings for the two stacked tables — flagged set on top (lead-tier), the
-// as-expected / not-tested tail beneath (demoted).
+// Headings for the two stacked tables — co-equal surface labels (both SUB_HEAD),
+// one above each table, sitting one tier below the card's verdict lead.
 const FLAGGED_HEADING = "Conditions more similar than expected";
 const TAIL_HEADING    = "Conditions as expected, or not tested";
 
@@ -96,13 +96,13 @@ export function MiniCard_CrossCondConsistency({ result }) {
   // 16/17). Pair and Finding both carry a per-cell whiteSpace override (below) so
   // long pairs and skip-reason strings wrap within their width rather than clip;
   // Finding carries NO width — under tableLayout:fixed it absorbs the leftover.
-  // Five declared widths sum to 565px.
+  // Five declared widths sum to 535px.
   const columns = [
     { label: "Property",    align: "left", width: "160px" },
     { label: "Pair",        align: "left", width: "140px" },
-    { label: "Observed",                   width: "85px"  },
-    { label: "Null median",                width: "105px" },
-    { label: "Adj. p",                     width: "75px"  },
+    { label: "Observed",                   width: "75px"  },
+    { label: "Null median",                width: "90px"  },
+    { label: "Adj. p",                     width: "70px"  },
     { label: "Finding",     align: "left"                 },
   ];
 
@@ -180,8 +180,9 @@ export function MiniCard_CrossCondConsistency({ result }) {
               exactly as the single-table card did before the split. */}
           {flaggedRows.length > 0 && (
             <>
-              {/* Flagged-table heading (lead-tier, names the flagged set) */}
-              <div style={{ ...LEAD_HEAD, marginBottom: "8px" }}>{FLAGGED_HEADING}</div>
+              {/* Flagged-table heading — same tier as the tail heading (SUB_HEAD);
+                  the card verdict lead stays the sole top tier above both. */}
+              <div style={{ ...SUB_HEAD, marginBottom: "8px" }}>{FLAGGED_HEADING}</div>
               <EvidenceTable
                 columns={columns}
                 rows={flaggedRows}
