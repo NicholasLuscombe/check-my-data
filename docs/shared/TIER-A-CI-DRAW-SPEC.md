@@ -15,10 +15,12 @@ via promotion, BH-FDR over sub-units, worst-group selection, or an OR across uni
 band on a *pooled* quantity cannot picture an OR across units; it can sit clean while the
 verdict reads MODERATE. That is not a level bug — it is the band picturing a different
 quantity than the one the verdict tests. Two shipped bands carried this defect at S238
-(Autocorrelation, Runs). S239 resolved both: Autocorrelation's band is replaced by a verified
-per-unit forest (it is genuinely PER-UNIT-OR); Runs is reclassified POOLED-SINGLE — the routing
-probe found no fixture where its flag fires on a markable per-unit, so the honest object is a
-single band on the pooled mean-z (§7), not a forest.
+(Autocorrelation, Runs). Both were resolved, in different sessions: Runs was reclassified
+POOLED-SINGLE (S239) — the routing probe found no fixture where its flag fires on a markable
+per-unit, so the honest object is a single band on the pooled mean-z (§7), not a forest — and
+got its corrected band S240. Autocorrelation's band is replaced by a verified per-unit forest
+(it is genuinely PER-UNIT-OR), BUILT S283 (the S239 summary recorded this forest as built, but
+it never reached git — caught by the S283 scope read; see §3/§6).
 
 The honest object for a PER-UNIT-OR test is a **per-unit display**: each unit's evidence
 shown against its own reference, flagged units marked, the multiplicity correction visible,
@@ -156,13 +158,19 @@ Two things are left to their proper homes rather than fixed here:
 
 - **Component count** (one component with a mode switch vs two components sharing scaffolding)
   is an implementation shape for Code to propose in its build plan. Pinning it here reaches
-  into `src/`. (S239 outcome: Code built one shared `ForestPlot.jsx` with a `referenceMode`
-  prop; strip mode deferred to its first consuming card.)
+  into `src/`. (Shape decided S239 — one shared `ForestPlot.jsx` with a `referenceMode`
+  prop, strip mode deferred to its first consuming card; BUILT to that shape S283, not S239.)
 - **Visual particulars** (marker shapes, colours, interval style, the forest/strip register
   distinction in concrete terms) route through `INVESTIGATION-DISPLAY-SPEC` and
   `PLOT-COLOUR-SEMANTICS`, set once against the existing plot vocabulary, not invented here.
-  (S239 outcome: flagged = solid red, cleared = open grey — grey not green, so a sub-boundary
-  unit doesn't read as a per-unit "clean" verdict.)
+  (Locked S283 against the live colour canon, NOT the stale S239 note this replaces:
+  flagged = solid red `CC.THRESH`, cleared = blue `CC.OBS` — per PLOT-COLOUR-SEMANTICS
+  channel 4, the observed-mark data model. There is NO open-grey and NO cleared-green
+  resting state on a forest mark; a cleared unit reads as observed-and-not-flagged, and
+  it does not read as a "clean verdict" because green is reserved for chrome where
+  severity is read, never on an observed mark. The earlier "open grey, grey-not-green"
+  record was from S239 and conflicts with the canon — struck. Verified on real pixels
+  S283: DS03 all-blue cleared, DS11/DS21 blue-clear beside red-flagged.)
 
 ---
 
@@ -175,13 +183,17 @@ because a display you can see on a flagged fixture is a display you can confirm;
 built-and-trusted until #49.
 
 **Stage 1 — defect resolution (verifiable, leads the programme).** Autocorrelation and Runs each
-shipped a defective CI band at S238 (§6). **S239 resolved both, with different outcomes:**
-Autocorrelation is a genuine PER-UNIT-OR test — its band is replaced by a forest (zero reference),
-built and verified on DS11 (per-pair) and DS21 (higher-lag promoters). Runs, on inspection of every
-flagged fixture, has no per-unit that flags (all verdicts are pooled mean-z) — it is reclassified
-POOLED-SINGLE and gets a corrected single band (§7), not a forest. So Stage 1 delivered the forest
-proof-of-concept on Autocorrelation alone; Runs left the forest set. This is itself the proof-of-
-concept lesson: the first real render is where a classification is confirmed or corrected.
+shipped a defective CI band at S238 (§6). The two were resolved in different sessions, with different
+outcomes: **Runs** was reclassified POOLED-SINGLE (S239) and got a corrected single band (§7), built
+S240 (`b92d6c1`) — it left the forest set. **Autocorrelation** is a genuine PER-UNIT-OR test; its
+forest (zero reference) was BUILT S283, not S239 — the S239 summary recorded a forest "built and
+verified" that never reached git, caught by the S283 scope read. The S283 build shipped the shared
+`ForestPlot.jsx` primitive (forest mode; strip mode a documented seam for its first consumer) and
+mounted it on Autocorrelation, verified on a three-cycle screenshot gate: DS11 (per-pair lag-1),
+DS21 (higher-lag promoters), DS03 (cleared single-matrix, all-blue), DS01 (column-grouped, forest
+suppressed). So Stage 1 delivered the forest proof-of-concept on Autocorrelation alone. The lesson
+holds twice over: the first real render is where a classification is confirmed or corrected — and a
+session summary claiming a build "verified" is a state-claim to settle at git, not a source fact.
 
 **Stage 2 — remaining verifiable (build-ready, flagged fixture exists).** Column GoF
 (DS10/20), VFS (DS04/06/13), Mahalanobis Row [Family B, §7], Blocked Mahalanobis (DS15/21/22),
@@ -210,10 +222,17 @@ genuine **Fisher combination across conditions** (`fisherP`), not a worst-group 
 at source on DS02 (Autocorr `fisherP=0.0038`, all three conditions individually LOW; Runs
 worst-group Control pooled mean-z, all per-pairs cleared). For these tests the §4 worst-group
 display does not apply, and no per-unit clears, so a per-unit forest renders all-grey under a
-flagged verdict. The honest object for a Fisher-combined column-grouped verdict is unresolved and
-parked (it affects every non-Fisher-exempt PER-UNIT-OR test routing `aggregatePerGroup`, not just
-these two — see the parked open below). This is a classification gap the S237 pass missed: it
-assigned forest-mode without checking Fisher-exemption per test against `aggregation.js`.
+flagged verdict. **Disposition for the forest (S283): suppress, don't render.** On the aggregated
+path no per-unit clears, so a forest has no markable flagged unit — rendering it produces either an
+all-cleared forest under a flagged verdict (misleading) or repeated untagged per-condition pair-blocks
+(the DS01 fault, where `subDetails` maps with `unitLabel = d.pair` and drops `group`). The forest is
+suppressed via `!isAgg` (Runs' precedent), and the card's existing per-condition surface (decay plot +
+pooled table) carries the evidence — confirmed at the S283 build that suppression loses no information.
+This resolves the open FOR THE FOREST. The broader methodology question — is a Fisher-combined verdict's
+honest per-unit object always "none"? — remains open for the other non-Fisher-exempt PER-UNIT-OR tests
+routing `aggregatePerGroup`; each can inherit suppress-and-fall-back unless its card lacks an equivalent
+aggregated surface. This was a classification gap the S237 pass missed: it assigned forest-mode without
+checking Fisher-exemption per test against `aggregation.js`.
 
 **Constraint on the display:** the per-unit display must reflect the **worst-group** decision
 the verdict uses. The units shown, and the reference each is plotted against, are the worst
@@ -254,12 +273,21 @@ two tests turned out to be different objects.
 lags (2–5) and a single pair's lag-1 BH-adjusted p (`autocorrelation.js:139-140`) — quantities
 the band doesn't show, so a clean lag-1 band can accompany a MODERATE verdict. Replaced with a
 forest-mode display (zero reference): per-pair lag-1 and the higher-lag promoters, each against
-r = 0, flagged units marked, BH family visible. **Built and verified S239** on DS11 (six flagged
-lag-1 per-pair units, solid red right of r=0) and DS21 (three flagged higher-lag promoters,
-L2/L3/L4 red). The forest contract (§2) holds for a genuinely PER-UNIT-OR test. **Exception —
-column-grouped fixtures (DS02-class):** the verdict is Fisher-combined across conditions, no
-per-unit clears, the forest renders all-grey; the `details→subDetails` read on the aggregated path
-is correct but produces no markable unit. Parked with the Fisher-combined display open (§4 caveat).
+r = 0, flagged units marked, BH family visible. **Built S283** (the S239 summary claimed it built
+and verified — that never reached git, caught by the S283 scope read; the band was still live until
+S283). Verified on a three-cycle screenshot gate: DS11 (six flagged lag-1 per-pair units, solid red
+right of r=0), DS21 (three flagged higher-lag promoters, L2/L3/L4 red), DS03 (cleared single-matrix,
+all-blue). The forest contract (§2) holds for a genuinely PER-UNIT-OR test. **Exception —
+column-grouped fixtures (DS01/DS02-class):** the verdict is Fisher-combined across conditions, no
+per-unit clears. The S283 build SUPPRESSES the forest on this path (`!isAgg`, the predicate Runs
+uses — `MiniCard_Runs.jsx`), falling back to the existing per-condition decay plot + pooled table.
+This is the §4/§7 Fisher-combined display open, RESOLVED FOR THE FOREST as suppress-and-fall-back
+(see §4). Two latent items found at the S283 build, both banked, neither blocking: (1) the per-pair
+forest mark gates on the 0.01 `significant` boolean, not the verdict's 0.001 per-pair promotion (the
+adjusted per-pair p is computed and dropped — a third retention case beside Kurtosis and Regional
+Noise, §5); (2) the effect-size gate that withholds lag promotion on large samples means a lag can
+be individually significant yet read cleared (DS11 lag-2, 6/6 pairs, p<0.0001, blue) — faithful, and
+made legible by an on-card effect-size caption.
 
 **Runs** — shipped a pooled mean-z ± CI band. **Reclassified POOLED-SINGLE (S239), not a forest
 replacement.** The routing probe found no flagged-per-unit anchor in any fixture: DS21/DS22 flag
@@ -360,8 +388,9 @@ not resolved.
 per-unit primitive contract and the two data-driven render modes (§2); the build order
 (verifiable-first, defects leading, §3); the worst-group constraint for per-condition routing
 (§4); Noise Scaling and Runs as the surviving single bands, re-leveled to the flag boundary (§7);
-the two S238 defect bands resolved (§6) — Autocorrelation replaced by a verified forest,
-Runs reclassified POOLED-SINGLE and getting a corrected single band.
+the two S238 defect bands resolved (§6) — Autocorrelation replaced by a per-unit forest
+(built S283, not S239 as the earlier summary recorded — see §3/§6), Runs reclassified
+POOLED-SINGLE and getting a corrected single band (built S240).
 
 **Open (named, scoped, not blocking):**
 - Blocked Mahalanobis render mode — strip vs forest-with-derived-reference; confirm at its build
@@ -374,7 +403,9 @@ Runs reclassified POOLED-SINGLE and getting a corrected single band.
   respectively, not this spec (§2.7).
 - The honest display object for a **Fisher-combined column-grouped verdict** — affects every
   non-Fisher-exempt PER-UNIT-OR test routing `aggregatePerGroup` (Autocorr, Runs confirmed; others
-  unchecked). Methodology read-only, its own pass (§4 caveat). Not a build patch.
+  unchecked). **Resolved for the forest S283** (suppress-and-fall-back, §4); the broader methodology
+  question — is the honest per-unit object always "none" here? — stays open for the other affected
+  tests. Methodology read-only, its own pass (§4 caveat). Not a build patch.
 
 **Retired:** the v1.0 CI-band programme in full — the natural-fit DRAW classification, the
 99.9% uniform level lock, the WS-1/WS-2/WS-3 workstream structure, and the Appendix B/C no-band
