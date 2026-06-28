@@ -1,95 +1,79 @@
 /* ── MiniCard: Autocorrelation ── */
 
-import { C, CC, CP, CS, CF, FF, FW, FS, SEV_VERDICT, OBS } from "../../constants/tokens.js";
-import { fmtP } from "../../constants/thresholds.js";
+import { C, CC, FW, FS, SEV_VERDICT, OBS } from "../../constants/tokens.js";
+import { fmtP, EFFECT_SIZE } from "../../constants/thresholds.js";
 import { MiniCardLayout } from "../shared/CardLayout.jsx";
 import { EvidenceTable } from "../shared/EvidenceTable.jsx";
 import { buildCondColorMap, COND_COLORS } from "../../constants/roles.js";
 import { PlotLayout } from "../shared/PlotLayout.jsx";
 import { ChartLegend } from "../shared/ChartLegend.jsx";
 import { AutocorrDecayPlot } from "../plots/AutocorrDecayPlot.jsx";
-import { PlotSVG } from "../plots/PlotSVG.jsx";
+import { ForestPlot } from "../plots/ForestPlot.jsx";
 import { DotStrip } from "../plots/DotStrip.jsx";
 import { shortName } from "../shared/utils.js";
 import { SUB_HEAD, BLOCK_GAP, BLOCK_GAP_TIGHT } from "../shared/styles.js";
 
 
-// ── Pooled lag-1 verdict number-line (S232) ─────────────────────────
-// Dedicated horizontal 1-D r-axis carrying the producer's pooled lag-1
-// mean (one-sample t on allR1, autocorrelation.js) with its verdict-edge CI
-// whisker, against the dashed r = 0 reference. The interval's relation to
-// zero IS the verdict — when the CI excludes zero, average serial
-// correlation across pairs is reliably above independence. Mirrors the
-// Runs PooledZMarker treatment; r-scale ticks adapt to span (verdict r and
-// its CI run small, ~0.06, so a fixed integer scale would be illegible).
-function PooledR1Marker({ value, ci }) {
-  if (!Number.isFinite(value)) return null;
-  const W = CP.W, H = 60;
-  const PL = 50, PR = 50, PT = 16;
-  const CW = W - PL - PR;
-  // Symmetric r-axis around 0; floor keeps near-zero CIs legible (mirrors
-  // the decay plot's MIN_HALF_SPAN). Widen if marker / CI exceeds it.
-  const rawSpan = Math.max(
-    Math.abs(value) * 1.3,
-    ...(Array.isArray(ci) ? ci.filter(Number.isFinite).map(v => Math.abs(v) * 1.3) : [0])
-  );
-  const span = Math.max(0.12, rawSpan);
-  // Tick step keyed to span (mirrors AutocorrDecayPlot): 0.05 tight, 0.1
-  // medium, 0.2 wide. Round span UP to a tick multiple so r = 0 lands on a tick.
-  const tickStep = span <= 0.25 ? 0.05 : span <= 0.6 ? 0.1 : 0.2;
-  const niceSpan = Math.ceil(span / tickStep) * tickStep;
-  const RMIN = -niceSpan, RMAX = niceSpan;
-  const xs = (r) => PL + (r - RMIN) / (RMAX - RMIN) * CW;
-  const cy = PT + 14;
-  const tickDp = tickStep < 0.1 ? 2 : 1;
-  const ticks = [];
-  for (let v = RMIN; v <= RMAX + 1e-9; v += tickStep) ticks.push(Math.round(v * 1000) / 1000);
-  return (
-    <PlotSVG W={W} H={H}>
-      {/* r = 0 dashed reference — null anchor (teal, standardised CS.REF) */}
-      <line x1={xs(0)} y1={PT} x2={xs(0)} y2={PT + 28}
-        stroke={CC.EXP} strokeWidth={CS.REF.w} strokeDasharray={CS.REF.dash} opacity={CS.REF.opacity}/>
-      <text x={xs(0)} y={PT - 4} fontSize={CF.SMALL} fill={C.TEXT_2}
-        textAnchor="middle" fontFamily={FF.MONO}>r = 0</text>
-      {/* CI whisker */}
-      {Array.isArray(ci) && Number.isFinite(ci[0]) && Number.isFinite(ci[1]) && (
-        <>
-          <line x1={xs(ci[0])} y1={cy} x2={xs(ci[1])} y2={cy}
-            stroke={C.TEXT} strokeWidth="1.5"/>
-          <line x1={xs(ci[0])} y1={cy - 5} x2={xs(ci[0])} y2={cy + 5}
-            stroke={C.TEXT} strokeWidth="1.5"/>
-          <line x1={xs(ci[1])} y1={cy - 5} x2={xs(ci[1])} y2={cy + 5}
-            stroke={C.TEXT} strokeWidth="1.5"/>
-        </>
-      )}
-      {/* Marker dot */}
-      <circle cx={xs(value)} cy={cy} r={CS.PT_LG.r + 1}
-        fill={C.TEXT} stroke={C.WHITE} strokeWidth="1.5"/>
-      {/* Axis */}
-      <line x1={PL} y1={PT + 28} x2={PL + CW} y2={PT + 28}
-        stroke={C.AXIS} strokeWidth={CS.GRID.w}/>
-      {ticks.map(t => (
-        <g key={t}>
-          <line x1={xs(t)} y1={PT + 28} x2={xs(t)} y2={PT + 32}
-            stroke={C.AXIS} strokeWidth={CS.GRID.w}/>
-          <text x={xs(t)} y={PT + 42} fontSize={CF.SMALL} fill={C.TEXT_2}
-            textAnchor="middle" fontFamily={FF.MONO}>{t.toFixed(tickDp)}</text>
-        </g>
-      ))}
-    </PlotSVG>
-  );
-}
-
 export function MiniCard_Autocorrelation({ result, importConfig, rowMap }) {
   const details = result.details || [];
   const sub = result.subDetails || [];
   const condColorMap = buildCondColorMap(importConfig);
-  const meanR1 = typeof result.pooledMeanR1 === "number" ? result.pooledMeanR1 : parseFloat(result.pooledMeanR1);
+  // Aggregated (column-grouped) path marker — the same predicate Runs uses.
+  // The forest is suppressed on this path (see the mount below).
+  const isAgg = result.groupsAssessed !== undefined;
+
+  // ── Per-unit forest (S283): the verdict geometry. Replaces the old pooled
+  //    lag-1 band. The band plotted one pooled quantity, while the flag also
+  //    promotes on per-pair lag-1 evidence and on the higher lags (2–5) — so a
+  //    clean band could sit beside a flagged verdict. The forest shows each
+  //    unit against r = 0, marked by its own decision, so the geometry carries
+  //    the same claim the verdict rests on.
+  //
+  //    Two unit kinds, both lag-k autocorrelation r against r = 0:
+  //      • per-pair lag-1 — each replicate pair's lag-1 r, from `details` (the
+  //        single-matrix per-pair array). Flagged off the engine's per-pair
+  //        `significant`. That boolean fires at the Moderate boundary (adjusted
+  //        p below 0.01), which is looser than the verdict's own per-pair
+  //        promotion (below 0.001). Reconciling the two is a pending retention
+  //        question: the engine computes the adjusted per-pair p, sets the
+  //        boolean, and drops the number, so the mount cannot route on 0.001
+  //        without an engine change.
+  //      • higher-lag promoters (lags 2–5) — each lag's pooled r. Flagged off
+  //        `isPromotionTrigger`, the exact field the verdict promotes on, so a
+  //        lag that is individually significant but small reads cleared when the
+  //        effect-size floor withholds promotion (the caption below says so).
+  //
+  //    The forest renders on the single-matrix path only. On the column-grouped
+  //    path the verdict is combined across conditions and no single pair can
+  //    clear, so the forest would carry no markable unit; it is suppressed there
+  //    (the mount gates on `!isAgg`) and the per-condition decay plot plus the
+  //    pooled lag table carry that path instead.
+  const perPairUnits = details
+    .filter(d => d.lag1 !== undefined)
+    .map(d => ({
+      unitLabel: d.pair,
+      estimate: parseFloat(d.lag1),
+      reference: 0,
+      referenceMode: "zero",
+      adjP: undefined, // adjusted per-pair p is computed then dropped in the engine
+      flagged: d.significant === true,
+    }));
+  const higherLagUnits = (result.lagTable || [])
+    .filter(r => r.lag > 1 && r.pooledR !== undefined)
+    .map(r => ({
+      unitLabel: `Lag ${r.lag}`,
+      estimate: parseFloat(r.pooledR),
+      reference: 0,
+      referenceMode: "zero",
+      adjP: typeof r.rawAdjP === "number" ? r.rawAdjP : undefined,
+      flagged: r.isPromotionTrigger === true,
+    }));
+  const forestUnits = [...perPairUnits, ...higherLagUnits];
+  const nPairs = result.nPairs ?? perPairUnits.length;
 
   // ── Decay chart (Surface 2) ──
-  // The verdict statistic (pooled lag-1 mean ± verdict-edge CI) now lives on its
-  // own number-line surface above (PooledR1Marker); this plot carries only
-  // the per-lag decay evidence.
+  // The verdict geometry lives on the per-unit forest above; this plot carries
+  // only the per-lag decay evidence (lag-k means across pairs).
   const hasDecay = result.perGroupDecay?.length || result.decayCurve;
   let mainChart = null;
   if (result.perGroupDecay?.length) {
@@ -137,21 +121,35 @@ export function MiniCard_Autocorrelation({ result, importConfig, rowMap }) {
       lookFor={result.effectSizeClass === "strong" ? "A correlation this size means one row's difference predicts the next. Inspect the raw data files and compare the row order against the submitted data. Check whether the pattern concentrates in particular conditions, and examine the flagged rows for values that follow too smooth or too regular a sequence to have been obtained independently." : "A correlation like this has several possible sources. Check whether the data was sorted or re-ordered before submission, which can break the natural measurement order and introduce a pattern. Inspect the raw data files for a fresh export to rule out post-processing."}
       implications="A correlation from row to row can arise from a time-dependent process: e.g., temperature drift or reagent degradation affecting neighbouring samples. It can also indicate values edited row by row, each nudged slightly from the one above — hand editing that follows a hidden template leaves exactly this kind of serial trail, which independent measurement does not.">
 
-      {/* Surface 1 (S232): pooled lag-1 verdict number-line — the verdict
-          statistic (one-sample t on allR1, autocorrelation.js) drawn against
-          r = 0 with its verdict-edge CI whisker. The interval-vs-zero relation IS the
-          verdict; the per-lag decay surface below is the evidence. The footer
-          fragment (LEAD_HEAD in MiniCardLayout) heads this primary surface, so
-          no heading here (mirrors Runs). */}
-      {Number.isFinite(meanR1) && Array.isArray(result.pooledR1CI) && (
+      {/* Surface 1 (S283): per-unit forest — the verdict geometry. Each unit
+          (per-pair lag-1 and the higher-lag promoters) sits at its estimate
+          against r = 0, marked by its own decision, with the multiplicity
+          correction shown. Single-matrix path only — suppressed on the
+          column-grouped path (`!isAgg`), where no per-unit can clear and the
+          decay plot plus pooled table carry the evidence. The footer fragment
+          (LEAD_HEAD in MiniCardLayout) heads this primary surface, so no
+          heading here. */}
+      {!isAgg && forestUnits.length > 0 && (
         <>
         <PlotLayout fitContent>
-          <PooledR1Marker value={meanR1} ci={result.pooledR1CI} />
+          <ForestPlot
+            units={forestUnits}
+            effectAxisLabel="Lag-k autocorrelation of inter-replicate differences (r)"
+            multiplicityNote={`Benjamini–Hochberg adjusted across ${nPairs} pair${nPairs === 1 ? "" : "s"} and lags 1–5`}
+          />
         </PlotLayout>
         <ChartLegend items={[
-          { color: C.TEXT, label: "Pooled lag-1 mean ± verdict-edge CI", swatchType: "dot" },
-          { color: CC.EXP, label: "Expected r = 0 (independent)", swatchType: "line", dashed: true },
+          { color: CC.THRESH, label: "Flagged unit (clears the flag boundary)", swatchType: "dot" },
+          { color: CC.OBS, label: "Cleared unit", swatchType: "dot" },
         ]} />
+        {/* A lag can be individually significant yet read cleared: higher-lag
+            promotion also requires the correlation to clear the effect-size
+            floor on large samples. The floor value is read from source
+            (AUTOCORR_STRONG) so the caption tracks the constant; the 500-row
+            condition mirrors the engine's row-count gate. */}
+        <div style={{...SUB_HEAD, marginTop: "6px", marginBottom: 0, color: C.TEXT_3, fontWeight: FW.NORM}}>
+          {`Lags promote only when the correlation also clears the effect-size floor (r ≥ ${EFFECT_SIZE.AUTOCORR_STRONG} on samples of 500 rows or more).`}
+        </div>
         </>
       )}
 
