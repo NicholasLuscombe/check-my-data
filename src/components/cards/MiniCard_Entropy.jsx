@@ -6,12 +6,27 @@ import { MiniCardLayout } from "../shared/CardLayout.jsx";
 import { DataTable } from "../shared/DataTable.jsx";
 import { SUB_HEAD, BLOCK_GAP, BLOCK_GAP_TIGHT } from "../shared/styles.js";
 import { ColumnStatBar } from "../plots/ColumnStatBar.jsx";
+import { colToExcelLetter, buildOriginalColMap } from "../shared/coordinates.js";
 
 
 export function MiniCard_Entropy({ result, importConfig, rowMap }) {
   const nFlagged = result.nFlagged || 0;
   const nLow = result.nLow || 0;
   const nHigh = result.nHigh || 0;
+
+  // Resolve a data-column index (0-based) to its original-file Excel letter,
+  // mirroring MiniCard_DuplicateDetection's two-stage map: first skip any
+  // label/condition columns (dataColMap), then skip stripped sparse separator
+  // columns (origColMap), then format as a letter. The producer's `Col` /
+  // `col` fields are 1-based data-column indices, so subtract 1 before mapping.
+  const _roles = importConfig?.roles || [];
+  const _hdrs = importConfig?.hdrs || [];
+  const _dataColMap = _roles.map((r, i) => r === "data" ? i : -1).filter(i => i >= 0);
+  const _origColMap = buildOriginalColMap(_hdrs.length, importConfig?.removedCols);
+  const colLetter = (dataIdx0) => {
+    const hdrsIdx = _dataColMap[dataIdx0] ?? dataIdx0;
+    return colToExcelLetter(_origColMap[hdrsIdx] ?? hdrsIdx);
+  };
 
   // On the aggregated (per-condition) path the aggregator rebuilds `details`
   // as the per-group summary with no per-column field — the per-column rows
@@ -34,9 +49,12 @@ export function MiniCard_Entropy({ result, importConfig, rowMap }) {
   const sub = result.subDetails || [];
   const rows = (result.details || []).slice(0, 20);
 
-  // Per-column bar items: all tested columns, flagged + unflagged.
+  // Per-column bar items: all tested columns, flagged + unflagged. The axis
+  // label is the original-file letter; `col` is kept (1-based) so ColumnStatBar
+  // can still order the slots by column index.
   const barItems = (result.colRatios || []).map(c => ({
-    colLabel: `Col ${c.col}`,
+    colLabel: colLetter(c.col - 1),
+    col: c.col,
     value: c.ratio,
     flagged: !!c.flagged,
   }));
@@ -63,7 +81,9 @@ export function MiniCard_Entropy({ result, importConfig, rowMap }) {
         const headerMap = { group: "Condition", adjP: "Adj. p", H_obs: "H", H_expected: "H expected", Ratio: "Ratio" };
         const dtCols = cols.map(k => ({
           header: headerMap[k] || k,
-          render: k === "adjP" ? (d => fmtP(d[k])) : (d => d[k]),
+          render: k === "adjP" ? (d => fmtP(d[k]))
+                : k === "Col" ? (d => colLetter(d.Col - 1))
+                : (d => d[k]),
         }));
         return (
           <div style={{ marginTop: BLOCK_GAP }}>
@@ -81,7 +101,7 @@ export function MiniCard_Entropy({ result, importConfig, rowMap }) {
               (Regular weight) to read clearly below the footer-lead. */}
           <div style={{...SUB_HEAD, fontWeight: FW.NORM, marginBottom: BLOCK_GAP_TIGHT}}>Flagged columns</div>
           <DataTable data={rows} maxRows={20} compact identifierColumns={2} totalCount={result.nFlagged} columns={[
-            { header: "Col", bold: true, render: d => d.Col },
+            { header: "Col", bold: true, render: d => colLetter(d.Col - 1) },
             { header: "Finding", render: d => d.Direction === "Low entropy" ? "Too few distinct values" : d.Direction === "High entropy" ? "Too many distinct values" : d.Direction },
             { header: "Excess", bold: true, render: d => { const r = parseFloat(d.Ratio); if (isNaN(r)) return d.Ratio; const pct = Math.round((r - 1) * 100); return (pct >= 0 ? "+" : "") + pct + "%"; } },
             { header: "Adj. p", render: d => fmtP(d.adjP) },
