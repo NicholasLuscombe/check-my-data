@@ -4,6 +4,7 @@ import { EvidenceTable } from "../shared/EvidenceTable.jsx";
 
 import { fmtP } from "../../constants/thresholds.js";
 import { makeRowMapper } from "../shared/coordinates.js";
+import { SUB_HEAD, BLOCK_GAP_TIGHT } from "../shared/styles.js";
 
 // Compose the per-detail join key into a result._spikeCells group.
 // Pass-1 cells carry the raw matrix value; pass-1 detail rows carry the
@@ -58,15 +59,24 @@ export function MiniCard_ValueFrequency({ result, importConfig, rowMap }) {
       ? `${nSpikes} digit combination${nSpikes !== 1 ? "s" : ""} recur${nSpikes !== 1 ? "" : "s"} more often than expected`
       : `${nSpikes} number${nSpikes !== 1 ? "s" : ""} appear${nSpikes !== 1 ? "" : "s"} more often than expected`;
 
-  // Column order: Value · Pass · Rows · Observed · Expected · Ratio · Adj P
-  // Leading text cols (identifier): Value, Pass, Rows → identifierColumns=3.
+  // The scan pass (digit substring vs full value) reads the same on every row
+  // of a given fixture, so it carries no per-row information. It is lifted to a
+  // heading note above the table (read from drivingPass) rather than spent as a
+  // column, which frees the width for the table to fit the card body.
+  const passNote = result.drivingPass === "digit"
+    ? "Matches on digit substrings"
+    : "Matches on full values";
+
+  // Column order: Value · Rows · Observed · Expected · Ratio · Adj P
+  // Leading text cols (identifier): Value, Rows → identifierColumns=2.
   // Trailing numeric cols (mono): Observed, Expected, Ratio, Adj P.
   // Per-row cell count is duplicative of Observed by construction (full-value:
   // occurrences == flagged cells; digit-substring: substring matches ==
   // flagged cells), so no separate "Cells" column. Aggregate cell spread
   // still surfaces in the footer's "across N cells" segment.
-  // Width hints sum to ~635px to fit typical Forensics card-body widths.
-  // EvidenceTable wrapper's overflow:auto handles narrow viewports.
+  // Width hints sum to 555px (down from 665) so the table fits the card body
+  // without horizontal scroll. EvidenceTable wrapper's overflow:auto handles
+  // narrow viewports.
   return (
     <MiniCardLayout result={result}
       footer={footerText}
@@ -80,24 +90,25 @@ export function MiniCard_ValueFrequency({ result, importConfig, rowMap }) {
           </CardBanner>
         )}
         {/* S210 (single-surface): section heading dropped — the footer
-            fragment (LEAD_HEAD in MiniCardLayout) heads this sole table. */}
+            fragment (LEAD_HEAD in MiniCardLayout) heads this sole table.
+            S282: the scan-pass note below carries the one fixture-constant bit
+            the dropped Pass column used to hold. */}
+        <div style={{...SUB_HEAD, fontWeight: FW.NORM, marginBottom: BLOCK_GAP_TIGHT}}>{passNote}</div>
         <EvidenceTable
           columns={[
             {label:"Value",    width:"85px"},
-            {label:"Pass",     width:"110px"},
             {label:"Rows",     width:"170px"},
             {label:"Observed", width:"75px"},
             {label:"Expected", width:"75px"},
             {label:"Ratio",    width:"65px"},
             {label:"Adj. p",    width:"85px"},
           ]}
-          identifierColumns={3}
+          identifierColumns={2}
           rows={details.map(d => {
             const g = cellsByKey.get(spikeKeyFromDetail(d));
             const rowList = g ? compactRowList([...g.rows]) : "—";
             return [
               {value:d.value, style:{fontWeight:FW.BOLD}},
-              d.pass === "digit" ? "digit substring" : "full value",
               rowList,
               d.observed,
               d.expected,
