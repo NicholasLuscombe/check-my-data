@@ -4,7 +4,7 @@ import { C, CC, CF, CS, FS, FW, FF, OBS, observedSwatchColor } from "../../const
 import { fmtP, fmtPBadge } from "../../constants/thresholds.js";
 import { MiniCardLayout } from "../shared/CardLayout.jsx";
 import { DataTable } from "../shared/DataTable.jsx";
-import { makeRowMapper } from "../shared/coordinates.js";
+import { makeRowMapper, colToExcelLetter, buildOriginalColMap } from "../shared/coordinates.js";
 
 import { PlotLayout } from "../shared/PlotLayout.jsx";
 import { PlotSVG } from "../plots/PlotSVG.jsx";
@@ -29,6 +29,19 @@ export function MiniCard_CarlisleBalance({ result, importConfig, rowMap }) {
   // spreadsheet (accounts for stripped header and preamble rows). Used for the
   // column-grouped path's "Row N" labels.
   const mapper = makeRowMapper(importConfig, rowMap);
+  // Resolve a data-column index (0-based) to its original-file Excel letter,
+  // mirroring MiniCard_DuplicateDetection's two-stage map: first skip any
+  // label/condition columns (dataColMap), then skip stripped sparse separator
+  // columns (origColMap), then format as a letter. Used for the row-grouped
+  // path's column-feature labels so they point at the physical file column.
+  const _roles = importConfig?.roles || [];
+  const _hdrs = importConfig?.hdrs || [];
+  const _dataColMap = _roles.map((r, i) => r === "data" ? i : -1).filter(i => i >= 0);
+  const _origColMap = buildOriginalColMap(_hdrs.length, importConfig?.removedCols);
+  const colLetter = (dataIdx0) => {
+    const hdrsIdx = _dataColMap[dataIdx0] ?? dataIdx0;
+    return colToExcelLetter(_origColMap[hdrsIdx] ?? hdrsIdx);
+  };
 
   // P-value histogram (10 bins, expected uniform)
   const histBins = result.histBins || [];
@@ -144,9 +157,10 @@ export function MiniCard_CarlisleBalance({ result, importConfig, rowMap }) {
           <DataTable data={details} maxRows={20} compact identifierColumns={1} totalCount={nFeatures}
             moreLabel={(n, t) => `Top ${n} of ${t} by balance`} columns={[
             // rowIdx present → column-grouped record: map to the file row.
-            // colIdx present → row-grouped "Col N" record: pass the string
-            // through (its file mapping is scoped separately).
-            { header: "Feature", bold: true, render: d => d.rowIdx != null ? `Row ${mapper.toFileRow(d.rowIdx + 1)}` : d.Feature },
+            // colIdx present → row-grouped column-feature record: resolve the
+            // data-column index to its original-file letter (e.g. "Col D"),
+            // parallel to the "Row N" form.
+            { header: "Feature", bold: true, render: d => d.rowIdx != null ? `Row ${mapper.toFileRow(d.rowIdx + 1)}` : `Col ${colLetter(d.colIdx)}` },
             { header: "Condition means", render: d => d.Means },
             { header: "Spread (CV)", render: d => d.CV ?? "—" },
             { header: "p", render: d => d["ANOVA p"] },

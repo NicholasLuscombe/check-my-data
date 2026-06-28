@@ -77,7 +77,7 @@ export function MiniCard_WithinRowVariance({ result, importConfig, rowMap }) {
             ? "1 row has unusual spread across its replicates"
             : `${nOut} rows have unusual spread across their replicates`)
         : "No rows with unusual spread"}
-      lookFor="Identify the flagged rows and inspect them in the raw data files: replicates that match exactly, or differ only in the last digit, are the concern. Check whether the smooth rows cluster in particular conditions or a stretch of the dataset, which points to a fabricated block rather than scattered chance. Cross-reference Noise distribution: if the dataset's replicate differences are also too flat in shape, the two together point to noise drawn from a uniform range rather than measured — the same fabrication seen as too-alike rows here and as the wrong noise shape there."
+      lookFor="Identify the flagged rows and inspect them in the raw data files: replicates that match exactly, or differ only in the last digit, are the concern. Check whether the smooth rows cluster in particular conditions or a stretch of the dataset, which points to a fabricated block rather than scattered chance. Cross-reference Noise shape: if the dataset's replicate differences are also too flat in shape, the two together point to noise drawn from a uniform range rather than measured — the same fabrication seen as too-alike rows here and as the wrong noise shape there."
       implications={`Rows whose replicates are too alike point to a single value entered and then copied across the replicates with little or no added noise. It is the signature of "type a number, then fill the replicates." Real replicates of the same sample differ by at least the measurement's own noise.`}>
 
       {histPlot && <>

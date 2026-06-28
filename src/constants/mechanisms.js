@@ -65,7 +65,7 @@ export const DISPLAY_NAMES = {
   "Cross-Condition Rank Correlation": "Cross-Condition Rank Correlation",
   "Autocorrelation": "Noise correlation",
   "Windowed Autocorrelation": "Local noise correlation",
-  "Excess Kurtosis": "Noise distribution",
+  "Excess Kurtosis": "Noise shape",
   "Selective Noise Partitioning": "Column-to-column noise",
   "Runs Test": "Noise sign-pattern",
   "Noise Scaling With Measurement Size": "Noise scaling",

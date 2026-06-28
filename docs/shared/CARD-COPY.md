@@ -31,7 +31,7 @@ is not drift. (Strip the leading `**How this test works.**` label on the same ba
 **Parked (not locked):**
 - **Row-block shift (Row-Mean Runs)** — copy held pending the engine broadening to column-grouped data
   (BANKED). Stub only below.
-- **Noise distribution (Excess Kurtosis)** — directional sentence LOCKED + relocated S268 (`63895bc`).
+- **Noise shape (Excess Kurtosis)** — directional sentence LOCKED + relocated S268 (`63895bc`).
   The #23 audit confirmed the leptokurtic suppression is directionally correct; the meaning claim moved
   from "not forensically meaningful" to naming the spread tests that catch the too-similar signature.
 
@@ -265,7 +265,7 @@ is not drift. (Strip the leading `**How this test works.**` label on the same ba
 
 **What a positive result means.** Rows whose replicates are too alike point to a single value entered and then copied across the replicates with little or no added noise. It is the signature of "type a number, then fill the replicates." Real replicates of the same sample differ by at least the measurement's own noise.
 
-**What to look for.** Identify the flagged rows and inspect them in the raw data files: replicates that match exactly, or differ only in the last digit, are the concern. Check whether the smooth rows cluster in particular conditions or a stretch of the dataset, which points to a fabricated block rather than scattered chance. Cross-reference Noise distribution: if the dataset's replicate differences are also too flat in shape, the two together point to noise drawn from a uniform range rather than measured — the same fabrication seen as too-alike rows here and as the wrong noise shape there.
+**What to look for.** Identify the flagged rows and inspect them in the raw data files: replicates that match exactly, or differ only in the last digit, are the concern. Check whether the smooth rows cluster in particular conditions or a stretch of the dataset, which points to a fabricated block rather than scattered chance. Cross-reference Noise shape: if the dataset's replicate differences are also too flat in shape, the two together point to noise drawn from a uniform range rather than measured — the same fabrication seen as too-alike rows here and as the wrong noise shape there.
 
 ---
 
@@ -279,7 +279,7 @@ is not drift. (Strip the leading `**How this test works.**` label on the same ba
 
 ---
 
-### Noise distribution (Excess Kurtosis)
+### Noise shape (Excess Kurtosis)
 
 **How this test works.** Takes the difference between each replicate pair and checks the shape of those differences across the dataset. Differences typically follow a bell-shaped curve. Tests for distribution shape, flagging when the spread is too flat — too few values near zero and too few far out (excess kurtosis and Anderson–Darling against a simulated null). A too-peaked shape does not drive the flag here; replicates that are too alike show up instead through the spread tests (Within-row noise, Column-to-column noise).
 
