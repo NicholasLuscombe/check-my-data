@@ -27,6 +27,14 @@ export function MiniCard_Entropy({ result, importConfig, rowMap }) {
     const hdrsIdx = _dataColMap[dataIdx0] ?? dataIdx0;
     return colToExcelLetter(_origColMap[hdrsIdx] ?? hdrsIdx);
   };
+  // Original-file column header NAME for a data-column index, mirroring
+  // MiniCard_DuplicateDetection's `colName`. Keyed by the hdrs index (the
+  // stage-one index colLetter resolves first), with the Excel letter as a
+  // fallback for a headerless import.
+  const colName = (dataIdx0) => {
+    const hdrsIdx = _dataColMap[dataIdx0] ?? dataIdx0;
+    return _hdrs[hdrsIdx] || colLetter(dataIdx0);
+  };
 
   // On the aggregated (per-condition) path the aggregator rebuilds `details`
   // as the per-group summary with no per-column field — the per-column rows
@@ -78,11 +86,11 @@ export function MiniCard_Entropy({ result, importConfig, rowMap }) {
 
       {isAgg && sub.length > 0 && (() => {
         const cols = Object.keys(sub[0]);
-        const headerMap = { group: "Condition", adjP: "Adj. p", H_obs: "H", H_expected: "H expected", Ratio: "Ratio" };
+        const headerMap = { group: "Condition", Col: "Column", adjP: "Adj. p", H_obs: "H", H_expected: "H expected", Ratio: "Ratio" };
         const dtCols = cols.map(k => ({
           header: headerMap[k] || k,
           render: k === "adjP" ? (d => fmtP(d[k]))
-                : k === "Col" ? (d => colLetter(d.Col - 1))
+                : k === "Col" ? (d => colName(d.Col - 1))
                 : (d => d[k]),
         }));
         return (
@@ -101,7 +109,7 @@ export function MiniCard_Entropy({ result, importConfig, rowMap }) {
               (Regular weight) to read clearly below the footer-lead. */}
           <div style={{...SUB_HEAD, fontWeight: FW.NORM, marginBottom: BLOCK_GAP_TIGHT}}>Flagged columns</div>
           <DataTable data={rows} maxRows={20} compact identifierColumns={2} totalCount={result.nFlagged} columns={[
-            { header: "Col", bold: true, render: d => colLetter(d.Col - 1) },
+            { header: "Column", bold: true, render: d => colName(d.Col - 1) },
             { header: "Finding", render: d => d.Direction === "Low entropy" ? "Too few distinct values" : d.Direction === "High entropy" ? "Too many distinct values" : d.Direction },
             { header: "Excess", bold: true, render: d => { const r = parseFloat(d.Ratio); if (isNaN(r)) return d.Ratio; const pct = Math.round((r - 1) * 100); return (pct >= 0 ? "+" : "") + pct + "%"; } },
             { header: "Adj. p", render: d => fmtP(d.adjP) },

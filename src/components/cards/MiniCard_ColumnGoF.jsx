@@ -56,16 +56,26 @@ export function MiniCard_ColumnGoF({ result, importConfig, rowMap }) {
     const hdrsIdx = _dataColMap[dataIdx0] ?? dataIdx0;
     return colToExcelLetter(_origColMap[hdrsIdx] ?? hdrsIdx);
   };
+  // Original-file column header NAME for a data-column index, mirroring
+  // MiniCard_DuplicateDetection's `colName`. The name is keyed by the hdrs
+  // index — the same stage-one index `colLetter` resolves first, NOT the
+  // file-column index it ends on. Falls back to the Excel letter for a
+  // headerless import so the cell still reads something sane.
+  const colName = (dataIdx0) => {
+    const hdrsIdx = _dataColMap[dataIdx0] ?? dataIdx0;
+    return _hdrs[hdrsIdx] || colLetter(dataIdx0);
+  };
 
   // On the aggregated (per-condition) path the aggregator rebuilds `details`
   // as the per-group summary with no `.Col` field — the per-column labels live
   // in `subDetails`. Read the per-column source on whichever path is active,
-  // resolving each to its original-file letter for the prose.
-  const flaggedLetters = ((result.groupsAssessed !== undefined ? result.subDetails : result.details) || [])
-    .map(d => d.Col != null ? colLetter(d.Col - 1) : null)
+  // resolving each to its header name for the prose (the reader opens that
+  // column in the file — names are actionable, letters force a lookup).
+  const flaggedNames = ((result.groupsAssessed !== undefined ? result.subDetails : result.details) || [])
+    .map(d => d.Col != null ? colName(d.Col - 1) : null)
     .filter(Boolean);
-  const flaggedColStr = flaggedLetters.length
-    ? `${flaggedLetters.length === 1 ? "column" : "columns"} ${flaggedLetters.join(", ")}`
+  const flaggedColStr = flaggedNames.length
+    ? `${flaggedNames.length === 1 ? "column" : "columns"} ${flaggedNames.join(", ")}`
     : "the flagged columns";
 
   const implications = nHigh > 0 && nLow === 0
@@ -125,12 +135,12 @@ export function MiniCard_ColumnGoF({ result, importConfig, rowMap }) {
         // from subDetails with auto-derived columns and a Condition column
         // (group → Condition). Matches MiniCard_Mahalanobis.
         const cols = Object.keys(sub[0]);
-        const headerMap = { group: "Condition", adjP: "Adj. p", A2_obs: "A²", A2_null_median: "A² null median", Ratio: "Ratio" };
+        const headerMap = { group: "Condition", Col: "Column", adjP: "Adj. p", A2_obs: "A²", A2_null_median: "A² null median", Ratio: "Ratio" };
         const dtCols = cols.map(k => ({
           header: headerMap[k] || k,
           render: k === "adjP" ? (d => fmtP(d[k]))
                 : k === "Family" ? (d => FAMILY_LABEL[d[k]] || d[k])
-                : k === "Col" ? (d => colLetter(d.Col - 1))
+                : k === "Col" ? (d => colName(d.Col - 1))
                 : (d => d[k]),
         }));
         return (
@@ -149,7 +159,7 @@ export function MiniCard_ColumnGoF({ result, importConfig, rowMap }) {
               (Regular weight) to read clearly below the footer-lead. */}
           <div style={{...SUB_HEAD, fontWeight: FW.NORM, marginBottom: BLOCK_GAP_TIGHT}}>Flagged columns</div>
           <DataTable data={rows} maxRows={20} compact identifierColumns={2} totalCount={result.nFlagged} columns={[
-            { header: "Col", bold: true, render: d => colLetter(d.Col - 1) },
+            { header: "Column", bold: true, render: d => colName(d.Col - 1) },
             { header: "Finding", render: d => findingText(d.Direction, d.Family) },
             { header: "Ratio", bold: true, render: d => d.Ratio },
             { header: "Adj. p", render: d => fmtP(d.adjP) },

@@ -247,11 +247,15 @@ export function ColumnStatBar({ items, skipped, cardFlag, refValue, refLabel, re
     auto-trim of the producer reason (strip "Pre-skip: γ…—" diagnostic
     prefix; flatten leftover nested parens). Caps inline col list at 3. */
 function composeSkippedLine(slots, skippedClause) {
-  const cols = slots.map(s => s.col).filter(c => c != null);
+  // Use each slot's colLabel (the same string shown on the bar axis — an Excel
+  // letter for the goodness-of-fit / entropy cards, "Col N" for Modality), so
+  // the caption register matches the axis. Fall back to the numeric col when a
+  // label is absent.
+  const labels = slots.map(s => s.colLabel ?? (s.col != null ? `Col ${s.col}` : null)).filter(Boolean);
   let prefix;
-  if (cols.length === 1) prefix = `Col ${cols[0]} skipped`;
-  else if (cols.length <= 3) prefix = `Cols ${cols.join(", ")} skipped`;
-  else prefix = `${cols.length} columns skipped`;
+  if (labels.length === 1) prefix = `${labels[0]} skipped`;
+  else if (labels.length <= 3) prefix = `${labels.join(", ")} skipped`;
+  else prefix = `${labels.length} columns skipped`;
   let suffix = skippedClause;
   if (!suffix) {
     // Fallback — strip diagnostic prefix and flatten nested parens from the
