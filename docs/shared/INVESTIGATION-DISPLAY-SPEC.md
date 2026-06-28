@@ -445,15 +445,17 @@ The settled design the sub-header/footer arc executes against. Authored S199 aga
 
 | # | title | sub-header | footer flag | footer clear |
 |---|---|---|---|---|
-| 4 | First-Digit Frequencies | How are the leading digits distributed? | leading digits depart from the expected pattern | leading digits as expected |
-| 5 | Second-Digit Frequencies | How are the second digits distributed? | second digits depart from the expected pattern | second digits as expected |
-| 6 | Last-Digit Frequencies | How are the last digits distributed? | last digits are not evenly spread | last digits evenly spread |
-| 7 | Decimal precision | Do the numbers share a consistent precision? | mixed precision — {N} levels, suggesting more than one source | consistent precision throughout |
-| 8 | Over-used numbers | Does any number or digit combination recur more than chance allows? | {N} numbers appear more often than chance allows (full pass) / {N} digit combinations recur more often than chance allows (digit pass) | no number over-represented |
+| 4 | First-Digit Frequencies | How are the leading digits distributed? | leading digits depart from the expected pattern | leading digits match the expected pattern |
+| 5 | Second-Digit Frequencies | How are the second digits distributed? | second digits depart from the expected pattern | second digits match the expected pattern |
+| 6 | Last-Digit Frequencies | How are the last digits distributed? | last digits depart from the expected pattern | last digits match the expected pattern |
+| 7 | Decimal precision | Do the numbers share a consistent precision? | mixed precision — {N} levels, suggesting more than one source | precision is consistent throughout |
+| 8 | Over-used numbers | Does any number or digit combination recur more often than expected? | {N} numbers appear more often than expected (full pass) / {N} digit combinations recur more often than expected (digit pass) | no number over-represented |
 
 **Casing note (S268).** The cleared-state strings in the rightmost column are written lowercase here because they sit mid-sentence in this budget. The card renders each cleared footer as a standalone line, leading-capitalised ("No unusual rows", "No number over-represented"). The rendered card string is canonical; do not reconcile the card to this table's lowercase — doing so changes every already-correct cleared cell. (Footers gate on the card flag, not a per-unit count — S268, `MiniCard_Mahalanobis.jsx:64` / `MiniCard_ValueFrequency.jsx:55`.)
 
 #8 is a two-pass test (whole-value spikes + recurring fractional digit combinations). "Over-used" (frequency) separates it from #1 Duplicated (structure).
+
+**Register status (R1, S279).** The flag/clear footer pair answers the sub-header question in matched parity ("depart from" / "match"). Four of the five Cluster-2 footers already rendered in this register before S279 (First, Second, Decimal, Value Frequency — shipped piecemeal across the copy arcs); R1 closed the two holdouts: the Last-Digit footer (was "evenly spread", now in the Benford frame) and the Over-used-numbers sub-header ("chance allows" → "expected", aligning the question to its footer). The "9-digit test (digit 0 excluded)" appendix on the Last-Digit footer is a plot-legend annotation, not part of the verdict register — it stays for the Arc C legend pass (WALK 6a/6b).
 
 **Cluster 3 — Distribution Shapes** *(header operand: the numbers in each column)*
 
