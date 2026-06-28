@@ -676,7 +676,7 @@ What each live plot changes. "OK" = already conforms.
 | Plot | Current | Change |
 |---|---|---|
 | AutocorrDecayPlot | condition line reads `.border`; fallback `CHART.SERIES`; r=0 line grey `C.AXIS` | condition line → read `.text`; per-condition lines follow the S250 `COND_COLORS` order; **no-condition "All data" fallback → `CC.OBS`** (landed S246, row-13 drift guard — stays blue under the S250 reorder where `COND_COLORS[0]` is now lime). **r=0 line → teal `CC.EXP` dashed** (independence null, not a neutral baseline); legend swatch (`C.BORDER`) → match line |
-| ColumnStatBar | flagged bar = `SEV_VERDICT` tier ramp; cleared bar `NEUTRAL`=`C.TEXT_3` grey; ref line `C.TEXT_3` grey (Entropy "Expected (ratio = 1)", GoF "Null median (ratio = 1)", Modality "Multimodality threshold") | flagged bar ramp OK. **Cleared bar grey → blue `CC.OBS`** (data-model arc; receives `cardFlag` already). **Entropy + GoF ref lines → teal `CC.EXP` dashed** (nulls). **Modality "Multimodality threshold" → faded/dashed red** (channel-1 flag boundary; was miscast grey). Line colour now role-dependent, not one shared grey |
+| ColumnStatBar | flagged bar = `SEV_VERDICT` tier ramp; cleared bar `NEUTRAL`=`C.TEXT_3` grey; ref line `C.TEXT_3` grey (Entropy "Expected (ratio = 1)", GoF "Expected (ratio = 1)", Modality "Multimodality threshold") | flagged bar ramp OK. **Cleared bar grey → blue `CC.OBS`** (data-model arc; receives `cardFlag` already). **Entropy + GoF ref lines → teal `CC.EXP` dashed** (nulls). **Modality "Multimodality threshold" → faded/dashed red** (channel-1 flag boundary; was miscast grey). Line colour now role-dependent, not one shared grey |
 | DotStrip | outlier dot red `CC.THRESH`; cleared dot `SIGNAL.GREEN.dot` green; expected band + centre line teal | flag red OK (unified `SEV_VERDICT`). Expected band/centre line OK as teal (null). **Cleared dot green → blue `CC.OBS`** (data-model arc — retires green-clear; see channel 4) |
 | HBarPlot | bars fixed blue `CC.OBS` (no `flag` prop); "0 expected" ref line teal | ref line OK (null, teal). **Data-model arc:** thread `result.flag` into HBarPlot + flat-red branch (Kurtosis %-platykurtic — global verdict, no per-bar attribution → flat-red when flagged) |
 | VBarPlot | bars blue `CC.OBS` (no card-`flag` prop); expected line teal | expected line OK (null, teal). **Data-model arc:** thread `result.flag` + flat-red branch (Benford/TerminalDigit — global χ²/MAD, no per-digit attribution → flat-red when flagged; DecPrec already reds gap bins via `CHART.GAP`) |
@@ -750,14 +750,18 @@ NoiseSpread median band → **teal** (all nulls); ColumnStatBar Modality thresho
 legend swatch reads its line's colour. Kurtosis sim-null curve → **solid** (concession taken on render,
 see table). Both source confirms passed (NoiseSpread y=0 is the axis origin; CI sub-inventory clean —
 the only under-drawn CI-overlap nulls were PooledR1Marker r=0 and PooledZMarker z=0, both now at full
-treatment). Landed in worktree, batch 23/23, build clean; **pending promote after two-state screenshot
-approval** (flagged + cleared) — the batch is blind to presentational correctness.
+treatment). **Landed and screenshot-verified (S277, `c18e5c9`)** — flagged + cleared states confirmed
+clean on the live cards; the colour retoken is on main.
 
-**Legend vocabulary (null role) — converge.** The null role currently carries ~18 distinct legend
-phrasings across cards, with bare "Expected" spanning four different colours. This is a cross-card
-legend-consistency defect, not a colour defect; the canonical short label set is authored Chat-side
-and wired in the same retoken. Until then, no card's null label is "correct" — they are inconsistent
-by construction.
+**Legend vocabulary (null role) — converged (S277, `c18e5c9`).** The token was always monochrome
+`CC.EXP`; the divergence was purely label wording (the "~18 phrasings / bare Expected across four
+colours" figure was stale — the real catalogued spread was ~13, all teal). Converged to **10 distinct
+rendered strings**, all leading with "Expected" under the frame `Expected <value> (<reading>)` where a
+compact numeric anchor exists, else `Expected (<reading>)` / `Expected <noun>`. Extends the
+FOOTER-REGISTER legend-vocabulary lock (S206). Independence and uniform nulls each merge to one string
+across their sites (FOOTER rule 7). Out of scope and untouched: the Modality red threshold (`CC.THRESH`,
+a flag boundary, not a null anchor) and the three `CC.OBS` "within expected range" observed bands
+(observed-role, not null-role). Pure label sweep — token/dash/swatchType unchanged.
 
 ## Queued colour arcs (scoped S245, behind the reference-line promote)
 

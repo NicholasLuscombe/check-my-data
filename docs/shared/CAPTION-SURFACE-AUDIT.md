@@ -87,7 +87,7 @@ re-entering through the axis? Eyes on the rendered plot, not a chat-side call.*
 | Carlisle Balance | table heading | [MiniCard_CarlisleBalance.jsx:74](src/components/cards/MiniCard_CarlisleBalance.jsx:74), `SUB_HEAD` | `Balance across conditions, per feature` (REWRITTEN post-S199/S210 — "ANOVA" dropped, line shifted :73→:74) | No longer names the test; describes what the table shows. Shifted MIXED → READS-TABLE. Inline. |
 | Selective Noise | table heading | [MiniCard_SelectiveNoise.jsx:114](src/components/cards/MiniCard_SelectiveNoise.jsx:114), `SUB_HEAD` | `Per-column variance test` | Names the statistic ("variance test"). Inline. |
 | Noise correlation (Autocorrelation) | plot/table headings | [MiniCard_Autocorrelation.jsx:82](src/components/cards/MiniCard_Autocorrelation.jsx:82) & [:130](src/components/cards/MiniCard_Autocorrelation.jsx:130), `SUB_HEAD` | `Autocorrelation by lag` and `Pooled autocorrelation by lag` | Name the statistic but frame what is plotted/tabulated. Inline. |
-| Column goodness-of-fit | reference-line caption | [MiniCard_ColumnGoF.jsx:91](src/components/cards/MiniCard_ColumnGoF.jsx:91), `ColumnStatBar refLabel` | `Null median (ratio = 1)` | "Null median" is method vocabulary; "(ratio = 1)" reads the axis. Inline. |
+| Column goodness-of-fit | reference-line caption | [MiniCard_ColumnGoF.jsx:91](src/components/cards/MiniCard_ColumnGoF.jsx:91), `ColumnStatBar refLabel` | `Expected (ratio = 1)` | "Expected" is the canonical null-role lead (S277 legend-vocab); "(ratio = 1)" reads the axis. Inline. (Was "Null median (ratio = 1)" pre-S277; converged to the Expected-leading frame.) |
 
 ---
 
