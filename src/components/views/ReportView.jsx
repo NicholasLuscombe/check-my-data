@@ -283,7 +283,7 @@ export function ReportView({ results, importConfig, matrix, rowMap, onBack, onCh
         }
         // -- Benford --
         if(r.name?.includes("Benford")){
-          detail+=` χ²=${r.chiSquared} MAD=${r.MAD} ${r.MADConformity||""} pMAD=${r.pMAD} n=${r.nValues}`;
+          detail+=` χ²=${r.chiSquared} MAD=${r.MAD}${r.MADConformity?` (${r.MADConformity} — Nigrini conformity band)`:""} pMAD=${r.pMAD} n=${r.nValues}`;
           lines.push(`  ${flagLabel(r.flag).padEnd(8)} ${r.name}${detail}`);
           if(r.details?.length) lines.push(`           digits: ${r.details.map(d=>`${d.digit}:${d.observedPct}`).join(" ")}`);
           continue;
