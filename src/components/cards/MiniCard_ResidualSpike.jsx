@@ -42,6 +42,7 @@ export function MiniCard_ResidualSpike({ result, importConfig, rowMap }) {
         condColorMap={condColorMap}
         importConfig={importConfig}
         showRhoMatrix={isGlobalMode}
+        cleared={!isFlagged}
       />
 
       {/* Overlap rows — rows shared in the top-K of the best-pair conditions

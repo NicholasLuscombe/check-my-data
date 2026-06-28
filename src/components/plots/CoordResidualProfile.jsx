@@ -5,7 +5,7 @@
  *   B. Sub-heading + PlotLayout (ρ correlation matrix via CorrMatrixSVG + tier legend).
  * No flex row — sections stack vertically, matching IRC/other card patterns.
  */
-import { C, FF, FW } from "../../constants/tokens.js";
+import { C, CC, FF, FW, OBS } from "../../constants/tokens.js";
 import { PlotLayout } from "../shared/PlotLayout.jsx";
 import { PlotSVG } from "./PlotSVG.jsx";
 import { CorrMatrixSVG } from "./CorrMatrixSVG.jsx";
@@ -13,7 +13,7 @@ import { SvgLabel } from "../shared/SvgLabel.jsx";
 import { SvgAxis } from "../shared/SvgAxis.jsx";
 import { ChartLegend } from "../shared/ChartLegend.jsx";
 import { makeRowMapper } from "../shared/coordinates.js";
-import { rhoColor, rhoLegendItems, cellTextOn } from "../shared/heatmapColors.js";
+import { rhoColor, rhoLegendItems, cellTextOn, compositeOver } from "../shared/heatmapColors.js";
 import { SUB_HEAD } from "../shared/styles.js";
 
 // Residual magnitude ramp — the CANONICAL TIER_COLOR family colours: slate
@@ -70,7 +70,7 @@ function buildShortNames(names) {
   return stripped;
 }
 
-export function CoordResidualProfile({ allProfiles, nRows, pairDetails, condColorMap = {}, importConfig, showRhoMatrix = true }) {
+export function CoordResidualProfile({ allProfiles, nRows, pairDetails, condColorMap = {}, importConfig, showRhoMatrix = true, cleared = false }) {
   if (!allProfiles?.length || !nRows || nRows < 3) return null;
   const profiles = allProfiles.filter(p => p.absResid?.length > 0);
   if (profiles.length < 2) return null;
@@ -131,8 +131,25 @@ export function CoordResidualProfile({ allProfiles, nRows, pairDetails, condColo
   for (let i = 0; i < fullNames.length; i++) condShort[fullNames[i]] = shortNames[i];
   const matShortNames = condNames.map(cn => condShort[cn] || cn);
 
+  // ── ρ matrix cell colouring (S278) ──
+  // Gate the whole matrix on the card flag, mirroring the S254 IRC/Rank
+  // cleared-cell carve-out. RSC has no per-pair `suspicious` — its verdict is
+  // the single card-level flag — so on a cleared card every cell renders
+  // observed-blue (softened to OBS.solid) instead of a raw-ρ signal tier, and
+  // the legend drops the Low/Moderate/High tier swatches (else the parallel
+  // verdict just moves from the cells to the legend key). The flagged path is
+  // unchanged. Cleared-legend form is intentionally simple — Chat screenshot-
+  // decides its exact wording on DS10, so keep this branch easy to adjust.
+  const matCellBg = (v) => v == null ? C.BORDER_L : (cleared ? CC.OBS : rhoColor(v));
+  const matCellOp = (v) => (v != null && cleared) ? OBS.solid.fillOpacity : 1;
+  const matCellTxt = (v) => cleared
+    ? cellTextOn(v == null ? C.BORDER_L : compositeOver(CC.OBS, OBS.solid.fillOpacity, C.BG))
+    : cellTextOn(rhoColor(v));
+
   // ── ρ legend items (for HTML ChartLegend) ──
-  const legendItems = rhoLegendItems(Object.values(lookup));
+  const legendItems = cleared
+    ? [{ color: CC.OBS, label: "Observed correlation", opacity: OBS.solid.fillOpacity }]
+    : rhoLegendItems(Object.values(lookup));
 
   // ── ρ matrix label colours ──
   const matLabelColors = condNames.map(cn => condColorMap[cn]?.text || null);
@@ -303,8 +320,9 @@ export function CoordResidualProfile({ allProfiles, nRows, pairDetails, condColo
                 return rn && cn ? (lookup[rn + "|" + cn] ?? null) : null;
               }}
               formatCell={v => v != null ? v.toFixed(2) : ""}
-              cellBg={v => v != null ? rhoColor(v) : C.BORDER_L}
-              cellText={v => cellTextOn(rhoColor(v))}
+              cellBg={matCellBg}
+              cellText={matCellTxt}
+              cellOpacity={matCellOp}
               cellBold={v => v != null && v >= 0.4}
               labelColors={[...matLabelColors].reverse()}
             />
