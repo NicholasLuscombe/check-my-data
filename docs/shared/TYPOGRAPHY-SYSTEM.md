@@ -222,9 +222,24 @@ ALL CAPS-with-tracking centring retires (no longer used).
 When narrower than container, centre horizontally (`margin: 0 auto`). Don't
 stretch to fill container width unnecessarily.
 
-**Flagged row treatment:** light tier-coloured background on the entire row
-(e.g. `#FEF2F2` for high tier); row-index cell darker tier background and
-tier-coloured text at Medium weight.
+**Flagged row treatment — EXCERPT TABLES (the §2 forensics detail tables with a
+row-index column):** light tier-coloured background on the entire row (e.g.
+`#FEF2F2` for high tier); row-index cell darker tier background and tier-coloured
+text at Medium weight.
+
+**Flagged row treatment — MiniCard evidence tables (no row-index column):** NOT
+the whole-row tint above. Canonical treatment decided S276 (see
+INVESTIGATION-DISPLAY-SPEC "Flagged-row/cell mark on evidence tables"): a 2px
+left edge on the flagged row's first cell, in the card's verdict-tier colour read
+from `SEV_VERDICT[card.flag].color` — red `#EF4444` at High, amber `#F97316` at
+Moderate, the same scale the verdict word uses. The flagged numerals revert to
+normal body colour; `fontWeight: FW.SEMI` stays as a secondary cue. One edge
+colour per table from the card verdict, not a per-row tier. Used by
+BlockedMahalanobis / WindowedAutocorr / Autocorrelation / CrossCond. This
+RETIRES the prior text-only amber treatment (`SIGNAL.AMBER.text`, `#713F12`),
+which sat off the `SEV_VERDICT` scale. Duplicated Data keeps its red column-band
+edge (`SIGNAL.RED.dot`), with its pale-red fill (`SIGNAL.RED.bg`) now optional
+High-tier emphasis layered on that edge rather than a competing idiom.
 
 ## Identity row pattern (paired fact)
 
