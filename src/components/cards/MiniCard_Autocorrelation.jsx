@@ -106,7 +106,7 @@ export function MiniCard_Autocorrelation({ result, importConfig, rowMap }) {
       // branch above is the dominant path).
       mainChart = (
         <DotStrip items={pairData} valueKey="lag1" refMin={0} refMax={0}
-          refLabel="0 (independent)" xlabel="Lag-1 autocorrelation of inter-replicate differences"
+          refLabel="Expected r = 0 (independent)" xlabel="Lag-1 autocorrelation of inter-replicate differences"
           colorKey="significant" />
       );
     }
@@ -123,7 +123,7 @@ export function MiniCard_Autocorrelation({ result, importConfig, rowMap }) {
       opacity: OBS.line.strokeOpacity,
       swatchType: "line",
     })),
-    { color: CC.EXP, label: "r = 0 (independent)", swatchType: "line", dashed: true },
+    { color: CC.EXP, label: "Expected r = 0 (independent)", swatchType: "line", dashed: true },
   ] : null;
 
   // ── Footer ──
@@ -150,7 +150,7 @@ export function MiniCard_Autocorrelation({ result, importConfig, rowMap }) {
         </PlotLayout>
         <ChartLegend items={[
           { color: C.TEXT, label: "Pooled lag-1 mean ± verdict-edge CI", swatchType: "dot" },
-          { color: CC.EXP, label: "r = 0 (independent)", swatchType: "line", dashed: true },
+          { color: CC.EXP, label: "Expected r = 0 (independent)", swatchType: "line", dashed: true },
         ]} />
         </>
       )}

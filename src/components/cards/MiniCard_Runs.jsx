@@ -190,7 +190,7 @@ export function MiniCard_Runs({ result, importConfig, rowMap }) {
         </PlotLayout>
         <ChartLegend items={[
           { color: C.TEXT, label: "Pooled mean-z ± verdict-edge CI", swatchType: "dot" },
-          { color: CC.EXP, label: "z = 0", swatchType: "line", dashed: true },
+          { color: CC.EXP, label: "Expected z = 0 (no run bias)", swatchType: "line", dashed: true },
         ]} />
       </>)}
 

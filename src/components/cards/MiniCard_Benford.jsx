@@ -38,7 +38,7 @@ return (
     </PlotLayout>
     <ChartLegend items={[
       { color: observedSwatchColor(result.flag), label: "Observed %", opacity: OBS.areaFill.fillOpacity },
-      { color: CC.EXP, label: "Benford expected", swatchType: "line", dashed: true },
+      { color: CC.EXP, label: "Expected (Benford)", swatchType: "line", dashed: true },
     ]} />
 
 
