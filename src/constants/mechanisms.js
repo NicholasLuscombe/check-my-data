@@ -134,7 +134,7 @@ export const TEST_DESCRIPTIONS = {
   "Benford's Law (First Digit)": "How are the leading digits distributed?",
   "Benford's Law (Second Digit)": "How are the second digits distributed?",
   "Decimal Precision Consistency": "Do the numbers share a consistent precision?",
-  "Value-Frequency Spike": "Does any number or digit combination recur more than chance allows?",
+  "Value-Frequency Spike": "Does any number or digit combination recur more often than expected?",
   "Selective Noise Partitioning": "Is the noise even from column to column?",
   "LOESS Residual Analysis": "Does the noise change partway through the dataset?",
   "Row-Mean Runs": "Do the row averages run in streaks?",
