@@ -64,7 +64,7 @@ if(result.colDetails?.length) {
             flag={result.flag}/>
       </PlotLayout>
       <ChartLegend items={[
-        ...(result.flag !== "LOW" ? [{ color: EXP.band.fill, label: "Expected", opacity: EXP.band.fillOpacity }] : []),
+        ...(result.flag !== "LOW" ? [{ color: EXP.band.fill, label: "Expected spread", opacity: EXP.band.fillOpacity }] : []),
         { color: CC.OBS, label: "Consistent with rest", swatchType: "line" },
         { color: CC.THRESH, label: "Differs from rest", swatchType: "line" },
       ]} />

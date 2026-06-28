@@ -52,13 +52,13 @@ export function MiniCard_Kurtosis({ result, importConfig, rowMap }) {
         const pairData = sub.length ? sub : details;
         if(pairData.length && pairData[0].kurtosis!==undefined) {
           return <PlotLayout fitContent><DotStrip items={pairData} valueKey="kurtosis" refMin={-0.5} refMax={0.5}
-            refLabel="≈ 0 (bell-shaped)" xlabel="Noise shape index (negative = too uniform, positive = too peaked)"
+            refLabel="Expected ≈ 0 (bell-shaped)" xlabel="Noise shape index (negative = too uniform, positive = too peaked)"
             colorKey="significant"/></PlotLayout>;
         }
         const items=details.map(d=>({...d,frac:d.ofPairs>0?(d.platykurtic/d.ofPairs)*100:0}));
         return <PlotLayout fitContent><HBarPlot items={items} accessor={d=>d.frac}
           xlabel="% replicate pairs with unusually uniform noise"
-          refVal={0} refLabel="0 expected" maxOverride={100} flag={result.flag}/></PlotLayout>;
+          refVal={0} refLabel="Expected 0%" maxOverride={100} flag={result.flag}/></PlotLayout>;
       })()}
 
       {/* ── Condition-stratified section ── */}

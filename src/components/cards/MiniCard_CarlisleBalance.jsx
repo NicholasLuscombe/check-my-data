@@ -124,7 +124,7 @@ export function MiniCard_CarlisleBalance({ result, importConfig, rowMap }) {
         <ChartLegend items={[
           { color: CC.OBS, label: "Features per p-value bin", opacity: OBS.areaFill.fillOpacity },
           ...(isFlagged ? [{ color: observedSwatchColor(result.flag), label: "Excess balanced features", opacity: OBS.areaFill.fillOpacity }] : []),
-          { color: CC.EXP, label: "Expected under uniform", swatchType: "line", dashed: true },
+          { color: CC.EXP, label: "Expected (uniform)", swatchType: "line", dashed: true },
         ]} />
         <div style={{fontSize:FS.sm,fontFamily:FF.UI,color:C.TEXT_2,marginTop:"4px"}}>
           Bar height = count of features per p-value bin. Dashed line = expected under uniform.

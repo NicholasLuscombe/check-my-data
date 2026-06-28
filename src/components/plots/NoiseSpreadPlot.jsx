@@ -44,7 +44,7 @@ export function NoiseSpreadPlot({ colDetails, flaggedCols, outlierCol, flag, W=C
         <line key={`g${i}`} x1={PL} x2={PL+CW} y1={py(v)} y2={py(v)}
           stroke={C.GRID} strokeWidth={CS.GRID.w}/>
       ))}
-      {/* Zero line — neutral baseline (grey, dashed) per shared treatment */}
+      {/* Zero line — y-origin of the signed ±SD scale; axis furniture (C.AXIS), not a null reference */}
       <line x1={PL} x2={PL+CW} y1={midY} y2={midY} stroke={C.AXIS} strokeWidth={CS.REF.w} strokeDasharray={CS.REF.dash} opacity={CS.REF.opacity}/>
       {/* Y-axis ticks */}
       {yTicks.map((v, i) => (

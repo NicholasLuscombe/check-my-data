@@ -27,7 +27,7 @@ export function DotStrip({ items, valueKey, refMin, refMax, refLabel, xlabel, co
           <line x1={xscale((refMin+refMax)/2)} y1={PT-4} x2={xscale((refMin+refMax)/2)} y2={PT+22}
             stroke={CC.EXP} strokeWidth={CS.REF.w} strokeDasharray={CS.REF.dash} opacity={CS.REF.opacity}/>
           <text x={xscale((refMin+refMax)/2)} y={PT-6} fontSize={CF.SMALL} fill={CC.EXP}
-            textAnchor="middle" fontFamily={FF.MONO}>{refLabel||"expected"}</text>
+            textAnchor="middle" fontFamily={FF.MONO}>{refLabel||"Expected"}</text>
         </>
       )}
       {/* dots */}
