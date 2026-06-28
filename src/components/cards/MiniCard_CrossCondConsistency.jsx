@@ -35,10 +35,11 @@
    mistaking it for a forensic finding. Skipped / degenerate rows sink to
    the bottom. */
 
-import { C, FW, FF, SEV_VERDICT } from "../../constants/tokens.js";
+import { C, FS, FW, FF, SEV_VERDICT } from "../../constants/tokens.js";
 import { fmtP } from "../../constants/thresholds.js";
 import { MiniCardLayout } from "../shared/CardLayout.jsx";
 import { EvidenceTable } from "../shared/EvidenceTable.jsx";
+import { BLOCK_GAP_TIGHT } from "../shared/styles.js";
 
 const LOOK_FOR =
   "Note which pair of conditions flagged and on which property. Inspect those conditions in the raw data files and check whether the similarity has a recorded reason — shared controls, a common reference. Cross-reference Duplicate values and Offset copies: conditions that also share rows or a constant offset point to one built from another. Cross-reference Profile rank agreement and Baseline balance: these three read condition similarity from different angles, and a finding that holds across them is far harder to explain as biology than any one alone.";
@@ -189,13 +190,16 @@ export function MiniCard_CrossCondConsistency({ result }) {
         // both flagged fixtures) render in full, while the three-condition
         // fixtures (up to 21 ran rows) cap into a scroll rather than a wall.
         // Amber sorts to the top, so flagged rows stay above any scroll.
-        <EvidenceTable
-          columns={columns}
-          rows={rows}
-          identifierColumns={identifierColumns}
-          maxHeight={300}
-          footerText={caption || undefined}
-        />
+        <>
+          <div style={{fontSize: FS.sm, color: C.TEXT_3, marginBottom: BLOCK_GAP_TIGHT}}>{"A pair can read 'as expected' beside a low p — only differences in a forensically meaningful direction count as a finding."}</div>
+          <EvidenceTable
+            columns={columns}
+            rows={rows}
+            identifierColumns={identifierColumns}
+            maxHeight={300}
+            footerText={caption || undefined}
+          />
+        </>
       )}
 
     </MiniCardLayout>
