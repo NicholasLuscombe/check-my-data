@@ -35,7 +35,7 @@
    mistaking it for a forensic finding. Skipped / degenerate rows sink to
    the bottom. */
 
-import { C, FW, FF, SIGNAL } from "../../constants/tokens.js";
+import { C, FW, FF, SEV_VERDICT } from "../../constants/tokens.js";
 import { fmtP } from "../../constants/thresholds.js";
 import { MiniCardLayout } from "../shared/CardLayout.jsx";
 import { EvidenceTable } from "../shared/EvidenceTable.jsx";
@@ -105,15 +105,20 @@ export function MiniCard_CrossCondConsistency({ result }) {
   ];
 
   const INFORMATIONAL_COLOR = C.TEXT_3; // muted secondary text
+  // S276: flagged row marked by a 2px left edge in the card's verdict-tier
+  // colour, from the same SEV_VERDICT scale the verdict word uses. One colour
+  // per table from the card verdict, not the per-row unit tier.
+  const flagColor = result.flag === "HIGH" ? SEV_VERDICT[3].color : SEV_VERDICT[2].color;
   const buildRow = (d) => {
     const amberHere = isAmberRow(d);
-    // Style per cell: amber text + Semibold on flagged rows (the shared MiniCard
-    // flagged-row treatment — matches Blocked Mahalanobis / Windowed Autocorrelation
-    // / Autocorrelation), muted colour on informational rows. Text-only, so the
-    // zebra stripe shows through. Ran-but-forensic-LOW rows use the default
+    // Style per cell: Semibold on flagged rows, with the tier-coloured left edge
+    // added on cell 0 below (the shared MiniCard flagged-row treatment — matches
+    // Blocked Mahalanobis / Windowed Autocorrelation / Autocorrelation); muted
+    // colour on informational rows. Numerals stay body colour, so the zebra
+    // stripe shows through. Ran-but-forensic-LOW rows use the default
     // EvidenceTable styling (no override).
     let cellStyle;
-    if (amberHere) cellStyle = { color: SIGNAL.AMBER.text, fontWeight: FW.SEMI };
+    if (amberHere) cellStyle = { fontWeight: FW.SEMI };
     else if (d.ran && !d.forensic) cellStyle = { color: INFORMATIONAL_COLOR };
     const cell = (v) => cellStyle ? { value: v, style: cellStyle } : v;
     // Pair holds a "{condA} vs {condB}" label up to 26 chars ("Treatment_A vs
@@ -145,7 +150,7 @@ export function MiniCard_CrossCondConsistency({ result }) {
       finding = d.fallback ? `${word} (fallback)` : word;
     }
 
-    return [
+    const row = [
       cell(d.property),
       cellPair(d.pair),
       cell(d.observed),
@@ -153,6 +158,8 @@ export function MiniCard_CrossCondConsistency({ result }) {
       cell(d.ran && d.adjP != null ? fmtP(d.adjP) : "—"),
       cellFinding(finding),
     ];
+    if (amberHere) row[0] = { ...row[0], style: { ...row[0].style, borderLeft: `2px solid ${flagColor}` } };
+    return row;
   };
 
   // One table, amber-first. `ordered` is [...amber, ...forensicLow,

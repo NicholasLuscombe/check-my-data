@@ -3,7 +3,7 @@
    units with their argmax block row-range, observed scan statistic, and
    BH-adjusted p. Optional position strip shows where flagged blocks sit. */
 
-import { C, CC, SIGNAL, FW } from "../../constants/tokens.js";
+import { C, CC, SEV_VERDICT, FW } from "../../constants/tokens.js";
 import { fmtP } from "../../constants/thresholds.js";
 import { MiniCardLayout } from "../shared/CardLayout.jsx";
 import { EvidenceTable } from "../shared/EvidenceTable.jsx";
@@ -59,14 +59,20 @@ export function MiniCard_BlockedMahalanobis({ result, importConfig, rowMap }) {
   // ── Evidence table ──
   let table = null;
   if (details.length) {
+    // S276: flagged row marked by a 2px left edge in the card's verdict-tier
+    // colour, from the same SEV_VERDICT scale the verdict word uses. Numerals
+    // stay body colour; Semibold is the cue.
+    const flagColor = result.flag === "HIGH" ? SEV_VERDICT[3].color : SEV_VERDICT[2].color;
     const rows = details.slice(0, 30).map(d => {
       const sig = d.significant;
       const cell = v => sig
-        ? { value: v, style: { color: SIGNAL.AMBER.text, fontWeight: FW.SEMI } }
+        ? { value: v, style: { fontWeight: FW.SEMI } }
         : v;
       const rowsLabel = `${toFileRow(d.startRow)}–${toFileRow(d.endRow)}`;
       const statLabel = `${d.statType} = ${d.stat}`;
-      return [cell(d.pass), cell(d.condition), cell(rowsLabel), cell(statLabel), cell(fmtP(d.adjP))];
+      const row = [cell(d.pass), cell(d.condition), cell(rowsLabel), cell(statLabel), cell(fmtP(d.adjP))];
+      if (sig) row[0] = { ...row[0], style: { ...row[0].style, borderLeft: `2px solid ${flagColor}` } };
+      return row;
     });
     table = (
       <EvidenceTable
