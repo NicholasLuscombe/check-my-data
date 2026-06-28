@@ -74,9 +74,12 @@ export function rhoLegendItems(rhoValues) {
     else tiers.add("low");
   }
   return [
-    ...(tiers.has("low")  ? [{ color: TIER_COLOR.LOW,  label: HEATMAP_TIER.LOW.label  }] : []),
-    ...(tiers.has("mid")  ? [{ color: TIER_COLOR.MID,  label: HEATMAP_TIER.MID.label  }] : []),
-    ...(tiers.has("high") ? [{ color: TIER_COLOR.HIGH, label: HEATMAP_TIER.HIGH.label }] : []),
+    // S278: descriptive register, inline here (not via HEATMAP_TIER.*.label) so
+    // the reword stays RSC-legend-local — the constant's shared `.color` sibling
+    // is untouched. Mirrors how IRC/Rank hardcode their own legend strings.
+    ...(tiers.has("low")  ? [{ color: TIER_COLOR.LOW,  label: "Weak correlation"     }] : []),
+    ...(tiers.has("mid")  ? [{ color: TIER_COLOR.MID,  label: "Moderate correlation" }] : []),
+    ...(tiers.has("high") ? [{ color: TIER_COLOR.HIGH, label: "Strong correlation"   }] : []),
   ];
 }
 

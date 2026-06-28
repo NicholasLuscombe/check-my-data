@@ -729,6 +729,65 @@ threshold. Never label a cutoff bare "α"; name the layer — "flag gate", "scre
 
 ---
 
+### A second categorical conclusion is a parallel verdict unless it gates on the flag or is marked as a separate diagnostic (S244/S278)
+
+The signal-gating rule above governs *emphasis* — a marker, tint, or bin that fires on something
+looser than the verdict. This rule governs the related case where the looser-firing element is not a
+visual cue but a **second categorical conclusion in words**: a label like "Very high", "Conforms", or
+"elevated" computed from its own numbers and printed beside the verdict. When those numbers are not the
+ones the flag reads, the label is a **parallel verdict** — it can contradict a flag the reader is
+meant to trust.
+
+> A card reads **one** verdict signal. Any categorical label or colour it displays either gates on the
+> same condition the flag gates on, or is visibly marked as a separate diagnostic that does not reflect
+> the verdict.
+
+The failure mode: a card flags **Moderate** on a permutation-p or adjusted-p gate, while a second
+field prints **"Very high"** from a raw statistic (a Spearman ρ of 0.97, say) that never entered the
+flag. Both render. The reader sees two conclusions of different strength and cannot tell which is the
+card's actual finding — and on a *cleared* card, the independent label can assert a signal the verdict
+withholds.
+
+**This is distinct from a companion descriptive measure.** A second number that reads the *same*
+underlying fact the flag reads — Carlisle's CV beside its balance verdict — is honest beside the
+verdict, because it cannot contradict the flag: it describes the same quantity the flag decided on. The
+test is not "is there a second number" but "can this number's label disagree with the flag." A companion
+measure can't; a parallel verdict can.
+
+**Three remedies — the right one is per-card, established at source, not chosen mechanically:**
+
+1. **Gate it on the verdict.** The label keys on the flag's own significance decision rather than a raw
+   statistic or independent cut. Correct when the second label is *redundant* — it is trying to say
+   what the flag already says, just from looser numbers. (The S242 IRC tint and LOESS marker fixes are
+   this remedy applied to emphasis.)
+
+2. **Retire it.** The field is computed but no card/report/template/composer reads it — a dead parallel
+   verdict that can't mislead today but is latent wiring. Delete it; do not wire it. (`constantOffset.severityClass`
+   is the catalogued instance — retire at the next `constantOffset` touch, not as part of
+   this arc.)
+
+3. **Label it as a separate diagnostic.** The second label is a *legitimate independent measure* that a
+   reader may genuinely want — not redundant, not dead. Here the fix is honesty, not suppression: render
+   it visibly as a diagnostic that does **not** reflect the verdict, so it cannot be read as a competing
+   flag. (Benford **MAD conformity** is the catalogued instance — a standard Nigrini diagnostic;
+   correct-but-mislabelled, not redundant. The remedy is to mark it as a diagnostic, not to gate it.)
+
+**The classification is structure-first, per card.** Because the remedy differs, this is **not** a
+mechanical sweep that re-gates every second field. Each card is read at source to establish: does the
+second label's number enter the flag (Group 2 — safe, no action); is it independent and reaches the
+reader on a card that can clear (Group 1 — live, pick a remedy); or is it dead wiring (retire). Only
+Group 1 needs work, and within Group 1 the gate-vs-diagnostic choice is a per-card judgement on whether
+the label is redundant or a legitimate independent measure.
+
+**Application.** When adding or auditing any categorical label, badge, or colour-coded conclusion that
+sits beside a verdict, ask: does this label's value derive from the number the flag reads? If yes, it is
+a companion and is honest. If no — if it computes its own conclusion from numbers the flag never sees —
+it is a parallel verdict, and it must either re-derive from the flag's decision (gate), be removed if
+unread (retire), or be marked as a non-verdict diagnostic (label). It may not stand as a second
+unmarked conclusion.
+
+---
+
 ### Lead with the surface that carries the signal; an all-clear surface never leads (S243)
 
 The gating rule above governs elements that falsely *signal* — emphasis that fires on something
