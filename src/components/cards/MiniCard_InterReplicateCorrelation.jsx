@@ -213,9 +213,12 @@ const forestSurface = (
             <ForestPlot
               units={units}
               effectAxisLabel="Inter-replicate correlation r"
-              multiplicityNote={`Across ${result.nPairs} replicate pair${result.nPairs === 1 ? "" : "s"}`}
-              referenceLabel="Expected (leave-one-out)"
-              showLegend={false}
+              // Subcaption only on a single-panel forest, where the displayed
+              // pairs ARE the BH family. On the per-condition split each panel
+              // shows one condition's pairs while result.nPairs is the
+              // cross-condition total, so the count would contradict the rows —
+              // omit it (TIER-A-CI-DRAW-SPEC multiplicityNote carve-out).
+              multiplicityNote={condNames.length > 1 ? undefined : `Across ${result.nPairs} replicate pair${result.nPairs === 1 ? "" : "s"}`}
             />
           </PlotLayout>
         </div>

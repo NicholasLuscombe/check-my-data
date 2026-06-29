@@ -8,7 +8,7 @@ import { buildCondColorMap, COND_COLORS } from "../../constants/roles.js";
 import { PlotLayout } from "../shared/PlotLayout.jsx";
 import { ChartLegend } from "../shared/ChartLegend.jsx";
 import { AutocorrDecayPlot } from "../plots/AutocorrDecayPlot.jsx";
-import { ForestPlot } from "../plots/ForestPlot.jsx";
+import { ForestPlot, forestLegendItems } from "../plots/ForestPlot.jsx";
 import { DotStrip } from "../plots/DotStrip.jsx";
 import { shortName } from "../shared/utils.js";
 import { SUB_HEAD, BLOCK_GAP, BLOCK_GAP_TIGHT } from "../shared/styles.js";
@@ -140,11 +140,11 @@ export function MiniCard_Autocorrelation({ result, importConfig, rowMap }) {
             units={forestUnits}
             effectAxisLabel="Lag-k autocorrelation (r)"
             multiplicityNote={`Across ${nPairs} pair${nPairs === 1 ? "" : "s"} and lags 1–5`}
-            referenceLabel="Expected (r = 0, independent)"
           />
         </PlotLayout>
-        {/* The forest renders the canonical legend itself (flagged / within
-            expected range / expected reference) — no card-side legend. */}
+        {/* Canonical legend below the plot wrapper (decay-chart structure) —
+            single-panel forest, so the legend sits with it. */}
+        <ChartLegend items={forestLegendItems("Expected (r = 0, independent)")} />
         {/* A lag can be individually significant yet read cleared: higher-lag
             promotion also requires the correlation to clear the effect-size
             floor on large samples. The floor value is read from source

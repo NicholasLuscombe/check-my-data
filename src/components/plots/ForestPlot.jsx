@@ -2,7 +2,6 @@
 
 import { C, CC, CP, CS, CF, FF } from "../../constants/tokens.js";
 import { PlotSVG } from "./PlotSVG.jsx";
-import { ChartLegend } from "../shared/ChartLegend.jsx";
 
 // One shared per-unit forest, the first piece of the per-unit display
 // programme. Each unit is a point at its own estimate on a horizontal effect
@@ -35,10 +34,13 @@ import { ChartLegend } from "../shared/ChartLegend.jsx";
 //     direction?, interval? }
 // Display-level context, set once per card: `flagBoundary` (the p threshold a
 // strip ranks against), `multiplicityNote` (the correction applied, shown so
-// the reader sees the units were corrected), `effectAxisLabel` (forest only),
-// `referenceLabel` (the per-card meaning of the reference, shown in the
-// legend), `showLegend` (render the built-in canonical legend; set false on a
-// small-multiples card that renders one shared legend for the set).
+// the reader sees the units were corrected), `effectAxisLabel` (forest only).
+//
+// The legend is rendered by the card as a sibling below the plot wrapper — the
+// decay-chart structure: a reserved strip below the data region, outside the
+// grey box — using the canonical `forestLegendItems` exported here so the
+// vocabulary stays identical on every consumer. The forest itself returns only
+// its SVG.
 
 // The canonical forest legend — one vocabulary on every consumer, retiring the
 // per-card drift. The dot labels are generic and fixed; only the reference key
@@ -58,8 +60,6 @@ export function ForestPlot({
   units,
   effectAxisLabel,
   multiplicityNote,
-  referenceLabel = "Expected",
-  showLegend = true,
   // flagBoundary drives the strip-mode threshold line; unused in forest mode,
   // where each unit's `flagged` already carries the gated decision. Kept on the
   // contract so the strip branch reads it without a signature change.
@@ -131,7 +131,6 @@ export function ForestPlot({
   const axisY = PT + n * ROW_H + 6;
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
     <PlotSVG W={W} H={H}>
       {/* zero-mode origin — one shared reference at r = 0, drawn dashed in the
           expected-value colour (teal CC.EXP, the null) to match the line
@@ -194,11 +193,5 @@ export function ForestPlot({
           textAnchor="middle" fontFamily={FF.UI}>{multiplicityNote}</text>
       )}
     </PlotSVG>
-    {/* Built-in canonical legend, folded into the plot's intrinsic-width unit
-        so the fitContent wrapper sizes to it and it can't clip or detach (the
-        legend-strip part of the intrinsic-width rule). A small-multiples card
-        sets showLegend false and renders one shared legend for the set. */}
-    {showLegend && <ChartLegend items={forestLegendItems(referenceLabel)} />}
-    </div>
   );
 }
