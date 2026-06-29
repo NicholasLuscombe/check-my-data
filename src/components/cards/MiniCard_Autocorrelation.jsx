@@ -134,7 +134,7 @@ export function MiniCard_Autocorrelation({ result, importConfig, rowMap }) {
         <PlotLayout fitContent>
           <ForestPlot
             units={forestUnits}
-            effectAxisLabel="Lag-k autocorrelation of inter-replicate differences (r)"
+            effectAxisLabel="Lag-k autocorrelation (r)"
             multiplicityNote={`Benjamini–Hochberg adjusted across ${nPairs} pair${nPairs === 1 ? "" : "s"} and lags 1–5`}
             referenceLabel="Expected (r = 0, independent)"
           />
