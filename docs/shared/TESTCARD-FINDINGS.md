@@ -1278,3 +1278,28 @@ Verified live on DS21 (Runs chip → table at rest, no wash, no dim, caption fir
 ## Trivial cleanups (non-blocking)
 
 **CCC card header-comment `ALPHA` reference (S204).** `MiniCard_CrossCondConsistency.jsx` header comments (lines 11/16/17/84) describe the amber-at-Moderate / can't-reach-High semantics and name `ALPHA`. The `ALPHA` import was removed S204 pass 3 (the CCC legend was its only code use; the tier-ceiling content moved to How-this-works). The comments remain factually accurate and are non-code, so they were left in place — but a comment naming an import that no longer exists is a future-reader trap. Rename/strip when the card is next touched. Not worth a dedicated edit. **(S209 note: the card WAS touched this session — footer direction branch + "Adj. p" casing — but the comment was out of scope of the string-only sweep, so "strip when next touched" did NOT fire. Still pending; the next CCC-touching edit that isn't string-locked should clear it.)**
+
+---
+
+## Forest per-unit programme — banked follow-ups (S284–S285)
+
+Two findings banked during the A1 per-unit display programme (the shared `ForestPlot` primitive,
+Stage 2). Neither is a build blocker; both are recorded here so they are not lost.
+
+**Decay-chart "Lag (rows apart)" x-title bottom-clip (S284, verify-and-close).** The
+Autocorrelation decay chart's x-axis title appeared clipped at the bottom during the S284
+ForestPlot hardening arc. It looked resolved in the DS11 close screenshot (the title rendered
+fully visible), but that may have been the crop rather than a fix. This is a verify-and-close,
+not a build: confirm on main that the x-title is fully visible rather than just off-screen at
+that crop. If clipped, it is a small PlotLayout bottom-margin fix; if clear, close the item.
+
+**#40 — Autocorrelation forest y-axis heterogeneity (S284, design, v1.x).** The Autocorrelation
+forest stacks two unit kinds on one y-axis: lag-1 per-pair rows (labelled "1–2 … 3–4") and
+pooled per-lag rows (labelled "Lag 2 … Lag 5"). No single y-axis label is true for both, so the
+forest has none — and a reader cannot tell what "1–2" versus "Lag 2" mean without external
+context. The fix is a group-header convention within the forest (e.g. "Lag-1, per replicate
+pair" / "Lags 2–5, pooled"), a new `ForestPlot` capability IRC does not need (its rows are
+homogeneous). This is a design pass, not a label add. Cross-reference the S187 three-tier
+emphasis note at TESTCARD-FINDINGS:894 (verdict-lag dominant / corroborating-lags mid-weight /
+context-lags de-emphasised) — the group-header convention and the emphasis tiers are the same
+surface's two open design questions. v1.x; banked.
