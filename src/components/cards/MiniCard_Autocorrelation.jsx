@@ -102,7 +102,11 @@ export function MiniCard_Autocorrelation({ result, importConfig, rowMap }) {
   //    pre-S166 "Expected range" swatch retired alongside the ±0.15 rect. ──
   const legendItems = hasDecay ? [
     ...(result.perGroupDecay || [{ group: "All data" }]).map((c, ci) => ({
-      color: condColorMap[c.group]?.text || COND_COLORS[ci % COND_COLORS.length].text,
+      // Swatch samples its mark: the single "All data" decay line is drawn in
+      // observed-blue (CC.OBS) by AutocorrDecayPlot, not a condition colour, so
+      // its swatch must be blue too. Per-condition lines keep their condition
+      // colour. Mirrors AutocorrDecayPlot's own "All data" special-case.
+      color: c.group === "All data" ? CC.OBS : (condColorMap[c.group]?.text || COND_COLORS[ci % COND_COLORS.length].text),
       label: shortName(c.group),
       opacity: OBS.line.strokeOpacity,
       swatchType: "line",
@@ -135,7 +139,7 @@ export function MiniCard_Autocorrelation({ result, importConfig, rowMap }) {
           <ForestPlot
             units={forestUnits}
             effectAxisLabel="Lag-k autocorrelation (r)"
-            multiplicityNote={`Benjamini–Hochberg adjusted across ${nPairs} pair${nPairs === 1 ? "" : "s"} and lags 1–5`}
+            multiplicityNote={`Across ${nPairs} pair${nPairs === 1 ? "" : "s"} and lags 1–5`}
             referenceLabel="Expected (r = 0, independent)"
           />
         </PlotLayout>
