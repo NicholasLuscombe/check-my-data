@@ -212,7 +212,7 @@ const forestSurface = (
           <PlotLayout fitContent>
             <ForestPlot
               units={units}
-              effectAxisLabel="Inter-replicate correlation r — observed vs leave-one-out predicted"
+              effectAxisLabel="Inter-replicate correlation r"
               multiplicityNote={`Benjamini–Hochberg adjusted across ${result.nPairs} replicate pair${result.nPairs === 1 ? "" : "s"}`}
               referenceLabel="Expected (leave-one-out)"
               showLegend={false}
