@@ -301,6 +301,41 @@ area fill). This is the same split that centralizes the hue — `CC.OBS` is one 
 whether a mark is observed — extended to opacity. Opacity is not a property of the colour (baking it into
 the token would break every solid use); it is a property of how the mark type renders.
 
+**ForestPlot legend canon (S284).** The shared `ForestPlot` primitive carries its own legend — moved off
+the cards into the primitive, because the two consumers that mounted it before the canon existed
+(Autocorrelation S283, Inter-Replicate Correlation S284) hand-authored divergent legend wording
+("Suspicious pair (flagged)" / "Cleared unit" vs "Flagged unit (clears the flag boundary)" / "Within
+expected range") — same primitive, two vocabularies, the exact drift a written canon prevents. No new
+colour tokens: the forest's marks are already governed by the existing channels, and the legend only fixes
+the *words*. Three keys, in order:
+
+- **Flagged** — red dot, `CC.THRESH` (channel 4, the data model: an observed mark that flags reads red).
+  The label is exactly "Flagged" on every consumer — no parenthetical, no card-specific noun. What *kind*
+  of unit is flagged is already carried by the row labels and the axis caption; the legend does not
+  restate it.
+- **Within expected range** — blue dot, `CC.OBS` rendered `OBS.dot` (channel 4, the cleared resting
+  state; `OBS.dot` already names "per-pair strip dots, per-lag decay dots" as its consumers, which the
+  forest's per-unit dots are). Exact label on every consumer.
+- **Expected** — dashed teal line glyph, `CC.EXP` (channel 3, the null the verdict is read as departure
+  from). This is the ONE key that takes a per-card suffix, because the reference *means* something
+  different on each card and a reader needs to know which: Autocorrelation "Expected (r = 0, independent)";
+  Inter-Replicate Correlation "Expected (leave-one-out)". The dot labels stay generic precisely because
+  flagged/cleared mean the same thing everywhere; the reference does not.
+
+The reference colour is not a new decision — it follows channel 3. The forest reference (the
+Autocorrelation r=0 line and the IRC per-pair leave-one-out tick) is a **distance-null**: clean data sits
+at the predicted value, the verdict reads the observed mark's distance from it. That is the channel-3 teal
+role (a flat r=0 line and a per-unit expected value are both nulls by function), and the
+grey-neutral-reference role it previously used was the retired mislabelling channel 3 records at its
+close. IRC's reference is NOT the flag-boundary carve-out (the cutoff data flags by exceeding, which stays
+red and is not even drawn on the forest) — the value drawn is the expectation, which is the null. So teal,
+dashed, legend-keyed, on every forest.
+
+The legend is part of the plot's intrinsic-width unit (see INVESTIGATION-DISPLAY-SPEC ForestPlot note) — it
+cannot clip or detach. On small-multiples (the IRC per-condition forests) each plot sets
+`showLegend={false}` and one shared canonical legend keys the set, matching the per-condition matrices'
+treatment.
+
 **Non-observed null treatments (`EXP.*`, ruled S259).** The same split applies to the null channel.
 The null token `CC.EXP` (teal, `#0D9488`) is one hue; how a null *band* or *curve* renders — its fill
 or stroke opacity — is a named treatment, not a per-plot literal. Arc 3 of the fill-treatment programme

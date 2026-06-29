@@ -636,6 +636,16 @@ METHODOLOGY § "Per-unit word: inferential vs descriptive surfaces" for the stat
 
 Chart container replacing the former `miniCardWrap`. Wraps SVG charts with consistent margins and renders caption below in `FF.UI` / `C.TEXT_3`.
 
+### ForestPlot
+
+Shared per-unit primitive (`components/plots/ForestPlot.jsx`). Each unit is a row: an observed estimate dot against a reference, flagged red / cleared blue (the channel-4 data model), the reference dashed teal (the channel-3 null). Two reference modes: `zero` (a single shared null line, e.g. Autocorrelation's r=0) and `stored` (a per-unit reference tick, e.g. IRC's per-pair leave-one-out predicted r). Consumers: Autocorrelation forest (S283), Inter-Replicate Correlation forest (S284); the Stage 2/3 stored-reference cards mount the same primitive.
+
+**Legend lives in the primitive, not the card (S284).** The legend vocabulary is canonical and defined once in `ForestPlot` (see PLOT-COLOUR-SEMANTICS "ForestPlot legend canon") — three keys, "Flagged" / "Within expected range" / "Expected", the reference key taking a per-card suffix. It was moved off the cards because two consumers hand-authored divergent wording before the canon existed. A new consumer passes only its per-card reference suffix; it does not re-author the dot labels. The reference label is the "Expected" kind under the S207 vocabulary rule below (a null-model predicted value), never the "Significance threshold" kind.
+
+**Label margin and legend both sit in the fitContent intrinsic-width unit.** Two out-of-data elements can overrun the SVG/wrapper viewport and clip (S284 caught both on the first stored-mode consumer): the y-axis unit labels on the left, and the legend strip below. The fix for each is the same principle — the element counts toward the plot's intrinsic width, per the legend-adjacency and fitContent rules below ("Legends sit adjacent to the plot they key" and the intrinsic-width section). The left margin is computed inside the SVG coordinate space from the longest unit label (measure-to-content, clamped with ellipsis, mirroring the table content-width helper); the legend is HTML wrapped with the SVG in one centred fitContent column so PlotLayout's sizing accounts for it. Different layers, same outcome: neither out-of-data element clips, and the plot + its legend read as one standalone unit in a crop (the Bik standard).
+
+On small-multiples (IRC's per-condition forests) each plot sets `showLegend={false}` and one shared canonical legend keys the whole set — the same treatment the per-condition correlation matrices use, and the resolution the legend-adjacency rule prescribes for a multi-plot group (a per-plot legend on each of N stacked plots is redundant; one keys the set).
+
 ### ColumnHeaders
 
 Two-row sticky header for data excerpt tables:

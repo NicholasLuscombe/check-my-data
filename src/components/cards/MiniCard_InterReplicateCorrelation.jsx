@@ -5,6 +5,7 @@ import { TIER_COLOR, cellTextOn, compositeOver } from "../shared/heatmapColors.j
 import { COND_COLORS, buildCondColorMap } from "../../constants/roles.js";
 import { MiniCardLayout, CardBanner } from "../shared/CardLayout.jsx";
 import { CorrMatrixSVG } from "../plots/CorrMatrixSVG.jsx";
+import { ForestPlot, forestLegendItems } from "../plots/ForestPlot.jsx";
 import { PlotLayout } from "../shared/PlotLayout.jsx";
 import { ChartLegend } from "../shared/ChartLegend.jsx";
 import { EvidenceTable } from "../shared/EvidenceTable.jsx";
@@ -172,6 +173,63 @@ const noWindowsMessage = (topWins.length === 0 && result.flag !== "LOW") ? (
       </div>
 ) : null;
 
+// ── Per-unit forest (S284): the per-pair verdict geometry, the shared
+//    per-unit primitive Stage 1 introduced. Each replicate pair sits at its
+//    observed winsorized correlation (rawR) against its own leave-one-out
+//    predicted correlation (rawLooICC); the distance is the excess. A pair
+//    reads red only when the verdict flags it as `suspicious` — the
+//    promotion decision (BH-adjusted p below the flag boundary plus the
+//    excess-size gate), the same field the matrix and the card flag already
+//    use. Cleared pairs read blue. Rendered per condition, matching the
+//    per-condition matrices below; the BH family spans all pairs, so the
+//    multiplicity note names the full pair count. No suppression: IRC handles
+//    conditions internally and never takes the Fisher-combined aggregate path,
+//    so every fixture has markable per-pair units. The windowed arm of the
+//    flag is carried separately by the windows table.
+const forestUnitsFor = (pairs) => pairs
+  .filter(d => Number.isFinite(d.rawR) && Number.isFinite(d.rawLooICC))
+  .map(d => ({
+    unitLabel: pairLabel(d.pair, d.condition),
+    estimate: d.rawR,
+    reference: d.rawLooICC,
+    referenceMode: "stored",
+    adjP: typeof d.adjP === "number" ? d.adjP : undefined,
+    flagged: d.suspicious === true,
+  }));
+const forestSurface = (
+  <>
+    {condNames.map((cond, ci) => {
+      const units = forestUnitsFor(condMap[cond]);
+      if (!units.length) return null;
+      return (
+        <div key={cond} style={{ marginTop: ci === 0 ? 0 : BLOCK_GAP }}>
+          {condNames.length > 1 && (
+            <div style={{...SUB_HEAD, fontWeight: FW.NORM, marginBottom: BLOCK_GAP_TIGHT,
+              color: condColorMap[cond]?.text || COND_COLORS[condNames.indexOf(cond) % COND_COLORS.length].text}}>
+              {cond}
+            </div>
+          )}
+          <PlotLayout fitContent>
+            <ForestPlot
+              units={units}
+              effectAxisLabel="Inter-replicate correlation r"
+              // Subcaption only on a single-panel forest, where the displayed
+              // pairs ARE the BH family. On the per-condition split each panel
+              // shows one condition's pairs while result.nPairs is the
+              // cross-condition total, so the count would contradict the rows —
+              // omit it (TIER-A-CI-DRAW-SPEC multiplicityNote carve-out).
+              multiplicityNote={condNames.length > 1 ? undefined : `Across ${result.nPairs} replicate pair${result.nPairs === 1 ? "" : "s"}`}
+            />
+          </PlotLayout>
+        </div>
+      );
+    })}
+    {/* One shared canonical legend for the per-condition forest set (small
+        multiples) — each forest above renders without its own legend. */}
+    <ChartLegend items={forestLegendItems("Expected (leave-one-out)")} />
+  </>
+);
+
 return (
 
   <MiniCardLayout result={result}
@@ -187,6 +245,12 @@ return (
         exceeds noise, r near 1.0 is expected and not suspicious.
       </CardBanner>
     )}
+
+    {/* Surface 1 (S284): per-unit forest — the verdict geometry. The pairwise
+        matrix and windows below are secondary evidence. */}
+    {forestSurface}
+
+    <div style={{ marginTop: BLOCK_GAP }}>
     {tableLeads ? (
       // State 2 (windowed signal, no per-pair signal): windows table only -- the
       // all-slate matrix is dead weight, so it is suppressed. State 3 (a suspicious
@@ -206,6 +270,7 @@ return (
         {noWindowsMessage}
       </>
     )}
+    </div>
 
 
   </MiniCardLayout>

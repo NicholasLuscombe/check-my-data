@@ -15,9 +15,10 @@ import { PlotSVG } from "./PlotSVG.jsx";
 // Colour follows the observed-data model (PLOT-COLOUR-SEMANTICS channel 4):
 // blue for a cleared mark, red for a flagged one. There is no green resting
 // state and no neutral-grey unit — an observed mark is blue when clear and red
-// when flagged, nothing in between. The reference is axis furniture, drawn in
-// the axis colour, not a signal colour: significance rides on each unit's
-// decision, not on its distance from the reference line.
+// when flagged, nothing in between. The reference line and per-unit ticks are
+// drawn in the expected-value colour (teal CC.EXP, the null), matching the
+// line charts' dashed expected lines; the flag decision still rides on each
+// unit's own significance, not its distance from the reference.
 //
 // `referenceMode` rides on the data and drives the render — it is a property
 // of the units, never a per-card choice:
@@ -34,6 +35,26 @@ import { PlotSVG } from "./PlotSVG.jsx";
 // Display-level context, set once per card: `flagBoundary` (the p threshold a
 // strip ranks against), `multiplicityNote` (the correction applied, shown so
 // the reader sees the units were corrected), `effectAxisLabel` (forest only).
+//
+// The legend is rendered by the card as a sibling below the plot wrapper — the
+// decay-chart structure: a reserved strip below the data region, outside the
+// grey box — using the canonical `forestLegendItems` exported here so the
+// vocabulary stays identical on every consumer. The forest itself returns only
+// its SVG.
+
+// The canonical forest legend — one vocabulary on every consumer, retiring the
+// per-card drift. The dot labels are generic and fixed; only the reference key
+// takes per-card wording, because the reference means something different on
+// each card (r = 0 for the autocorrelations, the leave-one-out prediction for
+// the correlation card). The reference glyph is a dashed teal line, matching
+// the expected-value lines on the line charts.
+export function forestLegendItems(referenceLabel = "Expected") {
+  return [
+    { color: CC.THRESH, label: "Flagged", swatchType: "dot" },
+    { color: CC.OBS, label: "Within expected range", swatchType: "dot" },
+    { color: CC.EXP, label: referenceLabel, swatchType: "line", dashed: true },
+  ];
+}
 
 export function ForestPlot({
   units,
@@ -50,9 +71,34 @@ export function ForestPlot({
   if (mode === "none") return null; // strip mode deferred — see the header note
 
   const ROW_H = 18;
-  const PL = 58, PR = 18, PT = 20, PB = 54;
+  const PR = 18, PT = 20;
+  // Left margin sized to the actual labels. The forest takes variable label
+  // formats across cards — lag indices, replicate and plate pairs, row spans —
+  // so a fixed margin would clip the long ones (IRC's plate pairs) or waste
+  // space on the short ones (Autocorrelation's "Lag 2"). Mirror the table
+  // content-width helper (colWidthFromMaxLen, styles.js) at the 11px mono
+  // scale. The width is clamped so a pathological label can't eat the plot
+  // area; past the clamp the label ellipsises — a guard, not an expected
+  // branch (plate pairs at ~13 chars sit well inside the ~18-char clamp).
+  const LABEL_CHAR_W = 6.6;   // JetBrains Mono at CF.SMALL (11px); DATA_CHAR_W 7.8 is the 13px measure
+  const LABEL_GAP = 8;        // space between a label's right edge and the plot content
+  const LABEL_LEFT_PAD = 4;   // breathing room at the SVG's left edge
+  const LABEL_MAX_W = 120;    // clamp (~18 chars) — guards the plot area
+  const maxLabelLen = units.reduce((m, u) => Math.max(m, String(u.unitLabel ?? "").length), 0);
+  const labelW = Math.min(Math.ceil(maxLabelLen * LABEL_CHAR_W), LABEL_MAX_W);
+  const labelMaxChars = Math.floor(labelW / LABEL_CHAR_W);
+  const fitLabel = (s) => {
+    const str = String(s ?? "");
+    return str.length <= labelMaxChars ? str : str.slice(0, Math.max(1, labelMaxChars - 1)) + "…";
+  };
+  const PL = labelW + LABEL_GAP + LABEL_LEFT_PAD;
   const CW = W - PL - PR;
   const n = units.length;
+  // Bottom budget follows what renders below the axis: tick labels, then the
+  // axis title, then the multiplicity note. Omitting the note reclaims its row,
+  // so a split forest with no subcaption loses the dead band; a forest that
+  // keeps the note budgets the same 54 it always did (48 + the 6 axisY offset).
+  const PB = (multiplicityNote ? 48 : effectAxisLabel ? 34 : 18) + 6;
   const H = PT + n * ROW_H + PB;
 
   // x-domain: every estimate, plus each stored reference, plus the origin in
@@ -91,13 +137,14 @@ export function ForestPlot({
 
   return (
     <PlotSVG W={W} H={H}>
-      {/* zero-mode origin — one shared reference at r = 0. Axis furniture in
-          the axis colour, not a verdict null: the flag decision rides on each
-          unit's own significance, not on distance from this line. */}
+      {/* zero-mode origin — one shared reference at r = 0, drawn dashed in the
+          expected-value colour (teal CC.EXP, the null) to match the line
+          charts. The flag decision still rides on each unit's own significance,
+          not on distance from this line. */}
       {mode === "zero" && (
         <>
           <line x1={xs(0)} y1={PT - 2} x2={xs(0)} y2={axisY}
-            stroke={C.AXIS} strokeWidth={CS.REF.w} strokeDasharray={CS.REF.dash} opacity={0.8} />
+            stroke={CC.EXP} strokeWidth={CS.REF.w} strokeDasharray={CS.REF.dash} opacity={0.8} />
           <text x={xs(0)} y={PT - 6} fontSize={CF.SMALL} fill={C.TEXT_2}
             textAnchor="middle" fontFamily={FF.MONO}>r = 0</text>
         </>
@@ -111,12 +158,13 @@ export function ForestPlot({
           && Number.isFinite(u.interval[0]) && Number.isFinite(u.interval[1]);
         return (
           <g key={i}>
-            <text x={PL - 8} y={cy + 3} fontSize={CF.SMALL} fill={C.TEXT_2}
-              textAnchor="end" fontFamily={FF.MONO}>{u.unitLabel}</text>
-            {/* stored-mode per-unit reference tick */}
+            <text x={PL - LABEL_GAP} y={cy + 3} fontSize={CF.SMALL} fill={C.TEXT_2}
+              textAnchor="end" fontFamily={FF.MONO}>{fitLabel(u.unitLabel)}</text>
+            {/* stored-mode per-unit reference tick — expected-value teal (the
+                null), matching the zero-mode line and the line charts. */}
             {mode === "stored" && Number.isFinite(u.reference) && (
               <line x1={xs(u.reference)} y1={cy - 5} x2={xs(u.reference)} y2={cy + 5}
-                stroke={C.AXIS} strokeWidth={CS.GRID.w} />
+                stroke={CC.EXP} strokeWidth={CS.REF.w} />
             )}
             {/* interval whisker, when a unit carries one */}
             {hasInterval && (

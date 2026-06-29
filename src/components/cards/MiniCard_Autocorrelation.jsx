@@ -8,7 +8,7 @@ import { buildCondColorMap, COND_COLORS } from "../../constants/roles.js";
 import { PlotLayout } from "../shared/PlotLayout.jsx";
 import { ChartLegend } from "../shared/ChartLegend.jsx";
 import { AutocorrDecayPlot } from "../plots/AutocorrDecayPlot.jsx";
-import { ForestPlot } from "../plots/ForestPlot.jsx";
+import { ForestPlot, forestLegendItems } from "../plots/ForestPlot.jsx";
 import { DotStrip } from "../plots/DotStrip.jsx";
 import { shortName } from "../shared/utils.js";
 import { SUB_HEAD, BLOCK_GAP, BLOCK_GAP_TIGHT } from "../shared/styles.js";
@@ -102,7 +102,11 @@ export function MiniCard_Autocorrelation({ result, importConfig, rowMap }) {
   //    pre-S166 "Expected range" swatch retired alongside the ±0.15 rect. ──
   const legendItems = hasDecay ? [
     ...(result.perGroupDecay || [{ group: "All data" }]).map((c, ci) => ({
-      color: condColorMap[c.group]?.text || COND_COLORS[ci % COND_COLORS.length].text,
+      // Swatch samples its mark: the single "All data" decay line is drawn in
+      // observed-blue (CC.OBS) by AutocorrDecayPlot, not a condition colour, so
+      // its swatch must be blue too. Per-condition lines keep their condition
+      // colour. Mirrors AutocorrDecayPlot's own "All data" special-case.
+      color: c.group === "All data" ? CC.OBS : (condColorMap[c.group]?.text || COND_COLORS[ci % COND_COLORS.length].text),
       label: shortName(c.group),
       opacity: OBS.line.strokeOpacity,
       swatchType: "line",
@@ -134,14 +138,13 @@ export function MiniCard_Autocorrelation({ result, importConfig, rowMap }) {
         <PlotLayout fitContent>
           <ForestPlot
             units={forestUnits}
-            effectAxisLabel="Lag-k autocorrelation of inter-replicate differences (r)"
-            multiplicityNote={`Benjamini–Hochberg adjusted across ${nPairs} pair${nPairs === 1 ? "" : "s"} and lags 1–5`}
+            effectAxisLabel="Lag-k autocorrelation (r)"
+            multiplicityNote={`Across ${nPairs} pair${nPairs === 1 ? "" : "s"} and lags 1–5`}
           />
         </PlotLayout>
-        <ChartLegend items={[
-          { color: CC.THRESH, label: "Flagged unit (clears the flag boundary)", swatchType: "dot" },
-          { color: CC.OBS, label: "Cleared unit", swatchType: "dot" },
-        ]} />
+        {/* Canonical legend below the plot wrapper (decay-chart structure) —
+            single-panel forest, so the legend sits with it. */}
+        <ChartLegend items={forestLegendItems("Expected (r = 0, independent)")} />
         {/* A lag can be individually significant yet read cleared: higher-lag
             promotion also requires the correlation to clear the effect-size
             floor on large samples. The floor value is read from source
