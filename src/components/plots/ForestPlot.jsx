@@ -71,7 +71,7 @@ export function ForestPlot({
   if (mode === "none") return null; // strip mode deferred — see the header note
 
   const ROW_H = 18;
-  const PR = 18, PT = 20, PB = 54;
+  const PR = 18, PT = 20;
   // Left margin sized to the actual labels. The forest takes variable label
   // formats across cards — lag indices, replicate and plate pairs, row spans —
   // so a fixed margin would clip the long ones (IRC's plate pairs) or waste
@@ -94,6 +94,11 @@ export function ForestPlot({
   const PL = labelW + LABEL_GAP + LABEL_LEFT_PAD;
   const CW = W - PL - PR;
   const n = units.length;
+  // Bottom budget follows what renders below the axis: tick labels, then the
+  // axis title, then the multiplicity note. Omitting the note reclaims its row,
+  // so a split forest with no subcaption loses the dead band; a forest that
+  // keeps the note budgets the same 54 it always did (48 + the 6 axisY offset).
+  const PB = (multiplicityNote ? 48 : effectAxisLabel ? 34 : 18) + 6;
   const H = PT + n * ROW_H + PB;
 
   // x-domain: every estimate, plus each stored reference, plus the origin in
