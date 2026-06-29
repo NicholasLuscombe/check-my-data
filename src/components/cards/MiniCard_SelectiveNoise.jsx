@@ -72,7 +72,7 @@ if(result.colDetails?.length) {
           {/* S210 (multi-surface): secondary-surface heading kept but demoted
               (Regular weight) to read clearly below the footer-lead. */}
           <div style={{...SUB_HEAD, fontWeight: FW.NORM, marginBottom: BLOCK_GAP_TIGHT}}>Spread compared to expected, per column</div>
-          <div style={{fontSize: FS.sm, color: C.TEXT_3, marginBottom: BLOCK_GAP_TIGHT}}>{"A column can read 'as expected' beside a low p — the finding needs a stronger signal than significance alone."}</div>
+          <div style={{fontSize: FS.sm, color: C.TEXT_3, marginBottom: BLOCK_GAP_TIGHT}}>{"Spread is shown per column as context. The verdict is pooled across all columns — no single column is flagged on its own."}</div>
           {(() => {
             const sds = perCol.map(d => d.residualStd);
             const sorted = [...sds].sort((a, b) => a - b);
