@@ -50,7 +50,27 @@ export function ForestPlot({
   if (mode === "none") return null; // strip mode deferred — see the header note
 
   const ROW_H = 18;
-  const PL = 58, PR = 18, PT = 20, PB = 54;
+  const PR = 18, PT = 20, PB = 54;
+  // Left margin sized to the actual labels. The forest takes variable label
+  // formats across cards — lag indices, replicate and plate pairs, row spans —
+  // so a fixed margin would clip the long ones (IRC's plate pairs) or waste
+  // space on the short ones (Autocorrelation's "Lag 2"). Mirror the table
+  // content-width helper (colWidthFromMaxLen, styles.js) at the 11px mono
+  // scale. The width is clamped so a pathological label can't eat the plot
+  // area; past the clamp the label ellipsises — a guard, not an expected
+  // branch (plate pairs at ~13 chars sit well inside the ~18-char clamp).
+  const LABEL_CHAR_W = 6.6;   // JetBrains Mono at CF.SMALL (11px); DATA_CHAR_W 7.8 is the 13px measure
+  const LABEL_GAP = 8;        // space between a label's right edge and the plot content
+  const LABEL_LEFT_PAD = 4;   // breathing room at the SVG's left edge
+  const LABEL_MAX_W = 120;    // clamp (~18 chars) — guards the plot area
+  const maxLabelLen = units.reduce((m, u) => Math.max(m, String(u.unitLabel ?? "").length), 0);
+  const labelW = Math.min(Math.ceil(maxLabelLen * LABEL_CHAR_W), LABEL_MAX_W);
+  const labelMaxChars = Math.floor(labelW / LABEL_CHAR_W);
+  const fitLabel = (s) => {
+    const str = String(s ?? "");
+    return str.length <= labelMaxChars ? str : str.slice(0, Math.max(1, labelMaxChars - 1)) + "…";
+  };
+  const PL = labelW + LABEL_GAP + LABEL_LEFT_PAD;
   const CW = W - PL - PR;
   const n = units.length;
   const H = PT + n * ROW_H + PB;
@@ -111,8 +131,8 @@ export function ForestPlot({
           && Number.isFinite(u.interval[0]) && Number.isFinite(u.interval[1]);
         return (
           <g key={i}>
-            <text x={PL - 8} y={cy + 3} fontSize={CF.SMALL} fill={C.TEXT_2}
-              textAnchor="end" fontFamily={FF.MONO}>{u.unitLabel}</text>
+            <text x={PL - LABEL_GAP} y={cy + 3} fontSize={CF.SMALL} fill={C.TEXT_2}
+              textAnchor="end" fontFamily={FF.MONO}>{fitLabel(u.unitLabel)}</text>
             {/* stored-mode per-unit reference tick */}
             {mode === "stored" && Number.isFinite(u.reference) && (
               <line x1={xs(u.reference)} y1={cy - 5} x2={xs(u.reference)} y2={cy + 5}
