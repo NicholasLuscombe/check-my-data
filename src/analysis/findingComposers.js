@@ -1026,7 +1026,10 @@ function rowMeanRuns(r /*, ctx */) {
   const runs = r.bestRuns;
   const expected = r.bestExpected;
   const z = parseNum(r.bestZ);
-  const p = r.primaryP;
+  // "pooled p" clause reads globalP (the pooled per-condition best p), not
+  // primaryP — primaryP now carries the smaller of the global and windowed
+  // arms, so it can hold a windowed adjusted p that would mislabel as pooled.
+  const p = r.globalP;
   const direction = Number.isFinite(z) && z < 0 ? "too few crossings — sustained trend" : "too many crossings — over-alternation";
 
   const evidenceLines = [];

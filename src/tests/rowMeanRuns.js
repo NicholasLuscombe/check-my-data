@@ -185,7 +185,7 @@ export function testRowMeanRuns(matrix, condCtx, rng) {
     description: "Tests whether row-level means show non-random clustering along the sequence after linear detrending. Detects uniform additive shifts applied to all replicates of a row block \u2014 invisible to inter-replicate difference tests (Wald & Wolfowitz 1940). When condition labels are present, tests per-condition sequences only (cross-condition mean differences would confound the global test).",
     nRows: matrix.length,
     flag,
-    primaryP: globalBestP,
+    primaryP: Math.min(globalBestP, windowAllAdjPs.length ? Math.min(...windowAllAdjPs) : 1),
     globalP: globalBestP.toFixed(4),
     bestSequence: bestSeq.label,
     bestRuns: bestSeq.runs,
