@@ -1,6 +1,7 @@
 import { MiniCardLayout } from "../shared/CardLayout.jsx";
 import { PlotLayout } from "../shared/PlotLayout.jsx";
 import { ChartLegend } from "../shared/ChartLegend.jsx";
+import { ForestPlot, forestLegendItems } from "../plots/ForestPlot.jsx";
 import { SignStripPlot } from "../plots/SignStripPlot.jsx";
 import { EvidenceTable } from "../shared/EvidenceTable.jsx";
 import { CC, FW, FF, SIGN, OBS } from "../../constants/tokens.js";
@@ -53,6 +54,30 @@ export function MiniCard_RowMean({ result, importConfig, rowMap }) {
     ];
   });
 
+  // ── Per-unit forest (Surface 1): the verdict geometry. One unit per
+  //    condition — each sits at its observed run count against its own expected
+  //    run count (the stored per-unit reference); the distance reads as how far
+  //    the trajectory departs from chance alternation. A condition reads red
+  //    only when its raw runs-test p clears ALPHA.NOTE, the same expression the
+  //    table's "Finding" word uses; the global verdict gates on the smallest of
+  //    these. Native per-condition (no aggregatePerGroup, no Fisher suppression)
+  //    so every fixture has markable units. NO multiplicityNote: the decision is
+  //    a raw per-condition p and the verdict is min(p) then flagFromP — there is
+  //    no BH family across conditions, so no correction count to name. The
+  //    windowed-promotion arm (details with source === "window") is a separate
+  //    flag arm over row windows, not a condition unit — it stays on the
+  //    existing surfaces and never enters the forest.
+  const forestUnits = condSeqs
+    .filter(c => Number.isFinite(c.runs) && Number.isFinite(c.expected))
+    .map(c => ({
+      unitLabel: stripName(c.label),
+      estimate: c.runs,
+      reference: c.expected,
+      referenceMode: "stored",
+      adjP: c.p,
+      flagged: c.p < ALPHA.NOTE,
+    }));
+
   const footerContent = (result.flag !== "LOW" && result.flag !== "N/A")
     ? "Row averages run in streaks rather than alternating"
     : "Row averages alternate as expected";
@@ -63,8 +88,21 @@ export function MiniCard_RowMean({ result, importConfig, rowMap }) {
       lookFor="Long stretches where row means stay on the same side of the trend suggest sequential construction. Each block of one colour in the strip is a run of rows holding above or below the fitted trend — few, long runs mean the fabricator anchored each row's mean to the previous one. Compare those runs against the raw data: are the values suspiciously smooth or evenly spaced?"
       implications="Row averages that hold in blocks rather than fluctuating randomly can result from time-dependent biological processes or batch effects within a condition. Too many alternations — averages switching side of the trend more than expected — can indicate values arranged to appear random rather than recorded in natural order.">
 
-      {/* What the test does — keeps the strips from reading as observed-vs-expected. */}
-      <div style={{ ...SUB_HEAD, fontWeight: FW.NORM }}>
+      {/* Surface 1: per-unit forest — observed runs vs the expected run count,
+          one row per condition. Leads the card; the footer fragment (LEAD_HEAD
+          in MiniCardLayout) heads it, so no heading here. One shared canonical
+          legend below, with the reference keyed to the expected (chance) run
+          count. */}
+      {forestUnits.length > 0 && (<>
+        <PlotLayout fitContent>
+          <ForestPlot units={forestUnits} effectAxisLabel="Runs observed" />
+        </PlotLayout>
+        <ChartLegend items={forestLegendItems("Expected (chance)")} />
+      </>)}
+
+      {/* What the test does — heads the strip (Surface 2), not the forest;
+          keeps the strips from reading as observed-vs-expected. */}
+      <div style={{ ...SUB_HEAD, fontWeight: FW.NORM, marginTop: forestUnits.length > 0 ? BLOCK_GAP : 0 }}>
         Each condition's row averages are tested on their own for streaks against the
         number of runs expected by chance; the card flags if any one condition clumps.
       </div>
