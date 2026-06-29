@@ -2,7 +2,7 @@ import { CC, CP, CS, C, FF, CF, OBS, EXP } from "../../constants/tokens.js";
 import { PlotSVG } from "./PlotSVG.jsx";
 
 /* ── Noise Spread Plot — error-bar style per-column residual spread ── */
-export function NoiseSpreadPlot({ colDetails, flaggedCols, outlierCol, flag, W=CP.W, H=240 }) {
+export function NoiseSpreadPlot({ colDetails, flag, W=CP.W, H=240 }) {
   if (!colDetails?.length) return null;
   const n = colDetails.length;
   const stds = colDetails.map(d => parseFloat(d.residualStd) || 0);
@@ -24,13 +24,10 @@ export function NoiseSpreadPlot({ colDetails, flaggedCols, outlierCol, flag, W=C
   for (let v = step; v <= yMax; v += step) { yTicks.push(v); yTicks.push(-v); }
   yTicks.push(0);
 
-  // Determine which columns are flagged
-  const flagSet = flaggedCols instanceof Set ? flaggedCols : null;
-  const isFlagged = (d) => {
-    if (flagSet) return flagSet.has(d.col);
-    // Legacy fallback: single outlierCol
-    return d.col === outlierCol;
-  };
+  // Per-column flag colouring retired (S285): the per-column Levene test that
+  // drove it is display-only and decoupled from the pooled Bartlett verdict,
+  // which makes no per-column decision. Every column renders the one observed
+  // colour; the verdict is carried by the footer (global) and the median band.
 
   return (
     <PlotSVG W={W} H={H}>
@@ -59,26 +56,24 @@ export function NoiseSpreadPlot({ colDetails, flaggedCols, outlierCol, flag, W=C
       {colDetails.map((d, i) => {
         const sd = stds[i];
         const x = cx(i);
-        const isOutlier = isFlagged(d);
-        const color = isOutlier ? CC.THRESH : CC.OBS;
         const capW = 8;
         return (
           <g key={i}>
             {/* Whisker line */}
             <line x1={x} x2={x} y1={py(sd)} y2={py(-sd)}
-              stroke={color} strokeWidth={isOutlier ? 2.5 : 2} opacity={isOutlier ? 1 : 0.8}/>
+              stroke={CC.OBS} strokeWidth={2} opacity={0.8}/>
             {/* Top cap */}
             <line x1={x-capW} x2={x+capW} y1={py(sd)} y2={py(sd)}
-              stroke={color} strokeWidth={isOutlier ? 2.5 : 2} opacity={isOutlier ? 1 : 0.8}/>
+              stroke={CC.OBS} strokeWidth={2} opacity={0.8}/>
             {/* Bottom cap */}
             <line x1={x-capW} x2={x+capW} y1={py(-sd)} y2={py(-sd)}
-              stroke={color} strokeWidth={isOutlier ? 2.5 : 2} opacity={isOutlier ? 1 : 0.8}/>
+              stroke={CC.OBS} strokeWidth={2} opacity={0.8}/>
             {/* Centre dot */}
-            <circle cx={x} cy={midY} r={isOutlier ? CS.PT_LG.r : CS.PT.r}
-              fill={color} fillOpacity={isOutlier ? 1 : OBS.dot.fillOpacity} stroke={C.WHITE} strokeWidth="1"/>
+            <circle cx={x} cy={midY} r={CS.PT.r}
+              fill={CC.OBS} fillOpacity={OBS.dot.fillOpacity} stroke={C.WHITE} strokeWidth="1"/>
             {/* Column label */}
             <text x={x} y={H-PB+15} textAnchor="middle" fontSize={CF.AXIS}
-              fill={isOutlier ? CC.THRESH : C.TEXT_2} fontWeight={isOutlier ? 700 : 400} fontFamily={FF.UI}>
+              fill={C.TEXT_2} fontWeight={400} fontFamily={FF.UI}>
               {d.label || ("Col " + d.col)}
             </text>
             <text x={x} y={H-PB+28} textAnchor="middle" fontSize={CF.TICK} fill={C.TEXT_3} fontFamily={FF.MONO}>
@@ -86,7 +81,7 @@ export function NoiseSpreadPlot({ colDetails, flaggedCols, outlierCol, flag, W=C
             </text>
             {/* SD value */}
             <text x={x} y={py(sd)-7} textAnchor="middle" fontSize={CF.TICK} fontFamily={FF.MONO}
-              fill={isOutlier ? CC.THRESH : C.TEXT_3} fontWeight={isOutlier ? 600 : 400}>
+              fill={C.TEXT_3} fontWeight={400}>
               {sd.toFixed(2)}
             </text>
           </g>
