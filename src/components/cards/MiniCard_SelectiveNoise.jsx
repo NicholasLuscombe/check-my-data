@@ -1,6 +1,6 @@
 /* ── MiniCard: Selective Noise ── */
 
-import { C, FS, FW, FF, CC, EXP } from "../../constants/tokens.js";
+import { C, FS, FW, FF, EXP } from "../../constants/tokens.js";
 import { MiniCardLayout, CardBanner } from "../shared/CardLayout.jsx";
 import { EvidenceTable } from "../shared/EvidenceTable.jsx";
 import { PlotLayout } from "../shared/PlotLayout.jsx";
@@ -25,9 +25,11 @@ const roles = importConfig?.roles || [];
 const dColMap = roles.map((rl,ci)=>rl==="data"?ci:-1).filter(ci=>ci>=0);
 const cn = (di) => dataHeaders[dColMap[di]] || `Column ${di+1}`;
 
-// Per-column Levene results (available on single-run path)
+// Per-column Levene results (available on single-run path). Display-only:
+// decoupled from the pooled Bartlett verdict, so they drive no per-column mark
+// (S285) — the Observed SD / Ratio columns carry the per-column magnitude as
+// context, the Finding word asserts no per-column verdict.
 const perCol = result.perColumnResults || [];
-const flaggedCols = new Set(perCol.filter(c => c.flagged).map(c => c.col));
 
 const isCleared = result.flag === "LOW" || result.flag === "N/A";
 const footerText = isCleared
@@ -60,20 +62,17 @@ if(result.colDetails?.length) {
           fragment (LEAD_HEAD in MiniCardLayout) heads this primary plot. */}
       <PlotLayout fitContent>
           <NoiseSpreadPlot colDetails={labelledCols}
-            flaggedCols={flaggedCols.size > 0 ? flaggedCols : undefined}
             flag={result.flag}/>
       </PlotLayout>
       <ChartLegend items={[
         ...(result.flag !== "LOW" ? [{ color: EXP.band.fill, label: "Expected spread", opacity: EXP.band.fillOpacity }] : []),
-        { color: CC.OBS, label: "Consistent with rest", swatchType: "line" },
-        { color: CC.THRESH, label: "Differs from rest", swatchType: "line" },
       ]} />
       {perCol.length > 0 && result.flag !== "LOW" && result.flag !== "N/A" && (
         <div style={{marginTop: BLOCK_GAP}}>
           {/* S210 (multi-surface): secondary-surface heading kept but demoted
               (Regular weight) to read clearly below the footer-lead. */}
           <div style={{...SUB_HEAD, fontWeight: FW.NORM, marginBottom: BLOCK_GAP_TIGHT}}>Spread compared to expected, per column</div>
-          <div style={{fontSize: FS.sm, color: C.TEXT_3, marginBottom: BLOCK_GAP_TIGHT}}>{"A column can read 'as expected' beside a low p — the finding needs a stronger signal than significance alone."}</div>
+          <div style={{fontSize: FS.sm, color: C.TEXT_3, marginBottom: BLOCK_GAP_TIGHT}}>{"Spread is shown per column as context. The verdict is pooled across all columns — no single column is flagged on its own."}</div>
           {(() => {
             const sds = perCol.map(d => d.residualStd);
             const sorted = [...sds].sort((a, b) => a - b);
@@ -83,21 +82,19 @@ if(result.colDetails?.length) {
               identifierColumns={1}
               rows={perCol.map(d => {
                 const ratio = medianSD > 0 ? d.residualStd / medianSD : 1;
-                // S218: Finding word follows per-column significance — the same
-                // flagged field (adjP < ALPHA.FLAG) that colours the plot — with the
-                // per-column direction supplying the high/low word. The SD-ratio band
-                // is retired from the word; effect size stays visible in the Observed
-                // SD and Ratio columns.
-                const finding = !d.flagged
-                  ? "As expected"
-                  : d.direction === "quieter" ? "Quieter" : "Noisier";
+                // S285: no per-column Finding word. The per-column Levene that
+                // drove it is display-only and decoupled from the pooled Bartlett
+                // verdict, which makes no per-column decision (the S220 case). The
+                // column stays (rightmost-Finding battery convention); the
+                // magnitude lives in the Observed SD / Ratio columns, and the word
+                // renders an em-dash so it asserts no per-column verdict.
                 return [
                   { value: cn(d.col - 1), style: { fontFamily: FF.UI } },
                   d.residualStd.toFixed(4),
                   medianSD.toFixed(4),
                   ratio.toFixed(2) + "×",
                   fmtP(d.adjP),
-                  { value: finding, style: { fontFamily: FF.UI } },
+                  { value: "—", style: { fontFamily: FF.UI } },
                 ];
               })}
             />;

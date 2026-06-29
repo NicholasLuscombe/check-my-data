@@ -594,11 +594,24 @@ per-unit p (adjusted, not raw) and the per-unit Finding/word (driven by the corr
 boolean, not a raw statistic or a magnitude band). Originating precedent: **Mahalanobis Row
 Outlier** (below, § "Mahalanobis Row Outlier — the threshold line…") — the threshold line sits at
 the adjusted BH cutoff, and rows that pass raw p<0.01 but fail the adjusted 0.001 gate render
-unflagged. S218 conformance: Selective Noise (Finding ← `d.flagged` Levene-adj + `d.direction`;
-SD-ratio band retired from the word; legend relabelled to locator language) and Runs (per-pair
-table → `Adj. p`; Finding ← the corrected promotion predicate). The raw per-unit statistic may
-still appear as *context* in a neighbouring column (Selective Noise keeps Observed SD / Ratio for
-effect-size judgment) but never drives the per-unit decision or word.
+unflagged. S218 conformance: Runs (per-pair table → `Adj. p`; Finding ← the corrected promotion
+predicate). The raw per-unit statistic may still appear as *context* in a neighbouring column but
+never drives the per-unit decision or word.
+
+**Selective Noise — no per-column Finding word (S285, corrects the S218 entry).** The earlier
+S218 entry recorded Selective Noise's Finding as gating on `d.flagged` (the per-column Levene
+direction). At source that Levene test is **display-only and decoupled from the verdict**
+(`selectiveNoise.js` comment, "does not affect flag"); the verdict fires from pooled Bartlett,
+which makes **no per-column decision** (S209 settled this as property-fragment / global-omnibus
+and reworded the footer to a global fragment for the same reason). A per-column "Noisier" /
+"Quieter" Finding is therefore a manufactured per-column verdict the test does not make — the
+S220 "no corrected per-unit decision exists" case. The per-column flag colouring on
+`NoiseSpreadPlot` and the per-column Finding word are both retired (S285): the bars render one
+observed colour, and the Finding column renders an em-dash per row. The column STAYS (the
+rightmost-Finding battery convention holds); the per-column magnitude lives in the adjacent
+Observed SD / Ratio context column (the Mahalanobis precedent — show the physical quantity, the
+word asserts no verdict). The verdict is carried by the footer (the S209 global fragment),
+not by any per-column mark.
 
 **Mahalanobis Row Outlier — S207 holds against the S218 principle (resolved S219).** The S219
 structural audit tested this card against the per-unit principle: the per-row table displays the
