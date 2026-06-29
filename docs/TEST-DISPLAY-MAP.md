@@ -3,9 +3,9 @@
 **GENERATED — DO NOT HAND-EDIT** — regenerate via
 `node scripts/build-test-display-map.mjs`
 
-- Generated: 2026-06-05 05:10:13Z
-- Commit:    `cc2f4a2` (`cc2f4a26a00c458b14f655c90079901dbd51d0cb`)
-- Branch:    `claude/nifty-lamarr-f66b3b`
+- Generated: 2026-06-29 01:54:05Z
+- Commit:    `11b5a03` (`11b5a03077da5a1a70fa5b753f96c068291c50f1`)
+- Branch:    `main`
 - Batch:     live `result.flag` via the validate-batch pipeline over the shared 22-fixture set (`test/batch-fixtures.mjs`)
 
 Answers one question for the visual walk: **which dataset do I load to see a
@@ -77,9 +77,9 @@ Sorted by cluster in fixed display order (copied → digits → shapes → repli
 | Windowed Autocorrelation | Local noise correlation | Cross-Replicate Comparisons | — latent |
 | Missing Data Pattern | Missing-data pattern | Cross-Replicate Comparisons | DS15 HIGH |
 | Autocorrelation | Noise correlation | Cross-Replicate Comparisons | DS02 MOD/HIGH, DS11 HIGH, DS20 MOD/HIGH, DS21 HIGH, DS22 MOD/HIGH |
-| Excess Kurtosis | Noise distribution | Cross-Replicate Comparisons | — latent |
 | LOESS Residual Analysis | Noise level trend | Cross-Replicate Comparisons | DS08 MOD/HIGH, DS10 MOD/HIGH, DS12b MOD/HIGH |
 | Noise Scaling With Measurement Size | Noise scaling | Cross-Replicate Comparisons | DS06 HIGH |
+| Excess Kurtosis | Noise shape | Cross-Replicate Comparisons | — latent |
 | Runs Test | Noise sign-pattern | Cross-Replicate Comparisons | DS02 MOD/HIGH, DS21 MOD/HIGH, DS22 MOD/HIGH |
 | Regional Noise Homogeneity | Region-to-region noise | Cross-Replicate Comparisons | DS10 MOD/HIGH, DS21 MOD/HIGH |
 | Row-Mean Runs | Row-mean patterns | Cross-Replicate Comparisons | DS21 MOD/HIGH |
