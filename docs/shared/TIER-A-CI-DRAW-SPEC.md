@@ -83,8 +83,21 @@ keeps the programme out of the card-by-card drift that made the CI programme exp
 
 Display-level context, set once per card (not per unit): `flagBoundary` (the p threshold for
 the threshold line and the strip ranking), `multiplicityNote` (the correction applied — the
-BH-FDR family size — shown so the reader sees the units were corrected), `effectAxisLabel`
-(forest mode only).
+BH-FDR family size — shown so the reader sees the units were corrected; **omitted on
+per-condition-split forests, see carve-out below**), `effectAxisLabel` (forest mode only).
+
+**`multiplicityNote` carve-out — per-condition-split forests omit it (S284).** The note states
+the BH-FDR family size so the reader sees the units were corrected. That works when the displayed
+units *are* the correction family. On a per-condition-split forest it misfires: the correction
+family spans conditions (e.g. IRC's 18 = 6 pairs × 3 conditions) while each panel shows one
+condition's units (6 rows), so the family-size count contradicts the visible rows — a reader
+counts six and the note says eighteen. On these forests the note is omitted; the pair count is
+already legible in the plotted rows and the correction detail lives in the test's "How this test
+works" text. This is a placement carve-out, not a retirement of the prop: a single-panel forest
+whose displayed units are its own correction family still carries the note. A second reason the
+note does not belong on the forest face specifically: the forest axis plots the raw effect
+(correlation r), and "BH adjusted across N" under a raw-r axis implies the plotted quantity is
+adjusted when only the flag decision is — the adjustment applies to the p-values, not the r.
 
 ### 2.2 Render mode A — forest (`referenceMode = stored` or `zero`)
 
