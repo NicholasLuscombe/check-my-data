@@ -315,6 +315,17 @@ export function testValueFrequencySpike(matrix, rawMatrix = null) {
   const pass2Tier = pass2MultiSpikeCleared ? pass2TierRaw : "LOW";
   const flag = flagRankOf(pass1Tier) >= flagRankOf(pass2Tier) ? pass1Tier : pass2Tier;
 
+  // S288 — per-unit drove-the-flag decision, written onto each spike here at
+  // the flag-decision site (the multi-spike gate cannot be reconstructed from
+  // the spike's adjP alone, so a gate-suppressed pass-2 spike otherwise reads
+  // identically to a driving one). Tie on tier goes to pass 1, mirroring the
+  // flag's own >= and the drivingPass assignment below. Report-only.
+  const pass1Drove = pass1Tier !== "LOW" && flagRankOf(pass1Tier) >= flagRankOf(pass2Tier);
+  const pass2Drove = pass2MultiSpikeCleared && pass2Tier !== "LOW"
+    && flagRankOf(pass2Tier) > flagRankOf(pass1Tier);
+  for (const s of pass1Spikes) s.droveVerdict = pass1Drove;
+  for (const s of pass2Spikes) s.droveVerdict = pass2Drove;
+
   // Keyboard pattern detection (pass 1 only — the numpad-diagonal
   // heuristic is specific to integer-value spikes).
   let keyboardPattern = false;
@@ -464,6 +475,13 @@ export function testValueFrequencySpike(matrix, rawMatrix = null) {
     pass2Diag: pass2.diag,
     _spikeValues,
     _spikeCells,
+    // S288 — the full BH-FDR family (every tested value with its ratio + adjP +
+    // pass), retained so a later per-unit strip has its cleared background.
+    // Only the spike subset reaches `details`; the cleared entries live only
+    // here. This is the family the verdict's p-values came from — it cannot be
+    // re-derived from `details` (the BH adjustment ran over the whole union).
+    // Report-only; spikes within it carry the `droveVerdict` boolean set above.
+    allTested,
     details
   };
 }

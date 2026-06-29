@@ -498,12 +498,30 @@ export function testKurtosis(matrix, condCtx, rng) {
   // Final flag: if condition stratification promoted and pooled missed, use MODERATE
   const finalFlag = (condKurtosis?.promoted && flag === "LOW") ? "MODERATE" : flag;
 
+  // S288 — empirical simulation-null summary, retained so a later per-condition
+  // forest can show each condition's κ̂ against the SAME null the verdict ranked
+  // it against (the per-condition p-values came from simKurts, not an analytic
+  // SE). Only the null's mean survived as simKurtosis; its median, spread, and
+  // band quantiles are added here. The median index matches the verdict's own
+  // per-condition null (Math.floor(n/2)). Report-only; cannot be re-derived
+  // card-side (regenerating simKurts needs the seeded simulation run). Null
+  // when the simulation yielded no usable null (< 20 batches), as simKurtosis is.
+  let simKurtMedian = null, simKurtSD = null, simKurtQuantiles = null;
+  if (simKurts.length >= 20) {
+    const simSorted = simKurts.slice().sort((a, b) => a - b);
+    const q = f => simSorted[Math.min(simSorted.length - 1, Math.floor(f * (simSorted.length - 1)))];
+    simKurtMedian = simSorted[Math.floor(simSorted.length / 2)];
+    simKurtSD = stddev(simKurts);
+    simKurtQuantiles = { p05: q(0.05), p25: q(0.25), p50: q(0.50), p75: q(0.75), p95: q(0.95) };
+  }
+
   return { name:"Excess Kurtosis", category:"replicate",
     description:`Random noise between replicates follows a bell-shaped pattern — most differences are small, with fewer large ones. This card tests whether the noise shape is unusual: too flat (values too evenly spaced) or too peaked (clustered near zero with occasional large jumps).`,
     adNote: nC<=3 ? `With ${nC} replicates, full-distribution shape (Anderson-Darling) is tested instead of kurtosis alone.` : null,
     nSignificant:nSig, nPlatykurtic:nPlat, nPairs:res.length,
     pooledKurtosis:isNaN(pooledKurtosis)?null:pooledKurtosis,
     simKurtosis:isNaN(simKurt)?null:simKurt,
+    simKurtMedian, simKurtSD, simKurtQuantiles,
     kurtDeviation:kurtDeviation.toFixed(4),
     nSimulations: simKurts.length,
     ...(nC <= 3

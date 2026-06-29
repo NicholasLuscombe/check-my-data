@@ -219,6 +219,17 @@ export function testRegionalNoise(matrix, rng) {
     bestVarRatio: bestRatio.toFixed(2) + "×",
     bestSDRatio: Math.sqrt(bestRatio),
     bestAnomCol: bestAnomCol >= 0 ? bestAnomCol + 1 : "—",
+    // Per-column promoters retained for a later per-unit display (S288).
+    // The verdict's per-column BH decision (adjP from colPermPs ← colExceed,
+    // both discarded after this point) cannot be re-derived card-side, so it
+    // is stored here beside the surviving worst-column fields. Report-only:
+    // the flag was already decided above from anyColSig; this adds no input.
+    colPromoters: obsColMaxRatios.map((ratio, c) => ({
+      col: c + 1,
+      sdRatio: Math.sqrt(ratio),
+      adjP: colAdjPs[c],
+      promoted: colAdjPs[c] < ALPHA.FLAG
+    })),
     usedPredictedSigma: !!usePredicted,
     primaryP: scanP,
     interpretation, flag, details

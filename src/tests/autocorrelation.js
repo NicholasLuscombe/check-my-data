@@ -45,7 +45,7 @@ export function testAutocorrelation(matrix) {
   }
   // BH-FDR over pairs
   const acfAdjPs=bhFDR(res.map(r=>r.rawP));
-  res.forEach((r,i)=>{r.significant=acfAdjPs[i]<0.01;});
+  res.forEach((r,i)=>{r.significant=acfAdjPs[i]<0.01;r.adjP=acfAdjPs[i];});
   const nSig=res.filter(r=>r.significant).length;
   const decayCurve = lagN>0 ? lagAcc.map(v=>v/lagN) : null;
 
