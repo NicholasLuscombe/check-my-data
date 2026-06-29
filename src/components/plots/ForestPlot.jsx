@@ -2,6 +2,7 @@
 
 import { C, CC, CP, CS, CF, FF } from "../../constants/tokens.js";
 import { PlotSVG } from "./PlotSVG.jsx";
+import { ChartLegend } from "../shared/ChartLegend.jsx";
 
 // One shared per-unit forest, the first piece of the per-unit display
 // programme. Each unit is a point at its own estimate on a horizontal effect
@@ -15,9 +16,10 @@ import { PlotSVG } from "./PlotSVG.jsx";
 // Colour follows the observed-data model (PLOT-COLOUR-SEMANTICS channel 4):
 // blue for a cleared mark, red for a flagged one. There is no green resting
 // state and no neutral-grey unit — an observed mark is blue when clear and red
-// when flagged, nothing in between. The reference is axis furniture, drawn in
-// the axis colour, not a signal colour: significance rides on each unit's
-// decision, not on its distance from the reference line.
+// when flagged, nothing in between. The reference line and per-unit ticks are
+// drawn in the expected-value colour (teal CC.EXP, the null), matching the
+// line charts' dashed expected lines; the flag decision still rides on each
+// unit's own significance, not its distance from the reference.
 //
 // `referenceMode` rides on the data and drives the render — it is a property
 // of the units, never a per-card choice:
@@ -33,12 +35,31 @@ import { PlotSVG } from "./PlotSVG.jsx";
 //     direction?, interval? }
 // Display-level context, set once per card: `flagBoundary` (the p threshold a
 // strip ranks against), `multiplicityNote` (the correction applied, shown so
-// the reader sees the units were corrected), `effectAxisLabel` (forest only).
+// the reader sees the units were corrected), `effectAxisLabel` (forest only),
+// `referenceLabel` (the per-card meaning of the reference, shown in the
+// legend), `showLegend` (render the built-in canonical legend; set false on a
+// small-multiples card that renders one shared legend for the set).
+
+// The canonical forest legend — one vocabulary on every consumer, retiring the
+// per-card drift. The dot labels are generic and fixed; only the reference key
+// takes per-card wording, because the reference means something different on
+// each card (r = 0 for the autocorrelations, the leave-one-out prediction for
+// the correlation card). The reference glyph is a dashed teal line, matching
+// the expected-value lines on the line charts.
+export function forestLegendItems(referenceLabel = "Expected") {
+  return [
+    { color: CC.THRESH, label: "Flagged", swatchType: "dot" },
+    { color: CC.OBS, label: "Within expected range", swatchType: "dot" },
+    { color: CC.EXP, label: referenceLabel, swatchType: "line", dashed: true },
+  ];
+}
 
 export function ForestPlot({
   units,
   effectAxisLabel,
   multiplicityNote,
+  referenceLabel = "Expected",
+  showLegend = true,
   // flagBoundary drives the strip-mode threshold line; unused in forest mode,
   // where each unit's `flagged` already carries the gated decision. Kept on the
   // contract so the strip branch reads it without a signature change.
@@ -110,14 +131,16 @@ export function ForestPlot({
   const axisY = PT + n * ROW_H + 6;
 
   return (
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
     <PlotSVG W={W} H={H}>
-      {/* zero-mode origin — one shared reference at r = 0. Axis furniture in
-          the axis colour, not a verdict null: the flag decision rides on each
-          unit's own significance, not on distance from this line. */}
+      {/* zero-mode origin — one shared reference at r = 0, drawn dashed in the
+          expected-value colour (teal CC.EXP, the null) to match the line
+          charts. The flag decision still rides on each unit's own significance,
+          not on distance from this line. */}
       {mode === "zero" && (
         <>
           <line x1={xs(0)} y1={PT - 2} x2={xs(0)} y2={axisY}
-            stroke={C.AXIS} strokeWidth={CS.REF.w} strokeDasharray={CS.REF.dash} opacity={0.8} />
+            stroke={CC.EXP} strokeWidth={CS.REF.w} strokeDasharray={CS.REF.dash} opacity={0.8} />
           <text x={xs(0)} y={PT - 6} fontSize={CF.SMALL} fill={C.TEXT_2}
             textAnchor="middle" fontFamily={FF.MONO}>r = 0</text>
         </>
@@ -133,10 +156,11 @@ export function ForestPlot({
           <g key={i}>
             <text x={PL - LABEL_GAP} y={cy + 3} fontSize={CF.SMALL} fill={C.TEXT_2}
               textAnchor="end" fontFamily={FF.MONO}>{fitLabel(u.unitLabel)}</text>
-            {/* stored-mode per-unit reference tick */}
+            {/* stored-mode per-unit reference tick — expected-value teal (the
+                null), matching the zero-mode line and the line charts. */}
             {mode === "stored" && Number.isFinite(u.reference) && (
               <line x1={xs(u.reference)} y1={cy - 5} x2={xs(u.reference)} y2={cy + 5}
-                stroke={C.AXIS} strokeWidth={CS.GRID.w} />
+                stroke={CC.EXP} strokeWidth={CS.REF.w} />
             )}
             {/* interval whisker, when a unit carries one */}
             {hasInterval && (
@@ -170,5 +194,11 @@ export function ForestPlot({
           textAnchor="middle" fontFamily={FF.UI}>{multiplicityNote}</text>
       )}
     </PlotSVG>
+    {/* Built-in canonical legend, folded into the plot's intrinsic-width unit
+        so the fitContent wrapper sizes to it and it can't clip or detach (the
+        legend-strip part of the intrinsic-width rule). A small-multiples card
+        sets showLegend false and renders one shared legend for the set. */}
+    {showLegend && <ChartLegend items={forestLegendItems(referenceLabel)} />}
+    </div>
   );
 }

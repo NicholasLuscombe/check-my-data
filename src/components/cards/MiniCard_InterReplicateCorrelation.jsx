@@ -5,7 +5,7 @@ import { TIER_COLOR, cellTextOn, compositeOver } from "../shared/heatmapColors.j
 import { COND_COLORS, buildCondColorMap } from "../../constants/roles.js";
 import { MiniCardLayout, CardBanner } from "../shared/CardLayout.jsx";
 import { CorrMatrixSVG } from "../plots/CorrMatrixSVG.jsx";
-import { ForestPlot } from "../plots/ForestPlot.jsx";
+import { ForestPlot, forestLegendItems } from "../plots/ForestPlot.jsx";
 import { PlotLayout } from "../shared/PlotLayout.jsx";
 import { ChartLegend } from "../shared/ChartLegend.jsx";
 import { EvidenceTable } from "../shared/EvidenceTable.jsx";
@@ -214,15 +214,16 @@ const forestSurface = (
               units={units}
               effectAxisLabel="Inter-replicate correlation r — observed vs leave-one-out predicted"
               multiplicityNote={`Benjamini–Hochberg adjusted across ${result.nPairs} replicate pair${result.nPairs === 1 ? "" : "s"}`}
+              referenceLabel="Expected (leave-one-out)"
+              showLegend={false}
             />
           </PlotLayout>
         </div>
       );
     })}
-    <ChartLegend items={[
-      { color: CC.THRESH, label: "Suspicious pair (flagged)", swatchType: "dot" },
-      { color: CC.OBS, label: "Within expected range", swatchType: "dot" },
-    ]} />
+    {/* One shared canonical legend for the per-condition forest set (small
+        multiples) — each forest above renders without its own legend. */}
+    <ChartLegend items={forestLegendItems("Expected (leave-one-out)")} />
   </>
 );
 

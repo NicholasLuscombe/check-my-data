@@ -136,12 +136,11 @@ export function MiniCard_Autocorrelation({ result, importConfig, rowMap }) {
             units={forestUnits}
             effectAxisLabel="Lag-k autocorrelation of inter-replicate differences (r)"
             multiplicityNote={`Benjamini–Hochberg adjusted across ${nPairs} pair${nPairs === 1 ? "" : "s"} and lags 1–5`}
+            referenceLabel="Expected (r = 0, independent)"
           />
         </PlotLayout>
-        <ChartLegend items={[
-          { color: CC.THRESH, label: "Flagged unit (clears the flag boundary)", swatchType: "dot" },
-          { color: CC.OBS, label: "Cleared unit", swatchType: "dot" },
-        ]} />
+        {/* The forest renders the canonical legend itself (flagged / within
+            expected range / expected reference) — no card-side legend. */}
         {/* A lag can be individually significant yet read cleared: higher-lag
             promotion also requires the correlation to clear the effect-size
             floor on large samples. The floor value is read from source
