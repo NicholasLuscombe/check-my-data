@@ -6,7 +6,6 @@ import { TIER_COLOR, cellTextOn, compositeOver } from "../shared/heatmapColors.j
 import { COND_COLORS, buildCondColorMap } from "../../constants/roles.js";
 import { MiniCardLayout, CardBanner } from "../shared/CardLayout.jsx";
 import { CorrMatrixSVG } from "../plots/CorrMatrixSVG.jsx";
-import { ForestPlot, forestLegendItems } from "../plots/ForestPlot.jsx";
 import { PlotLayout } from "../shared/PlotLayout.jsx";
 import { ChartLegend } from "../shared/ChartLegend.jsx";
 import { EvidenceTable } from "../shared/EvidenceTable.jsx";
@@ -110,12 +109,11 @@ const topWins = [...wins].sort((a, b) => {
   return (a.condition || "").localeCompare(b.condition || "");
 });
 
-// -- Surface hierarchy: lead with the surface that carries the signal --
-// Windowed signal present (wins) -> windows table leads. The matrix follows only
-// when it carries a red cell (a suspicious pair, State 3); when it is all-slate
-// (State 2) it is suppressed entirely, since the table holds everything.
-// Per-pair signal only (or clean) -> matrix leads, windows message follows.
-const tableLeads = wins.length > 0;
+// -- Surface hierarchy (S290): the per-pair correlation heatmap is the lead
+// surface -- the pairwise unit's honest object. It always shows when per-pair
+// data exists (guaranteed past the early return above); an all-within-range
+// matrix is meaningful evidence, not dead weight. The windowed arm follows
+// beneath it.
 
 // Matrix surface -- the legend travels with the matrix wherever it sits.
 const matrixSurface = (
@@ -190,65 +188,6 @@ const noWindowsMessage = (topWins.length === 0 && result.flag !== "LOW") ? (
       </div>
 ) : null;
 
-// ── Per-unit forest (S284): the per-pair verdict geometry, the shared
-//    per-unit primitive Stage 1 introduced. Each replicate pair sits at its
-//    observed winsorized correlation (rawR) against its own leave-one-out
-//    predicted correlation (rawLooICC); the distance is the excess. A pair
-//    reads red only when it drove the verdict, by either per-pair arm — the
-//    engine's `isPromotionTrigger`: a suspicious pair (BH-adjusted p below the
-//    flag boundary plus the excess-size gate) when any pair is suspicious, or
-//    any pair below the flag boundary in the fallback arm when none is. The
-//    matrix cells read the same field, so the two surfaces agree. Cleared
-//    pairs read blue. Rendered per condition, matching the
-//    per-condition matrices below; the BH family spans all pairs, so the
-//    multiplicity note names the full pair count. No suppression: IRC handles
-//    conditions internally and never takes the Fisher-combined aggregate path,
-//    so every fixture has markable per-pair units. The windowed arm of the
-//    flag is carried separately by the windows table.
-const forestUnitsFor = (pairs) => pairs
-  .filter(d => Number.isFinite(d.rawR) && Number.isFinite(d.rawLooICC))
-  .map(d => ({
-    unitLabel: pairLabel(d.pair, d.condition),
-    estimate: d.rawR,
-    reference: d.rawLooICC,
-    referenceMode: "stored",
-    adjP: typeof d.adjP === "number" ? d.adjP : undefined,
-    flagged: d.isPromotionTrigger === true,
-  }));
-const forestSurface = (
-  <>
-    {condNames.map((cond, ci) => {
-      const units = forestUnitsFor(condMap[cond]);
-      if (!units.length) return null;
-      return (
-        <div key={cond} style={{ marginTop: ci === 0 ? 0 : BLOCK_GAP }}>
-          {condNames.length > 1 && (
-            <div style={{...SUB_HEAD, fontWeight: FW.NORM, marginBottom: BLOCK_GAP_TIGHT,
-              color: condColorMap[cond]?.text || COND_COLORS[condNames.indexOf(cond) % COND_COLORS.length].text}}>
-              {cond}
-            </div>
-          )}
-          <PlotLayout fitContent>
-            <ForestPlot
-              units={units}
-              effectAxisLabel="Inter-replicate correlation r"
-              // Subcaption only on a single-panel forest, where the displayed
-              // pairs ARE the BH family. On the per-condition split each panel
-              // shows one condition's pairs while result.nPairs is the
-              // cross-condition total, so the count would contradict the rows —
-              // omit it (TIER-A-CI-DRAW-SPEC multiplicityNote carve-out).
-              multiplicityNote={condNames.length > 1 ? undefined : `Across ${result.nPairs} replicate pair${result.nPairs === 1 ? "" : "s"}`}
-            />
-          </PlotLayout>
-        </div>
-      );
-    })}
-    {/* One shared canonical legend for the per-condition forest set (small
-        multiples) — each forest above renders without its own legend. */}
-    <ChartLegend items={forestLegendItems("Expected (leave-one-out)")} />
-  </>
-);
-
 return (
 
   <MiniCardLayout result={result}
@@ -265,13 +204,15 @@ return (
       </CardBanner>
     )}
 
-    {/* Surface 1 (S284): per-unit forest — the verdict geometry. The pairwise
-        matrix and windows below are secondary evidence. */}
-    {forestSurface}
+    {/* Lead surface (S290): the per-pair correlation heatmap — the pairwise
+        unit's honest object. Cells colour on the engine's `isPromotionTrigger`
+        (a pair that drove the verdict reads red), so flag-gating is inherited,
+        not re-derived. */}
+    {matrixSurface}
+
     {/* Connector (window-driven branch): when the card flagged but no whole
-        replicate pair is anomalous (every forest dot stays blue), the driver is
-        the localised row windows — point the reader there rather than forcing a
-        red dot onto a pair that is not anomalous. */}
+        replicate pair is anomalous (every heatmap cell stays within range), the
+        driver is the localised row windows — point the reader there. */}
     {result.flag !== "LOW" && result.flag !== "N/A"
       && !pairDetails.some(d => d.isPromotionTrigger === true)
       && wins.length > 0 && (
@@ -280,26 +221,10 @@ return (
       </div>
     )}
 
+    {/* Windowed arm beneath the heatmap: the row-window evidence table when
+        localised ranges exist, otherwise the no-windows message. */}
     <div style={{ marginTop: BLOCK_GAP }}>
-    {tableLeads ? (
-      // State 2 (windowed signal, no per-pair signal): windows table only -- the
-      // all-slate matrix is dead weight, so it is suppressed. State 3 (a suspicious
-      // pair is also present): the matrix follows, carrying its red cell.
-      <>
-        {windowsTable}
-        {nSusp > 0 && (
-          <div style={{marginTop: BLOCK_GAP}}>
-            {matrixSurface}
-          </div>
-        )}
-      </>
-    ) : (
-      // State 1 (per-pair signal only) + clean: matrix leads, windows message follows.
-      <>
-        {matrixSurface}
-        {noWindowsMessage}
-      </>
-    )}
+      {wins.length > 0 ? windowsTable : noWindowsMessage}
     </div>
 
 
