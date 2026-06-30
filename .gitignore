@@ -55,3 +55,6 @@ output.txtmnt/
 
 # Perf instrument sidecars (engine.js PERF=1 + validate-batch.mjs)
 test/perf-out/
+
+# Headless corpus runner output (scripts/corpus-run.mjs artifacts)
+corpus-out/
