@@ -4,7 +4,7 @@ import { ChartLegend } from "../shared/ChartLegend.jsx";
 import { ForestPlot, forestLegendItems } from "../plots/ForestPlot.jsx";
 import { SignStripPlot } from "../plots/SignStripPlot.jsx";
 import { EvidenceTable } from "../shared/EvidenceTable.jsx";
-import { CC, FW, FF, SIGN, OBS } from "../../constants/tokens.js";
+import { C, CC, FW, FF, SIGN, OBS } from "../../constants/tokens.js";
 import { fmtP, ALPHA } from "../../constants/thresholds.js";
 import { makeRowMapper } from "../shared/coordinates.js";
 import { SUB_HEAD, BLOCK_GAP, BLOCK_GAP_TIGHT } from "../shared/styles.js";
@@ -18,7 +18,7 @@ const SIGN_NEG = CC.OBS;   // observed blue (−1) — below the fitted trend
 
 export function MiniCard_RowMean({ result, importConfig, rowMap }) {
   // Coordinate mapping for original file row numbers (strip x-axis).
-  const { fileRow } = makeRowMapper(importConfig, rowMap);
+  const { fileRow, toFileRow } = makeRowMapper(importConfig, rowMap);
   const nMatrixRows = importConfig?.data?.length || 0;
   const firstFileRow = nMatrixRows > 0 ? fileRow(0) : 1;
   const lastFileRow = nMatrixRows > 0 ? fileRow(nMatrixRows - 1) : null;
@@ -54,6 +54,15 @@ export function MiniCard_RowMean({ result, importConfig, rowMap }) {
     ];
   });
 
+  // Windowed-promotion arm (engine details with source === "window"). These are
+  // localised row windows whose runs-test cleared BH-FDR; a window below
+  // ALPHA.FLAG promotes the card to MODERATE on its own, so the verdict can flag
+  // while every per-condition surface above reads clear. The table below is the
+  // only surface that shows them.
+  const windowEntries = (result.details || []).filter(d => d.source === "window");
+  const condsClean = !condSeqs.some(c => c.p < ALPHA.NOTE);
+  const isFlagged = result.flag !== "LOW" && result.flag !== "N/A";
+
   // ── Per-unit forest (Surface 1): the verdict geometry. One unit per
   //    condition — each sits at its observed run count against its own expected
   //    run count (the stored per-unit reference); the distance reads as how far
@@ -65,8 +74,8 @@ export function MiniCard_RowMean({ result, importConfig, rowMap }) {
   //    a raw per-condition p and the verdict is min(p) then flagFromP — there is
   //    no BH family across conditions, so no correction count to name. The
   //    windowed-promotion arm (details with source === "window") is a separate
-  //    flag arm over row windows, not a condition unit — it stays on the
-  //    existing surfaces and never enters the forest.
+  //    flag arm over row windows, not a condition unit — it never enters the
+  //    forest; it has its own table below the per-condition surfaces.
   const forestUnits = condSeqs
     .filter(c => Number.isFinite(c.runs) && Number.isFinite(c.expected))
     .map(c => ({
@@ -134,6 +143,46 @@ export function MiniCard_RowMean({ result, importConfig, rowMap }) {
             columns={["Condition", "Runs", "Expected", "z", "p", "Finding"]}
             rows={etRows}
             identifierColumns={1}
+          />
+        </div>
+      )}
+
+      {/* Windowed-promotion arm: the localised row windows that drove the
+          verdict. The three per-condition surfaces above never read these, so
+          without this connector-to-table a window-driven Moderate verdict shows
+          no driver — the same gap the Inter-Replicate Correlation card closes
+          the same way. */}
+      {windowEntries.length > 0 && (
+        <div style={{ marginTop: BLOCK_GAP }}>
+          {/* Bridge line — only when the per-condition arm is clean, so it never
+              falsely claims the conditions cleared when one of them flagged too. */}
+          {isFlagged && condsClean && (
+            <div style={{ ...SUB_HEAD, fontWeight: FW.NORM, marginBottom: BLOCK_GAP_TIGHT }}>
+              No whole-condition run pattern is anomalous — the verdict is driven by the localised row windows shown below.
+            </div>
+          )}
+          <div style={{ ...SUB_HEAD, fontWeight: FW.NORM, marginBottom: BLOCK_GAP_TIGHT }}>Localised row windows</div>
+          <EvidenceTable
+            columns={["Condition", "Rows", "Runs", "Expected", "Adj. p", "Flag"]}
+            rows={windowEntries.map(w => {
+              // A window below ALPHA.FLAG is what promotes the card to MODERATE,
+              // so it reads as the verdict's driver — "Flagged" in the promotion
+              // colour (CC.THRESH, the same red the windows tables use). Windows
+              // between ALPHA.FLAG and ALPHA.NOTE are noted but did not promote.
+              const drove = w.adjP < ALPHA.FLAG;
+              const flagCell = drove
+                ? { value: "Flagged", style: { color: CC.THRESH, fontWeight: FW.SEMI } }
+                : { value: "—", style: { color: C.TEXT_3 } };
+              return [
+                { value: stripName(w.sequence), style: { fontFamily: FF.UI } },
+                `${toFileRow(w.startRow)}–${toFileRow(w.endRow)}`,
+                w.runs,
+                w.expected,
+                fmtP(w.adjP),
+                flagCell,
+              ];
+            })}
+            identifierColumns={2}
           />
         </div>
       )}
