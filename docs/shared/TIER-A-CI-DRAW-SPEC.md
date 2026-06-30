@@ -4,6 +4,14 @@
 display implementation prompt cites. Supersedes the v1.0 confidence-interval programme,
 which this document retires.
 
+**Reframe (S289) — read §1 first.** The programme initially treated the forest as the universal
+per-unit primitive. That is corrected: the honest object is selected by the unit's SHAPE
+(pairwise → heatmap, sequence-against-reference → forest, spatial → strip, distributional →
+histogram). Three forest consumers declined or were retired for shape-mismatch (CCC S287, Regional
+Noise S288, IRC S289). The forest sections (§2.2) describe the forest primitive; they no longer
+define which tests get one — the §1 per-shape rule and the S290 per-card object audit do. The §1
+governing rule itself (geometry pictures the verdict's quantity) is unchanged.
+
 **What changed (S237→S238).** The CI-band programme rested on an untested structural
 assumption — that a single confidence band is the natural read of each test. A full-suite
 flag-assembly classification (all 28 active tests, read at source, S237;
@@ -58,6 +66,33 @@ consequence:
   while flags fire at MODERATE (p < 0.01); a MODERATE verdict then fell inside the band. The
   per-unit display marks units at the boundary that actually flags them.
 
+**The honest object is per-shape, not forest-default (S289).** §1 says the geometry must picture
+the verdict's quantity; it does NOT say that geometry is always a forest. The per-unit programme
+initially treated the forest as the universal honest object for PER-UNIT-OR tests, and three
+consumers declined or demoted because their unit shape was wrong for a forest: Cross-Condition
+Consistency (S287) and Regional Noise (S288) — direction-collapse on a magnitude axis (a
+ratio/distance forest folds two opposite verdict directions onto one side); and IRC (S289) — its
+pairwise units, mispictured as a 1-D dot list, render all-blue under a window-driven verdict
+(DS02). The honest object is selected by the unit's dimensionality:
+
+- **Pairwise units** (replicate × replicate, condition × condition) → **triangular heatmap.**
+  The grid's two axes are the relationship; the cell is the unit. IRC, Residual Spike Correlation,
+  Cross-Condition Duplication.
+- **Sequence-against-reference units** (lags, conditions vs a simulation null), verdict =
+  distance-from-reference → **forest / dotplot.** Position carries the magnitude a heatmap of a
+  1-D sequence would hide. Autocorrelation, Row-Mean Runs.
+- **Spatial / windowed units** (row windows, smoothed regions) → **strip.** LOESS, VFS.
+- **Distributional units** (per-group shape) → **histogram.** Modality (pulled S283).
+
+The flag-gating rule (a mark fires on the verdict's full promotion decision — all arms, floors,
+counts — red = drove the verdict) is **primitive-independent** and applies to every primitive:
+heatmap cells, strip marks, forest dots alike. Uniformity of primitive is not honesty; several
+cards (IRC's `CorrMatrix` heatmap, S42/S49) already had the honest object before the programme
+replaced it for uniformity. The S290 per-card object audit assigns each PER-UNIT-OR test its
+primitive from the unit shape, read from source. The forest sections below (§2.2) describe the
+forest primitive; they do NOT constitute the membership of "tests that get a forest" — that
+membership is now the sequence-against-reference subset only, fixed by the audit.
+
 ---
 
 ## 2. The per-unit display primitive
@@ -111,6 +146,18 @@ Autocorrelation (zero), IRC (stored), Windowed Autocorrelation (zero), Row-Mean 
 Column GoF (stored), Entropy/Zipf (stored), Value-Frequency Spike (stored), Decimal Precision
 (stored), Cross-Condition Consistency (stored), Cross-Condition Rank Correlation (stored).
 (Runs removed S239 — reclassified POOLED-SINGLE, §7. The forest count drops from eleven to ten.)
+
+**This list is SUPERSEDED by the per-shape reframe (S289) — it is the set that CAN carry a
+forest, not the set that SHOULD.** The §1 per-shape rule narrows it: the forest is the honest
+object only for **sequence-against-reference** units (Autocorrelation, Windowed Autocorrelation,
+Row-Mean Runs, and Kurtosis if a positive fixture exists). The others on this list are
+mis-assigned by shape and have declined or are being retired: IRC is pairwise → heatmap (forest
+retired S290); Cross-Condition Consistency declined S287 (direction-collapse, table-satisfied);
+Cross-Condition Rank Correlation is pairwise/similarity → check in the S290 audit; Column GoF and
+Entropy/Zipf are served by `ColumnStatBar`; VFS is windowed → strip. A test appearing here means
+the engine returns a magnitude-vs-reference tuple, which is necessary but not sufficient for a
+forest to be the honest picture — the unit SHAPE decides. The S290 per-card object audit fixes the
+actual forest membership from source.
 
 ### 2.3 Render mode B — strip (`referenceMode = none`)
 
