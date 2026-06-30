@@ -1,0 +1,22 @@
+{
+  "out": "corpus-out/corpus-results.json",
+  "datasets": [
+    {
+      "label": "example-with-override",
+      "path": "test/fixtures/02-densitometry-fabricated.csv",
+      "assay": "densitometry",
+      "dataType": "continuous"
+    },
+    {
+      "label": "example-auto-detect",
+      "path": "test/fixtures/04-qpcr-fabricated.csv"
+    },
+    {
+      "label": "example-xlsx-named-sheet",
+      "path": "corpus-out/smoke-02.xlsx",
+      "sheet": "IC50",
+      "assay": "densitometry",
+      "conditionsHint": "three inhibitor conditions, replicates within"
+    }
+  ]
+}
