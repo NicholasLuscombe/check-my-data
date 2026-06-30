@@ -304,6 +304,22 @@ export function testPearsonUniformity(matrix, pairGroups, rng, rowSemantics = 'o
     interpretation=`Windowed permutation scan detected locally elevated inter-replicate correlation (scan p=${scanP.toFixed(4)}): ${winEx}. This suggests non-independence in a subset of rows that is diluted by the global analysis.`;
   }
 
+  // Per-pair promotion contributor (S289): a report-only mark of whether a
+  // pair drove the verdict, by EITHER per-pair arm. In the suspicious arm
+  // (nSuspicious > 0) only suspicious pairs drive; in the fallback arm (no
+  // suspicious pair, the anyPairSig promotion above) any pair below ALPHA.FLAG
+  // drives; under all-high-SNR no pair drives. The card's forest and matrix read
+  // this so a fallback-arm driver no longer reads cleared while the verdict says
+  // Moderate. Reads already-computed values only — feeds no flag input, so the
+  // verdict logic is unchanged, just exposed. Mirrors the per-unit
+  // isPromotionTrigger field Autocorrelation's lag table already exposes.
+  allPairs.forEach(p => {
+    p.isPromotionTrigger = !allHighSNR && (
+      nSuspicious > 0 ? p.suspicious === true
+                      : (p.adjP != null && p.adjP < ALPHA.FLAG)
+    );
+  });
+
   // primaryP: best of global and windowed scan. When the windowed scan is
   // suppressed (S118 Track H, rowSemantics='arbitrary') it contributes
   // scanP=1 by construction — primaryP collapses to the global best.
