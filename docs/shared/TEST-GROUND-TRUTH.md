@@ -7,7 +7,7 @@ This table is the canonical ground-truth reference. One row per fixture, one sen
 
 ---
 
-## Validation suite (22 fixtures)
+## Validation suite (23 fixtures)
 
 | ID   | Filename                               | Severity | What it tests                                                                                                                           |
 |------|----------------------------------------|----------|-----------------------------------------------------------------------------------------------------------------------------------------|
@@ -117,7 +117,7 @@ This table is the canonical ground-truth reference. One row per fixture, one sen
 ## Conventions
 
 - **Severity scale:** 0 = CLEAN, 1 = MINOR, 2 = ELEVATED, 3 = CRITICAL. Engine output is compared to GT by strict equality.
-- **Batch test:** `node test/validate-batch.mjs` runs all 22 fixtures and prints pass/fail. Any new-below-GT delta on a fabricated dataset is a regression requiring investigation before commit.
+- **Batch test:** `node test/validate-batch.mjs` runs all 23 fixtures and prints pass/fail. Any new-below-GT delta on a fabricated dataset is a regression requiring investigation before commit.
 - **Pending-verification lane** (S108): fabricated fixtures whose target test is not yet implemented in the active build are marked `pending: true` in the GT lookup and reported as `◦ pending` rather than pass/fail. DS22 is the current occupant pending Track E (a) Blocked Mahalanobis (S109 target).
 - **Attribution-pending flag** (S108 convention, narrative): fixtures where the current severity GT match is driven by collateral channels rather than the intended forensic target are noted in the table with explicit language ("severity driven by X FP, intended Y"); GT severity stands until v1.1 methodology audit resolves the attribution, at which point the entry is re-verified. DS21 was the occupant pending parked #15 + #18. S109 close-out: DS21 GT revised 3 → 2 (see §Accepted deltas); attribution-pending flag lifted. No current occupants.
 - **Fixture additions:** generate-test-datasets.py carries a fixed seed (7741 for legacy fixtures; per-fixture locked seeds for post-S98 additions — DS19 = 20260420, DS20 = 20260421, DS21 = 20260422, DS22 = 20260423). New fixtures append with a new DS-id, one new row in the table above, and a session summary documenting the construction and rationale.

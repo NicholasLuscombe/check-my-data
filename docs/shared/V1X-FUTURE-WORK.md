@@ -13,7 +13,7 @@ This doc owns the v1.x view. The v1.0 surfaces stay authoritative for their doma
 | Surface | Scope | Status |
 |---|---|---|
 | Methodology gaps (forensics framework) | 6 dimension-attributed coverage gaps | Mirrored from METHODOLOGY-MAP §Gap audit |
-| Test additions (post-v1.0 forensics) | Rectangular Blocked Mahalanobis; genuine-block detection; coherence-cleanup residue | New scope, this doc |
+| Test additions (post-v1.0 forensics) | Rectangular Blocked Mahalanobis; genuine-block detection; coherence-cleanup residue; column-localised sequential duplication detector | New scope, this doc |
 | Variance-estimator unification | Catalogue + scoped sub-refactors | Extends ROADMAP Track F |
 | AI Screening mode | Five new tests + mode toggle + reweighting | Restored from S125 chat history |
 | Calibration audits banked | Permutation B=9999; severity-formula diversity metric; Modality plot upgrade | Mirrored from STATUS parked items |
@@ -85,6 +85,30 @@ Track A (METHODOLOGY-MAP §Inconsistencies to fix) listed coherence cleanups, so
 - Runs + Row-Mean Runs escalation rule → unify on sub-unit BH-FDR promotion
 
 **Source-of-truth:** METHODOLOGY-MAP.md §Inconsistencies to fix + ROADMAP.md Track A. Verify-at-source before banking for v1.x.
+
+### 2.4 Column-localised sequential duplication detector
+
+**What:** A test targeting a sequential run of N identical (or matching) values within a single column, regardless of what the row's other columns contain — distinct from whole-row or whole-block duplicate detection.
+
+**Why:** Confirmed gap via the S292 real-world corpus run (CORPUS-01, Sampson et al. *Cell* 2016 — Dryad `dryad.4mp6h`). The documented defect (two 5-value sequential runs in the adhesive-removal column, shared between SPF and ExGF mice, plus a 3-value run in germ-free wild-type pole-descent data) is hand-verified present in the raw data, but none of Exact Duplicate Detection's four sub-tests are built to catch it:
+- Test 1 (value-level collision) rewards raw frequency, not order or position — a 5-in-a-row match scores the same as five unrelated chance collisions.
+- Test 2 (identical row vectors) requires the *entire* row to match; here only one of four columns matches between occurrences.
+- Test 3 (within-row column-pair coincidences) is the wrong axis — compares columns within a row, not values across rows.
+- Test 4 (block-copy) extends Test 2's whole-row matching over a window of h consecutive rows; still requires whole-row identity per row in the block.
+
+This is a designed gap, not a calibration miss — by the methodology as specified, no existing sub-test targets "a contiguous same-column run, independent of other columns." Markus Englund's `copy-paste-detective` (the source of this corpus's third-party ground truth) treats this as its own pluggable strategy (`repeatedColumnSequences`), separate from his `duplicateRows` strategy — external validation that this is a genuinely distinct detection target, not something foldable into existing sub-tests.
+
+**Forensic targets:**
+- Sequential block duplication across row-groups that should be independent (the CORPUS-01 pattern — copy-paste within one column, possibly to pad or substitute missing measurements)
+- Single-column copy-paste that wouldn't trip row-level or block-level detectors because surrounding columns are independently real
+
+**Statistic sketch:** Not yet designed. Candidate starting point: scan each column for runs of length ≥3 with the same value (or sequence of values) recurring elsewhere in the column, order-preserved; null model needs to handle both row-order-arbitrary and row-order-meaningful cases (cf. Test 4's Bonferroni-over-search-volume approach as a starting template, adapted to single-column scope). Needs its own design pass — do not assume Test 4's null transfers directly, since the search volume and matching unit differ.
+
+**Relationship to existing tests:** Sits in Copy-Paste-Edit / Structural Anomaly Detection alongside Exact Duplicate Detection — likely a sibling test/card rather than a fifth sub-test bundled into Exact Duplicate Detection's existing BH-FDR combination, since it has a genuinely different null and search space. Decide at implementation.
+
+**Source:** `SESSION292-CHAT-SUMMARY.md` (corpus run finding), `REALWORLD-CORPUS-SPEC.md` CORPUS-01 entry, `METHODOLOGY.md` §1.1 (confirms all four existing sub-tests' actual mechanisms).
+
+**Priority:** Real-world-validated gap, not speculative — found via external data, not constructed fixtures. Bank for v1.x; candidate for elevation if the review paper's real-world section needs to name a known-and-disclosed coverage gap rather than present sensitivity as unqualified.
 
 ---
 
@@ -356,6 +380,7 @@ When updating these surfaces, edit the source-of-truth first and mirror here.
 | Track A coherence cleanup (§2.2) | METHODOLOGY-MAP.md §"Inconsistencies to fix" | Mirror + audit-current-state-before-banking. Most of Track A landed S95; verify residue at source. |
 | Variance-estimator unification (§3) | This doc | Primary scope; absorbs original ROADMAP Track F narrow scope (§3.3) plus broader audit framing (§3.1, §3.2). |
 | Rectangular Blocked Mahalanobis (§2.1) | This doc | Single source |
+| Column-localised sequential duplication detector (§2.4) | This doc | Single source; finding sourced from S292 real-world corpus run (SESSION292-CHAT-SUMMARY.md, REALWORLD-CORPUS-SPEC.md CORPUS-01) |
 | AI Screening mode (§4) | This doc | Single source. Original S125 chat history preserved as reference but no longer load-bearing. |
 | Permutation B = 9999 (§5.1) | STATUS parked #8 | Mirror |
 | Severity-formula diversity metric (§5.2) | This doc | Primary scope; pairs with §5.5 |
