@@ -1,7 +1,7 @@
 /* ── MiniCard: Autocorrelation ── */
 
 import { C, CC, FW, FS, SEV_VERDICT, OBS } from "../../constants/tokens.js";
-import { fmtP, EFFECT_SIZE } from "../../constants/thresholds.js";
+import { fmtP, EFFECT_SIZE, ALPHA } from "../../constants/thresholds.js";
 import { MiniCardLayout } from "../shared/CardLayout.jsx";
 import { EvidenceTable } from "../shared/EvidenceTable.jsx";
 import { buildCondColorMap, COND_COLORS } from "../../constants/roles.js";
@@ -55,8 +55,8 @@ export function MiniCard_Autocorrelation({ result, importConfig, rowMap }) {
       estimate: parseFloat(d.lag1),
       reference: 0,
       referenceMode: "zero",
-      adjP: undefined, // adjusted per-pair p is computed then dropped in the engine
-      flagged: d.significant === true,
+      adjP: d.adjP, // retained per-pair adjusted p (S288); read here for the 0.001 gate
+      flagged: d.adjP < ALPHA.FLAG,
     }));
   const higherLagUnits = (result.lagTable || [])
     .filter(r => r.lag > 1 && r.pooledR !== undefined)

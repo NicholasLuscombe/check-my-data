@@ -1,6 +1,7 @@
 /* ── MiniCard: Inter-Replicate Correlation ── */
 
 import { C, CC, FS, FW, FF, OBS } from "../../constants/tokens.js";
+import { fmtP } from "../../constants/thresholds.js";
 import { TIER_COLOR, cellTextOn, compositeOver } from "../shared/heatmapColors.js";
 import { COND_COLORS, buildCondColorMap } from "../../constants/roles.js";
 import { MiniCardLayout, CardBanner } from "../shared/CardLayout.jsx";
@@ -87,13 +88,13 @@ const matrices = condNames.map(cond => {
 // Windowed pairs are informational only (shown in the evidence table below).
 const cellBg = (p) => {
   if (!p) return C.BORDER_L;
-  if (p.suspicious) return TIER_COLOR.HIGH;
+  if (p.isPromotionTrigger) return TIER_COLOR.HIGH;
   return CC.OBS;
 };
 // Cleared (observed CC.OBS) tiles render at OBS.solid opacity; flagged tiles stay
 // full-opacity tier colour. Digit colour is picked off the COMPOSITED appearance
 // so it stays legible as the tile softens (compositeOver α=1 → bg unchanged).
-const cellOp = (p) => (p && !p.suspicious) ? OBS.solid.fillOpacity : 1;
+const cellOp = (p) => (p && !p.isPromotionTrigger) ? OBS.solid.fillOpacity : 1;
 const cellTxt = (p) => cellTextOn(compositeOver(cellBg(p), cellOp(p), C.BG));
 
 // Legend items
@@ -134,7 +135,7 @@ const matrixSurface = (
                   labels={colNames}
                   getValue={(rowL, colL) => mat[nameToIdx[rowL]]?.[nameToIdx[colL]] || null}
                   formatCell={p => { const r = p ? parseFloat(p.r) : null; return r != null ? r.toFixed(2) : ""; }}
-                  cellBg={cellBg} cellText={cellTxt} cellBold={p => !!p?.suspicious}
+                  cellBg={cellBg} cellText={cellTxt} cellBold={p => !!p?.isPromotionTrigger}
                   cellOpacity={cellOp}
                   title={condNames.length > 1 ? cond : undefined}
                   titleColor={condNames.length > 1 ? (condColorMap[cond]?.text || COND_COLORS[condNames.indexOf(cond) % COND_COLORS.length].text) : undefined}
@@ -155,13 +156,29 @@ const windowsTable = (
         {/* S210 (multi-surface): secondary-surface heading demoted (Regular weight). */}
         <div style={{...SUB_HEAD, fontWeight: FW.NORM, marginBottom: BLOCK_GAP_TIGHT}}>Highly correlated row windows</div>
         <EvidenceTable
-          columns={condNames.length > 1 ? ["Condition", "Columns", "Rows", "Observed r", "Expected r"] : ["Columns", "Rows", "Observed r", "Expected r"]}
-          rows={topWins.map(w => condNames.length > 1
-            ? [condCell(w.condition), pairLabel(w.pair, w.condition), `${toFileRow(w.startRow)}\u2013${toFileRow(w.endRow)}`, Number(w.rWin).toFixed(2), Number(w.baseline).toFixed(2)]
-            : [pairLabel(w.pair, w.condition || "All data"), `${toFileRow(w.startRow)}\u2013${toFileRow(w.endRow)}`, Number(w.rWin).toFixed(2), Number(w.baseline).toFixed(2)]
-          )}
+          columns={condNames.length > 1 ? ["Condition", "Columns", "Rows", "Observed r", "Expected r", "Adj. p", "Flag"] : ["Columns", "Rows", "Observed r", "Expected r", "Adj. p", "Flag"]}
+          rows={topWins.map(w => {
+            // The window-promotion decision: the scan-statistic permutation p
+            // (shared across the flagged window family \u2014 the max-statistic
+            // carries the multiplicity correction) and the engine's per-window
+            // `significant` mark. A flagged window is the verdict's visible
+            // driver, so it reads red ("Flagged", CC.THRESH \u2014 channel 4 data
+            // model) per PLOT-COLOUR-SEMANTICS; the label is exactly "Flagged".
+            const flagCell = w.significant === true
+              ? { value: "Flagged", style: { color: CC.THRESH, fontWeight: FW.SEMI } }
+              : { value: "\u2014", style: { color: C.TEXT_3 } };
+            const base = [
+              pairLabel(w.pair, w.condition || "All data"),
+              `${toFileRow(w.startRow)}\u2013${toFileRow(w.endRow)}`,
+              Number(w.rWin).toFixed(2),
+              Number(w.baseline).toFixed(2),
+              fmtP(w.scanP),
+              flagCell,
+            ];
+            return condNames.length > 1 ? [condCell(w.condition), ...base] : base;
+          })}
           identifierColumns={condNames.length > 1 ? 3 : 2}
-          footerText={topWins.length < result.nWindowsTested ? `Showing ${topWins.length} of ${result.nWindowsTested}.` : undefined}
+          footerText={topWins.length < result.nWindowsTested ? `Showing ${topWins.length} of ${result.nWindowsTested}. Adjusted p is the scan-statistic permutation p shared across the flagged window family.` : "Adjusted p is the scan-statistic permutation p shared across the flagged window family."}
         />
       </div>
 );
@@ -177,10 +194,12 @@ const noWindowsMessage = (topWins.length === 0 && result.flag !== "LOW") ? (
 //    per-unit primitive Stage 1 introduced. Each replicate pair sits at its
 //    observed winsorized correlation (rawR) against its own leave-one-out
 //    predicted correlation (rawLooICC); the distance is the excess. A pair
-//    reads red only when the verdict flags it as `suspicious` — the
-//    promotion decision (BH-adjusted p below the flag boundary plus the
-//    excess-size gate), the same field the matrix and the card flag already
-//    use. Cleared pairs read blue. Rendered per condition, matching the
+//    reads red only when it drove the verdict, by either per-pair arm — the
+//    engine's `isPromotionTrigger`: a suspicious pair (BH-adjusted p below the
+//    flag boundary plus the excess-size gate) when any pair is suspicious, or
+//    any pair below the flag boundary in the fallback arm when none is. The
+//    matrix cells read the same field, so the two surfaces agree. Cleared
+//    pairs read blue. Rendered per condition, matching the
 //    per-condition matrices below; the BH family spans all pairs, so the
 //    multiplicity note names the full pair count. No suppression: IRC handles
 //    conditions internally and never takes the Fisher-combined aggregate path,
@@ -194,7 +213,7 @@ const forestUnitsFor = (pairs) => pairs
     reference: d.rawLooICC,
     referenceMode: "stored",
     adjP: typeof d.adjP === "number" ? d.adjP : undefined,
-    flagged: d.suspicious === true,
+    flagged: d.isPromotionTrigger === true,
   }));
 const forestSurface = (
   <>
@@ -249,6 +268,17 @@ return (
     {/* Surface 1 (S284): per-unit forest — the verdict geometry. The pairwise
         matrix and windows below are secondary evidence. */}
     {forestSurface}
+    {/* Connector (window-driven branch): when the card flagged but no whole
+        replicate pair is anomalous (every forest dot stays blue), the driver is
+        the localised row windows — point the reader there rather than forcing a
+        red dot onto a pair that is not anomalous. */}
+    {result.flag !== "LOW" && result.flag !== "N/A"
+      && !pairDetails.some(d => d.isPromotionTrigger === true)
+      && wins.length > 0 && (
+      <div style={{...SUB_HEAD, marginTop: "6px", marginBottom: 0, color: C.TEXT_3, fontWeight: FW.NORM}}>
+        No single replicate pair is anomalous overall — the verdict is driven by the localised row windows shown below.
+      </div>
+    )}
 
     <div style={{ marginTop: BLOCK_GAP }}>
     {tableLeads ? (
