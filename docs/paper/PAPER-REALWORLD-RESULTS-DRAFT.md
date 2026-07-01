@@ -1,10 +1,20 @@
 # Real-world validation — results section (draft v2)
 
-**Status:** draft (S294), Chat-authored. Rebuilt against the S292 BANKED adjudications at source after v1 transcribed spec *expectations* instead of adjudicated *results* — v1's sensitivity claim was false at the root (it read CORPUS-01 as a caught positive; the engine missed it by design). This version reports the three adjudicated rows as adjudicated. Covers the Tier-1 Englund/Dryad corpus. Tier-2 (Geng) enters as cited corroboration in a later pass, gated on data access.
+**Status:** draft (S294; §4 wrapper prose added S295), Chat-authored. Rebuilt against the S292 BANKED adjudications at source after v1 transcribed spec *expectations* instead of adjudicated *results* — v1's sensitivity claim was false at the root (it read CORPUS-01 as a caught positive; the engine missed it by design). This version reports the three adjudicated rows as adjudicated. Covers the Tier-1 Englund/Dryad corpus. Tier-2 (Geng) enters as cited corroboration in a later pass, gated on data access.
 
 **Row order:** argument-ordered (locked S294 decision b) — leads on the strongest real-world detection (CORPUS-02, a retracted paper with an admitted manipulation the tool independently caught), then the disclosed by-design coverage gap (CORPUS-01), then the verdict-restraint / under-call case (CORPUS-03). Not the spec's calibration order; opening on strength earns the credibility that makes the disclosed gaps read as candour.
 
 *Drafting notes are italic square-bracketed asides, not paper text.*
+
+---
+
+## Section opening (the argument, before the results)
+
+A constructed fixture suite can only answer whether a tool does what its author designed it to do. It cannot answer the two questions a skeptical reader asks of a fabrication detector: does it catch a real defect that no one built for it, and — pressed harder — what *else* does it flag on real data that is honest but messy? Real scientific datasets are not clean. They carry ordered dose series, spreadsheet-rounding artifacts, group structure, and honest missingness, all of which can superficially resemble the patterns a forensic battery hunts for. A detector that fires only on planted defects in a fixture suite has proven nothing about its behaviour in the wild.
+
+This section reports a blind run of the full battery against three published datasets, each carrying a localised defect that a third party — not us — independently identified and adjudicated, with the raw data public and the defect since corroborated by a retraction notice or a PubPeer thread. None of the three was constructed to exercise any part of the tool. Read together they measure two things at once, and the section is organised around that pair. The first is *sensitivity*: on data the tool was never tuned against, does it catch what expert scrutiny already flagged? The second, and the one the fixture suite is structurally blind to, is the *false-positive surface*: on real biological structure, what does the tool flag beyond the documented defect, and does each such flag trace to a nameable, legitimate cause — or to a calibration error the tool should have avoided?
+
+The two questions carry opposite burdens of proof, and we hold the tool to both. A tool that maximises sensitivity by flagging everything has no discipline; a tool that avoids false positives by flagging nothing has no power. The claim this section defends is the narrow one the paper commits to throughout — *every expert-flagged item the engine was built to catch, it caught* — paired with its necessary companion: a false-positive surface small enough to characterise fully and benign enough that every resolved instance traces to ordinary real-world structure. We report both halves honestly, including the one defect family the tool missed by a disclosed design boundary and the one it detected but under-called for a nameable reason. No row is a clean "flags the defect and nothing else" result, and we claim none. The value of a blind corpus is precisely that it denies you clean rows; what it offers instead is an honest picture of how the tool behaves when it does not know it is being tested.
 
 ---
 
@@ -49,7 +59,7 @@ CORPUS-03 is the clearest demonstration of the tool's verdict restraint and, sim
 
 This exposes a false statement in our own method documentation. The value-collision null uses a parametric model for low-N integer data specifically to break this circularity, but routes continuous data to the empirical frequency null on the stated assumption that continuous data is not exposed to it. CORPUS-03's fish-length column — continuous, two-decimal, with structured four-fold recurrence — is a direct counterexample: a continuous column where the defect inflates its own null and suppresses the verdict. The documentation's scoping of this limitation to integer data is therefore incorrect, and the source comment asserting the continuous branch is safe is falsified. We disclose this rather than suppress it: the tool found the pattern; a calibration limitation, not a detection failure, muted the severity. The correction to the continuous-branch collision null is scheduled v1.x work.
 
-*[Internal cross-references, not prose: METHODOLOGY §1.1 lines 283–285 (branch routing: "Continuous (dp>0): empirical HHI") and line 343 (the "Known limitation" scoped to integer data only, omitting the continuous branch — the falsified claim); V1X §2.6 (the consistency audit homing the fix). The owed source correction — duplicateDetection.js:134 comment (Code) + METHODOLOGY §1.1 (Chat) — must land so the paper's assertion agrees with source.]*
+*[Internal cross-references, not prose: METHODOLOGY §1.1 lines 283–285 (branch routing: "Continuous (dp>0): empirical HHI") and line 343 (the "Known limitation" scoped to integer data only, omitting the continuous branch — the falsified claim); V1X §2.6 (the consistency audit homing the fix). The owed source correction — duplicateDetection.js:135 comment (Code) + METHODOLOGY §1.1 (Chat) — must land so the paper's assertion agrees with source.]*
 
 ---
 
@@ -61,7 +71,7 @@ For this dataset we therefore declared the column roles explicitly rather than r
 
 We disclose this because it bears on how CORPUS-03's row should be read. The row demonstrates the tool's *detection and verdict-restraint* behaviour on a structured-duplication defect with an innocent cause; it does not demonstrate the tool's *unaided role inference*, which failed on this identifier shape and is the subject of scheduled v1.x work. The declaration is a disclosed intervention, recorded in the corpus provenance, not a silent correction. Its effect is confined to the one dataset: applied across the constructed fixture suite, the mechanism changes no output — no fixture carries a declaration, and the battery's results are byte-identical with the mechanism present.
 
-*[The provenance record is the tracked CORPUS-03 hint declaration per locked Decision 2 — the declaration and the Dryad DOI, not the raw data. Path/ownership settled at commit: likely docs/shared/CORPUS-PROVENANCE.md (Chat-owned), not a corpus-data/ file (Code territory + gitignored for the raw data).]*
+*[The provenance record is the tracked CORPUS-03 hint declaration per locked Decision 2 — the declaration and the Dryad DOI, not the raw data. Path/ownership settled at commit: docs/shared/CORPUS-PROVENANCE.md (Chat-owned), landed in `682512c`; not a corpus-data/ file (Code territory + gitignored for the raw data).]*
 
 ---
 
@@ -69,6 +79,6 @@ We disclose this because it bears on how CORPUS-03's row should be read. The row
 
 1. **CORPUS-01 row verification — DONE this pass.** Read at source (S292 BANKED): the documented defect was MISSED (Class C, by-design), not caught. v1's "caught positive" framing was corrected. The lone HIGH (Missing Data Pattern) is B2 benign attrition.
 2. **FP-surface count — filled from source this pass.** Four B2 flags (three CORPUS-02, one CORPUS-01), one unresolved (Selective Noise), one B1 independent catch (Regional Noise). No number left as placeholder.
-3. **Owed source correction** — continuous-branch HHI float-safe claim (duplicateDetection.js:134 comment, Code; METHODOLOGY §1.1 scope line, Chat). Must land so the paper's limitation assertion agrees with source. Recorded-claim correction only; null fix is V1X §2.6.
-4. **Provenance commit** — track the CORPUS-03 declaration + Dryad DOIs (Decision 2); commit the currently-untracked REALWORLD-CORPUS-SPEC.md. Settle path/ownership before dispatch.
+3. **Owed source correction** — continuous-branch HHI float-safe claim (duplicateDetection.js:135 comment, Code; METHODOLOGY §1.1 scope line, Chat). Must land so the paper's limitation assertion agrees with source. Recorded-claim correction only. NOTE (S295): the null *fix* itself (V1X §2.6 axis-2) is now blocked on a null-model design decision, not merely awaiting implementation — the integer-branch parametric null is a discrete count model (PMFs on integers, values rounded before the fit, collision summed over integer support) and does not extend cleanly to continuous data. The disclosed-limitation prose above ("scheduled v1.x work") remains accurate; only this internal status note changes. The comment correction is independent of the fix and still owed.
+4. **Provenance commit — DONE (S294 close).** CORPUS-PROVENANCE.md + REALWORLD-CORPUS-SPEC.md landed in `682512c`. Off the roster.
 5. **CORPUS-02 8-vs-12** — reported both, second-sheet hypothesis stated as hypothesis (Decision 1). No reconciliation asserted.
