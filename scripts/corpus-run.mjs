@@ -17,6 +17,12 @@
 // { datasets: [...], out?: "..." }. Each entry:
 //   { path, sheet?, assay?, dataType?, conditionsHint?, label? }
 //
+// conditionsHint, when an object, is a DECLARATIVE role override (S293):
+//   conditionsHint: { roles: { "<header>": "identifier"|"index"|"condition"|"data" } }
+// Declared headers have their inferred role stamped over (identifier/index →
+// kept out of the matrix); undeclared columns still infer. A non-object hint
+// (e.g. a freeform string) is echoed but otherwise ignored — inference stands.
+//
 // `assay` / `dataType` override the automatic detectAssay heuristic, which
 // falls back to "general"/"continuous" on generic real-world filenames and
 // would otherwise silently mis-infer structure. When no override is given the
@@ -48,6 +54,16 @@ globalThis.requestAnimationFrame = (cb) => setTimeout(cb, 0);
 
 const EVIDENCE_DETAIL_CAP = 10;   // first N raw details entries per flagged test
 const EVIDENCE_ROW_CAP = 50;      // first N flaggedRowIndices per flagged test
+
+// ── Declarative role override (S293) ────────────────────────────────
+// A hinted file may carry, in author vocabulary:
+//   conditionsHint: { roles: { "<header>": "identifier"|"index"|"condition"|"data" } }
+// The vocabulary maps to the roles inferRoles emits. "identifier"/"index"
+// both resolve to "label" — kept out of the analysis matrix but surviving as
+// an identifier column. This is scoped to hinted files ONLY; a file with no
+// structured hint never enters the override and its roles come straight from
+// inference (batch parity proof).
+const HINT_ROLE_MAP = { identifier: 'label', index: 'label', condition: 'condition', data: 'data' };
 
 // ── CLI parsing ─────────────────────────────────────────────────────
 function parseArgs(argv) {
@@ -106,10 +122,27 @@ async function readRawMatrix(entry) {
   return { raw: parsed.data, sheetUsed: null };
 }
 
+// Stamp declared roles over inferRoles' output for hinted columns only.
+// `conditionsHint` is honoured ONLY when it is an object carrying a `.roles`
+// header→vocabulary map; a legacy/freeform string (or any shape without
+// `.roles`) is a no-op, so inference stands untouched. Unknown vocabulary or
+// an unmatched header logs and skips that one declaration — never throws.
+function applyRoleHint(roles, hdrs, conditionsHint) {
+  const map = conditionsHint && typeof conditionsHint === 'object' ? conditionsHint.roles : null;
+  if (!map || typeof map !== 'object') return;
+  for (const [header, vocab] of Object.entries(map)) {
+    const role = HINT_ROLE_MAP[vocab];
+    if (!role) { console.log(`  hint: unknown role "${vocab}" for column "${header}" — skipped (inference stands)`); continue; }
+    const idx = hdrs.indexOf(header);
+    if (idx < 0) { console.log(`  hint: declared column "${header}" not found in headers — skipped`); continue; }
+    roles[idx] = role;
+  }
+}
+
 // ── Prep: port of BatchView.handleFiles, from the raw 2D array onward ──
 // Header detection → role inference → long-format detection. Returns the
 // structural pieces extractAnalysisInputs and the run need.
-function prepStructure(raw) {
+function prepStructure(raw, conditionsHint) {
   const prep = preprocessRaw(raw);
   const preprocessed = prep.rows;
   if (!preprocessed || !preprocessed.length) throw new Error('Empty after preprocessing.');
@@ -152,6 +185,7 @@ function prepStructure(raw) {
 
   const longFormatDetected = !!detectLongFormat(hdrs, data);
   const roles = inferRoles(data, hdrs, condPerCol);
+  applyRoleHint(roles, hdrs, conditionsHint);
   return { hdrs, data, condPerCol, roles, longFormatDetected };
 }
 
@@ -175,7 +209,7 @@ function evidenceOf(r) {
 async function runDataset(entry) {
   const label = entry.label || basename(entry.path);
   const { raw, sheetUsed } = await readRawMatrix(entry);
-  const { hdrs, data, condPerCol, roles, longFormatDetected } = prepStructure(raw);
+  const { hdrs, data, condPerCol, roles, longFormatDetected } = prepStructure(raw, entry.conditionsHint);
 
   // Assay: explicit override wins; else detectAssay heuristic (filename +
   // headers), falling back to "general". Always recorded with its source.
@@ -239,9 +273,10 @@ async function runDataset(entry) {
       vstReason: vst?.reason || vst?.reasonCode || null,
       longFormatDetected,
       zeroAsMissing,
-      // Recorded and echoed for the operator; conditions themselves stay
-      // structurally inferred from the data layout in v1 (not yet wired as an
-      // override — deferred alongside per-test evidence formatting).
+      // Echoed verbatim (object or legacy string). When an object with a
+      // .roles map, it has already been applied as a declarative role override
+      // in prepStructure (S293); nConditions/conditionType below reflect the
+      // post-override structure.
       conditionsHint: entry.conditionsHint ?? null,
       nRows: matrix.length,
       nCols: matrix[0]?.length || 0,
