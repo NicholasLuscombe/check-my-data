@@ -282,7 +282,7 @@ Four principled statistical tests, combined via BH-FDR on 4 p-values:
 2. Per-value collision probability `p_match`:
    - Integer (dp=0), N ≤ 5000: parametric Poisson/NB model-predicted (break HHI circularity at moderate N).
    - Integer, N > 5000: empirical HHI.
-   - Continuous (dp > 0): empirical HHI.
+   - Continuous (dp > 0): empirical HHI. *(Exposed to the same circularity as the integer branch when the column carries structured value recurrence — see Known limitation below. Not yet fixed; V1X §2.6.)*
 3. Observed = Σ_v C(freq(v), 2) over all distinct values with freq ≥ 2 (total same-value pair count).
 4. Exact binomial survival: `p = P(X ≥ observed | Bin(n = C(N_cells, 2), p = p_match))`.
 
@@ -340,7 +340,7 @@ All three passes merge results into a unified block list, sorted by area (larges
 - Values at detection limits
 - Column matches within replicates of the same condition are less suspicious than cross-condition matches (not yet gated — contextual note planned)
 
-**Known limitation:** For integer data, the empirical HHI is circular when fabrication inflates frequencies. Proper fix: parametric collision null (Poisson/NB fit — not yet implemented). Column matches within constant-value row-dup groups are redundant — suppression planned.
+**Known limitation.** The empirical HHI collision null is circular when fabrication inflates value frequencies: the defect that produces the duplication also inflates the null it is tested against, so expected collisions rise to meet observed and the p-value collapses toward 1. This was originally scoped to integer data (the parametric Poisson/NB null at N ≤ 5000 breaks it there), and continuous data was assumed safe. That assumption is FALSE — a continuous column with structured value recurrence (every value repeated a fixed number of times) is exposed to the same circularity, demonstrated on real data (CORPUS-03: continuous 2-decimal fish-length, structured 4× recurrence, Test 1 → p=1.0 on a genuine defect). The continuous branch (dp > 0, empirical HHI) needs the same parametric-null treatment; scoped as v1.x work (V1X §2.6). Separately: column matches within constant-value row-dup groups are redundant — suppression planned.
 
 **Row-semantics note (v1.0, S118).** Test 2 row-hash is row-order invariant by construction. Test 4 block-copy is row-position aware (h consecutive rows hashed together) but its null is marginal-frequency-based — `p_block = Π(HHI_c)^h × n_opportunities`, Bonferroni over the spatial search volume. A contiguous block-copy on arbitrary-order data (long-format pivots, gene lists) is still fabrication evidence at the calibrated p-value. DupDet does NOT route through the Row Semantics Gate.
 
