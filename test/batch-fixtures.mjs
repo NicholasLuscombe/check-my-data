@@ -42,6 +42,8 @@ export const FIXTURES = [
   ['20-bimodal-fab.csv',                         'DS20',  'general'],
   ['21-localised-ar.csv',                        'DS21',  'general'],
   ['22-covariance-block.csv',                    'DS22',  'general'],
+  ['23-recurrence-null-mixed.csv',               'DS23',  'general'],
+  ['24-recurrence-null-control.csv',             'DS24',  'general'],
 ];
 
 // Per-test flag assertion. Each fixture entry carries severity + assay, and
@@ -178,6 +180,27 @@ export const EXPECTED = {
     'Blocked Mahalanobis':        ['MODERATE', 'HIGH'],     // MOD, FISHER_EXEMPT → widened
     'Autocorrelation':            ['MODERATE', 'HIGH'],     // MOD p=0.0012
   } },
+
+  // §2.6 fix-verification fixtures. Reproduce CORPUS-03's axis-1 (false
+  // unification by pooling unrelated columns) and axis-2 (recurrence null
+  // suppressing Duplicate Detection) behaviour so the batch gates the fix.
+  // Carriers: Benford HIGH, Duplicate Detection LOW (the current pre-fix
+  // behaviour the §2.6 fix will flip to HIGH), Decimal-Precision MODERATE.
+  // The intrinsic collateral (VFS / Entropy / ColGoF from the recurrence's
+  // digit-and-distribution shadow, Selective Noise coupled to the Benford
+  // span column) is declared in ACKNOWLEDGED, not suppressed — a
+  // zero-collateral construction is impossible while the defects are present
+  // (SESSION297-FIXTURE-READ2.md). Held on the pending lane until the fired
+  // set is confirmed against live output, then flipped to gate.
+  '23-recurrence-null-mixed.csv': { severity: 3, assay: 'general', flags: {
+    "Benford's Law (First Digit)":   ['HIGH'],                // span-borrowing HIGH (recur leading-2 excess borrows wide's span)
+    "Benford's Law (Second Digit)":  ['MODERATE', 'HIGH'],    // HIGH p≈0.0002, near boundary → widened
+    'Decimal Precision Consistency': ['MODERATE'],            // pooling artifact: deficit at dp=4, p≈0.003, mid-MODERATE
+    'Exact Duplicate Detection':     ['LOW'],                 // axis-2 carrier — HHI recurrence null suppresses to LOW (fix flips to HIGH)
+  } },
+  '24-recurrence-null-control.csv': { severity: 3, assay: 'general', flags: {
+    'Exact Duplicate Detection':     ['LOW'],                 // control: DupDet LOW driven by recur's HHI null, not the multi-column dispatch
+  } },
 };
 
 // S183 Phase 2 — adjudicated incidental firings. A MOD/HIGH result that is
@@ -193,5 +216,20 @@ export const ACKNOWLEDGED = {
   },
   '08-elisa-fabricated.csv': {
     'Mahalanobis Row Outlier': "incidental 1-row outlier downstream of the localised noise suppression; primary channels SNP/LOESS/IRC/Const-Offset/Benford (S182 disposition, recorded S183 Phase 2)",
+  },
+  // §2.6 fix-verification fixtures — intrinsic collateral, declared not suppressed
+  // (SESSION297-FIXTURE-READ2.md Q3). VFS/Entropy/ColGoF are the recurrence's
+  // digit-and-distribution shadow (vanish only if recur is removed); Selective
+  // Noise is coupled to the Benford span column's variance outlier.
+  '23-recurrence-null-mixed.csv': {
+    'Value-Frequency Spike': "recur digit shadow — the 2dp endings of the five repeated values (×10 each) read as fractional-digit spikes; intrinsic to the recurrence carrier (S297)",
+    'Entropy / Zipf Analysis': "recur's low-entropy concentrated column; intrinsic to the recurrence carrier (S297)",
+    'Column Goodness-of-Fit': "recur's normal-fit shape mismatch from the 5×10 recurrence; intrinsic to the recurrence carrier (S297)",
+    'Selective Noise Partitioning': "coupled to the Benford span column — the wide column's variance outlier trips the Bartlett; inseparable from the span-borrowing carrier (S297)",
+  },
+  '24-recurrence-null-control.csv': {
+    'Value-Frequency Spike': "recur digit shadow (same as the mixed file); the DupDet-inert fillers add no signal of their own (S297)",
+    'Entropy / Zipf Analysis': "recur's low-entropy concentrated column; intrinsic to the recurrence carrier (S297)",
+    'Column Goodness-of-Fit': "recur's normal-fit shape mismatch from the 5×10 recurrence; intrinsic to the recurrence carrier (S297)",
   },
 };
