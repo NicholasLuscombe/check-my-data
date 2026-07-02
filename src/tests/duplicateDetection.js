@@ -133,6 +133,17 @@ export function testDuplicates(matrix, fullMatrix, colGroupId, assay) {
     // Continuous (float) data: empirical HHI. Uniform-bins null assumes equal
     // probability across the range, which is wrong for any realistic distribution.
     // HHI circularity is not a concern for float data (high precision → many bins).
+    // KNOWN LIMITATION (S294/S295 audit, S297 fixtures): the "not a concern"
+    // claim above is falsified by a continuous column carrying structured value
+    // recurrence at coarse precision. The empirical HHI recurs across all four
+    // sub-channels — assigned here for collision, and multiplied into the
+    // row-duplicate null (pMatchRow *= hhi below) and the block null
+    // (pRow *= wrColHHI[c] below) — so a structured recurrence self-inflates
+    // every channel's null to meet its own observed collisions and suppresses
+    // the combined flag to LOW. CORPUS-03 SL and test/fixtures 23/24 (recur)
+    // are the counterexamples (all four _rawPs = 1.0). The §2.6 continuous-null
+    // replacement is the pending fix; until it lands the float branch keeps the
+    // empirical HHI and under-flags this class.
     p1 = hhi;
     p1Source = "empirical";
   }
