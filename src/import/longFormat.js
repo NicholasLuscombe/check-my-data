@@ -25,18 +25,33 @@ export function detectLongFormat(headers, rows) {
     c.numFrac < 0.3 && c.nUniq >= 2 && c.nUniq <= 30 && c.nUniq < nRows * 0.3
   );
 
+  // Integer-metadata test: >90% integers with a low distinct count (plate IDs,
+  // numeric sample IDs, and similar). Factored to a named local so the measure-
+  // candidate filter and the "already wide" count below apply the exact same test.
+  const isIntegerMetadata = c => {
+    const intFrac = c.vals.filter(v=>!isNaN(Number(v))&&Number(v)===Math.floor(Number(v))).length / c.vals.length;
+    return intFrac > 0.9 && c.nUniq < nRows * 0.15;
+  };
+
   // Measurement candidates: mostly numeric, enough unique values to be a real measurement.
   // Exclude high-integer low-cardinality columns (metadata like volume, plate ID, etc.):
   // if >90% integers and <15% unique values, it's likely a metadata count not a measurement.
   const measureCandidates = colInfo.filter(c => {
     if(c.numFrac <= 0.85) return false;
     if(c.nUniq <= Math.max(10, nRows * 0.05)) return false;
-    const intFrac = c.vals.filter(v=>!isNaN(Number(v))&&Number(v)===Math.floor(Number(v))).length / c.vals.length;
-    if(intFrac > 0.9 && c.nUniq < nRows * 0.15) return false; // integer metadata gate
+    if(isIntegerMetadata(c)) return false; // integer metadata gate
     return true;
   });
 
   if (!condCandidates.length || measureCandidates.length < 1) return null;
+
+  // Already-wide gate: count genuine numeric measurement columns directly — mostly
+  // numeric (same numFrac test as the measure filter) and not integer metadata, but
+  // WITHOUT the measure filter's cardinality floor, so a real low-cardinality measure
+  // (a limb-function score, for example) still counts. Two or more genuine numeric
+  // measures means the table is already wide, so no long-format pivot is suggested.
+  const nMeasureCols = colInfo.filter(c => c.numFrac > 0.85 && !isIntegerMetadata(c)).length;
+  if (nMeasureCols >= 2) return null;
 
   // Wide-format gate: long-format instrument exports (qPCR, plate readers) have many
   // metadata columns alongside multiple measurement types. Wide-format replicate data has
