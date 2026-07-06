@@ -1,6 +1,7 @@
 /* ── MiniPlot — registry-based dispatch to MiniCard components ── */
 
 import { MiniCard_DuplicateDetection } from "./MiniCard_DuplicateDetection.jsx";
+import { MiniCard_SequentialDuplication } from "./MiniCard_SequentialDuplication.jsx";
 import { MiniCard_ConstantOffset } from "./MiniCard_ConstantOffset.jsx";
 import { MiniCard_SelectiveNoise } from "./MiniCard_SelectiveNoise.jsx";
 import { MiniCard_InterReplicateCorrelation } from "./MiniCard_InterReplicateCorrelation.jsx";
@@ -35,6 +36,7 @@ import { MiniCard_Modality } from "./MiniCard_Modality.jsx";
  */
 const MINIPLOT_REGISTRY = {
   "Exact Duplicate Detection":        MiniCard_DuplicateDetection,
+  "Sequential Duplication":           MiniCard_SequentialDuplication,
   "Constant-Offset Blocks":           MiniCard_ConstantOffset,
   "Selective Noise Partitioning":      MiniCard_SelectiveNoise,
   "Inter-Replicate Correlation":       MiniCard_InterReplicateCorrelation,

@@ -60,6 +60,7 @@ export function validateMatrix(matrix) {
 
 // ── 23 test functions ──────────────────────────────────────────────
 import { testDuplicates } from '../tests/duplicateDetection.js';
+import { testSequentialDuplication } from '../tests/sequentialDuplication.js';
 import { testConstantOffset } from '../tests/constantOffset.js';
 import { testSelectiveNoise } from '../tests/selectiveNoise.js';
 import { testPearsonUniformity } from '../tests/interReplicateCorrelation.js';
@@ -321,6 +322,7 @@ export async function runFullAnalysis(matrix, rawMatrix, condCtx, assay, onProgr
     // --- Copy, Paste, Edit ---
     ["Inter-Replicate Correlation",  () => condSkip("Inter-Replicate Correlation","distributional") || dtSkip("Inter-Replicate Correlation","distributional") || testPearsonUniformity(matrix, condCtx.slices(), rng, rowSemantics)],
     ["Duplicate Detection",          async () => await runPair((m) => testDuplicates(m, matrix, wrColGroup, assay))],
+    ["Sequential Duplication",       () => testSequentialDuplication(matrix, assay)],
     ["Constant-Offset Blocks",       async () => {
       // S95 Track A Item 5: ConstOffset expanded to ALL column pairs including
       // cross-condition. The permutation null (row-shuffle, consecutive
