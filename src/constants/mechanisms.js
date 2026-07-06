@@ -21,6 +21,7 @@ export const MECHANISM_ORDER = ["copied", "digits", "shapes", "replicate", "grou
 export const TEST_MECHANISM = {
   // Copy, Paste, Edit (3) — Dim I — display order: DupDet, ConstOffset, RSC
   "Exact Duplicate Detection":        "copied",
+  "Sequential Duplication":           "copied",
   "Constant-Offset Blocks":           "copied",
   "Residual Spike Correlation":       "copied",
   // Unusual Digits (5) — Dim II
@@ -60,6 +61,7 @@ export const TEST_MECHANISM = {
 // Display names — internal test names → user-facing labels
 export const DISPLAY_NAMES = {
   "Exact Duplicate Detection": "Duplicated Data",
+  "Sequential Duplication": "Recurring value sequences",
   "Constant-Offset Blocks": "Offset copies",
   "Inter-Replicate Correlation": "Inter-Replicate Correlation",
   "Cross-Condition Rank Correlation": "Cross-Condition Rank Correlation",
@@ -127,6 +129,7 @@ export const TEST_KEY_TO_NAME = {
 // Short observation-focused descriptions for compact test lists (~5 words each)
 export const TEST_DESCRIPTIONS = {
   "Exact Duplicate Detection": "Are the same rows or blocks repeated?",
+  "Sequential Duplication": "Does a run of values in one column reappear further down?",
   "Constant-Offset Blocks": "Are numbers copied and shifted by a constant?",
   "Inter-Replicate Correlation": "How closely do replicates correlate with each other?",
   "Residual Spike Correlation": "Are the same rows the noisiest in every condition?",
@@ -160,6 +163,8 @@ export const TEST_DESCRIPTIONS = {
 export const TEST_METHODS = {
   // --- Copy, Paste, Edit ---
   'Exact Duplicate Detection': 'Looks for identical values within rows, identical whole rows, and repeated blocks of values, and tests whether they appear more often than they would if the values were shuffled at random (several exact binomial tests, combined). The same duplicate can show up in more than one of them.',
+
+  'Sequential Duplication': 'Scans each column for a run of at least three values that reappears further down the same column at a fixed row offset. It prices the run against how often that column repeats its own values, raised to the length of the run, corrected over the range of offsets searched. A run of one repeated value is left to the separate constant-offset and duplicate checks.',
 
   'Constant-Offset Blocks': 'For each row, takes the difference between replicate pairs and checks whether the same difference repeats in neighbouring rows more often than it would if the row order were shuffled at random, producing a block of rows all offset by the same amount (consecutive-difference run count, permutation null). A second pass checks for offsets by a constant ratio.',
 
@@ -243,6 +248,7 @@ export const TEST_METHODS = {
 export const TEST_RAW_VISIBILITY = {
   // Copy, Paste, Edit
   "Exact Duplicate Detection":           "visible",
+  "Sequential Duplication":               "visible",
   "Constant-Offset Blocks":              "visible",
   "Residual Spike Correlation":          "statistical",
   // Unusual Digits

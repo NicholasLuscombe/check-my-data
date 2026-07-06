@@ -121,6 +121,17 @@ function duplicateDetection(r) {
   } catch { return fallback(r); }
 }
 
+function sequentialDuplication(r) {
+  if (!isFlagged(r)) return null;
+  try {
+    const n = r.nSequences || 0;
+    if (n < 1) return fallback(r);
+    const h = r.topHeight || 0, off = r.topOffset || 0;
+    const seqClause = n === 1 ? "1 recurring value sequence" : `${n} recurring value sequences`;
+    return `${seqClause}: a run of ${h} values in one column reappears ${off} row${pl(off)} later. Consistent with a copied and shifted block of cells. ${fmtPBadge(r.primaryP)}`;
+  } catch { return fallback(r); }
+}
+
 function constantOffset(r) {
   if (!isFlagged(r)) return null;
   try {
@@ -470,6 +481,7 @@ const TEMPLATE_MAP = {
   "Decimal Precision Consistency": decimalPrecision,
   "Value-Frequency Spike": valueFrequency,
   "Exact Duplicate Detection": duplicateDetection,
+  "Sequential Duplication": sequentialDuplication,
   "Constant-Offset Blocks": constantOffset,
   "Residual Spike Correlation": residualSpike,
   "Inter-Replicate Correlation": interReplicateCorrelation,

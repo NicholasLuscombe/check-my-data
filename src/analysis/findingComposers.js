@@ -463,6 +463,24 @@ function mahalanobisRowOutlier(r /*, ctx */) {
   return { location, evidenceLines };
 }
 
+// ── Sequential Duplication (§2.4 — recurring value sequences) ──────────
+function sequentialDuplication(r, ctx) {
+  const seqs = Array.isArray(r.sequences) ? r.sequences : [];
+  const n = r.nSequences || seqs.length;
+  const top = seqs[0] || null;
+  const location = n > 0
+    ? `${n} recurring value ${pl(n, "sequence")} in single columns`
+    : "Global";
+  const evidenceLines = [];
+  if (top) {
+    evidenceLines.push(`Strongest run: ${top.height} consecutive values recurring ${top.offset} ${pl(top.offset, "row")} later in one column (${formatPClause("p", r.primaryP)}).`);
+    if (n > 1) evidenceLines.push(`${n} such ${pl(n, "sequence")} detected across the table.`);
+  } else {
+    evidenceLines.push("No recurring value sequences detected.");
+  }
+  return { location, evidenceLines };
+}
+
 // ── Anchor 6: Exact Duplicate Detection (DS14 lock) ────────────────────
 
 function exactDuplicateDetection(r, ctx) {
@@ -1274,6 +1292,7 @@ export const FINDING_COMPOSERS = {
   "Selective Noise Partitioning":  selectiveNoisePartitioning,
   "Mahalanobis Row Outlier":       mahalanobisRowOutlier,
   "Exact Duplicate Detection":     exactDuplicateDetection,
+  "Sequential Duplication":        sequentialDuplication,
   "Baseline Balance":              baselineBalance,
 
   // Predicted-shape per calibration §Anchors-not-in-this-set
