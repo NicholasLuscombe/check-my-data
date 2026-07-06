@@ -132,18 +132,25 @@ export function testDuplicates(matrix, fullMatrix, colGroupId, assay) {
   } else {
     // Continuous (float) data: empirical HHI. Uniform-bins null assumes equal
     // probability across the range, which is wrong for any realistic distribution.
-    // HHI circularity is not a concern for float data (high precision → many bins).
-    // KNOWN LIMITATION (S294/S295 audit, S297 fixtures): the "not a concern"
-    // claim above is falsified by a continuous column carrying structured value
-    // recurrence at coarse precision. The empirical HHI recurs across all four
-    // sub-channels — assigned here for collision, and multiplied into the
-    // row-duplicate null (pMatchRow *= hhi below) and the block null
-    // (pRow *= wrColHHI[c] below) — so a structured recurrence self-inflates
-    // every channel's null to meet its own observed collisions and suppresses
-    // the combined flag to LOW. CORPUS-03 SL and test/fixtures 23/24 (recur)
-    // are the counterexamples (all four _rawPs = 1.0). The §2.6 continuous-null
-    // replacement is the pending fix; until it lands the float branch keeps the
-    // empirical HHI and under-flags this class.
+    //
+    // DISCLOSED LIMITATION (not a pending fix): the empirical HHI collision null
+    // is circular for a continuous column carrying structured value recurrence at
+    // coarse precision — the null inflates to meet the column's own observed
+    // collisions and suppresses the combined flag to LOW. The §2.6 design
+    // programme proved this defect is not separable from the column: not by a
+    // count-style parametric null (closed at both precision regimes, S298/S299),
+    // not by arrangement (the recurrence is scattered, not contiguous, S300), not
+    // by multiplicity (that route anti-separates, S300), and not by grouped
+    // within-identifier invariance (the group signature dilutes below the column's
+    // own coincidental-repeat floor, S301). Do NOT port the integer parametric
+    // null across — that route is closed. Full record: METHODOLOGY §1.1, V1X §2.6.
+    // CORPUS-03 SL and test/fixtures 23/24 (recur) are the counterexamples (all
+    // four _rawPs = 1.0).
+    //
+    // Sub-channel note: the empirical HHI at :55 feeds only Test 1 (collision, p1
+    // below). Tests 2 and 4 recompute their own per-column indices (row-duplicate
+    // pMatchRow *= per-column hhi; block copy pRow *= wrColHHI[c]) and do not
+    // reuse the :55 index.
     p1 = hhi;
     p1Source = "empirical";
   }
