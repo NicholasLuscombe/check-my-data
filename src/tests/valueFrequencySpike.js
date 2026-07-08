@@ -23,6 +23,73 @@ import { flagFromP, flagRankOf, ALPHA } from "../constants/thresholds.js";
 // detectable when at least half the cells carry a fractional substring.
 const DIGIT_PASS_APPLICABILITY_FRAC = 0.5;
 
+// ── Near-duplicate keep-gate (S308) ────────────────────────────────
+// Pass 2's forensic purpose is near-duplicate detection: a fractional
+// template that recurs where independent measurement would not produce
+// it. A raw frequency spike is NOT sufficient — at low decimal precision
+// the fractional keyspace (10^L) is small enough that pigeonhole
+// collisions push benign tails well above their neighbour baseline
+// (measured: C21 2dp `.54` obs 19 across 18 DISTINCT whole parts, a
+// routine collision, not fabrication). A pass-2 spike is retained only
+// when it clears one of two near-dup keep-paths:
+//
+//   CONCENTRATION — a single full value carries the majority of the
+//     tail's count AND the tail is carried by only a few distinct full
+//     values (a tight recurrence of one value; precision-independent, so
+//     it catches 2dp near-dups like DS23/DS24's `23.51`×10). The
+//     few-distinct clause is load-bearing: a round-number / zero heap
+//     (C20's `0.00`×871, 30% of all cells) has a dominant value too, but
+//     it is spread across a scatter of distinct round values (15 here) —
+//     heaping, not a copy — and must NOT be kept.
+//   DEPTH — the fractional keyspace is sparse enough that reaching the
+//     near-dup floor is improbable under uniform occupancy, so a tail
+//     shared across distinct whole parts is itself the signal (the deep
+//     copy-paste template, e.g. C23 `.385732` across 2/6/15/1.*).
+//
+// A tail clearing NEITHER path is a precision collision, demoted to LOW.
+// Replaces the S114 pass2MultiSpikeCleared count gate. See METHODOLOGY §3.5.
+
+// Concentration keep-path threshold: the most-frequent full value behind a
+// tail must account for at least this fraction of the tail's count for the
+// spike to read as recurrence rather than diffuse collision. 0.5 = strict
+// majority (one value carries more of the tail than all others combined).
+// Anchors: DS23/DS24 recurrence 0.63–1.0 kept; C21/DS04 pigeonhole
+// 0.11–0.25 dropped.
+const NEAR_DUP_DOMINANCE = 0.5;
+
+// Concentration keep-path, second clause: the tail must be carried by at
+// most this many distinct full values. A copy-paste template lands on a
+// handful of whole parts (anchors: DS23/DS24 recurrences 1–4 distinct;
+// C23's deep template 4); a benign round/zero heap or a low-precision
+// pigeonhole collision spreads across many (C20 15, C21/DS04 7–18). 5
+// sits in the empirical gap (≤4 recurrence, ≥7 heap/collision).
+const NEAR_DUP_MAX_DISTINCT = 5;
+
+// Depth keep-path floor: the minimum shared-tail count that constitutes a
+// near-dup. Matches the pass-2 sparse-region minimum-tested count (the
+// obs ≥ 3 floor in poissonNeighbourScan). The depth test asks "is it
+// improbable, under uniform occupancy of nCells over 10^L slots, for ANY
+// tail to reach this floor?" — a pure property of decimal depth and cell
+// count, independent of the (non-uniform) observed histogram. α is
+// ALPHA.NOTE, the spike flag threshold. Anchors: 2dp buckets (keyspace
+// 100) never clear; C23's 6dp keyspace (10^6, ~410 cells) clears at ~1e-5.
+const NEAR_DUP_MIN_COUNT = 3;
+
+/**
+ * Poisson upper-tail P(X ≥ k | λ) for small integer k, used by the depth
+ * keep-path. P(X ≥ k) = 1 − Σ_{j=0}^{k−1} e^{−λ} λ^j / j!.
+ */
+function poissonSurvivalAtLeast(k, lambda) {
+  if (k <= 0) return 1;
+  let term = Math.exp(-lambda); // j = 0
+  let cum = term;
+  for (let j = 1; j < k; j++) {
+    term *= lambda / j;
+    cum += term;
+  }
+  return Math.max(0, 1 - cum);
+}
+
 /**
  * Extracts the fractional-digit substring from a single cell. When a raw
  * string is supplied (from the import-preserved rawMatrix) leading AND
@@ -209,9 +276,16 @@ function buildDigitSubstringPass(matrix, rawMatrix) {
   const bucketDiag = [];
   for (const [L, cells] of [...byLength.entries()].sort((a, b) => a[0] - b[0])) {
     const freq = {};
+    // Per key, track the multiplicity of each distinct full value so the
+    // concentration keep-path can ask whether one value carries the tail.
+    const valueDist = new Map(); // key → Map(fullValue → count)
     for (const cell of cells) {
       const key = parseInt(cell.str, 10);
       freq[key] = (freq[key] || 0) + 1;
+      const fv = matrix[cell.row]?.[cell.col];
+      let m = valueDist.get(key);
+      if (!m) { m = new Map(); valueDist.set(key, m); }
+      m.set(fv, (m.get(fv) || 0) + 1);
     }
     const distinctKeys = Object.keys(freq).map(Number).sort((a, b) => a - b);
     const nDistinct = distinctKeys.length;
@@ -227,6 +301,11 @@ function buildDigitSubstringPass(matrix, rawMatrix) {
       bucketDiag.push({ length: L, nCells: cells.length, nDistinct, span, skipped: "span>10000" });
       continue;
     }
+    // Depth keep-path (bucket-level, S308): is reaching the near-dup floor
+    // improbable under uniform occupancy of nCells over the 10^L keyspace?
+    const keyspace = Math.pow(10, L);
+    const depthKeep =
+      keyspace * poissonSurvivalAtLeast(NEAR_DUP_MIN_COUNT, cells.length / keyspace) < ALPHA.NOTE;
     const halfW = span > 200 ? 5 : 3;
     // No skipValue for pass 2: "00", "000" etc. ARE forensically
     // interesting (repeat of a zero-fractional template).
@@ -235,9 +314,19 @@ function buildDigitSubstringPass(matrix, rawMatrix) {
       t.pass = "digit";
       t.length = L;
       t.valueStr = String(t.value).padStart(L, "0");
+      // Near-dup keep-path signals (S308), consumed at the spike-selection
+      // site. domFrac = fraction of the tail's count carried by its single
+      // most-frequent full value; nDistinctValues = how many distinct full
+      // values share the tail (few = tight recurrence, many = heap /
+      // collision); depthKeep = bucket-level sparsity improbability.
+      const dist = valueDist.get(t.value);
+      const domCount = dist ? Math.max(...dist.values()) : 0;
+      t.domFrac = t.obs > 0 ? domCount / t.obs : 0;
+      t.nDistinctValues = dist ? dist.size : 0;
+      t.depthKeep = depthKeep;
       tested.push(t);
     }
-    bucketDiag.push({ length: L, nCells: cells.length, nDistinct, halfW, span, nTested: bucketTested.length });
+    bucketDiag.push({ length: L, nCells: cells.length, nDistinct, halfW, span, depthKeep, nTested: bucketTested.length });
   }
 
   if (tested.length === 0) {
@@ -292,37 +381,51 @@ export function testValueFrequencySpike(matrix, rawMatrix = null) {
 
   // Identify spikes (adj-P < ALPHA.NOTE AND ratio ≥ 2) per pass.
   const pass1Spikes = allTested.filter(t => t.pass === "full" && t.adjP < ALPHA.NOTE && t.ratio >= 2.0);
-  const pass2Spikes = allTested.filter(t => t.pass === "digit" && t.adjP < ALPHA.NOTE && t.ratio >= 2.0);
+  // Pass 2 additionally requires a near-dup keep-path (S308): a raw
+  // frequency spike on a fractional tail is kept only when one full value
+  // carries the majority of the tail AND few distinct values share it
+  // (concentration — a tight recurrence), OR the 10^L keyspace is sparse
+  // enough that the shared tail is improbable under uniform occupancy
+  // (depth). A tail clearing neither is a low-precision pigeonhole
+  // collision or a round/zero heap (many distinct whole parts, short tail).
+  const isNearDup = t =>
+    (t.domFrac >= NEAR_DUP_DOMINANCE && t.nDistinctValues <= NEAR_DUP_MAX_DISTINCT)
+    || t.depthKeep === true;
+  // Effect-size gate for pass 2: ratio ≥ 2, OR an isolated tail whose
+  // neighbourhood is empty (smoothed === 0). poissonNeighbourScan codes
+  // ratio = 0 when smoothed = 0 (obs/0 guard), but an isolated tail is the
+  // MAXIMAL effect, not a null one — it is precisely the deep copy-paste
+  // template the depth path targets (C23 `.385732`, neighbours absent).
+  // Pass-1 selection keeps the strict ratio ≥ 2 gate (unchanged).
+  const passesEffect = t => t.ratio >= 2.0 || t.smoothed === 0;
+  const pass2Spikes = allTested.filter(t =>
+    t.pass === "digit" && t.adjP < ALPHA.NOTE && passesEffect(t) && isNearDup(t));
   const allSpikes = [...pass1Spikes, ...pass2Spikes];
   allSpikes.sort((a, b) => a.adjP - b.adjP);
 
   const nSpikes = allSpikes.length;
-  const bestSpikeP = nSpikes > 0 ? allSpikes[0].adjP : 1;
 
-  // ── Pass-2 multi-spike gate (S114 Phase 2) ─────────────────────────
-  // Clean large-N high-coverage data at fixed measurement precision
-  // produces single-spike ratio≈2 FPs on pass 2 (see DS12a Phase 1
-  // diagnostic). Require ≥ 2 ratio-passing pass-2 spikes to escalate
-  // above LOW. Pass-1 tier is unaffected (its multi-spike calibration
-  // was empirically settled pre-S114). Final tier = max rank of
-  // (pass-1 tier, pass-2 capped tier).
+  // Tier per pass from the (near-dup-gated) spikes. The S114 pass-2
+  // multi-spike count gate is retired — the near-dup keep-path above now
+  // carries the low-precision suppression, and it does so per-tail rather
+  // than by raw spike count (which inverted at low precision, where
+  // pigeonhole produces many simultaneous benign spikes). A single
+  // surviving near-dup spike is a real detection. Final tier = max rank of
+  // (pass-1 tier, pass-2 tier).
   const pass1BestP = pass1Spikes.length > 0 ? Math.min(...pass1Spikes.map(s => s.adjP)) : 1;
   const pass2BestP = pass2Spikes.length > 0 ? Math.min(...pass2Spikes.map(s => s.adjP)) : 1;
   const pass1Tier = pass1Spikes.length > 0 ? flagFromP(pass1BestP) : "LOW";
-  const pass2TierRaw = pass2Spikes.length > 0 ? flagFromP(pass2BestP) : "LOW";
+  const pass2Tier = pass2Spikes.length > 0 ? flagFromP(pass2BestP) : "LOW";
   const pass2SpikeCount = pass2Spikes.length;
-  const pass2MultiSpikeCleared = pass2SpikeCount >= 2;
-  const pass2Tier = pass2MultiSpikeCleared ? pass2TierRaw : "LOW";
   const flag = flagRankOf(pass1Tier) >= flagRankOf(pass2Tier) ? pass1Tier : pass2Tier;
 
   // S288 — per-unit drove-the-flag decision, written onto each spike here at
-  // the flag-decision site (the multi-spike gate cannot be reconstructed from
-  // the spike's adjP alone, so a gate-suppressed pass-2 spike otherwise reads
-  // identically to a driving one). Tie on tier goes to pass 1, mirroring the
-  // flag's own >= and the drivingPass assignment below. Report-only.
+  // the flag-decision site (the near-dup keep-gate cannot be reconstructed
+  // from the spike's adjP alone, so a gate-suppressed pass-2 spike otherwise
+  // reads identically to a driving one). Tie on tier goes to pass 1, mirroring
+  // the flag's own >= and the drivingPass assignment below. Report-only.
   const pass1Drove = pass1Tier !== "LOW" && flagRankOf(pass1Tier) >= flagRankOf(pass2Tier);
-  const pass2Drove = pass2MultiSpikeCleared && pass2Tier !== "LOW"
-    && flagRankOf(pass2Tier) > flagRankOf(pass1Tier);
+  const pass2Drove = pass2Tier !== "LOW" && flagRankOf(pass2Tier) > flagRankOf(pass1Tier);
   for (const s of pass1Spikes) s.droveVerdict = pass1Drove;
   for (const s of pass2Spikes) s.droveVerdict = pass2Drove;
 
@@ -369,8 +472,7 @@ export function testValueFrequencySpike(matrix, rawMatrix = null) {
   const desc = descParts.join(" ");
 
   // Interpretation text. When pass 2 drives the flag, add a plain-language
-  // note on fractional-template reuse. Single-spike pass-2 survivors
-  // (LOW tier, gate-degraded) are reported as informational only.
+  // note on fractional-template reuse.
   let interp;
   if (flag !== "LOW" && nSpikes > 0) {
     const topSpikes = allSpikes.slice(0, 8).map(s => {
@@ -386,10 +488,6 @@ export function testValueFrequencySpike(matrix, rawMatrix = null) {
     if (drivingPass === "digit") {
       interp += " Fractional digit substring repeats across differing integer parts — consistent with template reuse (copy-paste of a decimal-digit pattern) rather than independent measurement.";
     }
-  } else if (pass2SpikeCount === 1 && pass2TierRaw !== "LOW" && pass1Tier === "LOW") {
-    // Pass-2 single spike gate-degraded to LOW (informational only).
-    const s = pass2Spikes[0];
-    interp = `Fractional digit patterns noted. One substring (.${s.valueStr}, ${s.obs}× obs vs ${s.smoothed.toFixed(1)} expected, ratio ${s.ratio.toFixed(1)}×) exceeds local expectation, but single-substring pass-2 evidence is informational — template-reuse fabrication typically produces multiple co-occurring digit spikes, not a lone deviation.`;
   } else {
     interp = `No anomalous value-frequency spikes detected. ${allTested.length} entries tested (${nTestedP1} full-value + ${nTestedP2} digit), ${nSpikes} with BH-adjusted P < 0.01 and ratio ≥ 2.0.`;
   }
@@ -445,13 +543,11 @@ export function testValueFrequencySpike(matrix, rawMatrix = null) {
     pass: s.pass
   }));
 
-  // primaryP reflects the gated flag: when pass 2 is degraded to LOW
-  // by the multi-spike gate, its single-spike adj-P must not drive
-  // primaryP (which would report a MOD-range p alongside a LOW flag).
-  // Rule: primaryP = min of pass-1 best and (pass-2 best if pass-2
-  // cleared the gate, else 1). Parallels the kurtosis convention where
-  // primaryP tracks the post-gate state.
-  const primaryP = Math.min(pass1BestP, pass2MultiSpikeCleared ? pass2BestP : 1);
+  // primaryP reflects the gated flag. pass2Spikes already excludes tails
+  // that failed the near-dup keep-path, so pass2BestP is the post-gate
+  // best (1 when no pass-2 spike survived); a suppressed collision can no
+  // longer drive a MOD-range p alongside a LOW flag.
+  const primaryP = Math.min(pass1BestP, pass2BestP);
 
   return {
     name, category, flag, description: desc,
@@ -463,8 +559,6 @@ export function testValueFrequencySpike(matrix, rawMatrix = null) {
     nTestedPass2: nTestedP2,
     nSpikes, nSpikesPass1: pass1Spikes.length, nSpikesPass2: pass2Spikes.length,
     pass2SpikeCount,
-    pass2MultiSpikeCleared,
-    pass2TierRaw,
     drivingPass,
     keyboardPattern,
     smoothingWindow: pass1.diag.halfW ? `±${pass1.diag.halfW}` : null,
