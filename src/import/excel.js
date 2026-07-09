@@ -54,19 +54,38 @@ export async function parseExcel(file, sheetName) {
 
   const ws = wb.Sheets[target];
 
-  // sheet_to_json with header:1 gives a 2D array of raw values.
-  // { raw: false, defval: null } ensures empty cells become null (matching PapaParse).
-  const raw = XLSX.utils.sheet_to_json(ws, { header: 1, raw: false, defval: null });
+  // Two passes over the same sheet, header:1 + defval:null so both share the
+  // same shape and empty cells become null (matching PapaParse):
+  //   - `formatted` carries display strings (dates, text, and the DISPLAY of
+  //     numbers under any cell number-format);
+  //   - `rawVals` carries the underlying primitives.
+  // For NUMERIC cells we take the raw underlying number, so a display format
+  // (e.g. "0.000" hiding a deeper value like 2.385732 shown as "2.386")
+  // cannot round precision away before the forensic engine sees it. Every
+  // other cell type keeps its formatted string, so dates and text are
+  // unchanged from the prior raw:false behaviour. A blanket raw:true is not
+  // usable here — it stringifies Date objects into ISO-with-timezone (see the
+  // S309 import-precision read); the `typeof === "number"` test isolates real
+  // numeric cells because dates are Date objects, strings are strings, and
+  // booleans are booleans under raw:true.
+  const formatted = XLSX.utils.sheet_to_json(ws, { header: 1, raw: false, defval: null });
+  const rawVals = XLSX.utils.sheet_to_json(ws, { header: 1, raw: true, defval: null });
 
-  if (!raw || !raw.length) throw new Error("Sheet is empty.");
+  if (!formatted || !formatted.length) throw new Error("Sheet is empty.");
 
   // Normalise: ensure every row has the same length (pad with null).
-  const maxC = raw.reduce((m, r) => Math.max(m, r.length), 0);
-  const rows = raw.map(r => {
+  const maxC = formatted.reduce((m, r) => Math.max(m, r.length), 0);
+  const rows = formatted.map((fRow, ri) => {
+    const rRow = rawVals[ri] || [];
     const out = new Array(maxC).fill(null);
-    for (let i = 0; i < r.length; i++) {
-      const v = r[i];
-      out[i] = v == null ? null : String(v);
+    for (let i = 0; i < fRow.length; i++) {
+      const rawV = rRow[i];
+      if (typeof rawV === "number") {
+        out[i] = String(rawV);                    // numeric → underlying value, full precision
+      } else {
+        const fV = fRow[i];
+        out[i] = fV == null ? null : String(fV);  // date / text / boolean → formatted string
+      }
     }
     return out;
   });
