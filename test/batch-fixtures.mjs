@@ -62,7 +62,7 @@ export const EXPECTED = {
   '04-qpcr-fabricated.csv':       { severity: 3, assay: 'qpcr', flags: {
     'Terminal Digit Uniformity':    ['HIGH'],                // p≈4.5e-7; GT-named target (S183 Phase 2)
     'Exact Duplicate Detection':    ['HIGH'],                // p≈1.7e-6; repeated-digit/value mechanism
-    'Value-Frequency Spike':        ['MODERATE', 'HIGH'],    // p≈1e-3; repeated-value concentration near MOD/HIGH boundary
+    'Value-Frequency Spike':        ['LOW', 'N/A'],          // S308 re-baseline: the pass-2 `.96` firing was an incidental pigeonhole shadow (7 distinct whole parts sharing a 2dp tail, not a copy); fabrication carried by Terminal Digit Uniformity + Exact Duplicate Detection (both HIGH), severity unchanged at 3
   } },
   '05-cellcount-clean.csv':       { severity: 0, assay: 'cell_count' },  // GT revised to 0 at S95 (DupDet 4-way BH-FDR fix); EXPECTED alignment deferred to S109.6
   '06-cellcount-fabricated.csv':  { severity: 3, assay: 'cell_count', flags: {
@@ -197,9 +197,25 @@ export const EXPECTED = {
     "Benford's Law (Second Digit)":  ['MODERATE', 'HIGH'],    // HIGH p≈0.0002, near boundary → widened
     'Decimal Precision Consistency': ['MODERATE'],            // pooling artifact: deficit at dp=4, p≈0.003, mid-MODERATE
     'Exact Duplicate Detection':     ['LOW'],                 // axis-2 carrier — HHI recurrence null suppresses to LOW (fix flips to HIGH)
+    'Value-Frequency Spike':         ['HIGH'],                // S308: declared near-dup detection — the five ×10 recurrences are a genuine concentration-path catch (one full value carries each fractional tail, ≤5 distinct); promoted from ACKNOWLEDGED
   } },
   '24-recurrence-null-control.csv': { severity: 3, assay: 'general', flags: {
     'Exact Duplicate Detection':     ['LOW'],                 // control: DupDet LOW driven by recur's HHI null, not the multi-column dispatch
+    'Value-Frequency Spike':         ['HIGH'],                // S308: declared near-dup detection (concentration path); same five ×10 recurrences as the mixed file, promoted from ACKNOWLEDGED
+  } },
+  // ── S308 VFS near-dup gate — held regression fixtures ──────────────────
+  // Constructed (not corpus) columns that isolate the pass-2 discriminator:
+  // a raw fractional-tail frequency spike is kept only as a near-dup
+  // (concentration OR depth), not as a low-precision pigeonhole collision.
+  // Each fires ONLY VFS (or nothing), so the batch reads the gate directly.
+  'vfs-a-pigeonhole-clear.csv': { severity: 0, assay: 'general', flags: {
+    'Value-Frequency Spike':         ['LOW', 'N/A'],          // 2dp pigeonhole: busiest tail .47 obs 19 across 19 DISTINCT whole parts → CLEARS (pre-S308 this fired MODERATE)
+  } },
+  'vfs-b-recurrence-high.csv': { severity: 2, assay: 'general', flags: {
+    'Value-Frequency Spike':         ['HIGH'],                // 2dp single-value recurrence: 137.42 ×15 → concentration keep (domFrac 1.0, 1 distinct); precision-independent near-dup
+  } },
+  'vfs-c-deeptail-high.csv': { severity: 2, assay: 'general', flags: {
+    'Value-Frequency Spike':         ['HIGH'],                // 6dp deep tail .385732 shared across 7 DISTINCT integers → depth keep (10^6 keyspace, shared tail improbable); the C23 copy-paste shape
   } },
 };
 
@@ -218,17 +234,17 @@ export const ACKNOWLEDGED = {
     'Mahalanobis Row Outlier': "incidental 1-row outlier downstream of the localised noise suppression; primary channels SNP/LOESS/IRC/Const-Offset/Benford (S182 disposition, recorded S183 Phase 2)",
   },
   // §2.6 fix-verification fixtures — intrinsic collateral, declared not suppressed
-  // (SESSION297-FIXTURE-READ2.md Q3). VFS/Entropy/ColGoF are the recurrence's
-  // digit-and-distribution shadow (vanish only if recur is removed); Selective
-  // Noise is coupled to the Benford span column's variance outlier.
+  // (SESSION297-FIXTURE-READ2.md Q3). Entropy/ColGoF are the recurrence's
+  // distribution shadow (vanish only if recur is removed); Selective Noise is
+  // coupled to the Benford span column's variance outlier. VFS was promoted to a
+  // declared HIGH near-dup detection in expected.flags (S308) — the five ×10
+  // recurrences are a genuine concentration-path catch, no longer incidental.
   '23-recurrence-null-mixed.csv': {
-    'Value-Frequency Spike': "recur digit shadow — the 2dp endings of the five repeated values (×10 each) read as fractional-digit spikes; intrinsic to the recurrence carrier (S297)",
     'Entropy / Zipf Analysis': "recur's low-entropy concentrated column; intrinsic to the recurrence carrier (S297)",
     'Column Goodness-of-Fit': "recur's normal-fit shape mismatch from the 5×10 recurrence; intrinsic to the recurrence carrier (S297)",
     'Selective Noise Partitioning': "coupled to the Benford span column — the wide column's variance outlier trips the Bartlett; inseparable from the span-borrowing carrier (S297)",
   },
   '24-recurrence-null-control.csv': {
-    'Value-Frequency Spike': "recur digit shadow (same as the mixed file); the DupDet-inert fillers add no signal of their own (S297)",
     'Entropy / Zipf Analysis': "recur's low-entropy concentrated column; intrinsic to the recurrence carrier (S297)",
     'Column Goodness-of-Fit': "recur's normal-fit shape mismatch from the 5×10 recurrence; intrinsic to the recurrence carrier (S297)",
   },
