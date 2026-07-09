@@ -8,6 +8,66 @@
 
 ---
 
+## 0. Road-test corpus — 22 PubPeer papers (S304+, the extended real-world run)
+
+**Reconstruction note (S307).** The completed §0 block drafted in S305 was never placed onto main and its only copy was ephemeral — it is lost. §0.1 below is rebuilt faithfully from the BANKED "Ground-truthed road-test corpus" entry (S304). §0.2 (the per-case triage table) and the C25 / C11 / C23 entries in §0.3 need the S304 corpus list (Nick's S304 message / science-detective.org) and the S305 adjudications to be refilled — they are marked **[OWED]**, not reconstructed from memory. Only the C21 entry is fully documented (S306 summary) and is written in full below.
+
+### 0.1 What this corpus is
+
+Nick provided 22 PubPeer-flagged papers from science-detective.org as an extended road-test corpus. The review paper waits behind this (Nick's call — more real datasets before writing). CORPUS-01 (Sampson et al., *Cell* 2016, the §2.4 driver) and CORPUS-03 (Bierbach et al., *Nat Comms* 2017, the §2.6/§2.5 driver) are already two of the 22 with tool behaviour characterised — they anchor calibration.
+
+**Framing (load-bearing for the paper).** Most of the 22 are not deliberate tampering, and some may not turn out to be genuine errors. The "may not be genuine" cases are the false-positive test: a forensics tool that fires on everything is useless, so those cases measure whether the tool correctly *declines*. Same intent boundary as §1 — the tool flags patterns inconsistent with honest data generation, not intent.
+
+**Structure-first triage (S237), NOT a scattershot of runs.** Tabulate the 22 papers by three axes before running any:
+1. **Data availability** — deposited (Dryad/Zenodo/supp) vs paper-only. First filter: paper-only can't be road-tested, only read. PubPeer threads often flag figure/table issues where raw data was never released.
+2. **Documented defect** from the thread (duplication, digit anomaly, variance impossibility, stats-don't-reconstruct, figure reuse) — the ground-truth label; predicts which of the 28 tests should fire.
+3. **Data shape** (long-format, wide, ID-indexed, factorial, genomics, time series) — predicts import-layer behaviour, which mangles certain shapes before detection.
+
+There is a strong ecology / soil-microbiome / plant-trait cluster (~12+ of the 22, likely shared shapes — so one import issue probably generalises across the cluster, but the corpus is less shape-diverse than 22 sounds). The non-ecology outliers (Nature Photonics luminescence, JMIR mindfulness pilot, Drosophila coloration) carry the shape diversity — prioritise them alongside the cluster so shapes are spanned early.
+
+**Division of labour.** Chat drafts the triage-table scaffold and pre-fills what's inferable from titles/journals (domain cluster, likely shape, CORPUS-01/03 known rows); Nick fills availability + defect-type per case (Chat can't reach threads/datasets). Runnable cases load in shape-coverage order, each checked against its documented defect. Findings feed back: a miss is a V1X candidate (like CORPUS-01 → §2.4), a false positive is a calibration item, an import mangle is a §2.5 / long-format item.
+
+**Known-defect skip rule (adopted S307).** A case that re-demonstrates an already-banked family (axis-1 Benford span-borrowing; VFS precision-collision; ordered-row-semantics B2; measurement-type misclassification) gets a one-line note, its mechanism confirmed at source per case; full adjudication is reserved for a new Class A, a new B1, or an unbanked class. This keeps the ecology cluster from re-deriving axis-1 Benford a dozen times while preserving the per-case read.
+
+### 0.2 Triage table (scaffold — **[OWED: fill from the S304 corpus list]**)
+
+| Case | Paper (journal, year) | Domain cluster | Data availability | Documented defect | Likely data shape | Status |
+|---|---|---|---|---|---|---|
+| C07 | [OWED] | ecology (predicted) | [OWED] | [OWED] | [OWED] | not run |
+| C08 | [OWED] | [OWED] | [OWED] | near-duplicate (per S306) | [OWED] | not run |
+| C09 | [OWED] | ecology (predicted) | [OWED] | [OWED] | [OWED] | not run |
+| C11 | [OWED] | [OWED] | deposited | axis-1 Benford (clean proof); near-dup tails Fig3h | [OWED] | adjudicated S305 |
+| C12 | [OWED] | [OWED] | [OWED] | near-duplicate (per S306) | [OWED] | not run |
+| C15, C16, C20, C22 | [OWED] | ecology cluster | [OWED] | axis-1 Benford (predicted) | bounded ANPP/biomass + wide sub-measure | not run |
+| C21 | Inner Mongolia grassland (*Sci Adv* 2022) | ecology | deposited (Dryad, before/after pair) | ANPP block copied P200→P275 | wide, grouped-ordered | adjudicated S306 (§0.3) |
+| C23 | [OWED] | [OWED] | deposited (Dryad, uncorrected) | near-duplicate `.385732` shared tail | [OWED] | adjudicated S305 |
+| C24 | [OWED] | [OWED] | deposited (2nd `.xls`) | affine-transform (predicted) | [OWED] | not run |
+| C25 | [OWED] | proteomics context | [OWED] | axis-1 Benford; measurement-type misclass | spanning headers | adjudicated S305 |
+| C10, C13, C14, C17, C18, C19 | [OWED] | [OWED] | [OWED] | [OWED] | [OWED] | not run |
+
+*Non-ecology shape-diversity outliers to prioritise (identities [OWED] from S304 list): Nature Photonics luminescence; JMIR mindfulness pilot; Drosophila coloration.*
+
+### 0.3 Adjudicated cases
+
+**[OWED] — C25, C11, C23** adjudications (S305) are not on this surface; refill from the S305 source, then place above C21 in whatever order the paper wants. What the S306 summary records of them: C25 = axis-1 Benford span-borrowing + a proteomics measurement-type misclassification; C11 = the clean axis-1 Benford proof + Fig2f Area recurrence (B1-candidate, ImageJ-quantisation read owed) + Fig3h near-dup tails (B-investigate); C23 = the uncorrected-deposit near-duplicate (`.385732`, 6dp shared tail), the preserve-side calibration anchor and the second B-boundary anchor's uncorrected partner.
+
+#### C21 — Inner Mongolia grassland / *Sci Adv* 2022 (before/after author-correction pair — second B-boundary anchor)
+
+- **Source:** Dryad deposit, before/after author-correction pair (deposit file + corrected file). **Provenance is by content-diff, NOT filename — the file labels were REVERSED (S306).** Adjudicate by diffing content against the documented defect, never by the `-update` label.
+- **Documented defect (Class A):** P275-2017 ANPP copied from P200-2017 — `190.98, 169.32, 158.38, 254.7` identical across treatments, source-confirmed. Present on the deposit file; the corrected file carries a distinct P275.
+- **Adjudicated result — Class A documented catch + first clean before/after specificity demonstration.** Duplicate detection flags HIGH on the file that contains the copied block, and the duplication *drops* on the corrected file (distinct P275). The flag tracks the actual data state — the specificity half of the road-test the update-files were collected for, delivered cleanly for the first time. The update-file pair working as designed.
+- **Second B-boundary anchor, complements C23.** C21 = deposit error, **corrected**, tool confirms the fix worked (flag drops). C23 = deposit error, **uncorrected**, flag stays live. Together they span the corrected/uncorrected range — the false-positive/impact spectrum the paper's real-world section needs.
+- **Digit-panel flags — applicability false positives, not computational errors (the coherent §2.6/§2.4 class):**
+  - **Benford (axis-1 span-borrowing, third real-world instance after C25 and C11).** χ² correct; ANPP (OOM 0.75) and perennials (OOM 0.67) each individually below the 1.5-OOM span gate; annuals (OOM 4.05) lends the pool its span. Bounded ecological measurement is the driver — predicts recurrence across the ecology cluster (C07, C09, C15, C16, C20, C22). Fix predicate unchanged: per-column applicability (V1X §2.6), NOT a raised OOM threshold.
+  - **VFS `.54` — adjudicated S307: tail-collision FALSE POSITIVE, not a B1.** A Code read of `C21.xlsx` (flagged file confirmed by the P275≡P200 diff; `-update` labels reversed as warned) found the 19 `.54`-tail cells are 18 distinct whole values (143.54, 131.54, 26.54, …; only `0.54` repeats, twice, plausibly genuine), scattered across 3 columns / 3 years / many treatments — no value duplication, and NOT co-located with the real P275≡P200 ANPP copy (none of the copied 190.98 / 169.32 / 158.38 / 254.7 ends in `.54`). So the VFS `.54` flag has no forensic content. It IS a valid VFS suppress anchor — but a demanding one: at obs≈19 it sits above uniform 2dp saturation (E[max]≈7.6), so the benign 2dp tail distribution is more concentrated than uniform and a uniform space-size null would not clear it. **Contrast C23's `.385732`** (6dp, obs=8 over 10⁶, P≈0, a shared deep tail across distinct integers = real near-dup). **Decimal depth is the discriminator** (original framing, confirmed): a shared 2-digit tail among distinct values is expected; a shared 6-digit tail is not. The low-precision near-dup signal, if any, must come from whole-value comparison, not tail frequency.
+  - **Terminal Digit panel** — provisionally 2dp structure + duplication double-count; not separately adjudicated.
+- **Second measurement-type misclassification (V1X §2.5).** "Western Blot Densitometry" classified on grassland ANPP (after C25's proteomics). Forced a log VST. Firms the §2.5 confidence-gate sub-item to two instances.
+- **Open sub-threads (banked, not chased):**
+  - 5 cross-year (2017↔2018) ANPP pairs in the corrected file — full-row-copy check pending. Annuals + perennials + density also match → real second defect; ANPP-total-only → coincidence. One source-read settles it.
+  - Terminal Digit 2dp-structure vs duplication double-count — not separately adjudicated.
+
+---
+
 ## 1. What this run is, and is not
 
 This is the first time the tool is pointed at datasets nobody built to exercise a specific arm. The fixture suite (23) tests engine output against constructed ground truth; it is blind to behaviour on real legitimate structure (block designs, instrument quantisation, rounding conventions, genuine duplicates). The two questions this run answers:
