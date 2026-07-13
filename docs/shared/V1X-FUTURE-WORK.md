@@ -330,18 +330,58 @@ The engine has no notion of this, and reads the join as duplication. What fired:
 
 > **The false positive displaced the true positive.** That is the sharpest form this failure takes, and C12 is the exhibit.
 
-**Root cause.** Every test in the battery assumes a numeric column is a measurement made on that row. The engine's role inference (§2.5, `src/import/roles.js`) sorts columns into `data` / `condition` / `label` on cardinality and header keywords. A climate column is high-cardinality across the dataset (~50 distinct values), numeric, and header-keyword-free — so it resolves to `data`, and enters the matrix as though someone measured the annual mean temperature of each individual plant.
+**Root cause.** Every test in the battery assumes a numeric column is a measurement made on that row. The engine's role inference (§2.5, `src/import/roles.js`) sorts columns into `ignore` / `condition` / `label` / `data` on cardinality and header keywords. A climate column is high-cardinality across the dataset (~50 distinct values), numeric, and header-keyword-free — so it resolves to `data`, and enters the matrix as though someone measured the annual mean temperature of each individual plant.
 
-**The signal is available and cheap.** A group-attribute column has an exact property: *within every level of some grouping column, it is constant.* Latitude is constant within Site. Annual mean temperature is constant within Site. Root length is not. That is a one-pass check against each candidate grouping column, and it is decisive — not a heuristic threshold but a structural fact about the table.
+---
 
-**Shape of the work.**
+#### The discriminator
 
-1. **Detect.** For each numeric column, test constancy within the levels of each `label`/`condition` column. A column constant within every level of some grouping key, where that key has materially fewer levels than there are rows, is a group attribute.
-2. **Route.** Give it a role — `attribute` — distinct from `data`. It is not an identifier (it carries real information) and it is not a measurement of the row.
-3. **Exclude.** Drop `attribute` columns from Duplicated Data, Constant-Offset Blocks, Value-Frequency Spike, Inter-Replicate Correlation, Selective Noise Partitioning, and the digit tests. Their repetition is structural.
-4. **Surface, don't hide.** Report what was excluded and why, on the results surface. "24 of 36 columns are attributes of Site and were excluded from duplication tests" is *itself a useful finding* about the data's shape — and it is the honest disclosure that the analysed matrix is not the deposited one.
+**A group attribute is constant within every level of some grouping column.**
 
-**Regression tripwire.** The constancy test must key on *constant within every level of a grouping column*, not on *low distinct count* or *high repetition*. A genuine measurement can repeat heavily (a quantized instrument reading, a Likert item) without being a group attribute — `14-crctest-survey.csv`'s Likert columns are the standing counterexample, as in §2.5. The discriminator is the **grouping relationship**, not the repetition rate.
+Latitude is constant within Site. Root length is not. This is a structural fact about the table, not a threshold, and it does not depend on how often a value repeats.
+
+**It is not** low cardinality, and it is not high repetition rate. Both are the shortcut, and both break the Likert counterexample below.
+
+---
+
+#### The missing primitive — group-key inference
+
+**This is the build. The exclusion is the easy half.** The S315 source read established that **no per-row group identity exists anywhere in the pipeline today**. In C12 nothing is tagged `condition`: site, latitude and root length are all `data`. So the grouping column must be *inferred* before constancy can be tested against it.
+
+**Infer structurally, not semantically.** Do not keyword-match on `site` / `plot` / `subject` / `batch` headers. That is the shortcut that produced §2.5's misclassifications, and it fails on any dataset not written in English or not using the expected noun.
+
+**The structural rule.** A column is a **candidate grouping column** when:
+
+- it partitions the rows into levels, each holding two or more rows; **and**
+- the number of levels is materially smaller than the row count; **and**
+- at least one other numeric column is constant within every one of its levels.
+
+The third clause is load-bearing. It is self-validating: a grouping column is only a grouping column *if something is constant within it*. A column that partitions nothing, or that partitions rows but has nothing constant inside its levels, is not a grouping column and produces no exclusions.
+
+**Why this is safe by construction.** If no column satisfies the rule, no exclusion happens and the tool behaves exactly as it does today. The failure mode is falling back to current behaviour, not silently dropping a real measurement. That property is what makes the rule fit to run in batch, where there is no human in the loop.
+
+**Regression tripwire, tested against the rule.** `14-crctest-survey.csv`'s Likert columns repeat heavily and have low cardinality. But no *other* numeric column is constant within their levels — a respondent's answer to question 3 does not hold still inside the levels of question 7. Clause three fails, no grouping column is found, nothing is excluded. **The tripwire is honoured by the rule's structure, not by a special case.**
+
+---
+
+#### Shape of the work
+
+1. **Detect.** Find candidate grouping columns by the structural rule above. For each, collect the numeric columns constant within all of its levels. Those are the group attributes.
+2. **Route.** Give them a new role — `attribute` — joining `ignore` / `condition` / `label` / `data` in the `roles.js` vocabulary. An attribute is not an identifier (it carries real information) and it is not a measurement of the row.
+3. **Exclude — at one line.** `attribute` columns do not enter the analysis matrix. The S315 read found the choke point: `engine.js:109` builds `dataCols` from `role === "data"`, and **that single line is the sole entry to the entire battery.** No test screens columns afterwards; no per-test patching is needed. Duplicated Data, Constant-Offset Blocks, Value-Frequency Spike, Inter-Replicate Correlation, Selective Noise Partitioning and the digit tests are all excluded at once.
+4. **Surface, don't hide.** Report what was excluded and why. "24 of 36 columns are attributes of Site and were excluded" is *itself a useful finding* about the data's shape — and it is the honest disclosure that the analysed matrix is not the deposited one. `dataColHeaders` (`App.jsx:36–38`) already assembles the names of the columns that entered the matrix; that is the handle. `ImportView` needs an `attribute` slot in its per-column role vocabulary with manual override, on the same path the other four roles already have.
+
+**State plainly that the exclusion is blunt.** Because `dataCols` is a one-way gate, excluding a column removes it from *every* test, not only the ones it was corrupting. That is what we want — a site attribute is not a measurement of the plant under any test — but it must be said, because **a wrong exclusion is a false negative across the whole battery.** That is the same defect this section exists to fix, pointed the other way.
+
+**Batch has no human in the loop.** `BatchView` takes `inferRoles` output verbatim, with no override. Any §2.8 rule is therefore fully automatic there, which is the second reason the discriminator must be structural and self-validating rather than a keyword heuristic.
+
+---
+
+#### What this cannot lean on
+
+**`detectLongFormat` does not fire on C12.** Its already-wide gate (`longFormat.js`, ~line 53) returns `null` when two or more genuine numeric measure columns exist, and C12 has two dozen. No pivot is offered and no long-format routing runs; the table is analysed as-is. **§2.8 stands alone.** Any build assuming the long-format guard will catch these files first is wrong.
+
+---
 
 **Relationship to §2.5 and §2.6.** §2.5 fixes columns misclassified into the wrong *role*. §2.6 fixes tests applied on the wrong *pool*. §2.8 is the third member of the same family and shares its one-line diagnosis:
 
@@ -349,10 +389,9 @@ The engine has no notion of this, and reads the join as duplication. What fired:
 
 Benford's order-of-magnitude gate, VFS's precision-blind expected count, within-row trivial-pair counting, and now the whole battery's row-measurement assumption. Four named causes, one frame. **This is the §5 disclosure of the paper, and §2.8 is its largest instance.**
 
-**Priority — high, and higher than its position in this list suggests.** Long-format tables with joined site, subject or batch attributes are the standard shape of ecological, epidemiological and repeated-measures data. This is not an edge case; it is a *class* of dataset, and the tool currently mis-analyses all of it. The remaining ecology cluster (C07, C09, C15, C16, C20, C22) is expected to reproduce it.
+**Priority — high, and higher than its position in this list suggests.** Long-format tables with joined site, subject or batch attributes are the standard shape of ecological, epidemiological and repeated-measures data. This is not an edge case; it is a *class* of dataset, and the tool currently mis-analyses all of it. The remaining ecology cluster (C07, C09, C15, C16, C20, C22) is held behind this fix and is expected to reproduce the artefact.
 
-**Source:** `REALWORLD-CORPUS-SPEC.md` §0.3 C12 entry (S314), adjudicated at source against `C12.xlsx` sheet `Field survey-data`.
-
+**Source:** `REALWORLD-CORPUS-SPEC.md` §0.3 C12 entry (S314), adjudicated at source against `C12.xlsx` sheet `Field survey-data`. Pipeline facts (`engine.js:109` choke point, absent group key, `detectLongFormat` non-firing, batch override absence) from the S315 Code read-only.
 ---
 
 ## 3. Variance-estimator unification
