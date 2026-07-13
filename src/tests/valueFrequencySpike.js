@@ -177,6 +177,63 @@ function poissonNeighbourScan(freq, distinctKeys, halfW, skipValue) {
   return tested;
 }
 
+// ── Distinct-key near-dup scan for depth-admitted deep buckets (S312). ──
+//    poissonNeighbourScan iterates every integer in vMin…vMax (O(span)),
+//    which the pass-2 `span > 10000` cap exists to avoid. This variant
+//    iterates only the occupied tail keys — cost O(nDistinct·halfW) — so a
+//    wide but depth-admitted bucket can be scanned without the O(span) blow-up
+//    that made the span cap necessary. At deep precision the ±halfW
+//    neighbourhood of an occupied key is empty by construction (no other tail
+//    within a few integer units), so `smoothed` is ~0 and the scan reduces to
+//    flagging any tail with obs ≥ 3 against an empty background — exactly the
+//    surviving subset poissonNeighbourScan would produce on the same bucket,
+//    minus the empty positions it filters out anyway. The Poisson/ratio maths
+//    is identical; only the iteration set differs. Entries feed a SEPARATE
+//    BH-FDR family (see testValueFrequencySpike) so pass 1's shared denominator
+//    is untouched.
+function distinctKeyNearDupScan(freq, distinctKeys, halfW) {
+  const vMin = distinctKeys[0];
+  const vMax = distinctKeys[distinctKeys.length - 1];
+  const tested = [];
+  for (const v of distinctKeys) {
+    const obs = freq[v] || 0;
+
+    const neighbours = [];
+    for (let nb = v - halfW; nb <= v + halfW; nb++) {
+      if (nb === v) continue;
+      if (nb < vMin || nb > vMax) continue;
+      neighbours.push(freq[nb] || 0);
+    }
+    if (neighbours.length < 2) continue;
+
+    const smoothed = neighbours.reduce((s, x) => s + x, 0) / neighbours.length;
+    if (smoothed < 0.5 && obs < 3) continue;
+    const lambda = Math.max(smoothed, 0.1);
+
+    let pValue;
+    if (lambda > 30) {
+      const z = (obs - lambda) / Math.sqrt(lambda);
+      pValue = z > 0 ? (1 - normalCDF(z)) : 1;
+    } else {
+      if (obs <= 0) { pValue = 1; }
+      else {
+        let cumP = 0;
+        let logP = -lambda;
+        for (let k = 0; k < obs; k++) {
+          cumP += Math.exp(logP);
+          if (cumP >= 1 - 1e-15) { pValue = 0; break; }
+          logP += Math.log(lambda) - Math.log(k + 1);
+        }
+        if (pValue === undefined) pValue = Math.max(0, 1 - cumP);
+      }
+    }
+
+    const ratio = smoothed > 0 ? obs / smoothed : 0;
+    tested.push({ value: v, obs, smoothed, ratio, rawP: pValue });
+  }
+  return tested;
+}
+
 // ── Pass 1: full-value scan (integer histogram over entire matrix). ──
 // Matches pre-S114 behaviour exactly; returns { tested, diag, na }.
 // `na` is a description string when the applicability gate fails.
@@ -273,6 +330,10 @@ function buildDigitSubstringPass(matrix, rawMatrix) {
   }
 
   const tested = [];
+  // Depth-admitted deep buckets (span > 10000 but depthKeep true) are scanned
+  // by distinct key and collected here, kept OUT of `tested` so the shared
+  // union BH-FDR denominator (pass 1 + pass-2 non-deep) is unchanged (S312).
+  const deepTested = [];
   const bucketDiag = [];
   for (const [L, cells] of [...byLength.entries()].sort((a, b) => a[0] - b[0])) {
     const freq = {};
@@ -297,19 +358,42 @@ function buildDigitSubstringPass(matrix, rawMatrix) {
     }
     const vMin = distinctKeys[0], vMax = distinctKeys[distinctKeys.length - 1];
     const span = vMax - vMin;
-    if (span > 10000) {
-      bucketDiag.push({ length: L, nCells: cells.length, nDistinct, span, skipped: "span>10000" });
-      continue;
-    }
     // Depth keep-path (bucket-level, S308): is reaching the near-dup floor
     // improbable under uniform occupancy of nCells over the 10^L keyspace?
+    // This is a pure function of 10^L and cells.length (independent of the
+    // histogram), so it is evaluated ahead of the span gate (S312) to decide
+    // whether a wide bucket is admitted for a distinct-key scan.
     const keyspace = Math.pow(10, L);
     const depthKeep =
       keyspace * poissonSurvivalAtLeast(NEAR_DUP_MIN_COUNT, cells.length / keyspace) < ALPHA.NOTE;
     const halfW = span > 200 ? 5 : 3;
-    // No skipValue for pass 2: "00", "000" etc. ARE forensically
-    // interesting (repeat of a zero-fractional template).
-    const bucketTested = poissonNeighbourScan(freq, distinctKeys, halfW, /*skipValue*/ null);
+
+    // Which BH family this bucket's entries join: the shared union (default)
+    // or the separate deep subfamily (span-skipped-but-depth-admitted, S312).
+    let bucketTested;
+    let deepBucket = false;
+    if (span > 10000) {
+      if (!depthKeep) {
+        // Wide and NOT depth-admitted: the O(span) dense scan is both a perf
+        // blow-up (~10^6 iterations at 6 dp) and a model breakdown (the ±halfW
+        // baseline is empty almost everywhere). Skip, as pass 1 does at :212.
+        bucketDiag.push({ length: L, nCells: cells.length, nDistinct, span, depthKeep, skipped: "span>10000" });
+        continue;
+      }
+      // Wide BUT depth-admitted (S312): scan only the occupied tail keys so the
+      // O(span) loop never runs. This is the deep near-duplicate bucket the
+      // S308 depth path was built to catch (e.g. C23's `.385732`); the span cap
+      // was dropping it before the depth path could run. Its entries feed the
+      // separate deep BH family so pass 1's shared denominator is untouched.
+      bucketTested = distinctKeyNearDupScan(freq, distinctKeys, halfW);
+      deepBucket = true;
+    } else {
+      // No skipValue for pass 2: "00", "000" etc. ARE forensically
+      // interesting (repeat of a zero-fractional template).
+      bucketTested = poissonNeighbourScan(freq, distinctKeys, halfW, /*skipValue*/ null);
+    }
+
+    const target = deepBucket ? deepTested : tested;
     for (const t of bucketTested) {
       t.pass = "digit";
       t.length = L;
@@ -324,20 +408,20 @@ function buildDigitSubstringPass(matrix, rawMatrix) {
       t.domFrac = t.obs > 0 ? domCount / t.obs : 0;
       t.nDistinctValues = dist ? dist.size : 0;
       t.depthKeep = depthKeep;
-      tested.push(t);
+      target.push(t);
     }
-    bucketDiag.push({ length: L, nCells: cells.length, nDistinct, halfW, span, depthKeep, nTested: bucketTested.length });
+    bucketDiag.push({ length: L, nCells: cells.length, nDistinct, halfW, span, depthKeep, deepBucket, nTested: bucketTested.length });
   }
 
-  if (tested.length === 0) {
+  if (tested.length === 0 && deepTested.length === 0) {
     return {
-      tested: [], diag: { nFrac, fracFrac: (fracFrac * 100).toFixed(1) + "%", buckets: bucketDiag },
+      tested: [], deepTested: [], diag: { nFrac, fracFrac: (fracFrac * 100).toFixed(1) + "%", buckets: bucketDiag },
       na: "No fractional-digit-substring bucket met the ≥20 distinct values / bounded-range gate."
     };
   }
 
   return {
-    tested, diag: { nFrac, fracFrac: (fracFrac * 100).toFixed(1) + "%", buckets: bucketDiag }, na: null
+    tested, deepTested, diag: { nFrac, fracFrac: (fracFrac * 100).toFixed(1) + "%", buckets: bucketDiag }, na: null
   };
 }
 
@@ -379,6 +463,16 @@ export function testValueFrequencySpike(matrix, rawMatrix = null) {
   const adjPs = bhFDR(rawPs);
   for (let i = 0; i < allTested.length; i++) { allTested[i].adjP = adjPs[i]; }
 
+  // S312 — depth-admitted deep buckets (span-skipped by the pass-2 cap, but
+  // deep enough that a shared tail is improbable) form their OWN BH-FDR family,
+  // deliberately kept out of the shared union above. Folding them into `rawPs`
+  // would move adj-P for every pass-1 and pass-2 entry — a full recalibration.
+  // This separate correction leaves the shared denominator byte-for-byte intact
+  // while still giving the deep-tail scan honest multiple-testing control.
+  const deepTested = pass2.deepTested || [];
+  const deepAdjPs = bhFDR(deepTested.map(t => t.rawP));
+  for (let i = 0; i < deepTested.length; i++) { deepTested[i].adjP = deepAdjPs[i]; }
+
   // Identify spikes (adj-P < ALPHA.NOTE AND ratio ≥ 2) per pass.
   const pass1Spikes = allTested.filter(t => t.pass === "full" && t.adjP < ALPHA.NOTE && t.ratio >= 2.0);
   // Pass 2 additionally requires a near-dup keep-path (S308): a raw
@@ -398,8 +492,15 @@ export function testValueFrequencySpike(matrix, rawMatrix = null) {
   // template the depth path targets (C23 `.385732`, neighbours absent).
   // Pass-1 selection keeps the strict ratio ≥ 2 gate (unchanged).
   const passesEffect = t => t.ratio >= 2.0 || t.smoothed === 0;
-  const pass2Spikes = allTested.filter(t =>
+  const pass2SharedSpikes = allTested.filter(t =>
     t.pass === "digit" && t.adjP < ALPHA.NOTE && passesEffect(t) && isNearDup(t));
+  // Deep-subfamily spikes (S312): same per-tail filter, corrected within the
+  // separate deep BH family. These tails are depth-admitted by construction
+  // (depthKeep true), so isNearDup clears via the depth path — the deep bucket
+  // scan is the surfacing mechanism, the depth keep-path the discriminator.
+  const pass2DeepSpikes = deepTested.filter(t =>
+    t.adjP < ALPHA.NOTE && passesEffect(t) && isNearDup(t));
+  const pass2Spikes = [...pass2SharedSpikes, ...pass2DeepSpikes];
   const allSpikes = [...pass1Spikes, ...pass2Spikes];
   allSpikes.sort((a, b) => a.adjP - b.adjP);
 
@@ -455,7 +556,10 @@ export function testValueFrequencySpike(matrix, rawMatrix = null) {
   const descParts = [];
   const p1span = pass1.diag.halfW ? `±${pass1.diag.halfW}` : "±3";
   const nTestedP1 = pass1.tested.length;
-  const nTestedP2 = pass2.tested.length;
+  // Pass-2 count includes the separate deep-tail subfamily (S312) for honest
+  // reporting; the two are corrected in separate BH families but are both
+  // pass-2 tested entries.
+  const nTestedP2 = pass2.tested.length + deepTested.length;
   if (!pass1.na) {
     descParts.push(`Pass 1 (full-value): Poisson leave-one-out ${p1span}-neighbour test over ${nTestedP1} integer values.`);
   } else {
@@ -468,11 +572,22 @@ export function testValueFrequencySpike(matrix, rawMatrix = null) {
   } else {
     descParts.push(`Pass 2 (fractional-digit substring): not applicable — ${pass2.na}`);
   }
-  descParts.push(`Union BH-FDR across ${allTested.length} tested entries; spikes require ratio ≥ 2.0.`);
+  descParts.push(`Union BH-FDR across ${allTested.length} tested entries${deepTested.length ? ` (plus a separate ${deepTested.length}-entry deep-tail family)` : ""}; spikes require ratio ≥ 2.0.`);
   const desc = descParts.join(" ");
 
-  // Interpretation text. When pass 2 drives the flag, add a plain-language
-  // note on fractional-template reuse.
+  // Interpretation text (Peer Review expand line). When the digit pass drives
+  // the flag, the surviving spikes are near-duplicate candidates: the finding is
+  // that a fractional-digit tail recurs more than independent measurement would
+  // produce, which the reader must verify at source. The copy is framed as a
+  // candidate to check, not a confirmed copy, because a deep tail carries no
+  // information about its generator (a derived, quantized, or repeated-standard
+  // column can reproduce it legitimately).
+  //   The VFS near-dup framing is authored in THREE places, each at its own
+  //   length: this fuller parenthetical form (Peer Review), the compact
+  //   MiniCard_ValueFrequency lookFor / implications (Forensics), and the §4
+  //   composer line (findingComposers.js). The shared generator triplet lives in
+  //   VFS_NEARDUP_GENERATORS (mechanisms.js); the two compact surfaces import it,
+  //   this fuller form spells it out. Move all three together when editing.
   let interp;
   if (flag !== "LOW" && nSpikes > 0) {
     const topSpikes = allSpikes.slice(0, 8).map(s => {
@@ -481,15 +596,19 @@ export function testValueFrequencySpike(matrix, rawMatrix = null) {
       }
       return `${s.value} (${s.obs}× obs, ${s.smoothed.toFixed(1)} exp, ${s.ratio.toFixed(1)}×)`;
     });
-    interp = `${nSpikes} value${nSpikes === 1 ? "" : "s"} with anomalous frequency: ${topSpikes.join(", ")}.`;
+    if (drivingPass === "digit") {
+      interp = `${nSpikes} fractional-digit tail${nSpikes === 1 ? "" : "s"} recur${nSpikes === 1 ? "s" : ""} across the column: ${topSpikes.join(", ")}.`;
+    } else {
+      interp = `${nSpikes} value${nSpikes === 1 ? "" : "s"} with anomalous frequency: ${topSpikes.join(", ")}.`;
+    }
     if (keyboardPattern) {
       interp += " Pattern includes adjacent-key values (numpad diagonal) — consistent with keyboard entry rather than instrument output.";
     }
     if (drivingPass === "digit") {
-      interp += " Fractional digit substring repeats across differing integer parts — consistent with template reuse (copy-paste of a decimal-digit pattern) rather than independent measurement.";
+      interp += " The same fractional-digit tail recurs more often than independent measurement would produce. This is a near-duplicate candidate, not a confirmed copy — verify at source whether the column is derived (a computed or converted quantity), quantized (a fixed instrument resolution), or a repeated standard or control, any of which can reproduce a shared tail legitimately.";
     }
   } else {
-    interp = `No anomalous value-frequency spikes detected. ${allTested.length} entries tested (${nTestedP1} full-value + ${nTestedP2} digit), ${nSpikes} with BH-adjusted P < 0.01 and ratio ≥ 2.0.`;
+    interp = `No anomalous value-frequency spikes detected. ${nTestedP1 + nTestedP2} entries tested (${nTestedP1} full-value + ${nTestedP2} digit), ${nSpikes} with BH-adjusted P < 0.01 and ratio ≥ 2.0.`;
   }
 
   // Details: top spikes combined across passes, tagged with pass.
@@ -554,7 +673,7 @@ export function testValueFrequencySpike(matrix, rawMatrix = null) {
     interpretation: interp,
     nValues: pass1.diag.nValues ?? 0,
     nDistinct: pass1.diag.nDistinct ?? 0,
-    nTested: allTested.length,
+    nTested: allTested.length + deepTested.length,
     nTestedPass1: nTestedP1,
     nTestedPass2: nTestedP2,
     nSpikes, nSpikesPass1: pass1Spikes.length, nSpikesPass2: pass2Spikes.length,
@@ -575,7 +694,9 @@ export function testValueFrequencySpike(matrix, rawMatrix = null) {
     // here. This is the family the verdict's p-values came from — it cannot be
     // re-derived from `details` (the BH adjustment ran over the whole union).
     // Report-only; spikes within it carry the `droveVerdict` boolean set above.
-    allTested,
+    // The deep-tail subfamily (S312), BH-corrected separately, is appended so a
+    // per-unit strip sees its cleared background too.
+    allTested: deepTested.length ? [...allTested, ...deepTested] : allTested,
     details
   };
 }
