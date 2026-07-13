@@ -575,13 +575,19 @@ export function testValueFrequencySpike(matrix, rawMatrix = null) {
   descParts.push(`Union BH-FDR across ${allTested.length} tested entries${deepTested.length ? ` (plus a separate ${deepTested.length}-entry deep-tail family)` : ""}; spikes require ratio ≥ 2.0.`);
   const desc = descParts.join(" ");
 
-  // Interpretation text. When the digit pass drives the flag, the surviving
-  // spikes are near-duplicate candidates: the finding is that a fractional-
-  // digit tail recurs more than independent measurement would produce, which
-  // the reader must verify at source. The copy is framed as a candidate to
-  // check, not a confirmed copy, because a deep tail carries no information
-  // about its generator (a derived, quantized, or repeated-standard column can
-  // reproduce it legitimately).
+  // Interpretation text (Peer Review expand line). When the digit pass drives
+  // the flag, the surviving spikes are near-duplicate candidates: the finding is
+  // that a fractional-digit tail recurs more than independent measurement would
+  // produce, which the reader must verify at source. The copy is framed as a
+  // candidate to check, not a confirmed copy, because a deep tail carries no
+  // information about its generator (a derived, quantized, or repeated-standard
+  // column can reproduce it legitimately).
+  //   The VFS near-dup framing is authored in THREE places, each at its own
+  //   length: this fuller parenthetical form (Peer Review), the compact
+  //   MiniCard_ValueFrequency lookFor / implications (Forensics), and the §4
+  //   composer line (findingComposers.js). The shared generator triplet lives in
+  //   VFS_NEARDUP_GENERATORS (mechanisms.js); the two compact surfaces import it,
+  //   this fuller form spells it out. Move all three together when editing.
   let interp;
   if (flag !== "LOW" && nSpikes > 0) {
     const topSpikes = allSpikes.slice(0, 8).map(s => {

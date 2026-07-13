@@ -40,6 +40,8 @@
  *    aggregate statistics derived from them.
  */
 
+import { VFS_NEARDUP_GENERATORS } from "../constants/mechanisms.js";
+
 // ── Formatting helpers ─────────────────────────────────────────────────
 
 /**
@@ -789,6 +791,18 @@ function valueFrequencySpike(r /*, ctx */) {
 
   if (kb) {
     evidenceLines.push(`Pattern includes adjacent-keypad values — consistent with manual keyboard entry rather than instrument output.`);
+  }
+
+  // S312 — digit-pass spikes (including the deep-bucket shared-tail path) are
+  // near-duplicate candidates, not confirmed copies. This framing is kept
+  // separate from the pass-1 keyboard line above: the two are different
+  // phenomena and the deep shared-tail case must not be described in the
+  // keyboard pattern's terms. The candidate/verify framing must survive into
+  // the clipboard prompt, since the §4 body is what leaves the tool.
+  if (drivingPass === "digit") {
+    evidenceLines.push(
+      `A fractional-digit tail recurring across distinct values is a near-duplicate candidate, not a confirmed copy — verify at source whether the column is ${VFS_NEARDUP_GENERATORS}.`
+    );
   }
 
   const location = (n1 + n2) > 0 ? `${n1 + n2} value ${pl(n1 + n2, "spike")}` : "Global";

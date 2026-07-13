@@ -7,6 +7,16 @@
 // `label` (title-case section header). Renderer capitalises first letter when
 // the same phrase heads the "Other clusters — all applicable tests cleared"
 // list.
+
+// VFS near-duplicate framing (S312): the three benign generators a shared
+// fractional tail can have, so a flagged near-dup reads as a candidate to
+// verify rather than a confirmed copy. Authored once here; consumed verbatim by
+// the Forensics MiniCard (MiniCard_ValueFrequency.jsx) and the §4 composer
+// (findingComposers.js). The Peer Review `interpretation` line in
+// valueFrequencySpike.js carries the fuller parenthetical form of the same
+// three generators — when editing this framing, move all three sites together.
+export const VFS_NEARDUP_GENERATORS = "derived, quantized, or a repeated standard";
+
 export const MECHANISMS = {
   copied:    { label: "Copy, paste, edit",            clusterLabel: "copy-paste/edit" },     // Dim I
   digits:    { label: "Unusual digits",               clusterLabel: "unusual digits" },      // Dim II

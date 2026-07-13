@@ -3,6 +3,7 @@ import { FW } from "../../constants/tokens.js";
 import { EvidenceTable } from "../shared/EvidenceTable.jsx";
 
 import { fmtP } from "../../constants/thresholds.js";
+import { VFS_NEARDUP_GENERATORS } from "../../constants/mechanisms.js";
 import { makeRowMapper } from "../shared/coordinates.js";
 import { SUB_HEAD, BLOCK_GAP_TIGHT } from "../shared/styles.js";
 
@@ -53,10 +54,14 @@ export function MiniCard_ValueFrequency({ result, importConfig, rowMap }) {
     g.rows.add(fileRow(c.row));
   }
 
+  // Footer is the one-line result headline: name the finding, verdict-free. The
+  // digit branch names the recurring fractional tail (not "digit combinations")
+  // so it reads as a near-duplicate candidate; the candidate/verify framing
+  // itself lives in the lookFor / implications blocks below (S312).
   const footerText = (result.flag === "LOW" || result.flag === "N/A")
     ? "No numbers appear more often than expected"
     : result.drivingPass === "digit"
-      ? `${nSpikes} digit combination${nSpikes !== 1 ? "s" : ""} recur${nSpikes !== 1 ? "" : "s"} more often than expected`
+      ? `${nSpikes} fractional tail${nSpikes !== 1 ? "s" : ""} recur${nSpikes !== 1 ? "" : "s"} more often than expected`
       : `${nSpikes} number${nSpikes !== 1 ? "s" : ""} appear${nSpikes !== 1 ? "" : "s"} more often than expected`;
 
   // The scan pass (digit substring vs full value) reads the same on every row
@@ -80,8 +85,8 @@ export function MiniCard_ValueFrequency({ result, importConfig, rowMap }) {
   return (
     <MiniCardLayout result={result}
       footer={footerText}
-      lookFor="Check whether the over-used values are round numbers or sit on adjacent numpad keys. For the recurring-fraction case, look for the same digits after the decimal point across unrelated rows. Cross-reference Last-digit pattern — if both flag, the case for manual entry is stronger. Check whether the over-used values cluster in particular rows or conditions, or run throughout."
-      implications="A value that appears far more often than its neighbours can reflect a natural mode in the data, such as a detection limit many samples reach. It can also indicate values entered by hand: e.g., spikes at adjacent numpad keys point to manual entry, and the same fractional part recurring across unrelated rows points to a copied template.">
+      lookFor={`Check whether the over-used values are round numbers or sit on adjacent numpad keys. For a recurring fractional tail, verify whether the column is ${VFS_NEARDUP_GENERATORS} — any can reproduce a shared tail. Cross-reference Last-digit pattern — if both flag, the case for manual entry is stronger. Check whether the over-used values cluster in particular rows or conditions, or run throughout.`}
+      implications={`A value that appears far more often than its neighbours can reflect a natural mode in the data, such as a detection limit many samples reach. It can also indicate values entered by hand: spikes at adjacent numpad keys point to manual entry. A fractional tail shared across rows is a near-duplicate candidate, not a confirmed copy — verify whether the column is ${VFS_NEARDUP_GENERATORS}.`}>
 
       {details.length > 0 && (<>
         {result.keyboardPattern && (
