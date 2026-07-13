@@ -3,8 +3,8 @@
 **GENERATED — DO NOT HAND-EDIT** — regenerate via
 `node scripts/build-test-display-map.mjs`
 
-- Generated: 2026-06-29 01:54:05Z
-- Commit:    `11b5a03` (`11b5a03077da5a1a70fa5b753f96c068291c50f1`)
+- Generated: 2026-07-13 06:58:26Z
+- Commit:    `56118ca` (`56118ca0c9708e4bee13295b4b8991b0733918da`)
 - Branch:    `main`
 - Batch:     live `result.flag` via the validate-batch pipeline over the shared 22-fixture set (`test/batch-fixtures.mjs`)
 
@@ -48,31 +48,32 @@ Sorted by cluster in fixed display order (copied → digits → shapes → repli
 |---|---|---|---|
 | Exact Duplicate Detection | Duplicated Data | Copy, Paste, Edit | DS04 HIGH, DS06 HIGH, DS10 HIGH, DS14 HIGH |
 | Constant-Offset Blocks | Offset copies | Copy, Paste, Edit | DS08 MOD/HIGH |
+| Sequential Duplication | Recurring value sequences | Copy, Paste, Edit | — latent |
 | Residual Spike Correlation | Shared noisy rows | Copy, Paste, Edit | DS02 MOD/HIGH, DS11 MOD/HIGH |
 
 ### Unusual Digits
 
 | Code test name | UI name | Cluster | Fires on |
 |---|---|---|---|
-| Decimal Precision Consistency | Decimal precision | Unusual Digits | — latent |
-| Benford's Law (First Digit) | First-Digit Frequencies | Unusual Digits | DS08 HIGH |
+| Decimal Precision Consistency | Decimal precision | Unusual Digits | DS23 MOD |
+| Benford's Law (First Digit) | First-Digit Frequencies | Unusual Digits | DS08 HIGH, DS23 HIGH |
 | Terminal Digit Uniformity | Last-Digit Frequencies | Unusual Digits | DS04 HIGH |
-| Value-Frequency Spike | Over-used numbers | Unusual Digits | DS04 MOD/HIGH, DS06 MOD/HIGH, DS13 HIGH |
-| Benford's Law (Second Digit) | Second-Digit Frequencies | Unusual Digits | DS10 HIGH, DS11 HIGH |
+| Value-Frequency Spike | Over-used numbers | Unusual Digits | DS06 MOD/HIGH, DS13 HIGH, DS23 HIGH, DS24 HIGH |
+| Benford's Law (Second Digit) | Second-Digit Frequencies | Unusual Digits | DS10 HIGH, DS11 HIGH, DS23 MOD/HIGH |
 
 ### Distribution Shapes
 
 | Code test name | UI name | Cluster | Fires on |
 |---|---|---|---|
-| Column Goodness-of-Fit | Column Goodness-of-Fit | Distribution Shapes | DS10 MOD/HIGH, DS20 MOD/HIGH |
-| Entropy / Zipf Analysis | Distinct numbers | Distribution Shapes | — latent |
+| Column Goodness-of-Fit | Column Goodness-of-Fit | Distribution Shapes | DS10 MOD/HIGH, DS20 MOD/HIGH, DS23 MOD (ack), DS24 MOD (ack) |
+| Entropy / Zipf Analysis | Distinct numbers | Distribution Shapes | DS23 MOD (ack), DS24 MOD (ack) |
 | Modality Test | Number of peaks | Distribution Shapes | — latent |
 
 ### Cross-Replicate Comparisons
 
 | Code test name | UI name | Cluster | Fires on |
 |---|---|---|---|
-| Selective Noise Partitioning | Column-to-column noise | Cross-Replicate Comparisons | DS08 MOD/HIGH, DS20 HIGH |
+| Selective Noise Partitioning | Column-to-column noise | Cross-Replicate Comparisons | DS08 MOD/HIGH, DS20 HIGH, DS23 HIGH (ack) |
 | Inter-Replicate Correlation | Inter-Replicate Correlation | Cross-Replicate Comparisons | DS02 MOD/HIGH, DS08 MOD/HIGH |
 | Windowed Autocorrelation | Local noise correlation | Cross-Replicate Comparisons | — latent |
 | Missing Data Pattern | Missing-data pattern | Cross-Replicate Comparisons | DS15 HIGH |
