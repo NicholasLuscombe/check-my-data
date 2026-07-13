@@ -181,7 +181,7 @@ This is a designed gap, not a calibration miss — by the methodology as specifi
 
 - **C25 — "proteomics" measurement-type on non-assay data.** Forced a VST. **[OWED — full C25 adjudication is in the S305 source, not this surface; fill before placing.]**
 - **C21 — "Western Blot Densitometry" classified on grassland ANPP.** Forced a log VST on ordinary ecological biomass measurements (Inner Mongolia grassland, *Sci Adv* 2022).
-- **C12 — "Western Blot Densitometry" classified on plant root morphology (S314).** Root lengths, soil pH and 22 WorldClim bioclimatic variables, read as protein gels (*J Ecology* 2025). The engine offered a log transform on a sheet whose first two numeric columns are **latitude and longitude**. Transform declined at run; the offer itself is the tell.
+- **C12 — "Western Blot Densitometry" classified on plant root morphology (S314).** Root lengths, soil pH and 19 WorldClim bioclimatic variables, read as protein gels (*J Ecology* 2025). The engine offered a log transform on a sheet whose first two numeric columns are **latitude and longitude**. Transform declined at run; the offer itself is the tell.
 
 All three are the same failure: a measurement-type label applied with false confidence to data outside its domain, driving a transform the data did not warrant. **Fix direction:** a confidence gate on the measurement-type assignment — below threshold, decline to classify and fall back to the untyped path rather than forcing a domain-specific transform. **Complementary to the §2.6 per-test applicability guards, and does not subsume them** — the §2.6 guards catch a mis-applied *test*; this catches a mis-applied *transform* upstream. Scope as its own confidence-gate item, homed here with the role/condition-inference fix. Firms to **three** instances (C25, C21, C12) — and two of the three are densitometry-on-ecology, so the misclassification is not random: the classifier has a densitometry attractor that ecological measurement data falls into. Watch the remaining ecology cluster for further recurrences under the skip rule.
 
@@ -297,7 +297,7 @@ The methodology case is now overwhelming: **3 confirmed real-world instances + ~
 
 ---
 
-### 2.8 Group-attribute column recognition — the corpus's largest false-positive surface
+### 2.8 Group-attribute column recognition — BUILT S315 (`531e180`)
 
 **What:** Teach the engine that some numeric columns are attributes of a *grouping key*, not measurements of the *row*. A site's latitude, a subject's age, a batch's date: these repeat across every row of that group **by construction**, and every test that treats repetition as signal will fire on them.
 
@@ -305,9 +305,11 @@ Not a new test. A per-column applicability predicate, upstream of the battery, i
 
 **Why — C12, and it is not close (S314).**
 
-C12 (*J Ecology* 2025, plant invasions) is a long-format field survey: 2,412 plant records, ~50 sites. Onto each record the authors merged the site's **latitude, longitude, and 22 WorldClim bioclimatic variables** — annual mean temperature, precipitation seasonality, and so on. That is standard practice and entirely honest.
+C12 (*J Ecology* 2025, plant invasions) is a long-format field survey: 2,412 plant records, ~50 sites. Onto each record the authors merged the site's **latitude, longitude, and the 19 WorldClim bioclimatic variables** — annual mean temperature, precipitation seasonality, and so on. That is standard practice and entirely honest.
 
-The tool analysed 36 numeric columns. **Twenty-four of them are those site attributes.** Each value repeats about fifty times because the table is long.
+The tool analysed 36 numeric columns. **Twenty-one of them are those site attributes.** Each value repeats about fifty times because the table is long.
+
+*(Counts corrected at S315 against the file. Earlier drafts said 24 columns and 22 WorldClim variables; both came from a session summary rather than the sheet. WorldClim defines 19 bioclimatic variables, and C12 carries exactly those plus latitude and longitude.)*
 
 The engine has no notion of this, and reads the join as duplication. What fired:
 
@@ -320,7 +322,7 @@ The engine has no notion of this, and reads the join as duplication. What fired:
 | **Column-to-column noise** | High, ratio 215.7 | Variance compared across centimetres, millimetres, °C and millimetres of rain. |
 | **Second-digit / last-digit / decimal precision** | High | Digit pools ~60% composed of repeated climate constants. |
 
-**Six flags. One cause.**
+**Seven HIGH flags, seven MODERATE. One cause.** (Verified at S315 on the §2.8-off arm.)
 
 **And the cost is not only false positives. The genuine defect was missed.** C12 contains real copied data — whole root-measurement vectors transplanted across plant species, exact to the last bit of the double (rows 5↔848, 722↔1182, and ~30 more). Duplicated Data fired High and showed the *climate join* as its evidence. Sequential Duplication cleared. A reader following the card lands on a merged temperature table and never sees the copied roots.
 
@@ -369,7 +371,7 @@ The third clause is load-bearing. It is self-validating: a grouping column is on
 1. **Detect.** Find candidate grouping columns by the structural rule above. For each, collect the numeric columns constant within all of its levels. Those are the group attributes.
 2. **Route.** Give them a new role — `attribute` — joining `ignore` / `condition` / `label` / `data` in the `roles.js` vocabulary. An attribute is not an identifier (it carries real information) and it is not a measurement of the row.
 3. **Exclude — at one line.** `attribute` columns do not enter the analysis matrix. The S315 read found the choke point: `engine.js:109` builds `dataCols` from `role === "data"`, and **that single line is the sole entry to the entire battery.** No test screens columns afterwards; no per-test patching is needed. Duplicated Data, Constant-Offset Blocks, Value-Frequency Spike, Inter-Replicate Correlation, Selective Noise Partitioning and the digit tests are all excluded at once.
-4. **Surface, don't hide.** Report what was excluded and why. "24 of 36 columns are attributes of Site and were excluded" is *itself a useful finding* about the data's shape — and it is the honest disclosure that the analysed matrix is not the deposited one. `dataColHeaders` (`App.jsx:36–38`) already assembles the names of the columns that entered the matrix; that is the handle. `ImportView` needs an `attribute` slot in its per-column role vocabulary with manual override, on the same path the other four roles already have.
+4. **Surface, don't hide.** Report what was excluded and why. "21 of 36 columns are attributes of Site and were excluded" is *itself a useful finding* about the data's shape — and it is the honest disclosure that the analysed matrix is not the deposited one. `dataColHeaders` (`App.jsx:36–38`) already assembles the names of the columns that entered the matrix; that is the handle. `ImportView` needs an `attribute` slot in its per-column role vocabulary with manual override, on the same path the other four roles already have.
 
 **State plainly that the exclusion is blunt.** Because `dataCols` is a one-way gate, excluding a column removes it from *every* test, not only the ones it was corrupting. That is what we want — a site attribute is not a measurement of the plant under any test — but it must be said, because **a wrong exclusion is a false negative across the whole battery.** That is the same defect this section exists to fix, pointed the other way.
 
@@ -383,13 +385,37 @@ The third clause is load-bearing. It is self-validating: a grouping column is on
 
 ---
 
+---
+
+#### Outcome — built and run against C12 (S315)
+
+Shipped at `531e180`. The rule works, and it did **not** do what this section predicted.
+
+**It fires correctly.** On C12 it holds out exactly 21 columns — latitude, longitude and the 19 WorldClim variables — each constant within every level of **Region** (17 levels) and **Site** (51 levels). The 15 columns left in the matrix are all genuine per-plant measurements: soil pH, root length, biomass, AMF colonisation. **No measurement was wrongly excluded, and no climate column was left in.** The matrix goes 36 → 15.
+
+**It removes the false positive.** With §2.8 off, Exact Duplicate Detection fires HIGH on the climate join. With it on, HIGH → **LOW, p = 1**. Constant-Offset Blocks collapses from 56,978 blocks to LOW. Sequential Duplication clears.
+
+**It does not recover the true positive.** Both duplication tests read **p = 1** on the 15 real measurement columns. The copied root vectors — ~30 exact byte-identical row pairs — remain invisible.
+
+> **The displacement hypothesis is dead.** This section argued that the false positive *displaced* the true positive, and that removing the join would let the copies surface. It does not. **The false positive and the false negative are independent failures that happened to co-occur.**
+
+That is the sharper claim, not the weaker one. Fixing the applicability defect does not fix the detection gap; they are two problems and the corpus now shows both, separately, on the same file. The block detector returning p = 1 on a 2,412-row table containing ~30 exact duplicate row-pairs is **its own defect**, and it is now the open question §2.8 leaves behind.
+
+**Verified across the transform.** Run four ways (§2.8 on/off × vst raw/log), the duplication verdict is driven entirely by §2.8 and not by the variance-stabilising transform. Severity is 3 in all four arms.
+
+**Left unadjudicated.** Eight HIGH flags survive on the 15 real measurement columns — Benford (first digit), Value-Frequency Spike, Inter-Replicate Correlation. Benford *flips* from second-digit to first-digit when the climate constants leave the pool, which is a live diagnostic and not yet understood. Whether these are further applicability artefacts or genuine signal is the next investigation.
+
+---
+
 **Relationship to §2.5 and §2.6.** §2.5 fixes columns misclassified into the wrong *role*. §2.6 fixes tests applied on the wrong *pool*. §2.8 is the third member of the same family and shares its one-line diagnosis:
 
 > **The statistic is right. The baseline assumes something about the column that is false.**
 
 Benford's order-of-magnitude gate, VFS's precision-blind expected count, within-row trivial-pair counting, and now the whole battery's row-measurement assumption. Four named causes, one frame. **This is the §5 disclosure of the paper, and §2.8 is its largest instance.**
 
-**Priority — high, and higher than its position in this list suggests.** Long-format tables with joined site, subject or batch attributes are the standard shape of ecological, epidemiological and repeated-measures data. This is not an edge case; it is a *class* of dataset, and the tool currently mis-analyses all of it. The remaining ecology cluster (C07, C09, C15, C16, C20, C22) is held behind this fix and is expected to reproduce the artefact.
+**Priority — DONE (S315).** The argument that follows is preserved as the rationale.
+
+**Why it was high:** Long-format tables with joined site, subject or batch attributes are the standard shape of ecological, epidemiological and repeated-measures data. This is not an edge case; it is a *class* of dataset, and the tool currently mis-analyses all of it. The remaining ecology cluster (C07, C09, C15, C16, C20, C22) is held behind this fix and is expected to reproduce the artefact.
 
 **Source:** `REALWORLD-CORPUS-SPEC.md` §0.3 C12 entry (S314), adjudicated at source against `C12.xlsx` sheet `Field survey-data`. Pipeline facts (`engine.js:109` choke point, absent group key, `detectLongFormat` non-firing, batch override absence) from the S315 Code read-only.
 ---
