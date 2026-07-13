@@ -783,8 +783,12 @@ export function testDuplicates(matrix, fullMatrix, colGroupId, assay) {
       if (cand.length) {
         partialRowP = cand[0].pAdj;
         for (const p of cand.slice(0, 20)) {
-          partialRowLocs.push({ type: "partial-row", rows: `${p.srcRow + 1} & ${p.dstRow + 1}`,
-            nCols: p.nCols, offset: p.offset, cols: p.cols.map(c => c + 1) });
+          // Carry raw 0-indexed matrix indices; each surface translates to the
+          // source sheet's own row / column coordinates (the filtered matrix is
+          // internal and the user cannot navigate by it). srcRow/dstRow are
+          // matrix rows, cols are matrix data-column indices.
+          partialRowLocs.push({ type: "partial-row", srcRow: p.srcRow, dstRow: p.dstRow,
+            offset: p.offset, nCols: p.nCols, cols: p.cols });
         }
       }
     }

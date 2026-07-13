@@ -18,6 +18,7 @@ const withinDups = result.withinRowLocs || [];
 const blocks = result.blockCopies || [];
 const rowGroups = result.rowDupGroupList || [];
 const hasRowDups = rowGroups.length > 0;
+const partialPairs = result.partialRowLocs || []; // scattered partial-row copies (5th sub-test)
 // Separate block types: multi-row or partial-width blocks vs full-row single-row pairs
 // Full-row height=1 blocks are better shown via rowGroups (multi-way clustering)
 const structuralBlocks = blocks.filter(b => !(b.isFullRow && b.height === 1));
@@ -147,7 +148,7 @@ const mapVisCols = (vc) => {
 return (
 
   <MiniCardLayout result={result}
-    footer={(structuralBlocks.length > 0 || hasRowDups || withinDups.length > 0) ? undefined : "No duplicates found"}
+    footer={(structuralBlocks.length > 0 || hasRowDups || partialPairs.length > 0 || withinDups.length > 0) ? undefined : "No duplicates found"}
     lookFor="Identical whole rows or rectangular blocks are a strong sign of copy-paste. Check whether the duplicated rows sit in specific conditions or span several. Inspect the raw data files to confirm the submitted values arise from independent measurements."
     implications="Repeated values can arise naturally: integer or bounded scales allow only so many distinct values, and measurements at a detection limit can pile up. Duplication can arise accidentally: e.g., pasting between spreadsheets, or merging files with overlapping rows. Repeated whole rows or blocks can also be deliberate: e.g., rows copied to pad a thin dataset, inflate the sample size, or manufacture replicates that were never measured.">
 
@@ -262,6 +263,50 @@ return (
           );
         })}
         {/* Column-pair duplicates removed — superseded by column-segment hash detector */}
+      </EvidenceBlock>
+      </>
+      );
+    })()}
+
+    {/* ── Columns copied to another row (scattered partial-row duplication) ── */}
+    {/* A block of columns copied from one row onto a distant row: the agreeing
+        columns are highlighted, the columns left behind render plain. Renders
+        before the within-row surface so it leads when it drives the verdict
+        (the block/row-group surface above is absent in that case). */}
+    {partialPairs.length > 0 && (() => {
+      const allDataRawCols = roles.map((_, ci) => ci).filter(ci => roles[ci] === "data");
+      const nDataCols = allDataRawCols.length;
+      const shown = partialPairs.slice(0, 5);
+      const more = partialPairs.length - shown.length;
+      return (
+      <>
+      <div style={{...LEAD_HEAD, marginTop: BLOCK_GAP, marginBottom: BLOCK_GAP_TIGHT}}>
+        Columns copied to another row
+        <span style={{fontWeight: FW.NORM, color: C.TEXT_2}}> — {`${partialPairs.length} copied pair${partialPairs.length !== 1 ? "s" : ""}`}</span>
+      </div>
+      <EvidenceBlock lead>
+        {shown.map((p, pi) => {
+          const rawCols = p.cols.map(c => dataColMap[c] ?? c);
+          const vc = getVisibleCols(allDataRawCols);
+          const srcFR = fileRow(toOrigRow(p.srcRow));
+          const dstFR = fileRow(toOrigRow(p.dstRow));
+          return (
+            <div key={`pr${pi}`} style={{marginBottom:"12px"}}>
+              <div style={{fontSize:FS.sm,fontFamily:FF.UI,marginBottom:"4px"}}>
+                <span style={LEAD_HEAD}>Row {srcFR} → Row {dstFR}</span>
+                <span style={{fontSize:FS.xs,color:C.TEXT_3}}>{` — ${p.nCols} of ${nDataCols} columns copied, ${p.offset} rows apart`}</span>
+              </div>
+              <table style={{borderCollapse:"separate",borderSpacing:"0",fontFamily:FF.UI,width:"100%"}}>
+                <ColumnHeaders columns={colDefs} highlightCols={mapHighlightCols(rawCols)} visCols={mapVisCols(vc)} condSpans={condSpans} condRowNum={_condRowNum} nameRowNum={_nameRowNum}/>
+                <tbody>
+                  <DataRow ri={toOrigRow(p.srcRow)} highlightCols={rawCols} bg={C.WHITE} visCols={vc}/>
+                  <DataRow ri={toOrigRow(p.dstRow)} highlightCols={rawCols} bg={C.BG_L} visCols={vc}/>
+                </tbody>
+              </table>
+            </div>
+          );
+        })}
+        {more > 0 && <div style={{fontSize:FS.xs,color:C.TEXT_3,fontFamily:FF.UI}}>… and {more} more copied pair{more !== 1 ? "s" : ""}</div>}
       </EvidenceBlock>
       </>
       );

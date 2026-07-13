@@ -149,6 +149,15 @@ export function ReportView({ results, importConfig, matrix, rowMap, onBack, onCh
         }
         // -- Duplicate Detection --
         if(r.name?.includes("Duplicate")){
+          // Every location a sub-test emits is in filtered-matrix coordinates;
+          // translate to the source sheet's own rows and column letters so the
+          // dump agrees with the card and the user's spreadsheet. Mapping already
+          // exists (dataColMap for columns, originalFileRow for rows); applied here.
+          const _roles=importConfig?.roles||[];
+          const _dataColMap=_roles.map((rr,i)=>rr==="data"?i:-1).filter(i=>i>=0);
+          const _origColMap=buildOriginalColMap((importConfig?.hdrs||[]).length, importConfig?.removedCols);
+          const _srcRow=(mi)=>originalFileRow(rowMap?(rowMap[mi]??mi):mi, importConfig?.skippedRows||0, importConfig?.headerRows||0);
+          const _srcCol=(mc)=>colToExcelLetter(_origColMap[_dataColMap[mc]] ?? _dataColMap[mc] ?? mc);
           if(r.duplicateRows!=null) detail+=` dupRows=${r.duplicateRows} rowP=${r.rowDupPValue||"?"}`;
           if(r.withinRowMatches!=null) {
             detail+=` wrTotal=${r.withinRowMatches} wrExp=${r.withinRowExpected} wrRatio=${r.withinRowExpected>0?(r.withinRowMatches/parseFloat(r.withinRowExpected)).toFixed(1)+"×":"—"} wrZ=${r.withinRowZ} wrP=${r.withinRowP}`;
@@ -166,14 +175,14 @@ export function ReportView({ results, importConfig, matrix, rowMap, onBack, onCh
           lines.push(`  ${flagLabel(r.flag).padEnd(8)} ${r.name}${detail}`);
           if(r.blockCopies?.length){
             for(const blk of r.blockCopies.slice(0,5)){
-              const s1=(rowMap?rowMap[blk.srcRows[0]]:blk.srcRows[0])+1, s2=(rowMap?rowMap[blk.srcRows[1]]:blk.srcRows[1])+1;
-              const d1=(rowMap?rowMap[blk.dstRows[0]]:blk.dstRows[0])+1, d2=(rowMap?rowMap[blk.dstRows[1]]:blk.dstRows[1])+1;
-              lines.push(`           block: ${blk.height}×${blk.width} rows ${s1}–${s2} ↔ ${d1}–${d2} cols=[${blk.cols.slice(0,8).join(",")}${blk.cols.length>8?"…":""}]`);
+              const s1=_srcRow(blk.srcRows[0]), s2=_srcRow(blk.srcRows[1]);
+              const d1=_srcRow(blk.dstRows[0]), d2=_srcRow(blk.dstRows[1]);
+              lines.push(`           block: ${blk.height}×${blk.width} rows ${s1}–${s2} ↔ ${d1}–${d2} cols=[${blk.cols.slice(0,8).map(_srcCol).join(",")}${blk.cols.length>8?"…":""}]`);
             }
           }
           if(r.rowDupGroupList?.length){
             for(const g of r.rowDupGroupList.slice(0,5)){
-              const rowNums=g.rows.slice(0,10).map(ri=>(rowMap?rowMap[ri]:ri)+1).join(", ");
+              const rowNums=g.rows.slice(0,10).map(ri=>_srcRow(ri)).join(", ");
               lines.push(`           dupGroup: ${g.count}× rows=[${rowNums}${g.rows.length>10?"…":""}] vals=${g.values?.slice(0,60)||""}`);
             }
           } else if(r.details?.length){
@@ -182,7 +191,7 @@ export function ReportView({ results, importConfig, matrix, rowMap, onBack, onCh
           }
           if(r.partialRowLocs?.length){
             for(const l of r.partialRowLocs.slice(0,5)){
-              lines.push(`           partialRow: rows ${l.rows} — ${l.nCols} cols agree, ${l.offset} apart, cols=[${l.cols.slice(0,8).join(",")}${l.cols.length>8?"…":""}]`);
+              lines.push(`           partialRow: rows ${_srcRow(l.srcRow)} & ${_srcRow(l.dstRow)} — ${l.nCols} cols agree, ${l.offset} apart, cols=[${l.cols.slice(0,8).map(_srcCol).join(",")}${l.cols.length>8?"…":""}]`);
             }
           }
           continue;
