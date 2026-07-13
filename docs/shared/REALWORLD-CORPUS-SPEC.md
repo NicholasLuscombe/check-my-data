@@ -205,9 +205,9 @@ Predictions are pre-run. Adjudicate tool output against the data per §4 A/B/C; 
 
 The prediction was a benign *quantized instrument* column flagging on the deep-tail scan. C08 was expected to supply it and did not (all three columns full-float, 14–17 dp). C12 supplies it instead, at scale, from a cause nobody had named:
 
-> **Site-attribute columns joined onto a long-format table.** C12 carries latitude, longitude and 22 WorldClim bioclimatic variables — 24 columns that describe the *site*, not the plant. There are ~50 sites and 2,412 rows, so each of those 24 values repeats ~50 times **by construction**. The engine has no notion of a column that is an attribute of a grouping key rather than a measurement of the row, so it reads the join as duplication.
+> **Site-attribute columns joined onto a long-format table.** C12 carries latitude, longitude and the 19 WorldClim bioclimatic variables — 21 columns that describe the *site*, not the plant. There are ~50 sites and 2,412 rows, so each of those 21 values repeats ~50 times **by construction**. The engine has no notion of a column that is an attribute of a grouping key rather than a measurement of the row, so it reads the join as duplication.
 
-Ten flags fire on C12 and essentially all of them trace to this. It is a bigger, more general false-positive surface than a quantized assay would have been, because long-format tables with joined site or subject attributes are ubiquitous — in ecology, in epidemiology, in any repeated-measures design. **This is the §5 disclosure case.**
+Seven HIGH flags and seven MODERATE fire on C12, and essentially all of them trace to this (verified S315 on the §2.8-off arm). It is a bigger, more general false-positive surface than a quantized assay would have been, because long-format tables with joined site or subject attributes are ubiquitous — in ecology, in epidemiology, in any repeated-measures design. **This is the §5 disclosure case.**
 
 ---
 
@@ -843,7 +843,7 @@ The defect is real and it is worse than described — whole root vectors, transp
 
 **Duplicated Data flags High (p < 0.0001) — on the wrong thing.**
 
-The tool ran on **36 numeric columns**. Eleven of the 47 are text and were dropped, leaving latitude, longitude, soil pH, the root measurements, and **22 WorldClim bioclimatic variables** (annual mean temperature through precipitation of the coldest quarter).
+The tool ran on **36 numeric columns**. Eleven of the 47 are text and were dropped, leaving latitude, longitude, soil pH, the root measurements, and **the 19 WorldClim bioclimatic variables** (annual mean temperature through precipitation of the coldest quarter).
 
 The blocks it reports are those. `Rows 1422–1427 = Rows 1475–1480`, columns `[0, 1, 17, 18, 19, …]` — column 0 is **Latitude**, column 1 is **Longitude**. The card's own evidence table shows it: the highlighted columns are Latitude, Longitude, Annual Mean Temperature.
 
@@ -875,7 +875,11 @@ That is the honest scope of the tool, and C12 states it better than the §1 para
 
 This is the finding, and it is the one the arc has been waiting for.
 
-**Twenty-four of the 36 analysed columns are site attributes, not measurements.** Latitude, longitude, and the 22 bioclimatic variables describe the *site*. Every row from the same site carries the same numbers. With ~50 sites and 2,412 rows, each of those 24 values repeats about fifty times **because the table is long and the climate data were merged onto it**.
+**Twenty-one of the 36 analysed columns are site attributes, not measurements.** Latitude, longitude, and the 19 bioclimatic variables describe the *site*. Every row from the same site carries the same numbers. With ~50 sites and 2,412 rows, each of those 21 values repeats about fifty times **because the table is long and the climate data were merged onto it**.
+
+*(Counts corrected at S315 against the sheet. Earlier drafts said 24 columns and 22 WorldClim variables; both came from a session summary rather than the file. WorldClim defines 19 bioclimatic variables. §2.8, built at S315 (`531e180`), holds out exactly these 21 — each constant within every level of Region (17 levels) and Site (51 levels) — leaving 15 genuine per-plant measurements. No measurement was wrongly excluded and no climate column was left in.)*
+
+**§2.8 removes the false positive and does not recover the true positive.** With §2.8 on, Exact Duplicate Detection drops from HIGH to **LOW, p = 1**, and Constant-Offset Blocks collapses from 56,978 blocks to LOW. But both duplication tests then read **p = 1 on the 15 real measurement columns** — the ~30 exact byte-identical copied root row-pairs remain invisible. **The false positive did not displace the true positive.** They are independent failures that happened to co-occur. Fixing applicability does not fix detection. That is the sharper claim and it belongs in §5.
 
 The engine has no concept of a column that is an attribute of a grouping key rather than a measurement of the row. It reads the join as duplication. What follows:
 
