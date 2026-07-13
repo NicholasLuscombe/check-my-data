@@ -160,6 +160,8 @@ export function ReportView({ results, importConfig, matrix, rowMap, onBack, onCh
             if(r.withinColObs!=null) detail+=` | colCtrl=${r.withinColObs} exp=${r.withinColExp} ratio=${r.withinColRatio}×`;
             if(r.blockCopies?.length) detail+=` | blocks=${r.blockCopies.length} largest=${r.blockCopies[0].height}×${r.blockCopies[0].width} blockP=${r.bestBlockP||"?"}`;
           }
+          if(r.partialRowSkipped) detail+=` | partialRow=skipped(dataset too large)`;
+          else if(r.partialRowPairs!=null) detail+=` | partialRow=${r.partialRowPairs} pair${r.partialRowPairs===1?"":"s"} p=${r.partialRowP||"?"}`;
           if(r.nBins!=null) detail+=` nBins=${r.nBins} nDistinct=${r.nDistinct||"?"} isInt=${r.isInteger||"?"} null=${r.p1Source||"?"}`;
           lines.push(`  ${flagLabel(r.flag).padEnd(8)} ${r.name}${detail}`);
           if(r.blockCopies?.length){
@@ -177,6 +179,11 @@ export function ReportView({ results, importConfig, matrix, rowMap, onBack, onCh
           } else if(r.details?.length){
             const dups=r.details.filter(d=>d.type==="duplicate-row").slice(0,3);
             for(const d of dups) lines.push(`           dupRow: ${d.rows} vals=${d.values?.slice(0,60)||""}`);
+          }
+          if(r.partialRowLocs?.length){
+            for(const l of r.partialRowLocs.slice(0,5)){
+              lines.push(`           partialRow: rows ${l.rows} — ${l.nCols} cols agree, ${l.offset} apart, cols=[${l.cols.slice(0,8).join(",")}${l.cols.length>8?"…":""}]`);
+            }
           }
           continue;
         }
