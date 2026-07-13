@@ -187,8 +187,13 @@ export function detectVST(matrix, assay) {
     return { transform: 'raw', reason: `Assay (${assay}) suggests log, but only ${(posFrac * 100).toFixed(0)}% positive → raw`, dataSlope, slopeSE, slopeCI, slopeTest, isInteger: false, negFrac };
   }
 
+  // slopeTest holds one of three states (above / below / contains); report the
+  // one it actually holds. This branch is reached for a slope entirely above 1
+  // on a non-general assay, where the decision defers to the assay fallback
+  // rather than the slope — so 'above' must not print as 'contains'.
+  const slopeRel = slopeTest === 'above' ? 'above' : slopeTest === 'below' ? 'below' : 'contains';
   const slopeNote = slopeCI
-    ? `slope=${dataSlope.toFixed(2)}, CI ${ciStr} ${slopeTest === 'below' ? 'below' : 'contains'} 1 → inconclusive`
+    ? `slope=${dataSlope.toFixed(2)}, CI ${ciStr} ${slopeRel} 1 → inconclusive`
     : 'insufficient range for slope';
   return { transform: t, reason: `${slopeNote} → assay fallback (${assay}) → ${t}`, dataSlope, slopeSE, slopeCI, slopeTest, isInteger: false, negFrac };
 }

@@ -4,9 +4,15 @@ export const ROLES = {
   data:      { label:"DATA",  chipLabel:"Data",  color:ACCENT.BLUE.color,   bg:ACCENT.BLUE.bg,   border:ACCENT.BLUE.border },
   label:     { label:"LABEL", chipLabel:"Label", color:ACCENT.PURPLE.color,  bg:ACCENT.PURPLE.bg,  border:ACCENT.PURPLE.border },
   condition: { label:"COND",  chipLabel:"Cond",  color:ACCENT.GOLD.color,   bg:ACCENT.GOLD.bg,   border:ACCENT.GOLD.border },
+  // Group attribute (V1X §2.8): a numeric column that is constant within every
+  // level of a grouping column — a site's latitude, a subject's age. It carries
+  // real information (so it is not a Skip), but it is not a measurement of the
+  // row, so it is held out of the analysis matrix. Teal keeps it clear of the
+  // data/label/condition hues and of the red/amber/green reserved for flags.
+  attribute: { label:"ATTR",  chipLabel:"Attr",  color:ACCENT.TEAL.color,   bg:ACCENT.TEAL.bg,   border:ACCENT.TEAL.border },
   ignore:    { label:"SKIP",  chipLabel:"Skip",  color:C.TEXT_3,             bg:C.BG,             border:C.BORDER },
 };
-export const ROLE_KEYS = ["data", "label", "condition", "ignore"];
+export const ROLE_KEYS = ["data", "label", "condition", "attribute", "ignore"];
 
 // Condition colours: eight hues in a lighter register, ordered (S250) so the
 // hue byte-identical to a signal colour (blue .text #3B82F6 == CC.OBS) is
