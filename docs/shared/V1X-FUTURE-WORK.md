@@ -13,7 +13,7 @@ This doc owns the v1.x view. The v1.0 surfaces stay authoritative for their doma
 | Surface | Scope | Status |
 |---|---|---|
 | Methodology gaps (forensics framework) | 6 dimension-attributed coverage gaps | Mirrored from METHODOLOGY-MAP §Gap audit |
-| Test additions (post-v1.0 forensics) | Rectangular Blocked Mahalanobis; genuine-block detection; coherence-cleanup residue; column-localised sequential duplication detector; role/condition inference for real-world column shapes; **test-consistency audit beyond the closed item-28 audit (§2.6)**; arbitrary-offset block duplication detector (§2.7) | New scope, this doc |
+| Test additions (post-v1.0 forensics) | Rectangular Blocked Mahalanobis; genuine-block detection; coherence-cleanup residue; column-localised sequential duplication detector; role/condition inference for real-world column shapes; **test-consistency audit beyond the closed item-28 audit (§2.6)**; arbitrary-offset block duplication detector (§2.7); **group-attribute column recognition — the largest demonstrated false-positive surface in the corpus (§2.8)** | New scope, this doc |
 | Variance-estimator unification | Catalogue + scoped sub-refactors | Extends ROADMAP Track F; related to §2.6 (same forced-vs-artefact discipline) |
 | AI Screening mode | Five new tests + mode toggle + reweighting | Restored from S125 chat history |
 | Calibration audits banked | Permutation B=9999; severity-formula diversity metric; Modality plot upgrade | Mirrored from STATUS parked items |
@@ -177,12 +177,13 @@ This is a designed gap, not a calibration miss — by the methodology as specifi
 **Source:** `S292-ROLE-INFERENCE-SCOPE` (Code read-only diagnostic), `SESSION292-CHAT-SUMMARY.md`, `REALWORLD-CORPUS-SPEC.md` CORPUS-02 / CORPUS-03 entries.
 
 
-**Measurement-type misclassification with no confidence gate — two road-test instances (C25, C21, S305–S306).** Adjacent to the role/condition-inference work above (same structure-inference layer) but a distinct item: the engine assigns a *measurement type* and lets it force a variance-stabilising transform, with no confidence gate on the assignment.
+**Measurement-type misclassification with no confidence gate — three road-test instances (C25, C21, C12; S305–S314).** Adjacent to the role/condition-inference work above (same structure-inference layer) but a distinct item: the engine assigns a *measurement type* and lets it force a variance-stabilising transform, with no confidence gate on the assignment.
 
 - **C25 — "proteomics" measurement-type on non-assay data.** Forced a VST. **[OWED — full C25 adjudication is in the S305 source, not this surface; fill before placing.]**
 - **C21 — "Western Blot Densitometry" classified on grassland ANPP.** Forced a log VST on ordinary ecological biomass measurements (Inner Mongolia grassland, *Sci Adv* 2022).
+- **C12 — "Western Blot Densitometry" classified on plant root morphology (S314).** Root lengths, soil pH and 22 WorldClim bioclimatic variables, read as protein gels (*J Ecology* 2025). The engine offered a log transform on a sheet whose first two numeric columns are **latitude and longitude**. Transform declined at run; the offer itself is the tell.
 
-Both are the same failure: a measurement-type label applied with false confidence to data outside its domain, driving a transform the data did not warrant. **Fix direction:** a confidence gate on the measurement-type assignment — below threshold, decline to classify and fall back to the untyped path rather than forcing a domain-specific transform. **Complementary to the §2.6 per-test applicability guards, and does not subsume them** — the §2.6 guards catch a mis-applied *test*; this catches a mis-applied *transform* upstream. Scope as its own confidence-gate item, homed here with the role/condition-inference fix. Firms to two instances (C25 + C21); watch the ecology cluster for further densitometry-on-biomass recurrences under the S307 skip rule.
+All three are the same failure: a measurement-type label applied with false confidence to data outside its domain, driving a transform the data did not warrant. **Fix direction:** a confidence gate on the measurement-type assignment — below threshold, decline to classify and fall back to the untyped path rather than forcing a domain-specific transform. **Complementary to the §2.6 per-test applicability guards, and does not subsume them** — the §2.6 guards catch a mis-applied *test*; this catches a mis-applied *transform* upstream. Scope as its own confidence-gate item, homed here with the role/condition-inference fix. Firms to **three** instances (C25, C21, C12) — and two of the three are densitometry-on-ecology, so the misclassification is not random: the classifier has a densitometry attractor that ecological measurement data falls into. Watch the remaining ecology cluster for further recurrences under the skip rule.
 
 ### 2.6 Suite-wide test-consistency audit — extension beyond the closed condition-pooling audit
 
@@ -293,6 +294,64 @@ The methodology case is now overwhelming: **3 confirmed real-world instances + ~
 **Source:** S299 design discussion (Chat) — arose while reasoning about why the §2.6 single-column collision null is under-determined where whole-row/block duplication is not; Englund's `copy-paste-detective` (`duplicateRows` strategy) as external precedent. Reasoning banked in `SESSION299-CHAT-SUMMARY.md`.
 
 **Priority:** A genuine fabrication mode (copy a patch, paste at an offset) the current battery cannot see, with external-tool precedent. Bank for v1.x; a dedicated design pass owns the null-multiplicity accounting. Candidate for the review paper's disclosed-coverage-gaps set alongside §2.4.
+
+---
+
+### 2.8 Group-attribute column recognition — the corpus's largest false-positive surface
+
+**What:** Teach the engine that some numeric columns are attributes of a *grouping key*, not measurements of the *row*. A site's latitude, a subject's age, a batch's date: these repeat across every row of that group **by construction**, and every test that treats repetition as signal will fire on them.
+
+Not a new test. A per-column applicability predicate, upstream of the battery, in the same layer as §2.5's role inference.
+
+**Why — C12, and it is not close (S314).**
+
+C12 (*J Ecology* 2025, plant invasions) is a long-format field survey: 2,412 plant records, ~50 sites. Onto each record the authors merged the site's **latitude, longitude, and 22 WorldClim bioclimatic variables** — annual mean temperature, precipitation seasonality, and so on. That is standard practice and entirely honest.
+
+The tool analysed 36 numeric columns. **Twenty-four of them are those site attributes.** Each value repeats about fifty times because the table is long.
+
+The engine has no notion of this, and reads the join as duplication. What fired:
+
+| Test | Verdict | What it actually found |
+|---|---|---|
+| **Duplicated Data** | High, p < 0.0001, 20 blocks | Blocks whose columns are `[0, 1, 17, 18, …]` — column 0 is Latitude, column 1 is Longitude. `dupRows = 0`: not one full row is duplicated. |
+| **Constant-Offset Blocks** | 56,978 blocks, z = 5,886 | Offsets of `-91.93`, `-89.09`, `-88.79` — these are **longitude differences between Chinese cities**. |
+| **Over-used numbers** | High, 217 spikes | `.054` observed 167×, `.1675` observed 163× — climate-column fractional tails, one occurrence per row per site. |
+| **Inter-Replicate Correlation** | High, 10,078 suspicious | Correlating temperature against precipitation against latitude. |
+| **Column-to-column noise** | High, ratio 215.7 | Variance compared across centimetres, millimetres, °C and millimetres of rain. |
+| **Second-digit / last-digit / decimal precision** | High | Digit pools ~60% composed of repeated climate constants. |
+
+**Six flags. One cause.**
+
+**And the cost is not only false positives. The genuine defect was missed.** C12 contains real copied data — whole root-measurement vectors transplanted across plant species, exact to the last bit of the double (rows 5↔848, 722↔1182, and ~30 more). Duplicated Data fired High and showed the *climate join* as its evidence. Sequential Duplication cleared. A reader following the card lands on a merged temperature table and never sees the copied roots.
+
+**The paper was retracted over those roots.** *J Ecology* withdrew it in May 2026. The authors admitted an assembly error merging per-plant WinRHIZO scanner outputs into the consolidated sheet; the original outputs were lost to a hard-drive failure, so the data could not be corrected, and the journal retracted. **Had Check My Data been run on this deposit, it would have raised a High and pointed the reader at honest climate data.** The retraction-grade defect would have gone unexamined.
+
+> **A verdict that is right by accident is not a detection.** That is the strongest argument in this document for building §2.8 — stronger than the six false positives above it, because it shows the same defect *suppressing* signal, not only manufacturing it.
+
+> **The false positive displaced the true positive.** That is the sharpest form this failure takes, and C12 is the exhibit.
+
+**Root cause.** Every test in the battery assumes a numeric column is a measurement made on that row. The engine's role inference (§2.5, `src/import/roles.js`) sorts columns into `data` / `condition` / `label` on cardinality and header keywords. A climate column is high-cardinality across the dataset (~50 distinct values), numeric, and header-keyword-free — so it resolves to `data`, and enters the matrix as though someone measured the annual mean temperature of each individual plant.
+
+**The signal is available and cheap.** A group-attribute column has an exact property: *within every level of some grouping column, it is constant.* Latitude is constant within Site. Annual mean temperature is constant within Site. Root length is not. That is a one-pass check against each candidate grouping column, and it is decisive — not a heuristic threshold but a structural fact about the table.
+
+**Shape of the work.**
+
+1. **Detect.** For each numeric column, test constancy within the levels of each `label`/`condition` column. A column constant within every level of some grouping key, where that key has materially fewer levels than there are rows, is a group attribute.
+2. **Route.** Give it a role — `attribute` — distinct from `data`. It is not an identifier (it carries real information) and it is not a measurement of the row.
+3. **Exclude.** Drop `attribute` columns from Duplicated Data, Constant-Offset Blocks, Value-Frequency Spike, Inter-Replicate Correlation, Selective Noise Partitioning, and the digit tests. Their repetition is structural.
+4. **Surface, don't hide.** Report what was excluded and why, on the results surface. "24 of 36 columns are attributes of Site and were excluded from duplication tests" is *itself a useful finding* about the data's shape — and it is the honest disclosure that the analysed matrix is not the deposited one.
+
+**Regression tripwire.** The constancy test must key on *constant within every level of a grouping column*, not on *low distinct count* or *high repetition*. A genuine measurement can repeat heavily (a quantized instrument reading, a Likert item) without being a group attribute — `14-crctest-survey.csv`'s Likert columns are the standing counterexample, as in §2.5. The discriminator is the **grouping relationship**, not the repetition rate.
+
+**Relationship to §2.5 and §2.6.** §2.5 fixes columns misclassified into the wrong *role*. §2.6 fixes tests applied on the wrong *pool*. §2.8 is the third member of the same family and shares its one-line diagnosis:
+
+> **The statistic is right. The baseline assumes something about the column that is false.**
+
+Benford's order-of-magnitude gate, VFS's precision-blind expected count, within-row trivial-pair counting, and now the whole battery's row-measurement assumption. Four named causes, one frame. **This is the §5 disclosure of the paper, and §2.8 is its largest instance.**
+
+**Priority — high, and higher than its position in this list suggests.** Long-format tables with joined site, subject or batch attributes are the standard shape of ecological, epidemiological and repeated-measures data. This is not an edge case; it is a *class* of dataset, and the tool currently mis-analyses all of it. The remaining ecology cluster (C07, C09, C15, C16, C20, C22) is expected to reproduce it.
+
+**Source:** `REALWORLD-CORPUS-SPEC.md` §0.3 C12 entry (S314), adjudicated at source against `C12.xlsx` sheet `Field survey-data`.
 
 ---
 
