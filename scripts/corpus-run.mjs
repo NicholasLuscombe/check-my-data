@@ -40,7 +40,7 @@ import Papa from 'papaparse';
 import { extractAnalysisInputs, runFullAnalysis } from '../src/analysis/engine.js';
 import { computeSeverity } from '../src/analysis/severity.js';
 import { detectVST } from '../src/stats/vst.js';
-import { inferRoles } from '../src/import/roles.js';
+import { inferBaseRoles, detectGroupAttributes } from '../src/import/roles.js';
 import { forwardFill, preprocessRaw, detectHeaderRows, detectBlocks } from '../src/import/parser.js';
 import { detectLongFormat } from '../src/import/longFormat.js';
 import { suggestRowSemantics } from '../src/import/rowSemantics.js';
@@ -100,6 +100,7 @@ function resolveEntries({ positional, flags }) {
   const entry = { path: first };
   if (flags.assay) entry.assay = flags.assay;
   if (flags.dataType) entry.dataType = flags.dataType;
+  if (flags.vst) entry.vst = flags.vst;
   if (flags.sheet) entry.sheet = flags.sheet;
   if (flags.label) entry.label = flags.label;
   return { datasets: [entry], manifestOut: null };
@@ -184,9 +185,13 @@ function prepStructure(raw, conditionsHint) {
   }
 
   const longFormatDetected = !!detectLongFormat(hdrs, data);
-  const roles = inferRoles(data, hdrs, condPerCol);
+  // Base per-column inference, then the §2.8 group-attribute pass — kept split
+  // so the grouping provenance survives into the artefact. inferRoles is
+  // exactly these two steps, so roles stay byte-identical to the UI path.
+  const baseRoles = inferBaseRoles(data, hdrs, condPerCol);
+  const { roles, groupings } = detectGroupAttributes(data, baseRoles);
   applyRoleHint(roles, hdrs, conditionsHint);
-  return { hdrs, data, condPerCol, roles, longFormatDetected };
+  return { hdrs, data, condPerCol, roles, groupings, longFormatDetected };
 }
 
 // Generic per-test evidence dump — no per-test formatting (deferred to v2).
@@ -209,7 +214,7 @@ function evidenceOf(r) {
 async function runDataset(entry) {
   const label = entry.label || basename(entry.path);
   const { raw, sheetUsed } = await readRawMatrix(entry);
-  const { hdrs, data, condPerCol, roles, longFormatDetected } = prepStructure(raw, entry.conditionsHint);
+  const { hdrs, data, condPerCol, roles, groupings, longFormatDetected } = prepStructure(raw, entry.conditionsHint);
 
   // Assay: explicit override wins; else detectAssay heuristic (filename +
   // headers), falling back to "general". Always recorded with its source.
@@ -236,7 +241,23 @@ async function runDataset(entry) {
   };
   const { matrix, rawMatrix, condCtx } = extractAnalysisInputs(config);
 
-  const vst = detectVST(matrix, assay);
+  // VST: explicit override wins; else detectVST (BatchView's behaviour). A
+  // forced transform is stamped over the detected one exactly as --assay stamps
+  // over detectAssay, and the source is recorded so a forced run never reads as
+  // a detected one. The engine only consults vst.transform, so the forced
+  // object carries just that plus a reason naming it as forced.
+  let vst, vstSource;
+  if (entry.vst) {
+    const forced = String(entry.vst).toLowerCase();
+    if (!['raw', 'log', 'anscombe'].includes(forced)) {
+      throw new Error(`--vst must be one of raw|log|anscombe (got "${entry.vst}")`);
+    }
+    vst = { transform: forced, reason: `forced via --vst (${forced}); detection bypassed`, forced: true };
+    vstSource = 'override';
+  } else {
+    vst = detectVST(matrix, assay);
+    vstSource = 'auto-detected';
+  }
 
   const results = await runFullAnalysis(
     matrix, rawMatrix, condCtx, assay, null, vst,
@@ -259,6 +280,18 @@ async function runDataset(entry) {
     return row;
   });
 
+  // §2.8 provenance — the columns held out as group attributes, and for each
+  // the grouping column(s) it was found constant within. This is the auditable
+  // claim: "Latitude was excluded because it is constant within every level of
+  // Site." The bare count is not. Built on the FINAL roles so a role hint that
+  // overrides an attribute is reflected.
+  const nameOf = c => (hdrs[c] != null && String(hdrs[c]).trim()) ? String(hdrs[c]).trim() : `Col ${c + 1}`;
+  const attrExplainedBy = {};
+  for (const g of groupings) for (const c of g.attrCols) (attrExplainedBy[c] ||= []).push({ col: g.groupCol, header: nameOf(g.groupCol), nLevels: g.nLevels });
+  const attributes = roles
+    .map((r, c) => r === 'attribute' ? { col: c, header: nameOf(c), constantWithin: attrExplainedBy[c] || [] } : null)
+    .filter(Boolean);
+
   return {
     label,
     path: entry.path,
@@ -270,6 +303,7 @@ async function runDataset(entry) {
       rowSemanticsSource: rsSuggestion.auto ? 'auto-suggested' : 'default',
       rowSemanticsReason: rsSuggestion.reason || null,
       vst: vst?.transform || 'raw',
+      vstSource,
       vstReason: vst?.reason || vst?.reasonCode || null,
       longFormatDetected,
       zeroAsMissing,
@@ -282,6 +316,12 @@ async function runDataset(entry) {
       nCols: matrix[0]?.length || 0,
       nConditions: condCtx?.count ?? null,
       conditionType: condCtx?.type ?? null,
+      // Surface, don't hide: every column in order, the role each got, and the
+      // §2.8 exclusions with the grouping column each was constant within.
+      // headers/roles span ALL columns (not just the matrix's data columns).
+      headers: hdrs,
+      roles,
+      attributes,
     },
     severity,
     counts,
@@ -320,9 +360,13 @@ for (const entry of entries) {
     outDatasets.push(d);
     const s = d.structure;
     console.log(`  structure: assay=${s.assay} (${s.assaySource}), dataType=${s.dataType} (${s.dataTypeSource}), ` +
-      `rowSemantics=${s.rowSemantics}, vst=${s.vst}, ${s.nRows}×${s.nCols}` +
+      `rowSemantics=${s.rowSemantics}, vst=${s.vst} (${s.vstSource}), ${s.nRows}×${s.nCols}` +
       (s.nConditions ? `, conditions=${s.nConditions} (${s.conditionType})` : '') +
       (d.sheet ? `, sheet="${d.sheet}"` : ''));
+    if (s.attributes?.length) {
+      console.log(`  §2.8 held out ${s.attributes.length} column(s): ` +
+        s.attributes.map(a => a.constantWithin[0] ? `${a.header} (constant within ${a.constantWithin[0].header})` : a.header).join(', '));
+    }
     console.log(`  dataset severity: ${d.severity.severity} (HIGH=${d.severity.high} MOD=${d.severity.mod} dims=${d.severity.nFlaggedDimensions})`);
     console.log(`  per-test flags: HIGH=${d.counts.HIGH}  MODERATE=${d.counts.MODERATE}  LOW=${d.counts.LOW}  N/A=${d.counts['N/A']}`);
   } catch (e) {
