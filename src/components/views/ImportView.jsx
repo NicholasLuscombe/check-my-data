@@ -479,6 +479,7 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
     if(role==="data"){if(!isNaN(Number(v)))return <span style={{...M,color:C.TEXT}}>{v}</span>;return <span style={{...M,color:UI.WARN.text,fontStyle:"italic"}}>{v}</span>;}
     if(role==="condition")return <span style={{color:UI.WARN.text}}>{v}</span>;
     if(role==="label")return <span style={{color:ROLES.label.color}}>{v}</span>;
+    if(role==="attribute")return <span style={{color:ROLES.attribute.color}}>{v}</span>;
     return <span style={{color:C.TEXT_3}}>{v}</span>;
   };
 
@@ -744,9 +745,14 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
                 },
               };
             }}
-            onHeaderClick={(ci)=>{setRoles(p=>{const n=[...p];n[ci]=ROLE_KEYS[(ROLE_KEYS.indexOf(n[ci])+1)%4];return n;});}}
+            onHeaderClick={(ci)=>{setRoles(p=>{const n=[...p];n[ci]=ROLE_KEYS[(ROLE_KEYS.indexOf(n[ci])+1)%ROLE_KEYS.length];return n;});}}
           />
           {data.length>EDGE*2+5&&<div style={{padding:"6px 12px",borderTop:`1px solid ${C.BORDER_L}`,fontSize:FS.sm,color:C.TEXT_3,textAlign:"center"}}>Showing first {EDGE} and last {EDGE} of {data.length.toLocaleString()} rows</div>}
+          {roles.some(r=>r==="attribute")&&(()=>{const nAttr=roles.filter(r=>r==="attribute").length;return(
+            <div style={{padding:"8px 12px",borderTop:`1px solid ${C.BORDER_L}`,fontSize:FS.sm,color:ROLES.attribute.color,lineHeight:"1.4"}}>
+              {nAttr} column{nAttr===1?"":"s"} look like group attributes — numeric values that stay constant within a grouping column, such as a site's latitude or a batch's date. They repeat by construction rather than being measured per row, so they were held out of the analysis. Click a header to change a column's role.
+            </div>
+          );})()}
         </div>
       )}
       {sum&&sum.nDC<2&&(

@@ -1,7 +1,20 @@
 /* ── Role inference & assay plausibility ─────────────────────────── */
 
+// Minimum rows before the group-attribute pass runs (V1X §2.8). Group
+// attributes are a property of long, grouped tables — field surveys, repeated
+// measures. Small wide-format replicate files have no grouping key, so the pass
+// would only add cost and false-exclusion risk. Below this the roles come
+// straight from per-column inference.
+const MIN_ROWS_FOR_GROUPING = 50;
+
+// A grouping column may not partition the rows too finely. If its distinct-value
+// count exceeds half the row count its levels average fewer than two rows, and
+// it reads as an identifier or a measurement, not a grouping key. This is the
+// "materially smaller than the row count" clause.
+const MAX_LEVEL_FRACTION = 0.5;
+
 export function inferRoles(data,hdrs,condPerCol) {
-  return hdrs.map((h,c)=>{
+  const base = hdrs.map((h,c)=>{
     const sample=data.slice(0,40).map(r=>r[c]).filter(v=>v!=null&&v!=="");
     if(!sample.length) return "ignore";
     const nf=sample.filter(v=>!isNaN(Number(v))).length/sample.length;
@@ -17,6 +30,116 @@ export function inferRoles(data,hdrs,condPerCol) {
     if(nums.length>=4&&nums.every(n=>Number.isInteger(n))){let seq=0;for(let i=1;i<nums.length;i++)if(nums[i]===nums[i-1]+1)seq++;if(seq/(nums.length-1)>0.85)return "label";}
     return "data";
   });
+  return applyGroupAttributes(data, base);
+}
+
+// ── Group-attribute recognition (V1X §2.8) ───────────────────────────
+// A group attribute is a numeric column constant within every level of some
+// grouping column: a site's latitude, a subject's age, a batch's date. It
+// repeats across the rows of its group by construction, so every test that
+// reads repetition as a signal fires on it — and a genuine finding can be
+// buried under that noise. The engine has no notion of grouping.
+//
+// The grouping column is not named in the data — in the real cases nothing is
+// tagged 'condition'; the site key, its latitude, and the measurement are all
+// 'data'. So the grouping column is inferred structurally, never by header
+// keyword (keyword matching is the shortcut that misclassifies non-English or
+// differently-named columns):
+//   1. it partitions the rows into levels, materially fewer than the row count;
+//   2. at least one OTHER numeric data column is constant within every one of
+//      its levels while varying between them.
+// Clause 2 is self-validating: a column is a grouping column only if something
+// is constant within it. When no column qualifies, nothing is re-roled and the
+// tool behaves exactly as before. That safe fallback is what lets the pass run
+// in batch, where there is no human to override it.
+//
+// Detected attributes are re-roled 'attribute'. They then fall out of the
+// analysis matrix at the engine's single dataCols line (role === "data"), which
+// removes them from the whole battery at once. The exclusion is blunt on
+// purpose: a site attribute is not a measurement of the row under any test.
+export function applyGroupAttributes(data, roles) {
+  const nRows = data.length;
+  const nCols = roles.length;
+  if (nRows < MIN_ROWS_FOR_GROUPING || nCols < 2) return roles;
+
+  // Parse every cell once. num[c][r] is the numeric value or null; key[c][r] is
+  // the raw trimmed string used as a level label (any column, numeric or text,
+  // can serve as a grouping key).
+  const num = Array.from({ length: nCols }, () => new Array(nRows).fill(null));
+  const key = Array.from({ length: nCols }, () => new Array(nRows).fill(null));
+  for (let r = 0; r < nRows; r++) {
+    const row = data[r];
+    if (!row) continue;
+    for (let c = 0; c < nCols; c++) {
+      const v = row[c];
+      if (v == null || v === "") continue;
+      const s = String(v).trim();
+      key[c][r] = s;
+      const n = Number(s);
+      if (!isNaN(n)) num[c][r] = n;
+    }
+  }
+
+  // Distinct level counts per column. Bounds which columns can be grouping keys,
+  // and confirms an attribute candidate actually varies — a globally constant
+  // column is not evidence of grouping and is left alone.
+  const distinct = key.map(col => {
+    const set = new Set();
+    for (const v of col) if (v != null) set.add(v);
+    return set.size;
+  });
+
+  // Attribute candidates: columns currently entering the matrix (role 'data')
+  // that hold at least two distinct values.
+  const attrCand = [];
+  for (let c = 0; c < nCols; c++) {
+    if (roles[c] === "data" && distinct[c] >= 2) attrCand.push(c);
+  }
+  if (!attrCand.length) return roles;
+
+  const maxLevels = Math.floor(nRows * MAX_LEVEL_FRACTION);
+  const isAttribute = new Array(nCols).fill(false);
+
+  for (let g = 0; g < nCols; g++) {
+    if (roles[g] === "ignore") continue;
+    const nLevels = distinct[g];
+    if (nLevels < 2 || nLevels > maxLevels) continue;
+
+    // Test each attribute candidate for constancy within every level of g. A
+    // candidate stays consistent until some level shows it two different
+    // values. A column is never its own attribute.
+    const consistent = attrCand.map(c => c !== g);
+    let liveCount = consistent.reduce((a, b) => a + (b ? 1 : 0), 0);
+    if (!liveCount) continue;
+
+    const firstByLevel = new Map(); // levelKey -> per-candidate first value seen
+    for (let r = 0; r < nRows && liveCount > 0; r++) {
+      const gv = key[g][r];
+      if (gv == null) continue;
+      let firsts = firstByLevel.get(gv);
+      if (!firsts) { firsts = new Array(attrCand.length).fill(undefined); firstByLevel.set(gv, firsts); }
+      for (let a = 0; a < attrCand.length; a++) {
+        if (!consistent[a]) continue;
+        const val = num[attrCand[a]][r];
+        if (val == null) continue; // null is vacuously consistent
+        const first = firsts[a];
+        if (first === undefined) firsts[a] = val;
+        else if (first !== val) { consistent[a] = false; liveCount--; }
+      }
+    }
+
+    // Mark every column that stayed constant within g's levels. Marking only
+    // happens when such a column exists, so clause 2 is satisfied by
+    // construction. The union across all grouping columns catches
+    // mutually-constant pairs — latitude constant within longitude's levels and
+    // longitude constant within latitude's.
+    for (let a = 0; a < attrCand.length; a++) {
+      if (consistent[a]) isAttribute[attrCand[a]] = true;
+    }
+  }
+
+  if (!isAttribute.some(Boolean)) return roles;
+  return roles.map((r, c) => isAttribute[c] ? "attribute" : r);
 }
 /* Assay–data plausibility check.
    Returns {level:"warn"|"info", text} when the selected assay is inconsistent
