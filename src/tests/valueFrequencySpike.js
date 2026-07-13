@@ -191,6 +191,10 @@ function poissonNeighbourScan(freq, distinctKeys, halfW, skipValue) {
 //    is identical; only the iteration set differs. Entries feed a SEPARATE
 //    BH-FDR family (see testValueFrequencySpike) so pass 1's shared denominator
 //    is untouched.
+//    Deep-tail keys can exceed 2^53 (a 16- or 17-digit fractional substring),
+//    where doubles are spaced two or more apart; the ±halfW neighbourhood is
+//    therefore walked by a small integer offset rather than by incrementing the
+//    key value directly, so the loop counter always advances and terminates.
 function distinctKeyNearDupScan(freq, distinctKeys, halfW) {
   const vMin = distinctKeys[0];
   const vMax = distinctKeys[distinctKeys.length - 1];
@@ -199,8 +203,9 @@ function distinctKeyNearDupScan(freq, distinctKeys, halfW) {
     const obs = freq[v] || 0;
 
     const neighbours = [];
-    for (let nb = v - halfW; nb <= v + halfW; nb++) {
-      if (nb === v) continue;
+    for (let d = -halfW; d <= halfW; d++) {
+      if (d === 0) continue;
+      const nb = v + d;
       if (nb < vMin || nb > vMax) continue;
       neighbours.push(freq[nb] || 0);
     }
