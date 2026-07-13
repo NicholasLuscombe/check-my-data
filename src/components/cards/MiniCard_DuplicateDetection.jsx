@@ -277,12 +277,17 @@ return (
       const allDataRawCols = roles.map((_, ci) => ci).filter(ci => roles[ci] === "data");
       const nDataCols = allDataRawCols.length;
       const shown = partialPairs.slice(0, 5);
-      const more = partialPairs.length - shown.length;
+      // Count comes from the engine's true total (partialRowPairs), not the
+      // length of the capped evidence array — the 20-cap bounds what is drawn,
+      // not what is counted. Fall back to the array length only if the field is
+      // absent, so the heading never reads undefined.
+      const totalPairs = result.partialRowPairs ?? partialPairs.length;
+      const more = totalPairs - shown.length;
       return (
       <>
       <div style={{...LEAD_HEAD, marginTop: BLOCK_GAP, marginBottom: BLOCK_GAP_TIGHT}}>
         Columns copied to another row
-        <span style={{fontWeight: FW.NORM, color: C.TEXT_2}}> — {`${partialPairs.length} copied pair${partialPairs.length !== 1 ? "s" : ""}`}</span>
+        <span style={{fontWeight: FW.NORM, color: C.TEXT_2}}> — {`${totalPairs} copied pair${totalPairs !== 1 ? "s" : ""}`}</span>
       </div>
       <EvidenceBlock lead>
         {shown.map((p, pi) => {
