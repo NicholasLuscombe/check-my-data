@@ -14,7 +14,16 @@ const MIN_ROWS_FOR_GROUPING = 50;
 const MAX_LEVEL_FRACTION = 0.5;
 
 export function inferRoles(data,hdrs,condPerCol) {
-  const base = hdrs.map((h,c)=>{
+  return applyGroupAttributes(data, inferBaseRoles(data,hdrs,condPerCol));
+}
+
+// Per-column base role inference — the 40-row sample and header-keyword pass
+// that runs before group-attribute recognition. Split out from inferRoles so
+// the audit harness can show the roles as they stood before §2.8 re-roled any
+// column. Behaviour is unchanged: inferRoles is exactly the base pass followed
+// by applyGroupAttributes, as before.
+export function inferBaseRoles(data,hdrs,condPerCol) {
+  return hdrs.map((h,c)=>{
     const sample=data.slice(0,40).map(r=>r[c]).filter(v=>v!=null&&v!=="");
     if(!sample.length) return "ignore";
     const nf=sample.filter(v=>!isNaN(Number(v))).length/sample.length;
@@ -30,7 +39,6 @@ export function inferRoles(data,hdrs,condPerCol) {
     if(nums.length>=4&&nums.every(n=>Number.isInteger(n))){let seq=0;for(let i=1;i<nums.length;i++)if(nums[i]===nums[i-1]+1)seq++;if(seq/(nums.length-1)>0.85)return "label";}
     return "data";
   });
-  return applyGroupAttributes(data, base);
 }
 
 // ── Group-attribute recognition (V1X §2.8) ───────────────────────────
@@ -57,10 +65,21 @@ export function inferRoles(data,hdrs,condPerCol) {
 // analysis matrix at the engine's single dataCols line (role === "data"), which
 // removes them from the whole battery at once. The exclusion is blunt on
 // purpose: a site attribute is not a measurement of the row under any test.
+//
+// detectGroupAttributes returns both the re-roled array and the provenance —
+// one entry per grouping column that produced an exclusion, naming the columns
+// held constant within it. The provenance is what makes a corpus run auditable:
+// "column 17 was excluded because it is constant within the 50 levels of column
+// 3." applyGroupAttributes is the thin wrapper the engine path uses; it returns
+// only the roles, byte-identical to before this split.
 export function applyGroupAttributes(data, roles) {
+  return detectGroupAttributes(data, roles).roles;
+}
+
+export function detectGroupAttributes(data, roles) {
   const nRows = data.length;
   const nCols = roles.length;
-  if (nRows < MIN_ROWS_FOR_GROUPING || nCols < 2) return roles;
+  if (nRows < MIN_ROWS_FOR_GROUPING || nCols < 2) return { roles, groupings: [] };
 
   // Parse every cell once. num[c][r] is the numeric value or null; key[c][r] is
   // the raw trimmed string used as a level label (any column, numeric or text,
@@ -95,10 +114,11 @@ export function applyGroupAttributes(data, roles) {
   for (let c = 0; c < nCols; c++) {
     if (roles[c] === "data" && distinct[c] >= 2) attrCand.push(c);
   }
-  if (!attrCand.length) return roles;
+  if (!attrCand.length) return { roles, groupings: [] };
 
   const maxLevels = Math.floor(nRows * MAX_LEVEL_FRACTION);
   const isAttribute = new Array(nCols).fill(false);
+  const groupings = []; // provenance: { groupCol, nLevels, attrCols[] } per grouping column that excluded something
 
   for (let g = 0; g < nCols; g++) {
     if (roles[g] === "ignore") continue;
@@ -133,13 +153,15 @@ export function applyGroupAttributes(data, roles) {
     // construction. The union across all grouping columns catches
     // mutually-constant pairs — latitude constant within longitude's levels and
     // longitude constant within latitude's.
+    const attrCols = [];
     for (let a = 0; a < attrCand.length; a++) {
-      if (consistent[a]) isAttribute[attrCand[a]] = true;
+      if (consistent[a]) { isAttribute[attrCand[a]] = true; attrCols.push(attrCand[a]); }
     }
+    if (attrCols.length) groupings.push({ groupCol: g, nLevels, attrCols });
   }
 
-  if (!isAttribute.some(Boolean)) return roles;
-  return roles.map((r, c) => isAttribute[c] ? "attribute" : r);
+  if (!isAttribute.some(Boolean)) return { roles, groupings };
+  return { roles: roles.map((r, c) => isAttribute[c] ? "attribute" : r), groupings };
 }
 /* Assay–data plausibility check.
    Returns {level:"warn"|"info", text} when the selected assay is inconsistent
