@@ -699,23 +699,119 @@ export function testDuplicates(matrix, fullMatrix, colGroupId, assay) {
     if (pAdj < bestBlockP) bestBlockP = pAdj;
   }
 
+  // ── Test 5: scattered partial-row duplication ────────────────────────────────
+  // Catches a block of columns copied from one row onto a distant row — the
+  // shape that falls between Test 2 (needs a full-row match) and Test 4 (needs a
+  // contiguous run of ≥2 rows within a 200-row offset cap). Deliberately: no
+  // offset cap, no run-length floor, and no assumption about which columns
+  // travel together. A single row identical to a far-off row on a large enough
+  // subset of columns is the finding.
+  //
+  // Prefilter then exact work. For each column, group rows by value; a pair
+  // sharing a value in a column earns one agreement; keep pairs reaching
+  // PARTIAL_ROW_MIN_COLS agreements, then compute the exact agreeing set.
+  //
+  // Cardinality guard (load-bearing): a column whose largest value-group covers
+  // more than PARTIAL_ROW_CARD_FRAC of the rows is uninformative when two rows
+  // match there — one row in a handful agrees by construction — and a single
+  // such column generates millions of candidate pairs (measured: a 9,398-row
+  // table with a five-value column produced 36M pairs and exceeded the map).
+  // So it is held OUT of prefilter accumulation. It still counts in the exact
+  // agreeing set and in the null; it just does not generate candidates.
+  //
+  // Null: for a pair agreeing exactly on column set S, pMatch = Π_{c∈S}
+  // wrColHHI[c] (each column's own value-repetition rate, the same per-column
+  // Herfindahl the row-dup and block sub-tests use), Bonferroni-corrected by the
+  // all-pairs search volume C(wrR,2). Strongest pair drives the sub-test (min
+  // over pairs, mirroring bestBlockP). This null is estimated from the data and
+  // carries the same circularity as the other four — a known, separately-scoped
+  // limitation — but on a wide agreeing set it stays small rather than absorbing
+  // the finding.
+  const PARTIAL_ROW_MIN_COLS = 4;      // k: agreement on ≥4 columns to be a candidate
+  const PARTIAL_ROW_CARD_FRAC = 0.02;  // hold a column out of the prefilter if one value covers >2% of rows
+  const PARTIAL_ROW_MAX_OPS = 20000000; // defensive: bail to neutral if accumulation explodes
+  let partialRowP = 1;
+  let partialRowPairCount = 0;
+  let partialRowSkipped = false;
+  const partialRowLocs = [];
+  if (wrR >= 2 && wrC >= PARTIAL_ROW_MIN_COLS) {
+    const cardCap = PARTIAL_ROW_CARD_FRAC * wrR;
+    const pairAgree = new Map(); // packed (i,j) → count of columns agreed
+    let prOps = 0;
+    for (let c = 0; c < wrC && !partialRowSkipped; c++) {
+      const byVal = new Map();
+      for (let r = 0; r < wrR; r++) {
+        const v = wrMatrix[r]?.[c];
+        if (v == null) continue;
+        const kv = v.toFixed(4);
+        let arr = byVal.get(kv); if (!arr) { arr = []; byVal.set(kv, arr); }
+        arr.push(r);
+      }
+      // Cardinality guard — skip columns dominated by a single value.
+      let maxG = 0;
+      for (const arr of byVal.values()) if (arr.length > maxG) maxG = arr.length;
+      if (maxG > cardCap) continue;
+      for (const arr of byVal.values()) {
+        if (arr.length < 2) continue;
+        for (let a = 0; a < arr.length; a++) for (let b = a + 1; b < arr.length; b++) {
+          const pk = arr[a] * wrR + arr[b];
+          pairAgree.set(pk, (pairAgree.get(pk) || 0) + 1);
+          if (++prOps > PARTIAL_ROW_MAX_OPS) { partialRowSkipped = true; break; }
+        }
+        if (partialRowSkipped) break;
+      }
+    }
+    if (!partialRowSkipped) {
+      const nPairsAll = wrR * (wrR - 1) / 2;
+      const cand = [];
+      for (const [pk, cnt] of pairAgree) {
+        if (cnt < PARTIAL_ROW_MIN_COLS) continue;
+        const i = Math.floor(pk / wrR), j = pk % wrR;
+        const cols = [];
+        for (let c = 0; c < wrC; c++) {
+          const a = wrMatrix[i]?.[c], b = wrMatrix[j]?.[c];
+          if (a != null && b != null && a === b) cols.push(c);
+        }
+        if (cols.length < PARTIAL_ROW_MIN_COLS) continue;
+        let pMatch = 1;
+        for (const c of cols) pMatch *= (wrColHHI[c] || 1);
+        const pAdj = Math.min(1, pMatch * nPairsAll);
+        cand.push({ srcRow: i, dstRow: j, cols, nCols: cols.length, offset: j - i, pAdj });
+      }
+      cand.sort((a, b) => a.pAdj - b.pAdj);
+      partialRowPairCount = cand.length;
+      if (cand.length) {
+        partialRowP = cand[0].pAdj;
+        for (const p of cand.slice(0, 20)) {
+          // Carry raw 0-indexed matrix indices; each surface translates to the
+          // source sheet's own row / column coordinates (the filtered matrix is
+          // internal and the user cannot navigate by it). srcRow/dstRow are
+          // matrix rows, cols are matrix data-column indices.
+          partialRowLocs.push({ type: "partial-row", srcRow: p.srcRow, dstRow: p.dstRow,
+            offset: p.offset, nCols: p.nCols, cols: p.cols });
+        }
+      }
+    }
+  }
+
   // ── Combined flag (S95 Track A 1a) ──────────────────────────────────────────
-  // Four sub-tests matched to METHODOLOGY.md §1.1:
+  // Five sub-tests matched to METHODOLOGY.md §1.1:
   //   Test 1 — value-level collision count (exact binomial on same-value pair count)
   //   Test 2 — identical row vectors (row-dup binomial, h=1 scattered copies)
   //   Test 3 — within-row column-pair coincidences (exact binomial, bin-local null)
   //   Test 4 — block copies (h≥2 contiguous blocks via row-hash / offset / col-segment)
-  // BH-FDR across all 4 raw p-values; combined p = min of adjusted.
+  //   Test 5 — scattered partial-row duplication (subset of cols copied to a distant row)
+  // BH-FDR across all 5 raw p-values; combined p = min of adjusted.
   // Previous regime (`structuralP = min(block, row-dup)`) was not a valid correction.
-  const rawPs = [collisionP, rowDupPValueAdj, withinRowP, bestBlockP];
+  const rawPs = [collisionP, rowDupPValueAdj, withinRowP, bestBlockP, partialRowP];
   const adjPs = bhFDR(rawPs);
   const combinedP = Math.min(...adjPs);
   const flag = flagFromP(combinedP);
 
-  const allLocs=[...rowDupPairs,...withinRowLocs,...crossRowSameColLocs];
+  const allLocs=[...rowDupPairs,...withinRowLocs,...crossRowSameColLocs,...partialRowLocs];
 
   return { name:"Exact Duplicate Detection", category:"copied",
-    description:`Tests for suspicious value repetition. Four sub-tests: (1) value-level collisions (exact binomial on same-value pair count), (2) identical row vectors (row-dup binomial), (3) within-row column-pair coincidences (exact binomial, bin-local null), (4) block copies (\u03A0(HHI_c)^h \u00D7 Bonferroni). BH-FDR on 4. Range ${mn.toFixed(2)}\u2013${mx.toFixed(2)}, precision ${dominantDp}dp \u2192 ${nBins} possible values, p\u2081=${p1.toExponential(2)}.`,
+    description:`Tests for suspicious value repetition. Five sub-tests: (1) value-level collisions (exact binomial on same-value pair count), (2) identical row vectors (row-dup binomial), (3) within-row column-pair coincidences (exact binomial, bin-local null), (4) block copies (\u03A0(HHI_c)^h \u00D7 Bonferroni), (5) scattered partial-row duplication (subset of columns copied to a distant row, \u03A0(HHI_c) \u00D7 all-pairs Bonferroni). BH-FDR on 5. Range ${mn.toFixed(2)}\u2013${mx.toFixed(2)}, precision ${dominantDp}dp \u2192 ${nBins} possible values, p\u2081=${p1.toExponential(2)}.`,
     nBins, nDistinct, isInteger, p1:p1.toExponential(2), p1Source, expectedPerValue:(N*p1).toFixed(2),
     primaryP:combinedP,
     overRepresentedValues:overRepresented.length,
@@ -725,8 +821,11 @@ export function testDuplicates(matrix, fullMatrix, colGroupId, assay) {
     withinRowPairTotal,
     withinRowZ:wrZ.toFixed(2), withinRowP:withinRowP<0.0001?"<0.0001":withinRowP.toFixed(4),
     bestBlockP:bestBlockP<0.0001?"<0.0001":bestBlockP.toFixed(4),
-    // S95 diagnostic: raw numeric p-values [collision, rowDup, withinRow, block]
-    _rawPs:[collisionP, rowDupPValueAdj, withinRowP, bestBlockP],
+    partialRowPairs:partialRowPairCount, partialRowSkipped,
+    partialRowP:partialRowP<0.0001?"<0.0001":partialRowP.toFixed(4),
+    partialRowLocs:partialRowLocs.slice(0,20),
+    // S95 diagnostic: raw numeric p-values [collision, rowDup, withinRow, block, partialRow]
+    _rawPs:[collisionP, rowDupPValueAdj, withinRowP, bestBlockP, partialRowP],
     _wrZ:wrZ,
     wrWithinObs, wrWithinExp:wrWithinExp.toFixed(1), wrWithinRatio:wrWithinExp>0?(wrWithinObs/wrWithinExp).toFixed(1):"\u2014",
     wrCrossObs, wrCrossExp:wrCrossExp.toFixed(1), wrCrossRatio:wrCrossExp>0?(wrCrossObs/wrCrossExp).toFixed(1):"\u2014",

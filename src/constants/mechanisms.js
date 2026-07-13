@@ -172,7 +172,7 @@ export const TEST_DESCRIPTIONS = {
 // One-sentence method descriptions for "How this test works" expandable (Forensics mode)
 export const TEST_METHODS = {
   // --- Copy, Paste, Edit ---
-  'Exact Duplicate Detection': 'Looks for identical values within rows, identical whole rows, and repeated blocks of values, and tests whether they appear more often than they would if the values were shuffled at random (several exact binomial tests, combined). The same duplicate can show up in more than one of them.',
+  'Exact Duplicate Detection': 'Looks for identical values within rows, identical whole rows, repeated blocks of values, and a set of columns copied from one row onto another row somewhere else in the file — no matter how far apart the two rows sit, or which columns were copied — and tests whether they appear more often than they would if the values were shuffled at random (several exact binomial tests, combined). The same duplicate can show up in more than one of them.',
 
   'Sequential Duplication': 'Scans each column for a run of at least three values that reappears further down the same column at a fixed row offset. It prices the run against how often that column repeats its own values, raised to the length of the run, corrected over the range of offsets searched. A run of one repeated value is left to the separate constant-offset and duplicate checks.',
 
