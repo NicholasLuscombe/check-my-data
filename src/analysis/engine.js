@@ -473,7 +473,18 @@ export async function runFullAnalysis(matrix, rawMatrix, condCtx, assay, onProgr
     // permutation null self-handles arbitrary-order baseline; real localised
     // serial structure in the delivered order continues to flag. See
     // METHODOLOGY §2.1b.
-    ["Windowed Autocorrelation",     async () => condSkip("Windowed Autocorrelation","replicate") || dtSkip("Windowed Autocorrelation","replicate") || tagVST(await runPairVST((m) => testWindowedAutocorrelation(m, rng)))],
+    ["Windowed Autocorrelation",     async () => {
+      const cs = condSkip("Windowed Autocorrelation","replicate"); if (cs) return cs;
+      const dt = dtSkip("Windowed Autocorrelation","replicate"); if (dt) return dt;
+      // S317 — thread per-chunk permutation progress through onProgress, the
+      // same wiring Blocked Mahalanobis uses. On the grouped path the fraction
+      // resets per group (cosmetic); the verdict is unaffected.
+      const wacIndex = tests.findIndex(t => t[0] === "Windowed Autocorrelation");
+      const onWacPermProgress = onProgress
+        ? (frac) => onProgress(`${wacIndex+1}/${tests.length} — Windowed Autocorrelation (perms ${Math.round(frac*100)}%)`)
+        : null;
+      return tagVST(await runPairVST((m) => testWindowedAutocorrelation(m, rng, onWacPermProgress)));
+    }],
     ["Runs Test",                    async () => condSkip("Runs Test","distributional") || dtSkip("Runs Test","distributional") || rsSkip("Runs Test","distributional") || tagVST(await runPairVST((m, childCtx) => testRuns(m, childCtx, rng), condCtx))],
     ["Within-Row Variance",          () => {
       const csWR = condSkip("Within-Row Variance","noise"); if (csWR) return csWR;
