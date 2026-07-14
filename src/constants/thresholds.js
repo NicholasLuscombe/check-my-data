@@ -36,6 +36,7 @@ export const EFFECT_SIZE = {
 // Standard p → flag mapping. Tests with extra gates (effect size, direction)
 // apply their gate first, then call this for the p-value decision.
 export function flagFromP(p) {
+  if (!Number.isFinite(p)) return "N/A";
   return p < ALPHA.FLAG ? "HIGH" : p < ALPHA.NOTE ? "MODERATE" : "LOW";
 }
 
