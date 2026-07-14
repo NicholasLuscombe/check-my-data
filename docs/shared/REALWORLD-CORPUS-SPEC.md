@@ -1,6 +1,6 @@
 # Real-World Corpus — Run Spec + Tier-1 Results
 
-**Status:** Tier-1 run and adjudicated (S292–S294). Tier-2 gated on data access (not run). S305: 19 science-detective road-test candidates added to the master status table (§0), triage-stage — the standalone triage scaffold is folded in here and retired. Road-test sweep S305–S314: **six cases adjudicated** (C25, C11, C23, C21, C08, C12). **C12 was retracted by *J Ecology* in May 2026, after our run** — the corpus's second retraction and its clearest exhibit of a High verdict returned for the wrong reason.
+**Status:** Tier-1 run and adjudicated (S292–S294). Tier-2 gated on data access (not run). S305: 19 science-detective road-test candidates added to the master status table (§0), triage-stage — the standalone triage scaffold is folded in here and retired. Road-test sweep S305–S314: **six cases adjudicated** (C25, C11, C23, C21, C08, C12). **C12 was retracted by *J Ecology* in May 2026, after our run.** It was the corpus's clearest exhibit of a High verdict returned for the wrong reason — **and at S316 it became the corpus's clearest exhibit of a defect converted from a miss into a catch.** The copied roots now fire, by design, with the copied columns named. See the C12 §0.3 entry and V1X §2.9.
 **Owner:** Chat (root working doc, not git-tracked — edit main copy directly)
 **Purpose:** Define the real-world run for Check My Data — labelled external datasets with third-party ground truth, an adjudication protocol that distinguishes true detection from false positive without overclaiming intent, and the adjudicated Tier-1 results that become the paper's real-world section.
 
@@ -29,7 +29,7 @@ Single source of truth for corpus membership and lifecycle. Keyed by DOI. Replac
 | C09 | warming / alpine root-leaf traits, *Ecosyst Health Sust* 2025 | 10.34133/ehs.0350 | science-detective | runnable | **yes** | wide, trait×treat *(inf.)* | https://pubpeer.com/publications/103D04A8BB1CC08C6F1364C92CE85E?ref=sciencedetective.org Duplicate values shared between separate replicates of the same species. These values are supposed to have been collected from different individuals in separate pots according to the paper. This number of identical values with so many shared significant digits could never occur in a biological sample. To illustrate I've added two columns:"SLA (calculated)" - which re-calculates SLA using the LA (Leaf area) and LM (Leaf mass) values in the spreadsheet. "SLA diff calc vs actual" which shows the absolute difference between my the original SLA column and the recalculated one. | §2.4 + derived-col gap |
 | C10 | bacterial bioconvection segregation, *Nat Comms* 2025 | 10.1038/s41467-025-56244-8 | science-detective | runnable | no | time-series/spatial *(inf.)* | https://pubpeer.com/publications/2C63CCB86D82CD42D39737240A5025?ref=sciencedetective.org I've been having a look at the supplemental material providing the data for figure 5b, which is available at https://datadryad.org/downloads/file_stream/3516691. In the tab for P. megatetrium Experiment 1, the data for OD 1.0_4 and OD 1.0_5 are mostly made up of the same exact values, but re-ordered so they are in different frames. As these are meant to be two separate videos, this seems almost impossible. Furthermore, if you consult the graph I've attached, you can see that the frame-shifting is very far from random, but largely composed of chunks being shifted around by a few positions (with the exception of early in the sequence, where the shuffling is more comprehensive). The non-duplicate values mostly occur at the beginning or end of these big frame shifts, or again in the early section which is more mixed-up anyway.I am concerned that one of these columns has been created by a manual drag-drop edit of the other, in Excel or in TrackMate software. I don't know enough about TrackMate to know exactly how this has occurred, but it could perhaps be the result of someone doing some manual correction on a run, but then accidentally saving the corrected run over a different run, rather than over the original, leaving an original and shuffled version of the same run? | §2.4 (order-sensitive) |
 | C11 | cystic fibrosis / olfactory expression, *Sci Adv* 2025 | 10.1126/sciadv.ads1568 | science-detective | runnable | no | expression, ID×gene *(inf.)* | https://pubpeer.com/publications/249E1A02E45E405A4861430C12BB0D?ref=sciencedetective.org Looking through the data uploaded on Dryad (https://datadryad.org/dataset/doi:10.5061/dryad.w9ghx3g0p) for cell cycle scores, it appears that there is exact partial duplication of 33 rows of data in the control group. Sequencing sample IDs D571_572_573 and D574_575_576_577 have the exact same values for nCount_RNA, Barcode, barcode_seurat, percent_mito, integrated_snn_res.0.5, seurat_clusters, integrated_snn_res* (4 cols), S.Score, G2M.Score, and Phase (as well as some other columns where single values are common across the dataset). This pattern strongly suggests cells from one sequencing batch (D571, D572, and D573, which appear to be from D571_572_573 based on orig.ident) were copied to another batch (D574, D575, and D577, from D574_575_576_577) with altered metadata. Specifically, D577 is a duplicate of D571, D574 of D572, and D575 of D573. The fact that the cell barcodes are identical between different samples is particularly important - barcodes are meant to be unique identifiers within a sequencing run, and having the same barcode with identical biological measurements across supposedly independent samples is essentially impossible by chance. This duplication calls the comparisons made in the paper between CF and control groups into question. In particular, the duplicated part of the control group has particularly low G2M scores (-0.166, compared with an average of -0.0345 for the G1 sample, which is not duplicated), so their artificial over-representation inflates the effect size and dramatically increases the degree of confidence (p-value reduced by approximately 136x) in the claim that G2M scores are higher in CF than control samples. Furthermore, the very presence of duplicated values violates the independence assumption of the Mann-Whitney test employed. This is just comparing between a control group with and without this duplication: If instead the duplicated data has replaced other data, it is impossible to say how significant the effects on the eventual analysis could have been, and the effect may not exist at all. I note that orig.ident suggests, through use of the "D574_575_576_577" string, that there is a D576 sample. This isn't present at all; this suggests that there was a correct D574_575_576_577 set of samples which has been replaced with a copy of the D571_572_573. Are you able to check how this occurred, remove the duplicated parts of the control group, replace them with the true data if applicable, and perform your analysis again? | §2.4 HIGH |
-| C12 | plant invasions / enemy release, *J Ecology* 2025 — **RETRACTED May 2026** | 10.1111/1365-2745.70059 | science-detective | run | no | wide, factorial *(inf.)* | *(https://pubpeer.com/publications/1FF86EEED4054ECA9E7625F67F79FB?ref=sciencedetective.org* The source data files contain multiple rows where root measurement values seem to have been copy-pasted from other rows, sometimes for observations intended to be from entirely different plant species. There are also many examples where root measurement values are almost identical with only one or two digits changed in some cells, while other values within the same rows remain exact duplicates. Below I’ve compiled 69 such rows from the field survey data available on [Datadryad](https://datadryad.org/dataset/doi:10.5061/dryad.stqjq2cdp) ([2025-3-24-Field_survey.xlsx](https://datadryad.org/downloads/file_stream/4027377), 2nd sheet - ‘Field survey-data’). | §2.4 + near-dup (split) → **outcome: no tweaks (WinRHIZO merge error, author-admitted); join-artefact FP surface; real defect MISSED** |
+| C12 | plant invasions / enemy release, *J Ecology* 2025 — **RETRACTED May 2026** | 10.1111/1365-2745.70059 | science-detective | run | no | wide, factorial *(inf.)* | *(https://pubpeer.com/publications/1FF86EEED4054ECA9E7625F67F79FB?ref=sciencedetective.org* The source data files contain multiple rows where root measurement values seem to have been copy-pasted from other rows, sometimes for observations intended to be from entirely different plant species. There are also many examples where root measurement values are almost identical with only one or two digits changed in some cells, while other values within the same rows remain exact duplicates. Below I’ve compiled 69 such rows from the field survey data available on [Datadryad](https://datadryad.org/dataset/doi:10.5061/dryad.stqjq2cdp) ([2025-3-24-Field_survey.xlsx](https://datadryad.org/downloads/file_stream/4027377), 2nd sheet - ‘Field survey-data’). | §2.4 + near-dup (split) → **outcome S314: no tweaks (WinRHIZO merge error, author-admitted); join-artefact FP surface; real defect MISSED.** **S315: §2.8 removes the FP, does not recover the defect. S316: §2.9 CATCHES IT — 34 copied pairs, all four documented copies, p = 1.03e-22. Class C → Class A.** |
 | C13 | drought / bamboo carbon flux, *J Ecology* 2025 | 10.1111/1365-2745.70060 | science-detective | runnable | **yes** | time-series *(inf.)* | *https://pubpeer.com/publications/84805DBB9C70E24E7E6C4A80F60A43?ref=sciencedetective.org For both the drought treatment and the control group, the three values for 'Leave 13C atom' and 'Branches 13C atom' reported for Day 90 and Day 360 are identical to those from Day 30 (with one exception in cell I126). Similarly, the values for Day 180 are identical to those from Day 15.The R0 values for the '0-15 Soil 13C‰' at 'sample time(d) 1' (-26.813, -27.312, -27.425) are identical to the values reported for the '15-30 Soil 13C‰' at 'sample time(d) 0'. | §2.4 HIGH |
 | C14 | allometric tree growth NE N.Am., *Forest Ecosyst* 2025 | 10.1016/j.fecs.2025.100347 | science-detective | runnable | no | regression/allometry *(inf.)* | https://pubpeer.com/publications/CF1E616990CEA8E228B0FD318D7021?ref=sciencedetective.org *In the dataset accompanying this paper ([Tree-DBH-BA_and_BM_Growth-Data-BySps.xlsx](https://datadryad.org/dataset/doi:10.5061/dryad.t4b8gtjbm) available on Dryad) there are several sequences of trees with duplicated data.*In the above example there are two sequences of 11 rows with identical growth rate, diameter, height and all other numerical data. These rows must be duplicates of the same trees but they are shown as having different stand IDs, activity IDs and plot IDs. There are several other sequence pairs like this, for example rows 696-706&707-718 and rows 4921-4930&4974-4983. | §2.4 HIGH |
 | C15 | N-form acquisition / dominance, *Ecology* 2025 | 10.1002/ecy.70137 | science-detective | runnable | no | wide, species×treat *(inf.)* | https://pubpeer.com/publications/A8F99C33B614E8B23C87A2DC3C3773?ref=sciencedetective.org In the publicly available data for this paper on [Dryad](https://datadryad.org/dataset/doi:10.5061/dryad.bk3j9kdhw), there appear to be several cases in which data is duplicated across entries. Soil concentration of nitrogen forms is identical for plots 4 and 7 and plots 5 and 8 for the species Rhododendron aureum. Leaf concentration values are also the same for several pairs of observations. Notably, the soil concentration values mentioned above and the leaf concentration values for plots 1 and 2 of Pinus_koraiensis, plot 6 of Rhododendron aureum, and plot 4 of Alnus mandshurica appear in the same order, suggesting the possibility of copy-paste errors.Some of these values appear to be outliers within their species. This raises the possibility that the potential errors may have influenced the conclusions reached in the paper. | §2.4 HIGH |
@@ -146,7 +146,7 @@ All 19 triage cases are duplication defects. That is the corpus's dominant fact:
 **Group 1 — exact / block duplication → §2.4 Sequential Duplication fires (the S304 detector).** ~11 cases. Aligned blocks or cross-group copies where whole rows or column-runs recur byte-identical:
 - **C11** cystic fibrosis — 33 rows exact partial dup across sequencing samples, identical barcodes → HIGH.
 - **C13** bamboo — Day 90/360 ≡ Day 30, Day 180 ≡ Day 15 → HIGH.
-- **C14** allometry — two 11-row sequences identical across all numeric columns, different IDs → HIGH, cleanest cross-group block.
+- **C14** allometry — two 11-row sequences identical across all numeric columns, different IDs → HIGH, cleanest cross-group block. **Partial result S316 (not a full run — C14 was loaded as a stress case for §2.9's prefilter).** It fires, and the existing row-duplicate test already flags it: rows 260↔261 are byte-identical across all twelve non-null columns (same tree, same activity year, identical sixteen-digit growth values). **OPEN ADJUDICATION:** whether adjacent identical forestry records are a defect or a legitimate repeated-measures convention. Not a code question — the rows *are* identical and the tool is right to say so. **Also the file that broke the prefilter:** `CROWNCLASS` (5 distinct values over 9,398 rows) generates 16.9 million agreement pairs alone; a categorical code stored as a number. That measurement forced §2.9's cardinality guard. **C14 has not had a proper adjudication run.** Priority — it is now two things at once.
 - **C15** N-form — plot pairs identical across species, same order → HIGH.
 - **C25** Nature Photonics — rows 20–74 ≡ 75–129 → HIGH, textbook block.
 - **C19** leaf-litter — C/N copied between timepoints 3 and 4 → MODERATE.
@@ -757,6 +757,19 @@ Code confirmed at source: **the observed count is correct.** `collisionObs = 268
 
 The other three sub-tests miss by construction, not by baseline error: row-dup needs whole identical rows (the copies are scattered down columns), within-row needs a value repeated across columns in one row (wrong axis), block-copy needs contiguous rectangles (the duplication is a scatter).
 
+**C08's shape, read at source (S316) — and it is NOT C12's.** The two files were assumed to share one defect. They do not, and one read settled it. C08 loads as **350 rows × 3 data columns** (SOD, CAT, LPO). Of its 60,904 row pairs, **not one** is identical across all three columns; only ten agree on even two of three, and those are coincidental. **The copy operation is a value dragged down a single column within a treatment block** — the columns move independently, which is exactly why no two rows line up.
+
+**So C08 and C12 are two different failure modes, and neither fix covers the other:**
+
+| | C08 | C12 |
+|---|---|---|
+| **Are the duplicates found?** | **Yes** — `collisionObs = 268`, exactly right | **No** — count is zero at every sub-test |
+| **What fails** | The null. Empirical HHI from the contaminated column inflates the expectation to ~793, so 268 sits *below* its own baseline | The search. The copy's shape (scattered, single-row, partial-width) is enumerated by no sub-test |
+| **Failure mode** | **Circular null** | **Coverage** |
+| **The fix** | A non-circular collision null | §2.9 scattered partial-row detector (built S316) |
+
+**§2.9 correctly returns zero on C08** — it has no partial-row copies to find. And a fixed collision null would not have helped C12, whose counts are genuinely zero. **Chat's assumption that these were one defect was unsupported and wrong.** The C08 null fix remains open and is its own session — it touches Test 1's collision null, which every file passes through.
+
 `nBins = 1.73×10¹⁹` in the console line is a legacy display field. It feeds no p-value. It invites misreading and should be dropped from the line.
 
 ------
@@ -839,23 +852,58 @@ The defect is real and it is worse than described — whole root vectors, transp
 
 ---
 
-#### Class C — the genuine duplication was not reported
+#### Class C at S314 → Class A at S316. The full arc, in order.
 
-**Duplicated Data flags High (p < 0.0001) — on the wrong thing.**
+This section records a reclassification, and the order matters — each step was a real result, and two of them overturned the step before.
 
-The tool ran on **36 numeric columns**. Eleven of the 47 are text and were dropped, leaving latitude, longitude, soil pH, the root measurements, and **the 19 WorldClim bioclimatic variables** (annual mean temperature through precipitation of the coldest quarter).
+**S314 — Class C. Duplicated Data flags High (p < 0.0001) on the wrong thing.**
 
-The blocks it reports are those. `Rows 1422–1427 = Rows 1475–1480`, columns `[0, 1, 17, 18, 19, …]` — column 0 is **Latitude**, column 1 is **Longitude**. The card's own evidence table shows it: the highlighted columns are Latitude, Longitude, Annual Mean Temperature.
+The tool ran on **36 numeric columns**. Eleven of the 47 are text and were dropped, leaving latitude, longitude, soil pH, the root measurements, and **the 19 WorldClim bioclimatic variables**.
 
-**`dupRows = 0`.** Not one full row is duplicated. The real copies — rows 5↔848, 722↔1182, and the rest — appear nowhere on the card.
+The blocks it reported were those. `Rows 1422–1427 = Rows 1475–1480`, columns `[0, 1, 17, 18, 19, …]` — column 0 is **Latitude**, column 1 is **Longitude**. The card's evidence table showed Latitude, Longitude, Annual Mean Temperature.
 
-**Sequential Duplication: CLEAR.** The test that carried C08 does not fire here.
+**`dupRows = 0`.** Not one full row duplicated. The real copies — rows 5↔848, 722↔1182 and the rest — appeared nowhere. **Sequential Duplication: CLEAR.**
 
-So the tool flags High on a file that genuinely contains the defect, and the evidence it shows is not the defect. A reader following the card lands on a joined climate table. **That is a Class C: the documented duplication was missed, and a true-positive-looking verdict was returned for the wrong reason.**
+> **A verdict that is right by accident is not a detection.** The severity was correct. The evidence was not. A tool that gets the answer right while pointing at the wrong data has not helped anyone.
 
-**And the defect it missed was retraction-grade.** This is not a marginal call. *J Ecology* withdrew the paper over these root measurements. Had Check My Data been run on this deposit in April 2025, it would have raised a High and directed the reader to a merged temperature table. The copied roots — the thing that ended the paper — would have gone unexamined.
+**And the defect it missed was retraction-grade.** *J Ecology* withdrew the paper over these root measurements. Run in April 2025, Check My Data would have raised a High and directed the reader to a merged temperature table.
 
-> **A verdict that is right by accident is not a detection.** C12 is the corpus's sharpest exhibit of that, and it belongs in §5 as such. The severity was correct. The evidence was not. A tool that gets the answer right while pointing at the wrong data has not helped anyone.
+---
+
+**S315 — §2.8 removes the false positive, and the copies stay invisible.**
+
+The group-attribute exclusion (`531e180`) holds out the 21 site-attribute columns cleanly. Exact Duplicate drops HIGH → **LOW, p = 1**. Constant-Offset Blocks collapses from 56,978 blocks to LOW.
+
+**And both duplication tests read p = 1 on the fifteen genuine measurement columns.**
+
+> **The displacement hypothesis is dead.** This entry, and V1X §2.8, argued that the false positive *displaced* the true positive. It did not. **They are independent failures that happened to co-occur.** Fixing applicability does not fix detection.
+
+That was the sharper claim, and it opened the real question: **why does a duplication detector return p = 1 on thirty exact byte-identical row-pairs, with the right columns and nothing in the way?**
+
+---
+
+**S316 — the answer, and the catch. Class A.**
+
+**The copies were never *found*.** The count is zero at every sub-test, so every p-value is 1 by construction and no null is ever reached. The copy's shape is not enumerated:
+
+| Property of the copy | Rules out |
+|---|---|
+| Scattered (426, 460, 843 rows apart) | Block paths — offset cap is 200 |
+| Single row | Block paths — height floor is ≥2 consecutive rows |
+| Partial width (root columns only) | Row-key and hash paths — both need full-row identity |
+
+Test 2 catches scattered **full-width** single rows. Test 4 catches contiguous **partial-width** blocks. **A scattered, single, partial-width copy sits in the one cell neither covers — and that is exactly the shape the WinRHIZO merge error made.** The scan block came across; the plant's own biomass stayed behind; the derived tissue density therefore differs, so the row is not identical across all fifteen columns. **The detector was blind because the defect was real.** A fabricator copying a whole row would have been caught.
+
+**§2.9 (V1X), promoted at `e751523`, catches it.**
+
+- **Exact Duplicate: CLEAR → FLAGGED.** 34 copied pairs; sub-test raw p = **1.03e-22**; combined p = 5.14e-22. The other four sub-tests read ~1 — **the new detector drives the verdict alone.**
+- **All four documented copies recovered by row distance:** 5↔848 (843), 65↔491 (426), 173↔220 (47), 722↔1182 (460). Plus a nine-column pair at 90↔1010.
+- **The copied column set is the same eight every time: T, U, V, W, Y, Z, AA, AB.** **X is missing from the middle of the run** — X is *Root tissue density*, the derived quotient, which did not come across because its numerator stayed behind. **The evidence names the mechanism.**
+- **Hand-verified at source.** Rows 5 and 848 of `Field survey-data` are byte-identical on T (997.3962999999999), U (170.5759), V (0.53325), W (2.455), Y (922.6777999999999), Z (74.3288), AA (134.3313), AB (35.416399999999996), and differ on X. The card's coordinates land on the right cells.
+
+**The arc, stated once:** *documented defect missed → the false positive named → the false positive removed → the true positive still invisible → the displacement thesis retired → the coverage hole found → the copies caught, by design, with the mechanism visible in the evidence.*
+
+**Class A.** The documented defect is now caught, and the evidence points at it.
 
 ---
 
@@ -879,7 +927,7 @@ This is the finding, and it is the one the arc has been waiting for.
 
 *(Counts corrected at S315 against the sheet. Earlier drafts said 24 columns and 22 WorldClim variables; both came from a session summary rather than the file. WorldClim defines 19 bioclimatic variables. §2.8, built at S315 (`531e180`), holds out exactly these 21 — each constant within every level of Region (17 levels) and Site (51 levels) — leaving 15 genuine per-plant measurements. No measurement was wrongly excluded and no climate column was left in.)*
 
-**§2.8 removes the false positive and does not recover the true positive.** With §2.8 on, Exact Duplicate Detection drops from HIGH to **LOW, p = 1**, and Constant-Offset Blocks collapses from 56,978 blocks to LOW. But both duplication tests then read **p = 1 on the 15 real measurement columns** — the ~30 exact byte-identical copied root row-pairs remain invisible. **The false positive did not displace the true positive.** They are independent failures that happened to co-occur. Fixing applicability does not fix detection. That is the sharper claim and it belongs in §5.
+**§2.8 removed the false positive and did not recover the true positive (S315).** With §2.8 on, Exact Duplicate Detection dropped from HIGH to **LOW, p = 1**, and Constant-Offset Blocks collapsed from 56,978 blocks to LOW. But both duplication tests then read **p = 1 on the 15 real measurement columns** — the copied root row-pairs stayed invisible. **The false positive did not displace the true positive.** They are independent failures that happened to co-occur. Fixing applicability does not fix detection. **That opened the coverage question, and §2.9 closed it at S316 — the copies now fire, 34 pairs, p = 1.03e-22. See the Class A section above.** The two remain separate defects, and that separation is the §5 claim.
 
 The engine has no concept of a column that is an attribute of a grouping key rather than a measurement of the row. It reads the join as duplication. What follows:
 
@@ -898,7 +946,9 @@ The engine has no concept of a column that is an attribute of a grouping key rat
 
 This is the same family as the Benford order-of-magnitude gate and the VFS precision-blind baseline: **the statistic is correct; the baseline assumes something about the column that is false.** It is an *applicability* false positive, and it is the largest one the corpus has produced.
 
-It is also the most general. Long-format tables with joined site, subject, or batch attributes are the standard shape of ecological, epidemiological and repeated-measures data. **Any dataset of that shape will light up the same way.** → V1X §2.5.
+It is also the most general. Long-format tables with joined site, subject, or batch attributes are the standard shape of ecological, epidemiological and repeated-measures data. **Any dataset of that shape will light up the same way.** → V1X §2.8 (built S315).
+
+**But this is only one of three failure modes, and C12 demonstrates two of them.** The applicability artefact above is the first. The second is **coverage** — the copied roots, which no sub-test could see (§0.3 Class A section, V1X §2.9). They are independent: fixing the first did not fix the second. The third, **the circular null**, is C08's (below). Three modes, three exhibits, two of them on this file. → V1X §2.8 three-mode table.
 
 ---
 
@@ -913,17 +963,20 @@ Third instance (C25 proteomics on photonics; C21 densitometry on grassland ANPP;
 #### Banked, one line each (known-defect-skip rule)
 
 - **Benford axis-1, fifth instance.** First digit CLEAR at MAD 0.0123 but flagged Marginal; second digit Nonconforming. Computed across a pool that is majority repeated climate constants — the pooling problem, not a digit problem.
-- **`Windowed Autocorrelation — ERROR`**, meanR1 undefined, 0/0 significant. A crash, not an N/A. New; not the C08 VFS crash.
-- **`Entropy / Zipf`: `col undefined` on every one of five evidence rows.** Previously seen on `.xls` (C11) and assumed format-specific. **C12 is `.xlsx`. It is not a format bug.** Promote from the carry roster — it is now reproduced on the majority format.
+- **`Windowed Autocorrelation` returns a verdict from an undefined computation (S316, sharpened).** On the 15-column arm it does not crash — it reports **CLEAR** with `meanR1=undefined pooledT=undefined pooledP=undefined`, `0/105 sig`, and six evidence rows of `r1=undefined`. Earlier read as a crash (S314) and as a stack overflow on the 36-column arm (S315). Both were true of *different arms*. **The 15-column behaviour is worse than either: a clean verdict with no computation behind it.**
+- **`Entropy / Zipf` returns a verdict from an undefined computation (S316, sharpened).** Reports `tested=15 flagged=2 (2 low, 0 high)` — and then five evidence rows of `col undefined: undefined H=undefined exp=undefined ratio=undefined`. **It flagged two columns it cannot name, with no entropy value.** Distinct from the low-priority Entropy label-specificity item already in BANKED (`flaggedCols` field access): that is a *label* not resolving. This is the *statistic* not existing.
+
+> **These two are a defect class the corpus has not named before: a test that returns a verdict without a value.** Not applicability (nothing is misapplied), not coverage (nothing is missed), not a circular null (no null runs). The computation produces `undefined`, and the verdict machinery renders it as a confident CLEAR or a flag count. **A test that cannot compute must say so — N/A or ERROR — never CLEAR.** Reproduced on `.xlsx` (C12) and `.xls` (C11), so not a format bug. → next Windowed-Autocorrelation / Entropy dispatch, read-only first.
 - **Cross-Condition Consistency is slow enough to read as a hang.** ~90 seconds stalled at 13/29 on 2,412 rows with no progress movement. Not a defect; a usability failure. A user will close the tab. Worth a `PERF=1` read.
 - **The battery reports 29 tests; the batch gate is 28 fixtures.** Two different counts, both live. Reconcile at source — the "25" carried until S313 was stale for an arc, and this is the same shape of error waiting to happen.
 - **Methodological move worth stealing (from the PubPeer thread, not the tool).** The commenter's second question — *"Could you please share the original text files exported by WinRHIZO?"* — asked for the artefact **upstream of the assembly**. On a suspected merge error, that request is more decisive than any statistic: it either produces the ground truth or establishes that the ground truth is gone. Here it did the latter, and the paper was retracted. Worth a line in the paper's discussion: forensic statistics identifies *where* to ask; the strongest follow-up is often to ask for the pre-consolidation data.
 
 #### Held, not claimed
 
-- Whether the ~34 exact root-block pairs found at source are the complete set. The scan found pairs sharing 4–8 of 9 root columns; a full census was not run.
-- Whether Sequential Duplication's CLEAR is a threshold miss or a structural one. Not established — the copies are scattered, not sequential, which may be the honest answer.
-- Whether column V (*Root average diameter*) is derived like X. It moves with the pairs that share 7 of 9, but the formula was not confirmed at source.
+- ~~Whether the ~34 exact root-block pairs found at source are the complete set.~~ **RESOLVED S316.** The §2.9 detector finds **34 pairs** at k = 4 — the same number the source scan reached independently. Not a proof of completeness (both could share a blind spot), but two methods agreeing on 34 is the strongest evidence available short of an exhaustive census.
+- **Sequential Duplication's CLEAR is structural, and now confirmed (S316).** The copies are scattered, not sequential; Sequential Duplication requires a run of three or more consecutive same-column values recurring at a fixed offset, with the same 200-row cap. **It cannot see this shape and never could.** The honest answer, as suspected.
+- Whether column V (*Root average diameter*) is derived like X. **Sharpened, not resolved:** V is *in* the copied set (T, U, V, W, Y, Z, AA, AB) in every eight-column pair, so it travels *with* the root block rather than tracking biomass the way X does. That is evidence it is a scanned output, not a derived one — but the formula was still not confirmed at source.
+- **NEW — the nine-column pair at rows 90↔1010.** Agrees on nine columns including L and M, which the eight-column pairs do not share. A different copy event, or a coincidence on top of one. Not adjudicated. One source-read.
 
 #### Source-read reversals this case
 

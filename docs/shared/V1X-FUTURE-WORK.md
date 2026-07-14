@@ -13,7 +13,7 @@ This doc owns the v1.x view. The v1.0 surfaces stay authoritative for their doma
 | Surface | Scope | Status |
 |---|---|---|
 | Methodology gaps (forensics framework) | 6 dimension-attributed coverage gaps | Mirrored from METHODOLOGY-MAP §Gap audit |
-| Test additions (post-v1.0 forensics) | Rectangular Blocked Mahalanobis; genuine-block detection; coherence-cleanup residue; column-localised sequential duplication detector; role/condition inference for real-world column shapes; **test-consistency audit beyond the closed item-28 audit (§2.6)**; arbitrary-offset block duplication detector (§2.7); **group-attribute column recognition — the largest demonstrated false-positive surface in the corpus (§2.8)** | New scope, this doc |
+| Test additions (post-v1.0 forensics) | Rectangular Blocked Mahalanobis; genuine-block detection; coherence-cleanup residue; column-localised sequential duplication detector; role/condition inference for real-world column shapes; **test-consistency audit beyond the closed item-28 audit (§2.6)**; arbitrary-offset block duplication detector (§2.7); **group-attribute column recognition — the largest demonstrated false-positive surface in the corpus (§2.8, BUILT S315)**; **scattered partial-row duplication — the coverage failure mode, exposed by §2.8's outcome (§2.9, BUILT S316)** | New scope, this doc |
 | Variance-estimator unification | Catalogue + scoped sub-refactors | Extends ROADMAP Track F; related to §2.6 (same forced-vs-artefact discipline) |
 | AI Screening mode | Five new tests + mode toggle + reweighting | Restored from S125 chat history |
 | Calibration audits banked | Permutation B=9999; severity-formula diversity metric; Modality plot upgrade | Mirrored from STATUS parked items |
@@ -399,11 +399,11 @@ Shipped at `531e180`. The rule works, and it did **not** do what this section pr
 
 > **The displacement hypothesis is dead.** This section argued that the false positive *displaced* the true positive, and that removing the join would let the copies surface. It does not. **The false positive and the false negative are independent failures that happened to co-occur.**
 
-That is the sharper claim, not the weaker one. Fixing the applicability defect does not fix the detection gap; they are two problems and the corpus now shows both, separately, on the same file. The block detector returning p = 1 on a 2,412-row table containing ~30 exact duplicate row-pairs is **its own defect**, and it is now the open question §2.8 leaves behind.
+That is the sharper claim, not the weaker one. Fixing the applicability defect does not fix the detection gap; they are two problems and the corpus now shows both, separately, on the same file. The block detector returning p = 1 on a 2,412-row table containing ~30 exact duplicate row-pairs is **its own defect** — and §2.8 is what exposed it. **It was closed at S316 (`e751523`); see §2.9.**
 
 **Verified across the transform.** Run four ways (§2.8 on/off × vst raw/log), the duplication verdict is driven entirely by §2.8 and not by the variance-stabilising transform. Severity is 3 in all four arms.
 
-**Left unadjudicated.** Eight HIGH flags survive on the 15 real measurement columns — Benford (first digit), Value-Frequency Spike, Inter-Replicate Correlation. Benford *flips* from second-digit to first-digit when the climate constants leave the pool, which is a live diagnostic and not yet understood. Whether these are further applicability artefacts or genuine signal is the next investigation.
+**Left unadjudicated.** Eight HIGH flags survive on the 15 real measurement columns — Benford (first digit), Value-Frequency Spike, Inter-Replicate Correlation. Benford *flips* from second-digit to first-digit when the climate constants leave the pool, which is a live diagnostic and not yet understood. Whether these are further applicability artefacts or genuine signal is the next investigation. **(Duplicated Data is no longer among them: §2.9 landed at S316 and it now fires on the copied roots, correctly.)**
 
 ---
 
@@ -411,13 +411,108 @@ That is the sharper claim, not the weaker one. Fixing the applicability defect d
 
 > **The statistic is right. The baseline assumes something about the column that is false.**
 
-Benford's order-of-magnitude gate, VFS's precision-blind expected count, within-row trivial-pair counting, and now the whole battery's row-measurement assumption. Four named causes, one frame. **This is the §5 disclosure of the paper, and §2.8 is its largest instance.**
+Benford's order-of-magnitude gate, VFS's precision-blind expected count, within-row trivial-pair counting, and now the whole battery's row-measurement assumption. Four named causes, one frame. **This is the applicability family, and §2.8 is its largest instance.**
+
+**The frame is not the whole of the §5 disclosure — that was corrected at S316.** §2.8's own outcome disproved it. Removing the false positive did not recover the true positive, so the applicability family cannot be the sole account of the tool's failures. **There are three failure modes, not one**, and they are separable because C12 and C08 demonstrate them independently:
+
+| Mode | The statistic | The failure | Exhibit |
+|---|---|---|---|
+| **Applicability** | Right, on the wrong column | The baseline assumes something false about the column | C12's climate join (§2.8); Benford's OOM gate; VFS's precision-blind baseline |
+| **Coverage** | Never runs on the finding | The duplicate's *shape* is not enumerated by any sub-test | C12's copied roots (§2.9) |
+| **Circular null** | Runs, counts correctly, and is absorbed | The expected value is estimated from the contaminated data | C08's Exact Duplicate (25.5% duplicates, p = 1) |
+
+The three are not degrees of one problem. **Applicability produces a verdict on the wrong data. Coverage produces no verdict at all. A circular null produces the wrong verdict on the right data.** They need different fixes, and two of them are now demonstrated on the same file — which is what makes the separation credible rather than asserted. **This — not the four-cause frame alone — is the §5 disclosure.**
 
 **Priority — DONE (S315).** The argument that follows is preserved as the rationale.
 
 **Why it was high:** Long-format tables with joined site, subject or batch attributes are the standard shape of ecological, epidemiological and repeated-measures data. This is not an edge case; it is a *class* of dataset, and the tool currently mis-analyses all of it. The remaining ecology cluster (C07, C09, C15, C16, C20, C22) is held behind this fix and is expected to reproduce the artefact.
 
 **Source:** `REALWORLD-CORPUS-SPEC.md` §0.3 C12 entry (S314), adjudicated at source against `C12.xlsx` sheet `Field survey-data`. Pipeline facts (`engine.js:109` choke point, absent group key, `detectLongFormat` non-firing, batch override absence) from the S315 Code read-only.
+
+---
+
+### 2.9 Scattered partial-row duplication — BUILT S316 (`e751523`)
+
+**What:** A fifth sub-test inside Exact Duplicate Detection. It finds a **set of columns copied from one row onto another row somewhere else in the file** — however far apart the rows sit, and whatever columns were copied.
+
+**Why — and this entry exists because §2.8 disproved its own thesis.**
+
+§2.8 argued that C12's false positive *displaced* its true positive: strip the climate join, and the copied roots would surface. It shipped, it stripped the join correctly, and **the copies stayed invisible.** Both duplication tests read p = 1 on the fifteen genuine measurement columns, with the right data, no transform in the way, and nothing left to displace.
+
+> **That is not an applicability failure.** The statistic is applied correctly to the right columns and returns the wrong answer. The four-cause frame does not reach it.
+
+**The read (S316, `src/tests/duplicates.js`, read-only).** The copies are never *found*. Not found-and-dismissed — the count is **zero at every sub-test**, so every p-value is 1 by construction and no null is ever exercised. `nRowDups === 0 ? 1 : rowDupPValue` short-circuits before the row-vector null is reached.
+
+**Why zero.** The copy has three properties, and each rules out a different detector:
+
+| Property of C12's copy | Rules out |
+|---|---|
+| **Scattered** (426, 460, 843 rows apart) | Block paths — the offset cap is 200 on files over 500 rows |
+| **Single row** | Block paths again — the height floor requires ≥2 consecutive rows |
+| **Partial width** (root-scan columns only) | Row-key and hash paths — both require full-row identity |
+
+Test 2 catches scattered **full-width** single rows. Test 4 catches contiguous **partial-width** blocks. **A scattered, single, partial-width row copy sits in the one cell neither covers.**
+
+**And that is precisely the shape an honest merge error makes.** A WinRHIZO root-scan block dropped onto the wrong plant carries the scanned columns and leaves the plant's own biomass behind — so the derived tissue density (mass ÷ root volume) differs, and the row is no longer identical across all fifteen columns. **The detector was blind because the defect was real.** A fabricator copying a whole row would have been caught.
+
+---
+
+#### The algorithm
+
+For a pair of rows, find the set of columns on which they agree exactly. Score a match when that set is large enough. Three deliberate properties, each the inverse of a rule the existing detectors get wrong: **no offset cap, no block-height floor, no assumption about which columns travel together.**
+
+Naive all-pairs is quadratic. A **prefilter** groups rows by exact value per column; a pair sharing a value earns one agreement; only pairs reaching k agreements go to the exact sub-vector comparison.
+
+**The cardinality guard is load-bearing, and the measurement is why.** A column with five distinct values across nine thousand rows says nothing when two rows match — one row in five agrees by construction. On C14 (9,398 × 14), `CROWNCLASS` (five distinct values, largest group 4,804 rows) generates **16.9 million agreement pairs by itself**; total accumulation reaches 36 million, 0.82× the naive all-pairs count, and overflows the map. It does not build.
+
+So a column enters the prefilter **only** if its largest value-group covers less than a threshold fraction of the rows. Excluded columns still count in the agreeing set and the null — they simply generate no candidates.
+
+Chat's prior was that unrelated rows rarely agree on four continuous measurements by chance. **True, and irrelevant** — C14's blowup is a *categorical code stored as a number*, not a continuous measurement. The prefilter was specified against the wrong mental model of the data, and only the measurement caught it.
+
+#### Constants, chosen on the sweep
+
+- **Cardinality threshold = 2% of rows.** C14 builds in ~20 ms at 2%; 254 ms at 5%; 955 ms at 10%, with no benefit. Every C12 copy survives at every threshold — the copied root columns are high-cardinality and never held out. This is a **performance-chosen constant** and should be recorded as one: no statistical argument selects 2% over 3%.
+- **k = 4 agreeing columns.** C12 yields 34 survivors against ~30 real copies (k=3 admits coincidental agreements; k=6 undercounts). **k does not change the verdict** — the flag is driven by the single strongest pair — so it controls evidence-list length and prefilter cost, not severity.
+
+#### The null
+
+For a pair agreeing on set S, `pMatch = Π wrColHHI[c]` over S, Bonferroni-corrected by the all-pairs search volume. Consistent with the row-vector null already in the file.
+
+**It is estimated from the data, and therefore carries the same circularity as the other four.** That is the third failure mode (see §2.8's table) and it is *not* fixed here. It did not bite on C12 — the raw p is 1.03e-22, nowhere near absorption — but the exposure is real and C08 is where it does bite. Do not read C12's success as evidence the null is sound.
+
+---
+
+#### Outcome — C12 (S316)
+
+**Exact Duplicate: CLEAR → FLAGGED.** 34 copied pairs, sub-test raw p = 1.03e-22, `combinedP` = 5.14e-22 after BH-FDR. The other four sub-tests read ~1: **the new detector drives the verdict alone.**
+
+**All four documented copies recovered, by row distance:** rows 5↔848 (843 apart), 65↔491 (426), 173↔220 (47), 722↔1182 (460) — plus a nine-column pair at 90↔1010.
+
+**The copied column set is the same eight in every pair: T, U, V, W, Y, Z, AA, AB** — root length, surface area, average diameter, volume, fine and coarse root length, fine and coarse surface area. **X is conspicuously absent from the middle of the run.** X is *Root tissue density*, the derived quotient. It did not come across because it is computed from a biomass that stayed behind. **The evidence names the mechanism.**
+
+**Hand-verified against the spreadsheet.** Row 5 and Row 848 of `C12.xlsx` sheet `Field survey-data` are byte-identical on T (997.3962999999999), U (170.5759), V (0.53325), W (2.455), Y (922.6777999999999), Z (74.3288), AA (134.3313), AB (35.416399999999996), and differ on X (0.291… vs 0.358…). The card's coordinates land on the right cells.
+
+**Quiet where it should be.** C08: zero survivors, no false positive (its duplicates run *down columns*; no partial-row copy exists to find). C11 (16,657 rows, the largest file): zero survivors, 114 ms.
+
+**C14 fires — and it is a true positive Chat did not anticipate.** Rows 260↔261 are byte-identical across all twelve non-null columns (same tree, same activity year, identical sixteen-digit growth values). The existing row-duplicate test already flagged it. **Open adjudication:** whether adjacent identical forestry records are a defect or a legitimate repeated-measures convention is a corpus question, not a code one. The detector's behaviour is correct either way — the rows *are* identical.
+
+---
+
+#### What it produces for the reader
+
+The evidence surface renders the pair stacked: Row 5 above Row 848, the eight agreeing columns highlighted, the column that differs left plain. **A reader who knows nothing about Herfindahl nulls can look at it and see what happened** — someone pasted a root scan onto the wrong plant, and the one number that was *computed* rather than *copied* gave it away.
+
+That is the thing statcheck and GRIM structurally cannot do. They operate on summary statistics; there is nothing to point at. **This points at cells** — two rows, eight columns, at coordinates the reader can verify by hand in their own spreadsheet, as we did. It belongs in the paper's argument for raw-data forensics, not only in its results.
+
+---
+
+#### Carried, not fixed
+
+- **The §4 handoff composer still says "4 sub-tests."** `findingComposers.js` is a DS14-locked zero-diff anchor and Code correctly refused to break the lock to satisfy the dispatch. The count is now wrong. Needs its own dispatch with the lock **re-baselined deliberately**, not broken.
+- **The circular null.** Untouched here, and it is C08's defect. See §2.8's three-mode table and the C08 entry in `REALWORLD-CORPUS-SPEC.md` §0.3.
+
+**Source:** S316 — read-only on `src/tests/duplicates.js` and the C08 shape read; build, surfacing, coordinate fix and count fix promoted at `e751523` (three commits: `ae06ba8`, `0dd4df7`, `bb76b6b`). Hand cross-check against `C12.xlsx` recorded above.
+
 ---
 
 ## 3. Variance-estimator unification
@@ -694,6 +789,8 @@ When updating these surfaces, edit the source-of-truth first and mirror here.
 | Role / condition inference for real-world column shapes (§2.5) | This doc | Single source; finding sourced from S292 corpus run + S292-ROLE-INFERENCE-SCOPE (Code read-only) |
 | Test-consistency audit beyond item 28 (§2.6) | This doc | New scope adjacent to the *closed* condition-pooling integrity audit (item 28, archived `docs/shared/archive/TEST-INTEGRITY-AUDIT.md`); covers three CORPUS-03-demonstrated axes that audit's predicate didn't reach. Sourced from S293 CORPUS-03 adjudication + the S293 Code read of the closed audit. |
 | Arbitrary-offset block duplication detector (§2.7) | This doc | Single source; opened S299 from the §2.6 under-determination finding. Distinct from §2.4 (one-column axis) and §2.1/§2.2 (block-Mahalanobis regime, not identical values). Must not be welded onto §2.6. |
+| Group-attribute column recognition (§2.8) | This doc | Single source; BUILT S315 (`531e180`). Its outcome disproved its own displacement thesis and opened §2.9. |
+| Scattered partial-row duplication (§2.9) | This doc | Single source; BUILT S316 (`e751523`). The coverage failure mode. Opened by §2.8's outcome, not predicted by it. |
 | AI Screening mode (§4) | This doc | Single source. Original S125 chat history preserved as reference but no longer load-bearing. |
 | Permutation B = 9999 (§5.1) | STATUS parked #8 | Mirror |
 | Severity-formula diversity metric (§5.2) | This doc | Primary scope; pairs with §5.5 |
