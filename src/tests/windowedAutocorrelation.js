@@ -1,4 +1,4 @@
-import { bhFDR } from "../stats/primitives.js";
+import { bhFDR, arrayMin } from "../stats/primitives.js";
 import { flagFromP } from "../constants/thresholds.js";
 
 /* 25. Windowed Autocorrelation
@@ -154,8 +154,12 @@ export function testWindowedAutocorrelation(matrix, rng) {
     pairUnits.forEach((u, i) => { u.adjP = pairAdjPs[i]; });
   }
 
-  // Primary statistic: min per-pair adj-p across all pairs.
-  const minAdjP = Math.min(...windowUnits.map(u => u.adjP));
+  // Primary statistic: min per-pair adj-p across all pairs. arrayMin, not
+  // Math.min(...spread): windowUnits scales as pairs × windows and on a wide
+  // matrix (36 cols → ~300k units) the spread overflows V8's argument stack
+  // ("Maximum call stack size exceeded"). arrayMin loops with no per-element
+  // stack push and returns the identical minimum.
+  const minAdjP = arrayMin(windowUnits.map(u => u.adjP));
   const primaryP = minAdjP;
   const flag = flagFromP(primaryP);
 
