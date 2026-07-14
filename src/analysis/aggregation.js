@@ -41,7 +41,7 @@ async function aggregatePerGroup(testFn, groups, parentCondCtx) {
   const perGroup=[];
   for (const g of groups) {
     const childCtx = parentCondCtx ? parentCondCtx.forSubMatrix(g) : null;
-    const r=testFn(g.matrix, childCtx);
+    const r=await testFn(g.matrix, childCtx);   // await: testFn may be async (Windowed Autocorrelation, §S317); no-op for sync tests
     // Remap row numbers when group is a row-subset (row-condition stratification).
     // Tests report rows as 1-indexed within the matrix they receive. When the matrix
     // is a row subset, map back to original dataset row numbers.

@@ -22,6 +22,20 @@ const STRIDE = 5;
 const MIN_ROWS = 30;
 const DETAILS_CAP = 30;
 
+// S317 — host-yield cadence for the permutation loop, adopting the Blocked
+// Mahalanobis approach (§S169) but at the PAIR boundary, not inside the inner
+// permutation loop. Windowed's hot loop is nested (pairs → permutations →
+// windows); an await placed inside it deopts V8's optimisation of the whole
+// loop, a ~60% tax measured on every file. Yielding between pairs keeps the
+// inner loops fully synchronous. PERM_CHUNK counts permutation iterations
+// GLOBALLY across pairs so yield frequency tracks total work, not pair count;
+// a pair contributes N_PERM iterations, so on a wide file (~630 small pairs)
+// this yields about once every four pairs — ~50ms spans at the measured
+// ~24µs/perm. A single very large pair (few columns, very many rows) still
+// runs to completion before yielding — pair-granularity is the trade.
+const PERM_CHUNK = 2000;
+const yieldToHost = () => new Promise(r => setTimeout(r, 0));
+
 /**
  * Compute lag-1 Pearson r on a window of values, given its mean and
  * centred sum-of-squares. Zero-variance windows return 0.
@@ -53,7 +67,7 @@ function windowStats(values, start, end) {
  * @returns {object} result with name/category/flag/primaryP/details etc.
  * @see METHODOLOGY.md §"2.1b Windowed Autocorrelation"
  */
-export function testWindowedAutocorrelation(matrix, rng) {
+export async function testWindowedAutocorrelation(matrix, rng, onPermProgress = null) {
   const NAME = "Windowed Autocorrelation";
   const CAT = "replicate";
   const nR = matrix.length, nC = matrix[0]?.length || 0;
@@ -70,6 +84,9 @@ export function testWindowedAutocorrelation(matrix, rng) {
   const windowUnits = []; // { pair, pairIdx, startRow, endRow, winIdx, r, absR, rawP, adjP? }
   const nWindowsByPair = [];
   let pairIdx = -1;
+  let permsSinceYield = 0;                                // perms accumulated since the last host yield
+  let permsDone = 0;                                      // global perm-iteration counter (progress fraction)
+  const totalPermEstimate = (nC * (nC - 1) / 2) * N_PERM; // upper bound for the progress fraction
 
   for (let c1 = 0; c1 < nC; c1++) for (let c2 = c1 + 1; c2 < nC; c2++) {
     // Collect (matrixRow, diff) pairs for non-null rows in this pair.
@@ -129,6 +146,20 @@ export function testWindowedAutocorrelation(matrix, rng) {
       });
     }
     nWindowsByPair.push(numWin);
+
+    // S317 — yield to host at the pair boundary once ~PERM_CHUNK permutations
+    // have accumulated. The inner permutation/window loops above stayed fully
+    // synchronous, so no deopt; rng.shuffle has fully advanced for every perm
+    // of this pair, and the next pair's draws are deterministic regardless of
+    // resume timing, so bit-exact parity with the sync loop holds (the engine
+    // awaits this test sequentially).
+    permsDone += N_PERM;
+    permsSinceYield += N_PERM;
+    if (permsSinceYield >= PERM_CHUNK) {
+      permsSinceYield = 0;
+      if (onPermProgress) onPermProgress(permsDone / totalPermEstimate);
+      await yieldToHost();
+    }
   }
 
   if (!windowUnits.length) {
