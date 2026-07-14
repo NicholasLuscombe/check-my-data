@@ -195,12 +195,28 @@ function prepStructure(raw, conditionsHint) {
 }
 
 // Generic per-test evidence dump — no per-test formatting (deferred to v2).
+// Granularity: on a result that went through aggregatePerGroup (row- or
+// column-grouped dispatch), the per-unit records live in subDetails and
+// top-level details holds the per-group summary; on an unaggregated result the
+// per-unit records are in details and there is no subDetails. `groupsAssessed`
+// is the aggregation marker (set only by aggregatePerGroup) — the same
+// discriminator localization.js/convergence.js/ReportView use. Emit the
+// per-unit records as `details` either way, and, when aggregated, surface the
+// per-group summary separately so a reader can still see which condition
+// carried the finding.
 function evidenceOf(r) {
   const ev = {};
-  if (Array.isArray(r.details) && r.details.length) {
-    ev.detailsCount = r.details.length;
-    ev.details = r.details.slice(0, EVIDENCE_DETAIL_CAP);
-    if (r.details.length > EVIDENCE_DETAIL_CAP) ev.detailsTruncated = true;
+  const isAgg = !!r.groupsAssessed;
+  const perUnit = isAgg ? r.subDetails : r.details;
+  if (Array.isArray(perUnit) && perUnit.length) {
+    ev.detailsCount = perUnit.length;
+    ev.details = perUnit.slice(0, EVIDENCE_DETAIL_CAP);
+    if (perUnit.length > EVIDENCE_DETAIL_CAP) ev.detailsTruncated = true;
+  }
+  if (isAgg && Array.isArray(r.details) && r.details.length) {
+    ev.groupSummaryCount = r.details.length;
+    ev.groupSummary = r.details.slice(0, EVIDENCE_DETAIL_CAP);
+    if (r.details.length > EVIDENCE_DETAIL_CAP) ev.groupSummaryTruncated = true;
   }
   if (Array.isArray(r.flaggedRowIndices) && r.flaggedRowIndices.length) {
     ev.flaggedRowCount = r.flaggedRowIndices.length;
