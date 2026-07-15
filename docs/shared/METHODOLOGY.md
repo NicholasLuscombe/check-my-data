@@ -267,6 +267,46 @@ Suppressed sub-units are reported on the test result object as `subunitsSuppress
 
 ---
 
+## Condition Grouping Contract (v1.x, S318)
+
+**This section defines what a condition is, for every test that groups rows by condition.** It sits upstream of the battery, in the same engine layer as the Row Semantics Gate. Every row-grouped test — §1.9 Cross-Condition Consistency, §2.4 Row-Mean Runs, §2.6 Mahalanobis Row Outlier, §3.6/§3.7/§3.8 the distribution-shape trio, and any test dispatched through `condCtx.rowGroups()` — inherits this contract. It states an assumption the tool cannot check from the data, and says what the tool must do when it cannot check it.
+
+**Motivation.** The permutation nulls in the row-grouped tests all rest on one assumption: **conditions are exchangeable at the row level.** Rows within a condition are interchangeable draws from the same distribution, so shuffling condition labels across rows generates a valid null. This assumption is true when a condition is an experimental *arm* — a level of a variable the experiment manipulated or contrasted. It is false when the grouping variable is a *stratum* — a label recording where a row came from. The two are indistinguishable in a spreadsheet, and the tool cannot tell them apart. This section states that limit plainly.
+
+**Factor versus stratum.**
+
+- **A factor** is a variable the experiment manipulated or contrasted: Treatment, Genotype, Warming, Origin. Its levels are **arms**. Rows within an arm are exchangeable under the null. Grouping by a factor is what the permutation nulls are built for.
+
+- **A stratum** is a label recording *where a row came from*: Plot, Pair, Site code, Species name, Block, Subject ID. Its levels are **addresses**, not arms. A stratum partitions the data, but its levels are not draws from a common distribution — they carry the very structure (spatial, taxonomic, individual) the forensic tests exist to distinguish from fabrication.
+
+**The distinction is not in the file.** Whether a column is a factor or a stratum is a fact about the experimental design. It lives in the paper's methods section, not in the data. In a spreadsheet, both appear the same way: short repeated strings in a non-numeric column, or small-cardinality integer codes. **Role inference cannot recover the distinction, because the information is not present to recover.** Any rule the tool applies here — a cardinality threshold, a header-keyword list, a group-size floor — is a heuristic standing in for knowledge the tool does not have.
+
+**Merging condition columns is not free.** The engine forms the grouping key as the joined concatenation of *every* column role inference tags `condition` — the Cartesian product of all of them. This is defensible only when the columns are genuinely crossed factors, each cell a real arm:
+
+- `Treatment × Genotype` on a 2×2 factorial is a valid key. Each of the four cells is an experimental arm with replicate rows, and those rows are exchangeable under the null.
+- `Species × Plot × Pair × Code × Origin` is **not a key at all**. It is a row address. The product of five metadata columns produces one tiny group per unique address — dozens or hundreds of groups of a few rows each, none of them an arm.
+
+**The tool cannot verify that condition columns are crossed factors** any more than it can verify that a single column is a factor. Merging inherits the same limit as tagging, one level up.
+
+**The contract.**
+
+1. **A valid condition grouping requires exchangeable rows within each group.** The tests assume it; the assumption is real; the tool cannot confirm it from the data. Where it cannot be confirmed, the tool must not present a row-grouped verdict as if the assumption held.
+
+2. **Grouping that produces no usable structure must say so.** When the grouping key is unique or near-unique per row — every group a singleton, or the group count approaching the row count — `rowGroups()` returns null and the row-grouped tests fall through to their ungrouped path or return N/A. **The output must announce that grouping produced nothing.** A silent fall-through renders as a clean verdict on a file the grouped tests never assessed. This is the same failure as a test that returns a null p-value without counting anything: a confident answer from an unexamined input. Announcing the empty grouping converts a silent false clear into an honest "not assessed." This holds unconditionally, independent of everything below.
+
+3. **Where the grouping cannot be validated from the data, the tool asks rather than asserts.** The honest resolution is to show the user the columns inference has tagged as conditions, the resulting group count, and the group sizes, and to let them confirm or correct before the row-grouped tests run — *"These seven columns produce 132 groups of about 18 rows each. Is that your experimental design?"* When the answer is no, as it usually is for merged strata, the user corrects it instantly from knowledge the file does not carry. Every alternative — a fixed cardinality rule, a group-count cap, an inferred factor set — is the tool asserting a fact about the experimental design that it cannot read. Asserting knowledge it does not have is precisely the failure this battery exists to catch in others.
+
+**What the tool must not do.**
+
+- **Do not cap the group count and proceed.** A cap makes an incoherent computation run fast. It does not make it coherent, and it hides the finding that the grouping was wrong.
+- **Do not treat "the permuted null absorbs the structure at high group counts" as a defence.** Reassigning labels across many tiny strata may approximately preserve the marginal, which would neutralise the very structure the test exists to detect. This is plausible, untested, and circular-null-adjacent. It is not a licence to run the tests on merged strata.
+
+**Status.** The contract is stated; the enforcement is staged. Point 2 (announce empty grouping) is the cheapest correct change and lands first. Point 3 (confirm the grouping with the user) is a user-interface change and the real resolution. Point 1 is the principle both serve. Until enforcement lands, row-grouped verdicts on files whose condition columns are merged strata are **not interpretable** and must not be reported as findings — see the corpus census in `V1X-FUTURE-WORK.md` §2.10 for the affected files.
+
+**Cross-reference.** `V1X-FUTURE-WORK.md` §2.10 (the corpus census, the mechanism at source, and the option analysis); §2.5 (the mirror defect — columns inference fails to recognise *as* conditions, the same factor/stratum boundary seen from the other side); §1.9 Known Limitations (the exchangeability statement this contract qualifies).
+
+---
+
 ## 1. Structural Anomaly Detection
 
 ### 1.1 Exact Duplicate Detection
@@ -516,6 +556,7 @@ Removed from the test battery. Zero detections across 18 validation datasets and
 10. **Known limitations.**
 
     - **Paired / matched designs.** The permutation null assumes condition labels are exchangeable across rows. Paired or matched designs violate this; interpretation on such datasets is suspect.
+    - **Merged strata as conditions.** The same exchangeability assumption fails when the grouping key is the Cartesian product of metadata columns (Plot, Pair, Species, Site code) rather than experimental arms. The tool cannot distinguish a factor from a stratum from the data alone. See the **Condition Grouping Contract** section above: where the grouping cannot be validated, the row-grouped verdict is not interpretable and must not be reported as a finding. This affects half the row-grouping corpus (`V1X-FUTURE-WORK.md` §2.10).
     - **Legitimate condition differences on non-forensic directions.** A treatment that genuinely shifts location or scale will produce large inter-condition distances on location/scale properties in the "different" direction. Under the forensic-direction filter these render as informational rows, not flags — by design. Convergence with other Dim IV tests (Spearman CCR, Baseline Balance) is required for interpretation.
     - **Row-matched near-duplicates across conditions** are not detected at the framework level (separate planned test per METHODOLOGY-MAP §Gap audit).
     - **Single-channel severity ceiling.** Per §Permutation-Test Arithmetic Constraints, the test cannot flag HIGH on its own. Severity 3 on inheritance-style fabrications requires convergence with other Dim IV tests or cross-dimension convergence.
