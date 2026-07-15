@@ -28,8 +28,7 @@ const isFlaggedVerdict = result.flag !== "LOW" && result.flag !== "N/A";
 const HL = isFlaggedVerdict
   ? { text: CC.THRESH, bg: SIGNAL.RED.bg, edge: SIGNAL.RED.dot }
   : { text: C.TEXT, bg: C.BG_L, edge: C.BORDER };
-// PLACEHOLDER significance wording — Chat to finalise per surface (the noun
-// differs: "blocks" / "copied pairs" / "value-pairs").
+// Chat-confirmed final wording (S318). Shown once per surface at the test level.
 const SIG_NOTE = "not statistically significant";
 const wrTotal = result.withinRowMatches || 0;
 const withinDups = result.withinRowLocs || [];
@@ -191,7 +190,7 @@ return (
       <div style={{...LEAD_HEAD, marginBottom: BLOCK_GAP_TIGHT}}>
         Duplicated blocks of data
         {blockCountClause && <span style={{fontWeight: FW.NORM, color: C.TEXT_2}}> — {blockCountClause}</span>}
-        {/* S318 — test-level significance, stated once (PLACEHOLDER — Chat). */}
+        {/* S318 — test-level significance, stated once (Chat-confirmed wording). */}
         {!isFlaggedVerdict && <span style={{fontWeight: FW.NORM, color: C.TEXT_3}}> — {SIG_NOTE}</span>}
       </div>
       <EvidenceBlock lead>
