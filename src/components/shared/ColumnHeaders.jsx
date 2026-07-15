@@ -235,8 +235,13 @@ export function ColumnHeaders({
           if (vc && !vc.keep.has(ci)) {
             if (ellN) return null;
             ellN = true;
+            // S318 — per-gap span, not the table-wide total. `vc.omitted` prints
+            // the same total at every gap (the "···110 cols" repeat on scattered
+            // highlights); count the consecutive omitted columns in THIS gap.
+            let gap = 0;
+            for (let k = ci; k < columns.length && !vc.keep.has(k); k++) gap++;
             return <th key="ell" style={{ ...BB, ...TH_EVIDENCE, padding: "8px 8px 6px", color: C.TEXT_3, background: showRoleBadge ? C.WHITE : C.BG_L,
-              ...stickyRow(nameTop, 4), ...compactPad }}>⋯{vc.omitted} cols</th>;
+              ...stickyRow(nameTop, 4), ...compactPad }}>⋯{gap} cols</th>;
           }
           ellN = false;
           const isHl = hl.has(ci);
