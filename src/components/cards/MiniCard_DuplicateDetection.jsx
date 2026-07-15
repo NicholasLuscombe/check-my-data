@@ -138,7 +138,7 @@ const DataRow = ({ri, highlightCols=[], colorMap={}, bg=C.WHITE, visCols=null}) 
         if(vc && !vc.keep.has(ci)) {
           if (insertedEllipsis) return null;
           insertedEllipsis = true;
-          return <td key="ell" style={{...TD_ID_CELL,color:C.TEXT_3}}>⋯</td>;
+          return <td key={`ell${ci}`} style={{...TD_ID_CELL,color:C.TEXT_3}}>⋯</td>;
         }
         insertedEllipsis = false;
         const cm = colorMap[ci];
