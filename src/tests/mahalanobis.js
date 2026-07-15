@@ -169,6 +169,7 @@ export function testMahalanobisOutlier(matrix, assay='general') {
   const gated = exceedFrac < 2 * ALPHA_BIN;
   if (nOut === 0) flag = "LOW";              // S126b add-5b — no per-row evidence → CLEAR
   else if (gated) flag = "LOW";              // dataset-level rate too low to be meaningful
+  else if (!Number.isFinite(binomP)) flag = "N/A"; // S320 — non-finite stat never renders as a verdict
   else if (binomP < ALPHA.FLAG) flag = "HIGH";
   else if (binomP < ALPHA.NOTE) flag = "MODERATE";
   else flag = "LOW";

@@ -371,7 +371,7 @@ export function testKurtosis(matrix, condCtx, rng) {
   const directionalSuppress = kurtDeviation >= 0;
   const effectSizeSuppress = Math.abs(kurtDeviation) < adaptiveThreshold;
   const esGate = directionalSuppress || effectSizeSuppress;
-  const flag = esGate ? "LOW" : flagFromP(pooledP);
+  const flag = !Number.isFinite(pooledP) ? "N/A" : (esGate ? "LOW" : flagFromP(pooledP));
 
   // ── Condition-stratified kurtosis ──────────────────────────────────────
   // When condition labels are present, compute per-condition κDev using the

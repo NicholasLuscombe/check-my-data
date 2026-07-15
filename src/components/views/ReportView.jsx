@@ -224,8 +224,17 @@ export function ReportView({ results, importConfig, matrix, rowMap, onBack, onCh
           lines.push(`  ${flagLabel(r.flag).padEnd(8)} ${r.name}${detail}`);
           continue;
         }
+        // -- Windowed Autocorrelation (own template; exact-match so it no longer
+        //    falls into the Autocorrelation branch and prints an absent pooledP) --
+        if(r.name==="Windowed Autocorrelation"){
+          detail+=` primaryP=${r.primaryP} sig=${r.nSig05||0}/${r.nWindowsTotal||0} (${r.nSig01||0} @ .01) pairs=${r.nPairs} win=${r.windowSize}/${r.stride} nPerm=${r.nPerm}`;
+          lines.push(`  ${flagLabel(r.flag).padEnd(8)} ${r.name}${detail}`);
+          const wDetails = r.groupsAssessed ? (r.subDetails||[]) : (r.details||[]);
+          for(const d of wDetails.filter(d=>d.significant).slice(0,3)) lines.push(`           window: ${d.group?d.group+" ":""}${d.pair||"?"} rows ${d.rows??"?"} r=${d.r??"?"} adjP=${fmtP(d.adjP)}`);
+          continue;
+        }
         // -- Autocorrelation --
-        if(r.name?.includes("Autocorrelation")){
+        if(r.name==="Autocorrelation"){
           detail+=` meanR1=${r.pooledMeanR1} pooledT=${r.pooledT} pooledP=${r.pooledP} ${r.nSignificant||0}/${r.nPairs||0} sig`;
           lines.push(`  ${flagLabel(r.flag).padEnd(8)} ${r.name}${detail}`);
           if(r.decayCurve?.length) lines.push(`           decay: ${r.decayCurve.slice(0,5).map(v=>v.toFixed(3)).join(", ")}...`);
@@ -338,8 +347,16 @@ export function ReportView({ results, importConfig, matrix, rowMap, onBack, onCh
           }
           continue;
         }
+        // -- Blocked Mahalanobis (own template; exact-match so it no longer falls
+        //    into the Mahalanobis Row Outlier branch and prints absent binomP/nCols) --
+        if(r.name==="Blocked Mahalanobis"){
+          detail+=` primaryP=${r.primaryP} conds=${r.nConditions} units=${r.nUnits} nWin=${r.nWindowsTotal} win=${r.windowSize}/${r.stride} nPerm=${r.nPerm}`;
+          lines.push(`  ${flagLabel(r.flag).padEnd(8)} ${r.name}${detail}`);
+          for(const d of (r.details||[]).filter(d=>d.significant).slice(0,3)) lines.push(`           block: ${d.pass||""} ${d.condition||"?"} rows ${d.rows??"?"} ${d.statType||""}=${d.stat??"?"} adjP=${fmtP(d.adjP)}`);
+          continue;
+        }
         // -- Mahalanobis Row Outlier --
-        if(r.name?.includes("Mahalanobis")){
+        if(r.name==="Mahalanobis Row Outlier"){
           const outlierSource = r.groupsAssessed ? (r.subDetails||[]) : (r.details||[]);
           const mTotalOut = outlierSource.filter(d => d.Distance !== undefined).length;
           const mTotalRows = r.groupsAssessed && r.details?.length

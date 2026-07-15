@@ -211,7 +211,7 @@ export function testColumnGof(matrix, rng, dataType) {
 
   const primaryP = Math.min(...adjPs);
   const flaggedCols = tested.filter(c => c.flag === "HIGH" || c.flag === "MODERATE");
-  const flag = flaggedCols.length > 0 ? flagFromP(Math.min(...flaggedCols.map(c => c.adjP))) : "LOW";
+  const flag = !Number.isFinite(primaryP) ? "N/A" : (flaggedCols.length > 0 ? flagFromP(Math.min(...flaggedCols.map(c => c.adjP))) : "LOW");
 
   const nHigh = tested.filter(c => c.direction === "high" && (c.flag === "HIGH" || c.flag === "MODERATE")).length;
   const nLow  = tested.filter(c => c.direction === "low"  && (c.flag === "HIGH" || c.flag === "MODERATE")).length;

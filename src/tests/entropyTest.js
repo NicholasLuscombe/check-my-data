@@ -139,7 +139,7 @@ export function testEntropy(matrix, rng, dataType) {
   const nFlagged = tested.filter(c => c.flag === "HIGH" || c.flag === "MODERATE").length;
 
   // Test-level flag: require ≥1 column with meaningful effect size
-  let flag = nFlagged > 0 ? flagFromP(Math.min(...tested.filter(c => c.flag !== "LOW").map(c => c.adjP))) : "LOW";
+  let flag = !Number.isFinite(primaryP) ? "N/A" : (nFlagged > 0 ? flagFromP(Math.min(...tested.filter(c => c.flag !== "LOW").map(c => c.adjP))) : "LOW");
 
   const nLow = tested.filter(c => c.direction === "low" && (c.flag === "HIGH" || c.flag === "MODERATE")).length;
   const nHigh = tested.filter(c => c.direction === "high" && (c.flag === "HIGH" || c.flag === "MODERATE")).length;
