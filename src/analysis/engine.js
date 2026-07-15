@@ -345,7 +345,18 @@ export async function runFullAnalysis(matrix, rawMatrix, condCtx, assay, onProgr
     ["Value-Frequency Spike",        () => testValueFrequencySpike(matrix, rawMatrix)],
     // --- Copy, Paste, Edit ---
     ["Inter-Replicate Correlation",  () => condSkip("Inter-Replicate Correlation","distributional") || dtSkip("Inter-Replicate Correlation","distributional") || testPearsonUniformity(matrix, condCtx.slices(), rng, rowSemantics)],
-    ["Duplicate Detection",          async () => await runPair((m) => testDuplicates(m, matrix, wrColGroup, assay))],
+    // S318 — under conditions-mode (non-replicates) each data column is its own
+    // single-column group, so runPair's aggregate branch would slice DupDet
+    // per-column. On a one-column slice the full-row key degenerates to a single
+    // value and row-duplication re-counts within-column value repetition as
+    // spurious "N groups of duplicate rows" (value-collision already covers that
+    // signal). DupDet is a whole-vector structural test — run it once on the full
+    // matrix here, the way ConstOffset bypasses aggregatePerGroup. Gated on
+    // isConditionsMode ONLY: the replicates column-grouped path (paired=true,
+    // multi-column groups — DS02/DS11) keeps its per-group dispatch.
+    ["Duplicate Detection",          async () => isConditionsMode
+      ? testDuplicates(matrix, matrix, wrColGroup, assay)
+      : await runPair((m) => testDuplicates(m, matrix, wrColGroup, assay))],
     ["Sequential Duplication",       () => testSequentialDuplication(matrix, assay)],
     ["Constant-Offset Blocks",       async () => {
       // S95 Track A Item 5: ConstOffset expanded to ALL column pairs including
