@@ -67,12 +67,31 @@ const DISCLOSURE_PANEL = { marginTop: BLOCK_GAP_TIGHT, padding: "8px 12px", back
 // toggles an accordion panel that opens below the row-as-a-block, panels
 // stacking in row order. Independent toggles preserved — multiple may be open
 // at once (not tabbed). Inter-block rhythm via BLOCK_GAP / BLOCK_GAP_TIGHT.
+// S318 — reader-facing note when row-grouping produced no usable groups and the
+// test fell through to its pooled path. Shared point: any card whose result
+// carries `groupingCollapsed` (set in engine.js for the four row-grouped
+// dispatch tests) renders this automatically, no interaction required.
+// PROPOSED COPY — Chat to confirm the wording. The engine supplies the reason
+// code + minPerGroup; the strings below are the only reader-facing text.
+function groupingCollapseNote(gc) {
+  const min = gc.minPerGroup || 3;
+  switch (gc.reason) {
+    case "all-singletons":
+      return `Grouped analysis not run — every row formed its own condition group, so there was nothing to compare across groups. The result shown pools all rows together.`;
+    case "single-group":
+      return `Grouped analysis not run — the condition columns resolved to a single group, so there was nothing to compare across groups. The result shown pools all rows together.`;
+    default: // all-below-min / some-below-min
+      return `Grouped analysis not run — the condition groups were too small (fewer than ${min} rows each) to analyse separately. The result shown pools all rows together.`;
+  }
+}
+
 export function MiniCardLayout({ result, lookFor, footer, children, implications }) {
   const [methodOpen, setMethodOpen] = useState(false);
   const [implOpen, setImplOpen] = useState(false);
   const [lookForOpen, setLookForOpen] = useState(false);
   const isFlagged = result.flag !== "LOW" && result.flag !== "N/A";
   const methodText = TEST_METHODS[result.name];
+  const groupingCollapsed = result.groupingCollapsed || null;
 
   // Gates unchanged (not unified): How-it-works on a TEST_METHODS entry
   // (descriptive — flagged or not); Implications + What-to-look-for on isFlagged
@@ -84,6 +103,9 @@ export function MiniCardLayout({ result, lookFor, footer, children, implications
 
   return (
     <>
+      {groupingCollapsed && (
+        <CardBanner type="warn">{groupingCollapseNote(groupingCollapsed)}</CardBanner>
+      )}
       {footer && (
         <div style={{ ...LEAD_HEAD, marginBottom: BLOCK_GAP }}>{footer}</div>
       )}

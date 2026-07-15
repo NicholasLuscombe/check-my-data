@@ -184,6 +184,30 @@ export async function runFullAnalysis(matrix, rawMatrix, condCtx, assay, onProgr
   const isConditionsMode = condCtx.type === 'column-grouped' && !condCtx.paired;
   const useAggregate = condCtx.type === 'column-grouped' && condCtx.count >= 2;
 
+  // S318 — announce when row-grouping collapses to nothing. When the dataset is
+  // row-grouped but every group is a singleton (C16: Treat×Block×ZLev1 unique
+  // per row → 60 singletons) or no group meets the ≥3-row floor, rowGroups()
+  // returns null and the four row-grouped dispatch tests (Mahalanobis Row
+  // Outlier, Entropy/Zipf, Column Goodness-of-Fit, Modality) silently fall
+  // through to their pooled path — the result then looks assessed-and-clean when
+  // no grouped analysis ran. Tag those pooled results so the card can read
+  // "grouped analysis not run" with a stated reason. Surfacing only: no change
+  // to any statistic, null, or verdict. Computed once from condCtx (VST
+  // preserves the row-condition structure, so vstCondCtx would give the same
+  // status).
+  const rowGroupCollapse = condCtx?.rowGroupsStatus ? condCtx.rowGroupsStatus() : { attempted: false, usable: false };
+  function tagGroupCollapse(r) {
+    if (r && rowGroupCollapse.attempted && !rowGroupCollapse.usable) {
+      r.groupingCollapsed = {
+        reason: rowGroupCollapse.reason,
+        nGroups: rowGroupCollapse.nGroups,
+        maxSize: rowGroupCollapse.maxSize,
+        minPerGroup: rowGroupCollapse.minPerGroup,
+      };
+    }
+    return r;
+  }
+
   async function runPair(testFn, parentCondCtx) {
     return useAggregate
       ? await aggregatePerGroup(testFn, condCtx.slices(), parentCondCtx || null)
@@ -404,7 +428,7 @@ export async function runFullAnalysis(matrix, rawMatrix, condCtx, assay, onProgr
         stratResult.allCondD2 = allCondD2;
         return stratResult;
       }
-      return tagVST(await runPairVST(m => testMahalanobisOutlier(m, assay)));
+      return tagGroupCollapse(tagVST(await runPairVST(m => testMahalanobisOutlier(m, assay))));
     }],
     ["Blocked Mahalanobis", async () => {
       // S110 Track E (a): block-localised covariance/mean anomaly detection.
@@ -449,19 +473,19 @@ export async function runFullAnalysis(matrix, rawMatrix, condCtx, assay, onProgr
       const dt = dtSkip("Entropy / Zipf Analysis","noise"); if (dt) return dt;
       const rg = condCtx?.rowGroups();
       if (rg) return await aggregatePerGroup(m => testEntropy(m, rng, dataType), rg);
-      return testEntropy(matrix, rng, dataType);
+      return tagGroupCollapse(testEntropy(matrix, rng, dataType));
     }],
     ["Column Goodness-of-Fit",       async () => {
       const dt = dtSkip("Column Goodness-of-Fit","shapes"); if (dt) return dt;
       const rg = condCtx?.rowGroups();
       if (rg) return await aggregatePerGroup(m => testColumnGof(m, rng, dataType), rg);
-      return testColumnGof(matrix, rng, dataType);
+      return tagGroupCollapse(testColumnGof(matrix, rng, dataType));
     }],
     ["Modality Test",                async () => {
       const dt = dtSkip("Modality Test","shapes"); if (dt) return dt;
       const rg = condCtx?.rowGroups();
       if (rg) return await aggregatePerGroup(m => testModality(m, rng, dataType), rg);
-      return testModality(matrix, rng, dataType);
+      return tagGroupCollapse(testModality(matrix, rng, dataType));
     }],
     // S118 Track H: §2.1 NOT rsSkip-gated — Tier 2 effect-size floor
     // |mean r| ≥ 0.25 at N ≥ 500 renders arbitrary-order co-regulation
