@@ -13,6 +13,23 @@ export function MiniCard_DuplicateDetection({ result, importConfig, rowMap }) {
   const sub = result.subDetails || [];
   const name = result.name;
   const isAgg = result.groupsAssessed !== undefined;
+// S318 — on a CLEAR verdict each sub-test surface stays VISIBLE for forensic
+// inspection (Forensics mode exists to let a user check cleared coincidences
+// against the verdict) but is framed honestly: evidence renders neutral, not red
+// flagged-evidence styling (HL), and significance is stated ONCE per surface at
+// the test level (SIG_NOTE), never per block/item — the sub-test produces one
+// pooled verdict, so no per-block p-value exists to caption. On C16 the blocks
+// are real but coincidental (identical ln(count) values on low-cardinality
+// richness columns, cleared by the permutation null); the reader sees them and
+// the single "not statistically significant" statement, and judges for themself.
+// When the sub-test flags → red flagged evidence as before. Gates on result.flag
+// (the card carries no per-sub-test verdict); CLEAR = LOW/N/A.
+const isFlaggedVerdict = result.flag !== "LOW" && result.flag !== "N/A";
+const HL = isFlaggedVerdict
+  ? { text: CC.THRESH, bg: SIGNAL.RED.bg, edge: SIGNAL.RED.dot }
+  : { text: C.TEXT, bg: C.BG_L, edge: C.BORDER };
+// Chat-confirmed final wording (S318). Shown once per surface at the test level.
+const SIG_NOTE = "not statistically significant";
 const wrTotal = result.withinRowMatches || 0;
 const withinDups = result.withinRowLocs || [];
 const blocks = result.blockCopies || [];
@@ -52,12 +69,15 @@ const rowDupClause = hasRowDups
   : null;
 let blockClause = null;
 if (dupBlock) {
-  if (dupBlock.isColumnMatch) {
+  const _n = structuralBlocks.length;
+  // Accurate count. The single-column-match description is kept only when there
+  // is exactly one block; with several blocks it undercounts (C16: five blocks
+  // read as "2 columns … rows 25–31"), so show the true count instead.
+  if (_n === 1 && dupBlock.isColumnMatch) {
     const _r0 = fileRow(toOrigRow(dupBlock.srcRows[0]));
     const _r1 = fileRow(toOrigRow(dupBlock.srcRows[1]));
     blockClause = `2 columns are identical over rows ${_r0}–${_r1}`;
   } else {
-    const _n = structuralBlocks.length;
     blockClause = `${_n} repeated block${_n !== 1 ? "s" : ""}`;
   }
 }
@@ -117,18 +137,18 @@ const DataRow = ({ri, highlightCols=[], colorMap={}, bg=C.WHITE, visCols=null}) 
         if(vc && !vc.keep.has(ci)) {
           if (insertedEllipsis) return null;
           insertedEllipsis = true;
-          return <td key="ell" style={{...TD_ID_CELL,color:C.TEXT_3}}>⋯</td>;
+          return <td key={`ell${ci}`} style={{...TD_ID_CELL,color:C.TEXT_3}}>⋯</td>;
         }
         insertedEllipsis = false;
         const cm = colorMap[ci];
         const isHlCol = highlightCols.includes(ci);
         const base = roles[ci]==="data" ? TD_NUM_CELL : TD_ID_CELL;
         return <td key={ci} style={{...base,
-          color:cm?cm.text:isHlCol?CC.THRESH:roles[ci]==="data"?C.TEXT:C.TEXT_3,
+          color:cm?cm.text:isHlCol?HL.text:roles[ci]==="data"?C.TEXT:C.TEXT_3,
           fontWeight:cm?FW.BOLD:FW.NORM,
-          background:cm?cm.bg:isHlCol?SIGNAL.RED.bg:"transparent",
-          ...(isHlCol && ci===hlMin?{borderLeft:`2px solid ${SIGNAL.RED.dot}`}:{}),
-          ...(isHlCol && ci===hlMax?{borderRight:`2px solid ${SIGNAL.RED.dot}`}:{})}}>{row[ci]!=null?String(row[ci]):"—"}</td>;
+          background:cm?cm.bg:isHlCol?HL.bg:"transparent",
+          ...(isHlCol && ci===hlMin?{borderLeft:`2px solid ${HL.edge}`}:{}),
+          ...(isHlCol && ci===hlMax?{borderRight:`2px solid ${HL.edge}`}:{})}}>{row[ci]!=null?String(row[ci]):"—"}</td>;
       })}
     </tr>
   );
@@ -137,6 +157,10 @@ const DataRow = ({ri, highlightCols=[], colorMap={}, bg=C.WHITE, visCols=null}) 
 const rawToColDef = {};
 colDefs.forEach((cd, di) => { rawToColDef[cd.rawCI] = di; });
 const mapHighlightCols = (rawCols) => rawCols.map(ci => rawToColDef[ci]).filter(i => i != null);
+// S318 — red header highlight only when the verdict flagged. On CLEAR the header
+// carries no highlight (no red letters/names); the body cells still tint (neutral
+// via HL) so the matched columns stay identifiable for inspection.
+const hlCols = (rawCols) => isFlaggedVerdict ? mapHighlightCols(rawCols) : [];
 // Map visCols (raw CI set) to colDefs indices
 const mapVisCols = (vc) => {
   if (!vc) return null;
@@ -153,6 +177,9 @@ return (
     implications="Repeated values can arise naturally: integer or bounded scales allow only so many distinct values, and measurements at a detection limit can pile up. Duplication can arise accidentally: e.g., pasting between spreadsheets, or merging files with overlapping rows. Repeated whole rows or blocks can also be deliberate: e.g., rows copied to pad a thin dataset, inflate the sample size, or manufacture replicates that were never measured.">
 
     {/* ── Duplicated blocks of data evidence ── */}
+    {/* S318 — always visible when blocks exist; on CLEAR the evidence renders
+        neutral (HL) with a test-level significance note (below), not suppressed
+        and not per-block-annotated. Red flagged evidence when the sub-test flags. */}
     {(structuralBlocks.length > 0 || hasRowDups) && (() => {
       // S274: co-equal peer surface — its own dark lead-tier title, mounted inline
       // (EvidenceBlock has no dark-label mode; `lead` suppresses its muted label).
@@ -163,6 +190,8 @@ return (
       <div style={{...LEAD_HEAD, marginBottom: BLOCK_GAP_TIGHT}}>
         Duplicated blocks of data
         {blockCountClause && <span style={{fontWeight: FW.NORM, color: C.TEXT_2}}> — {blockCountClause}</span>}
+        {/* S318 — test-level significance, stated once (Chat-confirmed wording). */}
+        {!isFlaggedVerdict && <span style={{fontWeight: FW.NORM, color: C.TEXT_3}}> — {SIG_NOTE}</span>}
       </div>
       <EvidenceBlock lead>
         {/* Multi-row or partial-width blocks — side-by-side display */}
@@ -189,7 +218,7 @@ return (
                   <span style={{fontSize:FS.xs,color:C.TEXT_3}}>{` — ${blk.height} consecutive rows`}</span>
                 </div>}
                 <table style={{borderCollapse:"separate",borderSpacing:"0",fontFamily:FF.UI,width:"100%"}}>
-                  <ColumnHeaders columns={colDefs} highlightCols={mapHighlightCols(rawCols)} visCols={mapVisCols(vc)} condSpans={condSpans} condRowNum={_condRowNum} nameRowNum={_nameRowNum}/>
+                  <ColumnHeaders columns={colDefs} highlightCols={hlCols(rawCols)} visCols={mapVisCols(vc)} condSpans={condSpans} condRowNum={_condRowNum} nameRowNum={_nameRowNum}/>
                   <tbody>
                     {Array.from({length:previewRows},(_, i) => (
                       <DataRow key={i} ri={toOrigRow(blk.srcRows[0]+i)} highlightCols={rawCols} bg={i%2?C.BG_L:C.WHITE} visCols={vc}/>
@@ -218,7 +247,7 @@ return (
                 <div style={{flex:useStacked?undefined:"1 0 auto",minWidth:useStacked?undefined:"min-content"}}>
                   <div style={{fontSize:FS.xs,color:C.TEXT_3,fontFamily:FF.UI,marginBottom:"2px"}}>Original (rows {fileRow(srcStart)}–{fileRow(srcEnd)})</div>
                   <table style={{borderCollapse:"separate",borderSpacing:"0",fontFamily:FF.UI,width:"100%"}}>
-                    <ColumnHeaders columns={colDefs} highlightCols={mapHighlightCols(rawCols)} visCols={mapVisCols(vc)} condSpans={condSpans} condRowNum={_condRowNum} nameRowNum={_nameRowNum}/>
+                    <ColumnHeaders columns={colDefs} highlightCols={hlCols(rawCols)} visCols={mapVisCols(vc)} condSpans={condSpans} condRowNum={_condRowNum} nameRowNum={_nameRowNum}/>
                     <tbody>
                       {Array.from({length:previewRows},(_, i) => (
                         <DataRow key={i} ri={toOrigRow(blk.srcRows[0]+i)} highlightCols={rawCols} bg={i%2?C.BG_L:C.WHITE} visCols={vc}/>
@@ -230,7 +259,7 @@ return (
                 <div style={{flex:useStacked?undefined:"1 0 auto",minWidth:useStacked?undefined:"min-content"}}>
                   <div style={{fontSize:FS.xs,color:C.TEXT_3,fontFamily:FF.UI,marginBottom:"2px"}}>Copy (rows {fileRow(dstStart)}–{fileRow(dstEnd)})</div>
                   <table style={{borderCollapse:"separate",borderSpacing:"0",fontFamily:FF.UI,width:"100%"}}>
-                    <ColumnHeaders columns={colDefs} highlightCols={mapHighlightCols(rawCols)} visCols={mapVisCols(vc)} condSpans={condSpans} condRowNum={_condRowNum} nameRowNum={_nameRowNum}/>
+                    <ColumnHeaders columns={colDefs} highlightCols={hlCols(rawCols)} visCols={mapVisCols(vc)} condSpans={condSpans} condRowNum={_condRowNum} nameRowNum={_nameRowNum}/>
                     <tbody>
                       {Array.from({length:previewRows},(_, i) => (
                         <DataRow key={i} ri={toOrigRow(blk.dstRows[0]+i)} highlightCols={rawCols} bg={i%2?C.BG_L:C.WHITE} visCols={vc}/>
@@ -243,6 +272,9 @@ return (
             </div>
           );
         })}
+        {/* S318 — the panels cap at 5; state the remainder so the shown panels
+            stay consistent with the heading's total block count. */}
+        {structuralBlocks.length > 5 && <div style={{fontSize:FS.xs,color:C.TEXT_3,fontFamily:FF.UI,marginBottom:"12px"}}>… and {structuralBlocks.length - 5} more block{structuralBlocks.length - 5 !== 1 ? "s" : ""}</div>}
         {/* Row-vector duplicate groups */}
         {rowGroups.slice(0,5).map((grp,gi) => {
           const vc = getVisibleCols();
@@ -253,7 +285,7 @@ return (
               {grp.count} rows with identical values
             </div>}
             <table style={{borderCollapse:"separate",borderSpacing:"0",fontFamily:FF.UI,width:"100%"}}>
-              <ColumnHeaders columns={colDefs} highlightCols={mapHighlightCols(allDataCols)} visCols={mapVisCols(vc)} condSpans={condSpans} condRowNum={_condRowNum} nameRowNum={_nameRowNum}/>
+              <ColumnHeaders columns={colDefs} highlightCols={hlCols(allDataCols)} visCols={mapVisCols(vc)} condSpans={condSpans} condRowNum={_condRowNum} nameRowNum={_nameRowNum}/>
               <tbody>
                 {grp.rows.slice(0,10).map((matIdx,i) => <DataRow key={i} ri={toOrigRow(matIdx)} highlightCols={allDataCols} bg={i%2?C.BG_L:C.WHITE} visCols={vc}/>)}
                 {grp.rows.length>10 && <tr><td colSpan={99} style={{...TD_ID_CELL,color:C.TEXT_3}}>… and {grp.rows.length-10} more identical rows</td></tr>}
@@ -288,6 +320,7 @@ return (
       <div style={{...LEAD_HEAD, marginTop: BLOCK_GAP, marginBottom: BLOCK_GAP_TIGHT}}>
         Columns copied to another row
         <span style={{fontWeight: FW.NORM, color: C.TEXT_2}}> — {`${totalPairs} copied pair${totalPairs !== 1 ? "s" : ""}`}</span>
+        {!isFlaggedVerdict && <span style={{fontWeight: FW.NORM, color: C.TEXT_3}}> — {SIG_NOTE}</span>}
       </div>
       <EvidenceBlock lead>
         {shown.map((p, pi) => {
@@ -302,7 +335,7 @@ return (
                 <span style={{fontSize:FS.xs,color:C.TEXT_3}}>{` — ${p.nCols} of ${nDataCols} columns copied, ${p.offset} rows apart`}</span>
               </div>
               <table style={{borderCollapse:"separate",borderSpacing:"0",fontFamily:FF.UI,width:"100%"}}>
-                <ColumnHeaders columns={colDefs} highlightCols={mapHighlightCols(rawCols)} visCols={mapVisCols(vc)} condSpans={condSpans} condRowNum={_condRowNum} nameRowNum={_nameRowNum}/>
+                <ColumnHeaders columns={colDefs} highlightCols={hlCols(rawCols)} visCols={mapVisCols(vc)} condSpans={condSpans} condRowNum={_condRowNum} nameRowNum={_nameRowNum}/>
                 <tbody>
                   <DataRow ri={toOrigRow(p.srcRow)} highlightCols={rawCols} bg={C.WHITE} visCols={vc}/>
                   <DataRow ri={toOrigRow(p.dstRow)} highlightCols={rawCols} bg={C.BG_L} visCols={vc}/>
@@ -341,6 +374,7 @@ return (
       <div style={{...LEAD_HEAD, marginTop: BLOCK_GAP, marginBottom: BLOCK_GAP_TIGHT}}>
         Duplicate values within a row
         <span style={{fontWeight: FW.NORM, color: C.TEXT_2}}> — {`${wrTotal} repeated value-pair${wrTotal!==1?"s":""} within ${allDupRows.length} row${allDupRows.length!==1?"s":""}`}</span>
+        {!isFlaggedVerdict && <span style={{fontWeight: FW.NORM, color: C.TEXT_3}}> — {SIG_NOTE}</span>}
       </div>
       <EvidenceBlock lead>
         <table style={{borderCollapse:"separate",borderSpacing:"0",fontFamily:FF.UI,width:"100%"}}>

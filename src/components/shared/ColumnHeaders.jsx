@@ -122,7 +122,7 @@ export function ColumnHeaders({
             if (vc && !vc.keep.has(ci)) {
               if (ellL) return null;
               ellL = true;
-              return <th key="ell" style={{ ...BB, ...TH_EVIDENCE, fontSize: FS.xs, borderBottom: "none", color: C.BORDER, background: C.BG, ...stickyRow(letterTop, 6), ...compactPad }}>⋯</th>;
+              return <th key={`ell${ci}`} style={{ ...BB, ...TH_EVIDENCE, fontSize: FS.xs, borderBottom: "none", color: C.BORDER, background: C.BG, ...stickyRow(letterTop, 6), ...compactPad }}>⋯</th>;
             }
             ellL = false;
             const isHl = hl.has(ci);
@@ -235,8 +235,18 @@ export function ColumnHeaders({
           if (vc && !vc.keep.has(ci)) {
             if (ellN) return null;
             ellN = true;
-            return <th key="ell" style={{ ...BB, ...TH_EVIDENCE, padding: "8px 8px 6px", color: C.TEXT_3, background: showRoleBadge ? C.WHITE : C.BG_L,
-              ...stickyRow(nameTop, 4), ...compactPad }}>⋯{vc.omitted} cols</th>;
+            // S318 — per-gap span, not the table-wide total. `vc.omitted` prints
+            // the same total at every gap (the "···110 cols" repeat on scattered
+            // highlights); count the consecutive omitted columns in THIS gap.
+            let gap = 0;
+            for (let k = ci; k < columns.length && !vc.keep.has(k); k++) gap++;
+            // S318 — unique key per gap. A row with multiple gaps returns several
+            // ellipsis cells; a shared key={`ell`} is a duplicate key, and React
+            // mis-reconciles them across re-renders (duplicating the middle gap in
+            // the DOM even though the render returns one). Keying by the gap's
+            // start index makes each gap cell stable and distinct.
+            return <th key={`ell${ci}`} style={{ ...BB, ...TH_EVIDENCE, padding: "8px 8px 6px", color: C.TEXT_3, background: showRoleBadge ? C.WHITE : C.BG_L,
+              ...stickyRow(nameTop, 4), ...compactPad }}>⋯{gap} cols</th>;
           }
           ellN = false;
           const isHl = hl.has(ci);
@@ -311,7 +321,7 @@ export function ColumnHeaders({
               if (vc && !vc.keep.has(ci)) {
                 if (ellR) return null;
                 ellR = true;
-                return <th key="ell" style={{ ...BB, ...TH_EVIDENCE, fontSize: FS.xs, padding: "2px 8px", color: C.BORDER, background: C.WHITE, ...stickyRow(roleTop, 3) }} />;
+                return <th key={`ell${ci}`} style={{ ...BB, ...TH_EVIDENCE, fontSize: FS.xs, padding: "2px 8px", color: C.BORDER, background: C.WHITE, ...stickyRow(roleTop, 3) }} />;
               }
               ellR = false;
               const roleInfo = ROLES[col.role] || ROLES.data;

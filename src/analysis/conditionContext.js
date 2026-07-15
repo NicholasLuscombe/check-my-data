@@ -159,6 +159,40 @@ export function createConditionContext({
     }));
   }
 
+  // ── rowGroupsStatus() ─────────────────────────────────────────────
+  // Diagnostic sibling of rowGroups(): explains WHY rowGroups() would
+  // return null, so the engine can announce a collapsed row-grouping
+  // instead of silently falling through to the pooled path. Mirrors
+  // rowGroups()'s null conditions exactly — keep the two in step.
+  //   attempted=false → not row-grouped (column-grouped or no row conditions);
+  //                     nothing to announce.
+  //   usable=true     → ≥2 groups each ≥ minPerGroup; rowGroups() returns them.
+  //   usable=false    → row-grouping was attempted but produced no usable
+  //                     groups; `reason` names why.
+
+  function rowGroupsStatus(minPerGroup = 3) {
+    if (hasGroups || !hasRowConds) return { attempted: false, usable: false, reason: null };
+    const counts = {};
+    for (let r = 0; r < matrix.length && r < rowConditions.length; r++) {
+      const c = rowConditions[r];
+      if (!c) continue;
+      counts[c] = (counts[c] || 0) + 1;
+    }
+    const sizes = Object.values(counts);
+    const nGroups = sizes.length;
+    const maxSize = sizes.length ? Math.max(...sizes) : 0;
+    const usableGroups = sizes.filter(n => n >= minPerGroup).length;
+    if (nGroups >= 2 && sizes.every(n => n >= minPerGroup)) {
+      return { attempted: true, usable: true, reason: null, nGroups, maxSize, usableGroups, minPerGroup };
+    }
+    let reason;
+    if (nGroups < 2) reason = 'single-group';
+    else if (maxSize <= 1) reason = 'all-singletons';
+    else if (maxSize < minPerGroup) reason = 'all-below-min';
+    else reason = 'some-below-min';
+    return { attempted: true, usable: false, reason, nGroups, maxSize, usableGroups, minPerGroup };
+  }
+
   // ── forSubMatrix(slice) ───────────────────────────────────────────
   // Create a child condCtx scoped to a group sub-matrix.
   // Remaps rowConditions to match the sub-matrix's row space.
@@ -249,6 +283,7 @@ export function createConditionContext({
     has,
     slices,
     rowGroups,
+    rowGroupsStatus,
     forSubMatrix,
     withMatrix,
     rowConditions: hasRowConds ? rowConditions : null,

@@ -416,7 +416,10 @@ export function ReportView({ results, importConfig, matrix, rowMap, onBack, onCh
         if(r.name?.includes("Entropy")){
           detail+=` tested=${r.nTested} flagged=${r.nFlagged} (${r.nLow} low, ${r.nHigh} high)`;
           lines.push(`  ${flagLabel(r.flag).padEnd(8)} ${r.name}${detail}`);
-          if(r.details?.length) for(const d of r.details.slice(0,5)) lines.push(`           col ${d.Col}: ${d.Direction} H=${d.H_obs} exp=${d.H_expected} ratio=${d.Ratio} adjP=${fmtP(d.adjP)}`);
+          // S318: on the aggregated path (row/column-grouped dispatch) details is
+          // the per-group summary; per-column entries live in subDetails.
+          const entDetails = r.groupsAssessed ? (r.subDetails||[]) : (r.details||[]);
+          for(const d of entDetails.slice(0,5)) lines.push(`           col ${d.Col}: ${d.group?d.group+" ":""}${d.Direction} H=${d.H_obs} exp=${d.H_expected} ratio=${d.Ratio} adjP=${fmtP(d.adjP)}`);
           continue;
         }
         // Fallback
