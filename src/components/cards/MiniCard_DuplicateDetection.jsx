@@ -13,21 +13,19 @@ export function MiniCard_DuplicateDetection({ result, importConfig, rowMap }) {
   const sub = result.subDetails || [];
   const name = result.name;
   const isAgg = result.groupsAssessed !== undefined;
-// S318 — the block and row-dup evidence surfaces below gate their flagged (red)
-// styling on the card verdict, not on block-list non-emptiness. On a CLEAR card
-// the matched blocks/rows are a true-but-not-significant fact (C16: identical
-// ln(count) values on low-cardinality richness columns, correctly cleared by the
-// permutation null) — show them de-emphasised, not as red flagged evidence.
-// Demote, don't suppress. Gates on result.flag (the engine verdict) rather than
-// re-deriving from bestBlockP: bestBlockP alone is MODERATE-range on C16 (0.0021),
-// but BH-FDR across the five sub-tests pulls the card verdict to LOW — the card
-// verdict is the cleared/flagged signal to read.
+// S318 — the block and row-dup evidence surfaces are SUPPRESSED on a CLEAR
+// verdict. On C16 the block sub-test finds real but coincidental blocks
+// (identical ln(count) values on low-cardinality richness columns, correctly
+// cleared by the permutation null). There is no honest per-block annotation: the
+// sub-test produces a single pooled verdict, so no per-block p-value exists to
+// caption, and the summary line can only describe the first of several blocks.
+// A demoted/informational render therefore either mis-scopes (one block stands
+// for five) or asserts a per-block significance that was never computed — worse
+// than showing nothing under the correct "Duplicated Data — Clear" verdict line.
+// So on CLEAR, render no evidence surface; on a flag, render it as before.
+// Gates on result.flag (the engine verdict — the card carries no per-sub-test
+// `passed`); CLEAR = LOW/N/A.
 const isFlaggedVerdict = result.flag !== "LOW" && result.flag !== "N/A";
-const HL = isFlaggedVerdict
-  ? { text: CC.THRESH, bg: SIGNAL.RED.bg, edge: SIGNAL.RED.dot }
-  : { text: C.TEXT, bg: C.BG_L, edge: C.BORDER };
-// PLACEHOLDER copy — Chat to confirm the cleared-state wording.
-const CLEARED_NOTE = "not statistically anomalous";
 const wrTotal = result.withinRowMatches || 0;
 const withinDups = result.withinRowLocs || [];
 const blocks = result.blockCopies || [];
@@ -139,11 +137,11 @@ const DataRow = ({ri, highlightCols=[], colorMap={}, bg=C.WHITE, visCols=null}) 
         const isHlCol = highlightCols.includes(ci);
         const base = roles[ci]==="data" ? TD_NUM_CELL : TD_ID_CELL;
         return <td key={ci} style={{...base,
-          color:cm?cm.text:isHlCol?HL.text:roles[ci]==="data"?C.TEXT:C.TEXT_3,
+          color:cm?cm.text:isHlCol?CC.THRESH:roles[ci]==="data"?C.TEXT:C.TEXT_3,
           fontWeight:cm?FW.BOLD:FW.NORM,
-          background:cm?cm.bg:isHlCol?HL.bg:"transparent",
-          ...(isHlCol && ci===hlMin?{borderLeft:`2px solid ${HL.edge}`}:{}),
-          ...(isHlCol && ci===hlMax?{borderRight:`2px solid ${HL.edge}`}:{})}}>{row[ci]!=null?String(row[ci]):"—"}</td>;
+          background:cm?cm.bg:isHlCol?SIGNAL.RED.bg:"transparent",
+          ...(isHlCol && ci===hlMin?{borderLeft:`2px solid ${SIGNAL.RED.dot}`}:{}),
+          ...(isHlCol && ci===hlMax?{borderRight:`2px solid ${SIGNAL.RED.dot}`}:{})}}>{row[ci]!=null?String(row[ci]):"—"}</td>;
       })}
     </tr>
   );
@@ -152,10 +150,6 @@ const DataRow = ({ri, highlightCols=[], colorMap={}, bg=C.WHITE, visCols=null}) 
 const rawToColDef = {};
 colDefs.forEach((cd, di) => { rawToColDef[cd.rawCI] = di; });
 const mapHighlightCols = (rawCols) => rawCols.map(ci => rawToColDef[ci]).filter(i => i != null);
-// S318 — red header highlight only when the verdict flagged; a cleared card
-// passes no highlightCols so the header letters/names don't render red. The body
-// cells still tint (neutral, via HL) so the matched columns stay identifiable.
-const hlCols = (rawCols) => isFlaggedVerdict ? mapHighlightCols(rawCols) : [];
 // Map visCols (raw CI set) to colDefs indices
 const mapVisCols = (vc) => {
   if (!vc) return null;
@@ -172,7 +166,10 @@ return (
     implications="Repeated values can arise naturally: integer or bounded scales allow only so many distinct values, and measurements at a detection limit can pile up. Duplication can arise accidentally: e.g., pasting between spreadsheets, or merging files with overlapping rows. Repeated whole rows or blocks can also be deliberate: e.g., rows copied to pad a thin dataset, inflate the sample size, or manufacture replicates that were never measured.">
 
     {/* ── Duplicated blocks of data evidence ── */}
-    {(structuralBlocks.length > 0 || hasRowDups) && (() => {
+    {/* S318 — suppressed on a CLEAR verdict (isFlaggedVerdict gate): no honest
+        per-block annotation exists, so the correct "Duplicated Data — Clear"
+        verdict line stands alone. Renders in full when the sub-test flags. */}
+    {isFlaggedVerdict && (structuralBlocks.length > 0 || hasRowDups) && (() => {
       // S274: co-equal peer surface — its own dark lead-tier title, mounted inline
       // (EvidenceBlock has no dark-label mode; `lead` suppresses its muted label).
       // The count tally rides as this block's detail line, below heading weight.
@@ -182,9 +179,6 @@ return (
       <div style={{...LEAD_HEAD, marginBottom: BLOCK_GAP_TIGHT}}>
         Duplicated blocks of data
         {blockCountClause && <span style={{fontWeight: FW.NORM, color: C.TEXT_2}}> — {blockCountClause}</span>}
-        {/* S318 — cleared verdict: mark the blocks informational, not a finding.
-            PLACEHOLDER wording (CLEARED_NOTE) — Chat to confirm. */}
-        {!isFlaggedVerdict && <span style={{fontWeight: FW.NORM, fontStyle: "italic", color: C.TEXT_3}}> — {CLEARED_NOTE}</span>}
       </div>
       <EvidenceBlock lead>
         {/* Multi-row or partial-width blocks — side-by-side display */}
@@ -211,7 +205,7 @@ return (
                   <span style={{fontSize:FS.xs,color:C.TEXT_3}}>{` — ${blk.height} consecutive rows`}</span>
                 </div>}
                 <table style={{borderCollapse:"separate",borderSpacing:"0",fontFamily:FF.UI,width:"100%"}}>
-                  <ColumnHeaders columns={colDefs} highlightCols={hlCols(rawCols)} visCols={mapVisCols(vc)} condSpans={condSpans} condRowNum={_condRowNum} nameRowNum={_nameRowNum}/>
+                  <ColumnHeaders columns={colDefs} highlightCols={mapHighlightCols(rawCols)} visCols={mapVisCols(vc)} condSpans={condSpans} condRowNum={_condRowNum} nameRowNum={_nameRowNum}/>
                   <tbody>
                     {Array.from({length:previewRows},(_, i) => (
                       <DataRow key={i} ri={toOrigRow(blk.srcRows[0]+i)} highlightCols={rawCols} bg={i%2?C.BG_L:C.WHITE} visCols={vc}/>
@@ -240,7 +234,7 @@ return (
                 <div style={{flex:useStacked?undefined:"1 0 auto",minWidth:useStacked?undefined:"min-content"}}>
                   <div style={{fontSize:FS.xs,color:C.TEXT_3,fontFamily:FF.UI,marginBottom:"2px"}}>Original (rows {fileRow(srcStart)}–{fileRow(srcEnd)})</div>
                   <table style={{borderCollapse:"separate",borderSpacing:"0",fontFamily:FF.UI,width:"100%"}}>
-                    <ColumnHeaders columns={colDefs} highlightCols={hlCols(rawCols)} visCols={mapVisCols(vc)} condSpans={condSpans} condRowNum={_condRowNum} nameRowNum={_nameRowNum}/>
+                    <ColumnHeaders columns={colDefs} highlightCols={mapHighlightCols(rawCols)} visCols={mapVisCols(vc)} condSpans={condSpans} condRowNum={_condRowNum} nameRowNum={_nameRowNum}/>
                     <tbody>
                       {Array.from({length:previewRows},(_, i) => (
                         <DataRow key={i} ri={toOrigRow(blk.srcRows[0]+i)} highlightCols={rawCols} bg={i%2?C.BG_L:C.WHITE} visCols={vc}/>
@@ -252,7 +246,7 @@ return (
                 <div style={{flex:useStacked?undefined:"1 0 auto",minWidth:useStacked?undefined:"min-content"}}>
                   <div style={{fontSize:FS.xs,color:C.TEXT_3,fontFamily:FF.UI,marginBottom:"2px"}}>Copy (rows {fileRow(dstStart)}–{fileRow(dstEnd)})</div>
                   <table style={{borderCollapse:"separate",borderSpacing:"0",fontFamily:FF.UI,width:"100%"}}>
-                    <ColumnHeaders columns={colDefs} highlightCols={hlCols(rawCols)} visCols={mapVisCols(vc)} condSpans={condSpans} condRowNum={_condRowNum} nameRowNum={_nameRowNum}/>
+                    <ColumnHeaders columns={colDefs} highlightCols={mapHighlightCols(rawCols)} visCols={mapVisCols(vc)} condSpans={condSpans} condRowNum={_condRowNum} nameRowNum={_nameRowNum}/>
                     <tbody>
                       {Array.from({length:previewRows},(_, i) => (
                         <DataRow key={i} ri={toOrigRow(blk.dstRows[0]+i)} highlightCols={rawCols} bg={i%2?C.BG_L:C.WHITE} visCols={vc}/>
@@ -275,7 +269,7 @@ return (
               {grp.count} rows with identical values
             </div>}
             <table style={{borderCollapse:"separate",borderSpacing:"0",fontFamily:FF.UI,width:"100%"}}>
-              <ColumnHeaders columns={colDefs} highlightCols={hlCols(allDataCols)} visCols={mapVisCols(vc)} condSpans={condSpans} condRowNum={_condRowNum} nameRowNum={_nameRowNum}/>
+              <ColumnHeaders columns={colDefs} highlightCols={mapHighlightCols(allDataCols)} visCols={mapVisCols(vc)} condSpans={condSpans} condRowNum={_condRowNum} nameRowNum={_nameRowNum}/>
               <tbody>
                 {grp.rows.slice(0,10).map((matIdx,i) => <DataRow key={i} ri={toOrigRow(matIdx)} highlightCols={allDataCols} bg={i%2?C.BG_L:C.WHITE} visCols={vc}/>)}
                 {grp.rows.length>10 && <tr><td colSpan={99} style={{...TD_ID_CELL,color:C.TEXT_3}}>… and {grp.rows.length-10} more identical rows</td></tr>}
@@ -324,7 +318,7 @@ return (
                 <span style={{fontSize:FS.xs,color:C.TEXT_3}}>{` — ${p.nCols} of ${nDataCols} columns copied, ${p.offset} rows apart`}</span>
               </div>
               <table style={{borderCollapse:"separate",borderSpacing:"0",fontFamily:FF.UI,width:"100%"}}>
-                <ColumnHeaders columns={colDefs} highlightCols={hlCols(rawCols)} visCols={mapVisCols(vc)} condSpans={condSpans} condRowNum={_condRowNum} nameRowNum={_nameRowNum}/>
+                <ColumnHeaders columns={colDefs} highlightCols={mapHighlightCols(rawCols)} visCols={mapVisCols(vc)} condSpans={condSpans} condRowNum={_condRowNum} nameRowNum={_nameRowNum}/>
                 <tbody>
                   <DataRow ri={toOrigRow(p.srcRow)} highlightCols={rawCols} bg={C.WHITE} visCols={vc}/>
                   <DataRow ri={toOrigRow(p.dstRow)} highlightCols={rawCols} bg={C.BG_L} visCols={vc}/>
