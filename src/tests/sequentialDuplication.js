@@ -6,7 +6,7 @@ import { flagFromP } from "../constants/thresholds.js";
    pass, but keyed on a single column so a coincidental second-column match at
    the same offset cannot sever the run (which the shared set-keyed Pass B
    enumeration would). Targets CORPUS-01's adhesive/pole removal sequences that
-   all four Exact-Duplicate sub-tests miss. */
+   Exact Duplicate Detection's own sub-tests miss. */
 /**
  * Detects a contiguous run of distinct values in one column recurring at an offset.
  * Runs on the full analysis matrix (raw values, all rows × all data columns) — a

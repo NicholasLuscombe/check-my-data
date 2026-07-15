@@ -67,7 +67,7 @@ for (const [file, assay] of TARGETS) {
   const dup = results.find(r => r.name === 'Exact Duplicate Detection');
   const { severity } = computeSeverity(results);
   if (!dup || !dup._rawPs) { rows.push({ file, severity, dupFlag: dup?.flag||'N/A', note:'no _rawPs' }); continue; }
-  const [collisionP, rowDupP, withinRowP_new, bestBlockP] = dup._rawPs;
+  const [collisionP, rowDupP, withinRowP_new, bestBlockP, partialRowP] = dup._rawPs;
   // Reconstruct old regime: structuralP = min(block, rowDup); old T3 p = normalCDF-based
   const wrZ = dup._wrZ || 0;
   const oldT3P = wrZ > 0 ? 1 - normalCDF(wrZ) : 1;
@@ -81,12 +81,12 @@ for (const [file, assay] of TARGETS) {
   const newAdj = bhFDR(newRawPs);
   const newCombined = Math.min(...newAdj);
   const newFlag = flagFromP(newCombined);
-  const newDriver = subTestDriver(newAdj, ['T1 collision', 'T2 rowDup', 'T3 withinRow', 'T4 block']);
+  const newDriver = subTestDriver(newAdj, ['T1 collision', 'T2 rowDup', 'T3 withinRow', 'T4 block', 'T5 partialRow']);
   rows.push({
     file, severity, assay,
     oldFlag, oldCombined, oldDriver,
     newFlag, newCombined, newDriver,
-    rawPs: { T1: collisionP, T2: rowDupP, T3_new: withinRowP_new, T3_old: oldT3P, T4: bestBlockP },
+    rawPs: { T1: collisionP, T2: rowDupP, T3_new: withinRowP_new, T3_old: oldT3P, T4: bestBlockP, T5: partialRowP },
     adjPs: { old: oldAdj, new: newAdj },
   });
 }
@@ -97,7 +97,7 @@ for (const r of rows) {
   console.log(`  severity (post-1a full engine): ${r.severity}`);
   console.log(`  Old DupDet: flag=${r.oldFlag}  combined=${fmt(r.oldCombined)}  driver=${r.oldDriver.label} (adj=${fmt(r.oldDriver.p)})`);
   console.log(`  New DupDet: flag=${r.newFlag}  combined=${fmt(r.newCombined)}  driver=${r.newDriver.label} (adj=${fmt(r.newDriver.p)})`);
-  console.log(`  Raw:  T1=${fmt(r.rawPs.T1)}  T2=${fmt(r.rawPs.T2)}  T3new=${fmt(r.rawPs.T3_new)}  T3old=${fmt(r.rawPs.T3_old)}  T4=${fmt(r.rawPs.T4)}`);
+  console.log(`  Raw:  T1=${fmt(r.rawPs.T1)}  T2=${fmt(r.rawPs.T2)}  T3new=${fmt(r.rawPs.T3_new)}  T3old=${fmt(r.rawPs.T3_old)}  T4=${fmt(r.rawPs.T4)}  T5=${fmt(r.rawPs.T5)}`);
   console.log(`  Adj old=[${r.adjPs.old.map(fmt).join(', ')}]  Adj new=[${r.adjPs.new.map(fmt).join(', ')}]`);
   console.log();
 }
