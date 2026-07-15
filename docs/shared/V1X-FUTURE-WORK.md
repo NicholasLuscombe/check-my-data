@@ -13,7 +13,7 @@ This doc owns the v1.x view. The v1.0 surfaces stay authoritative for their doma
 | Surface | Scope | Status |
 |---|---|---|
 | Methodology gaps (forensics framework) | 6 dimension-attributed coverage gaps | Mirrored from METHODOLOGY-MAP §Gap audit |
-| Test additions (post-v1.0 forensics) | Rectangular Blocked Mahalanobis; genuine-block detection; coherence-cleanup residue; column-localised sequential duplication detector; role/condition inference for real-world column shapes; **test-consistency audit beyond the closed item-28 audit (§2.6)**; arbitrary-offset block duplication detector (§2.7); **group-attribute column recognition — the largest demonstrated false-positive surface in the corpus (§2.8, BUILT S315)**; **scattered partial-row duplication — the coverage failure mode, exposed by §2.8's outcome (§2.9, BUILT S316)** | New scope, this doc |
+| Test additions (post-v1.0 forensics) | Rectangular Blocked Mahalanobis; genuine-block detection; coherence-cleanup residue; column-localised sequential duplication detector; role/condition inference for real-world column shapes; **test-consistency audit beyond the closed item-28 audit (§2.6)**; arbitrary-offset block duplication detector (§2.7); **group-attribute column recognition — the largest demonstrated false-positive surface in the corpus (§2.8, BUILT S315)**; **scattered partial-row duplication — the coverage failure mode, exposed by §2.8's outcome (§2.9, BUILT S316)**; **row-grouping produces units the tests were not designed for — the tool's own applicability failure, half the row-grouping corpus (§2.10, OPEN, S318 lead)** | New scope, this doc |
 | Variance-estimator unification | Catalogue + scoped sub-refactors | Extends ROADMAP Track F; related to §2.6 (same forced-vs-artefact discipline) |
 | AI Screening mode | Five new tests + mode toggle + reweighting | Restored from S125 chat history |
 | Calibration audits banked | Permutation B=9999; severity-formula diversity metric; Modality plot upgrade | Mirrored from STATUS parked items |
@@ -169,6 +169,8 @@ This is a designed gap, not a calibration miss — by the methodology as specifi
 - **The interim escape hatch is `conditionsHint`** (parked, accepted-but-not-wired): a corpus file declaring its structure bypasses inference entirely for declared columns. This is the near-term CORPUS-03 unblock; the spine fix is the durable repair. A CORPUS-03 row produced via the override must be disclosed in the paper as declared-structure, not unaided inference. CORPUS-02's pooling, by contrast, has no interim override in this session's scope and stands as a disclosed coverage gap (the engine pools across many groups when no low-cardinality condition column is present).
 
 **Regression tripwire for any eventual build:** the Shape-A integer detector must key on *contiguous monotonic blocks* (runs of equal values, one level-change per group boundary, `distinct ≈ run-count`), NOT on repetition or low cardinality — `14-crctest-survey.csv`'s Likert Q-columns (integers 1–5, non-contiguous) are legitimate `data`, and a naive low-cardinality key would wrongly capture them. The full role-assignment decision structure and the role→conditionType→pooling chain are mapped in the S293 design read (banked in the session summary) — that map is the classification a spine pass would build on, so the broad work, when it happens, starts from a source-grounded taxonomy rather than re-deriving it.
+
+**Continuous column tagged as a condition candidate — the third shape (S318, from the grouping cross-validation).** A distinct inference error from the two above, surfaced by Sonnet while cross-validating the §2.10 grouping contract. On C12, `Latitude` was among the columns tagged `condition`. It is not a factor-or-stratum ambiguity — it is a **continuous physical measurement misread as a categorical code.** Rounded coordinates and shared sites make a latitude column carry enough repeated values to fall under the low-cardinality condition gate, so it is treated as a grouping variable rather than a measurement. **Fix direction:** a continuous-value guard on condition candidacy — a column whose values look continuous (many decimal places, roughly uniform spread, high distinct-count among the non-repeated values) should be excluded from condition candidacy regardless of how many exact repeats it happens to carry. This is separate from the measurement-type/transform misclassification noted below (C12's lat/long driving a densitometry transform); that one is about which *transform* fires, this one is about whether the column is a *grouping candidate* at all. Both point at the same root — no confidence gate on a structural assignment — but they fire at different stages. Homed here with the role-inference fixes; small and self-contained enough to ship on its own.
 
 **Relationship to §2.6 (consistency audit).** This entry's pooled-Mahalanobis half — the engine pooling one (μ,Σ) across unrecognised groups — is a cross-condition-pooling instance, the same failure family the *closed* item-28 integrity audit was built around; the role-inference half is upstream of it (garbage-in from column misclassification). §2.6 is the v1.x home for the consistency failure modes that audit did *not* cover (cross-column pooling, null construction, evidence/display). §2.5 stays the single source for the role-inference fix specifically.
 
@@ -407,7 +409,7 @@ That is the sharper claim, not the weaker one. Fixing the applicability defect d
 
 ---
 
-**Relationship to §2.5 and §2.6.** §2.5 fixes columns misclassified into the wrong *role*. §2.6 fixes tests applied on the wrong *pool*. §2.8 is the third member of the same family and shares its one-line diagnosis:
+**Relationship to §2.5, §2.6 and §2.10.** §2.5 fixes columns misclassified into the wrong *role*. §2.6 fixes tests applied on the wrong *pool*. **§2.10 fixes tests applied to the wrong *unit* — and it is the same family again, one level up: the grouper merges every condition-role column combinatorially, so the exchangeability assumption the permutation null rests on is false about the groups it produces.** §2.8 is a member of the same family and shares its one-line diagnosis:
 
 > **The statistic is right. The baseline assumes something about the column that is false.**
 
@@ -427,7 +429,7 @@ The three are not degrees of one problem. **Applicability produces a verdict on 
 
 **Why it was high:** Long-format tables with joined site, subject or batch attributes are the standard shape of ecological, epidemiological and repeated-measures data. This is not an edge case; it is a *class* of dataset, and the tool currently mis-analyses all of it. The remaining ecology cluster (C07, C09, C15, C16, C20, C22) is held behind this fix and is expected to reproduce the artefact.
 
-**Source:** `REALWORLD-CORPUS-SPEC.md` §0.3 C12 entry (S314), adjudicated at source against `C12.xlsx` sheet `Field survey-data`. Pipeline facts (`engine.js:109` choke point, absent group key, `detectLongFormat` non-firing, batch override absence) from the S315 Code read-only.
+**Source:** `REALWORLD-CORPUS-SPEC.md` §0.4 C12 entry (S314), adjudicated at source against `C12.xlsx` sheet `Field survey-data`. Pipeline facts (`engine.js:109` choke point, absent group key, `detectLongFormat` non-firing, batch override absence) from the S315 Code read-only.
 
 ---
 
@@ -509,9 +511,263 @@ That is the thing statcheck and GRIM structurally cannot do. They operate on sum
 #### Carried, not fixed
 
 - **The §4 handoff composer still says "4 sub-tests."** `findingComposers.js` is a DS14-locked zero-diff anchor and Code correctly refused to break the lock to satisfy the dispatch. The count is now wrong. Needs its own dispatch with the lock **re-baselined deliberately**, not broken.
-- **The circular null.** Untouched here, and it is C08's defect. See §2.8's three-mode table and the C08 entry in `REALWORLD-CORPUS-SPEC.md` §0.3.
+- **The circular null.** Untouched here, and it is C08's defect. See §2.8's three-mode table and the C08 entry in `REALWORLD-CORPUS-SPEC.md` §0.4.
 
 **Source:** S316 — read-only on `src/tests/duplicates.js` and the C08 shape read; build, surfacing, coordinate fix and count fix promoted at `e751523` (three commits: `ae06ba8`, `0dd4df7`, `bb76b6b`). Hand cross-check against `C12.xlsx` recorded above.
+
+---
+
+### 2.10 Row-grouping produces units the tests were not designed for — OPEN, S318 lead
+
+**This is the tool's own applicability failure. It is the third failure mode's strongest exhibit, and it is ours.**
+
+**What:** The engine groups rows by the Cartesian product of *every* column role inference tags `condition`. On real long-format data that produces dozens or hundreds of tiny groups, and the permutation null's exchangeability assumption is false about them. Half the row-grouping corpus is affected.
+
+Not a new test. A contract question about what a condition *is*, upstream of the battery, in the same layer as §2.5 and §2.8.
+
+---
+
+#### The mechanism
+
+`condCols` is every column role inference tags `condition` (`engine.js:110`):
+
+```js
+roles.map((r, i) => r === "condition" ? i : -1)
+```
+
+The group key is the `" | "`-joined concatenation of **all** of them (`engine.js:138-143`). That is the **Cartesian product**, not a grouping factor. `conditionContext.rowGroups()` (`conditionContext.js:144-160`) then partitions rows on that merged label.
+
+**On C12 it merged seven columns:**
+
+| Column | Distinct values |
+|---|--:|
+| Latitudes | 3 |
+| Combine | 3 |
+| Plot | 3 |
+| Pair | 5 |
+| Code | 10 |
+| Name | 10 |
+| Origin | 2 |
+
+`Code` and `Name` are species and site **identifiers**. `Plot` and `Pair` are nested survey positions. **`Origin` (Invasive/Native) is the only column resembling an experimental arm.** Only 132 of the combinatorial cells occur in the data — so **132 groups**, about 18 rows each, from a 2,412-row file.
+
+---
+
+#### The corpus census — it is not one file
+
+Largest data sheet per file; role inference as in the real pipeline.
+
+| File | Sheet | Rows | Groups | Median/grp | Min/grp | Condition columns |
+|---|---|--:|--:|--:|--:|---|
+| **C12** | Field survey-data | 2412 | **132** | 16.5 | **3** | Latitudes, Combine, Plot, Pair, Code, Name, Origin |
+| **C16** | Sheet1 | 60 | **60** | — | — | Treat, Block, ZLev1 — **every row its own group; all singletons dropped** |
+| **C22** | Exp. WA | 176 | **44** | 4 | **4** | Experiment, Material, N Fertilizer, Time |
+| **C20** | Microcosm soil B | 204 | **37** | 3 | **3** | Soil_type, Taxa_combination |
+| **C08** | DATA | 350 | **35** | 10 | 10 | Duration, Setup, Stage |
+| **C09** | Sheet1 | 60 | **20** | 3 | **3** | Species, Genus, Family, Treatment |
+| C21 | precipitation exp | 162 | 9 | 18 | 18 | treatment |
+| C07 | Mastersheet | 72 | 6 | 12 | 12 | Warming, Season |
+| C13 | Soil CO2 | 178 | 2 | 89 | 85 | Ramet, Treatments |
+| C17 | Neural | 41 | 2 | 20.5 | 19 | Group |
+| CORPUS-01 | Sheet1 | 105 | 10 | 10.5 | 10 | Treatment, Genotype |
+| CORPUS-03 | Clonal molly | 373 | 3 | 124 | 121 | Trt |
+| C10, C14, C15, C18, C19, C23, C25, CORPUS-02 | — | 0–3600 | 0 | — | — | no condition columns — not row-grouped |
+
+**Six of twelve explode.** The split tracks how many columns inference tagged `condition` and their cardinality: one or two genuine factors behave; three to seven metadata columns produce a row address with a few duplicates.
+
+**Four of the six are the ecology cluster** (C07, C09, C15, C16, C20, C22) — released and held for three sessions to be run once §2.8 and §2.9 landed. **Running them now would produce row-grouped verdicts computed on units nobody designed for.**
+
+---
+
+#### The distinction role inference cannot make
+
+**A factor** is a variable the experiment manipulated or contrasted. Treatment. Genotype. Warming. Origin. Its levels are **arms**, and rows within an arm are exchangeable under the null. **That is the basis of the permutation.**
+
+**A stratum** is a label recording *where a row came from*. Plot. Pair. Site code. Species name. Block. It partitions the data, but its levels are **addresses**, not arms.
+
+**In a spreadsheet they are identical:** short repeated strings in a non-numeric column. Role inference cannot tell them apart, so it tags them all `condition`, and the grouper merges them.
+
+**Merging is where it becomes incoherent.** `Treatment × Genotype` is a defensible key — a 2×2 factorial, each cell a real arm. `Species × Plot × Pair × Code × Origin` is **not a key at all**. It is a row address with a few duplicates. **C16 proves it: the key was unique per row.**
+
+---
+
+#### What the methodology says a condition is
+
+`METHODOLOGY.md:484` — *"Under H₀ conditions are exchangeable at the row level … condition labels are shuffled across rows preserving per-condition row counts."*
+
+`conditionContext.js:30` — *"genuine experimental conditions."*
+
+Every worked example in the doc is Treatment, Genotype, Group, arm.
+
+> **The statistic is correct. The exchangeability assumption is stated. It is false about the unit being fed to it.**
+
+---
+
+#### Guards
+
+- **Minimum rows per group: yes.** `slices()` drops groups under 3 rows (`conditionContext.js:133`); `rowGroups(minPerGroup = 3)` returns **null** unless there are ≥2 groups and *every* group has ≥3 rows (`:154`).
+- **Maximum group count: none.** Nothing anywhere caps it. There is a stated per-group *size* assumption in METHODOLOGY (≥3 rows, ≥2 groups) and **no stated assumption about group count, because nobody imagined 132.**
+- **Per-test guards exist but fire late.** Entropy skips a column under 20 observations (`entropyTest.js:47`); Column GoF and Modality carry their own `MIN_N`; Cross-Condition Consistency gates pool properties at minN=30. So the tests do not blindly trust the grouper — but those gates return N/A **per group, after the work is set up**, not before.
+
+---
+
+#### C16 fails silently — a coverage failure riding on the applicability one
+
+Sixty rows. Three condition columns whose Cartesian product is **unique per row**. Sixty singleton groups, all dropped by the min-3 guard, `rowGroups()` returns null, the row-grouped tests take the ungrouped path or return N/A.
+
+**Nothing in the output announces that the grouping produced nothing.** A reader sees a file that looks assessed.
+
+> **Same shape as C12's copied roots — a p of 1 returned without ever counting anything.** Grouping that produces nothing must say so.
+
+---
+
+#### The lever is not a group-count cap
+
+**Capping the count makes a meaningless computation fast and hides the finding.** The lever is *which columns become condition-role*, and *whether condition columns should be merged combinatorially at all.*
+
+**And role inference cannot decide this from the data.** Whether a column is a factor or a stratum is a fact about the *experimental design*, which lives in the paper, not the spreadsheet. Any rule written here is a heuristic dressed as a fact.
+
+**Three moves, and the first is unconditional:**
+
+1. **Grouping must announce when it fails.** If every group is a singleton, or the group count approaches the row count, return an explicit N/A with a stated reason, surfaced to the reader. **Take this regardless of everything else.** It converts a silent false clear into an honest "not assessed."
+2. **A stated contract** — a condition column is one whose cardinality is low relative to row count and whose levels partition the data into groups large enough to permute. *Reservation: a cardinality threshold is exactly the kind of arbitrary constant that becomes load-bearing and unexamined. That is what this whole arc has been about.*
+3. **Ask the user.** Show the columns inference thinks are conditions, show the resulting group count and sizes, and let them confirm or correct before the row-grouped tests run. *"These seven columns produce 132 groups of 18 rows. Is that your experimental design?"* The answer is almost always no, and the user knows it instantly.
+
+**Chat's lean: (1) unconditionally, (3) as the real answer, (2) as the default the user is shown and can override.**
+
+> **Every alternative is the tool asserting knowledge it does not have — precisely the failure the paper is about.**
+
+---
+
+#### Cross-Condition Consistency is the symptom, not the disease
+
+**43.5 seconds of C12's 59.4-second run — 73%.** Blocked Mahalanobis, the fixture-batch champion at 38%, is **4 milliseconds** on C12.
+
+The cost is `ksDistance` (70%, `crossConditionProperties.js:157`) plus pair iteration (20%, `crossConditionConsistency.js:106`) — **the statistic, not the shuffle.** The driver computes `prop.distance(stats[u.a], stats[u.b])` for every running unit, and **units are condition pairs**: `C(132, 2) ≈ 8,646` versus 1–3 pairs on a normal fixture. Across the 28 fixtures the test averages 57ms, max 312ms. On C12 it is 763× its fixture mean.
+
+**Yielding would turn 43 frozen seconds into 43 responsive ones and save nothing.**
+
+> **A performance complaint is a legitimate route to a correctness finding.** The 43 seconds was a symptom. Capping the group count would have made a meaningless computation fast and hidden an applicability failure across half the corpus.
+
+---
+
+#### Unclaimed and untested
+
+With 132 tiny strata carrying real spatial and species structure, the permuted null **may be absorbing the structure it exists to detect** — reassigning labels across many small groups approximately preserves the marginal. **Circular-null-adjacent. Plausible. Not tested. Do not claim it.**
+
+---
+
+#### Cross-validation outcome (S318) — the claim holds three ways
+
+The contract was authored into `METHODOLOGY.md` (§Condition Grouping Contract) and the load-bearing claim cross-validated before any code moved: **factor versus stratum is not decidable from the data alone.** Three independent models (Gemini, Grok, Sonnet) were each asked adversarially to break it — to name a data-computable signal that separates a factor from a stratum with no surviving counter-example. None could.
+
+**Every candidate signal broke, in both directions:**
+
+- **Cardinality** — a stratum can be low-cardinality (a 4-block design looks like a 4-arm treatment); a factor can be high-cardinality (a 200-genotype panel looks like a species-ID column). Tells you group size, not role.
+- **Balance** — cuts the wrong way. Strata are often balanced *by design* (a randomized complete block design has exactly one of each treatment per block); real factors are routinely unbalanced (dropout, observational arms). Near-perfect balance is a mild signal *for* stratum, not factor.
+- **Crossed versus nested** — the closest to a real structural signal, and it still breaks. A genuine factor can be nested (multi-site trials don't run every treatment at every site); two genuine strata can be fully crossed (Plot × Year — cross-classified random effects, every plot measured every year, a Cartesian product from two sampled strata). The crossing pattern reflects the design, which is the thing not in the data.
+- **Outcome-association** — the signal everyone reaches for, and it is **actively misleading**, confirmed independently by all three. It is circular (the null already assumes exchangeability with respect to the outcome, so selecting on outcome-association chooses the grouping using the quantity the null is about) and empirically backwards (a stratum is chosen *because* it explains baseline variance — site explains more variance in soil chemistry than the treatment does). Picking the most-associated column selects the stratum. This is now an explicit "do not" in the contract.
+
+**"Undecidable" is the right strength, but the data can still narrow.** All three converged on the same two-tier design: a **mechanical, count-based filter** that prunes candidate columns and combinations producing singleton or near-singleton groups — this is a property of group sizes, not of meaning, and is safe to automate — followed by **asking the user about everything that survives, with no ranking of the survivors.** There is no "more factor-like" ordering to offer, because every ranking signal points the wrong way at least once. Prune on size; ask about the rest; rank nothing. This supersedes option 2 above: the "stated cardinality contract" is retired as a *selector*, because cardinality does not carry role. Cardinality survives only in its count-filter use (can this grouping support a permutation test at all), never as a factor/stratum decision.
+
+**The literature frame — a design fact under several names.** The distinction is well-established, and in every framing the consensus is the same: it is not recoverable from data without the design.
+
+- **Design of experiments:** *treatment factor* versus *blocking / nuisance factor* — the classic split from Fisher; Montgomery, *Design and Analysis of Experiments*, treats block identity as something the experimenter declares, not something inferred from the response. The underlying error is the **observational unit versus experimental unit** distinction: a permutation null must shuffle experimental units (the plot, to which treatment was applied), and the tool is shuffling observational units (the row, a single plant within a plot). The data records only observational units, so the experimental unit is not visible in it.
+- **Mixed models:** *fixed* versus *random effect*. Whether a variable is modeled as fixed or random is a known modeling choice with no purely data-driven test to settle it (Searle, Casella & McCulloch, *Variance Components*). This is a *name* for the distinction, not a decision procedure — "fit a random effect" does not recover which columns are factors; it presupposes the answer.
+- **Exchangeability itself:** de Finetti's exchangeability is a *judgment* the analyst makes about which units are interchangeable, not a property read off a spreadsheet (Good, *Permutation, Parametric and Bootstrap Tests of Hypotheses*, states the assumption as something brought to the data). This is the deepest form of the claim: exchangeability was never a data property, so its undecidability from data is not a limitation of this tool but a feature of the concept.
+- **Causal inference (loose parallel):** which variable is the treatment versus a covariate is not recoverable from observational data without a design/graph built from domain knowledge (Pearl). Same shape — the data is consistent with more than one design, and only outside knowledge picks one.
+
+**Grok's design steer, worth carrying.** Lean the tool's forensic weight toward within-group anomalies that do not depend on the grouping null — digit preferences, unexpected smoothness, the ungrouped battery — and gate the grouped tests behind confirmation. The ungrouped tests are the trustworthy core; the grouped tests are the part that needs the ask.
+
+---
+
+**Priority — OPEN, contract authored and cross-validated (S318); enforcement not yet built.** The first move is done: the contract is in `METHODOLOGY.md` (§Condition Grouping Contract) and the undecidability claim survived three adversarial model checks. What remains is enforcement, staged — announce empty grouping first (option 1, unconditional), then the confirm-with-user flow (option 3, the real resolution). **The ecology cluster stays blocked** until enforcement lands: row-grouped verdicts on merged-strata files are not interpretable.
+
+**Source:** S317 — the read-only grouping census (Code, source-cited: `engine.js:110`, `:135-143`; `conditionContext.js:30`, `:133`, `:144-160`; `METHODOLOGY.md:484`, `:648`), run across the corpus with role inference as in the real pipeline. Opened by the Cross-Condition Consistency performance measurement, not by a methodology review.
+
+**For the paper:** this is the **third failure mode's demonstration, and it is the strongest of the three, because the tool failed on itself.** We built a forensic instrument, pointed it at real ecological data, and it applied a permutation null to units whose exchangeability assumption it violates — the exact error it exists to catch in others. Half the row-grouping corpus, not one file. **Invisible until a performance complaint made someone look.** That is not a caveat to bury in §5; it is the argument for why raw-data forensics needs a disclosure section at all, and the reason to trust the findings we do ship.
+
+---
+
+### 2.11 Engine correctness — shared choke points and the null-loop cost model (S317)
+
+Not test additions. Engine-layer defects and design questions surfaced while investigating §2.10. Homed here so they are not orphaned.
+
+#### Shared choke points guard better than call sites — LANDED S317
+
+Two defects of the same shape, both fixed at the function rather than at the call sites, both byte-identical on the 28-fixture batch.
+
+**`flagFromP` was one unguarded function under 22 call sites** (`src/constants/thresholds.js`). Fed a non-numeric p it returned a confident verdict **in both directions**:
+
+| Input | Returned (before) | Returns (after) |
+|---|---|---|
+| `undefined` | `LOW` — a silent clear | `"N/A"` |
+| `NaN` | `LOW` | `"N/A"` |
+| `Infinity` | `LOW` | `"N/A"` |
+| `null` | **`HIGH`** — a spurious flag | `"N/A"` |
+| `-Infinity` | **`HIGH`** | `"N/A"` |
+
+No test module guarded its own p-value. The exposure was **latent** — no test actually emitted a non-finite p, and the batch stayed byte-identical — but the guard belongs at the function. `"N/A"` was already a first-class flag value: `FLAG_STYLES`, `PLOT_FC`, `FLAG_RANK["N/A"] = 0`, and **29 test modules already emit it**.
+
+**`evidenceOf` was one reader under 14 tests** (`scripts/corpus-run.mjs`). It read `r.details` and never `subDetails`. On any grouped file `aggregatePerGroup` rebuilds top-level `details` as the **per-group summary** (`{group, rows, nRowsTested, flag}`, `aggregation.js:152-161`) and moves the per-unit records to `subDetails` (`:166-167`). So the corpus diagnostic showed C12's Entropy as **132 rows of `{group, rows, flag}` with no entropy value anywhere** — the real per-column records were there the whole time.
+
+Exposed tests: row-grouped dispatch (Entropy, Column GoF, Modality, Mahalanobis Row Outlier) and column-grouped dispatch (Kurtosis, Autocorrelation, Windowed Autocorrelation, Runs, LOESS Residual, Row-Mean Runs, Selective Noise, Regional Noise, Mahalanobis Row Outlier, Duplicate Detection). **Grouping-conditional — which is why the flat batch fixtures never caught it.** This is the S184 rule (bind to `subDetails`, not `details`) unlearned in a second place.
+
+**Still open — `entropy:142`.** `filter(c => c.flag !== "LOW")` would count an `"N/A"` column as flagged. Gated behind `nFlagged > 0` and unreachable on current fixtures. **Same shape: a call site assuming a closed value set.**
+
+> **Fix the choke point, not the instances.**
+
+#### Windowed Autocorrelation — stack overflow and yield, LANDED S317
+
+**Line 158 spread the whole unit array into `Math.min(...)`.** On the 15-column arm that is ~50,400 arguments and returns. On the **36-column arm it is ~302,400**, exceeds V8's spread limit, throws `RangeError: Maximum call stack size exceeded`, and the engine catches it to `{flag: "ERROR", primaryP: null}`. **The test did not run at all on wide files.**
+
+Fixed with the existing shared `arrayMin` helper (`primitives.js:43`), whose doc comment reads *"Stack-safe minimum for large arrays (avoids `Math.min(...arr)` RangeError)."* **Someone hit this before, wrote the fix, and Windowed never picked it up.**
+
+**C12's 36-column arm now completes for the first time:** `LOW`, `primaryP = 0.068`, **270,453 window units across 630 pairs, 0 significant.** The most extreme windows show local `r ≈ ±0.73` but do not survive per-pair BH-FDR.
+
+> **Provisional.** The probe ran on raw values; the engine feeds VST-log-transformed input, which could shift the p-value. Completion, unit count and runtime are robust. **Do not quote 0.068 in the paper** until it has run through the real pipeline.
+
+**And it was synchronous — 7.4 frozen seconds.** Now `async`, yielding at the **pair** boundary every `PERM_CHUNK = 2000` permutations; `aggregatePerGroup` awaits `testFn` (required — Windowed dispatches through `runPairVST`, which Blocked Mahalanobis never does).
+
+> **Copy the pattern, measure the placement.** The dispatch said "copy Blocked Mahalanobis verbatim." A literal copy put the `await` inside the hot `for b` loop and cost **60%** — an `await` in an inner loop deopts V8's optimisation of the whole thing, taxing **every** file, not just wide ones. Moving the yield outward keeps the inner loops synchronous: overhead drops to about **7% in a browser**, 126 yields on the 36-column arm. **The precedent's structure is portable; its placement is specific to the loop shape.** (Blocked Mahalanobis is flat; Windowed is nested.) `PERM_CHUNK = 2000`, not Blocked Mahalanobis's 50, because Windowed's counter is global across pairs.
+
+#### Sharing a permutation draw across tests — CLOSED, NO
+
+Windowed Autocorrelation and the Runs Test **do** shuffle the same object (the within-pair difference series), differing only in the per-window statistic. Sharing the draw is nonetheless not available.
+
+**The suite runs off one shared PRNG whose draw order is load-bearing for bit-exact batch parity** — the very property that governed the yield fix. Folding two tests into one shuffle pass changes the draw sequence for everything downstream. Small saving, blast radius of the whole batch.
+
+> **Same-object does not mean same-null.**
+
+#### Shared yield helper — SCOPED, NOT BUILT, DEFERRED
+
+Only Blocked Mahalanobis and Windowed Autocorrelation yield during their null loops. **Seven synchronous null loops remain:** Constant-Offset Blocks (**bounded** — caps the permutation at `MAX_PERM_PAIRS = 30`, so its cost does not scale with column count), LOESS Residual, Regional Noise, Residual Spike Correlation, Cross-Condition Consistency, Column Goodness-of-Fit, Entropy.
+
+*(Two carried claims were wrong and are corrected here, both asserted from summaries and neither checked at source: **Constant-Offset is not unthrottled**, and **Modality has no null loop at all** — it computes an analytical dip p-value; the bootstrap was retired. Nine candidates, not ten; seven remaining, not eight.)*
+
+**Worth building for the plumbing, not the null.** A helper owning the async loop, chunk size, yield and progress fraction — each test passing its own shuffle-and-score closure — is worth it: **that boilerplate has been hand-rolled twice and the copy was wrong the second time.** A driver owning the *shuffle, statistic and FDR tail* would be nine special cases in one function; the permuted object, the statistic and the loop nesting genuinely differ.
+
+**The helper must expose the yield placement, not hard-code it.**
+
+**Convert Runs Test and Inter-Replicate Correlation first** — the two remaining quadratic-in-columns synchronous loops, Windowed's exact shape.
+
+**Deferred: nobody has hit this freeze.** Both scale on `C(replicates, 2)`, and real files carry three to six replicates. Windowed blew up because it pairs **columns**, and C12 had 36.
+
+#### N_PERM has no column dimension
+
+Every permutation test scales its permutation count by **rows** and nothing else. Cost is quadratic in columns for the pair-based tests and **no policy anywhere throttles that dimension.** Windowed at 2,412 rows fixes `N_PERM = 499` whether there are 3 columns or 36.
+
+**This is a statistical decision, not a performance one.** Fewer permutations coarsens the null and raises the floor on the smallest achievable p — at `N_PERM = 199` the finest raw p is 1/200, and across 630 pairs under BH-FDR that floor may matter.
+
+**Measure before deciding:** does C12's 36-column verdict change between `N_PERM` 499 and 199? It reads `LOW, primaryP = 0.068` with zero significant windows at 499. If a coarser null does not move it, the throttle is cheap. **If it does, we have learned something about the null and should not have guessed.**
+
+#### The performance baseline is accurate and predicts nothing about the corpus
+
+On the 28 fixtures, **Blocked Mahalanobis (40.5%) and Kurtosis (21.4%) are still the top two**, matching `docs/PERF-BASELINE.md`'s 38% / 21%. The baseline is **not stale**.
+
+**But on C12 the ranking inverts completely.** Cross-Condition Consistency — 8th on the batch at 3.4% — is **73%**. Blocked Mahalanobis — 1st on the batch — is **4ms**. No fixture has more than a handful of conditions, so no fixture ever enters the O(nCond²) regime. **The baseline measures the wrong workload for this file, not the wrong numbers.**
+
+**Source:** S317 — four read-onlys and four promoted fixes (`4dd88c4`). All source-cited; the two corrected claims above are the record of what was asserted from memory and falsified at source.
 
 ---
 
@@ -791,6 +1047,8 @@ When updating these surfaces, edit the source-of-truth first and mirror here.
 | Arbitrary-offset block duplication detector (§2.7) | This doc | Single source; opened S299 from the §2.6 under-determination finding. Distinct from §2.4 (one-column axis) and §2.1/§2.2 (block-Mahalanobis regime, not identical values). Must not be welded onto §2.6. |
 | Group-attribute column recognition (§2.8) | This doc | Single source; BUILT S315 (`531e180`). Its outcome disproved its own displacement thesis and opened §2.9. |
 | Scattered partial-row duplication (§2.9) | This doc | Single source; BUILT S316 (`e751523`). The coverage failure mode. Opened by §2.8's outcome, not predicted by it. |
+| Row-grouping units (§2.10) | This doc | Single source; **OPEN, S318 lead.** The applicability failure, in the tool's own grouper. Opened by a performance measurement, not a methodology review. Group census mirrored to `REALWORLD-CORPUS-SPEC.md` §0.3. Contract to be authored in METHODOLOGY before any dispatch. |
+| Engine correctness — choke points, null-loop cost (§2.11) | This doc | Single source; S317. Four fixes landed (`4dd88c4`); the yield helper, the N_PERM column dimension and `entropy:142` remain open. |
 | AI Screening mode (§4) | This doc | Single source. Original S125 chat history preserved as reference but no longer load-bearing. |
 | Permutation B = 9999 (§5.1) | STATUS parked #8 | Mirror |
 | Severity-formula diversity metric (§5.2) | This doc | Primary scope; pairs with §5.5 |
