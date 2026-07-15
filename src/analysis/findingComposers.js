@@ -496,6 +496,8 @@ function exactDuplicateDetection(r, ctx) {
   const rowDupP = r.rowDupPValue;
   const withinRowP = r.withinRowP;
   const bestBlockP = r.bestBlockP;
+  const partialRowP = r.partialRowP;
+  const partialRowPairs = r.partialRowPairs || 0;
   const collisionObs = r.collisionObs;
   const collisionNPairs = r.collisionNPairs;
   const overRep = Array.isArray(r.overRepresented) ? r.overRepresented : [];
@@ -514,8 +516,8 @@ function exactDuplicateDetection(r, ctx) {
 
   // Line 1: sub-test results. List firing sub-tests inline; collapse non-
   // firing sub-tests into a trailing "Also tested: … — both non-significant"
-  // aside. When all 4 fire, the aside is absent (matches the locked Anchor 6
-  // form on DS14).
+  // aside. When every sub-test fires, the aside is absent. The count itself is
+  // derived from the engine combine array below, not stated here.
   // "name" carries the bare sub-test handle for the non-firing collapse
   // aside ("value-level collisions, block copies — non-significant"); the
   // p-rendering uses formatPClause directly so floor cases produce "p <
@@ -541,12 +543,24 @@ function exactDuplicateDetection(r, ctx) {
       label: `block copies (${blockCopies.length} ${pl(blockCopies.length, "site")}, ${formatPClause("best block p", bestBlockP)})`,
       pStr: bestBlockP, fires: parseNum(bestBlockP) < 0.01 || bestBlockP === "<0.0001",
     },
+    {
+      name: "scattered partial-row duplication",
+      label: `scattered partial-row duplication (${partialRowPairs} row ${pl(partialRowPairs, "pair")}, ${formatPClause("p", partialRowP)})`,
+      pStr: partialRowP, fires: parseNum(partialRowP) < 0.01 || partialRowP === "<0.0001",
+    },
   ];
   const firing = subTests.filter(t => t.fires);
   const nonFiring = subTests.filter(t => !t.fires);
-  const lead = firing.length === subTests.length
-    ? "All 4 sub-tests fire"
-    : `${firing.length} of ${subTests.length} sub-tests fire`;
+  // Sub-test count is derived from the engine's live combine array (r._rawPs),
+  // never stated as a literal: adding a real DupDet sub-test to the combine
+  // updates this automatically and the count cannot drift from the module.
+  // subTests mirrors that array one-for-one, so firing.length === nSubTests
+  // means every combine member fired; if the two ever fall out of step the
+  // displayed count still reflects the engine, not the shorter display list.
+  const nSubTests = Array.isArray(r._rawPs) ? r._rawPs.length : subTests.length;
+  const lead = firing.length === nSubTests
+    ? `All ${nSubTests} sub-tests fire`
+    : `${firing.length} of ${nSubTests} sub-tests fire`;
   const firingFragments = firing.map(t => t.label);
   let line1 = `${lead}: ${firingFragments.join(", ")}.`;
   if (nonFiring.length > 0) {

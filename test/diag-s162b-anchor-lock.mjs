@@ -84,7 +84,7 @@ const LOCKED = [
     assay: "survey",
     location: "20 block copies; 24 rows in 3 duplicate groups; 611 within-row coincidences",
     evidenceLines: [
-      "All 4 sub-tests fire: value-level collisions (40,411 of 114,960 pairs, p < 0.0001), row duplication (24 identical row vectors in 3 groups, p < 0.0001), within-row coincidence (611 of 1,200 pairs vs 500 expected, p < 0.0001), block copies (20 sites, best block p = 0.0014).",
+      "4 of 5 sub-tests fire: value-level collisions (40,411 of 114,960 pairs, p < 0.0001), row duplication (24 identical row vectors in 3 groups, p < 0.0001), within-row coincidence (611 of 1,200 pairs vs 500 expected, p < 0.0001), block copies (20 sites, best block p = 0.0014). Also tested: scattered partial-row duplication (p = 1.0) — non-significant.",
       `Dominant duplicate group: 22 identical rows of "3, 3, 3, 3, 3, 3" (Likert value 3 across all 6 questions); secondary groups of 3 and 2 identical rows on values 4 and 2.`,
       "Value 3 is over-represented (count 250 / expected 76); the 5-value Likert alphabet means collision baseline is high, but the row-vector duplication and block-copy signals are independent of alphabet size.",
     ],

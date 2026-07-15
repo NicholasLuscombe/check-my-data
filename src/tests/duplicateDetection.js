@@ -145,7 +145,7 @@ export function testDuplicates(matrix, fullMatrix, colGroupId, assay) {
     // own coincidental-repeat floor, S301). Do NOT port the integer parametric
     // null across — that route is closed. Full record: METHODOLOGY §1.1, V1X §2.6.
     // CORPUS-03 SL and test/fixtures 23/24 (recur) are the counterexamples (all
-    // four _rawPs = 1.0).
+    // _rawPs = 1.0).
     //
     // Sub-channel note: the empirical HHI at :55 feeds only Test 1 (collision, p1
     // below). Tests 2 and 4 recompute their own per-column indices (row-duplicate
