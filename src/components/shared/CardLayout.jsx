@@ -71,18 +71,28 @@ const DISCLOSURE_PANEL = { marginTop: BLOCK_GAP_TIGHT, padding: "8px 12px", back
 // test fell through to its pooled path. Shared point: any card whose result
 // carries `groupingCollapsed` (set in engine.js for the four row-grouped
 // dispatch tests) renders this automatically, no interaction required.
-// PROPOSED COPY — Chat to confirm the wording. The engine supplies the reason
-// code + minPerGroup; the strings below are the only reader-facing text.
-function groupingCollapseNote(gc) {
-  const min = gc.minPerGroup || 3;
+// Copy is Chat-authored/confirmed (S318 grouping-collapse banner copy). Returns
+// an array of lines; the Mahalanobis card carries one extra caveat line.
+function groupingCollapseNote(gc, testName) {
+  let keyFill;
   switch (gc.reason) {
     case "all-singletons":
-      return `Grouped analysis not run — every row formed its own condition group, so there was nothing to compare across groups. The result shown pools all rows together.`;
+      keyFill = "unique per row";
+      break;
     case "single-group":
-      return `Grouped analysis not run — the condition columns resolved to a single group, so there was nothing to compare across groups. The result shown pools all rows together.`;
+      keyFill = "the same for every row — the columns did not divide the data at all";
+      break;
     default: // all-below-min / some-below-min
-      return `Grouped analysis not run — the condition groups were too small (fewer than ${min} rows each) to analyse separately. The result shown pools all rows together.`;
+      keyFill = "too fine — every group fell below the three-row minimum";
   }
+  const lines = [
+    `Grouping produced no usable groups. This file's condition columns were combined into one grouping key, and that key is ${keyFill} — so the tests below could not compare groups and ran on the ungrouped data instead.`,
+    `A verdict here reflects the whole file, not a comparison between conditions. If this dataset was meant to be analysed by condition, treat the grouped result as not assessed.`,
+  ];
+  if (testName === "Mahalanobis Row Outlier") {
+    lines.push(`For this test specifically, pooling across ungrouped rows can make normal between-condition differences look like outliers. Read a flag here with that in mind.`);
+  }
+  return lines;
 }
 
 export function MiniCardLayout({ result, lookFor, footer, children, implications }) {
@@ -104,7 +114,11 @@ export function MiniCardLayout({ result, lookFor, footer, children, implications
   return (
     <>
       {groupingCollapsed && (
-        <CardBanner type="warn">{groupingCollapseNote(groupingCollapsed)}</CardBanner>
+        <CardBanner type="warn">
+          {groupingCollapseNote(groupingCollapsed, result.name).map((line, i) => (
+            <div key={i} style={i === 0 ? undefined : { marginTop: "6px" }}>{line}</div>
+          ))}
+        </CardBanner>
       )}
       {footer && (
         <div style={{ ...LEAD_HEAD, marginBottom: BLOCK_GAP }}>{footer}</div>
