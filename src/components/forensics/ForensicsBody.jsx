@@ -83,6 +83,15 @@ export function ForensicsBody({
   // findings }`. Passed through to FindingDetailPanel so the panel can
   // mount MinimapStripVertical + ExcerptTable when Show data is open.
   heatmapProps = null,
+  // S321 move 2, round 3 — confirm action. ReportView owns the confirmed-results
+  // state; the card runs the four tests and hands the results up via
+  // onConfirmGrouping. groupingPendingBase (from the engine's stamp on the base
+  // results) keeps the card mounted after confirm; confirmedActive tells the
+  // card whether a confirm is live. Unticking clears the confirm (below).
+  groupingPendingBase = false,
+  confirmedActive = false,
+  onConfirmGrouping = null,
+  onClearConfirmGrouping = null,
 }) {
   // Scroll-to-card via the data-test-id attribute that ForensicsTestCard
   // sets. CSS.escape handles test-id strings that contain spaces / parens
@@ -178,7 +187,12 @@ export function ForensicsBody({
       if (next.has(idx)) next.delete(idx); else next.add(idx);
       return next;
     });
-  }, []);
+    // Changing the set invalidates a confirm — the confirmed grouping is no
+    // longer the one on screen, so the four tests return to pending until the
+    // user re-confirms. Falls out naturally: clearing the swap re-exposes the
+    // engine's N/A-pending base results.
+    onClearConfirmGrouping?.();
+  }, [onClearConfirmGrouping]);
 
   // S163 virtualisation rework: scroll-to-region via the table's
   // imperative scroll API. The fix-pass-2 windowed-state machinery
@@ -364,6 +378,9 @@ export function ForensicsBody({
         rowMap={rowMap}
         tickedCols={tickedCols}
         onToggleCol={onToggleCol}
+        groupingPendingBase={groupingPendingBase}
+        confirmedActive={confirmedActive}
+        onConfirmGrouping={onConfirmGrouping}
       />
 
       {/* §2 WHAT WAS FOUND — two DOM elements that merge visually

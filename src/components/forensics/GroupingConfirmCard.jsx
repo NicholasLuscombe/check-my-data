@@ -1,37 +1,38 @@
 /* ── GroupingConfirmCard — confirm-the-grouping surface (S321 move 2) ──
-   Renders when the grouping-enforcement trigger is pending (any result
-   carries `groupingPending`). Shows the condition columns inference chose,
-   the resulting group count, and the group-size distribution, so the user can
-   confirm the grouping before the four row-grouped tests are trusted.
+   Renders when the grouping-enforcement trigger is pending. Shows the
+   condition columns inference chose, the resulting group count and size
+   distribution, and lets the user confirm the grouping so the four paused
+   row-grouped tests run and produce real verdicts.
 
    METHODOLOGY §Enforcement is the design source: show the set of condition
    columns and its consequence, with NO ranking — the columns are a set,
    never ordered by any importance signal.
 
-   ROUND 2 (this build): the checkboxes are a live control. Unticking (or
-   re-ticking) a column changes the working set; the card recomputes the
-   grouping and the trigger state live via computeTrigger — the SAME helper
-   the engine calls (single-source, no test/battery run, sub-millisecond).
-   A fire/clear indicator shows whether the current set still trips the
-   trigger. The indicator INFORMS; it does not gate — the user is the domain
-   expert and may confirm a set the tool would flag. Not yet in: the confirm
-   action (runs the tests), boundary guards, persistence.
+   ROUND 3 (this build): the confirm action. Pressing Confirm runs the four
+   grouped tests (via runConfirmedGroupedTests) on the ticked set and hands the
+   results up to ReportView, which swaps them in for the N/A-pending ones — the
+   four §3 cards transition pending → verdict in place. The four tests were
+   measured at ~0.19 s on C09, so confirm is synchronous: no spinner, no
+   running state. The fire/clear indicator (round 2) informs but never gates —
+   a "needs confirmation" grouping can still be confirmed. Unticking after a
+   confirm clears it (ForensicsBody), returning the four to pending.
 
-   Data: the ticked-set state lives in ForensicsBody (`tickedCols` + toggle).
-   The live call reads importConfig.data / importConfig.roles / rowMap
-   (= filteredIndices). Before any toggle the ticked set is the full inferred
-   set, so the live return equals the engine's stamped payload (same single
-   computation) — the hand-off from stamp to live is seamless. */
+   Data: ticked-set state + the confirm handoff live in ForensicsBody /
+   ReportView. The live recompute and the confirm run both read
+   importConfig.data / roles / rowMap — the same single-source helpers the
+   engine uses (computeTrigger for the trigger, runConfirmedGroupedTests for
+   the four tests). Nothing here is persisted. */
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { C, FS, FW, FF, CR, UI, CC } from "../../constants/tokens.js";
 import { computeTrigger } from "../../analysis/groupingTrigger.js";
+import { runConfirmedGroupedTests } from "../../analysis/confirmGrouping.js";
 
-export function GroupingConfirmCard({ results, importConfig, rowMap, tickedCols, onToggleCol }) {
-  // Card visibility is driven by the ENGINE's stamped pending state — it does
-  // not change as the user unticks. The live indicator (below) reflects the
-  // user's current working set; the card stays mounted either way.
-  const pendingResult = (results || []).find(r => r.groupingPending);
+export function GroupingConfirmCard({
+  results, importConfig, rowMap, tickedCols, onToggleCol,
+  groupingPendingBase = false, confirmedActive = false, onConfirmGrouping = null,
+}) {
+  const [confirming, setConfirming] = useState(false);
 
   // Condition columns inference chose, in DATA COLUMN ORDER — no sorting, no
   // ranking. Mirrors extractAnalysisInputs' condCols derivation (roles filter
@@ -44,7 +45,6 @@ export function GroupingConfirmCard({ results, importConfig, rowMap, tickedCols,
       : null)
     .filter(Boolean), [roles, hdrs]);
 
-  // The current ticked subset, in column order.
   const ticked = tickedCols || new Set(condColumns.map(c => c.idx));
   const tickedSubset = useMemo(
     () => condColumns.filter(c => ticked.has(c.idx)).map(c => c.idx),
@@ -52,8 +52,6 @@ export function GroupingConfirmCard({ results, importConfig, rowMap, tickedCols,
   );
 
   // Live recompute — the SAME helper the engine calls, on the current set.
-  // No test execution: grouping + sizes + arms only. Round 2 does NOT guard
-  // the zero/one-column edge — whatever computeTrigger returns is rendered.
   const live = useMemo(() => computeTrigger({
     data: importConfig?.data || [],
     roles,
@@ -61,9 +59,10 @@ export function GroupingConfirmCard({ results, importConfig, rowMap, tickedCols,
     filteredIndices: rowMap || [],
   }), [importConfig, roles, tickedSubset, rowMap]);
 
-  if (!pendingResult) return null;
-
-  const nHeld = (results || []).filter(r => r.groupingPending).length;
+  // Visibility gates on the ENGINE's stamped pending state (base results), so
+  // the card stays mounted after a confirm — the swap removes groupingPending
+  // from the effective results, but the card must remain for re-untick.
+  if (!groupingPendingBase) return null;
 
   const nGroups = live.nGroups;
   const median = live.median;
@@ -71,12 +70,29 @@ export function GroupingConfirmCard({ results, importConfig, rowMap, tickedCols,
   const maxSize = sizes.length ? Math.max(...sizes) : 0;
   const minSize = sizes.length ? Math.min(...sizes) : 0;
 
-  // Fire/clear indicator copy — derived from the live return. Informs, never
-  // gates.
   let armReason = "";
   if (live.arm1 && live.arm2) armReason = "3 or more condition columns are merged, and the groups are too thin to permute";
   else if (live.arm1) armReason = "3 or more condition columns are merged into the grouping key";
   else if (live.arm2) armReason = "the groups are too thin to support a permutation test";
+
+  const onConfirm = async () => {
+    if (!onConfirmGrouping || confirming) return;
+    setConfirming(true);
+    try {
+      const four = await runConfirmedGroupedTests({
+        data: importConfig?.data || [],
+        roles,
+        condColSet: tickedSubset,
+        zeroAsMissing: importConfig?.zeroAsMissing,
+        assay: importConfig?.assay,
+        dataType: importConfig?.dataType || "continuous",
+        vst: importConfig?.vst,
+      });
+      onConfirmGrouping(four);
+    } finally {
+      setConfirming(false);
+    }
+  };
 
   return (
     <div style={{
@@ -92,12 +108,11 @@ export function GroupingConfirmCard({ results, importConfig, rowMap, tickedCols,
         Confirm the grouping
       </div>
 
-      {/* Explanation */}
+      {/* Explanation — adapts to confirmed state */}
       <div style={{ fontSize: FS.base, color: C.TEXT_2, lineHeight: 1.6, marginBottom: "14px" }}>
-        {nHeld} test{nHeld === 1 ? "" : "s"} that compare groups {nHeld === 1 ? "is" : "are"} paused
-        until you confirm how the rows are grouped. Inference grouped the data on
-        the condition columns below. Untick a column to see how the grouping and
-        the tool's assessment change.
+        {confirmedActive
+          ? <>The grouped tests below ran on this grouping. Untick a column to change the grouping and confirm again.</>
+          : <>The grouped tests that compare groups are paused until you confirm how the rows are grouped. Inference grouped the data on the condition columns below. Untick a column to see how the grouping and the tool's assessment change, then confirm.</>}
       </div>
 
       {/* Condition columns — live checkboxes, column order, no ranking */}
@@ -122,8 +137,8 @@ export function GroupingConfirmCard({ results, importConfig, rowMap, tickedCols,
       </div>
 
       {/* Consequence — the resulting grouping: count, size distribution, median.
-          One bar per group, height proportional to group size, in partition
-          order. Updates live as the ticked set changes. */}
+          One bar per group, height proportional to group size, partition order.
+          Updates live as the ticked set changes. */}
       <div style={{ fontSize: FS.sm, fontWeight: FW.SEMI, color: C.TEXT_3, marginBottom: "8px" }}>
         Resulting groups
       </div>
@@ -149,13 +164,12 @@ export function GroupingConfirmCard({ results, importConfig, rowMap, tickedCols,
         {sizes.length > 0 && <> · sizes range <span style={{ fontFamily: FF.MONO }}>{minSize}</span>–<span style={{ fontFamily: FF.MONO }}>{maxSize}</span></>}
       </div>
 
-      {/* Fire/clear indicator — informs, does not gate. Amber when the current
-          set still trips the trigger; green when the tool would not flag it. */}
+      {/* Fire/clear indicator — informs, does not gate. */}
       {live.pending ? (
         <div style={{
           fontSize: FS.base, color: UI.WARN.text, background: UI.WARN.callout.bg,
           border: `1px solid ${UI.WARN.border}`, borderRadius: CR.MD,
-          padding: "8px 12px", lineHeight: 1.5,
+          padding: "8px 12px", lineHeight: 1.5, marginBottom: "14px",
         }}>
           <span style={{ fontWeight: FW.SEMI }}>Needs confirmation</span> — {armReason}. You can still confirm this grouping if it is correct.
         </div>
@@ -163,10 +177,32 @@ export function GroupingConfirmCard({ results, importConfig, rowMap, tickedCols,
         <div style={{
           fontSize: FS.base, color: UI.OK.text, background: UI.OK.callout.bg,
           border: `1px solid ${UI.OK.border}`, borderRadius: CR.MD,
-          padding: "8px 12px", lineHeight: 1.5,
+          padding: "8px 12px", lineHeight: 1.5, marginBottom: "14px",
         }}>
           <span style={{ fontWeight: FW.SEMI }}>Looks sound</span> — the tool would not flag this grouping.
         </div>
+      )}
+
+      {/* Confirm action — runs the four grouped tests on the ticked set. Enabled
+          in both indicator states (informs, does not gate). After a confirm,
+          shows a confirmed acknowledgement; unticking clears it. */}
+      {confirmedActive ? (
+        <div style={{ fontSize: FS.base, color: UI.OK.text, fontWeight: FW.SEMI }}>
+          ✓ Grouping confirmed — the grouped tests ran on it.
+        </div>
+      ) : (
+        <button
+          onClick={onConfirm}
+          disabled={confirming}
+          style={{
+            background: C.BG, color: C.TEXT,
+            border: `1px solid ${C.BORDER}`, borderRadius: CR.MD,
+            padding: "8px 16px", fontSize: FS.base, fontWeight: FW.MED,
+            fontFamily: FF.UI, cursor: confirming ? "default" : "pointer",
+          }}
+        >
+          Confirm this grouping and run the grouped tests
+        </button>
       )}
     </div>
   );

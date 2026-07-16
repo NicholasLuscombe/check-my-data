@@ -79,7 +79,22 @@ const METHOD_BATTERY = [
   ]},
 ];
 
-export function ReportView({ results, importConfig, matrix, rowMap, onBack, onChangeFile }) {
+export function ReportView({ results: baseResults, importConfig, matrix, rowMap, onBack, onChangeFile }) {
+  // S321 move 2, round 3 — confirmed grouping. When the user confirms a grouping
+  // on the confirm card, the four grouped tests run on that ticked set and their
+  // real results replace the four N/A-pending ones. Everything downstream reads
+  // `results`, so the whole report (§1 severity, §3 cards) stays consistent.
+  // Only the four swap — every dataset-wide test result object is unchanged.
+  // Session-only state; nothing persisted. `groupingPendingBase` (from the
+  // engine's stamp on the untouched base results) keeps the confirm card mounted
+  // after confirm so the user can re-untick and re-confirm.
+  const [confirmedResults, setConfirmedResults] = useState(null);
+  const results = useMemo(() => {
+    if (!confirmedResults) return baseResults;
+    return baseResults.map(r => confirmedResults.find(c => c.name === r.name) || r);
+  }, [baseResults, confirmedResults]);
+  const groupingPendingBase = useMemo(() => baseResults.some(r => r.groupingPending), [baseResults]);
+
   const { severity, high, mod, nFlaggedDimensions } = computeSeverity(results);
   const sevColor=SEV_COLORS[severity];
   const assayLabel=ASSAYS.find(a=>a.v===importConfig.assay)?.l||importConfig.assay;
@@ -1324,6 +1339,10 @@ export function ReportView({ results, importConfig, matrix, rowMap, onBack, onCh
               importConfig={importConfig} rowMap={rowMap}
               severity={severity}
               heatmapProps={heatmapProps}
+              groupingPendingBase={groupingPendingBase}
+              confirmedActive={!!confirmedResults}
+              onConfirmGrouping={setConfirmedResults}
+              onClearConfirmGrouping={() => setConfirmedResults(null)}
             />
 
             {/* ── §4 INVESTIGATE FURTHER ── */}
