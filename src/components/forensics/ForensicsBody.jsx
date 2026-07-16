@@ -55,6 +55,7 @@ import { CATEGORY_SHORT_DESCRIPTIONS } from "../../constants/descriptions.js";
 import { C } from "../../constants/tokens.js";
 import { StickySurface, STICKY_SURFACE_SELECTOR } from "./StickySurface.jsx";
 import { ForensicsCategoryBlock } from "./ForensicsCategoryBlock.jsx";
+import { GroupingConfirmCard } from "./GroupingConfirmCard.jsx";
 
 // S150-fix1: clean-state copy renders as bold sentence-lead + body
 // continuation. Threaded through to StickySurface where it renders
@@ -334,6 +335,12 @@ export function ForensicsBody({
 
   return (
     <>
+      {/* Grouping-enforcement confirm card (S321 move 2). Renders only when
+          the trigger is pending (some result carries groupingPending). Mounts
+          above §2 so the user sees the grouping gate before reading findings
+          built on the four row-grouped tests it holds. Round 1: display only. */}
+      <GroupingConfirmCard results={results} importConfig={importConfig} />
+
       {/* §2 WHAT WAS FOUND — two DOM elements that merge visually
           into one §2 surface. Section header in its own flat-bottom
           wrapper; StickySurface as a flat-top continuation, sticky-
@@ -380,6 +387,11 @@ export function ForensicsBody({
           const cat = catSummaries.find(c => c.mk === mk);
           if (!cat) return null;
           const { group, flagged, applicable, isFlagged } = cat;
+          // Grouping-pending tests in this dimension (flag N/A + groupingPending).
+          // These are held pending user confirmation, distinct from ordinary
+          // N/A ("not applicable"). Surfaced so the four row-grouped cards read
+          // "N/A — grouping needs confirmation" (S321 move 2, round 1).
+          const pendingTests = group.tests.filter(r => r.flag === "N/A" && r.groupingPending);
           return (
             <div key={mk}>
               {idx > 0 && <div style={{borderTop:`1px solid ${C.BORDER_L}`, margin:"8px 0"}}/>}
@@ -389,6 +401,7 @@ export function ForensicsBody({
                 hasHigh={flagged.length > 0}
                 description={catDescs[mk]}
                 testResults={applicable}
+                pendingTests={pendingTests}
                 isExpanded={expandedCats[mk]} onToggle={()=>toggleCat(mk)}
                 expandedTestEvidence={expandedTestEvidence}
                 onToggleTestEvidence={(name, defaultOpen)=>setExpandedTestEvidence(prev=>{

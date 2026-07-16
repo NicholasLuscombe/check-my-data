@@ -15,7 +15,7 @@
 */
 
 import { useState, useMemo } from "react";
-import { C, FS, FW, FF, CR, SEV_VERDICT } from "../../constants/tokens.js";
+import { C, FS, FW, FF, CR, SEV_VERDICT, UI } from "../../constants/tokens.js";
 import { DISPLAY_NAMES } from "../../constants/mechanisms.js";
 import { TestCardLayout } from "../shared/TestCardLayout.jsx";
 import { ClusterRow } from "../shared/ClusterRow.jsx";
@@ -79,6 +79,7 @@ function ForensicsTestCard({ result, mk, expanded, onToggle, importConfig, rowMa
  */
 export function ForensicsCategoryBlock({
   mk, label, isFlagged, hasHigh, description, testResults,
+  pendingTests = [],
   isExpanded, onToggle,
   expandedTestEvidence, onToggleTestEvidence,
   importConfig, rowMap,
@@ -95,7 +96,9 @@ export function ForensicsCategoryBlock({
   const clearTests = sorted.filter(r => r.flag === "LOW");
   const [clearOpen, setClearOpen] = useState(false);
 
-  const checkCount = testResults.length;
+  // Pending tests (grouping unconfirmed) count toward the category total so a
+  // fully-pending dimension doesn't read as "0 tests".
+  const checkCount = testResults.length + pendingTests.length;
 
   return (
     <div style={{ paddingBottom: isExpanded ? "4px" : "0" }}>
@@ -164,9 +167,42 @@ export function ForensicsCategoryBlock({
                 })}
               </>
             )}
+
+            {/* Grouping-pending tests — held N/A until the user confirms the
+                grouping. Distinct copy from ordinary "not applicable" N/A
+                (S321 move 2, round 1). */}
+            {pendingTests.map(r => (
+              <PendingRow key={r.name} result={r} />
+            ))}
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+// A held-pending test row: "N/A — grouping needs confirmation", visually
+// distinct (amber attention rule) from a settled "N/A — not applicable".
+function PendingRow({ result }) {
+  return (
+    <div style={{
+      padding: `8px ${RAIL_RIGHT} 8px 12px`,
+      background: UI.WARN.callout.bg,
+      border: `1px solid ${UI.WARN.border}`,
+      borderLeft: `3px solid ${UI.WARN.callout.rule}`,
+      borderRadius: CR.LG,
+      fontSize: FS.base,
+      fontFamily: FF.UI,
+      color: C.TEXT,
+      display: "flex", alignItems: "center", gap: "8px", minWidth: 0,
+    }}>
+      <span style={{ fontWeight: FW.SEMI, flexShrink: 0 }}>
+        {DISPLAY_NAMES[result.name] || result.name}
+      </span>
+      <span style={{ color: C.TEXT_3, flexShrink: 0 }}>—</span>
+      <span style={{ color: UI.WARN.text, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", minWidth: 0 }}>
+        N/A — grouping needs confirmation
+      </span>
     </div>
   );
 }
