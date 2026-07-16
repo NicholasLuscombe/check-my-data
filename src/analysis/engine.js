@@ -221,6 +221,10 @@ export async function runFullAnalysis(matrix, rawMatrix, condCtx, assay, onProgr
     condCols: trigger.condCols ?? 0,
     nGroups: trigger.nGroups ?? null,
     medianSize: Number.isFinite(trigger.median) ? trigger.median : null,
+    // Per-group sizes (helper already computes them) so the confirm card can
+    // render the size distribution, not just count + median. Additive — no
+    // test or severity code reads this; verdicts, batch, and census unchanged.
+    sizes: Array.isArray(trigger.sizes) ? trigger.sizes : [],
   };
   function pendingResult(name, category) {
     return {

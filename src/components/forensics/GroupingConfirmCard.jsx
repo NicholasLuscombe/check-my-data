@@ -13,12 +13,11 @@
    confirm action land in later rounds. No computeTrigger call from here.
 
    Payload: reads `result.groupingPending = { arm1, arm2, condCols, nGroups,
-   medianSize }` (stamped by the engine) plus the condition-column names from
-   importConfig.roles / importConfig.hdrs. The per-group `sizes` array is not
-   on the payload this round — nGroups + median are shown; the full size
-   distribution is pending a payload decision (see the S321 round-1 report). */
+   medianSize, sizes }` (stamped by the engine) plus the condition-column names
+   from importConfig.roles / importConfig.hdrs. `sizes` drives the size
+   distribution strip; nGroups + median are shown alongside. */
 
-import { C, FS, FW, FF, CR, UI } from "../../constants/tokens.js";
+import { C, FS, FW, FF, CR, UI, CC } from "../../constants/tokens.js";
 
 // The four tests the trigger gates, for the "held pending" note. Display
 // names come from DISPLAY_NAMES at the call sites that already render them;
@@ -46,6 +45,12 @@ export function GroupingConfirmCard({ results, importConfig }) {
 
   const nGroups = gp.nGroups;
   const median = gp.medianSize;
+  // Per-group sizes in partition order (first-appearance of each label) — a
+  // stable, neutral order, NOT sorted by size. The no-ranking rule governs the
+  // condition columns; the size bars carry no ranking either way.
+  const sizes = Array.isArray(gp.sizes) ? gp.sizes : [];
+  const maxSize = sizes.length ? Math.max(...sizes) : 0;
+  const minSize = sizes.length ? Math.min(...sizes) : 0;
 
   return (
     <div style={{
@@ -85,17 +90,32 @@ export function GroupingConfirmCard({ results, importConfig }) {
         ))}
       </div>
 
-      {/* Consequence — group count + size summary. The per-group sizes array is
-          not on the payload this round; nGroups + median are what's available. */}
-      <div style={{ display: "flex", gap: "24px", flexWrap: "wrap" }}>
-        <div>
-          <div style={{ fontSize: FS.sm, fontWeight: FW.SEMI, color: C.TEXT_3, marginBottom: "2px" }}>Groups</div>
-          <div style={{ fontSize: FS.md, fontWeight: FW.SEMI, color: C.TEXT, fontFamily: FF.MONO }}>{nGroups}</div>
+      {/* Consequence — the resulting grouping: count, size distribution, median.
+          One bar per group, height proportional to group size, in partition
+          order. This is what the user reacts to: how many groups and how big. */}
+      <div style={{ fontSize: FS.sm, fontWeight: FW.SEMI, color: C.TEXT_3, marginBottom: "8px" }}>
+        Resulting groups
+      </div>
+      {sizes.length > 0 && (
+        <div style={{
+          display: "flex", alignItems: "flex-end", gap: "2px",
+          height: "44px", marginBottom: "8px",
+          padding: "0 2px",
+        }}>
+          {sizes.map((s, i) => (
+            <div key={i} title={`Group ${i + 1}: ${s} row${s === 1 ? "" : "s"}`} style={{
+              flex: 1, minWidth: "2px",
+              height: `${maxSize ? Math.max(6, (s / maxSize) * 100) : 6}%`,
+              background: CC.OBS,
+              borderRadius: `${CR.SM} ${CR.SM} 0 0`,
+            }} />
+          ))}
         </div>
-        <div>
-          <div style={{ fontSize: FS.sm, fontWeight: FW.SEMI, color: C.TEXT_3, marginBottom: "2px" }}>Median group size</div>
-          <div style={{ fontSize: FS.md, fontWeight: FW.SEMI, color: C.TEXT, fontFamily: FF.MONO }}>{median}</div>
-        </div>
+      )}
+      <div style={{ fontSize: FS.base, color: C.TEXT_2, fontFamily: FF.UI }}>
+        <span style={{ fontWeight: FW.SEMI, color: C.TEXT, fontFamily: FF.MONO }}>{nGroups}</span> group{nGroups === 1 ? "" : "s"}
+        {" · median size "}<span style={{ fontWeight: FW.SEMI, color: C.TEXT, fontFamily: FF.MONO }}>{median}</span>
+        {sizes.length > 0 && <> · sizes range <span style={{ fontFamily: FF.MONO }}>{minSize}</span>–<span style={{ fontFamily: FF.MONO }}>{maxSize}</span></>}
       </div>
     </div>
   );
