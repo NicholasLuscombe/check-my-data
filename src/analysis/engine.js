@@ -8,6 +8,7 @@ import { DATATYPE_SKIP } from '../constants/assays.js';
 import { ROW_SEMANTICS_FULL_SKIP, ROW_SEMANTICS_SKIP_REASON } from '../import/rowSemantics.js';
 import { aggregatePerGroup, buildGroups } from './aggregation.js';
 import { createConditionContext } from './conditionContext.js';
+import { computeTrigger } from './groupingTrigger.js';
 
 // ── validateMatrix ────────────────────────────────────────────────
 // Input validation for the numeric matrix before running tests.
@@ -157,6 +158,19 @@ export function extractAnalysisInputs({ data, roles, condPerCol, zeroAsMissing, 
   // Unified condition context
   const condCtx = createConditionContext({ groups, rowConditions, rowConditionsCols, matrix, colRelationship, dataColHeaders });
 
+  // S320 move 2 — grouping-enforcement trigger. Computed HERE because this is
+  // the only scope holding the helper's raw inputs (data, roles, condCols,
+  // filteredIndices); runFullAnalysis receives only matrix + condCtx, so the
+  // result is stamped onto condCtx for the hook to read. On column-grouped data
+  // the candidate set is empty, reproducing the old rowGroupsStatus hasGroups
+  // guard (attempted:false → never pending). The confirm card calls the same
+  // computeTrigger with the ticked column subset — one home for the arm logic.
+  condCtx.groupingTrigger = computeTrigger({
+    data, roles,
+    condColSet: condCtx.type === 'column-grouped' ? [] : condCols,
+    filteredIndices,
+  });
+
   return { matrix, rawMatrix, filteredIndices, condCtx };
 }
 
@@ -184,39 +198,29 @@ export async function runFullAnalysis(matrix, rawMatrix, condCtx, assay, onProgr
   const isConditionsMode = condCtx.type === 'column-grouped' && !condCtx.paired;
   const useAggregate = condCtx.type === 'column-grouped' && condCtx.count >= 2;
 
-  // S320 move-2 — grouping enforcement trigger. When a row-grouping can't be
-  // trusted, the four row-grouped dispatch tests (Mahalanobis Row Outlier,
-  // Entropy/Zipf, Column Goodness-of-Fit, Modality) return N/A pending user
-  // confirmation instead of a pooled verdict a reader would mistake for a
-  // grouped pass. Two arms (METHODOLOGY §Enforcement):
+  // S320 move 2 — grouping enforcement trigger. The decision is computed by the
+  // shared helper (computeTrigger, src/analysis/groupingTrigger.js) up in
+  // extractAnalysisInputs — the only scope holding the raw data/roles/
+  // filteredIndices its locked signature takes — and stamped onto condCtx as
+  // `groupingTrigger`. The same helper backs the confirm card, so the arm logic
+  // lives in exactly one place. When a row-grouping can't be trusted, the four
+  // row-grouped dispatch tests (Mahalanobis Row Outlier, Entropy/Zipf, Column
+  // Goodness-of-Fit, Modality) return N/A pending user confirmation instead of
+  // a pooled verdict a reader would mistake for a grouped pass. Two arms:
   //   Arm 1 (combinatorial merge)          — ≥3 columns tagged condition.
-  //   Arm 2 (can't support a permutation)   — rowGroups() null (no usable
-  //          partition) OR the partition is thin: median group size ≤ 4.
+  //   Arm 2 (can't support a permutation)  — no usable partition, OR the
+  //          partition is thin: median group size ≤ 4.
   // Supersedes the S318 announce-empty banner: the null/degenerate case is now
   // Arm 2, and the four tests suppress to N/A (a real verdict change) rather
-  // than showing a pooled verdict tagged with a warning. Computed once from
-  // condCtx (VST preserves the row-condition structure, so vstCondCtx gives the
-  // same status). condCols is from the role map above.
-  const rowGroupStatus = condCtx?.rowGroupsStatus
-    ? condCtx.rowGroupsStatus()
-    : { attempted: false, usable: false, nGroups: 0, medianSize: null };
-  // The `condition`-column count. condCols is computed in extractAnalysisInputs
-  // (a different function, out of scope here), so derive it from condCtx's
-  // per-column condition arrays: length N for N columns; a single condition
-  // column leaves rowConditionsCols null but rowConditions set (→ 1); no row
-  // conditions → 0.
-  const nCondCols = condCtx?.rowConditionsCols ? condCtx.rowConditionsCols.length
-    : (condCtx?.rowConditions ? 1 : 0);
-  const groupingArm1 = nCondCols >= 3;
-  const groupingArm2 = rowGroupStatus.attempted &&
-    (!rowGroupStatus.usable || (Number.isFinite(rowGroupStatus.medianSize) && rowGroupStatus.medianSize <= 4));
-  const groupingPending = rowGroupStatus.attempted && (groupingArm1 || groupingArm2);
+  // than showing a pooled verdict tagged with a warning.
+  const trigger = condCtx?.groupingTrigger || { pending: false };
+  const groupingPending = !!trigger.pending;
   const groupingTrigger = {
-    arm1: groupingArm1,
-    arm2: groupingArm2,
-    condCols: nCondCols,
-    nGroups: rowGroupStatus.nGroups ?? null,
-    medianSize: Number.isFinite(rowGroupStatus.medianSize) ? rowGroupStatus.medianSize : null,
+    arm1: !!trigger.arm1,
+    arm2: !!trigger.arm2,
+    condCols: trigger.condCols ?? 0,
+    nGroups: trigger.nGroups ?? null,
+    medianSize: Number.isFinite(trigger.median) ? trigger.median : null,
   };
   function pendingResult(name, category) {
     return {
