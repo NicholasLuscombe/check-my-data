@@ -161,6 +161,25 @@ export function ForensicsBody({
     setDataExpanded(v => !v);
   }, []);
 
+  // S321 move 2, round 2 — grouping confirm card ticked-set state. The card's
+  // condition-column checkboxes are a live control: unticking changes the
+  // working set, which the card recomputes against via computeTrigger. State
+  // lives here (interaction state, like the region selection above), NOT
+  // anywhere the engine reads — it's transient per-view UI state. Initialised
+  // to all condition columns ticked (the inferred set).
+  const condColIndices = useMemo(
+    () => (importConfig?.roles || []).map((r, i) => (r === "condition" ? i : -1)).filter(i => i >= 0),
+    [importConfig]
+  );
+  const [tickedCols, setTickedCols] = useState(() => new Set(condColIndices));
+  const onToggleCol = useCallback((idx) => {
+    setTickedCols(prev => {
+      const next = new Set(prev);
+      if (next.has(idx)) next.delete(idx); else next.add(idx);
+      return next;
+    });
+  }, []);
+
   // S163 virtualisation rework: scroll-to-region via the table's
   // imperative scroll API. The fix-pass-2 windowed-state machinery
   // (WINDOW_ROW_SIZE / WINDOW_COL_SIZE constants, windowRowStart /
@@ -339,7 +358,13 @@ export function ForensicsBody({
           the trigger is pending (some result carries groupingPending). Mounts
           above §2 so the user sees the grouping gate before reading findings
           built on the four row-grouped tests it holds. Round 1: display only. */}
-      <GroupingConfirmCard results={results} importConfig={importConfig} />
+      <GroupingConfirmCard
+        results={results}
+        importConfig={importConfig}
+        rowMap={rowMap}
+        tickedCols={tickedCols}
+        onToggleCol={onToggleCol}
+      />
 
       {/* §2 WHAT WAS FOUND — two DOM elements that merge visually
           into one §2 surface. Section header in its own flat-bottom
