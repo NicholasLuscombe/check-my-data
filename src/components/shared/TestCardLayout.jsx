@@ -4,7 +4,7 @@
    Mode-aware: QC shows name+status only, Review adds subtitle,
    Forensics adds p-value and method line. */
 
-import { C, FS, FW, FF, SEV_VERDICT, MECH_COLOR, UI, ACCENT } from "../../constants/tokens.js";
+import { C, FS, FW, FF, SEV_VERDICT, MECH_COLOR } from "../../constants/tokens.js";
 import { DISPLAY_NAMES, TEST_DESCRIPTIONS, MECHANISMS } from "../../constants/mechanisms.js";
 import { fmtPBadge } from "../../constants/thresholds.js";
 import { MechIcon, mechIconSize } from "./MechIcon.jsx";
@@ -124,19 +124,6 @@ export function TestCardLayout({ result, mode, mk, expanded, onToggle, footer, c
               The whole header block owns expand/collapse; the pill sits alone
               on the right of row 1. */}
           <div style={{ display: "flex", gap: "8px", alignItems: "center", flexShrink: 0, marginLeft: "8px" }}>
-            {/* S318: grouping-collapse mark. When row-grouping produced no usable
-                groups the pooled verdict is NOT a grouped pass — this amber tag
-                keeps the collapsed badge from reading as clean-assessed without
-                opening the card. Mode-independent (renders in QC too). */}
-            {result.groupingCollapsed && (
-              <span style={{
-                fontSize: FS.xs, fontWeight: FW.MED, color: UI.WARN.text,
-                background: UI.WARN.bg, border: `1px solid ${ACCENT.GOLD.border}`,
-                borderRadius: "4px", padding: "1px 6px", whiteSpace: "nowrap",
-              }}>
-                grouping N/A
-              </span>
-            )}
             <span
               style={{
                 fontWeight: FW.MED, fontSize: FS.base, color: flColor,

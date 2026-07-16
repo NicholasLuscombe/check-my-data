@@ -171,7 +171,7 @@ export function createConditionContext({
   //                     groups; `reason` names why.
 
   function rowGroupsStatus(minPerGroup = 3) {
-    if (hasGroups || !hasRowConds) return { attempted: false, usable: false, reason: null };
+    if (hasGroups || !hasRowConds) return { attempted: false, usable: false, reason: null, sizes: [], medianSize: null };
     const counts = {};
     for (let r = 0; r < matrix.length && r < rowConditions.length; r++) {
       const c = rowConditions[r];
@@ -182,15 +182,24 @@ export function createConditionContext({
     const nGroups = sizes.length;
     const maxSize = sizes.length ? Math.max(...sizes) : 0;
     const usableGroups = sizes.filter(n => n >= minPerGroup).length;
+    // S320 move-2 Arm 2 reads the median group size. Computed from the same
+    // `sizes` array over ALL groups (singletons included) so it is defined even
+    // when the partition is unusable (rowGroups() null). Was computed-and-
+    // discarded before; now surfaced alongside sizes.
+    const sorted = [...sizes].sort((a, b) => a - b);
+    const medianSize = sorted.length
+      ? (sorted.length % 2 ? sorted[(sorted.length - 1) / 2]
+                           : (sorted[sorted.length / 2 - 1] + sorted[sorted.length / 2]) / 2)
+      : null;
     if (nGroups >= 2 && sizes.every(n => n >= minPerGroup)) {
-      return { attempted: true, usable: true, reason: null, nGroups, maxSize, usableGroups, minPerGroup };
+      return { attempted: true, usable: true, reason: null, nGroups, maxSize, usableGroups, minPerGroup, sizes, medianSize };
     }
     let reason;
     if (nGroups < 2) reason = 'single-group';
     else if (maxSize <= 1) reason = 'all-singletons';
     else if (maxSize < minPerGroup) reason = 'all-below-min';
     else reason = 'some-below-min';
-    return { attempted: true, usable: false, reason, nGroups, maxSize, usableGroups, minPerGroup };
+    return { attempted: true, usable: false, reason, nGroups, maxSize, usableGroups, minPerGroup, sizes, medianSize };
   }
 
   // ── forSubMatrix(slice) ───────────────────────────────────────────

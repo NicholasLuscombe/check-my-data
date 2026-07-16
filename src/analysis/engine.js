@@ -184,28 +184,46 @@ export async function runFullAnalysis(matrix, rawMatrix, condCtx, assay, onProgr
   const isConditionsMode = condCtx.type === 'column-grouped' && !condCtx.paired;
   const useAggregate = condCtx.type === 'column-grouped' && condCtx.count >= 2;
 
-  // S318 — announce when row-grouping collapses to nothing. When the dataset is
-  // row-grouped but every group is a singleton (C16: Treat×Block×ZLev1 unique
-  // per row → 60 singletons) or no group meets the ≥3-row floor, rowGroups()
-  // returns null and the four row-grouped dispatch tests (Mahalanobis Row
-  // Outlier, Entropy/Zipf, Column Goodness-of-Fit, Modality) silently fall
-  // through to their pooled path — the result then looks assessed-and-clean when
-  // no grouped analysis ran. Tag those pooled results so the card can read
-  // "grouped analysis not run" with a stated reason. Surfacing only: no change
-  // to any statistic, null, or verdict. Computed once from condCtx (VST
-  // preserves the row-condition structure, so vstCondCtx would give the same
-  // status).
-  const rowGroupCollapse = condCtx?.rowGroupsStatus ? condCtx.rowGroupsStatus() : { attempted: false, usable: false };
-  function tagGroupCollapse(r) {
-    if (r && rowGroupCollapse.attempted && !rowGroupCollapse.usable) {
-      r.groupingCollapsed = {
-        reason: rowGroupCollapse.reason,
-        nGroups: rowGroupCollapse.nGroups,
-        maxSize: rowGroupCollapse.maxSize,
-        minPerGroup: rowGroupCollapse.minPerGroup,
-      };
-    }
-    return r;
+  // S320 move-2 — grouping enforcement trigger. When a row-grouping can't be
+  // trusted, the four row-grouped dispatch tests (Mahalanobis Row Outlier,
+  // Entropy/Zipf, Column Goodness-of-Fit, Modality) return N/A pending user
+  // confirmation instead of a pooled verdict a reader would mistake for a
+  // grouped pass. Two arms (METHODOLOGY §Enforcement):
+  //   Arm 1 (combinatorial merge)          — ≥3 columns tagged condition.
+  //   Arm 2 (can't support a permutation)   — rowGroups() null (no usable
+  //          partition) OR the partition is thin: median group size ≤ 4.
+  // Supersedes the S318 announce-empty banner: the null/degenerate case is now
+  // Arm 2, and the four tests suppress to N/A (a real verdict change) rather
+  // than showing a pooled verdict tagged with a warning. Computed once from
+  // condCtx (VST preserves the row-condition structure, so vstCondCtx gives the
+  // same status). condCols is from the role map above.
+  const rowGroupStatus = condCtx?.rowGroupsStatus
+    ? condCtx.rowGroupsStatus()
+    : { attempted: false, usable: false, nGroups: 0, medianSize: null };
+  // The `condition`-column count. condCols is computed in extractAnalysisInputs
+  // (a different function, out of scope here), so derive it from condCtx's
+  // per-column condition arrays: length N for N columns; a single condition
+  // column leaves rowConditionsCols null but rowConditions set (→ 1); no row
+  // conditions → 0.
+  const nCondCols = condCtx?.rowConditionsCols ? condCtx.rowConditionsCols.length
+    : (condCtx?.rowConditions ? 1 : 0);
+  const groupingArm1 = nCondCols >= 3;
+  const groupingArm2 = rowGroupStatus.attempted &&
+    (!rowGroupStatus.usable || (Number.isFinite(rowGroupStatus.medianSize) && rowGroupStatus.medianSize <= 4));
+  const groupingPending = rowGroupStatus.attempted && (groupingArm1 || groupingArm2);
+  const groupingTrigger = {
+    arm1: groupingArm1,
+    arm2: groupingArm2,
+    condCols: nCondCols,
+    nGroups: rowGroupStatus.nGroups ?? null,
+    medianSize: Number.isFinite(rowGroupStatus.medianSize) ? rowGroupStatus.medianSize : null,
+  };
+  function pendingResult(name, category) {
+    return {
+      name, category, flag: "N/A",
+      description: "grouping unconfirmed — pending user confirmation",
+      groupingPending: { ...groupingTrigger },
+    };
   }
 
   async function runPair(testFn, parentCondCtx) {
@@ -405,6 +423,7 @@ export async function runFullAnalysis(matrix, rawMatrix, condCtx, assay, onProgr
       const dtMH = dtSkip("Mahalanobis Row Outlier","distributional"); if (dtMH) return dtMH;
       if (assay === "genomics") return { name: "Mahalanobis Row Outlier", category: "distributional",
         flag: "N/A", description: "Not applicable to genomics data. Count distributions violate the multivariate normality assumption required for χ²-based D² thresholds. Biological expression heterogeneity produces widespread outliers that are not anomalous." };
+      if (groupingPending) return pendingResult("Mahalanobis Row Outlier", "replicate");
       // S127 Path 1 dispatch: METHODOLOGY.md §2.6 step 1 specifies
       // per-condition (μ, Σ). When the dataset is row-grouped with ≥2
       // conditions each ≥3 rows (mahalGroups non-null), stratification
@@ -439,7 +458,7 @@ export async function runFullAnalysis(matrix, rawMatrix, condCtx, assay, onProgr
         stratResult.allCondD2 = allCondD2;
         return stratResult;
       }
-      return tagGroupCollapse(tagVST(await runPairVST(m => testMahalanobisOutlier(m, assay))));
+      return tagVST(await runPairVST(m => testMahalanobisOutlier(m, assay)));
     }],
     ["Blocked Mahalanobis", async () => {
       // S110 Track E (a): block-localised covariance/mean anomaly detection.
@@ -482,21 +501,24 @@ export async function runFullAnalysis(matrix, rawMatrix, condCtx, assay, onProgr
     // single-condition / no-row-groups / column-grouped fixtures.
     ["Entropy / Zipf Analysis",      async () => {
       const dt = dtSkip("Entropy / Zipf Analysis","noise"); if (dt) return dt;
+      if (groupingPending) return pendingResult("Entropy / Zipf Analysis", "shapes");
       const rg = condCtx?.rowGroups();
       if (rg) return await aggregatePerGroup(m => testEntropy(m, rng, dataType), rg);
-      return tagGroupCollapse(testEntropy(matrix, rng, dataType));
+      return testEntropy(matrix, rng, dataType);
     }],
     ["Column Goodness-of-Fit",       async () => {
       const dt = dtSkip("Column Goodness-of-Fit","shapes"); if (dt) return dt;
+      if (groupingPending) return pendingResult("Column Goodness-of-Fit", "shapes");
       const rg = condCtx?.rowGroups();
       if (rg) return await aggregatePerGroup(m => testColumnGof(m, rng, dataType), rg);
-      return tagGroupCollapse(testColumnGof(matrix, rng, dataType));
+      return testColumnGof(matrix, rng, dataType);
     }],
     ["Modality Test",                async () => {
       const dt = dtSkip("Modality Test","shapes"); if (dt) return dt;
+      if (groupingPending) return pendingResult("Modality Test", "shapes");
       const rg = condCtx?.rowGroups();
       if (rg) return await aggregatePerGroup(m => testModality(m, rng, dataType), rg);
-      return tagGroupCollapse(testModality(matrix, rng, dataType));
+      return testModality(matrix, rng, dataType);
     }],
     // S118 Track H: §2.1 NOT rsSkip-gated — Tier 2 effect-size floor
     // |mean r| ≥ 0.25 at N ≥ 500 renders arbitrary-order co-regulation

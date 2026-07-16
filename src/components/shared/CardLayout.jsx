@@ -67,41 +67,12 @@ const DISCLOSURE_PANEL = { marginTop: BLOCK_GAP_TIGHT, padding: "8px 12px", back
 // toggles an accordion panel that opens below the row-as-a-block, panels
 // stacking in row order. Independent toggles preserved — multiple may be open
 // at once (not tabbed). Inter-block rhythm via BLOCK_GAP / BLOCK_GAP_TIGHT.
-// S318 — reader-facing note when row-grouping produced no usable groups and the
-// test fell through to its pooled path. Shared point: any card whose result
-// carries `groupingCollapsed` (set in engine.js for the four row-grouped
-// dispatch tests) renders this automatically, no interaction required.
-// Copy is Chat-authored/confirmed (S318 grouping-collapse banner copy). Returns
-// an array of lines; the Mahalanobis card carries one extra caveat line.
-function groupingCollapseNote(gc, testName) {
-  let keyFill;
-  switch (gc.reason) {
-    case "all-singletons":
-      keyFill = "unique per row";
-      break;
-    case "single-group":
-      keyFill = "the same for every row — the columns did not divide the data at all";
-      break;
-    default: // all-below-min / some-below-min
-      keyFill = "too fine — every group fell below the three-row minimum";
-  }
-  const lines = [
-    `Grouping produced no usable groups. This file's condition columns were combined into one grouping key, and that key is ${keyFill} — so the tests below could not compare groups and ran on the ungrouped data instead.`,
-    `A verdict here reflects the whole file, not a comparison between conditions. If this dataset was meant to be analysed by condition, treat the grouped result as not assessed.`,
-  ];
-  if (testName === "Mahalanobis Row Outlier") {
-    lines.push(`For this test specifically, pooling across ungrouped rows can make normal between-condition differences look like outliers. Read a flag here with that in mind.`);
-  }
-  return lines;
-}
-
 export function MiniCardLayout({ result, lookFor, footer, children, implications }) {
   const [methodOpen, setMethodOpen] = useState(false);
   const [implOpen, setImplOpen] = useState(false);
   const [lookForOpen, setLookForOpen] = useState(false);
   const isFlagged = result.flag !== "LOW" && result.flag !== "N/A";
   const methodText = TEST_METHODS[result.name];
-  const groupingCollapsed = result.groupingCollapsed || null;
 
   // Gates unchanged (not unified): How-it-works on a TEST_METHODS entry
   // (descriptive — flagged or not); Implications + What-to-look-for on isFlagged
@@ -113,13 +84,6 @@ export function MiniCardLayout({ result, lookFor, footer, children, implications
 
   return (
     <>
-      {groupingCollapsed && (
-        <CardBanner type="warn">
-          {groupingCollapseNote(groupingCollapsed, result.name).map((line, i) => (
-            <div key={i} style={i === 0 ? undefined : { marginTop: "6px" }}>{line}</div>
-          ))}
-        </CardBanner>
-      )}
       {footer && (
         <div style={{ ...LEAD_HEAD, marginBottom: BLOCK_GAP }}>{footer}</div>
       )}
