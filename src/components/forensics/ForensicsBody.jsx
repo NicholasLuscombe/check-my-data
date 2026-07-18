@@ -365,13 +365,14 @@ export function ForensicsBody({
 
   const catDescs = CATEGORY_SHORT_DESCRIPTIONS;
 
-  // Clean-state coverage line for the findings panel. States what completed
-  // rather than a bare pass; nothing-completed says the report says nothing.
+  // Clean-state line for the findings panel. The count is dropped here — §1 sits
+  // directly above carrying the same number — so this just states the finding.
+  // Nothing-completed still says the report says nothing.
   const coverage = summarizeCoverage(results);
   const cleanStateLead = coverage.ran === 0
     ? "No tests could run on this data. This report says nothing about it."
-    : `${coverage.ran} of 29 tests completed`;
-  const cleanStateTail = coverage.ran === 0 ? null : " — no patterns to flag.";
+    : "No patterns to flag";
+  const cleanStateTail = null;
 
   return (
     <>
