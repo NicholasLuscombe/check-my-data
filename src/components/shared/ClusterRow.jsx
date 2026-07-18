@@ -40,11 +40,12 @@ import { RAIL_GUTTER, RAIL_RIGHT } from "./styles.js";
 /**
  * @param {object} props
  * @param {string} props.label - cluster display name (e.g. "Copy, paste, edit")
- * @param {number} props.count - applicable test/check count for the cluster
  * @param {string} props.description - one-liner shown after the em-dash
- * @param {"test"|"check"} [props.noun="test"] - QC mode uses "check"; Forensics + Review use "test"
  * @param {boolean} props.isFlagged - any HIGH or MODERATE tests
  * @param {boolean} [props.hasHigh] - any HIGH tests (drives worst-tier word)
+ * @param {object} [props.coverage] - coverage summary for the cluster's full
+ *   member list, from summarizeCoverage(): { ran, notApplicable, unassessed,
+ *   errored, pending, total }. Drives the "X of Y ran · …" reconciling line.
  * @param {string} [props.mk] - mechanism cluster key for MECH_COLOR border resolution
  * @param {string} [props.flagColor] - legacy SEV-coded border colour, used only
  *   when `mk` is absent (defensive fallback)
@@ -54,17 +55,45 @@ import { RAIL_GUTTER, RAIL_RIGHT } from "./styles.js";
  * @param {function} [props.onToggle] - click handler; gated by isExpandable
  */
 export function ClusterRow({
-  label, count, description,
-  noun = "test",
+  label, description,
   isFlagged, hasHigh,
+  coverage,
   mk, flagColor,
   isExpanded, isExpandable = true,
   onToggle,
 }) {
   const borderColor = (mk && MECH_COLOR[mk]) || flagColor;
-  // Worst-tier word + colour: HIGH → "High", MODERATE → "Moderate", LOW → "Clear".
-  const wordColor = hasHigh ? SEV_VERDICT[3].color : isFlagged ? SEV_VERDICT[2].color : SEV_VERDICT[0].color;
-  const wordText  = hasHigh ? "High"               : isFlagged ? "Moderate"           : "Clear";
+  const cov = coverage || { ran: 0, notApplicable: 0, unassessed: 0, errored: 0, pending: 0, total: 0 };
+  // Header word + colour. A flagged cluster keeps High / Moderate. A clean
+  // cluster (nothing flagged) reports coverage, not a bare pass: green "Clear"
+  // only when every test completed; a neutral word otherwise. Errored gets its
+  // own word — "so far" would imply a state that resolves by waiting, but an
+  // errored test tried and failed. Both the word and its colour gate on
+  // coverage, so a partially covered cluster never carries the green a reader
+  // takes as safety.
+  let wordText, wordColor;
+  if (hasHigh) {
+    wordText = "High"; wordColor = SEV_VERDICT[3].color;
+  } else if (isFlagged) {
+    wordText = "Moderate"; wordColor = SEV_VERDICT[2].color;
+  } else if (cov.ran === 0) {
+    wordText = "Not assessed"; wordColor = C.TEXT_3;
+  } else if (cov.errored > 0) {
+    wordText = "Incomplete"; wordColor = C.TEXT_3;
+  } else if ((cov.notApplicable + cov.unassessed + cov.pending) > 0) {
+    wordText = "Clear so far"; wordColor = C.TEXT_3;
+  } else {
+    wordText = "Clear"; wordColor = SEV_VERDICT[0].color;
+  }
+  // Coverage clauses: always led by "X of Y completed" against the full battery,
+  // then one clause per non-empty bucket so completed + not-applicable +
+  // unassessed + errored + pending reconciles to Y. Each bucket has its own word.
+  const clauses = [`${cov.ran} of ${cov.total} completed`];
+  if (cov.notApplicable > 0) clauses.push(`${cov.notApplicable} not applicable`);
+  if (cov.unassessed > 0)    clauses.push(`${cov.unassessed} unassessed`);
+  if (cov.errored > 0)       clauses.push(`${cov.errored} errored`);
+  if (cov.pending > 0)       clauses.push(`${cov.pending} pending`);
+  const coverageText = clauses.join(" · ");
   return (
     <div style={{ padding: `10px ${RAIL_RIGHT} 10px 10px`, borderLeft: `3px solid ${borderColor}` }}>
       <div
@@ -89,20 +118,22 @@ export function ClusterRow({
             {label}
           </span>
           {/* S157/S210: cluster-identity icon — now immediately AFTER the title,
-              before the count: [title] [icon] (N tests). 20px (mechIconSize +2
-              for digits), MECH_COLOR hue via the mk key. */}
+              before the description: [title] [icon] — description. 20px
+              (mechIconSize +2 for digits), MECH_COLOR hue via the mk key.
+              (The "(N tests)" parenthetical retired — the badge's "X of Y ran"
+              coverage form is the single count on the row.) */}
           {mk && <span style={{ flexShrink: 0, display: "inline-flex" }}><MechIcon mk={mk} size={mechIconSize(mk, 20)} /></span>}
-          <span style={{ fontSize: FS.base, fontWeight: FW.NORM, color: C.TEXT_3, flexShrink: 0 }}>
-            ({count} {noun}{count !== 1 ? "s" : ""})
-          </span>
           <span style={{ fontSize: FS.base, fontWeight: FW.NORM, color: C.TEXT_3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", minWidth: 0 }}>
             {"— "}{description}
           </span>
-          {/* Worst-tier word badge — colour-on-chrome / words-stay-plain rule.
-              SEV_VERDICT colour matches the per-card badge at TestCardLayout
-              for visual continuity. */}
-          <span style={{ fontSize: FS.base, fontWeight: FW.NORM, color: wordColor, marginLeft: "auto", flexShrink: 0 }}>
-            {wordText}
+          {/* Header word — colour-on-chrome / words-stay-plain rule. Flagged
+              clusters carry High / Moderate in SEV colour; a clean cluster
+              carries a coverage-gated word (Clear / Clear so far / Incomplete /
+              Not assessed), green only when every test completed. The coverage
+              clauses trail the word and always reconcile to the full battery. */}
+          <span style={{ fontSize: FS.base, fontWeight: FW.NORM, marginLeft: "auto", flexShrink: 0 }}>
+            <span style={{ color: wordColor }}>{wordText}</span>
+            <span style={{ color: C.TEXT_3 }}>{` · ${coverageText}`}</span>
           </span>
         </div>
       </div>

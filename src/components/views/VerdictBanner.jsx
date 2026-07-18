@@ -3,6 +3,7 @@ import { MECHANISMS, MECHANISM_ORDER } from "../../constants/mechanisms.js";
 import { MechIcon, mechIconSize } from "../shared/MechIcon.jsx";
 import { VERDICT_TEXT } from "../../analysis/narrative.js";
 import { buildMechanismGroups } from "../../analysis/localization.js";
+import { summarizeCoverage } from "../../analysis/coverage.js";
 import { SEVERITY_TEXT } from "../../constants/guidance.js";
 
 // Identity-row paired-fact register (typography system § Identity row pattern).
@@ -68,6 +69,24 @@ export function VerdictBanner({ severity, results, importConfig, nRows, nCols, m
   const v = modeText ? { ...vFull, headline: modeText.headline } : vFull;
   const groups = buildMechanismGroups(results);
   const nApplicable = results.filter(r => r.flag !== "N/A").length;
+
+  // Severity-0 (clean) headline states coverage instead of a bare pass. "All
+  // checks passed" and the "Proceed with dataset" sub retire at this tier — the
+  // tool reports what completed, not a clearance it has no standing to give.
+  // Full and QC share one string; review swaps the tail; the errored count
+  // appends on full/QC; N = 0 means nothing ran and the report says nothing.
+  const cov = summarizeCoverage(results);
+  let cleanHeadline;
+  if (cov.ran === 0) {
+    cleanHeadline = "No tests could run on this data. This report says nothing about it.";
+  } else if (mode === "review") {
+    cleanHeadline = `${cov.ran} of 29 tests completed — no unusual patterns.`;
+  } else {
+    const errTail = cov.errored > 0
+      ? (cov.errored === 1 ? " 1 could not complete." : ` ${cov.errored} could not complete.`)
+      : "";
+    cleanHeadline = `${cov.ran} of 29 tests completed — no signals above threshold.${errTail}`;
+  }
   // S156 (A1.D0c-bis D2 lock): split K = HIGH + MOD count into per-tier
   // counts. The opener count clause renders three branches: HIGH only,
   // MOD only, or mixed. Total K retained for the false-positive context
@@ -89,18 +108,29 @@ export function VerdictBanner({ severity, results, importConfig, nRows, nCols, m
     })
     .map(mk => ({ mk, label: MECHANISMS[mk].label }));
 
+  // The card's severity-0 chrome gates on coverage, the same rule the cluster
+  // word follows. Green only when every test completed; neutral when anything is
+  // outstanding or errored, or when nothing completed. Neutral covers the whole
+  // family — border, header tint, headline colour, and the filled severity dot —
+  // so colour never asserts a clean the words withhold. Severity above 0 keeps
+  // its tier colour untouched.
+  const cleanNeutral = severity === 0 && cov.ran !== cov.total;
+  const cardBorder = cleanNeutral ? C.BORDER : v.color;
+  const cardBg = cleanNeutral ? C.BG_L : v.bg;
+  const headlineColor = cleanNeutral ? C.TEXT : v.color;
+
   return (
-    <div style={{border:`2px solid ${v.color}`,borderRadius:CR.XL,overflow:"hidden"}}>
+    <div style={{border:`2px solid ${cardBorder}`,borderRadius:CR.XL,overflow:"hidden"}}>
       {/* Main verdict — coloured header. S138 (Phase C.2): body padding
           unified to 22px (typography system § Phase C VerdictBanner
           instructions). */}
-      <div style={{background:v.bg,padding:"22px"}}>
+      <div style={{background:cardBg,padding:"22px"}}>
         {/* Row: headline left, severity dots right.
             S138: headline at FS.xl (32px) Bold tier — the typography system's
             verdict-headline register. lineHeight 1.2 retained from S133h. */}
         <div style={{display:"flex",alignItems:"center",gap:"16px"}}>
           <div style={{flex:1}}>
-            <div style={{fontSize:FS.xl,fontWeight:FW.BOLD,color:v.color,lineHeight:"1.2"}}>{v.headline}</div>
+            <div style={{fontSize:FS.xl,fontWeight:FW.BOLD,color:headlineColor,lineHeight:"1.2"}}>{severity === 0 ? cleanHeadline : v.headline}</div>
           </div>
           {/* Severity dots — active filled, inactive grey. Dot fill pattern
               + tier colour carry the severity signal; the tier word that
@@ -109,7 +139,9 @@ export function VerdictBanner({ severity, results, importConfig, nRows, nCols, m
           <div style={{display:"flex",alignItems:"center",gap:"4px",flexShrink:0}}>
             {[0,1,2,3].map(s=>{
               const active = severity === s;
-              const c = SEV_VERDICT[s].color;
+              // The clean tier's dot goes neutral with the rest of the card when
+              // coverage is partial, so the filled dot never reads green alone.
+              const c = (cleanNeutral && s === 0) ? C.TEXT_3 : SEV_VERDICT[s].color;
               return <span key={s} style={{
                 display:"inline-block",width:10,height:10,borderRadius:"50%",
                 background:active?c:"transparent",
@@ -130,9 +162,10 @@ export function VerdictBanner({ severity, results, importConfig, nRows, nCols, m
             colour-on-chrome / words-stay-plain rule (per D3); the
             verdict headline above carries the visual emphasis.
             Register: `base Regular C.TEXT_2`. */}
+        {severity > 0 && (
         <div style={{fontSize:FS.base,color:C.TEXT_2,marginTop:"8px",lineHeight:"1.5"}}>
           {v.sub}
-          {severity > 0 && flaggedCategories.length > 0 && (
+          {flaggedCategories.length > 0 && (
             <>
               {". "}
               {nHigh > 0 && nMod === 0 && (
@@ -148,6 +181,7 @@ export function VerdictBanner({ severity, results, importConfig, nRows, nCols, m
             </>
           )}
         </div>
+        )}
 
         {/* False-positive context — renders only at severity 1 or 2. The 1–2
             expected-false-positives figure comes from {nApplicable} tests at

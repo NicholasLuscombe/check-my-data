@@ -68,9 +68,19 @@ async function aggregatePerGroup(testFn, groups, parentCondCtx) {
   }
   const applicable=perGroup.filter(r=>r.flag!=="N/A");
   if(!applicable.length){
-    const proto=testFn([]);  // get name/category/description via N/A result
-    return{...proto, flag:"N/A",
-      details:[{note:"No group had sufficient data for this test."}]};
+    // No group produced a verdict — the test ran per group and could not
+    // complete for want of rows. This is an errored coverage state, not a
+    // not-applicable one. Take only the name and category from an empty-matrix
+    // probe; compose the description here rather than inherit the probe's. The
+    // probe hits each test's nC < 1 guard, whose "No DATA columns." message is
+    // false about a dataset that does have columns. `erroredCoverage` marks the
+    // state explicitly so the coverage classifier reads a field, not this note.
+    const proto=testFn([]);
+    const reason="No group had sufficient data for this test.";
+    return{ name:proto.name, category:proto.category, flag:"N/A",
+      erroredCoverage:true,
+      description:reason,
+      details:[{note:reason}]};
   }
 
   // ── Fisher's method for combining per-group evidence ──

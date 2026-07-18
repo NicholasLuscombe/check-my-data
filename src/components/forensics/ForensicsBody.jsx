@@ -52,17 +52,17 @@ import { useMemo, useState, useRef, useCallback } from "react";
 import { Section } from "../shared/Section.jsx";
 import { MECHANISM_ORDER, TEST_MECHANISM } from "../../constants/mechanisms.js";
 import { CATEGORY_SHORT_DESCRIPTIONS } from "../../constants/descriptions.js";
+import { summarizeCoverage } from "../../analysis/coverage.js";
 import { C } from "../../constants/tokens.js";
 import { StickySurface, STICKY_SURFACE_SELECTOR } from "./StickySurface.jsx";
 import { ForensicsCategoryBlock } from "./ForensicsCategoryBlock.jsx";
+import { GroupingConfirmCard } from "./GroupingConfirmCard.jsx";
 
-// S150-fix1: clean-state copy renders as bold sentence-lead + body
-// continuation. Threaded through to StickySurface where it renders
-// above the Data toggle when no chips exist in any lane (S163
-// fix-pass 1 promoted clean-state rendering into the sticky surface
-// so the Data toggle is always available).
-const CLEAN_STATE_LEAD = "All checks passed";
-const CLEAN_STATE_TAIL = " — no patterns to flag.";
+// Clean-state copy renders as a bold count lead plus a normal continuation,
+// threaded to StickySurface where it shows above the Data toggle when no chips
+// exist in any lane. The lead now states coverage ("{N} of 29 tests completed")
+// instead of a bare "All checks passed"; the count and the errored/zero cases
+// are computed per render inside the component (see cleanStateLead below).
 
 // Visual gap between the pinned sticky surface's bottom edge and the
 // scrolled-into-view card title (px). Used by `scrollToCard` below.
@@ -82,6 +82,15 @@ export function ForensicsBody({
   // findings }`. Passed through to FindingDetailPanel so the panel can
   // mount MinimapStripVertical + ExcerptTable when Show data is open.
   heatmapProps = null,
+  // S321 move 2, round 3 — confirm action. ReportView owns the confirmed-results
+  // state; the card runs the four tests and hands the results up via
+  // onConfirmGrouping. groupingPendingBase (from the engine's stamp on the base
+  // results) keeps the card mounted after confirm; confirmedActive tells the
+  // card whether a confirm is live. Unticking clears the confirm (below).
+  groupingPendingBase = false,
+  confirmedActive = false,
+  onConfirmGrouping = null,
+  onClearConfirmGrouping = null,
 }) {
   // Scroll-to-card via the data-test-id attribute that ForensicsTestCard
   // sets. CSS.escape handles test-id strings that contain spaces / parens
@@ -159,6 +168,30 @@ export function ForensicsBody({
   const onToggleDataExpanded = useCallback(() => {
     setDataExpanded(v => !v);
   }, []);
+
+  // S321 move 2, round 2 — grouping confirm card ticked-set state. The card's
+  // condition-column checkboxes are a live control: unticking changes the
+  // working set, which the card recomputes against via computeTrigger. State
+  // lives here (interaction state, like the region selection above), NOT
+  // anywhere the engine reads — it's transient per-view UI state. Initialised
+  // to all condition columns ticked (the inferred set).
+  const condColIndices = useMemo(
+    () => (importConfig?.roles || []).map((r, i) => (r === "condition" ? i : -1)).filter(i => i >= 0),
+    [importConfig]
+  );
+  const [tickedCols, setTickedCols] = useState(() => new Set(condColIndices));
+  const onToggleCol = useCallback((idx) => {
+    setTickedCols(prev => {
+      const next = new Set(prev);
+      if (next.has(idx)) next.delete(idx); else next.add(idx);
+      return next;
+    });
+    // Changing the set invalidates a confirm — the confirmed grouping is no
+    // longer the one on screen, so the four tests return to pending until the
+    // user re-confirms. Falls out naturally: clearing the swap re-exposes the
+    // engine's N/A-pending base results.
+    onClearConfirmGrouping?.();
+  }, [onClearConfirmGrouping]);
 
   // S163 virtualisation rework: scroll-to-region via the table's
   // imperative scroll API. The fix-pass-2 windowed-state machinery
@@ -332,8 +365,32 @@ export function ForensicsBody({
 
   const catDescs = CATEGORY_SHORT_DESCRIPTIONS;
 
+  // Clean-state coverage line for the findings panel. States what completed
+  // rather than a bare pass; nothing-completed says the report says nothing.
+  const coverage = summarizeCoverage(results);
+  const cleanStateLead = coverage.ran === 0
+    ? "No tests could run on this data. This report says nothing about it."
+    : `${coverage.ran} of 29 tests completed`;
+  const cleanStateTail = coverage.ran === 0 ? null : " — no patterns to flag.";
+
   return (
     <>
+      {/* Grouping-enforcement confirm card (S321 move 2). Renders only when
+          the trigger is pending (some result carries groupingPending). Mounts
+          above §2 so the user sees the grouping gate before reading findings
+          built on the four row-grouped tests it holds. Round 1: display only. */}
+      <GroupingConfirmCard
+        results={results}
+        importConfig={importConfig}
+        rowMap={rowMap}
+        tickedCols={tickedCols}
+        onToggleCol={onToggleCol}
+        groupingPendingBase={groupingPendingBase}
+        confirmedActive={confirmedActive}
+        onConfirmGrouping={onConfirmGrouping}
+        onClearConfirmGrouping={onClearConfirmGrouping}
+      />
+
       {/* §2 WHAT WAS FOUND — two DOM elements that merge visually
           into one §2 surface. Section header in its own flat-bottom
           wrapper; StickySurface as a flat-top continuation, sticky-
@@ -369,8 +426,8 @@ export function ForensicsBody({
         heatmapProps={heatmapProps}
         dataExpanded={dataExpanded}
         onToggleDataExpanded={onToggleDataExpanded}
-        cleanStateLead={CLEAN_STATE_LEAD}
-        cleanStateTail={CLEAN_STATE_TAIL}
+        cleanStateLead={cleanStateLead}
+        cleanStateTail={cleanStateTail}
         hotspotScrollRef={hotspotScrollRef}
       />
 
@@ -380,6 +437,16 @@ export function ForensicsBody({
           const cat = catSummaries.find(c => c.mk === mk);
           if (!cat) return null;
           const { group, flagged, applicable, isFlagged } = cat;
+          // Grouping-pending tests in this dimension (flag N/A + groupingPending).
+          // These are held pending user confirmation, distinct from ordinary
+          // N/A ("not applicable"). Surfaced so the four row-grouped cards read
+          // "N/A — grouping needs confirmation" (S321 move 2, round 1).
+          const pendingTests = group.tests.filter(r => r.flag === "N/A" && r.groupingPending);
+          // Tests the user settled via the N/A exit (S322 round 2). Rendered as
+          // their own amber rows so the honest exit does not make them vanish;
+          // kept separate from pendingTests so the header's pending tally (the
+          // DRAFT-contract rollup) is unchanged by them.
+          const unassessedTests = group.tests.filter(r => r.flag === "N/A" && r.groupingUnassessed);
           return (
             <div key={mk}>
               {idx > 0 && <div style={{borderTop:`1px solid ${C.BORDER_L}`, margin:"8px 0"}}/>}
@@ -389,6 +456,9 @@ export function ForensicsBody({
                 hasHigh={flagged.length > 0}
                 description={catDescs[mk]}
                 testResults={applicable}
+                pendingTests={pendingTests}
+                unassessedTests={unassessedTests}
+                coverage={summarizeCoverage(group.tests)}
                 isExpanded={expandedCats[mk]} onToggle={()=>toggleCat(mk)}
                 expandedTestEvidence={expandedTestEvidence}
                 onToggleTestEvidence={(name, defaultOpen)=>setExpandedTestEvidence(prev=>{

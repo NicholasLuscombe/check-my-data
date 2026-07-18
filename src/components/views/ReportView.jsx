@@ -3,6 +3,7 @@ import { extractLocalizations, buildMechanismGroups } from "../../analysis/local
 import { buildConvergenceFromFindings } from "../../analysis/convergence.js";
 import { buildFindings } from "../../analysis/findings.js";
 import { computeSeverity } from "../../analysis/severity.js";
+import { summarizeCoverage } from "../../analysis/coverage.js";
 import { VerdictBanner } from "./VerdictBanner.jsx";
 import { ACTION_LABEL } from "../../analysis/narrative.js";
 import { buildHandoffModel } from "../../analysis/handoffModel.js";
@@ -79,7 +80,22 @@ const METHOD_BATTERY = [
   ]},
 ];
 
-export function ReportView({ results, importConfig, matrix, rowMap, onBack, onChangeFile }) {
+export function ReportView({ results: baseResults, importConfig, matrix, rowMap, onBack, onChangeFile }) {
+  // S321 move 2, round 3 — confirmed grouping. When the user confirms a grouping
+  // on the confirm card, the four grouped tests run on that ticked set and their
+  // real results replace the four N/A-pending ones. Everything downstream reads
+  // `results`, so the whole report (§1 severity, §3 cards) stays consistent.
+  // Only the four swap — every dataset-wide test result object is unchanged.
+  // Session-only state; nothing persisted. `groupingPendingBase` (from the
+  // engine's stamp on the untouched base results) keeps the confirm card mounted
+  // after confirm so the user can re-untick and re-confirm.
+  const [confirmedResults, setConfirmedResults] = useState(null);
+  const results = useMemo(() => {
+    if (!confirmedResults) return baseResults;
+    return baseResults.map(r => confirmedResults.find(c => c.name === r.name) || r);
+  }, [baseResults, confirmedResults]);
+  const groupingPendingBase = useMemo(() => baseResults.some(r => r.groupingPending), [baseResults]);
+
   const { severity, high, mod, nFlaggedDimensions } = computeSeverity(results);
   const sevColor=SEV_COLORS[severity];
   const assayLabel=ASSAYS.find(a=>a.v===importConfig.assay)?.l||importConfig.assay;
@@ -122,6 +138,7 @@ export function ReportView({ results, importConfig, matrix, rowMap, onBack, onCh
   };
   const generateTextSummary = () => {
     const lines=[];
+    const cov = summarizeCoverage(results);
     const flagLabel = f => ({HIGH:"FLAGGED",MODERATE:"NOTED",LOW:"CLEAR","N/A":"N/A"}[f]||f);
     lines.push(`=== Check My Data v0.8 ===`);
     lines.push(`File: ${importConfig.fileName||"uploaded"} | ${nRows} rows × ${nCols} cols | Measurement type: ${assayLabel} | Data: ${DATA_TYPES.find(d=>d.v===(importConfig.dataType||"continuous"))?.l||"Continuous"}${importConfig.colRelationship==='conditions'?' | Columns: Non-replicates':''} | Severity: ${severity}`);
@@ -129,16 +146,26 @@ export function ReportView({ results, importConfig, matrix, rowMap, onBack, onCh
     if(importConfig.vst && importConfig.vst.transform !== 'raw')
       lines.push(`VST: ${importConfig.vst.transform} — ${importConfig.vst.reason}`);
     lines.push(``);
+    // Clean-case coverage verdict (severity 0). A dataset-level statement that
+    // replaces the per-cluster "(X/Y applicable — clear)" form as the clean
+    // signal — it references the full battery, so it is one line, not per
+    // cluster. Says nothing when nothing completed.
+    if (severity === 0) {
+      lines.push(cov.ran === 0
+        ? `No tests could run on this data. This report says nothing about it.`
+        : `(${cov.ran} of 29 completed — no signals above threshold. This report does not establish that the data is genuine.)`);
+      lines.push(``);
+    }
     // Mechanism-grouped output (matches UI)
     const groups = buildMechanismGroups(results);
     for(const mechKey of MECHANISM_ORDER){
       const group = groups[mechKey];
       if(!group.tests.length) continue;
-      const applicable = group.tests.filter(t=>t.flag!=="N/A").length;
+      const completed = group.tests.filter(t=>t.flag!=="N/A").length;
       const flagSummary = group.highCount || group.modCount
         ? ` — ${group.highCount} FLAGGED, ${group.modCount} NOTED`
         : ` — clear`;
-      lines.push(`── ${group.label.toUpperCase()} (${applicable}/${group.tests.length} applicable${flagSummary}) ──`);
+      lines.push(`── ${group.label.toUpperCase()} (${completed}/${group.tests.length} completed${flagSummary}) ──`);
       for(const r of group.tests){
         // Main flag line
         let detail="";
@@ -1138,8 +1165,8 @@ export function ReportView({ results, importConfig, matrix, rowMap, onBack, onCh
                       {idx > 0 && <div style={{borderTop:`1px solid ${C.BORDER_L}`,margin:"8px 0"}}/>}
                       <CategoryRow mk={mk} mode="qc"
                         label={MECHANISMS[mk]?.label || mk} isFlagged={isFl} hasHigh={hasHigh}
-                        description={catDescs[mk]}
-                        checkCount={catResults.length} isLast
+                        description={catDescs[mk]} isLast
+                        coverage={summarizeCoverage(group?.tests || [])}
                         isExpanded={expandedCats[mk]} onToggle={()=>toggleCat(mk)} alwaysExpandable={false}
                         testResults={catResults} isTechExpanded={expandedTech[mk]} onToggleTech={()=>toggleTech(mk)}
                         qcDescription={qcDescriptions[mk]}
@@ -1242,8 +1269,8 @@ export function ReportView({ results, importConfig, matrix, rowMap, onBack, onCh
                     {idx > 0 && <div style={{borderTop:`1px solid ${C.BORDER_L}`,margin:"8px 0"}}/>}
                     <CategoryRow mk={mk} mode="review"
                       label={group.label} isFlagged={isFlagged} hasHigh={flagged.length > 0}
-                      description={catDescsR[mk]}
-                      checkCount={applicable.length} isLast
+                      description={catDescsR[mk]} isLast
+                      coverage={summarizeCoverage(group.tests)}
                       isExpanded={expandedCats[mk]} onToggle={()=>toggleCat(mk)} alwaysExpandable={true}
                       testResults={applicable} isTechExpanded={expandedTech[mk]} onToggleTech={()=>toggleTech(mk)}
                       guidance={CATEGORY_GUIDANCE[mk]?.review}
@@ -1324,12 +1351,52 @@ export function ReportView({ results, importConfig, matrix, rowMap, onBack, onCh
               importConfig={importConfig} rowMap={rowMap}
               severity={severity}
               heatmapProps={heatmapProps}
+              groupingPendingBase={groupingPendingBase}
+              confirmedActive={!!confirmedResults}
+              onConfirmGrouping={setConfirmedResults}
+              onClearConfirmGrouping={() => setConfirmedResults(null)}
             />
 
             {/* ── §4 INVESTIGATE FURTHER ── */}
             <Section number={4} title="Investigate further">
               {severity === 0 ? (
-                <div style={{fontSize:FS.base,color:C.TEXT_3,padding:"4px 0"}}>No anomalies were detected. No further investigation is needed.</div>
+                (() => {
+                  // Clean-result copy is coverage-aware: a severity-0 verdict says
+                  // nothing about the tests that did not run, so the coverage
+                  // buckets pick the sentence. Selection order is pending, then
+                  // unassessed, then not-applicable, then the all-ran state.
+                  // Pending leads because it is the only state the reader can act
+                  // on from here — confirm the grouping above. The errored count
+                  // is appended to whichever state fires. Strings are authored
+                  // copy, verbatim, each with a singular variant for a count of
+                  // one (the verb and pronoun change, not only the noun).
+                  const cov = summarizeCoverage(results);
+                  const lead = `No signal above threshold in the ${cov.ran} tests that completed. `;
+                  let main;
+                  if (cov.pending > 0) {
+                    main = lead + (cov.pending === 1
+                      ? `1 test is waiting on grouping confirmation — confirm above to run it.`
+                      : `${cov.pending} tests are waiting on grouping confirmation — confirm above to run them.`);
+                  } else if (cov.unassessed > 0) {
+                    main = lead + (cov.unassessed === 1
+                      ? `1 test was left unassessed because grouping was not confirmed — this screen says nothing about it.`
+                      : `${cov.unassessed} tests were left unassessed because grouping was not confirmed — this screen says nothing about them.`);
+                  } else if (cov.notApplicable > 0) {
+                    main = lead + (cov.notApplicable === 1
+                      ? `1 test did not apply to this data and was not run.`
+                      : `${cov.notApplicable} tests did not apply to this data and were not run.`);
+                  } else {
+                    main = `All ${cov.ran} of 29 tests completed. None returned a signal above threshold.`;
+                  }
+                  const errAppendix = cov.errored > 0
+                    ? (cov.errored === 1
+                      ? ` 1 test could not complete and is not counted in this result.`
+                      : ` ${cov.errored} tests could not complete and are not counted in this result.`)
+                    : "";
+                  return (
+                    <div style={{fontSize:FS.base,color:C.TEXT_3,padding:"4px 0"}}>{main}{errAppendix}</div>
+                  );
+                })()
               ) : (
                 <>
                   <div style={{fontSize:FS.base,color:C.TEXT,lineHeight:"1.6",marginBottom:"12px"}}>
@@ -1376,12 +1443,21 @@ export function ReportView({ results, importConfig, matrix, rowMap, onBack, onCh
                 headers (textDecoration "line-through" + textDecorationThickness "1.5px").
                 Decoration colour inherits naturally from each span's color. */}
             {(()=>{
-              const nApp=results.filter(r=>r.flag!=="N/A").length;
+              // Completed count against the full battery, not the old
+              // non-N/A-over-total form that undercounted and over-reported at
+              // once. "completed" replaces "applied": an errored test applied and
+              // then failed, so "applied" was wrong for a figure that excludes it.
+              // Unassessed and errored are carried as trailing clauses when
+              // present; not-applicable is the implicit remainder.
+              const cov = summarizeCoverage(results);
               const skippedNames = new Set(results.filter(r=>r.flag==="N/A").map(r=>r.name));
+              const coverageExtra = [];
+              if (cov.unassessed > 0) coverageExtra.push(`${cov.unassessed} left unassessed`);
+              if (cov.errored > 0) coverageExtra.push(`${cov.errored} could not complete`);
               return (
                 <Section number={5} title="Test coverage">
                   <div style={{fontSize:FS.base,color:C.TEXT,marginBottom:"12px"}}>
-                    {nApp} of {results.length} tests applied, spanning 5 investigation categories.
+                    {cov.ran} of {cov.total} tests completed, spanning 5 investigation categories.{coverageExtra.length > 0 ? ` ${coverageExtra.join(", ")}.` : ""}
                   </div>
                   {/* Battery */}
                   <button onClick={()=>setShowMethodBattery(v=>!v)} style={{background:"none",border:"none",padding:0,cursor:"pointer",color:C.TEXT,fontSize:FS.base,fontWeight:FW.MED,fontFamily:FF.UI,display:"flex",alignItems:"center",gap:"4px",marginBottom:"4px"}}>

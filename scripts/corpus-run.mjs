@@ -332,6 +332,20 @@ async function runDataset(entry) {
       nCols: matrix[0]?.length || 0,
       nConditions: condCtx?.count ?? null,
       conditionType: condCtx?.type ?? null,
+      // S320 move-2 census gate — the trigger inputs (condition-column count,
+      // group sizes + median) and the engine's own pending decision, read off
+      // the four routed tests (they carry `groupingPending` when the trigger
+      // fires). Lets the census confirm fire/clean per file headless.
+      nCondCols: roles.filter(r => r === 'condition').length,
+      rowGroupStatus: (() => {
+        const s = condCtx?.rowGroupsStatus ? condCtx.rowGroupsStatus() : null;
+        return s ? {
+          attempted: s.attempted, usable: s.usable, nGroups: s.nGroups ?? null,
+          medianSize: Number.isFinite(s.medianSize) ? s.medianSize : null,
+          sizes: s.sizes ?? null,
+        } : null;
+      })(),
+      groupingPending: results.find(r => r.groupingPending)?.groupingPending || null,
       // Surface, don't hide: every column in order, the role each got, and the
       // §2.8 exclusions with the grouping column each was constant within.
       // headers/roles span ALL columns (not just the matrix's data columns).

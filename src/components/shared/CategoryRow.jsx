@@ -19,7 +19,6 @@ import { TestCard } from "../cards/TestCard.jsx";
  * @param {boolean} props.isFlagged - any HIGH or MODERATE tests
  * @param {boolean} props.hasHigh - any HIGH tests
  * @param {string} props.description - one-liner after em-dash
- * @param {number} props.checkCount - number of applicable tests
  * @param {boolean} props.isLast - suppress bottom border
  * @param {boolean} props.isExpanded - category expanded state
  * @param {function} props.onToggle - toggle category expansion
@@ -36,7 +35,8 @@ import { TestCard } from "../cards/TestCard.jsx";
  * @param {function} [props.getPrimaryFinding] - (result) => string|null (review mode simplified evidence)
  */
 export function CategoryRow({
-  mk, mode, label, isFlagged, hasHigh, description, checkCount, isLast,
+  mk, mode, label, isFlagged, hasHigh, description, isLast,
+  coverage,
   isExpanded, onToggle, alwaysExpandable,
   testResults, isTechExpanded, onToggleTech,
   qcDescription, guidance,
@@ -44,7 +44,6 @@ export function CategoryRow({
   importConfig, rowMap, getPrimaryFinding,
 }) {
   const isExpandable = alwaysExpandable || isFlagged;
-  const countNoun = mode === "qc" ? "check" : "test";
 
   return (
     <div style={{paddingBottom:isExpanded?"4px":"0"}}>
@@ -52,11 +51,10 @@ export function CategoryRow({
       <ClusterRow
         mk={mk}
         label={label}
-        count={checkCount}
         description={description}
-        noun={countNoun}
         isFlagged={isFlagged}
         hasHigh={hasHigh}
+        coverage={coverage}
         isExpanded={isExpanded}
         isExpandable={isExpandable}
         onToggle={onToggle}
