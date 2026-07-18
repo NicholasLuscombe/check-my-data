@@ -1,7 +1,7 @@
 # Check My Data — Investigation Display UI Specification
 
-**Version:** 7.2 (Chat post-S213 — single severity scale + plot colour-semantics reference; S211 composition rollout)
-**Status:** QC mode ✅ (Code S21). Forensics mode ✅ (Code S25+S69+S71, S156+S157 chrome lock). Peer review mode ✅ (Code S70+S71).
+**Version:** 7.3 (Chat S323 — coverage vocabulary section added; S213 single severity scale + plot colour-semantics reference; S211 composition rollout)
+**Status:** QC mode ✅ (Code S21). Forensics mode ✅ (Code S25+S69+S71, S156+S157 chrome lock). Peer review mode ✅ (Code S70+S71). Coverage vocabulary § — authored and cross-validated S323, not yet implemented.
 
 This document is the authoritative reference for how Check My Data presents analysis results across three modes. It covers:
 1. **Category system** — what observation categories exist and which tests map to them
@@ -12,6 +12,7 @@ This document is the authoritative reference for how Check My Data presents anal
 6. **Three-mode presentation** — what each audience sees and why
 7. **Guidance system** — how actionable advice scales across modes
 8. **Excel export** — standalone investigation document structure
+9. **Coverage vocabulary** — how the tool states what it examined and what it did not
 
 ---
 
@@ -1361,11 +1362,17 @@ Cluster rows (ClusterRow, mode="full"), all five clusters in fixed `MECHANISM_OR
 
 AI consultation prompt + Excel download. See Guidance System § Tier 3 below.
 
+> **Clean-result copy: see § Coverage vocabulary (S323).** The three clean-result strings and the
+> severity-plus-coverage gate are authored there. The live "No further investigation is needed"
+> string is retired by that section and must not be re-introduced.
+
 > **Spec note:** §4 chrome description below describes the pre-A1.D2 implementation. Vocabulary updates from S156 Pass 7 (Outcome row, sentence-case tier words "High"/"Moderate"/"Cleared") are reflected. Full prompt body redesign — three-tier emit, TEST_METHODS verbatim wiring, calibration prologue, severity-1 FP prefix, Questions block reshape, SKIPPED line — pending under parked #21 / A1.D2 dispatch. Spec section will be rewritten when A1.D2 lands.
 
 **5 · Methodology**
 
-- Summary line: "{N} of {M} tests applicable. Tests span 5 investigation clusters."
+- Summary line: "{N} of {M} tests applicable. Tests span 5 investigation clusters." **Superseded
+  by § Coverage vocabulary (S323)** — the line takes the applicable count against a full-battery
+  denominator and carries the unassessed count where one exists. Not yet implemented.
 - Disclaimer: "This report is a screening aid, not a determination of misconduct." (Trust aside-callout register, S148 chrome.)
 - Expandable "Test battery details" — cluster-grouped test list (now uses post-S157-fix3 "Cross-condition comparisons" cluster label)
 - Expandable "References" — citation list
@@ -1540,6 +1547,195 @@ Colour key, intensity scale, flag level definitions, severity scale, methodology
 | Selective deletion | MissingData | Cross-Replicate Comparisons (interim) |
 | Image manipulation | Out of scope | — |
 | Summary statistic fabrication | Out of scope (raw data tool) | — |
+
+---
+
+## Coverage vocabulary — what ran, what did not, and why (S323)
+
+**Status: authored S323, cross-validated S323 (Sonnet, Grok, Gemini) and revised. The strings
+below are NOT yet implemented. The denominator form described here supersedes the shipped
+`X of Y ran` only once the reconciliation dispatch lands.** Read this section as the settled
+design, not as a description of the live surface.
+
+This section is the display-side companion to METHODOLOGY § Applicability and Coverage
+Reporting. METHODOLOGY governs what the tool may claim; this governs how the claim renders.
+
+### The five coverage states
+
+Every test on every dataset sits in exactly one of five states. The tool's copy has, until
+S323, collapsed four of them into one — which is how a dataset that ran 15 of 29 tests came to
+render "No further investigation is needed."
+
+| State | Meaning | Counts toward |
+|---|---|---|
+| **Ran** | The test executed and returned a verdict | numerator and denominator |
+| **Not applicable** | The data shape does not support this test | denominator only, reported separately |
+| **Unassessed** | The user declined to confirm grouping, so the test was not run | denominator only, reported separately |
+| **Errored** | The test began and could not complete | denominator only, reported separately |
+| **Pending** | Grouping confirmation is outstanding; the test may yet run | denominator only, transient |
+
+**These are four distinct reasons a test produced no verdict, and they never share a string.**
+
+- *Not applicable* is the tool being unable to look — the shape was wrong going in.
+- *Unassessed* is the tool being told not to look — the user made a choice.
+- *Errored* is the tool trying to look and failing — insufficient rows per group discovered
+  mid-calculation, non-convergence, a divide-by-zero on a constant column, a timeout.
+
+A reader who cannot tell these apart cannot judge how much weight the result carries. The
+errored bucket matters most here: folding a technical failure into "not applicable" makes a bug
+sound like an expected property of the data, which is the dangerous direction. Folding it into
+"unassessed" tells the user they made a choice they did not make.
+
+**This is live, not hypothetical.** The per-group aggregator's
+`"No group had sufficient data for this test."` is an errored result currently wearing a
+not-applicable description — see § `"No DATA columns."` below.
+
+**The four buckets must sum to the battery.** ran + not-applicable + unassessed + errored = 29.
+A mismatch means a test went missing in the pipeline; it must surface as a visible error, never
+as a silently shrunk denominator.
+
+**Grouping-dependent tests cannot be marked not-applicable before confirmation.** The four
+row-grouped tests are *unassessed* until the user answers, even where the tool suspects they
+would turn out not to apply. The tool does not guess ahead of the user's answer.
+
+### The denominator form
+
+**The denominator is the full battery. The applicable count is reported alongside it as a
+second number, never substituted for it.**
+
+A shrinking denominator makes the tool look most thorough on exactly the files that deserve
+most scrutiny. A dataset where 14 tests do not apply would read as "15 of 15 ran" — complete
+coverage — when the honest reading is "15 of 29 ran." The first form is not a rounding of the
+second; it asserts something false.
+
+**The cost is real and is the correct direction of error.** A dataset whose design supports
+only 6 tests will always read "6 of 29", even though the tool did everything it could. That
+reads as thin coverage. It *is* thin coverage: sparse data offers less statistical surface area
+to check, so less of it has been verified. The fixed denominator makes sound data look less
+certain than it is; a shrinking denominator would make thin data look more certain than it is.
+For an instrument whose one rule is never to assert a dataset is sound, the error must always
+point at under-claiming. (Cross-validation was unanimous on this point.)
+
+This supersedes the provisional `X of Y ran` shipped in the confirm-card worktree, where the
+numerator drops all N/A results while the denominator counts all tests. That form undercounts
+in the numerator and over-reports in the denominator at once, which is why the category header
+and the rows beneath it disagree on screen.
+
+**The unassessed count takes its own clause.** It does not fold into the applicable count.
+Where a surface carries both, the unassessed clause appears — declining to look is the stronger
+caveat and must not be buried behind the not-applicable number.
+
+### §4 clean-result copy — three strings plus an appendix
+
+The clean-result block currently gates on `severity === 0` alone, with no coverage guard. That
+gate must become severity **and** coverage; the copy below is what the coverage term selects
+between.
+
+**None of the three says "clean", "passed", "no problems found", or "no further investigation
+is needed."** Those are adjudications. The tool reports what it examined and what that
+examination returned. It does not clear a dataset.
+
+**Every state leads with a count against the full battery.** This is the load-bearing revision
+from cross-validation. The first draft's State 1 read "Every applicable test ran and none
+returned a signal above threshold" — byte-identical copy whether 29 of 29 applied or 6 of 29
+did. All three reviewers found it independently: the word "applicable" carries the entire
+qualification and is psychologically invisible to a reader skimming for a clean answer, so the
+thinnest-coverage file received the tool's most reassuring sentence. States 2 and 3 carry their
+hedge for free because they must name what did not run; State 1 had nothing built in. A count
+is not decoration on these strings — it is the only thing making a thin read legible as thin.
+
+**State 1 — everything ran, nothing flagged.**
+
+> All {N} of 29 tests ran. None returned a signal above threshold.
+
+**State 2 — not-applicable tests present.**
+
+> No signal above threshold in the {N} tests that ran. {M} tests did not apply to this data and
+> were not run.
+
+Two sentences, not one with a subordinate clause. The second fact is not a caveat on the first;
+it is a separate statement about scope. Subordinating it is how the first draft of the
+applicability contract went wrong.
+
+**State 3 — unassessed tests present.**
+
+> No signal above threshold in the {N} tests that ran. {M} tests were left unassessed because
+> grouping was not confirmed — this screen says nothing about them.
+
+The closing clause carries the load. Without it a reader sees a clean result and reasonably
+infers coverage the tool does not have. With it, the gap is the tool's own statement rather
+than something the reader must reconstruct from a count.
+
+**Errored appendix — appended to any state where K > 0.**
+
+> {K} tests could not complete and are not counted in this result.
+
+**State 3 dominates.** Where a dataset carries both not-applicable and unassessed tests, the
+unassessed clause is the one that must appear. The not-applicable count may be appended so the
+four buckets visibly reconcile, but it never displaces the unassessed clause.
+
+**No hedge line on State 1 — a considered rejection.** Two reviewers proposed appending a
+restatement of what a clean result means ("this doesn't confirm the data is genuine"), on the
+grounds that State 1 is the most quotable string the tool produces. The screening disclaimer
+already sits at §5, and a second one inside the result line trains readers to skip both. Once
+State 1 carries its count, the number does that work honestly rather than by disclaimer.
+Revisit if the quoted-out-of-context failure is ever observed in the wild.
+
+### §5 coverage line
+
+§5 currently reads "{N} of {M} tests applicable." It takes the applicable count against the
+full-battery denominator and carries the unassessed and errored counts where they exist. The
+line is the report's own statement of scope and is the surface a reader returns to when
+checking how far the result reaches.
+
+### The header/row disagreement resolves here
+
+Two live symptoms, both reported by Code at S322 and deliberately left unfixed pending this
+vocabulary:
+
+- `shapes` renders "Not assessed" as a category header while unassessed rows are visible
+  beneath it.
+- `replicate` renders `High · 7 of 14 ran` while an unassessed Mahalanobis row is visible
+  beneath it.
+
+Both come from the same object (`group.tests`) partitioned two ways: the header counts read
+`applicable` / `maxFlag` / `pendingTests` (which filters `groupingPending`), while the rows
+render `unassessedTests` (which filters `groupingUnassessed`). The divergence is not a bug in
+either partition — it is `ClusterRow` having three buckets where the vocabulary needs four.
+
+**Do not patch these two symptoms separately.** They are the vocabulary gap made visible, and
+they close when the missing buckets land or they do not close at all.
+
+### `"No DATA columns."` — an errored result wearing a not-applicable description
+
+Three tests emit a literal `"No DATA columns."` description under an `nC < 1` guard. On real
+data that guard is never reached. The string nonetheless appears on DS03, DS04, DS09, DS12a and
+DS12b — files with three to six genuine data columns — because the per-group aggregator rebuilds
+its N/A result from an empty-matrix prototype and inherits the prototype's description along
+with it. The accurate reason ("No group had sufficient data for this test.") is already present
+in `details[0].note`.
+
+Under the five-state model this is an **errored** result: the shape was fine, the user chose
+nothing, the test began and could not complete for want of rows per group. It renders a
+not-applicable string, which is exactly the mislabelling the errored bucket exists to prevent.
+
+Two things are wrong and they are separable. The description is factually false about the data
+— a wrong-prototype defect the aggregator fixes by composing its own description rather than
+inheriting one. And the result is bucketed wrongly — which the four-bucket vocabulary fixes.
+The first can ship independently of the reconciliation; the second cannot.
+
+### Application
+
+When adding or auditing any surface that states coverage — a category header, a section
+summary, a clean-result line, an export header — ask three questions:
+
+- **Does this number's denominator shrink when tests do not run?** If yes, it will read most
+  reassuring on the least-examined data, and it is wrong.
+- **Does this surface state a count at all?** A coverage claim with no number is the State-1
+  failure: identical copy for full and thin coverage, with the qualifier doing invisible work.
+- **Can a reader tell "did not apply" from "was not assessed" from "could not complete"?** If
+  not, the surface is asserting more than the tool examined — and if it is folding an error into
+  either of the other two, it is hiding a defect behind a routine-sounding explanation.
 
 ---
 
@@ -1968,8 +2164,11 @@ This is a render/layout change across the card frame and the disclosure componen
 adjacent (the disclosure accordion behaviour changes; the header line reflows; section-
 heading rendering becomes surface-count-conditional). It is NOT a string change, so it does
 not ride the footer-register parity shape — it needs its own visual verification (the walk),
-and the 22-fixture batch protects only that severities don't move (they shouldn't — this is
-pure presentation). Author the Code prompt AFTER the visual walk confirms the spec reads
+and the batch (27 fixtures in `batch-fixtures.mjs`; the runner reports 28 with the DS01
+cross-shape check) protects only that severities don't move (they shouldn't — this is
+pure presentation). Note the batch asserts severity and per-cell flags ONLY — it is blind to
+category headers, coverage strings, and every other presentational state, so a green batch is
+not a display gate. Author the Code prompt AFTER the visual walk confirms the spec reads
 right on the representative cards, or dispatch a single representative-card implementation
 first (one single-surface, one multi-surface) to verify the spec renders as intended before
 rolling battery-wide. Lean: prototype on two cards (Unusual rows = single-surface after its
