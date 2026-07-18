@@ -158,9 +158,14 @@ function generateNarrative(severity, pattern, activeCategories, nApplicable, mod
   const sevText = SEVERITY_TEXT[modeKey]?.[severity];
 
   if (severity === 0) {
-    return sevText
-      ? `${sevText.headline}. ${sevText.sub} The data is consistent with genuine instrument-recorded measurements.`
-      : "No anomalies detected. The data is consistent with genuine instrument-recorded measurements.";
+    // Coverage-first clean narrative. Replaces the prior "consistent with genuine
+    // instrument-recorded measurements" claim, which the tool has no standing to
+    // make. nApplicable is the completed count; the errored/not-applicable gap is
+    // carried by the coverage line elsewhere in the report. Says "report", not
+    // "screen" — an exported file has no screens.
+    return nApplicable === 0
+      ? "No tests could run on this data. This report says nothing about it."
+      : `${nApplicable} of 29 tests completed — no signal above threshold. This report does not establish that the data is genuine.`;
   }
 
   const catNames = activeCategories.map(c => MECHANISMS[c]?.label || c);
@@ -685,7 +690,7 @@ export async function exportToExcel({ results, importConfig, matrix, rowMap, mod
 
   // Methodology note
   legendAoa.push(["METHODOLOGY"]);
-  legendAoa.push([`Check My Data runs ${nApplicable} independent statistical tests on raw experimental data. Tests are grouped into 5 observation categories: ${MECHANISM_ORDER.map(k => MECHANISMS[k]?.label || k).join(", ")}. The convergence heatmap on the Annotated Data sheet highlights regions where multiple independent tests flag the same cells. Darker shading indicates more tests converging on that region.`]);
+  legendAoa.push([`Check My Data runs a battery of 29 independent statistical tests on raw experimental data; ${nApplicable} completed on this dataset. Tests are grouped into 5 observation categories: ${MECHANISM_ORDER.map(k => MECHANISMS[k]?.label || k).join(", ")}. The convergence heatmap on the Annotated Data sheet highlights regions where multiple independent tests flag the same cells. Darker shading indicates more tests converging on that region.`]);
   legendAoa.push([]);
   legendAoa.push(["This report is a screening aid, not a determination of misconduct."]);
 

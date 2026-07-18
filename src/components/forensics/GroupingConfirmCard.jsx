@@ -30,9 +30,16 @@ import { runConfirmedGroupedTests } from "../../analysis/confirmGrouping.js";
 
 export function GroupingConfirmCard({
   results, importConfig, rowMap, tickedCols, onToggleCol,
-  groupingPendingBase = false, confirmedActive = false, onConfirmGrouping = null,
+  groupingPendingBase = false, confirmedActive = false,
+  onConfirmGrouping = null, onClearConfirmGrouping = null,
 }) {
   const [confirming, setConfirming] = useState(false);
+
+  // Exit-to-unassessed vs confirm-and-ran: both are "settled" states
+  // (confirmedActive true), distinguished by the marker the exit stamps on the
+  // four swapped-in results. The exit says "I can't say" — the tests are
+  // settled to N/A, no longer pending, but NOT inapplicable (they do apply).
+  const exitedUnassessed = Array.isArray(results) && results.some(r => r.groupingUnassessed);
 
   // Condition columns inference chose, in DATA COLUMN ORDER — no sorting, no
   // ranking. Mirrors extractAnalysisInputs' condCols derivation (roles filter
@@ -94,6 +101,30 @@ export function GroupingConfirmCard({
     }
   };
 
+  // Exit — "I can't say." Settle the four grouping-held tests to a permanent
+  // N/A that is neither pending (no longer waiting on the user) nor
+  // inapplicable (they do apply). Built from the currently-pending results and
+  // pushed through the same swap setter the confirm uses; the groupingUnassessed
+  // marker lets the card and any downstream consumer tell this from a confirm.
+  const onLeaveUnassessed = () => {
+    if (!onConfirmGrouping) return;
+    const settled = (results || [])
+      .filter(r => r.groupingPending)
+      .map(r => ({
+        ...r,
+        groupingPending: undefined,
+        groupingUnassessed: true,
+        description: "Grouping left unconfirmed — these tests were not assessed. Tick a column or confirm the grouping to run them.",
+      }));
+    if (settled.length) onConfirmGrouping(settled);
+  };
+
+  // Reconsider — clear the settled swap, returning the card to its working
+  // state (the engine's N/A-pending base results re-surface). Same mechanism as
+  // unticking a column; offered as a first-class control so a user need not
+  // toggle a checkbox to change their mind.
+  const onReconsider = () => onClearConfirmGrouping?.();
+
   return (
     <div style={{
       background: C.WHITE,
@@ -108,11 +139,14 @@ export function GroupingConfirmCard({
         Confirm the grouping
       </div>
 
-      {/* Explanation — adapts to confirmed state */}
+      {/* Explanation — adapts to the three states: exited-unassessed,
+          confirmed-and-ran, and the working (pending) state. */}
       <div style={{ fontSize: FS.base, color: C.TEXT_2, lineHeight: 1.6, marginBottom: "14px" }}>
-        {confirmedActive
+        {exitedUnassessed
+          ? <>You left the grouped tests unassessed. They were not run, and the report says so rather than showing a verdict on a grouping you could not confirm. Tick a column or reconsider to run them.</>
+          : confirmedActive
           ? <>The grouped tests below ran on this grouping. Untick a column to change the grouping and confirm again.</>
-          : <>The grouped tests that compare groups are paused until you confirm how the rows are grouped. Inference grouped the data on the condition columns below. Untick a column to see how the grouping and the tool's assessment change, then confirm.</>}
+          : <>The grouped tests that compare groups are paused until you confirm how the rows are grouped. We grouped your data using the columns below. Untick a column to see how the grouping and the tool's assessment change, then confirm — or, if you can't say what the grouping should be, leave these tests unassessed.</>}
       </div>
 
       {/* Condition columns — live checkboxes, column order, no ranking */}
@@ -139,33 +173,55 @@ export function GroupingConfirmCard({
       {/* Consequence — the resulting grouping: count, size distribution, median.
           One bar per group, height proportional to group size, partition order.
           Updates live as the ticked set changes. */}
-      <div style={{ fontSize: FS.sm, fontWeight: FW.SEMI, color: C.TEXT_3, marginBottom: "8px" }}>
-        Resulting groups
-      </div>
-      {sizes.length > 0 && (
-        <div style={{
-          display: "flex", alignItems: "flex-end", gap: "2px",
-          height: "44px", marginBottom: "8px",
-          padding: "0 2px",
-        }}>
-          {sizes.map((s, i) => (
-            <div key={i} title={`Group ${i + 1}: ${s} row${s === 1 ? "" : "s"}`} style={{
-              flex: 1, minWidth: "2px",
-              height: `${maxSize ? Math.max(6, (s / maxSize) * 100) : 6}%`,
-              background: CC.OBS,
-              borderRadius: `${CR.SM} ${CR.SM} 0 0`,
-            }} />
-          ))}
+      {/* The whole block is hidden when there is nothing to group (no ticked
+          columns → attempted:false): the "Resulting groups" heading is a false
+          promise with no groups, and the indicator panel below already explains
+          the state once. */}
+      {live.attempted && (<>
+        <div style={{ fontSize: FS.sm, fontWeight: FW.SEMI, color: C.TEXT_3, marginBottom: "8px" }}>
+          Resulting groups
         </div>
-      )}
-      <div style={{ fontSize: FS.base, color: C.TEXT_2, fontFamily: FF.UI, marginBottom: "14px" }}>
-        <span style={{ fontWeight: FW.SEMI, color: C.TEXT, fontFamily: FF.MONO }}>{nGroups}</span> group{nGroups === 1 ? "" : "s"}
-        {" · median size "}<span style={{ fontWeight: FW.SEMI, color: C.TEXT, fontFamily: FF.MONO }}>{median}</span>
-        {sizes.length > 0 && <> · sizes range <span style={{ fontFamily: FF.MONO }}>{minSize}</span>–<span style={{ fontFamily: FF.MONO }}>{maxSize}</span></>}
-      </div>
+        {/* Size strip renders only when group sizes vary — a balanced design
+            would draw a flat, decorative block that teaches nothing, so we note
+            the equal size in the summary line instead. */}
+        {sizes.length > 0 && minSize !== maxSize && (
+          <div style={{
+            display: "flex", alignItems: "flex-end", gap: "2px",
+            height: "44px", marginBottom: "8px",
+            padding: "0 2px",
+          }}>
+            {sizes.map((s, i) => (
+              <div key={i} title={`Group ${i + 1}: ${s} row${s === 1 ? "" : "s"}`} style={{
+                flex: 1, minWidth: "2px",
+                height: `${maxSize ? Math.max(6, (s / maxSize) * 100) : 6}%`,
+                background: CC.OBS,
+                borderRadius: `${CR.SM} ${CR.SM} 0 0`,
+              }} />
+            ))}
+          </div>
+        )}
+        <div style={{ fontSize: FS.base, color: C.TEXT_2, fontFamily: FF.UI, marginBottom: "14px" }}>
+          <span style={{ fontWeight: FW.SEMI, color: C.TEXT, fontFamily: FF.MONO }}>{nGroups}</span> group{nGroups === 1 ? "" : "s"}
+          {" · median size "}<span style={{ fontWeight: FW.SEMI, color: C.TEXT, fontFamily: FF.MONO }}>{median}</span>
+          {sizes.length > 0 && (minSize === maxSize
+            ? <> · all groups <span style={{ fontFamily: FF.MONO }}>{maxSize}</span> rows</>
+            : <> · sizes range <span style={{ fontFamily: FF.MONO }}>{minSize}</span>–<span style={{ fontFamily: FF.MONO }}>{maxSize}</span></>)}
+        </div>
+      </>)}
 
-      {/* Fire/clear indicator — informs, does not gate. */}
-      {live.pending ? (
+      {/* Fire/clear indicator — informs, does not gate. Reads three states:
+          no ticked columns means there is nothing to group by (neutral), a
+          pending grouping needs confirmation (warn), and a settled grouping
+          looks sound (ok). Wired on attempted first, then pending. */}
+      {!live.attempted ? (
+        <div style={{
+          fontSize: FS.base, color: C.TEXT_2, background: C.BG_L,
+          border: `1px solid ${C.BORDER_L}`, borderRadius: CR.MD,
+          padding: "8px 12px", lineHeight: 1.5, marginBottom: "14px",
+        }}>
+          <span style={{ fontWeight: FW.SEMI, color: C.TEXT }}>No grouping to check</span> — with no columns ticked, there are no groups to check.
+        </div>
+      ) : live.pending ? (
         <div style={{
           fontSize: FS.base, color: UI.WARN.text, background: UI.WARN.callout.bg,
           border: `1px solid ${UI.WARN.border}`, borderRadius: CR.MD,
@@ -183,26 +239,63 @@ export function GroupingConfirmCard({
         </div>
       )}
 
-      {/* Confirm action — runs the four grouped tests on the ticked set. Enabled
-          in both indicator states (informs, does not gate). After a confirm,
-          shows a confirmed acknowledgement; unticking clears it. */}
+      {/* Action area — three states.
+          • Working: confirm (run the grouped tests) alongside a first-class
+            exit (leave them unassessed). Both are needed at the moment the
+            question is asked — a user who cannot answer sees the way out.
+          • Confirmed: acknowledgement that the tests ran.
+          • Exited: acknowledgement that they were left unassessed, with a
+            first-class Reconsider control back to the working state. */}
       {confirmedActive ? (
-        <div style={{ fontSize: FS.base, color: UI.OK.text, fontWeight: FW.SEMI }}>
-          ✓ Grouping confirmed — the grouped tests ran on it.
-        </div>
+        exitedUnassessed ? (
+          <div style={{ display: "flex", alignItems: "center", gap: "14px", flexWrap: "wrap" }}>
+            <span style={{ fontSize: FS.base, color: C.TEXT_2, fontWeight: FW.SEMI }}>
+              Left unassessed — the grouped tests were not run.
+            </span>
+            <button
+              onClick={onReconsider}
+              style={{
+                background: C.BG, color: C.TEXT,
+                border: `1px solid ${C.BORDER}`, borderRadius: CR.MD,
+                padding: "6px 14px", fontSize: FS.base, fontWeight: FW.MED,
+                fontFamily: FF.UI, cursor: "pointer",
+              }}
+            >
+              Reconsider the grouping
+            </button>
+          </div>
+        ) : (
+          <div style={{ fontSize: FS.base, color: UI.OK.text, fontWeight: FW.SEMI }}>
+            ✓ Grouping confirmed — the grouped tests ran on it.
+          </div>
+        )
       ) : (
-        <button
-          onClick={onConfirm}
-          disabled={confirming}
-          style={{
-            background: C.BG, color: C.TEXT,
-            border: `1px solid ${C.BORDER}`, borderRadius: CR.MD,
-            padding: "8px 16px", fontSize: FS.base, fontWeight: FW.MED,
-            fontFamily: FF.UI, cursor: confirming ? "default" : "pointer",
-          }}
-        >
-          Confirm this grouping and run the grouped tests
-        </button>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
+          <button
+            onClick={onConfirm}
+            disabled={confirming}
+            style={{
+              background: C.BG, color: C.TEXT,
+              border: `1px solid ${C.BORDER}`, borderRadius: CR.MD,
+              padding: "8px 16px", fontSize: FS.base, fontWeight: FW.MED,
+              fontFamily: FF.UI, cursor: confirming ? "default" : "pointer",
+            }}
+          >
+            Confirm this grouping and run the grouped tests
+          </button>
+          <button
+            onClick={onLeaveUnassessed}
+            disabled={confirming}
+            style={{
+              background: "transparent", color: C.TEXT_2,
+              border: `1px solid ${C.BORDER}`, borderRadius: CR.MD,
+              padding: "8px 16px", fontSize: FS.base, fontWeight: FW.NORM,
+              fontFamily: FF.UI, cursor: confirming ? "default" : "pointer",
+            }}
+          >
+            Leave these tests unassessed
+          </button>
+        </div>
       )}
     </div>
   );

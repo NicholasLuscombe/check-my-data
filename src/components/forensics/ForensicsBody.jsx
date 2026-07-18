@@ -52,18 +52,17 @@ import { useMemo, useState, useRef, useCallback } from "react";
 import { Section } from "../shared/Section.jsx";
 import { MECHANISM_ORDER, TEST_MECHANISM } from "../../constants/mechanisms.js";
 import { CATEGORY_SHORT_DESCRIPTIONS } from "../../constants/descriptions.js";
+import { summarizeCoverage } from "../../analysis/coverage.js";
 import { C } from "../../constants/tokens.js";
 import { StickySurface, STICKY_SURFACE_SELECTOR } from "./StickySurface.jsx";
 import { ForensicsCategoryBlock } from "./ForensicsCategoryBlock.jsx";
 import { GroupingConfirmCard } from "./GroupingConfirmCard.jsx";
 
-// S150-fix1: clean-state copy renders as bold sentence-lead + body
-// continuation. Threaded through to StickySurface where it renders
-// above the Data toggle when no chips exist in any lane (S163
-// fix-pass 1 promoted clean-state rendering into the sticky surface
-// so the Data toggle is always available).
-const CLEAN_STATE_LEAD = "All checks passed";
-const CLEAN_STATE_TAIL = " — no patterns to flag.";
+// Clean-state copy renders as a bold count lead plus a normal continuation,
+// threaded to StickySurface where it shows above the Data toggle when no chips
+// exist in any lane. The lead now states coverage ("{N} of 29 tests completed")
+// instead of a bare "All checks passed"; the count and the errored/zero cases
+// are computed per render inside the component (see cleanStateLead below).
 
 // Visual gap between the pinned sticky surface's bottom edge and the
 // scrolled-into-view card title (px). Used by `scrollToCard` below.
@@ -366,6 +365,14 @@ export function ForensicsBody({
 
   const catDescs = CATEGORY_SHORT_DESCRIPTIONS;
 
+  // Clean-state coverage line for the findings panel. States what completed
+  // rather than a bare pass; nothing-completed says the report says nothing.
+  const coverage = summarizeCoverage(results);
+  const cleanStateLead = coverage.ran === 0
+    ? "No tests could run on this data. This report says nothing about it."
+    : `${coverage.ran} of 29 tests completed`;
+  const cleanStateTail = coverage.ran === 0 ? null : " — no patterns to flag.";
+
   return (
     <>
       {/* Grouping-enforcement confirm card (S321 move 2). Renders only when
@@ -381,6 +388,7 @@ export function ForensicsBody({
         groupingPendingBase={groupingPendingBase}
         confirmedActive={confirmedActive}
         onConfirmGrouping={onConfirmGrouping}
+        onClearConfirmGrouping={onClearConfirmGrouping}
       />
 
       {/* §2 WHAT WAS FOUND — two DOM elements that merge visually
@@ -418,8 +426,8 @@ export function ForensicsBody({
         heatmapProps={heatmapProps}
         dataExpanded={dataExpanded}
         onToggleDataExpanded={onToggleDataExpanded}
-        cleanStateLead={CLEAN_STATE_LEAD}
-        cleanStateTail={CLEAN_STATE_TAIL}
+        cleanStateLead={cleanStateLead}
+        cleanStateTail={cleanStateTail}
         hotspotScrollRef={hotspotScrollRef}
       />
 
@@ -434,6 +442,11 @@ export function ForensicsBody({
           // N/A ("not applicable"). Surfaced so the four row-grouped cards read
           // "N/A — grouping needs confirmation" (S321 move 2, round 1).
           const pendingTests = group.tests.filter(r => r.flag === "N/A" && r.groupingPending);
+          // Tests the user settled via the N/A exit (S322 round 2). Rendered as
+          // their own amber rows so the honest exit does not make them vanish;
+          // kept separate from pendingTests so the header's pending tally (the
+          // DRAFT-contract rollup) is unchanged by them.
+          const unassessedTests = group.tests.filter(r => r.flag === "N/A" && r.groupingUnassessed);
           return (
             <div key={mk}>
               {idx > 0 && <div style={{borderTop:`1px solid ${C.BORDER_L}`, margin:"8px 0"}}/>}
@@ -444,6 +457,8 @@ export function ForensicsBody({
                 description={catDescs[mk]}
                 testResults={applicable}
                 pendingTests={pendingTests}
+                unassessedTests={unassessedTests}
+                coverage={summarizeCoverage(group.tests)}
                 isExpanded={expandedCats[mk]} onToggle={()=>toggleCat(mk)}
                 expandedTestEvidence={expandedTestEvidence}
                 onToggleTestEvidence={(name, defaultOpen)=>setExpandedTestEvidence(prev=>{

@@ -70,6 +70,8 @@ function ForensicsTestCard({ result, mk, expanded, onToggle, importConfig, rowMa
  * @param {boolean} props.hasHigh - any HIGH tests
  * @param {string} props.description - one-liner after em-dash
  * @param {object[]} props.testResults - filtered results (flag !== "N/A")
+ * @param {object} props.coverage - coverage summary for the cluster's full
+ *   member list (summarizeCoverage), forwarded to ClusterRow's reconciling line
  * @param {boolean} props.isExpanded - category expanded state
  * @param {function} props.onToggle - toggle category expansion
  * @param {object} props.expandedTestEvidence - { [testName]: boolean }
@@ -79,7 +81,8 @@ function ForensicsTestCard({ result, mk, expanded, onToggle, importConfig, rowMa
  */
 export function ForensicsCategoryBlock({
   mk, label, isFlagged, hasHigh, description, testResults,
-  pendingTests = [],
+  pendingTests = [], unassessedTests = [],
+  coverage,
   isExpanded, onToggle,
   expandedTestEvidence, onToggleTestEvidence,
   importConfig, rowMap,
@@ -96,20 +99,15 @@ export function ForensicsCategoryBlock({
   const clearTests = sorted.filter(r => r.flag === "LOW");
   const [clearOpen, setClearOpen] = useState(false);
 
-  // Pending tests (grouping unconfirmed) count toward the category total so a
-  // fully-pending dimension doesn't read as "0 tests".
-  const checkCount = testResults.length + pendingTests.length;
-
   return (
     <div style={{ paddingBottom: isExpanded ? "4px" : "0" }}>
       <ClusterRow
         mk={mk}
         label={label}
-        count={checkCount}
         description={description}
-        noun="test"
         isFlagged={isFlagged}
         hasHigh={hasHigh}
+        coverage={coverage}
         isExpanded={isExpanded}
         onToggle={onToggle}
       />
@@ -174,6 +172,14 @@ export function ForensicsCategoryBlock({
             {pendingTests.map(r => (
               <PendingRow key={r.name} result={r} />
             ))}
+            {/* Grouping-unassessed tests — the user took the "I can't say" exit.
+                Same amber register as the pending rows they replace, distinct
+                copy. The header now counts these in its own "unassessed" bucket
+                (the coverage summary is built off the same member list these
+                rows come from), so the header and the rows agree. */}
+            {unassessedTests.map(r => (
+              <PendingRow key={r.name} result={r} />
+            ))}
           </div>
         </div>
       )}
@@ -181,9 +187,22 @@ export function ForensicsCategoryBlock({
   );
 }
 
-// A held-pending test row: "N/A — grouping needs confirmation", visually
-// distinct (amber attention rule) from a settled "N/A — not applicable".
+// A held-pending test row, visually distinct (amber attention rule) from a
+// settled "N/A — not applicable". The reason reflects why the grouping is
+// unconfirmed: when the groups are too thin to test (arm 2) that is the most
+// common case and the most useful thing to say, so it leads; otherwise the
+// grouping simply needs confirmation.
 function PendingRow({ result }) {
+  // Three grouping-held row states, same amber register, distinct copy:
+  //   • groupingUnassessed — the user took the "I can't say" exit; the tests
+  //     were left unconfirmed and not assessed (no longer waiting on anyone).
+  //   • groupingPending arm2 — held pending, groups too thin to test.
+  //   • groupingPending (else) — held pending, grouping needs confirmation.
+  const reason = result.groupingUnassessed
+    ? "N/A — not assessed (grouping left unconfirmed)"
+    : result.groupingPending?.arm2
+    ? "N/A — groups too small to test"
+    : "N/A — grouping needs confirmation";
   return (
     <div style={{
       padding: `8px ${RAIL_RIGHT} 8px 12px`,
@@ -201,7 +220,7 @@ function PendingRow({ result }) {
       </span>
       <span style={{ color: C.TEXT_3, flexShrink: 0 }}>—</span>
       <span style={{ color: UI.WARN.text, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", minWidth: 0 }}>
-        N/A — grouping needs confirmation
+        {reason}
       </span>
     </div>
   );
