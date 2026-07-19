@@ -4,10 +4,26 @@
 > merged to main at S325 close). C07's matrix was missing about half its columns: role
 > inference held out real measurements as attributes. On the corrected matrix C07 runs at
 > 72 by 39 columns, not 72 by 21; its held-out count drops from twenty to two. The verdict
-> tier stays High, but the per-test detail moved (10 HIGH before, 12 HIGH plus 4 MOD after),
-> and its two errored tests were diagnosed against the 21-column shape — Mahalanobis now
-> needs 117 rows where it needed 63. The C07 section below is kept as the historical reading;
-> re-run the census (S326) before citing it. Every other file's entry stands.
+> tier stays High and the counts are as recorded here — 10 HIGH before, 12 HIGH plus 4 MOD
+> after — but the membership behind those counts moved on **four tests, not two**: Decimal
+> Precision fell from High to Moderate, Autocorrelation rose from Moderate to High, LOESS
+> Residual rose from Low to High, and Missing Data Pattern moved from not applicable to
+> High. Its two errored tests were diagnosed against the 21-column shape — Mahalanobis now
+> needs 117 rows where it needed 63. The C07 section below is kept as the historical
+> reading; `S326-CODE-READ-ECOLOGY-RERUN.md` carries the measured detail. Every other
+> file's entry stands on the engine path; for the confirm path, see the note below.
+
+> **Stale finding — the confirm path.** This census names cross-file confirm-path divergence
+> as its sharpest finding: the confirm card errored all four grouped tests on C07, C09, C20
+> and C22, because the confirm path was missing the upfront applicability checks S324 added
+> to the engine. Commit `cc838a6` closed that, extracting those guards into
+> `src/analysis/applicability.js` and wiring both dispatch sites to it. Measured by the S326
+> re-run: all four files now give two errored and two clean not-applicable on the confirm
+> path, and on C07 — the one file whose trigger stays silent, so the engine dispatches too —
+> the two paths now agree exactly. C09, C20 and C22 stay four pending on the engine path,
+> held by the trigger. The finding is kept below as the diagnosis that motivated the fix,
+> not as live state — it appears in the fourth bullet of "Summary up front", in "Across all
+> seven", and in the first bullet of "What did not fit". Do not cite it as current behaviour.
 
 Read-only. Nothing was changed. The seven files were run through the same pipeline the
 UI and the batch runner use, in a throwaway probe that mirrors `corpus-run.mjs` and adds
