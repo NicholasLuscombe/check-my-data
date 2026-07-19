@@ -1,7 +1,7 @@
 # Check My Data — Investigation Display UI Specification
 
-**Version:** 7.4 (Chat S323 — coverage vocabulary shipped; S213 single severity scale + plot colour-semantics reference; S211 composition rollout)
-**Status:** QC mode ✅ (Code S21). Forensics mode ✅ (Code S25+S69+S71, S156+S157 chrome lock). Peer review mode ✅ (Code S70+S71). Coverage vocabulary § — shipped S323 (main `07887a5`), describes the live surface.
+**Version:** 7.5 (Chat S323 — coverage vocabulary shipped and corrected on screen; S213 single severity scale + plot colour-semantics reference; S211 composition rollout)
+**Status:** QC mode ✅ (Code S21). Forensics mode ✅ (Code S25+S69+S71, S156+S157 chrome lock). Peer review mode ✅ (Code S70+S71). Coverage vocabulary § — shipped S323 (main `39294ca`), describes the live surface.
 
 This document is the authoritative reference for how Check My Data presents analysis results across three modes. It covers:
 1. **Category system** — what observation categories exist and which tests map to them
@@ -1551,107 +1551,140 @@ Colour key, intensity scale, flag level definitions, severity scale, methodology
 
 ## Coverage vocabulary — what completed, what did not, and why (S323)
 
-**Status: authored, cross-validated in three rounds, and shipped at S323 (main `07887a5`).**
-This section describes the live surface. Where it and the build disagree, read the build and
-amend this.
+**Status: shipped at S323, main `39294ca`.** Authored, cross-validated in three rounds, built,
+then corrected twice against the live screen. This section describes the live surface. Where it
+and the build disagree, read the build and amend this.
 
-METHODOLOGY § Applicability and Coverage Reporting governs what the tool may claim. This
-section governs how the claim renders.
+METHODOLOGY § Applicability and Coverage Reporting governs what the tool may claim. This section
+governs how the claim renders.
 
 ### The five coverage states
-
-Every test on every dataset sits in exactly one of five states. Before S323 the tool collapsed
-four of them into one, which is how a dataset that completed 18 of 29 tests came to render
-"All checks passed."
 
 | State | Meaning | Counts toward |
 |---|---|---|
 | **Completed** | The test ran and returned a verdict | numerator and denominator |
-| **Not applicable** | The data shape does not support this test | denominator only, reported separately |
+| **Not applicable** | The data shape does not support this test | see below — depends on the surface |
 | **Unassessed** | The user declined to confirm grouping, so the test did not run | denominator only, reported separately |
 | **Errored** | The test began and could not complete | denominator only, reported separately |
 | **Pending** | Grouping confirmation is outstanding; the test may yet run | denominator only, transient |
 
-**These are four distinct reasons a test produced no verdict, and they never share a string.**
+**These are four distinct reasons a test produced no verdict.**
 
-- *Not applicable* is the tool being unable to look — the shape was wrong going in.
-- *Unassessed* is the tool being told not to look — the user made a choice.
+- *Not applicable* is the tool being unable to look — the shape was wrong going in, and nothing
+  was attempted.
+- *Unassessed* is the tool being told not to look — the user made a choice, and a user action
+  reverses it.
 - *Errored* is the tool trying to look and failing — insufficient rows per group discovered
   mid-calculation, non-convergence, a divide-by-zero on a constant column, a timeout.
 
-Folding a technical failure into "not applicable" makes a bug sound like an expected property
-of the data. Folding it into "unassessed" tells the user they made a choice they did not make.
-Errored is common, not an edge case: nine batch fixtures carry it, across five tests.
+Folding an error into "not applicable" makes a bug sound like an expected property of the data.
+Folding it into "unassessed" tells the user they made a choice they did not make.
 
 **Implementation.** `src/analysis/coverage.js` is the single source of truth.
 `classifyCoverage(result)` returns the state; `summarizeCoverage(tests)` sums them and guards
-that the five buckets reconcile to the battery. Every consuming surface reads this rather than
-hand-rolling its own filter, which is why the header, the clean copy and the coverage line
-agree by construction.
+that the buckets reconcile. Every consuming surface reads it rather than hand-rolling a filter.
 
 The aggregator marks its own errored results with an explicit field (`erroredCoverage`), not a
-note string. An earlier build detected the state by matching the human-readable note; a reword
-of that note would have silently emptied the errored bucket, and the failure direction is
-under-reporting.
+note string. An earlier build matched the human-readable note; a reword would have silently
+emptied the bucket, and the failure direction is under-reporting.
 
-**Grouping-dependent tests cannot be marked not-applicable before confirmation.** The four
-row-grouped tests are *unassessed* until the user answers, even where the tool suspects they
-would turn out not to apply. The tool does not guess ahead of the user.
+### Not applicable is not a coverage gap — but it is a battery gap
+
+**This distinction is load-bearing and was got wrong first time.**
+
+At **report level** (§1, §4, §5) the denominator is the full battery of 29. A reader judging how
+much of the tool's capability was brought to bear needs the whole battery: "18 of 29" is honest,
+"18 of 18" would not be. A shrinking denominator makes the tool look most thorough on the
+least-examined data.
+
+At **cluster level** (§3 headers) not-applicable tests leave the fraction entirely — out of both
+numerator and denominator — and the clause is not shown at all. A cluster that ran every test
+that could apply to this data has no gap. Counting the inapplicable ones made the tool report
+itself as partially blind when it had done everything the data allowed: before the correction,
+nine clean clusters rendered green across the batch; after, thirty-one.
+
+The two surfaces answer different questions. §1 and §5 answer "how much of the battery was
+brought to bear". A cluster header answers "did this cluster reach a verdict". Do not unify them.
 
 ### "Completed", not "ran"
 
-Every user-facing string says **completed**. The buckets always distinguished a test that ran
-from one that errored, so the counts were right — but "ran" invites the reading that a failed
-test counted as a clean pass. Chat's own worked example fell into it during cross-validation
-("18 tests ran, one errored and ten did not apply" sums to 29 only if the errored test sits
-inside the 18). If the author of the vocabulary misreads the word, a journal editor has no
-chance.
+Every user-facing string says **completed**. The buckets always distinguished a completed test
+from an errored one, so the counts were right — but "ran" invites the reading that a failed test
+counted as a clean pass. Chat's own worked example fell into it during cross-validation.
 
-### The denominator form
+The same phrase is used for the errored state everywhere it surfaces: **"could not complete"**.
+Not "errored" — that is engine vocabulary and read as jargon on screen.
 
-**The denominator is the full battery. The applicable count is reported alongside as a second
-number, never substituted for it.**
+### A verdict headline is not a coverage report
 
-A shrinking denominator makes the tool look most thorough on the files that deserve most
-scrutiny. A dataset where 14 tests do not apply would read "15 of 15" — complete coverage —
-when the honest reading is "15 of 29."
+**The second correction against the live screen.** The coverage-first ordering below is right for
+prose. It was wrong for the §1 headline, which briefly read:
 
-**The cost is real and is the correct direction of error.** A dataset whose design supports
-only 6 tests will always read "6 of 29", even though the tool did everything it could. That
-reads as thin coverage. It *is* thin coverage: sparse data offers less statistical surface to
-check, so less of it has been verified. The fixed denominator makes sound data look less
-certain than it is; a shrinking denominator would make thin data look more certain than it is.
-For an instrument whose one rule is never to assert a dataset is sound, the error must point at
-under-claiming. All three cross-validation models were unanimous.
+> 18 of 29 tests completed — no signals above threshold. 1 could not complete.
 
-### Coverage leads; the clean news follows
+Three clauses of accounting in the slot where a verdict belongs. A headline is scanned, not read.
+The fix is two tiers: the verdict in the headline, the coverage in a sub-line beneath it.
 
-**Every clean string states coverage before it states the result.** A reader scanning left to
-right stops at "no signals" and never reaches the number, which defeats the count entirely.
-This is deliberate and reads slightly awkwardly. Do not reorder for fluency.
+### Colour states the finding; words state the coverage
 
-This was the third round's finding, on strings that had already survived two rounds.
+Green was briefly removed from every clean surface, on the reasoning that it asserted full
+coverage. It was carrying two claims — "nothing was found in what ran" and "the whole battery
+ran clean" — and killing it to stop the second discarded the first, leaving a card that could
+never say anything positive even when the news was good. Green returned.
 
-### The shipped strings
+**Green means "nothing found in what completed".** Coverage is carried by words, never by colour.
+
+### The shipped surfaces
 
 `{N}` is the completed count, `{K}` the errored count, the battery 29.
 
-**§1 verdict card** (`VerdictBanner.jsx`, severity 0, all three modes):
+**§1 verdict card** (`VerdictBanner.jsx`, severity 0, all three modes) — two tiers.
 
-> {N} of 29 tests completed — no signals above threshold.
+Headline, green:
+> No signals found
 
-Appending `{K} could not complete.` where K > 0; singular `1 could not complete.`
-Review mode swaps the tail to `— no unusual patterns.`
+Review mode: `No unusual patterns found`.
 
-The sub-line "Proceed with dataset" is **deleted**, not replaced. It was advice the tool has no
-standing to give.
+Sub-line, neutral:
+> {N} of 29 tests completed · {K} could not complete
+
+Errored clause only where K > 0. Chrome is green at severity 0 unconditionally — border,
+background, headline and severity dot together. The former `cleanNeutral` gate is retired.
+
+The old sub-line "Proceed with dataset" is **deleted, not replaced**. It was advice the tool has
+no standing to give.
 
 **§2 findings panel, clean state** (`ForensicsBody.jsx`):
+> No patterns to flag
 
-> {N} of 29 tests completed — no patterns to flag.
+No count. §1 sits directly above with the number.
 
-**§4 clean-result block** (`ReportView.jsx`), selected by coverage state in the order pending →
-unassessed → not-applicable → all-completed. The errored appendix appends to whichever fires.
+**§3 cluster headers** (`ClusterRow.jsx`):
+> Clear · 4 of 4
+> Incomplete · 9 of 10 · 1 could not complete
+> Not assessed
+
+Not-applicable tests are outside the fraction and unshown. "Not assessed" stands alone with no
+fraction. The word "completed" is dropped from the fraction on every row — a label appearing on
+some rows and not others draws attention to itself, and the errored clause names its own state.
+
+| Condition | Word | Colour |
+|---|---|---|
+| Every test that could run completed, none flagged | Clear | green |
+| Something unassessed or pending | Clear so far | neutral |
+| Anything errored | Incomplete | neutral |
+| Nothing could run | Not assessed | neutral |
+
+`Clear so far` survives only for genuinely outstanding work, which a user action resolves.
+Errored takes its own word because "so far" implies a state that resolves by waiting.
+
+Clause length is a live constraint: the coverage span is right-pinned and the cluster subtitle
+takes the remaining width. An earlier build carried four clauses and truncated the subtitle to an
+ellipsis on the widest row. Anything added here costs the subtitle.
+
+**§4 clean-result block** (`ReportView.jsx`) — prose, coverage-first, full battery. Selected in
+the order pending → unassessed → not-applicable → all-completed, errored appendix appended to
+whichever fires.
 
 > All {N} of 29 tests completed. None returned a signal above threshold.
 
@@ -1664,122 +1697,80 @@ unassessed → not-applicable → all-completed. The errored appendix appends to
 > {K} tests could not complete and are not counted in this result.
 
 Singular forms exist for every count-bearing clause and change verb and pronoun, not just the
-noun ("1 test could not complete and **is** not counted"; "this screen says nothing about
-**it**"). Do not build them by trimming an "s".
-
-Pending leads the selection order because it is the only state the reader can act on from where
-they are standing.
+noun. Pending leads the order because it is the only state the reader can act on from where they
+are standing.
 
 **§5 coverage line:**
-
 > {N} of 29 tests completed, spanning 5 investigation categories. {K} could not complete.
 
-The word is "completed", matching the number. An earlier build said "applied", which was wrong
-for the figure — an errored test applied and then failed.
-
 **Excel narrative** (`excelExport.js`, severity 0):
-
 > {N} of 29 tests completed — no signal above threshold. This report does not establish that the data is genuine.
 
 **Clipboard copy-summary** (`ReportView.jsx`, severity 0):
-
 > ({N} of 29 completed — no signals above threshold. This report does not establish that the data is genuine.)
 
-**Zero state**, on every surface above where N = 0:
-
+**Zero state**, on every surface above where N = 0 — neutral chrome, no green:
 > No tests could run on this data. This report says nothing about it.
-
-Effectively unreachable — it needs all 29 tests non-completing — but implemented as a guard.
 
 ### The disclaimer asymmetry is deliberate
 
-The second sentence ("This report does not establish that the data is genuine") appears on the
-Excel narrative and the clipboard summary only. Both travel away from the tool, read by people
-who did not run it, with no coverage section beneath them. In-report surfaces omit it: a
-disclaimer on every line trains readers to skip all of them.
+"This report does not establish that the data is genuine" appears on the Excel narrative and the
+clipboard summary only. Both travel away from the tool, read by people who did not run it, with
+no coverage section beneath. In-report surfaces omit it: a disclaimer on every line trains
+readers to skip all of them.
 
 It says "report", not "screen". An exported file has no screens.
 
-### The cluster header word gates on coverage — word and colour
-
-`ClusterRow.jsx`. The clean-case word was derived from the flags of the tests that ran, so a
-cluster reading "2 of 3 completed · 1 errored" rendered a green "Clear".
-
-| Condition | Word | Colour |
-|---|---|---|
-| Every test completed, none flagged | Clear | green |
-| Something outstanding (not applicable, unassessed, pending), none flagged | Clear so far | neutral |
-| Anything errored, none flagged | Incomplete | neutral |
-| Nothing completed | Not assessed | neutral |
-
-**Both gate.** Green on partial coverage asserts safety the word cannot walk back; a neutral
-colour under the word "Clear" still reads positive. Flagged clusters keep their existing words.
-
-**Errored takes its own word.** "So far" implies a state that resolves by waiting. An errored
-test tried and failed and will not resolve on its own; filing it under "so far" reclassifies a
-failure as a delay.
-
-### The §1 card chrome gates the same way
-
-`VerdictBanner.jsx`, severity 0. The whole chrome family switches together — border
-(`C.BORDER`), background (`C.BG_L`), headline (`C.TEXT`), severity dot (`C.TEXT_3`) — green only
-where every test completed.
-
-**The full family or nothing.** A neutral card with a green dot is the same defect in
-miniature.
-
-**Consequence, recorded as intended: green §1 chrome is effectively unreachable on real data.**
-All eight clean batch fixtures render neutral, because every clean dataset has some
-not-applicable tests. Green would need a dataset whose shape supports all 29. That is the
-honest consequence of the gate rather than a fault in it — but it means the tool has, in
-practice, no green verdict card, and whether a permanently-neutral card reads as calm or as
-inert is **unverified on the live surface as of S323 close.**
-
 ### Known limits
 
-**High-N partials.** "26 of 29 completed" still invites a reader to round up to clean. No copy
-fixes this without making every clean result sound alarmist. Recorded, not chased.
+**High-N partials.** "26 of 29 completed" invites rounding up to clean. No copy fixes this
+without making every clean result alarmist.
 
-**"Above threshold" is jargon-adjacent.** All three cross-validation models pushed to replace it
-("no anomalies flagged", "0 anomalies detected", "no signals detected"). Held deliberately: every
-alternative drops the qualifier that says a cutoff was applied and nothing exceeded it.
-"Detected" and "flagged" assert a search that concluded. Three models disliking an honest word is
-recorded as friction, not taken as a mandate.
+**"Above threshold" is jargon-adjacent.** All three cross-validation models pushed to replace it.
+Held: every alternative drops the qualifier saying a cutoff was applied. It survives in §4, §5
+and the exports, and was dropped from the §1 headline only for length.
+
+**Errored is common and may be an engine defect, not a limit.** Nine batch fixtures carry it
+across five tests, always from the same cause — a group too small after splitting. DS03 loses two
+of three tests in one cluster to it. If those tests checked group size upfront they would return
+not-applicable honestly and the bucket would empty. Unexamined as of S323.
+
+**§3 omits the not-applicable count while §4 states it.** Correct — different questions — but
+worth reading the two together to check §4 does not feel like it contradicts §3.
 
 ### Dormant strings
 
-"All checks passed" survives in `narrative.js:9`, `guidance.js:22/27` and `handoffModel.js:42`.
-Unreachable at severity 0 — `VerdictBanner` overrides, and the handoff headline is only reached
-above severity 0. Those objects still supply card colours and above-zero copy, so retiring the
-strings is its own cleanup. Do not treat their presence as a live defect.
+"All checks passed" survives in `narrative.js`, `guidance.js` and `handoffModel.js`. Unreachable
+at severity 0. Those objects still supply card colours and above-zero copy, so retiring the
+strings is its own cleanup. Not a live defect.
 
 ### Application
 
-When adding or auditing any surface that states or implies a clean outcome, ask four questions:
+When adding or auditing any surface that states or implies a clean outcome:
 
-- **Does its denominator shrink when tests do not run?** If yes, it reads most reassuring on the
-  least-examined data.
-- **Does it state a count at all, and does the count come first?** A coverage claim with no
-  number is the original defect; a count after the good news is one a reader never reaches.
-- **Can a reader tell "did not apply" from "was not assessed" from "could not complete"?** If
-  not, it is asserting more than the tool examined — and if it folds an error into either of the
-  others, it is hiding a defect behind a routine-sounding explanation.
-- **Does it assert through colour what its words no longer assert?** Colour is read first. Both
-  the cluster word and the §1 card shipped with honest text and green chrome, and each needed a
-  second pass.
+- **Is it a headline or is it prose?** A headline states the finding and demotes coverage to a
+  sub-line. Prose leads with coverage. Do not apply one rule to both.
+- **Does its denominator shrink when tests do not run?** At report level that is wrong. At
+  cluster level, excluding not-applicable is right. Know which question the surface answers.
+- **Does colour assert what the words no longer assert?** Colour is read first, and it may only
+  state the finding — never the coverage.
+- **Can a reader tell "did not apply" from "was not assessed" from "could not complete"?** If it
+  folds an error into either of the others, it is hiding a defect behind a routine explanation.
 
 ### A note on validating this section
 
 Three cross-validation rounds each found a distinct flaw in strings that had already passed
-Chat's own review, and two of the three flaws were invisible to two of the three models:
+Chat's own review, and two of the three were caught by only one of three models:
 
 1. The clean string carried no number, so 6-of-29 and 29-of-29 read identically.
-2. "Ran" invited counting a failed test as a clean pass. One model of three.
-3. Coverage sat after the clean news, where a scanning reader never reaches it — and two of the
-   seven strings had lost their denominator again. One model of three.
+2. "Ran" invited counting a failed test as a clean pass.
+3. Coverage sat after the clean news, where a scanning reader never reaches it — and two of seven
+   strings had lost their denominator again.
 
-Each round's fix was obvious once stated. None was obvious before. Treat a surviving draft as
-untested rather than sound, and prefer three reviewers to one.
+**Two further flaws survived all three rounds and were caught only on screen**: the headline had
+become a coverage report, and not-applicable tests were being counted against cluster coverage.
+Neither was visible in a prompt. Cross-validation catches what a careful reader would misread;
+only the live surface catches what a design gets wrong.
 
 ---
 ## Standalone Compatibility
