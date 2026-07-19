@@ -13,6 +13,14 @@ const MIN_ROWS_FOR_GROUPING = 50;
 // "materially smaller than the row count" clause.
 const MAX_LEVEL_FRACTION = 0.5;
 
+// A grouping key's levels must hold more than one row on average. A level of one
+// row cannot test constancy — "constant within the level" is vacuously true, so
+// every measurement is held out and real data columns are dropped. The S325
+// level-size census pinned the threshold against the whole corpus: every false
+// holdout has a median level size of 1, C20's legitimate Taxa key sits at 3, and
+// no key sits at 2. Below this, the candidate is not a grouping key.
+export const MIN_LEVEL_SIZE = 2;
+
 export function inferRoles(data,hdrs,condPerCol) {
   return applyGroupAttributes(data, inferBaseRoles(data,hdrs,condPerCol));
 }
@@ -124,6 +132,21 @@ export function detectGroupAttributes(data, roles) {
     if (roles[g] === "ignore") continue;
     const nLevels = distinct[g];
     if (nLevels < 2 || nLevels > maxLevels) continue;
+
+    // Minimum level size (S325). Count the rows in each level exactly as the
+    // constancy walk below sees them — grouped by the non-null key value, with
+    // null-key rows skipped (they are not a level). A key whose median level
+    // holds fewer than MIN_LEVEL_SIZE rows is not a grouping key.
+    const levelSizes = new Map();
+    for (let r = 0; r < nRows; r++) {
+      const gv = key[g][r];
+      if (gv == null) continue;
+      levelSizes.set(gv, (levelSizes.get(gv) || 0) + 1);
+    }
+    const sizes = [...levelSizes.values()].sort((a, b) => a - b);
+    const mid = sizes.length >> 1;
+    const medLevel = sizes.length % 2 ? sizes[mid] : (sizes[mid - 1] + sizes[mid]) / 2;
+    if (medLevel < MIN_LEVEL_SIZE) continue;
 
     // Test each attribute candidate for constancy within every level of g. A
     // candidate stays consistent until some level shows it two different
