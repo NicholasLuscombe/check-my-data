@@ -82,6 +82,7 @@ function ForensicsTestCard({ result, mk, expanded, onToggle, importConfig, rowMa
 export function ForensicsCategoryBlock({
   mk, label, isFlagged, hasHigh, description, testResults,
   pendingTests = [], unassessedTests = [],
+  notApplicableTests = [],
   coverage,
   isExpanded, onToggle,
   expandedTestEvidence, onToggleTestEvidence,
@@ -98,6 +99,13 @@ export function ForensicsCategoryBlock({
   const flaggedTests = sorted.filter(r => r.flag === "HIGH" || r.flag === "MODERATE");
   const clearTests = sorted.filter(r => r.flag === "LOW");
   const [clearOpen, setClearOpen] = useState(false);
+  // Not-applicable tests collapse the same way (S324). Always start collapsed,
+  // regardless of count — one row for two tests or eleven.
+  const [naOpen, setNaOpen] = useState(false);
+  const clearNames = clearTests.map(r => DISPLAY_NAMES[r.name] || r.name).join(", ");
+  const naNames = notApplicableTests.map(r => DISPLAY_NAMES[r.name] || r.name).join(", ");
+  const naGroups = groupNotApplicableByReason(notApplicableTests);
+  const clearIcon = <span style={{ color: SEV_VERDICT[0].color, fontSize: FS.base, flexShrink: 0 }}>✓</span>;
 
   return (
     <div style={{ paddingBottom: isExpanded ? "4px" : "0" }}>
@@ -137,11 +145,13 @@ export function ForensicsCategoryBlock({
             })}
 
             {clearTests.length > 0 && !clearOpen && (
-              <ClearSummaryRow tests={clearTests} onExpand={() => setClearOpen(true)} />
+              <CollapsedSummaryRow count={clearTests.length} label="cleared" names={clearNames}
+                leadIcon={clearIcon} onToggle={() => setClearOpen(true)} />
             )}
             {clearTests.length > 0 && clearOpen && (
               <>
-                <ClearSummaryRow tests={clearTests} onExpand={() => setClearOpen(false)} expanded />
+                <CollapsedSummaryRow count={clearTests.length} label="cleared" names={clearNames}
+                  leadIcon={clearIcon} onToggle={() => setClearOpen(false)} expanded />
                 {clearTests.map(r => {
                   // S196: cleared/LOW cards mount COLLAPSED by default
                   // (defaultOpen=false) but are now expandable via the same
@@ -180,11 +190,57 @@ export function ForensicsCategoryBlock({
             {unassessedTests.map(r => (
               <PendingRow key={r.name} result={r} />
             ))}
+            {/* Not-applicable tests (S324). Settled N/A with a reason string —
+                the tests that left the header fraction because the data does
+                not support them. Collapsed by default into one summary row (the
+                same shape the cleared group uses), so the section reads as a
+                single line a scanner passes over. Expanded, it shows the reason
+                stanzas grouped by cause — reason once, then the test names, no
+                card chrome. The collapsed row's count replaces the old heading. */}
+            {notApplicableTests.length > 0 && !naOpen && (
+              <CollapsedSummaryRow count={notApplicableTests.length} label="not applicable"
+                names={naNames} onToggle={() => setNaOpen(true)} />
+            )}
+            {notApplicableTests.length > 0 && naOpen && (
+              <>
+                <CollapsedSummaryRow count={notApplicableTests.length} label="not applicable"
+                  names={naNames} onToggle={() => setNaOpen(false)} expanded />
+                <div style={{ display: "flex", flexDirection: "column", gap: "10px", paddingLeft: RAIL_GUTTER }}>
+                  {naGroups.map((g, i) => (
+                    <div key={i}>
+                      <div style={{ fontSize: FS.sm, fontWeight: FW.NORM, color: C.TEXT_3, lineHeight: "1.5" }}>
+                        {g.reason}
+                      </div>
+                      <div style={{ fontSize: FS.sm, fontWeight: FW.MED, color: C.TEXT_2, marginTop: "2px" }}>
+                        {g.names.join(" · ")}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}
     </div>
   );
+}
+
+// Group not-applicable tests by their exact reason string (S324). One
+// dataset-level cause (columns are non-replicates, row order arbitrary, too few
+// columns) drives many tests at once; stating it once, then the test names,
+// reads as accounting rather than a wall of identical rows. Order follows first
+// appearance so the layout is stable. Match is exact — near-identical reasons
+// stay separate, which keeps a genuinely different cause from being merged.
+function groupNotApplicableByReason(tests) {
+  const order = [];
+  const byReason = new Map();
+  for (const r of tests) {
+    const reason = r.description || "";
+    if (!byReason.has(reason)) { byReason.set(reason, []); order.push(reason); }
+    byReason.get(reason).push(DISPLAY_NAMES[r.name] || r.name);
+  }
+  return order.map(reason => ({ reason, names: byReason.get(reason) }));
 }
 
 // A held-pending test row, visually distinct (amber attention rule) from a
@@ -226,11 +282,16 @@ function PendingRow({ result }) {
   );
 }
 
-function ClearSummaryRow({ tests, onExpand, expanded = false }) {
-  const names = tests.map(r => DISPLAY_NAMES[r.name] || r.name).join(", ");
+// Collapsed one-line summary for a group of test rows (the S210 cleared-row
+// shape, generalised in S324 so the not-applicable group reuses it). Disclosure
+// triangle in the gutter, an optional lead icon, the count with its predicate
+// word, an em dash, then the truncated name list. The cleared group passes the
+// green ✓ and "cleared"; the not-applicable group passes no icon and "not
+// applicable". The name list truncates via CSS ellipsis — one rule for both.
+function CollapsedSummaryRow({ count, label, names, leadIcon = null, onToggle, expanded = false }) {
   return (
     <div
-      onClick={onExpand}
+      onClick={onToggle}
       style={{
         padding: `8px ${RAIL_RIGHT} 8px 12px`,
         background: C.BG_L,
@@ -244,17 +305,17 @@ function ClearSummaryRow({ tests, onExpand, expanded = false }) {
       }}
     >
       {/* S210: gutter holds only the disclosure triangle (matching the cluster
-          header + cards); the status ✓ moves onto the rail as the lead of the
-          text group. Reading order stays [▸ ✓ "N cleared"]. Triangle is the
-          icon-glyph carve-out. */}
+          header + cards); any status icon moves onto the rail as the lead of the
+          text group. Triangle is the icon-glyph carve-out. */}
       <span style={{ width: RAIL_GUTTER, flexShrink: 0, display: "inline-flex", alignItems: "center" }}>
         <span style={{ color: C.TEXT_3, flexShrink: 0 }}>{expanded ? "▾" : "▸"}</span>
       </span>
-      {/* Text group on the rail, led by the status ✓. S156 (A1.D0c-bis D4 lock):
-          ALL CAPS "CLEAR" retired; sentence-case past-tense "cleared". */}
+      {/* Text group on the rail, optionally led by a status icon. S156
+          (A1.D0c-bis D4 lock): ALL CAPS "CLEAR" retired; sentence-case
+          predicate words ("cleared" / "not applicable"). */}
       <div style={{ display: "flex", alignItems: "center", gap: "6px", flex: 1, minWidth: 0 }}>
-        <span style={{ color: SEV_VERDICT[0].color, fontSize: FS.base, flexShrink: 0 }}>✓</span>
-        <span style={{ fontWeight: FW.SEMI, color: C.TEXT, flexShrink: 0 }}>{tests.length} test{tests.length !== 1 ? "s" : ""} cleared</span>
+        {leadIcon}
+        <span style={{ fontWeight: FW.SEMI, color: C.TEXT, flexShrink: 0 }}>{count} test{count !== 1 ? "s" : ""} {label}</span>
         <span style={{ color: C.TEXT_3, flexShrink: 0 }}>—</span>
         <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", minWidth: 0 }}>
           {names}

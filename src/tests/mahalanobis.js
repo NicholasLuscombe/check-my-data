@@ -1,6 +1,11 @@
 import { normalCDF, chiSquaredP, invertMatrix, chiSquaredQuantile, bhFDR } from "../stats/primitives.js";
 import { ALPHA } from "../constants/thresholds.js";
 
+// Minimum columns for an invertible covariance matrix. Exported so the engine
+// can check the whole-dataset column count before any per-condition row split
+// (S324) rather than discovering the shortage once per group.
+export const MIN_COLS = 3;
+
 /* 16. Mahalanobis Row Outlier
    Detects rows whose multivariate distance from the centroid is unexpectedly large.
    D² = (x - μ)ᵀ Σ⁻¹ (x - μ), compared against χ²(nC).
@@ -20,8 +25,8 @@ export function testMahalanobisOutlier(matrix, assay='general') {
   const NAME = "Mahalanobis Row Outlier";
   const CAT = "replicate";
 
-  // Minimum requirements: need ≥3 columns for invertible covariance, and N ≥ 3×nC for stability
-  if (nC < 3) return { name: NAME, category: CAT, flag: "N/A",
+  // Minimum requirements: need ≥MIN_COLS columns for invertible covariance, and N ≥ 3×nC for stability
+  if (nC < MIN_COLS) return { name: NAME, category: CAT, flag: "N/A",
     description: "Requires ≥3 replicate columns for invertible covariance matrix." };
   if (nR < 3 * nC) return { name: NAME, category: CAT, flag: "N/A",
     description: `Insufficient rows (${nR}) for ${nC} columns — need ≥${3*nC} for stable covariance estimate.` };

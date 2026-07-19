@@ -73,15 +73,17 @@ export function ClusterRow({
   // cluster reports coverage: green "Clear" only when every test that could run
   // completed; a neutral word when work is genuinely outstanding. Not-applicable
   // no longer holds a cluster below "Clear" — only errored, unassessed, or
-  // pending do (the last two a user action resolves). "Not assessed" is the case
-  // where nothing was applicable at all.
+  // pending do (the last two a user action resolves). "Not applicable" is the
+  // case where every test in the cluster is not applicable, so nothing could
+  // run. That is distinct from "Not assessed" (user declined to confirm
+  // grouping), which a user action reverses — this state nothing reverses.
   let wordText, wordColor;
   if (hasHigh) {
     wordText = "High"; wordColor = SEV_VERDICT[3].color;
   } else if (isFlagged) {
     wordText = "Moderate"; wordColor = SEV_VERDICT[2].color;
   } else if (couldRun === 0) {
-    wordText = "Not assessed"; wordColor = C.TEXT_3;
+    wordText = "Not applicable"; wordColor = C.TEXT_3;
   } else if (cov.errored > 0) {
     wordText = "Incomplete"; wordColor = C.TEXT_3;
   } else if ((cov.unassessed + cov.pending) > 0) {
@@ -136,8 +138,8 @@ export function ClusterRow({
           {/* Header word — colour-on-chrome / words-stay-plain rule. Flagged
               clusters carry High / Moderate in SEV colour; a clean cluster
               carries a coverage-gated word (Clear / Clear so far / Incomplete /
-              Not assessed), green only when every test that could run completed.
-              The short coverage clauses trail the word; "Not assessed" stands
+              Not applicable), green only when every test that could run completed.
+              The short coverage clauses trail the word; "Not applicable" stands
               alone with no trailing separator. */}
           <span style={{ fontSize: FS.base, fontWeight: FW.NORM, marginLeft: "auto", flexShrink: 0 }}>
             <span style={{ color: wordColor }}>{wordText}</span>

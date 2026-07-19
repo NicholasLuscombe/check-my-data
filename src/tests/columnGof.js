@@ -42,6 +42,12 @@ const EXKURT_FLOOR = -1.2;      // γ₂ < this → pre-skip at any N (uniform-f
 const EXKURT_GATE_HIGHN = -0.8; // γ₂ < this → pre-skip only when N ≥ 100 (where γ₂ is precise enough)
 const GAMMA_N_ADAPTIVE_THRESHOLD = 100;
 
+// Per-column applicability minimum: a column needs at least this many
+// observations before a distribution fit is attempted (§3.7 step 1). Exported
+// so the engine can gate per-condition dispatch on it (S324). A condition group
+// with fewer rows than this cannot clear the bar in any column.
+export const MIN_OBS = 30;
+
 export function testColumnGof(matrix, rng, dataType) {
   if (dataType === "ordinal") {
     return { name: NAME, category: CAT, flag: "N/A",
@@ -62,8 +68,8 @@ export function testColumnGof(matrix, rng, dataType) {
       if (v != null && isFinite(v)) vals.push(v);
     }
 
-    if (vals.length < 30) {
-      columnResults.push({ col: ci, skip: true, reason: "< 30 observations" });
+    if (vals.length < MIN_OBS) {
+      columnResults.push({ col: ci, skip: true, reason: `< ${MIN_OBS} observations` });
       continue;
     }
     const distinct = new Set(vals).size;

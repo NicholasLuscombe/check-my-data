@@ -76,7 +76,7 @@ import { testBenford } from '../tests/benford.js';
 import { testDecimalPrecision } from '../tests/decimalPrecision.js';
 import { testMeanVariance } from '../tests/meanVariance.js';
 import { testRegionalNoise } from '../tests/regionalNoise.js';
-import { testMahalanobisOutlier } from '../tests/mahalanobis.js';
+import { testMahalanobisOutlier, MIN_COLS as MAHAL_MIN_COLS } from '../tests/mahalanobis.js';
 import { testBlockedMahalanobis } from '../tests/blockedMahalanobis.js';
 import { testBenford2 } from '../tests/benford2.js';
 import { testValueFrequencySpike } from '../tests/valueFrequencySpike.js';
@@ -87,8 +87,8 @@ import { testWithinRowVariance } from '../tests/withinRowVariance.js';
 import { testMissingDataPattern } from '../tests/missingDataPattern.js';
 import { testCarlisleBalance } from '../tests/carlisleBalance.js';
 import { testEntropy } from '../tests/entropyTest.js';
-import { testColumnGof } from '../tests/columnGof.js';
-import { testModality } from '../tests/modality.js';
+import { testColumnGof, MIN_OBS as GOF_MIN_OBS } from '../tests/columnGof.js';
+import { testModality, MIN_N as MODALITY_MIN_N } from '../tests/modality.js';
 import { testCrossConditionConsistency } from '../tests/crossConditionConsistency.js';
 
 // ── tick — yield to the UI between tests ───────────────────────────
@@ -303,9 +303,19 @@ export async function runFullAnalysis(matrix, rawMatrix, condCtx, assay, onProgr
     return { name: testName, category, flag: "N/A", description: reason };
   }
 
+  // Upfront per-condition applicability gate (S324). rowGroups() admits a group
+  // at 3 rows, but the distribution-shape tests need more observations per
+  // column than that. When no group clears a test's declared minimum, the
+  // dispatch site says so once here, rather than fanning the test over every
+  // group and having each return N/A — which the coverage classifier reads as
+  // an errored state, not a clean not-applicable one.
+  function noGroupMeetsMin(rowGroups, minRows) {
+    return !Array.isArray(rowGroups) || !rowGroups.some(g => (g.matrix?.length || 0) >= minRows);
+  }
+
   // Conditions-mode skip helper: replicate-comparison tests are N/A
   // when DATA columns represent separate conditions, not technical replicates.
-  const COND_SKIP_REASON = "Not applicable when columns are non-replicates. This test compares replicate measurements of the same quantity — columns representing different treatments, instruments, or time points are expected to differ.";
+  const COND_SKIP_REASON = "Not applicable when columns are non-replicates. These tests compare replicate measurements of the same quantity — columns representing different treatments, instruments, or time points are expected to differ.";
   function condSkip(testName, category) {
     if (!isConditionsMode) return null;
     return { name: testName, category, flag: "N/A", description: COND_SKIP_REASON };
@@ -432,6 +442,14 @@ export async function runFullAnalysis(matrix, rawMatrix, condCtx, assay, onProgr
       if (assay === "genomics") return { name: "Mahalanobis Row Outlier", category: "distributional",
         flag: "N/A", description: "Not applicable to genomics data. Count distributions violate the multivariate normality assumption required for χ²-based D² thresholds. Biological expression heterogeneity produces widespread outliers that are not anomalous." };
       if (groupingPending) return pendingResult("Mahalanobis Row Outlier", "replicate");
+      // S324: the covariance distance needs at least MAHAL_MIN_COLS replicate
+      // columns to be defined. Column count is a whole-dataset fact, so check it
+      // here before any per-condition row split, rather than finding the
+      // shortage once per group.
+      if ((matrix[0]?.length || 0) < MAHAL_MIN_COLS) {
+        return { name: "Mahalanobis Row Outlier", category: "replicate", flag: "N/A",
+          description: `Not applicable with fewer than ${MAHAL_MIN_COLS} replicate columns — the row-distance measure this test uses needs at least that many.` };
+      }
       // S127 Path 1 dispatch: METHODOLOGY.md §2.6 step 1 specifies
       // per-condition (μ, Σ). When the dataset is row-grouped with ≥2
       // conditions each ≥3 rows (mahalGroups non-null), stratification
@@ -518,14 +536,26 @@ export async function runFullAnalysis(matrix, rawMatrix, condCtx, assay, onProgr
       const dt = dtSkip("Column Goodness-of-Fit","shapes"); if (dt) return dt;
       if (groupingPending) return pendingResult("Column Goodness-of-Fit", "shapes");
       const rg = condCtx?.rowGroups();
-      if (rg) return await aggregatePerGroup(m => testColumnGof(m, rng, dataType), rg);
+      if (rg) {
+        if (noGroupMeetsMin(rg, GOF_MIN_OBS)) {
+          return { name: "Column Goodness-of-Fit", category: "shapes", flag: "N/A",
+            description: `Not applicable — no condition group has the ${GOF_MIN_OBS} values this goodness-of-fit test needs to fit a distribution.` };
+        }
+        return await aggregatePerGroup(m => testColumnGof(m, rng, dataType), rg);
+      }
       return testColumnGof(matrix, rng, dataType);
     }],
     ["Modality Test",                async () => {
       const dt = dtSkip("Modality Test","shapes"); if (dt) return dt;
       if (groupingPending) return pendingResult("Modality Test", "shapes");
       const rg = condCtx?.rowGroups();
-      if (rg) return await aggregatePerGroup(m => testModality(m, rng, dataType), rg);
+      if (rg) {
+        if (noGroupMeetsMin(rg, MODALITY_MIN_N)) {
+          return { name: "Modality Test", category: "shapes", flag: "N/A",
+            description: `Not applicable — no condition group has the ${MODALITY_MIN_N} values this modality test needs.` };
+        }
+        return await aggregatePerGroup(m => testModality(m, rng, dataType), rg);
+      }
       return testModality(matrix, rng, dataType);
     }],
     // S118 Track H: §2.1 NOT rsSkip-gated — Tier 2 effect-size floor
@@ -571,7 +601,20 @@ export async function runFullAnalysis(matrix, rawMatrix, condCtx, assay, onProgr
       const rsLO = rsSkip("LOESS Residual Analysis","distributional"); if (rsLO) return rsLO;
       return tagVST(await runPairVST((m) => testLoessResidual(m, rng)));
     }],
-    ["Row-Mean Runs",                async () => condSkip("Row-Mean Runs","distributional") || dtSkip("Row-Mean Runs","distributional") || rsSkip("Row-Mean Runs","distributional") || tagVST(await runPairVST((m, childCtx) => testRowMeanRuns(m, childCtx, rng), condCtx))],
+    ["Row-Mean Runs",                async () => {
+      const csRM = condSkip("Row-Mean Runs","distributional"); if (csRM) return csRM;
+      const dtRM = dtSkip("Row-Mean Runs","distributional"); if (dtRM) return dtRM;
+      const rsRM = rsSkip("Row-Mean Runs","distributional"); if (rsRM) return rsRM;
+      // S324: Row-Mean Runs looks for shifts within a condition's rows, so it
+      // needs the rows labelled by condition. On column-grouped data there are
+      // no row labels; check here and return not-applicable rather than fanning
+      // the test over each column group, where every group returns N/A.
+      if (!condCtx?.rowConditions) {
+        return { name: "Row-Mean Runs", category: "replicate", flag: "N/A",
+          description: "Not applicable without row-level condition labels. This test looks for shifts within a condition's rows, so it needs the rows grouped by condition." };
+      }
+      return tagVST(await runPairVST((m, childCtx) => testRowMeanRuns(m, childCtx, rng), condCtx));
+    }],
     ["Selective Noise",              async () => condSkip("Selective Noise","structural") || dtSkip("Selective Noise","structural") || tagVST(await runPairVST((m, childCtx) => testSelectiveNoise(m, childCtx), condCtx))],
     ["Regional Noise Homogeneity",   async () => {
       // S118 Track H: genomics auto-routes to rowSemantics='arbitrary' at

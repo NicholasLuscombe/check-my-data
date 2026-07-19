@@ -59,7 +59,7 @@ export const DIP_GATE = 0.04;     // effect-size gate per §3.8 step 6
 const EXKURT_FLOOR = -1.2;
 const EXKURT_GATE_HIGHN = -0.8;
 const GAMMA_N_ADAPTIVE_THRESHOLD = 100;
-const MIN_N = 50;
+export const MIN_N = 50;
 const MIN_DISTINCT = 15;
 
 // p-value floor preserving the pre-S159b bootstrap calibration (B=999 → p ≥ 0.001).

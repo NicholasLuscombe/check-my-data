@@ -79,7 +79,7 @@ export const ROW_SEMANTICS_FULL_SKIP = new Set([
  */
 export const ROW_SEMANTICS_SKIP_REASON =
   "Not applicable when row order is arbitrary. " +
-  "This test depends on meaningful row sequence (plate position, " +
+  "These tests depend on meaningful row sequence (plate position, " +
   "instrument run order, dose gradient); under long-format pivots " +
   "or arbitrary-order data (gene lists, alphabetised protein IDs) " +
   "the per-row position carries no forensic signal.";
