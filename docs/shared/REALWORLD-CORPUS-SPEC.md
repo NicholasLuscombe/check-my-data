@@ -228,18 +228,19 @@ Largest data sheet per file; role inference as in the real pipeline.
 | File | Sheet | Rows | Groups | Median/grp | Min/grp | Condition columns |
 |---|---|--:|--:|--:|--:|---|
 | **C12** | Field survey-data | 2412 | **132** | 16.5 | **3** | Latitudes, Combine, Plot, Pair, Code, Name, Origin |
-| **C16** | Sheet1 | 60 | **60** | — | — | Treat, Block, ZLev1 — every row its own group; 60 singletons. **S319: move 1 announces this (banner fires under default roles) — no longer silently dropped once promoted.** |
+| **C16** | Sheet1 | 60 | **60** | — | — | Treat, Block, ZLev1 — every row its own group; 60 singletons. **Fires the move-2 grouping trigger on both arms** (≥3 condition columns; `rowGroups()` null). The move-1 banner it previously recorded was retired at S320. |
 | **C22** | Exp. WA | 176 | **44** | 4 | **4** | Experiment, Material, N Fertilizer, Time |
 | **C20** | Microcosm soil B | 204 | **37** | 3 | **3** | Soil_type, Taxa_combination |
 | **C08** | DATA | 350 | **35** | 10 | 10 | Duration, Setup, Stage |
 | **C09** | Sheet1 | 60 | **20** | 3 | **3** | Species, Genus, Family, Treatment |
 | C21 | precipitation exp | 162 | 9 | 18 | 18 | treatment |
-| C07 | Mastersheet | 72 | 6 | 12 | 12 | Warming, Season |
+| C07 | Mastersheet | 72 | 6 | 12 | 12 | Warming, Season. **39 data columns** — before `99f75de` role inference held out twenty and the file analysed on 21; the S325 ecology census entry was measured in that state and is stale. Verdict tier held at High across the correction; per-test detail moved 10 HIGH → 12 HIGH + 4 MOD. |
 | C13 | Soil CO2 | 178 | 2 | 89 | 85 | Ramet, Treatments |
 | C17 | Neural | 41 | 2 | 20.5 | 19 | Group |
 | CORPUS-01 | Sheet1 | 105 | 10 | 10.5 | 10 | Treatment, Genotype |
 | CORPUS-03 | Clonal molly | 373 | 3 | 124 | 121 | Trt |
-| C10, C15, C18, C19, C23, C25, CORPUS-02 | — | 0–3600 | 0 | — | — | no condition columns — not row-grouped |
+| C10, C18, C19, C23, C25, CORPUS-02 | — | 0–3600 | 0 | — | — | no condition columns — not row-grouped |
+| **C15** | Data | — | — | — | — | **Does not import.** `preprocessRaw` computes the sparse-row threshold from the sheet's used range, which runs to column XFD → threshold 1639 against ~26 real values per row. Every row is stripped. Whether it is row-grouped is **unknown and untestable** until the import-width trim lands. Measured S325. |
 
 *S322 correction.* This is the S317 census, "largest data sheet per file." The S322 firing-rate sweep re-ran the same `computeTrigger` through the real inference pipeline across all 22 deposits, reproduced every measured row here bit-identically, and corrected the catch-all on one file: **C14 fires** — its `Data` sheet (9,426 rows) tags `Species` + `DamageSev` → 236 groups, min size 1 → Arm 2. C14 is the 7th fire, wrongly bucketed above as "no condition columns"; treat it as blocked with the six. **C24** is row-grouped but clean (tags `Month` → 4 healthy groups). Full 7-of-22 result and the bimodal domain split (47% of row-groupable ecology files, 0% of assay/instrument/expression) in V1X §2.10.
 
@@ -247,7 +248,7 @@ Largest data sheet per file; role inference as in the real pipeline.
 
 **Affected tests.** Row-grouped dispatch: Entropy, Column Goodness-of-Fit, Modality, Mahalanobis Row Outlier (stratified), Cross-Condition Consistency. On these files every one of them runs on the exploded units.
 
-**C16 is the worst case and it fails silently.** Sixty rows; three condition columns whose Cartesian product is unique per row. Sixty singleton groups, all dropped by the min-3 guard, `rowGroups()` returns null, the tests take the ungrouped path or return N/A. **Nothing announces that the grouping produced nothing.** A reader sees a file that looks assessed. Same shape as C12's copied roots — a p of 1 that never counted anything. **Resolved S319:** move 1 (announce-empty banner) fires on exactly this case under default roles — confirmed built and firing on C16 (Code probe + Chat file read). The silent failure is fixed once the `row-grouping-empty-announce` worktree promotes; this paragraph is the diagnosis that motivated the fix, kept for the record.
+**C16 is the worst case and it fails silently.** Sixty rows; three condition columns whose Cartesian product is unique per row. Sixty singleton groups, all dropped by the min-3 guard, `rowGroups()` returns null, the tests take the ungrouped path or return N/A. **Nothing announces that the grouping produced nothing.** A reader sees a file that looks assessed. Same shape as C12's copied roots — a p of 1 that never counted anything. **Resolved:** the move-2 grouping trigger fires on exactly this case on both arms, and the four row-grouped tests return N/A pending confirmation. The move-1 announce-empty banner that first covered it was retired at S320, superseded by the trigger. This paragraph is the diagnosis that motivated the fix, kept for the record.
 
 **Four of the six are the ecology cluster** (C07, C09, C15, C16, C20, C22), held for three sessions to be run once §2.8 and §2.9 landed. **Had the cluster been run before this census, four of six would have produced row-grouped verdicts computed on units nobody designed for — and been read as findings.**
 
