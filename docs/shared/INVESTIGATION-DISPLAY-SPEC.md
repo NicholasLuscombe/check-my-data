@@ -1,7 +1,7 @@
 # Check My Data — Investigation Display UI Specification
 
-**Version:** 7.5 (Chat S323 — coverage vocabulary shipped and corrected on screen; S213 single severity scale + plot colour-semantics reference; S211 composition rollout)
-**Status:** QC mode ✅ (Code S21). Forensics mode ✅ (Code S25+S69+S71, S156+S157 chrome lock). Peer review mode ✅ (Code S70+S71). Coverage vocabulary § — shipped S323 (main `39294ca`), describes the live surface.
+**Version:** 7.6 (Chat S324 — not-applicable surface shipped; S323 coverage vocabulary; S213 single severity scale + plot colour-semantics reference; S211 composition rollout)
+**Status:** QC mode ✅ (Code S21). Forensics mode ✅ (Code S25+S69+S71, S156+S157 chrome lock). Peer review mode ✅ (Code S70+S71). Coverage vocabulary § — shipped S323. Not-applicable surface § — shipped S324 (main `fc8fe21`), verified on DS03/DS14/DS19; export paths not yet verified.
 
 This document is the authoritative reference for how Check My Data presents analysis results across three modes. It covers:
 1. **Category system** — what observation categories exist and which tests map to them
@@ -13,6 +13,7 @@ This document is the authoritative reference for how Check My Data presents anal
 7. **Guidance system** — how actionable advice scales across modes
 8. **Excel export** — standalone investigation document structure
 9. **Coverage vocabulary** — how the tool states what it examined and what it did not
+10. **The not-applicable surface** — where a test that did not run is shown
 
 ---
 
@@ -1771,6 +1772,131 @@ Chat's own review, and two of the three were caught by only one of three models:
 become a coverage report, and not-applicable tests were being counted against cluster coverage.
 Neither was visible in a prompt. Cross-validation catches what a careful reader would misread;
 only the live surface catches what a design gets wrong.
+
+---
+
+## The not-applicable surface — where a test that did not run is shown (S324)
+
+**Status: shipped at S324, main `fc8fe21`.** Verified on screen for DS03, DS14 and DS19. **Not yet
+verified on DS01, DS09, the Excel export, or the clipboard summary** — those four are open at the
+time of writing. Where this section and the build disagree, read the build and amend this.
+
+The coverage vocabulary section above governs what the tool may claim about what it examined. This
+section governs where a test that did not run is actually shown, and what it says there.
+
+### Why the surface exists
+
+S324 moved four applicability checks upfront, so eight results that previously errored now return
+not-applicable honestly. That was correct and it made those tests **invisible**. §4 said eight
+tests did not apply to this data; §3 gave the reader no way to find out which eight, or why. Four
+cause-specific reason strings had been written and none could be read.
+
+**A correct classification is not automatically a visible one.** Not-applicable tests leave the
+cluster header fraction by design — that is the cluster-level denominator rule and it is right.
+But leaving the fraction is not the same as leaving the report. Ask what a state's display path is
+before routing results into it.
+
+### Where it sits
+
+Inside an expanded cluster, **after** the completed test rows and after the cleared summary row.
+Not interleaved in test order — a reader scanning results should pass over it; a reader asking why
+a test is missing should find it where the test would have been.
+
+A cluster with no not-applicable tests shows nothing. The section never renders empty.
+
+### Collapsed by default
+
+The section renders as a single summary row that reuses the cleared row's component:
+
+```
+▸ 3 tests not applicable — Distinct numbers, Column Goodness-of-Fit, Number of peaks
+```
+
+`CollapsedSummaryRow` is shared by both the cleared group and the not-applicable group. The cleared
+group passes a green tick and the word "cleared"; the not-applicable group passes no icon and the
+words "not applicable". Count, em dash, truncated name list and disclosure triangle behave
+identically in both. There is no parallel implementation and no bespoke shape — §3 stays one
+pattern throughout.
+
+**It always starts collapsed, at any count.** The cleared row collapses at one test; this does too.
+A cluster with two not-applicable tests gets a collapsed line the same as one with eleven.
+
+This was the load-bearing decision. An expanded list works at three stanzas and fails at eleven:
+DS14's Cross-replicate cluster has eleven tests failing for one cause, each with its own wording,
+and expanded it read as a wall rather than as accounting. Collapsing it costs nothing, scales to
+any count, and needed no engine change.
+
+### Expanded: grouped by reason, no chrome
+
+Expanding shows the tests grouped by their **exact** reason string — the reason once, then the
+names of the tests it applies to:
+
+```
+Not applicable when columns are non-replicates. These tests compare replicate measurements
+of the same quantity — columns representing different treatments, instruments, or time points
+are expected to differ.
+Inter-Replicate Correlation · Unusual rows · Shifted blocks · Noise scaling · …
+```
+
+Where reasons differ, there is more than one group. DS03's Distribution shapes cluster produces
+two — a 30-value case and a 50-value case — each with its own name list.
+
+Matching is by exact string. **Do not cluster near-identical reasons.** Two tests that fail for
+genuinely different consequences of the same cause are two groups, and collapsing them would erase
+a real distinction.
+
+**No card chrome.** No white background, no border, no per-row container. Muted text only. These
+rows are a note beneath the results, not more results. Giving them result chrome makes a reader
+count them as findings.
+
+Reason strings that head a group of more than one test are written in the plural. Two such strings
+exist (`COND_SKIP_REASON`, `ROW_SEMANTICS_SKIP_REASON`); every other reason is unique to one test
+and stays singular.
+
+### The cluster header word
+
+A cluster where every test is not applicable reads **"Not applicable"**, word alone, no fraction.
+
+It previously read "Not assessed", which is wrong: that word is reserved for the state where the
+user declined to confirm grouping, and a user action reverses it. On DS14 three clusters read
+"Not assessed" when nothing had been declined — a reader taking it at face value concludes the tool
+was switched off rather than that the data was ordinal.
+
+The states cannot coexist, and the proof is worth keeping. `couldRun = total − notApplicable`, and
+by the coverage invariant `couldRun = ran + errored + unassessed + pending`. So `couldRun === 0`
+forces unassessed and pending to zero: a cluster that is entirely not-applicable has, by
+definition, no unassessed and no pending tests. A genuinely unassessed cluster has `couldRun > 0`
+and falls through to its own branch. No ordering ambiguity.
+
+### Known rough edges
+
+- **Header and row say the same thing.** On an all-not-applicable cluster the header reads "Not
+  applicable" and the collapsed row reads "3 tests not applicable". Redundant on thirteen fixtures.
+  Lean: auto-expand the collapsed row when it is a cluster's only content, since there is nothing
+  else to show and the reasons are what the reader wants.
+- **The ordinal stem repeats.** Eleven DS14 strings open "Not applicable to ordinal data" and then
+  diverge into genuinely different consequences. Collapse hides it; it does not fix it. The proper
+  shape states the shared cause once and lists test plus specific tail, which needs the strings to
+  separate stem from tail — an engine change to eleven strings, not display work.
+- **Some reasons were never written to be read.** The surface now exposes pre-existing engine
+  strings drafted when nobody expected a user to see them. "Need ≥60 complete rows per condition
+  (have 50 total rows across conditions)" is more terse and more technical than the four written
+  at S324, though it carries a specific number, which is more useful than a general statement. A
+  sweep is due.
+- **"Missing rate 0.0% is below 1% threshold" reads oddly here.** That describes a clean dataset
+  with nothing to analyse. Classifying it not-applicable is defensible, but under a heading about
+  what the tool could not do it reads as a limitation rather than a pass.
+
+### Application
+
+When adding or auditing any surface that classifies a test as not run:
+
+- **Can the reader find out which tests, and why?** A count without a path to the reasons is an
+  assertion the tool cannot support.
+- **Does it use the existing collapsed row?** A second summary shape in §3 costs more than it buys.
+- **Does it carry result chrome?** If it looks like a finding, it will be counted as one.
+- **Is the header word the right one of the five states?** "Not assessed" means the user declined.
+  Nothing else.
 
 ---
 ## Standalone Compatibility
