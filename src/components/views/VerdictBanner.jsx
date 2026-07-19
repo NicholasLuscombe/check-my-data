@@ -70,22 +70,21 @@ export function VerdictBanner({ severity, results, importConfig, nRows, nCols, m
   const groups = buildMechanismGroups(results);
   const nApplicable = results.filter(r => r.flag !== "N/A").length;
 
-  // Severity-0 (clean) headline states coverage instead of a bare pass. "All
-  // checks passed" and the "Proceed with dataset" sub retire at this tier — the
-  // tool reports what completed, not a clearance it has no standing to give.
-  // Full and QC share one string; review swaps the tail; the errored count
-  // appends on full/QC; N = 0 means nothing ran and the report says nothing.
+  // Severity-0 verdict: a three-word finding statement in the headline slot,
+  // with coverage carried by a neutral sub-line beneath (the slot the retired
+  // "Proceed with dataset" used to occupy). A headline is scanned, not read, so
+  // the count no longer leads. N = 0 is the exception — nothing ran, so there is
+  // no finding: the headline says so and there is no sub-line.
   const cov = summarizeCoverage(results);
-  let cleanHeadline;
+  let cleanHeadline, cleanSubline = null;
   if (cov.ran === 0) {
     cleanHeadline = "No tests could run on this data. This report says nothing about it.";
-  } else if (mode === "review") {
-    cleanHeadline = `${cov.ran} of 29 tests completed — no unusual patterns.`;
   } else {
-    const errTail = cov.errored > 0
-      ? (cov.errored === 1 ? " 1 could not complete." : ` ${cov.errored} could not complete.`)
+    cleanHeadline = mode === "review" ? "No unusual patterns found" : "No signals found";
+    const errClause = cov.errored > 0
+      ? (cov.errored === 1 ? " · 1 could not complete" : ` · ${cov.errored} could not complete`)
       : "";
-    cleanHeadline = `${cov.ran} of 29 tests completed — no signals above threshold.${errTail}`;
+    cleanSubline = `${cov.ran} of 29 tests completed${errClause}`;
   }
   // S156 (A1.D0c-bis D2 lock): split K = HIGH + MOD count into per-tier
   // counts. The opener count clause renders three branches: HIGH only,
@@ -108,16 +107,14 @@ export function VerdictBanner({ severity, results, importConfig, nRows, nCols, m
     })
     .map(mk => ({ mk, label: MECHANISMS[mk].label }));
 
-  // The card's severity-0 chrome gates on coverage, the same rule the cluster
-  // word follows. Green only when every test completed; neutral when anything is
-  // outstanding or errored, or when nothing completed. Neutral covers the whole
-  // family — border, header tint, headline colour, and the filled severity dot —
-  // so colour never asserts a clean the words withhold. Severity above 0 keeps
-  // its tier colour untouched.
-  const cleanNeutral = severity === 0 && cov.ran !== cov.total;
-  const cardBorder = cleanNeutral ? C.BORDER : v.color;
-  const cardBg = cleanNeutral ? C.BG_L : v.bg;
-  const headlineColor = cleanNeutral ? C.TEXT : v.color;
+  // The card's severity-0 chrome is green: "no signals found in what ran" is a
+  // real determination, and coverage is carried in words by the sub-line, not by
+  // colour. The one exception is N = 0 — nothing ran, so there is no finding and
+  // no green. Severity above 0 keeps its tier colour untouched.
+  const zeroCoverage = severity === 0 && cov.ran === 0;
+  const cardBorder = zeroCoverage ? C.BORDER : v.color;
+  const cardBg = zeroCoverage ? C.BG_L : v.bg;
+  const headlineColor = zeroCoverage ? C.TEXT : v.color;
 
   return (
     <div style={{border:`2px solid ${cardBorder}`,borderRadius:CR.XL,overflow:"hidden"}}>
@@ -139,9 +136,9 @@ export function VerdictBanner({ severity, results, importConfig, nRows, nCols, m
           <div style={{display:"flex",alignItems:"center",gap:"4px",flexShrink:0}}>
             {[0,1,2,3].map(s=>{
               const active = severity === s;
-              // The clean tier's dot goes neutral with the rest of the card when
-              // coverage is partial, so the filled dot never reads green alone.
-              const c = (cleanNeutral && s === 0) ? C.TEXT_3 : SEV_VERDICT[s].color;
+              // The clean tier's dot goes neutral with the rest of the card only
+              // when nothing ran (N = 0); otherwise it is green with the card.
+              const c = (zeroCoverage && s === 0) ? C.TEXT_3 : SEV_VERDICT[s].color;
               return <span key={s} style={{
                 display:"inline-block",width:10,height:10,borderRadius:"50%",
                 background:active?c:"transparent",
@@ -151,6 +148,16 @@ export function VerdictBanner({ severity, results, importConfig, nRows, nCols, m
             })}
           </div>
         </div>
+
+        {/* Severity-0 coverage sub-line — neutral, in the slot the retired
+            "Proceed with dataset" occupied. States what completed (and the
+            errored count where any) in words, so the green headline above stays
+            a verdict, not an accounting line. Absent at N = 0 (nothing ran). */}
+        {severity === 0 && cleanSubline && (
+          <div style={{fontSize:FS.base,color:C.TEXT_2,marginTop:"8px",lineHeight:"1.5"}}>
+            {cleanSubline}
+          </div>
+        )}
 
         {/* Action one-liner — mode-agnostic ladder from VERDICT_TEXT.sub
             (e.g. "Investigate dataset before proceeding") with a count
