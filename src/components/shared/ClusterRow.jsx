@@ -89,16 +89,17 @@ export function ClusterRow({
   } else {
     wordText = "Clear"; wordColor = SEV_VERDICT[0].color;
   }
-  // Coverage clauses: the fraction runs against couldRun (not the full battery),
-  // then the outstanding buckets that explain any gap in it, then not-applicable
-  // last — outside the fraction, since those tests were never expected to run.
-  // The fraction is dropped when nothing could run (all not-applicable).
+  // Coverage clauses, kept short so the cluster subtitle stays readable. The
+  // fraction runs against couldRun (not the full battery) and carries no
+  // "completed" label — the word plus the fraction already says it. Then only the
+  // outstanding buckets that explain a gap in the fraction. Not-applicable is not
+  // shown at cluster level (the fraction already excludes it; §5 keeps the full
+  // count). "could not complete" matches §4 and §5 — one phrase for one state.
   const clauses = [];
-  if (couldRun > 0)          clauses.push(`${cov.ran} of ${couldRun} completed`);
-  if (cov.errored > 0)       clauses.push(`${cov.errored} errored`);
-  if (cov.unassessed > 0)    clauses.push(`${cov.unassessed} unassessed`);
-  if (cov.pending > 0)       clauses.push(`${cov.pending} pending`);
-  if (cov.notApplicable > 0) clauses.push(`${cov.notApplicable} not applicable`);
+  if (couldRun > 0)       clauses.push(`${cov.ran} of ${couldRun}`);
+  if (cov.errored > 0)    clauses.push(`${cov.errored} could not complete`);
+  if (cov.unassessed > 0) clauses.push(`${cov.unassessed} unassessed`);
+  if (cov.pending > 0)    clauses.push(`${cov.pending} pending`);
   const coverageText = clauses.join(" · ");
   return (
     <div style={{ padding: `10px ${RAIL_RIGHT} 10px 10px`, borderLeft: `3px solid ${borderColor}` }}>
@@ -135,11 +136,12 @@ export function ClusterRow({
           {/* Header word — colour-on-chrome / words-stay-plain rule. Flagged
               clusters carry High / Moderate in SEV colour; a clean cluster
               carries a coverage-gated word (Clear / Clear so far / Incomplete /
-              Not assessed), green only when every test completed. The coverage
-              clauses trail the word and always reconcile to the full battery. */}
+              Not assessed), green only when every test that could run completed.
+              The short coverage clauses trail the word; "Not assessed" stands
+              alone with no trailing separator. */}
           <span style={{ fontSize: FS.base, fontWeight: FW.NORM, marginLeft: "auto", flexShrink: 0 }}>
             <span style={{ color: wordColor }}>{wordText}</span>
-            <span style={{ color: C.TEXT_3 }}>{` · ${coverageText}`}</span>
+            {coverageText && <span style={{ color: C.TEXT_3 }}>{` · ${coverageText}`}</span>}
           </span>
         </div>
       </div>
