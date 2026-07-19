@@ -9,6 +9,7 @@ import { ROW_SEMANTICS_FULL_SKIP, ROW_SEMANTICS_SKIP_REASON } from '../import/ro
 import { aggregatePerGroup, buildGroups } from './aggregation.js';
 import { createConditionContext } from './conditionContext.js';
 import { computeTrigger } from './groupingTrigger.js';
+import { noGroupMeetsMin } from './applicability.js';
 
 // ── validateMatrix ────────────────────────────────────────────────
 // Input validation for the numeric matrix before running tests.
@@ -301,16 +302,6 @@ export async function runFullAnalysis(matrix, rawMatrix, condCtx, assay, onProgr
     const reason = skipMap[testName];
     if (!reason) return null;
     return { name: testName, category, flag: "N/A", description: reason };
-  }
-
-  // Upfront per-condition applicability gate (S324). rowGroups() admits a group
-  // at 3 rows, but the distribution-shape tests need more observations per
-  // column than that. When no group clears a test's declared minimum, the
-  // dispatch site says so once here, rather than fanning the test over every
-  // group and having each return N/A — which the coverage classifier reads as
-  // an errored state, not a clean not-applicable one.
-  function noGroupMeetsMin(rowGroups, minRows) {
-    return !Array.isArray(rowGroups) || !rowGroups.some(g => (g.matrix?.length || 0) >= minRows);
   }
 
   // Conditions-mode skip helper: replicate-comparison tests are N/A
