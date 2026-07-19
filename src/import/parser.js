@@ -22,11 +22,28 @@ export function detectHeaderRows(raw) {
   const nf0=row0.filter(v=>v!=null&&v!==""&&!isNaN(Number(v))).length/Math.max(row0.filter(v=>v!=null&&v!=="").length,1);
   return nf0<0.5?1:1;
 }
+// A cell counts as filled unless it is absent, empty, or whitespace only. The
+// row strip, the content-width scan, and the column drop all read this one
+// predicate so they cannot desynchronise under a later edit.
+export const isFilledCell=v=>v!=null&&String(v).trim()!=="";
+
+// Width for the sparsity threshold: one past the last column holding a filled
+// cell, NOT the used-range width. A spreadsheet's used range can run far beyond
+// its content (C15 reaches column XFD), which inflates minCells until every real
+// row reads as sparse and the file strips to nothing. Scans right to left per row
+// and stops at the first filled cell, so an honest sheet costs one read per row.
+export function contentWidth(rows) {
+  let last=-1;
+  for(const row of rows){
+    for(let c=row.length-1;c>last;c--){ if(isFilledCell(row[c])){ last=c; break; } }
+  }
+  return last+1;
+}
 export function preprocessRaw(raw) {
   if(!raw||!raw.length) return{rows:raw,removedCols:[],skippedRows:0,trimmedRows:0};
-  const maxC=raw.reduce((m,r)=>Math.max(m,r.length),0);
+  const maxC=contentWidth(raw);
   const minCells=Math.max(3,Math.ceil(maxC*0.1));
-  const isSparse=row=>row.filter(v=>v!=null&&String(v).trim()!=="").length<minCells;
+  const isSparse=row=>row.filter(isFilledCell).length<minCells;
   let s=0; while(s<raw.length&&isSparse(raw[s]))s++;
   let e=raw.length-1; while(e>s&&isSparse(raw[e]))e--;
   let rows=raw.slice(s,e+1);
@@ -38,7 +55,7 @@ export function preprocessRaw(raw) {
   // separator columns common in messy spreadsheet exports.
   const sparseThresh=Math.max(2,Math.floor(rows.length*0.05));
   const emptyC=new Set();
-  for(let c=0;c<nC;c++){let filled=0;for(let r=0;r<rows.length;r++){const v=rows[r]?.[c];if(v!=null&&String(v).trim()!=="")filled++;}if(filled<=sparseThresh)emptyC.add(c);}
+  for(let c=0;c<nC;c++){let filled=0;for(let r=0;r<rows.length;r++){if(isFilledCell(rows[r]?.[c]))filled++;}if(filled<=sparseThresh)emptyC.add(c);}
   if(emptyC.size>0&&emptyC.size<nC) rows=rows.map(row=>row.filter((_,ci)=>!emptyC.has(ci)));
   return{rows,removedCols:[...emptyC],skippedRows:s,trimmedRows};
 }
