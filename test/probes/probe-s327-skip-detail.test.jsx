@@ -22,7 +22,7 @@ import { describe, it, expect } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 
 import { ForensicsCategoryBlock } from "../../src/components/forensics/ForensicsCategoryBlock.jsx";
-import { buildHandoffModel, formatSkipDetail } from "../../src/analysis/handoffModel.js";
+import { buildHandoffModel, formatSkipDetail, isGroupingRefusal } from "../../src/analysis/handoffModel.js";
 import { renderPromptBody } from "../../src/analysis/promptBodyRenderer.js";
 
 // C14's real numbers: 9,398 rows against the 5,000 ceiling.
@@ -200,5 +200,73 @@ describe("S328 — skipped and not applicable are separate headers", () => {
     console.log("\n── two skips ──");
     console.log("  " + text.replace(/\s+/g, " ").trim());
     expect(text).toContain("2 tests skipped");
+  });
+});
+
+/* A refusal is a third thing. The user confirmed a grouping the test cannot run
+ * on — the data shape is fine and nothing declined on cost — and it is the only
+ * one of the three the reader can fix, by unticking a column. It must not share
+ * a header with either of the others. */
+const REFUSED = {
+  name: "Column Goodness-of-Fit",
+  category: "shapes",
+  flag: "N/A",
+  description: "The confirmed grouping gives 60 groups, the largest with 1 row. " +
+    "This test needs 30 values in a group to fit a distribution.",
+  confirmedGroups: 60,
+  confirmedLargestGroup: 1,
+};
+
+describe("S328 — a refusal is not a skip and not a not-applicable", () => {
+  it("recognises a refusal by the figures it carries, not by its prose", () => {
+    console.log("\n── isGroupingRefusal ──");
+    console.log("  refusal        :", isGroupingRefusal(REFUSED));
+    console.log("  skip           :", isGroupingRefusal(SKIPPED));
+    console.log("  not applicable :", isGroupingRefusal(CONTROL));
+    expect(isGroupingRefusal(REFUSED)).toBe(true);
+    expect(isGroupingRefusal(SKIPPED)).toBe(false);
+    expect(isGroupingRefusal(CONTROL)).toBe(false);
+  });
+
+  it("gives refusals their own header and never says not applicable", () => {
+    const { container } = renderBlock([REFUSED]);
+    const text = container.textContent;
+    console.log("\n── refusal only ──");
+    console.log("  " + text.replace(/\s+/g, " ").trim());
+    expect(text).toContain("1 test needs a different grouping");
+    expect(text).not.toMatch(/tests? not applicable/);
+    expect(text).not.toMatch(/tests? skipped/);
+  });
+
+  it("splits all three kinds into three headers", () => {
+    const { container } = renderBlock([REFUSED, SKIPPED, CONTROL]);
+    const text = container.textContent;
+    console.log("\n── all three kinds ──");
+    console.log("  " + text.replace(/\s+/g, " ").trim());
+    expect(text).toMatch(/1 test needs a different grouping/);
+    expect(text).toMatch(/1 test skipped/);
+    expect(text).toMatch(/1 test not applicable/);
+    expect(text).not.toMatch(/3 tests not applicable/);
+  });
+
+  it("agrees the verb with the count", () => {
+    const second = { ...REFUSED, name: "Modality Test",
+      description: REFUSED.description + " " };
+    const { container } = renderBlock([REFUSED, second]);
+    const text = container.textContent;
+    console.log("\n── two refusals ──");
+    console.log("  " + text.replace(/\s+/g, " ").trim());
+    expect(text).toContain("2 tests need a different grouping");
+    expect(text).not.toMatch(/tests needs/);
+  });
+
+  it("drops the wrong prefix from the refusal body", () => {
+    const { container } = renderBlock([REFUSED]);
+    fireEvent.click(screen.getByText(/needs? a different grouping$/i));
+    const text = container.textContent;
+    console.log("\n── refusal body, expanded ──");
+    console.log("  " + text.split("grouping")[2]?.replace(/\s+/g, " ").trim().slice(0, 140));
+    expect(text).toContain("The confirmed grouping gives 60 groups");
+    expect(text).not.toMatch(/Not applicable —/);
   });
 });

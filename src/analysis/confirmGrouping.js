@@ -19,12 +19,23 @@
    checks as the engine, from the shared src/analysis/applicability.js — so it
    drops only the groupingPending guard, which is the point of confirm.
 
-   One divergence remains, and it is a known open gap, not a caveat: when
-   rowGroups() returns null (a grouping of singletons), the engine returns the
-   four tests as pending, but this path has dropped that guard and falls through
-   to the pooled run. So a confirmed grouping of singletons is analysed pooled
-   here where the engine would hold it. That is a confirm-card surface decision,
-   held separately; it is not fixed by this module.
+   S327 — refuse, do not fall back. When the confirmed grouping yields no
+   usable partition (rowGroups() null — the sixty-singleton case on C16), each
+   of the four tests returns not-applicable naming its OWN minimum against what
+   the grouping actually gives. It does NOT fall through to the pooled run.
+   A pooled verdict returned after the user confirmed a grouping is a verdict
+   computed on a basis they did not confirm, and nothing downstream
+   distinguishes it from a grouped one — the S317 defect, one surface on.
+
+   The refusal is per test, not per grouping: a group set can clear one test's
+   minimum and not another's (Column Goodness-of-Fit needs 30 per group,
+   Modality 50), so each test is asked separately. The four reason strings are
+   deliberately distinct — groupNotApplicableByReason keys on exact match, and
+   collapsing them would hide which test needs what.
+
+   The refusal fires only when a grouping was ATTEMPTED and came back unusable.
+   An empty ticked set is a different state (the user grouped on nothing) and
+   keeps the pooled path.
 
    If the engine's four-test dispatch changes, update this to match. */
 
@@ -75,6 +86,35 @@ export async function runConfirmedGroupedTests({ data, roles, condColSet, zeroAs
   const dtSkip = (name, category) => { const reason = skipMap[name]; return reason ? { name, category, flag: 'N/A', description: reason } : null; };
   const tagVST = (r) => { if (hasVST && r) r.vstTransform = vstType; return r; };
 
+  // ── S327 refusal ──
+  // rowGroupsStatus() is rowGroups()' diagnostic sibling: same null conditions,
+  // plus the counts that explain them. `attempted && !usable` is exactly "the
+  // user confirmed a grouping and it cannot support a grouped test".
+  const rgStatus = condCtx?.rowGroupsStatus?.() || { attempted: false, usable: false };
+  const groupingUnusable = !!(rgStatus.attempted && !rgStatus.usable);
+  // Shared opening clause — what the confirmed grouping actually gives. Each
+  // caller appends its own minimum, so the four strings never collide.
+  //
+  // The clause no longer opens "Not applicable". A refusal is not a
+  // not-applicable: the data shape supports the test, and the grouping the user
+  // confirmed does not. The display now carries that distinction in the header,
+  // so repeating a wrong word in the body would only contradict it.
+  const givesClause = () => {
+    const n = rgStatus.nGroups ?? 0, mx = rgStatus.maxSize ?? 0;
+    return `The confirmed grouping gives ${n} ${n === 1 ? "group" : "groups"}, ` +
+           `the largest with ${mx} ${mx === 1 ? "row" : "rows"}`;
+  };
+  // One builder for all four refusals so the marker fields cannot drift apart.
+  // The figures were only ever in the prose; carrying them as fields is what
+  // lets the display tell a refusal from a settled not-applicable without
+  // parsing a sentence. Same shape the skip uses for its size-ceiling figures.
+  const refuse = (name, category, needClause) => ({
+    name, category, flag: "N/A",
+    description: `${givesClause()}. ${needClause}`,
+    confirmedGroups: rgStatus.nGroups ?? 0,
+    confirmedLargestGroup: rgStatus.maxSize ?? 0,
+  });
+
   // ── Mahalanobis Row Outlier (engine.js:430-479) ──
   const mahal = await (async () => {
     const dt = dtSkip('Mahalanobis Row Outlier', 'distributional'); if (dt) return dt;
@@ -96,6 +136,11 @@ export async function runConfirmedGroupedTests({ data, roles, condColSet, zeroAs
       stratResult.allCondD2 = allCondD2;
       return stratResult;
     }
+    if (groupingUnusable) {
+      const nCols = matrix[0]?.length || 0;
+      return refuse("Mahalanobis Row Outlier", "replicate",
+        `This test needs ${3 * nCols} rows in one group to estimate a stable covariance across ${nCols} columns.`);
+    }
     // Pooled fallback (single group / no row-groups): engine.js:478 runPairVST.
     return tagVST(hasVST ? testMahalanobisOutlier(vstMatrix, assay) : testMahalanobisOutlier(matrix, assay));
   })();
@@ -105,6 +150,10 @@ export async function runConfirmedGroupedTests({ data, roles, condColSet, zeroAs
     const dt = dtSkip('Entropy / Zipf Analysis', 'noise'); if (dt) return dt;
     const rg = condCtx?.rowGroups();
     if (rg) return await aggregatePerGroup(m => testEntropy(m, rng, dataType), rg);
+    if (groupingUnusable) {
+      return refuse("Entropy / Zipf Analysis", "shapes",
+        "No group is large enough to analyse — this test needs at least 20 values in a column within a group.");
+    }
     return testEntropy(matrix, rng, dataType);
   })();
 
@@ -119,6 +168,10 @@ export async function runConfirmedGroupedTests({ data, roles, condColSet, zeroAs
       }
       return await aggregatePerGroup(m => testColumnGof(m, rng, dataType), rg);
     }
+    if (groupingUnusable) {
+      return refuse("Column Goodness-of-Fit", "shapes",
+        `This test needs ${GOF_MIN_OBS} values in a group to fit a distribution.`);
+    }
     return testColumnGof(matrix, rng, dataType);
   })();
 
@@ -132,6 +185,10 @@ export async function runConfirmedGroupedTests({ data, roles, condColSet, zeroAs
           description: `Not applicable — no condition group has the ${MODALITY_MIN_N} values this modality test needs.` };
       }
       return await aggregatePerGroup(m => testModality(m, rng, dataType), rg);
+    }
+    if (groupingUnusable) {
+      return refuse("Modality Test", "shapes",
+        `This test needs ${MODALITY_MIN_N} values in a group.`);
     }
     return testModality(matrix, rng, dataType);
   })();
