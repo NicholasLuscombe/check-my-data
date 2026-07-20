@@ -68,12 +68,16 @@ function renderBlock(naTests) {
   );
 }
 
-// Expand the collapsed "N tests not applicable" row so the stanzas mount.
-// Match the count span specifically — the bare words "Not applicable" also
+// Expand every collapsed no-verdict row so the stanzas mount. Since S328 a
+// cluster can carry two of them — "N tests skipped" and "N tests not
+// applicable" — so this opens whichever are present rather than assuming one.
+// Match the count span specifically: the bare words "Not applicable" also
 // appear as the cluster header word, which is a different control. The click
 // bubbles from the span to the row's onClick.
 function openStanzas() {
-  fireEvent.click(screen.getByText(/^\d+ tests? not applicable$/i));
+  const rows = screen.queryAllByText(/^\d+ tests? (skipped|not applicable)$/i);
+  expect(rows.length).toBeGreaterThan(0);
+  for (const row of rows) fireEvent.click(row);
 }
 
 describe("S327 — size-ceiling detail on both surfaces", () => {
@@ -146,5 +150,55 @@ describe("S327 — size-ceiling detail on both surfaces", () => {
       const ctlLine = body.split("\n").find(l => l.startsWith("- Residual Spike"));
       if (ctlLine) expect(ctlLine).not.toMatch(/against a limit of/);
     }
+  });
+});
+
+/* S328 — the two states must not share a header, and each test's name must lead
+ * its own detail. Renders the real component with one skip and one genuine
+ * not-applicable in the same cluster, which is exactly C14's Copy/Paste/Edit
+ * shape, and reads back what a user would see. */
+describe("S328 — skipped and not applicable are separate headers", () => {
+  it("splits a mixed group into two headers with their own counts", () => {
+    const { container } = renderBlock([SKIPPED, CONTROL]);
+    const text = container.textContent;
+    console.log("\n── mixed group, collapsed ──");
+    console.log("  " + text.replace(/\s+/g, " ").trim());
+    expect(text).toContain("1 test skipped");
+    expect(text).toContain("1 test not applicable");
+    // The old single header must be gone — two tests, never one row of two.
+    expect(text).not.toMatch(/2 tests not applicable/);
+  });
+
+  it("puts each test name above its own reason and figures", () => {
+    const { container } = renderBlock([SKIPPED, CONTROL]);
+    fireEvent.click(screen.getByText(/^\d+ tests? skipped$/i));
+    const text = container.textContent;
+    const iName = text.indexOf("Recurring value sequences");
+    const iReason = text.indexOf("The sequence scan was skipped");
+    const iDetail = text.indexOf("9,398 rows, against a limit of 5,000");
+    console.log("\n── skip stanza, expanded ──");
+    console.log(`  name at ${iName}, reason at ${iReason}, detail at ${iDetail}`);
+    expect(iName).toBeGreaterThan(-1);
+    expect(iReason).toBeGreaterThan(iName);   // name leads
+    expect(iDetail).toBeGreaterThan(iReason); // figures last
+  });
+
+  it("leaves a not-applicable-only group reading exactly as before", () => {
+    const { container } = renderBlock([CONTROL]);
+    const text = container.textContent;
+    console.log("\n── not-applicable only ──");
+    console.log("  " + text.replace(/\s+/g, " ").trim());
+    expect(text).toContain("1 test not applicable");
+    expect(text).not.toMatch(/skipped/);
+  });
+
+  it("uses plural wording when a group holds more than one skip", () => {
+    const second = { ...SKIPPED, name: "Exact Duplicate Detection",
+      description: SKIPPED.description + " ", scanSkippedRows: 12000, scanRowLimit: 5000 };
+    const { container } = renderBlock([SKIPPED, second]);
+    const text = container.textContent;
+    console.log("\n── two skips ──");
+    console.log("  " + text.replace(/\s+/g, " ").trim());
+    expect(text).toContain("2 tests skipped");
   });
 });

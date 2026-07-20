@@ -102,10 +102,22 @@ export function ForensicsCategoryBlock({
   const [clearOpen, setClearOpen] = useState(false);
   // Not-applicable tests collapse the same way (S324). Always start collapsed,
   // regardless of count — one row for two tests or eleven.
+  //
+  // Two different things route to N/A and they must not share a header. A test
+  // that was SKIPPED could have run; the data supports it and the scan declined
+  // on cost. A test that is NOT APPLICABLE genuinely cannot run on this shape.
+  // Calling a skip "not applicable" states something false about the data — on
+  // C14 it says the sequence scan does not apply to a file where Duplicated Data
+  // fires High. Both still classify as notApplicable internally; this is display
+  // only, and coverage.js is untouched.
+  //
+  // The marker is the one the skip already sets: a skip carries the size-ceiling
+  // fields that formatSkipDetail reads. No second marker.
+  const skippedTests = notApplicableTests.filter(r => formatSkipDetail(r) != null);
+  const trueNaTests = notApplicableTests.filter(r => formatSkipDetail(r) == null);
   const [naOpen, setNaOpen] = useState(false);
+  const [skipOpen, setSkipOpen] = useState(false);
   const clearNames = clearTests.map(r => DISPLAY_NAMES[r.name] || r.name).join(", ");
-  const naNames = notApplicableTests.map(r => DISPLAY_NAMES[r.name] || r.name).join(", ");
-  const naGroups = groupNotApplicableByReason(notApplicableTests);
   const clearIcon = <span style={{ color: SEV_VERDICT[0].color, fontSize: FS.base, flexShrink: 0 }}>✓</span>;
 
   return (
@@ -191,40 +203,15 @@ export function ForensicsCategoryBlock({
             {unassessedTests.map(r => (
               <PendingRow key={r.name} result={r} />
             ))}
-            {/* Not-applicable tests (S324). Settled N/A with a reason string —
-                the tests that left the header fraction because the data does
-                not support them. Collapsed by default into one summary row (the
-                same shape the cleared group uses), so the section reads as a
-                single line a scanner passes over. Expanded, it shows the reason
-                stanzas grouped by cause — reason once, then the test names, no
-                card chrome. The collapsed row's count replaces the old heading. */}
-            {notApplicableTests.length > 0 && !naOpen && (
-              <CollapsedSummaryRow count={notApplicableTests.length} label="not applicable"
-                names={naNames} onToggle={() => setNaOpen(true)} />
-            )}
-            {notApplicableTests.length > 0 && naOpen && (
-              <>
-                <CollapsedSummaryRow count={notApplicableTests.length} label="not applicable"
-                  names={naNames} onToggle={() => setNaOpen(false)} expanded />
-                <div style={{ display: "flex", flexDirection: "column", gap: "10px", paddingLeft: RAIL_GUTTER }}>
-                  {naGroups.map((g, i) => (
-                    <div key={i}>
-                      <div style={{ fontSize: FS.sm, fontWeight: FW.NORM, color: C.TEXT_3, lineHeight: "1.5" }}>
-                        {g.reason}
-                      </div>
-                      {g.detail && (
-                        <div style={{ fontSize: FS.xs, fontWeight: FW.NORM, color: C.TEXT_3, marginTop: "2px" }}>
-                          {g.detail}
-                        </div>
-                      )}
-                      <div style={{ fontSize: FS.sm, fontWeight: FW.MED, color: C.TEXT_2, marginTop: "2px" }}>
-                        {g.names.join(" · ")}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </>
-            )}
+            {/* Tests that produced no verdict (S324), split by cause (S328).
+                Skipped and not-applicable get their own header and their own
+                disclosure, so a reader is never told a test does not apply when
+                it was declined on cost. Each stanza leads with the test name and
+                puts that test's reason and figures beneath it — the name used to
+                render last, under text it was meant to head. Collapsed by
+                default, the same shape the cleared group uses. */}
+            {renderNoVerdictSection(skippedTests, "skipped", skipOpen, setSkipOpen)}
+            {renderNoVerdictSection(trueNaTests, "not applicable", naOpen, setNaOpen)}
           </div>
         </div>
       )}
@@ -238,6 +225,41 @@ export function ForensicsCategoryBlock({
 // reads as accounting rather than a wall of identical rows. Order follows first
 // appearance so the layout is stable. Match is exact — near-identical reasons
 // stay separate, which keeps a genuinely different cause from being merged.
+// One collapsed section for tests that produced no verdict. Called twice —
+// once for skips, once for genuine not-applicables — so each carries its own
+// count, its own header word and its own disclosure. Renders nothing when the
+// set is empty, which is what keeps a file with only one kind reading exactly
+// as it did before. CollapsedSummaryRow already handles test/tests.
+function renderNoVerdictSection(tests, label, open, setOpen) {
+  if (!tests.length) return null;
+  const names = tests.map(r => DISPLAY_NAMES[r.name] || r.name).join(", ");
+  const groups = groupNotApplicableByReason(tests);
+  return (
+    <>
+      <CollapsedSummaryRow count={tests.length} label={label} names={names}
+        onToggle={() => setOpen(!open)} expanded={open} />
+      {open && (
+        <div style={{ display: "flex", flexDirection: "column", gap: "10px", paddingLeft: RAIL_GUTTER }}>
+          {groups.map((g, i) => (
+            <div key={i}>
+              <div style={NO_VERDICT_NAME}>{g.names.join(" · ")}</div>
+              <div style={NO_VERDICT_REASON}>{g.reason}</div>
+              {g.detail && <div style={NO_VERDICT_DETAIL}>{g.detail}</div>}
+            </div>
+          ))}
+        </div>
+      )}
+    </>
+  );
+}
+
+// Registers for the three lines of a no-verdict stanza. Name leads, so it takes
+// the darker, heavier step; the reason sits under it; the figures are fine print
+// one size down. Same tokens the block used before the reorder.
+const NO_VERDICT_NAME = { fontSize: FS.sm, fontWeight: FW.MED, color: C.TEXT_2 };
+const NO_VERDICT_REASON = { fontSize: FS.sm, fontWeight: FW.NORM, color: C.TEXT_3, lineHeight: "1.5", marginTop: "2px" };
+const NO_VERDICT_DETAIL = { fontSize: FS.xs, fontWeight: FW.NORM, color: C.TEXT_3, marginTop: "2px" };
+
 function groupNotApplicableByReason(tests) {
   const order = [];
   const byReason = new Map();
