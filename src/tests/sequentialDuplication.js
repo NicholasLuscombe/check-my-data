@@ -1,5 +1,14 @@
 import { flagFromP } from "../constants/thresholds.js";
 
+/* Reason text for the size-ceiling exit below. Constant, with no row count
+   interpolated, so two files that both cross the ceiling produce the same
+   string and the display can collapse them into one stanza — the row count
+   rides alongside on its own field instead. */
+const SCAN_SKIPPED_REASON =
+  "The sequence scan was skipped because this dataset is too large for it. " +
+  "The scan's cost grows with rows, columns and offsets together, so it carries a size cap. " +
+  "This is a limit of the scan, not a property of the data.";
+
 /* §2.4 — Recurring value sequences. Per-column offset scan for a contiguous run
    of h ≥ 3 values in one column whose value sequence recurs lower in the SAME
    column at a fixed offset. Sibling of Exact Duplicate Detection's block-copy
@@ -36,9 +45,13 @@ export function testSequentialDuplication(matrix, assay) {
   const maxOffset = nR > 500 ? Math.min(nR - 1, 200) : nR - 1;
 
   if (nR > BLOCK_SCAN_LIMIT) {
-    return { name: "Sequential Duplication", category: "copied", flag: "LOW", primaryP: 1,
+    // Above the ceiling this test declines to look; it does not look and find
+    // nothing. So it returns "N/A" with no primaryP, matching the two guards
+    // above, rather than a LOW verdict a reader would take as a clean result.
+    return { name: "Sequential Duplication", category: "copied", flag: "N/A",
       sequences: [], nSequences: 0,
-      description: `Sequence scan skipped for large dataset (${nR} rows > ${BLOCK_SCAN_LIMIT}).` };
+      description: SCAN_SKIPPED_REASON,
+      scanSkippedRows: nR, scanRowLimit: BLOCK_SCAN_LIMIT };
   }
 
   // Per-column empirical HHI over non-null values — P(two random positions in the
