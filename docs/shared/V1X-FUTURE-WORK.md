@@ -13,7 +13,7 @@ This doc owns the v1.x view. The v1.0 surfaces stay authoritative for their doma
 | Surface | Scope | Status |
 |---|---|---|
 | Methodology gaps (forensics framework) | 6 dimension-attributed coverage gaps | Mirrored from METHODOLOGY-MAP §Gap audit |
-| Test additions (post-v1.0 forensics) | Rectangular Blocked Mahalanobis; genuine-block detection; coherence-cleanup residue; column-localised sequential duplication detector; role/condition inference for real-world column shapes; **test-consistency audit beyond the closed item-28 audit (§2.6)**; arbitrary-offset block duplication detector (§2.7); **group-attribute column recognition — the largest demonstrated false-positive surface in the corpus (§2.8, BUILT S315)**; **scattered partial-row duplication — the coverage failure mode, exposed by §2.8's outcome (§2.9, BUILT S316)**; **row-grouping produces units the tests were not designed for — the tool's own applicability failure, half the row-grouping corpus (§2.10, trigger + confirm card BUILT S320–S321, stance cross-validated S322, twelve fixes unpromoted)**; **structural omission as a signal — the absence "not applicable" would neutralise (§2.12, open scope)**; **cost ceilings measure the wrong variable — row count does not predict scan cost, factor of 124 at identical shape (§2.13, S327)**; **the sequence-duplication null already prices categorical columns correctly — a cardinality guard is a performance fix, not a correctness one (§2.14, S327)** | New scope, this doc |
+| Test additions (post-v1.0 forensics) | Rectangular Blocked Mahalanobis; genuine-block detection; coherence-cleanup residue; column-localised sequential duplication detector; role/condition inference for real-world column shapes; **test-consistency audit beyond the closed item-28 audit (§2.6)**; arbitrary-offset block duplication detector (§2.7); **group-attribute column recognition — the largest demonstrated false-positive surface in the corpus (§2.8, BUILT S315)**; **scattered partial-row duplication — the coverage failure mode, exposed by §2.8's outcome (§2.9, BUILT S316)**; **row-grouping produces units the tests were not designed for — the tool's own applicability failure, half the row-grouping corpus (§2.10, trigger + confirm card BUILT S320–S321, stance cross-validated S322, twelve fixes unpromoted)**; **structural omission as a signal — the absence "not applicable" would neutralise (§2.12, open scope)**; **cost ceilings measure the wrong variable — row count does not predict scan cost, factor of 124 at identical shape (§2.13, S327)**; **the sequence-duplication null already prices categorical columns correctly — but those columns carry evidence, and the cardinality guard is KILLED (§2.14, S327, amended S328)** | New scope, this doc |
 | Variance-estimator unification | Catalogue + scoped sub-refactors | Extends ROADMAP Track F; related to §2.6 (same forced-vs-artefact discipline) |
 | AI Screening mode | Five new tests + mode toggle + reweighting | Restored from S125 chat history |
 | Calibration audits banked | Permutation B=9999; severity-formula diversity metric; Modality plot upgrade | Mirrored from STATUS parked items |
@@ -521,7 +521,7 @@ For a pair agreeing on set S, `pMatch = Π wrColHHI[c]` over S, Bonferroni-corre
 
 **Quiet where it should be.** C08: zero survivors, no false positive (its duplicates run *down columns*; no partial-row copy exists to find). C11 (16,657 rows, the largest file): zero survivors, 114 ms.
 
-**C14 fires — and it is a true positive Chat did not anticipate.** Rows 260↔261 are byte-identical across all twelve non-null columns (same tree, same activity year, identical sixteen-digit growth values). The existing row-duplicate test already flagged it. **Open adjudication:** whether adjacent identical forestry records are a defect or a legitimate repeated-measures convention is a corpus question, not a code one. The detector's behaviour is correct either way — the rows *are* identical.
+**C14 fires — and it is a true positive Chat did not anticipate.** The pair is at **sheet rows 262↔263** (earlier text said 260↔261; those were matrix rows labelled as sheet rows). They are byte-identical across all fourteen matrix columns and carry **different `STAND_ID`s**. **Adjudication closed S328 — defect**, settled by reading the deposit: the file holds 253 duplicate measurement blocks, 190 of them spanning different `STAND_ID`s, and only 8 adjacent. Duplicate Detection flags this pair; Sequential Duplication cannot see it at all, since two rows is a run of one against a height floor of three. The detector's behaviour is correct either way — the rows *are* identical.
 
 ---
 
@@ -858,7 +858,7 @@ On the 28 fixtures, **Blocked Mahalanobis (40.5%) and Kurtosis (21.4%) are still
 **What landed at S327.** Bucketing the dedup by column and memoising `nOppForHeight`. Verdict byte-identical at all five measured sizes; C14 15.2 s → 8.4 s. The speed-up was **2.09×, not the 14× predicted** — the prediction assumed sequences spread evenly across fourteen columns, and two columns hold 95% of them. Bucketing cannot split one column's work. **Optimisations divide the constant; they do not change the order.**
 
 **What the fix is not: a different number.** Two candidates are real, and both are decisions rather than engineering:
-- **A cardinality guard on the column loop.** Precedent instrument: `PARTIAL_ROW_CARD_FRAC = 0.02` at `duplicateDetection.js:731`, which keys on largest single-value share rather than distinct count, and whose recorded reasoning argues both grounds — uninformative *and* expensive — measured against C14's `CROWNCLASS`. Gated on the rows 260↔261 adjudication (see §2.14) and on corpus evidence from the round 2 sweep.
+- ~~**A cardinality guard on the column loop.**~~ **KILLED S328 on measurement — see the amendment at the end of §2.14.** Excluding `Tree ID` and `CROWNCLASS` from the sequence scan drops 40 duplicate blocks, 32 of them found by nothing else in the battery. The precedent instrument is worse than nothing here: `PARTIAL_ROW_CARD_FRAC = 0.02` at `duplicateDetection.js:731` keys on largest single-value share, and on this file it would hold out seven of fourteen columns including `ACTIVITY_ID`, the driver of the HIGH. Do not rescope; the cost has to be bought elsewhere.
 - **Async yielding.** Blocked Mahalanobis already does this, yielding every 50 permutations (S169). It does not reduce the work; it stops the remainder reading as a hang.
 
 **Corpus impact is one file.** Through the real pipeline only four sheets exceed 5,000 analysis rows: C14 `Data` (9,398 × 14) and three C11 sheets at 2 and 5 columns. **C14 is the only one both over the ceiling and wide enough to be expensive.** Raw sheet extent misleads badly here — C25's 43,202-row workbook analyses as 3,600 and C10's 16,522 as 400.
@@ -887,7 +887,30 @@ pAdj = min(1, colHHI[c]^h × nOppForHeight(h))
 
 *This is one file.* That these columns contribute nothing **here** does not establish that they never would. On a file where a categorical column carried the only anomaly, excluding it would lose the finding — and the corpus already contains that case in miniature. C14's rows 260↔261 (corpus spec, C14 known-gaps entry) are covered **only** by the two categorical columns and are lost entirely if they are excluded. That adjudication is open — defect, or legitimate repeated-measures convention? — so what is at stake is a finding nobody has yet decided is a finding. **It gates the guard.**
 
-**Sequencing.** Behind the rows 260↔261 adjudication and behind the round 2 corpus sweep, which is what would widen the claim from one file to the corpus. Written throughout as measured-on-C14 rather than as a general property; keep it that way until round 2 either widens it or does not.
+> **The paragraph immediately above was falsified at S328.** Kept verbatim because how it was wrong is the useful part. It reasoned about a pair nobody had measured, got the row numbers wrong, and made a coverage claim that inverted under measurement. The argument it was reaching for turned out to be much stronger than the one it made. See the amendment below.
+
+**Sequencing.** ~~Behind the rows 260↔261 adjudication~~ — that adjudication closed at S328 (defect) and the guard it gated is killed; see the amendment below. What remains true: this section is written as measured-on-C14 rather than as a general property, and only the round 2 corpus sweep would widen it. Keep it that way until round 2 either widens it or does not.
+
+#### Amendment (S328) — the guard is dead, and the section's core finding survives
+
+Everything above about the HHI null stands. `pAdj` decomposes per column exactly, high-HHI columns are priced as unremarkable, and excluding both categorical columns leaves `primaryP` identical to the last digit at 7.917e-69. **That was never the question the guard turned on.**
+
+The question was whether the two columns carry evidence. Measured through the real pipeline at S328, they do:
+
+- Excluding `Tree ID` and `CROWNCLASS` from the sequence scan drops **40 duplicate blocks** out of what Sequential Duplication can point at.
+- **32 of the 40 are found by nothing else in the battery** — not by Duplicate Detection, not by anything.
+- **36 of the 40 span different `STAND_ID`s**, the population the C14 adjudication turned on.
+
+A p-value that does not move and evidence that disappears are different things. The section above measured the first and inferred the second. **The guard would delete 32 pieces of unique evidence to buy a speed-up.** It is killed, not deferred.
+
+**A measurement discipline point, because it nearly went the other way.** The first pass counted a block as covered if any sequence *overlapped* it. With 83,502 sequences spanning up to 46 rows, overlap is near-certain by chance: it reported 253 of 253 covered and a loss of 13. Requiring the sequence to actually **explain** the block — offset equals the member gap, one member in source and the other in destination — gave 196 explained and a loss of 40. The loose predicate flattered coverage and would have kept the guard alive. A second check on Duplicate Detection's evidence caps (20 groups, 20 partial-row locations) moved the stranded count 34 → 32, confirming the caps were not the story.
+
+**Two structural findings this opened, both larger than the guard:**
+
+- **The scan's height floor.** A run of two is a run of one against a floor of three, so Sequential Duplication cannot see two-row duplicates at all. **57 of 253 blocks are unmapped for this reason.** A coverage boundary, not a bug — but it should be stated as a limit rather than discovered again.
+- **The group-attribute pass discards more than labels.** Ten of twenty-four sheet columns never reach the matrix on C14. `STAND_ID` is a label and `Species`/`DamageSev` are conditions, but **seven measurement columns are held out as attributes** — ring count, DBH, tree basal area among them. That is data the tests are not seeing, and it is what blinds the tool to the defect's own signature: rows 262↔263 differ only in `STAND_ID`, so the tool can say the rows are identical but not that they are supposedly different stands.
+
+**What follows for cost.** Those two columns still carry 95% of kept sequences and C14 still takes 8.4 s post-dedup on a blocking main thread. The cost is real and unaddressed. It has to be bought somewhere that is not the evidence — async yielding (Blocked Mahalanobis already does it, S169) is the standing candidate.
 
 ---
 
