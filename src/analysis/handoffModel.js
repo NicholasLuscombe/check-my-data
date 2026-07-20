@@ -253,12 +253,15 @@ function buildFindings(results, dataset) {
   }
 
   // Tests not run — flag === "N/A" carries r.description as engine reason.
-  // Reason strings are passed through verbatim.
+  // Reason strings are passed through verbatim. `detail` is null on every
+  // result that does not carry the size-ceiling fields, and both consumers
+  // omit the slot entirely when it is null.
   const notRun = results
     .filter(r => r.flag === "N/A")
     .map(r => ({
       testName: r.name,
       reason: r.description || "",
+      detail: formatSkipDetail(r),
     }));
 
   // Footnote appended after the "Absence of a finding for a test that
@@ -294,6 +297,22 @@ function buildFindings(results, dataset) {
  * @param {number} nCols         Column count of the input matrix
  * @returns {HandoffModel}
  */
+
+/* Size-ceiling detail for a not-run test. A test that declined to scan for
+   size carries the file's row count and the ceiling it crossed; every other
+   not-run result carries neither and gets null here, which both consumers
+   read as "render no detail slot at all".
+
+   Shared by the §3 not-applicable stanza (ForensicsCategoryBlock) and the §4
+   prompt body (promptBodyRenderer) so the screen and the clipboard cannot
+   drift apart on wording or on number formatting. Locale is pinned so the
+   thousands separator does not vary by machine. */
+export function formatSkipDetail(r) {
+  const rows = r?.scanSkippedRows, limit = r?.scanRowLimit;
+  if (typeof rows !== "number" || typeof limit !== "number") return null;
+  return `${rows.toLocaleString("en-US")} rows, against a limit of ${limit.toLocaleString("en-US")}`;
+}
+
 export function buildHandoffModel(results, importConfig, nRows, nCols) {
   const { severity } = computeSeverity(results);
   const dataset = buildDataset(importConfig, nRows, nCols);

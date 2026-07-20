@@ -1,5 +1,14 @@
 import { flagFromP } from "../constants/thresholds.js";
 
+/* Reason text for the size-ceiling exit below. Constant, with no row count
+   interpolated, so two files that both cross the ceiling produce the same
+   string and the display can collapse them into one stanza — the row count
+   rides alongside on its own field instead. */
+const SCAN_SKIPPED_REASON =
+  "The sequence scan was skipped because this dataset is too large for it. " +
+  "The scan's cost grows with rows, columns and offsets together, so it carries a size cap. " +
+  "This is a limit of the scan, not a property of the data.";
+
 /* §2.4 — Recurring value sequences. Per-column offset scan for a contiguous run
    of h ≥ 3 values in one column whose value sequence recurs lower in the SAME
    column at a fixed offset. Sibling of Exact Duplicate Detection's block-copy
@@ -36,9 +45,13 @@ export function testSequentialDuplication(matrix, assay) {
   const maxOffset = nR > 500 ? Math.min(nR - 1, 200) : nR - 1;
 
   if (nR > BLOCK_SCAN_LIMIT) {
-    return { name: "Sequential Duplication", category: "copied", flag: "LOW", primaryP: 1,
+    // Above the ceiling this test declines to look; it does not look and find
+    // nothing. So it returns "N/A" with no primaryP, matching the two guards
+    // above, rather than a LOW verdict a reader would take as a clean result.
+    return { name: "Sequential Duplication", category: "copied", flag: "N/A",
       sequences: [], nSequences: 0,
-      description: `Sequence scan skipped for large dataset (${nR} rows > ${BLOCK_SCAN_LIMIT}).` };
+      description: SCAN_SKIPPED_REASON,
+      scanSkippedRows: nR, scanRowLimit: BLOCK_SCAN_LIMIT };
   }
 
   // Per-column empirical HHI over non-null values — P(two random positions in the
@@ -61,10 +74,21 @@ export function testSequentialDuplication(matrix, assay) {
 
   // Bonferroni search volume — offsets × valid starting positions for a run of
   // height h. Depends only on h and the (capped) offset range, so precompute per h.
+  // S327: the "precompute" the comment promised is now real. nR and maxOffset are
+  // closure constants, so the result is a pure function of h — integer arithmetic,
+  // no floating-point accumulation order to disturb. The cache returns the same
+  // value the loop would have computed; it is a cache, not a change of formula.
+  // Before this, the 200-iteration loop reran once per kept run: ~30 million inner
+  // iterations on C14's Data sheet at 9,398 rows, for a handful of distinct h.
+  const nOppCache = new Map();
   const nOppForHeight = (h) => {
+    const hit = nOppCache.get(h);
+    if (hit !== undefined) return hit;
     let nOpp = 0;
     for (let d = 1; d <= maxOffset; d++) nOpp += Math.max(0, nR - d - h + 1);
-    return nOpp < 1 ? 1 : nOpp;
+    const val = nOpp < 1 ? 1 : nOpp;
+    nOppCache.set(h, val);
+    return val;
   };
 
   const sequences = [];
@@ -111,14 +135,31 @@ export function testSequentialDuplication(matrix, assay) {
   // Dominance dedup — drop a sequence whose src AND dst row ranges are both
   // contained within another kept sequence in the same column (a triple-repeat
   // surfaces the same content at several offsets; keep the maximal one).
+  // S327 — bucketed by column. Only a same-column sequence can dominate, and the
+  // old `.some()` over the whole kept array tested `big.col === s.col` first, so
+  // every cross-column comparison was wasted work. Scanning one column's bucket
+  // instead divides the quadratic by the column count. It does not remove it —
+  // the work is still quadratic in the kept count WITHIN a column.
+  //
+  // Output identity. The old predicate is false for every different-column entry,
+  // so `kept.some(col-guard && containment)` and `bucket.some(containment)` agree
+  // for all input: the bucket holds exactly the kept same-column sequences, in the
+  // same relative order. `.some()` yields a boolean, so which element matched
+  // first never mattered. `kept` is still appended in one pass over the same sort,
+  // so the returned array's order is unchanged too.
   sequences.sort((a, b) => (b.height - a.height) || (a.pAdj - b.pAdj));
   const kept = [];
+  const keptByCol = new Map();
   for (const s of sequences) {
-    const dominated = kept.some(big =>
-      big.col === s.col &&
+    let bucket = keptByCol.get(s.col);
+    const dominated = bucket !== undefined && bucket.some(big =>
       big.srcRows[0] <= s.srcRows[0] && big.srcRows[1] >= s.srcRows[1] &&
       big.dstRows[0] <= s.dstRows[0] && big.dstRows[1] >= s.dstRows[1]);
-    if (!dominated) kept.push(s);
+    if (!dominated) {
+      kept.push(s);
+      if (bucket === undefined) { bucket = []; keptByCol.set(s.col, bucket); }
+      bucket.push(s);
+    }
   }
 
   // Strongest sequence drives the verdict — min pAdj, mirroring bestBlockP's
