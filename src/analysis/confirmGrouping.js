@@ -94,11 +94,26 @@ export async function runConfirmedGroupedTests({ data, roles, condColSet, zeroAs
   const groupingUnusable = !!(rgStatus.attempted && !rgStatus.usable);
   // Shared opening clause — what the confirmed grouping actually gives. Each
   // caller appends its own minimum, so the four strings never collide.
+  //
+  // The clause no longer opens "Not applicable". A refusal is not a
+  // not-applicable: the data shape supports the test, and the grouping the user
+  // confirmed does not. The display now carries that distinction in the header,
+  // so repeating a wrong word in the body would only contradict it.
   const givesClause = () => {
     const n = rgStatus.nGroups ?? 0, mx = rgStatus.maxSize ?? 0;
-    return `Not applicable — the confirmed grouping gives ${n} ${n === 1 ? "group" : "groups"}, ` +
+    return `The confirmed grouping gives ${n} ${n === 1 ? "group" : "groups"}, ` +
            `the largest with ${mx} ${mx === 1 ? "row" : "rows"}`;
   };
+  // One builder for all four refusals so the marker fields cannot drift apart.
+  // The figures were only ever in the prose; carrying them as fields is what
+  // lets the display tell a refusal from a settled not-applicable without
+  // parsing a sentence. Same shape the skip uses for its size-ceiling figures.
+  const refuse = (name, category, needClause) => ({
+    name, category, flag: "N/A",
+    description: `${givesClause()}. ${needClause}`,
+    confirmedGroups: rgStatus.nGroups ?? 0,
+    confirmedLargestGroup: rgStatus.maxSize ?? 0,
+  });
 
   // ── Mahalanobis Row Outlier (engine.js:430-479) ──
   const mahal = await (async () => {
@@ -123,8 +138,8 @@ export async function runConfirmedGroupedTests({ data, roles, condColSet, zeroAs
     }
     if (groupingUnusable) {
       const nCols = matrix[0]?.length || 0;
-      return { name: "Mahalanobis Row Outlier", category: "replicate", flag: "N/A",
-        description: `${givesClause()}. This test needs ${3 * nCols} rows in one group to estimate a stable covariance across ${nCols} columns.` };
+      return refuse("Mahalanobis Row Outlier", "replicate",
+        `This test needs ${3 * nCols} rows in one group to estimate a stable covariance across ${nCols} columns.`);
     }
     // Pooled fallback (single group / no row-groups): engine.js:478 runPairVST.
     return tagVST(hasVST ? testMahalanobisOutlier(vstMatrix, assay) : testMahalanobisOutlier(matrix, assay));
@@ -136,8 +151,8 @@ export async function runConfirmedGroupedTests({ data, roles, condColSet, zeroAs
     const rg = condCtx?.rowGroups();
     if (rg) return await aggregatePerGroup(m => testEntropy(m, rng, dataType), rg);
     if (groupingUnusable) {
-      return { name: "Entropy / Zipf Analysis", category: "shapes", flag: "N/A",
-        description: `${givesClause()}. No group is large enough to analyse — this test needs at least 20 values in a column within a group.` };
+      return refuse("Entropy / Zipf Analysis", "shapes",
+        "No group is large enough to analyse — this test needs at least 20 values in a column within a group.");
     }
     return testEntropy(matrix, rng, dataType);
   })();
@@ -154,8 +169,8 @@ export async function runConfirmedGroupedTests({ data, roles, condColSet, zeroAs
       return await aggregatePerGroup(m => testColumnGof(m, rng, dataType), rg);
     }
     if (groupingUnusable) {
-      return { name: "Column Goodness-of-Fit", category: "shapes", flag: "N/A",
-        description: `${givesClause()}. This test needs ${GOF_MIN_OBS} values in a group to fit a distribution.` };
+      return refuse("Column Goodness-of-Fit", "shapes",
+        `This test needs ${GOF_MIN_OBS} values in a group to fit a distribution.`);
     }
     return testColumnGof(matrix, rng, dataType);
   })();
@@ -172,8 +187,8 @@ export async function runConfirmedGroupedTests({ data, roles, condColSet, zeroAs
       return await aggregatePerGroup(m => testModality(m, rng, dataType), rg);
     }
     if (groupingUnusable) {
-      return { name: "Modality Test", category: "shapes", flag: "N/A",
-        description: `${givesClause()}. This test needs ${MODALITY_MIN_N} values in a group.` };
+      return refuse("Modality Test", "shapes",
+        `This test needs ${MODALITY_MIN_N} values in a group.`);
     }
     return testModality(matrix, rng, dataType);
   })();

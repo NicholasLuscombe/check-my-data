@@ -17,7 +17,7 @@
 import { useState, useMemo } from "react";
 import { C, FS, FW, FF, CR, SEV_VERDICT, UI } from "../../constants/tokens.js";
 import { DISPLAY_NAMES } from "../../constants/mechanisms.js";
-import { formatSkipDetail } from "../../analysis/handoffModel.js";
+import { formatSkipDetail, isGroupingRefusal } from "../../analysis/handoffModel.js";
 import { TestCardLayout } from "../shared/TestCardLayout.jsx";
 import { ClusterRow } from "../shared/ClusterRow.jsx";
 import { TestCard } from "../cards/TestCard.jsx";
@@ -111,12 +111,21 @@ export function ForensicsCategoryBlock({
   // fires High. Both still classify as notApplicable internally; this is display
   // only, and coverage.js is untouched.
   //
-  // The marker is the one the skip already sets: a skip carries the size-ceiling
-  // fields that formatSkipDetail reads. No second marker.
-  const skippedTests = notApplicableTests.filter(r => formatSkipDetail(r) != null);
-  const trueNaTests = notApplicableTests.filter(r => formatSkipDetail(r) == null);
+  // A third case joins them: a REFUSAL. The user confirmed a grouping, and the
+  // test cannot run on it. That is neither of the other two — the data shape is
+  // fine and nothing declined on cost. It is also the only one of the three the
+  // reader can act on, by unticking a condition column, so it must not hide
+  // under a word that says nothing can be done.
+  //
+  // Each marker is the one its own producer already sets. A skip carries the
+  // size-ceiling figures; a refusal carries the confirmed-grouping figures.
+  // No extra booleans, no coverage state, coverage.js untouched.
+  const refusedTests = notApplicableTests.filter(r => isGroupingRefusal(r));
+  const skippedTests = notApplicableTests.filter(r => !isGroupingRefusal(r) && formatSkipDetail(r) != null);
+  const trueNaTests = notApplicableTests.filter(r => !isGroupingRefusal(r) && formatSkipDetail(r) == null);
   const [naOpen, setNaOpen] = useState(false);
   const [skipOpen, setSkipOpen] = useState(false);
+  const [refusedOpen, setRefusedOpen] = useState(false);
   const clearNames = clearTests.map(r => DISPLAY_NAMES[r.name] || r.name).join(", ");
   const clearIcon = <span style={{ color: SEV_VERDICT[0].color, fontSize: FS.base, flexShrink: 0 }}>✓</span>;
 
@@ -203,13 +212,16 @@ export function ForensicsCategoryBlock({
             {unassessedTests.map(r => (
               <PendingRow key={r.name} result={r} />
             ))}
-            {/* Tests that produced no verdict (S324), split by cause (S328).
-                Skipped and not-applicable get their own header and their own
-                disclosure, so a reader is never told a test does not apply when
-                it was declined on cost. Each stanza leads with the test name and
+            {/* Tests that produced no verdict, split by cause. Three states
+                that a single "not applicable" used to flatten: the grouping the
+                user confirmed cannot support the test, the scan declined on
+                cost, or the data shape genuinely does not fit. Each gets its own
+                header and disclosure. Refusals lead, because they are the only
+                one the reader can act on. Each stanza leads with the test name and
                 puts that test's reason and figures beneath it — the name used to
                 render last, under text it was meant to head. Collapsed by
                 default, the same shape the cleared group uses. */}
+            {renderNoVerdictSection(refusedTests, n => `${n === 1 ? "needs" : "need"} a different grouping`, refusedOpen, setRefusedOpen)}
             {renderNoVerdictSection(skippedTests, "skipped", skipOpen, setSkipOpen)}
             {renderNoVerdictSection(trueNaTests, "not applicable", naOpen, setNaOpen)}
           </div>
@@ -234,9 +246,13 @@ function renderNoVerdictSection(tests, label, open, setOpen) {
   if (!tests.length) return null;
   const names = tests.map(r => DISPLAY_NAMES[r.name] || r.name).join(", ");
   const groups = groupNotApplicableByReason(tests);
+  // A label carrying a verb has to agree with the count — "1 test needs a
+  // different grouping" but "2 tests need a different grouping". Labels that are
+  // plain adjectives pass through as strings.
+  const text = typeof label === "function" ? label(tests.length) : label;
   return (
     <>
-      <CollapsedSummaryRow count={tests.length} label={label} names={names}
+      <CollapsedSummaryRow count={tests.length} label={text} names={names}
         onToggle={() => setOpen(!open)} expanded={open} />
       {open && (
         <div style={{ display: "flex", flexDirection: "column", gap: "10px", paddingLeft: RAIL_GUTTER }}>

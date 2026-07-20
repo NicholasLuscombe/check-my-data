@@ -307,6 +307,19 @@ function buildFindings(results, dataset) {
    prompt body (promptBodyRenderer) so the screen and the clipboard cannot
    drift apart on wording or on number formatting. Locale is pinned so the
    thousands separator does not vary by machine. */
+/* True when a test declined because the grouping the user CONFIRMED cannot
+   support it. Distinct from a settled not-applicable, where the data shape
+   itself is wrong, and from a skip, where the scan declined on cost. A reader
+   can act on this one — unticking a condition column changes the grouping.
+
+   Reads the figures the refusal carries, the same way the skip is recognised by
+   its size-ceiling figures. No coverage state and no extra boolean: the fields
+   that describe the refusal are what identify it. */
+export function isGroupingRefusal(r) {
+  return typeof r?.confirmedGroups === "number"
+      && typeof r?.confirmedLargestGroup === "number";
+}
+
 export function formatSkipDetail(r) {
   const rows = r?.scanSkippedRows, limit = r?.scanRowLimit;
   if (typeof rows !== "number" || typeof limit !== "number") return null;
