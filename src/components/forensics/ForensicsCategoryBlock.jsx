@@ -17,6 +17,7 @@
 import { useState, useMemo } from "react";
 import { C, FS, FW, FF, CR, SEV_VERDICT, UI } from "../../constants/tokens.js";
 import { DISPLAY_NAMES } from "../../constants/mechanisms.js";
+import { formatSkipDetail } from "../../analysis/handoffModel.js";
 import { TestCardLayout } from "../shared/TestCardLayout.jsx";
 import { ClusterRow } from "../shared/ClusterRow.jsx";
 import { TestCard } from "../cards/TestCard.jsx";
@@ -211,6 +212,11 @@ export function ForensicsCategoryBlock({
                       <div style={{ fontSize: FS.sm, fontWeight: FW.NORM, color: C.TEXT_3, lineHeight: "1.5" }}>
                         {g.reason}
                       </div>
+                      {g.detail && (
+                        <div style={{ fontSize: FS.xs, fontWeight: FW.NORM, color: C.TEXT_3, marginTop: "2px" }}>
+                          {g.detail}
+                        </div>
+                      )}
                       <div style={{ fontSize: FS.sm, fontWeight: FW.MED, color: C.TEXT_2, marginTop: "2px" }}>
                         {g.names.join(" · ")}
                       </div>
@@ -237,10 +243,19 @@ function groupNotApplicableByReason(tests) {
   const byReason = new Map();
   for (const r of tests) {
     const reason = r.description || "";
-    if (!byReason.has(reason)) { byReason.set(reason, []); order.push(reason); }
-    byReason.get(reason).push(DISPLAY_NAMES[r.name] || r.name);
+    if (!byReason.has(reason)) { byReason.set(reason, { names: [], detail: null }); order.push(reason); }
+    const g = byReason.get(reason);
+    g.names.push(DISPLAY_NAMES[r.name] || r.name);
+    // Size-ceiling numbers, when the test carries them. Only Sequential
+    // Duplication does today, so a stanza holds at most one detail and first
+    // wins. If a second test ever joins, what a shared stanza should show is
+    // a Chat decision, not a shape to guess at here.
+    if (g.detail == null) g.detail = formatSkipDetail(r);
   }
-  return order.map(reason => ({ reason, names: byReason.get(reason) }));
+  return order.map(reason => {
+    const g = byReason.get(reason);
+    return { reason, names: g.names, detail: g.detail };
+  });
 }
 
 // A held-pending test row, visually distinct (amber attention rule) from a

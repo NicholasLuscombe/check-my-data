@@ -83,7 +83,13 @@ function formatOtherClustersAllClear(clusters) {
 
 function formatNotRun(skipped) {
   if (skipped.length === 0) return "None.";
-  return skipped.map(s => `- ${s.testName} — ${s.reason}`).join("\n");
+  // `detail` carries the size-ceiling numbers when a test declined to scan
+  // for size, and is null otherwise — so the parenthetical appears only on
+  // those, and the line stays one line either way.
+  return skipped.map(s => {
+    const detail = s.detail ? ` (${s.detail})` : "";
+    return `- ${s.testName} — ${s.reason}${detail}`;
+  }).join("\n");
 }
 
 // ── Template ───────────────────────────────────────────────────────────
