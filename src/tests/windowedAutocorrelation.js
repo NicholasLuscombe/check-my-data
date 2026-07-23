@@ -72,9 +72,9 @@ export async function testWindowedAutocorrelation(matrix, rng, onPermProgress = 
   const NAME = "Windowed Autocorrelation";
   const CAT = "replicate";
   const nR = matrix.length, nC = matrix[0]?.length || 0;
-  if (nC < 2) return { name: NAME, category: CAT, flag: "N/A", naCause: NA_CAUSE.TOO_FEW_COLUMNS,
+  if (nC < 2) return { name: NAME, category: CAT, flag: "N/A", naCause: NA_CAUSE.TOO_FEW_COLUMNS, naObserved: nC, naMinimum: 2,
     description: "Need ≥2 replicate columns for paired differences." };
-  if (nR < MIN_ROWS) return { name: NAME, category: CAT, flag: "N/A", naCause: NA_CAUSE.TOO_FEW_ROWS,
+  if (nR < MIN_ROWS) return { name: NAME, category: CAT, flag: "N/A", naCause: NA_CAUSE.TOO_FEW_ROWS, naObserved: nR, naMinimum: MIN_ROWS,
     description: `Need ≥${MIN_ROWS} rows for ≥4 windows at size ${WIN} / stride ${STRIDE} (got ${nR}).` };
 
   // Adaptive permutation count: keep total work bounded on large datasets.

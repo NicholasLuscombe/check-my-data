@@ -46,7 +46,7 @@ export function testEntropy(matrix, rng, dataType) {
     }
 
     if (vals.length < 20) {
-      columnResults.push({ col: ci, skip: true, reason: "< 20 observations", naCause: NA_CAUSE.TOO_FEW_OBSERVATIONS });
+      columnResults.push({ col: ci, skip: true, reason: "< 20 observations", naCause: NA_CAUSE.TOO_FEW_OBSERVATIONS, n: vals.length, min: 20 });
       continue;
     }
 
@@ -116,7 +116,10 @@ export function testEntropy(matrix, rng, dataType) {
   // Collect non-skipped columns
   const tested = columnResults.filter(c => !c.skip);
   if (tested.length === 0) {
-    return { name: NAME, category: CAT, flag: "N/A", naCause: dominantCause(columnResults.map(c => c.naCause)),
+    const dom = dominantCause(columnResults.map(c => c.naCause));
+    const domCols = columnResults.filter(c => c.naCause === dom && c.n !== undefined);
+    return { name: NAME, category: CAT, flag: "N/A", naCause: dom,
+      ...(domCols.length ? { naObserved: Math.max(...domCols.map(c => c.n)), naMinimum: domCols[0].min } : {}),
       description: "All columns had insufficient observations (< 20) for entropy analysis." };
   }
 

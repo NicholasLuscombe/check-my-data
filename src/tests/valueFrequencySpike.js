@@ -247,7 +247,7 @@ function buildFullValuePass(matrix) {
   const allVals = matrix.flat().filter(v => v != null && isFinite(v));
   const N = allVals.length;
   if (N < 100) {
-    return { tested: [], diag: { nValues: N }, na: "Need ≥100 values for value-frequency spike detection.", naCause: NA_CAUSE.TOO_FEW_ROWS };
+    return { tested: [], diag: { nValues: N }, na: "Need ≥100 values for value-frequency spike detection.", naCause: NA_CAUSE.TOO_FEW_ROWS, naObserved: N, naMinimum: 100 };
   }
 
   const intVals = allVals.filter(v => Number.isInteger(v));
@@ -268,7 +268,7 @@ function buildFullValuePass(matrix) {
     return {
       tested: [], diag: { nValues: intVals.length, nDistinct },
       na: `Only ${nDistinct} distinct integer values — need ≥20 for local smoothing to distinguish genuine spikes from expected variation on small scales.`,
-      naCause: NA_CAUSE.TOO_FEW_DISTINCT
+      naCause: NA_CAUSE.TOO_FEW_DISTINCT, naObserved: nDistinct, naMinimum: 20
     };
   }
 
@@ -460,6 +460,7 @@ export function testValueFrequencySpike(matrix, rawMatrix = null) {
     return {
       name, category, flag: "N/A",
       naCause: pass1.naCause,
+      ...(pass1.naObserved !== undefined ? { naObserved: pass1.naObserved, naMinimum: pass1.naMinimum } : {}),
       nValues: pass1.diag.nValues ?? 0,
       description: pass1.na,
       pass1Status: pass1.na,

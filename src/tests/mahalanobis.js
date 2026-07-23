@@ -27,9 +27,9 @@ export function testMahalanobisOutlier(matrix, assay='general') {
   const CAT = "replicate";
 
   // Minimum requirements: need ≥MIN_COLS columns for invertible covariance, and N ≥ 3×nC for stability
-  if (nC < MIN_COLS) return { name: NAME, category: CAT, flag: "N/A", naCause: NA_CAUSE.TOO_FEW_COLUMNS,
+  if (nC < MIN_COLS) return { name: NAME, category: CAT, flag: "N/A", naCause: NA_CAUSE.TOO_FEW_COLUMNS, naObserved: nC, naMinimum: MIN_COLS,
     description: "Requires ≥3 replicate columns for invertible covariance matrix." };
-  if (nR < 3 * nC) return { name: NAME, category: CAT, flag: "N/A", naCause: NA_CAUSE.TOO_FEW_ROWS,
+  if (nR < 3 * nC) return { name: NAME, category: CAT, flag: "N/A", naCause: NA_CAUSE.TOO_FEW_ROWS, naObserved: nR, naMinimum: 3 * nC,
     description: `Insufficient rows (${nR}) for ${nC} columns — need ≥${3*nC} for stable covariance estimate.` };
 
   // Build valid-rows matrix (skip rows with any null)
@@ -43,7 +43,7 @@ export function testMahalanobisOutlier(matrix, assay='general') {
     }
   }
   const N = validData.length;
-  if (N < 3 * nC) return { name: NAME, category: CAT, flag: "N/A", naCause: NA_CAUSE.TOO_FEW_ROWS,
+  if (N < 3 * nC) return { name: NAME, category: CAT, flag: "N/A", naCause: NA_CAUSE.TOO_FEW_ROWS, naObserved: N, naMinimum: 3 * nC,
     description: `Insufficient valid rows (${N}) after removing incomplete rows.` };
 
   // Internal normality correction: D² assumes multivariate normality.

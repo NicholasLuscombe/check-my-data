@@ -422,7 +422,7 @@ export async function runFullAnalysis(matrix, rawMatrix, condCtx, assay, onProgr
       const ctx = hasVST ? vstCondCtx : condCtx;
       if (!ctx || !ctx.has || ctx.count < 2) {
         return { name: "Cross-Condition Consistency", category: "group",
-          flag: "N/A", naCause: NA_CAUSE.TOO_FEW_CONDITIONS, description: "Need ≥2 experimental conditions." };
+          flag: "N/A", naCause: NA_CAUSE.TOO_FEW_CONDITIONS, naObserved: ctx?.count ?? 0, naMinimum: 2, description: "Need ≥2 experimental conditions." };
       }
       const r = testCrossConditionConsistency(m, ctx, rng, { originalMatrix: matrix, hasVST });
       if (hasVST) r.vstTransform = vstType;
@@ -439,7 +439,7 @@ export async function runFullAnalysis(matrix, rawMatrix, condCtx, assay, onProgr
       // here before any per-condition row split, rather than finding the
       // shortage once per group.
       if ((matrix[0]?.length || 0) < MAHAL_MIN_COLS) {
-        return { name: "Mahalanobis Row Outlier", category: "replicate", flag: "N/A", naCause: NA_CAUSE.TOO_FEW_COLUMNS,
+        return { name: "Mahalanobis Row Outlier", category: "replicate", flag: "N/A", naCause: NA_CAUSE.TOO_FEW_COLUMNS, naObserved: matrix[0]?.length || 0, naMinimum: MAHAL_MIN_COLS,
           description: `Not applicable with fewer than ${MAHAL_MIN_COLS} replicate columns — the row-distance measure this test uses needs at least that many.` };
       }
       // S127 Path 1 dispatch: METHODOLOGY.md §2.6 step 1 specifies
@@ -530,7 +530,7 @@ export async function runFullAnalysis(matrix, rawMatrix, condCtx, assay, onProgr
       const rg = condCtx?.rowGroups();
       if (rg) {
         if (noGroupMeetsMin(rg, GOF_MIN_OBS)) {
-          return { name: "Column Goodness-of-Fit", category: "shapes", flag: "N/A", naCause: NA_CAUSE.TOO_FEW_OBSERVATIONS,
+          return { name: "Column Goodness-of-Fit", category: "shapes", flag: "N/A", naCause: NA_CAUSE.TOO_FEW_OBSERVATIONS, naObserved: Math.max(...rg.map(g => g.matrix.length)), naMinimum: GOF_MIN_OBS,
             description: `Not applicable — no condition group has the ${GOF_MIN_OBS} values this goodness-of-fit test needs to fit a distribution.` };
         }
         return await aggregatePerGroup(m => testColumnGof(m, rng, dataType), rg);
@@ -543,7 +543,7 @@ export async function runFullAnalysis(matrix, rawMatrix, condCtx, assay, onProgr
       const rg = condCtx?.rowGroups();
       if (rg) {
         if (noGroupMeetsMin(rg, MODALITY_MIN_N)) {
-          return { name: "Modality Test", category: "shapes", flag: "N/A", naCause: NA_CAUSE.TOO_FEW_OBSERVATIONS,
+          return { name: "Modality Test", category: "shapes", flag: "N/A", naCause: NA_CAUSE.TOO_FEW_OBSERVATIONS, naObserved: Math.max(...rg.map(g => g.matrix.length)), naMinimum: MODALITY_MIN_N,
             description: `Not applicable — no condition group has the ${MODALITY_MIN_N} values this modality test needs.` };
         }
         return await aggregatePerGroup(m => testModality(m, rng, dataType), rg);

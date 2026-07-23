@@ -12,7 +12,7 @@ import { NA_CAUSE } from "../constants/naCause.js";
  */
 export function testMeanVariance(matrix, assay) {
   const nC=matrix[0]?.length||0;
-  if(nC<3) return {name:"Noise Scaling With Measurement Size",category:"replicate",flag:"N/A",naCause:NA_CAUSE.TOO_FEW_COLUMNS,description:"Need ≥3 replicate columns to estimate within-row variance."};
+  if(nC<3) return {name:"Noise Scaling With Measurement Size",category:"replicate",flag:"N/A",naCause:NA_CAUSE.TOO_FEW_COLUMNS,naObserved:nC,naMinimum:3,description:"Need ≥3 replicate columns to estimate within-row variance."};
   const points=[];
   for(let r=0;r<matrix.length;r++){
     const vals=matrix[r].filter(v=>v!=null);
@@ -20,7 +20,7 @@ export function testMeanVariance(matrix, assay) {
     const m=mean(vals), v=variance(vals);
     if(m>0&&v>0) points.push({mean:m,variance:v});
   }
-  if(points.length<5) return {name:"Noise Scaling With Measurement Size",category:"replicate",flag:"N/A",naCause:NA_CAUSE.TOO_FEW_ROWS,description:"Need ≥5 rows with ≥3 valid non-zero replicates."};
+  if(points.length<5) return {name:"Noise Scaling With Measurement Size",category:"replicate",flag:"N/A",naCause:NA_CAUSE.TOO_FEW_ROWS,naObserved:points.length,naMinimum:5,description:"Need ≥5 rows with ≥3 valid non-zero replicates."};
   const expectedSlopes={general:null,qpcr:0,densitometry:2,plate_reader:1,cell_count:1,elisa:2,genomics:2,physiological:0};
   const expSlope=expectedSlopes[assay]??null;
   // Check dynamic range of row means — log-log slope is unreliable when data spans

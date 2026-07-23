@@ -28,7 +28,7 @@ export function testLoessResidual(matrix, rng) {
   const CAT = "replicate";
   const nR = matrix.length, nC = matrix[0]?.length || 0;
 
-  if (nC < 2 || nR < 30) return { name: NAME, category: CAT, flag: "N/A", naCause: nC < 2 ? NA_CAUSE.TOO_FEW_COLUMNS : NA_CAUSE.TOO_FEW_ROWS,
+  if (nC < 2 || nR < 30) return { name: NAME, category: CAT, flag: "N/A", naCause: nC < 2 ? NA_CAUSE.TOO_FEW_COLUMNS : NA_CAUSE.TOO_FEW_ROWS, naObserved: nC < 2 ? nC : nR, naMinimum: nC < 2 ? 2 : 30,
     description: `Need ≥2 replicate columns and ≥30 rows for LOESS analysis (have ${nR} rows × ${nC} cols).` };
 
   // Step 1: compute mean absolute inter-replicate difference per row
@@ -49,7 +49,7 @@ export function testLoessResidual(matrix, rng) {
     if (mad >= 0) validRows.push(r);
   }
 
-  if (validRows.length < 30) return { name: NAME, category: CAT, flag: "N/A", naCause: NA_CAUSE.TOO_FEW_ROWS,
+  if (validRows.length < 30) return { name: NAME, category: CAT, flag: "N/A", naCause: NA_CAUSE.TOO_FEW_ROWS, naObserved: validRows.length, naMinimum: 30,
     description: `Only ${validRows.length} rows with valid replicate differences — need ≥30.` };
 
   // Step 2: LOESS smooth of |diff| vs row index
@@ -64,7 +64,10 @@ export function testLoessResidual(matrix, rng) {
 
   // Step 4a: sliding-window variance scan (existing)
   const WIN = Math.min(20, Math.floor(validRows.length / 3));
-  if (WIN < 8) return { name: NAME, category: CAT, flag: "N/A", naCause: NA_CAUSE.TOO_FEW_ROWS,
+  // The guard fires on WIN, but WIN = floor(validRows/3), so WIN<8 is exactly
+  // validRows<24 — a row shortfall. Report the row count the reader can act on,
+  // not the window size, so the number matches the tooFewRows code.
+  if (WIN < 8) return { name: NAME, category: CAT, flag: "N/A", naCause: NA_CAUSE.TOO_FEW_ROWS, naObserved: validRows.length, naMinimum: 24,
     description: `Insufficient data for windowed scan (window=${WIN}, need ≥8).` };
 
   const stride = Math.max(1, Math.floor(WIN / 3));

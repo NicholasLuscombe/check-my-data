@@ -403,7 +403,7 @@ export async function testBlockedMahalanobis(matrix, condCtx, rng, dataType = 'c
   const nR = matrix.length;
   const nC = matrix[0]?.length || 0;
   if (nC < MIN_NC) {
-    return { name: NAME, category: CAT, flag: "N/A", naCause: NA_CAUSE.TOO_FEW_COLUMNS,
+    return { name: NAME, category: CAT, flag: "N/A", naCause: NA_CAUSE.TOO_FEW_COLUMNS, naObserved: nC, naMinimum: MIN_NC,
       description: `Need ≥${MIN_NC} replicate columns for a non-degenerate covariance estimate (have ${nC}).` };
   }
 

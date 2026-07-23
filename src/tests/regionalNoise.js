@@ -27,7 +27,7 @@ import { NA_CAUSE } from "../constants/naCause.js";
  */
 export function testRegionalNoise(matrix, rng) {
   const nR = matrix.length, nC = matrix[0]?.length || 0;
-  if (nC < 3 || nR < 20) return { name: "Regional Noise Homogeneity", category: "replicate", flag: "N/A", naCause: nC < 3 ? NA_CAUSE.TOO_FEW_COLUMNS : NA_CAUSE.TOO_FEW_ROWS,
+  if (nC < 3 || nR < 20) return { name: "Regional Noise Homogeneity", category: "replicate", flag: "N/A", naCause: nC < 3 ? NA_CAUSE.TOO_FEW_COLUMNS : NA_CAUSE.TOO_FEW_ROWS, naObserved: nC < 3 ? nC : nR, naMinimum: nC < 3 ? 3 : 20,
     description: "Need ≥3 replicate columns and ≥20 rows." };
 
   // ── Step 1: predicted σ per row from mean-variance fit ──
@@ -51,7 +51,7 @@ export function testRegionalNoise(matrix, rng) {
       if (nValid >= nC) validRows.push(r);
     }
   }
-  if (validRows.length < 20) return { name: "Regional Noise Homogeneity", category: "replicate", flag: "N/A", naCause: NA_CAUSE.TOO_FEW_ROWS,
+  if (validRows.length < 20) return { name: "Regional Noise Homogeneity", category: "replicate", flag: "N/A", naCause: NA_CAUSE.TOO_FEW_ROWS, naObserved: validRows.length, naMinimum: 20,
     description: `Only ${validRows.length} rows with complete data and valid σ — need ≥20.` };
 
   // Standardised residuals matrix: validRows.length × nC
@@ -70,7 +70,7 @@ export function testRegionalNoise(matrix, rng) {
   // (window × column) pairs. Permutation null: row-shuffle preserves
   // global variance but redistributes window membership.
   const WIN = 15;
-  if (validRows.length < WIN) return { name: "Regional Noise Homogeneity", category: "replicate", flag: "N/A", naCause: NA_CAUSE.TOO_FEW_ROWS,
+  if (validRows.length < WIN) return { name: "Regional Noise Homogeneity", category: "replicate", flag: "N/A", naCause: NA_CAUSE.TOO_FEW_ROWS, naObserved: validRows.length, naMinimum: WIN,
     description: `Only ${validRows.length} valid rows — need ≥${WIN} for windowed scan.` };
   const stride = Math.max(1, Math.floor(WIN / 3));
 

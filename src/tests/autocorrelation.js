@@ -20,7 +20,7 @@ const PAIR_CORROB_MIN = 2;        // minimum pairs passing (iii) to allow promot
  */
 export function testAutocorrelation(matrix) {
   const nR=matrix.length, nC=matrix[0]?.length||0;
-  if(nC<2||nR<10) return {name:"Autocorrelation",category:"replicate",flag:"N/A",naCause:nC<2?NA_CAUSE.TOO_FEW_COLUMNS:NA_CAUSE.TOO_FEW_ROWS,description:"Insufficient data (≥2 cols, ≥10 rows)."};
+  if(nC<2||nR<10) return {name:"Autocorrelation",category:"replicate",flag:"N/A",naCause:nC<2?NA_CAUSE.TOO_FEW_COLUMNS:NA_CAUSE.TOO_FEW_ROWS,naObserved:nC<2?nC:nR,naMinimum:nC<2?2:10,description:"Insufficient data (≥2 cols, ≥10 rows)."};
   const res=[];
   const lagAcc=new Array(MAX_LAG).fill(0);
   let lagN=0;
