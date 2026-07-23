@@ -1,5 +1,6 @@
 import { bhFDR } from "../stats/primitives.js";
 import { flagFromP, ALPHA } from "../constants/thresholds.js";
+import { NA_CAUSE } from "../constants/naCause.js";
 
 /* 27. Blocked Mahalanobis Covariance-Anomaly Detection
    Detects contiguous row blocks whose cross-replicate covariance Σ or mean μ
@@ -395,14 +396,14 @@ export async function testBlockedMahalanobis(matrix, condCtx, rng, dataType = 'c
   const CAT = "replicate";
 
   if (dataType !== 'continuous') {
-    return { name: NAME, category: CAT, flag: "N/A",
+    return { name: NAME, category: CAT, flag: "N/A", naCause: NA_CAUSE.DATA_TYPE_MISMATCH,
       description: `Not applicable to ${dataType} data (covariance structure null is only stable on continuous measurements).` };
   }
 
   const nR = matrix.length;
   const nC = matrix[0]?.length || 0;
   if (nC < MIN_NC) {
-    return { name: NAME, category: CAT, flag: "N/A",
+    return { name: NAME, category: CAT, flag: "N/A", naCause: NA_CAUSE.TOO_FEW_COLUMNS,
       description: `Need ≥${MIN_NC} replicate columns for a non-degenerate covariance estimate (have ${nC}).` };
   }
 
@@ -439,7 +440,7 @@ export async function testBlockedMahalanobis(matrix, condCtx, rng, dataType = 'c
   }
 
   if (!workSlices.length) {
-    return { name: NAME, category: CAT, flag: "N/A",
+    return { name: NAME, category: CAT, flag: "N/A", naCause: NA_CAUSE.TOO_FEW_ROWS,
       description: `Need ≥${MIN_N_CONSTRUCT} complete rows per condition (have ${nR} total rows across conditions).` };
   }
 
@@ -464,7 +465,7 @@ export async function testBlockedMahalanobis(matrix, condCtx, rng, dataType = 'c
   }
   const applicable = workSlices.filter(ws => !ws.skip);
   if (!applicable.length) {
-    return { name: NAME, category: CAT, flag: "N/A",
+    return { name: NAME, category: CAT, flag: "N/A", naCause: NA_CAUSE.TOO_FEW_ROWS,
       description: `Insufficient rows per condition for the windowed scan (W=${W}, stride=${S_STRIDE}).` };
   }
 

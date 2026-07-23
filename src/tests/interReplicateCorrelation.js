@@ -1,5 +1,6 @@
 import { mean, variance, zToP, bhFDR } from "../stats/primitives.js";
 import { flagFromP, ALPHA, flagRankOf } from "../constants/thresholds.js";
+import { NA_CAUSE } from "../constants/naCause.js";
 
 /**
  * Detects implausibly uniform pairwise Pearson correlation among replicates, suggesting non-independent columns.
@@ -134,7 +135,7 @@ export function testPearsonUniformity(matrix, pairGroups, rng, rowSemantics = 'o
     }
   }
 
-  if(!allPairs.length) return {name:"Inter-Replicate Correlation",category:"replicate",flag:"N/A",
+  if(!allPairs.length) return {name:"Inter-Replicate Correlation",category:"replicate",flag:"N/A",naCause:NA_CAUSE.EMPTY_INPUT,
     description:"No valid within-condition replicate pairs found."};
 
   // BH-FDR correction across all per-pair p-values

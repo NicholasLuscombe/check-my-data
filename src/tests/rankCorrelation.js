@@ -1,5 +1,6 @@
 import { mean, spearmanR, normalCDF, bhFDR } from "../stats/primitives.js";
 import { flagFromP, ALPHA } from "../constants/thresholds.js";
+import { NA_CAUSE } from "../constants/naCause.js";
 
 /* 4c. Cross-Condition Spearman Rank Correlation */
 /**
@@ -22,7 +23,7 @@ export function testSpearmanCrossCondition(matrix, condCtx) {
   }
 
   if(condProfiles.length<2)
-    return {name:"Cross-Condition Rank Correlation",category:"group",flag:"N/A",
+    return {name:"Cross-Condition Rank Correlation",category:"group",flag:"N/A",naCause:NA_CAUSE.TOO_FEW_CONDITIONS,
       description:"Need ≥2 conditions with ≥5 rows each."};
 
   // Compute per-pair ρ
@@ -37,7 +38,7 @@ export function testSpearmanCrossCondition(matrix, condCtx) {
       spearmanR:rho.toFixed(4), n });
   }
 
-  if(!results.length) return {name:"Cross-Condition Rank Correlation",category:"group",flag:"N/A",
+  if(!results.length) return {name:"Cross-Condition Rank Correlation",category:"group",flag:"N/A",naCause:NA_CAUSE.TOO_FEW_CONDITIONS,
     description:"Insufficient data per condition pair (need ≥5 rows each)."};
 
   // With fewer than 4 pairs, LOO null has too few degrees of freedom for reliable
@@ -47,6 +48,7 @@ export function testSpearmanCrossCondition(matrix, condCtx) {
     const rho = parseFloat(results[0]?.spearmanR);
     return { name:"Cross-Condition Rank Correlation", category:"group",
       flag:"N/A",
+      naCause:NA_CAUSE.PREMISE_VOID,
       insufficientPairs:true,
       description:"With fewer than 4 condition pairs, LOO null has too few degrees of freedom to distinguish fabrication from routine biological similarity (most features non-differentially expressed). This test requires ≥4 condition pairs to make statistical inference. Shown here as contextual information only.",
       nConditionPairs:results.length, nSuspicious:0,

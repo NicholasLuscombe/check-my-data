@@ -1,4 +1,5 @@
 import { flagFromP } from "../constants/thresholds.js";
+import { NA_CAUSE } from "../constants/naCause.js";
 
 /* Reason text for the size-ceiling exit below. Constant, with no row count
    interpolated, so two files that both cross the ceiling produce the same
@@ -29,12 +30,12 @@ const SCAN_SKIPPED_REASON =
 export function testSequentialDuplication(matrix, assay) {
   const nR = matrix.length, nC = matrix[0]?.length || 0;
   if (nR === 0 || nC === 0) {
-    return { name: "Sequential Duplication", category: "copied", flag: "N/A",
+    return { name: "Sequential Duplication", category: "copied", flag: "N/A", naCause: NA_CAUSE.EMPTY_INPUT,
       description: "No data." };
   }
   // Need at least a height-3 run plus a positive offset to have any opportunity.
   if (nR < 4) {
-    return { name: "Sequential Duplication", category: "copied", flag: "N/A",
+    return { name: "Sequential Duplication", category: "copied", flag: "N/A", naCause: NA_CAUSE.TOO_FEW_ROWS,
       description: "Too few rows for sequence detection (need at least 4)." };
   }
 
@@ -48,7 +49,7 @@ export function testSequentialDuplication(matrix, assay) {
     // Above the ceiling this test declines to look; it does not look and find
     // nothing. So it returns "N/A" with no primaryP, matching the two guards
     // above, rather than a LOW verdict a reader would take as a clean result.
-    return { name: "Sequential Duplication", category: "copied", flag: "N/A",
+    return { name: "Sequential Duplication", category: "copied", flag: "N/A", naCause: NA_CAUSE.SCAN_CAP_EXCEEDED,
       sequences: [], nSequences: 0,
       description: SCAN_SKIPPED_REASON,
       scanSkippedRows: nR, scanRowLimit: BLOCK_SCAN_LIMIT };

@@ -1,5 +1,6 @@
 import { mean, variance, cusumStat, loessSmooth, bhFDR, fitPredictedSigma } from "../stats/primitives.js";
 import { flagFromP, ALPHA, flagRankOf } from "../constants/thresholds.js";
+import { NA_CAUSE } from "../constants/naCause.js";
 
 /* 20. LOESS Residual Analysis
    Detects regions where noise character changes — indicating partial fabrication
@@ -27,7 +28,7 @@ export function testLoessResidual(matrix, rng) {
   const CAT = "replicate";
   const nR = matrix.length, nC = matrix[0]?.length || 0;
 
-  if (nC < 2 || nR < 30) return { name: NAME, category: CAT, flag: "N/A",
+  if (nC < 2 || nR < 30) return { name: NAME, category: CAT, flag: "N/A", naCause: nC < 2 ? NA_CAUSE.TOO_FEW_COLUMNS : NA_CAUSE.TOO_FEW_ROWS,
     description: `Need ≥2 replicate columns and ≥30 rows for LOESS analysis (have ${nR} rows × ${nC} cols).` };
 
   // Step 1: compute mean absolute inter-replicate difference per row
@@ -48,7 +49,7 @@ export function testLoessResidual(matrix, rng) {
     if (mad >= 0) validRows.push(r);
   }
 
-  if (validRows.length < 30) return { name: NAME, category: CAT, flag: "N/A",
+  if (validRows.length < 30) return { name: NAME, category: CAT, flag: "N/A", naCause: NA_CAUSE.TOO_FEW_ROWS,
     description: `Only ${validRows.length} rows with valid replicate differences — need ≥30.` };
 
   // Step 2: LOESS smooth of |diff| vs row index
@@ -63,7 +64,7 @@ export function testLoessResidual(matrix, rng) {
 
   // Step 4a: sliding-window variance scan (existing)
   const WIN = Math.min(20, Math.floor(validRows.length / 3));
-  if (WIN < 8) return { name: NAME, category: CAT, flag: "N/A",
+  if (WIN < 8) return { name: NAME, category: CAT, flag: "N/A", naCause: NA_CAUSE.TOO_FEW_ROWS,
     description: `Insufficient data for windowed scan (window=${WIN}, need ≥8).` };
 
   const stride = Math.max(1, Math.floor(WIN / 3));
@@ -90,7 +91,7 @@ export function testLoessResidual(matrix, rng) {
     if (ratio > obsScanStat) { obsScanStat = ratio; bestWinIdx = allWindows.length - 1; }
   }
 
-  if (!allWindows.length) return { name: NAME, category: CAT, flag: "N/A",
+  if (!allWindows.length) return { name: NAME, category: CAT, flag: "N/A", naCause: NA_CAUSE.EMPTY_INPUT,
     description: "No valid windows for scan." };
 
   // Step 4b: CUSUM changepoint detection on the raw noise measure (ys)

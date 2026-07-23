@@ -1,5 +1,6 @@
 import { mean, zToP, bhFDR, arrayMin } from "../stats/primitives.js";
 import { flagFromP, ALPHA, flagRankOf } from "../constants/thresholds.js";
+import { NA_CAUSE } from "../constants/naCause.js";
 
 /* 7b. Row-Mean Runs Test (Item 2 — METHODOLOGY §5.5)
  * Detects uniform additive shifts applied to all replicates of a row block.
@@ -19,7 +20,7 @@ export function testRowMeanRuns(matrix, condCtx, rng) {
   const rowConditions = condCtx?.rowConditions || null;
   const nC = matrix[0]?.length || 0;
   const nR = matrix.length;
-  if (nC < 2 || nR < 10) return { name: "Row-Mean Runs", category: "replicate", flag: "N/A",
+  if (nC < 2 || nR < 10) return { name: "Row-Mean Runs", category: "replicate", flag: "N/A", naCause: nC < 2 ? NA_CAUSE.TOO_FEW_COLUMNS : NA_CAUSE.TOO_FEW_ROWS,
     description: "Need \u22652 replicate columns and \u226510 rows." };
 
   // Require row-level condition labels. Without them, row means carry biological
@@ -27,7 +28,7 @@ export function testRowMeanRuns(matrix, condCtx, rng) {
   // clustering that linear detrending cannot remove. The test is only forensically
   // meaningful within-condition, where biological between-condition signal is absent.
   const hasConditions = rowConditions && rowConditions.some(c => c);
-  if (!hasConditions) return { name: "Row-Mean Runs", category: "replicate", flag: "N/A",
+  if (!hasConditions) return { name: "Row-Mean Runs", category: "replicate", flag: "N/A", naCause: NA_CAUSE.PREMISE_VOID,
     description: "Requires row-level condition labels. Without per-condition grouping, biological variation in row means produces natural clustering that cannot be distinguished from data concerns." };
 
   // ── helpers ──────────────────────────────────────────────────────────
@@ -90,7 +91,7 @@ export function testRowMeanRuns(matrix, condCtx, rng) {
     if (r) sequences.push({ label: `Cond: ${cond}`, ...r, rowIdxs: idxs, residuals: resid });
   }
 
-  if (!sequences.length) return { name: "Row-Mean Runs", category: "replicate", flag: "N/A",
+  if (!sequences.length) return { name: "Row-Mean Runs", category: "replicate", flag: "N/A", naCause: NA_CAUSE.TOO_FEW_ROWS,
     description: "Per-condition sequences too short for runs analysis (need \u226510 rows per condition)." };
 
   // ── global: best p across per-condition sequences ──────────────────

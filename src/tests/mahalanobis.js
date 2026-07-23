@@ -1,5 +1,6 @@
 import { normalCDF, chiSquaredP, invertMatrix, chiSquaredQuantile, bhFDR } from "../stats/primitives.js";
 import { ALPHA } from "../constants/thresholds.js";
+import { NA_CAUSE } from "../constants/naCause.js";
 
 // Minimum columns for an invertible covariance matrix. Exported so the engine
 // can check the whole-dataset column count before any per-condition row split
@@ -26,9 +27,9 @@ export function testMahalanobisOutlier(matrix, assay='general') {
   const CAT = "replicate";
 
   // Minimum requirements: need ≥MIN_COLS columns for invertible covariance, and N ≥ 3×nC for stability
-  if (nC < MIN_COLS) return { name: NAME, category: CAT, flag: "N/A",
+  if (nC < MIN_COLS) return { name: NAME, category: CAT, flag: "N/A", naCause: NA_CAUSE.TOO_FEW_COLUMNS,
     description: "Requires ≥3 replicate columns for invertible covariance matrix." };
-  if (nR < 3 * nC) return { name: NAME, category: CAT, flag: "N/A",
+  if (nR < 3 * nC) return { name: NAME, category: CAT, flag: "N/A", naCause: NA_CAUSE.TOO_FEW_ROWS,
     description: `Insufficient rows (${nR}) for ${nC} columns — need ≥${3*nC} for stable covariance estimate.` };
 
   // Build valid-rows matrix (skip rows with any null)
@@ -42,7 +43,7 @@ export function testMahalanobisOutlier(matrix, assay='general') {
     }
   }
   const N = validData.length;
-  if (N < 3 * nC) return { name: NAME, category: CAT, flag: "N/A",
+  if (N < 3 * nC) return { name: NAME, category: CAT, flag: "N/A", naCause: NA_CAUSE.TOO_FEW_ROWS,
     description: `Insufficient valid rows (${N}) after removing incomplete rows.` };
 
   // Internal normality correction: D² assumes multivariate normality.
@@ -91,7 +92,7 @@ export function testMahalanobisOutlier(matrix, assay='general') {
   // Step 3: Invert covariance matrix using Cholesky decomposition
   // For small nC (typically 3-6), this is numerically stable
   const invCov = invertMatrix(cov, nC);
-  if (!invCov) return { name: NAME, category: CAT, flag: "N/A",
+  if (!invCov) return { name: NAME, category: CAT, flag: "N/A", naCause: NA_CAUSE.SINGULAR_COMPUTATION,
     description: "Covariance matrix is singular — cannot compute Mahalanobis distances. This may indicate perfectly collinear columns." };
 
   // Step 4: Compute D² for each row

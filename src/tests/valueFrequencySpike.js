@@ -1,5 +1,6 @@
 import { normalCDF, bhFDR } from "../stats/primitives.js";
 import { flagFromP, flagRankOf, ALPHA } from "../constants/thresholds.js";
+import { NA_CAUSE } from "../constants/naCause.js";
 
 /* 17. Value-Frequency Spike Detection
    Detects specific integer values that occur far more often than their
@@ -246,7 +247,7 @@ function buildFullValuePass(matrix) {
   const allVals = matrix.flat().filter(v => v != null && isFinite(v));
   const N = allVals.length;
   if (N < 100) {
-    return { tested: [], diag: { nValues: N }, na: "Need ≥100 values for value-frequency spike detection." };
+    return { tested: [], diag: { nValues: N }, na: "Need ≥100 values for value-frequency spike detection.", naCause: NA_CAUSE.TOO_FEW_ROWS };
   }
 
   const intVals = allVals.filter(v => Number.isInteger(v));
@@ -254,7 +255,8 @@ function buildFullValuePass(matrix) {
   if (intFrac < 0.8) {
     return {
       tested: [], diag: { nValues: N, intFrac: (intFrac * 100).toFixed(1) + "%" },
-      na: "Not applicable — data is primarily non-integer. This test detects anomalous frequency spikes in integer value distributions."
+      na: "Not applicable — data is primarily non-integer. This test detects anomalous frequency spikes in integer value distributions.",
+      naCause: NA_CAUSE.DATA_TYPE_MISMATCH
     };
   }
 
@@ -265,7 +267,8 @@ function buildFullValuePass(matrix) {
   if (nDistinct < 20) {
     return {
       tested: [], diag: { nValues: intVals.length, nDistinct },
-      na: `Only ${nDistinct} distinct integer values — need ≥20 for local smoothing to distinguish genuine spikes from expected variation on small scales.`
+      na: `Only ${nDistinct} distinct integer values — need ≥20 for local smoothing to distinguish genuine spikes from expected variation on small scales.`,
+      naCause: NA_CAUSE.TOO_FEW_DISTINCT
     };
   }
 
@@ -274,7 +277,8 @@ function buildFullValuePass(matrix) {
   if (span > 10000) {
     return {
       tested: [], diag: { nValues: intVals.length, nDistinct, span },
-      na: `Integer range ${vMin}–${vMax} (span ${span}) is too wide for local frequency analysis. This test is designed for bounded integer scales.`
+      na: `Integer range ${vMin}–${vMax} (span ${span}) is too wide for local frequency analysis. This test is designed for bounded integer scales.`,
+      naCause: NA_CAUSE.RANGE_TOO_NARROW
     };
   }
 
@@ -282,7 +286,7 @@ function buildFullValuePass(matrix) {
   const tested = poissonNeighbourScan(freq, distinctKeys, halfW, /*skipValue*/ 0);
   // Tag pass metadata for downstream reporting.
   for (const t of tested) { t.pass = "full"; }
-  return { tested, diag: { nValues: intVals.length, nDistinct, halfW, span }, na: null };
+  return { tested, diag: { nValues: intVals.length, nDistinct, halfW, span }, na: null, naCause: null };
 }
 
 // ── Pass 2: fractional-digit-substring scan. Bucketed by substring length. ──
@@ -455,6 +459,7 @@ export function testValueFrequencySpike(matrix, rawMatrix = null) {
   if (pass1.na && pass2.na) {
     return {
       name, category, flag: "N/A",
+      naCause: pass1.naCause,
       nValues: pass1.diag.nValues ?? 0,
       description: pass1.na,
       pass1Status: pass1.na,

@@ -1,5 +1,6 @@
 import { mean, variance, stddev, arrayMin, arrayMax, chiSquaredP, zToP } from "../stats/primitives.js";
 import { flagFromP, ALPHA } from "../constants/thresholds.js";
+import { NA_CAUSE } from "../constants/naCause.js";
 
 /* 11. Mean–Variance Relationship */
 /**
@@ -11,7 +12,7 @@ import { flagFromP, ALPHA } from "../constants/thresholds.js";
  */
 export function testMeanVariance(matrix, assay) {
   const nC=matrix[0]?.length||0;
-  if(nC<3) return {name:"Noise Scaling With Measurement Size",category:"replicate",flag:"N/A",description:"Need ≥3 replicate columns to estimate within-row variance."};
+  if(nC<3) return {name:"Noise Scaling With Measurement Size",category:"replicate",flag:"N/A",naCause:NA_CAUSE.TOO_FEW_COLUMNS,description:"Need ≥3 replicate columns to estimate within-row variance."};
   const points=[];
   for(let r=0;r<matrix.length;r++){
     const vals=matrix[r].filter(v=>v!=null);
@@ -19,7 +20,7 @@ export function testMeanVariance(matrix, assay) {
     const m=mean(vals), v=variance(vals);
     if(m>0&&v>0) points.push({mean:m,variance:v});
   }
-  if(points.length<5) return {name:"Noise Scaling With Measurement Size",category:"replicate",flag:"N/A",description:"Need ≥5 rows with ≥3 valid non-zero replicates."};
+  if(points.length<5) return {name:"Noise Scaling With Measurement Size",category:"replicate",flag:"N/A",naCause:NA_CAUSE.TOO_FEW_ROWS,description:"Need ≥5 rows with ≥3 valid non-zero replicates."};
   const expectedSlopes={general:null,qpcr:0,densitometry:2,plate_reader:1,cell_count:1,elisa:2,genomics:2,physiological:0};
   const expSlope=expectedSlopes[assay]??null;
   // Check dynamic range of row means — log-log slope is unreliable when data spans
@@ -30,7 +31,7 @@ export function testMeanVariance(matrix, assay) {
   // to distinguish slope=1 from slope=2 (Poisson vs proportional).
   const ptMeans=points.map(p=>p.mean);
   const meanRange = Math.log10(arrayMax(ptMeans)) - Math.log10(arrayMin(ptMeans));
-  if(meanRange<1.0 && expSlope!==0) return {name:"Noise Scaling With Measurement Size",category:"replicate",flag:"N/A",
+  if(meanRange<1.0 && expSlope!==0) return {name:"Noise Scaling With Measurement Size",category:"replicate",flag:"N/A",naCause:NA_CAUSE.RANGE_TOO_NARROW,
     description:`Row means span only ${meanRange.toFixed(1)} orders of magnitude — need ≥1.0 for a reliable log-log slope estimate. Noise Scaling test is inapplicable for narrow-range data.`};
   const logM=points.map(p=>Math.log(p.mean));
   const logV=points.map(p=>Math.log(p.variance));

@@ -1,5 +1,6 @@
 import { mean, variance, arrayMin, arrayMax, normalCDF, lnGamma, bhFDR, regIncBeta } from "../stats/primitives.js";
 import { flagFromP } from "../constants/thresholds.js";
+import { NA_CAUSE } from "../constants/naCause.js";
 
 /* 1. Exact Duplicate Detection — 2 statistical signals: structural duplication (row-dup binomial + block copies) and within-row coincidences. BH-FDR on 2. */
 /**
@@ -30,7 +31,7 @@ export function testDuplicates(matrix, fullMatrix, colGroupId, assay) {
     if(v!=null){allVals.push(v);const k=v.toFixed(4);globalFreq[k]=(globalFreq[k]||0)+1;}
   }
   const N=allVals.length;
-  if(N===0) return {name:"Exact Duplicate Detection",category:"copied",flag:"N/A",description:"No data."};
+  if(N===0) return {name:"Exact Duplicate Detection",category:"copied",flag:"N/A",naCause:NA_CAUSE.EMPTY_INPUT,description:"No data."};
 
   // Dominant decimal precision from observed strings
   const dpCounts={};

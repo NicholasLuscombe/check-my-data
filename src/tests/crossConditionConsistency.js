@@ -88,6 +88,7 @@
 import { bhFDR } from "../stats/primitives.js";
 import { flagFromP, ALPHA } from "../constants/thresholds.js";
 import { CROSS_COND_PROPERTIES } from "./crossConditionProperties.js";
+import { NA_CAUSE } from "../constants/naCause.js";
 
 const NAME = "Cross-Condition Consistency";
 const CAT  = "group";
@@ -106,11 +107,11 @@ const CAT  = "group";
  */
 export function testCrossConditionConsistency(matrix, condCtx, rng, opts = {}) {
   if (!condCtx || !condCtx.has || condCtx.count < 2) {
-    return _na("Need ≥2 experimental conditions.");
+    return _na("Need ≥2 experimental conditions.", NA_CAUSE.TOO_FEW_CONDITIONS);
   }
   const slices = condCtx.slices();
   if (!slices || slices.length < 2) {
-    return _na("Need ≥2 conditions with data.");
+    return _na("Need ≥2 conditions with data.", NA_CAUSE.TOO_FEW_CONDITIONS);
   }
 
   // Pre-VST matrix source for properties with useOriginalValues=true
@@ -158,7 +159,7 @@ export function testCrossConditionConsistency(matrix, condCtx, rng, opts = {}) {
   const keptIdx = [];
   for (let i = 0; i < keep.length; i++) if (keep[i]) keptIdx.push(i);
   if (keptIdx.length < 2) {
-    return _na("Need ≥2 conditions with ≥2 values each.");
+    return _na("Need ≥2 conditions with ≥2 values each.", NA_CAUSE.TOO_FEW_CONDITIONS);
   }
 
   // ── Permutation B scaling ────────────────────────────────────────────
@@ -439,6 +440,7 @@ export function testCrossConditionConsistency(matrix, condCtx, rng, opts = {}) {
     return _na(
       "No (property × pair) unit passed applicability gates. " +
       "At least one property needs two conditions with the minimum N per condition.",
+      NA_CAUSE.TOO_FEW_CONDITIONS,
     );
   }
 
@@ -735,8 +737,8 @@ export function testCrossConditionConsistency(matrix, condCtx, rng, opts = {}) {
 }
 
 // ── Helpers ─────────────────────────────────────────────────────────
-function _na(reason) {
-  return { name: NAME, category: CAT, flag: "N/A", description: reason };
+function _na(reason, naCause) {
+  return { name: NAME, category: CAT, flag: "N/A", naCause, description: reason };
 }
 
 /**

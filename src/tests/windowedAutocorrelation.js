@@ -1,5 +1,6 @@
 import { bhFDR, arrayMin } from "../stats/primitives.js";
 import { flagFromP } from "../constants/thresholds.js";
+import { NA_CAUSE } from "../constants/naCause.js";
 
 /* 25. Windowed Autocorrelation
    Detects localised lag-1 serial structure in replicate differences within
@@ -71,9 +72,9 @@ export async function testWindowedAutocorrelation(matrix, rng, onPermProgress = 
   const NAME = "Windowed Autocorrelation";
   const CAT = "replicate";
   const nR = matrix.length, nC = matrix[0]?.length || 0;
-  if (nC < 2) return { name: NAME, category: CAT, flag: "N/A",
+  if (nC < 2) return { name: NAME, category: CAT, flag: "N/A", naCause: NA_CAUSE.TOO_FEW_COLUMNS,
     description: "Need ≥2 replicate columns for paired differences." };
-  if (nR < MIN_ROWS) return { name: NAME, category: CAT, flag: "N/A",
+  if (nR < MIN_ROWS) return { name: NAME, category: CAT, flag: "N/A", naCause: NA_CAUSE.TOO_FEW_ROWS,
     description: `Need ≥${MIN_ROWS} rows for ≥4 windows at size ${WIN} / stride ${STRIDE} (got ${nR}).` };
 
   // Adaptive permutation count: keep total work bounded on large datasets.
@@ -163,7 +164,7 @@ export async function testWindowedAutocorrelation(matrix, rng, onPermProgress = 
   }
 
   if (!windowUnits.length) {
-    return { name: NAME, category: CAT, flag: "N/A",
+    return { name: NAME, category: CAT, flag: "N/A", naCause: NA_CAUSE.EMPTY_INPUT,
       description: "No pair produced ≥4 valid windows after null-filtering." };
   }
 
