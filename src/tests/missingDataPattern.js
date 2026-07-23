@@ -24,7 +24,7 @@ export function testMissingDataPattern(matrix, condCtx, assay) {
   const CAT = "replicate"; // Cross-Replicate Comparisons (TEST_MECHANISM key — interim home per parked #9)
 
   const nR = matrix.length, nC = matrix[0]?.length || 0;
-  if (nR < 10 || nC < 2) return _na(NAME, CAT, "Insufficient data for missingness analysis.", nC < 2 ? NA_CAUSE.TOO_FEW_COLUMNS : NA_CAUSE.TOO_FEW_ROWS);
+  if (nR < 10 || nC < 2) return _na(NAME, CAT, "Insufficient data for missingness analysis.", nC < 2 ? NA_CAUSE.TOO_FEW_COLUMNS : NA_CAUSE.TOO_FEW_ROWS, nC < 2 ? nC : nR, nC < 2 ? 2 : 10);
 
   // Build binary missingness matrix and per-column missing rates
   let nMissing = 0;
@@ -192,8 +192,10 @@ export function testMissingDataPattern(matrix, condCtx, assay) {
 
 // ── Helpers ──────────────────────────────────────────────────────────
 
-function _na(name, cat, desc, naCause) {
-  return { name, category: cat, flag: "N/A", naCause, primaryP: null, description: desc };
+function _na(name, cat, desc, naCause, naObserved, naMinimum) {
+  const r = { name, category: cat, flag: "N/A", naCause, primaryP: null, description: desc };
+  if (naObserved !== undefined) { r.naObserved = naObserved; r.naMinimum = naMinimum; }
+  return r;
 }
 
 /** Fisher's exact test (two-sided) for 2×2 contingency table.

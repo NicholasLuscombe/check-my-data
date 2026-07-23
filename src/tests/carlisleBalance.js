@@ -38,7 +38,7 @@ export function testCarlisleBalance(matrix, condCtx) {
   const CAT = "group";
 
   if (!condCtx || !condCtx.has || condCtx.count < 2) {
-    return _na(NAME, CAT, "Requires ≥2 experimental conditions.", NA_CAUSE.TOO_FEW_CONDITIONS);
+    return _na(NAME, CAT, "Requires ≥2 experimental conditions.", NA_CAUSE.TOO_FEW_CONDITIONS, condCtx?.count ?? 0, 2);
   }
 
   // Determine features and condition groups based on condCtx type
@@ -48,10 +48,10 @@ export function testCarlisleBalance(matrix, condCtx) {
   if (condCtx.type === "row-grouped") {
     // Features = DATA columns, conditions = COND row groups
     const slices = condCtx.slices();
-    if (slices.length < 2) return _na(NAME, CAT, "Requires ≥2 conditions with ≥3 rows each.", NA_CAUSE.TOO_FEW_CONDITIONS);
+    if (slices.length < 2) return _na(NAME, CAT, "Requires ≥2 conditions with ≥3 rows each.", NA_CAUSE.TOO_FEW_CONDITIONS, slices.length, 2);
 
     const nC = matrix[0]?.length || 0;
-    if (nC < 5) return _na(NAME, CAT, `Only ${nC} DATA columns — need ≥5 features for meaningful balance test.`, NA_CAUSE.TOO_FEW_COLUMNS);
+    if (nC < 5) return _na(NAME, CAT, `Only ${nC} DATA columns — need ≥5 features for meaningful balance test.`, NA_CAUSE.TOO_FEW_COLUMNS, nC, 5);
 
     for (let c = 0; c < nC; c++) {
       // Collect values per condition for this column
@@ -77,10 +77,10 @@ export function testCarlisleBalance(matrix, condCtx) {
   } else if (condCtx.type === "column-grouped") {
     // Features = rows, conditions = column groups
     const slices = condCtx.slices();
-    if (slices.length < 2) return _na(NAME, CAT, "Requires ≥2 condition column groups.", NA_CAUSE.TOO_FEW_CONDITIONS);
+    if (slices.length < 2) return _na(NAME, CAT, "Requires ≥2 condition column groups.", NA_CAUSE.TOO_FEW_CONDITIONS, slices.length, 2);
 
     const nR = matrix.length;
-    if (nR < 10) return _na(NAME, CAT, `Only ${nR} rows — need ≥10 features for meaningful balance test.`, NA_CAUSE.TOO_FEW_ROWS);
+    if (nR < 10) return _na(NAME, CAT, `Only ${nR} rows — need ≥10 features for meaningful balance test.`, NA_CAUSE.TOO_FEW_ROWS, nR, 10);
 
     for (let r = 0; r < nR; r++) {
       const groups = [];
@@ -109,7 +109,7 @@ export function testCarlisleBalance(matrix, condCtx) {
   }
 
   const nFeatures = featurePValues.length;
-  if (nFeatures < 5) return _na(NAME, CAT, `Only ${nFeatures} testable features — need ≥5 for meaningful balance test.`, NA_CAUSE.TOO_FEW_COLUMNS);
+  if (nFeatures < 5) return _na(NAME, CAT, `Only ${nFeatures} testable features — need ≥5 for meaningful balance test.`, NA_CAUSE.TOO_FEW_COLUMNS, nFeatures, 5);
 
   // Gate: skip if >50% of features show significant differences (conditions genuinely different)
   const nSig = featurePValues.filter(p => p < 0.05).length;
@@ -221,8 +221,10 @@ function _cvOfMeans(condMeans) {
   return (cv * 100).toFixed(2) + "%";
 }
 
-function _na(name, cat, desc, naCause) {
-  return { name, category: cat, flag: "N/A", naCause, primaryP: null, description: desc };
+function _na(name, cat, desc, naCause, naObserved, naMinimum) {
+  const r = { name, category: cat, flag: "N/A", naCause, primaryP: null, description: desc };
+  if (naObserved !== undefined) { r.naObserved = naObserved; r.naMinimum = naMinimum; }
+  return r;
 }
 
 /** One-way ANOVA F-test. Returns p-value. groups = [[vals], [vals], ...]. */

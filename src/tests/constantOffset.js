@@ -23,7 +23,7 @@ export function testConstantOffset(matrix, rng) {
   const NAME = "Constant-Offset Blocks";
   const CAT = "copied";
   const nR = matrix.length, nC = matrix[0]?.length || 0;
-  if (nC < 2 || nR < 4) return { name: NAME, category: CAT, flag: "N/A", naCause: nC < 2 ? NA_CAUSE.TOO_FEW_COLUMNS : NA_CAUSE.TOO_FEW_ROWS, description: "Insufficient data (≥2 cols, ≥4 rows required)." };
+  if (nC < 2 || nR < 4) return { name: NAME, category: CAT, flag: "N/A", naCause: nC < 2 ? NA_CAUSE.TOO_FEW_COLUMNS : NA_CAUSE.TOO_FEW_ROWS, naObserved: nC < 2 ? nC : nR, naMinimum: nC < 2 ? 2 : 4, description: "Insufficient data (≥2 cols, ≥4 rows required)." };
 
   // ── Additive pass: d = col_j - col_i ──
   const addDiffVecs = [];

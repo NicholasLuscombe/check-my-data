@@ -70,12 +70,12 @@ export function testColumnGof(matrix, rng, dataType) {
     }
 
     if (vals.length < MIN_OBS) {
-      columnResults.push({ col: ci, skip: true, reason: `< ${MIN_OBS} observations`, naCause: NA_CAUSE.TOO_FEW_OBSERVATIONS });
+      columnResults.push({ col: ci, skip: true, reason: `< ${MIN_OBS} observations`, naCause: NA_CAUSE.TOO_FEW_OBSERVATIONS, n: vals.length, min: MIN_OBS });
       continue;
     }
     const distinct = new Set(vals).size;
     if (distinct < 10) {
-      columnResults.push({ col: ci, skip: true, reason: "< 10 distinct values", naCause: NA_CAUSE.TOO_FEW_DISTINCT });
+      columnResults.push({ col: ci, skip: true, reason: "< 10 distinct values", naCause: NA_CAUSE.TOO_FEW_DISTINCT, n: distinct, min: 10 });
       continue;
     }
 
@@ -199,7 +199,10 @@ export function testColumnGof(matrix, rng, dataType) {
   const skipped = columnResults.filter(c => c.skip);
 
   if (tested.length === 0) {
-    return { name: NAME, category: CAT, flag: "N/A", naCause: dominantCause(skipped.map(s => s.naCause)),
+    const dom = dominantCause(skipped.map(s => s.naCause));
+    const domCols = skipped.filter(s => s.naCause === dom && s.n !== undefined);
+    return { name: NAME, category: CAT, flag: "N/A", naCause: dom,
+      ...(domCols.length ? { naObserved: Math.max(...domCols.map(s => s.n)), naMinimum: domCols[0].min } : {}),
       description: `All columns routed to N/A (${skipped.length} columns; most common: ${skipped[0]?.reason || "n/a"}).`,
       skippedColumns: skipped.map(s => ({ col: s.col + 1, reason: s.reason, naCause: s.naCause })) };
   }

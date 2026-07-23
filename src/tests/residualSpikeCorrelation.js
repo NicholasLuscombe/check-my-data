@@ -41,7 +41,7 @@ export function testResidualSpikeCorrelation(matrix, condCtx, rng) {
   // Both column-grouped and row-grouped use slices uniformly.
   // For row-grouped, truncate to the shortest condition (position-matched features).
   const nFeatures = Math.min(...slices.map(s => s.matrix.length));
-  if (nFeatures < 10) return { name: NAME, category: CAT, flag: "N/A", naCause: NA_CAUSE.TOO_FEW_ROWS,
+  if (nFeatures < 10) return { name: NAME, category: CAT, flag: "N/A", naCause: NA_CAUSE.TOO_FEW_ROWS, naObserved: nFeatures, naMinimum: 10,
     description: "Insufficient rows (<10) for residual spike correlation analysis." };
 
   for (const s of slices) {
@@ -64,7 +64,7 @@ export function testResidualSpikeCorrelation(matrix, condCtx, rng) {
     groupResiduals.push({ name: s.name, absResid: normRes });
   }
 
-  if (groupResiduals.length < 2) return { name: NAME, category: CAT, flag: "N/A", naCause: NA_CAUSE.TOO_FEW_CONDITIONS,
+  if (groupResiduals.length < 2) return { name: NAME, category: CAT, flag: "N/A", naCause: NA_CAUSE.TOO_FEW_CONDITIONS, naObserved: groupResiduals.length, naMinimum: 2,
     description: "Need ≥2 conditions with sufficient data for residual spike correlation." };
 
   const nR = groupResiduals[0].absResid.length;

@@ -12,7 +12,7 @@ import { NA_CAUSE } from "../constants/naCause.js";
  */
 export function testBenford(matrix, rng) {
   const allVals=matrix.flat().filter(v=>v!=null&&isFinite(v)&&v!==0);
-  if(allVals.length<100) return {name:"Benford's Law (First Digit)",category:"digits",flag:"N/A",naCause:NA_CAUSE.TOO_FEW_ROWS,description:"Insufficient data (need ≥100 non-zero values)."};
+  if(allVals.length<100) return {name:"Benford's Law (First Digit)",category:"digits",flag:"N/A",naCause:NA_CAUSE.TOO_FEW_ROWS,naObserved:allVals.length,naMinimum:100,description:"Insufficient data (need ≥100 non-zero values)."};
   // S109 Part 2 applicability tighten (METHODOLOGY §3.2):
   // (i) Positivity-fraction pretest. Benford's Law requires a positive-scale,
   //     scale-invariant multiplicative process. Centered-symmetric distributions

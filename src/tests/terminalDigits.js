@@ -12,7 +12,7 @@ import { NA_CAUSE } from "../constants/naCause.js";
  */
 export function testTerminalDigits(matrix, assay='general') {
   const vals=matrix.flat().filter(v=>v!=null&&isFinite(v));
-  if(vals.length<50) return {name:"Terminal Digit Uniformity",category:"digits",flag:"N/A",naCause:NA_CAUSE.TOO_FEW_ROWS,description:"Insufficient data (need \u226550 values)."};
+  if(vals.length<50) return {name:"Terminal Digit Uniformity",category:"digits",flag:"N/A",naCause:NA_CAUSE.TOO_FEW_ROWS,naObserved:vals.length,naMinimum:50,description:"Insufficient data (need \u226550 values)."};
   // Integer guard: terminal digit analysis tests whether the LAST DECIMAL DIGIT is uniform,
   // which detects human digit preference when fabricating continuous measurements (Simonsohn 2013).
   // For integer data (counts, scores), the "terminal digit" is just the units digit, which has

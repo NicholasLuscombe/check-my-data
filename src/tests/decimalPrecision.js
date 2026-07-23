@@ -30,7 +30,7 @@ export function testDecimalPrecision(matrix, rawMatrix, assay) {
   const withDec = rawMatrix
     ? vals.filter(v => String(v).includes("."))
     : vals.filter(v => !Number.isInteger(v));
-  if (withDec.length < 30) return { name: "Decimal Precision Consistency", category: "digits", flag: "N/A", naCause: NA_CAUSE.TOO_FEW_ROWS, description: "Insufficient decimal-valued data (need ≥30 non-integer values)." };
+  if (withDec.length < 30) return { name: "Decimal Precision Consistency", category: "digits", flag: "N/A", naCause: NA_CAUSE.TOO_FEW_ROWS, naObserved: withDec.length, naMinimum: 30, description: "Insufficient decimal-valued data (need ≥30 non-integer values)." };
 
   // Count values per decimal-place level
   const prec = {};

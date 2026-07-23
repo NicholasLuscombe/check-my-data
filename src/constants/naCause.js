@@ -17,7 +17,27 @@
      to.
 
    One code stands apart: SCAN_CAP_EXCEEDED is a limit of the scan, hit when there
-   is TOO MUCH data, not too little. It is neither a shortfall nor a decline. */
+   is TOO MUCH data, not too little. It is neither a shortfall nor a decline.
+
+   ── Count fields (P39 step 2b) ──
+   Count-based sites (tooFewRows, tooFewObservations, tooFewDistinct,
+   tooFewColumns, tooFewConditions) additionally carry two numbers when both are
+   in scope at the return:
+
+     naObserved — the count that tripped the shortfall (this column's
+                  observations, this group's rows, whatever the guard compared).
+     naMinimum  — the declared minimum it fell short of.
+
+   The pair lets a reader compare the two — 12 against 30 — and judge for
+   themselves whether they have a lever. The tool asserts no remedy. Both are
+   plain numbers, and they are paired: an observed count always sits beside the
+   minimum it was measured against, never a minimum from a different cause.
+
+   Absent on decline codes (a number implies a threshold a reader could cross,
+   which is false for a wrong data kind). Absent, too, on the emptiness sites
+   where the tripping count is discarded before the return and only a misleading
+   number survives — a deliberate omission, not a gap (see
+   S331-CODE-READ-COUNT-REACHABILITY.md). */
 
 export const NA_CAUSE = {
   // ── Declines (data kind / structure wrong; not a sufficiency failure) ──

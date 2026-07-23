@@ -18,7 +18,7 @@ export function testBenford2(matrix, rng) {
   const NAME = "Benford's Law (Second Digit)";
   const CAT = "digits";
 
-  if (allVals.length < 100) return { name: NAME, category: CAT, flag: "N/A", naCause: NA_CAUSE.TOO_FEW_ROWS,
+  if (allVals.length < 100) return { name: NAME, category: CAT, flag: "N/A", naCause: NA_CAUSE.TOO_FEW_ROWS, naObserved: allVals.length, naMinimum: 100,
     description: "Insufficient data (need ≥100 non-zero values)." };
 
   const absVals = allVals.map(Math.abs).filter(v => v > 0);

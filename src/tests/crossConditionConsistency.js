@@ -107,11 +107,11 @@ const CAT  = "group";
  */
 export function testCrossConditionConsistency(matrix, condCtx, rng, opts = {}) {
   if (!condCtx || !condCtx.has || condCtx.count < 2) {
-    return _na("Need ≥2 experimental conditions.", NA_CAUSE.TOO_FEW_CONDITIONS);
+    return _na("Need ≥2 experimental conditions.", NA_CAUSE.TOO_FEW_CONDITIONS, condCtx?.count ?? 0, 2);
   }
   const slices = condCtx.slices();
   if (!slices || slices.length < 2) {
-    return _na("Need ≥2 conditions with data.", NA_CAUSE.TOO_FEW_CONDITIONS);
+    return _na("Need ≥2 conditions with data.", NA_CAUSE.TOO_FEW_CONDITIONS, slices?.length ?? 0, 2);
   }
 
   // Pre-VST matrix source for properties with useOriginalValues=true
@@ -159,7 +159,7 @@ export function testCrossConditionConsistency(matrix, condCtx, rng, opts = {}) {
   const keptIdx = [];
   for (let i = 0; i < keep.length; i++) if (keep[i]) keptIdx.push(i);
   if (keptIdx.length < 2) {
-    return _na("Need ≥2 conditions with ≥2 values each.", NA_CAUSE.TOO_FEW_CONDITIONS);
+    return _na("Need ≥2 conditions with ≥2 values each.", NA_CAUSE.TOO_FEW_CONDITIONS, keptIdx.length, 2);
   }
 
   // ── Permutation B scaling ────────────────────────────────────────────
@@ -737,8 +737,10 @@ export function testCrossConditionConsistency(matrix, condCtx, rng, opts = {}) {
 }
 
 // ── Helpers ─────────────────────────────────────────────────────────
-function _na(reason, naCause) {
-  return { name: NAME, category: CAT, flag: "N/A", naCause, description: reason };
+function _na(reason, naCause, naObserved, naMinimum) {
+  const r = { name: NAME, category: CAT, flag: "N/A", naCause, description: reason };
+  if (naObserved !== undefined) { r.naObserved = naObserved; r.naMinimum = naMinimum; }
+  return r;
 }
 
 /**

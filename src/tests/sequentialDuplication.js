@@ -35,7 +35,7 @@ export function testSequentialDuplication(matrix, assay) {
   }
   // Need at least a height-3 run plus a positive offset to have any opportunity.
   if (nR < 4) {
-    return { name: "Sequential Duplication", category: "copied", flag: "N/A", naCause: NA_CAUSE.TOO_FEW_ROWS,
+    return { name: "Sequential Duplication", category: "copied", flag: "N/A", naCause: NA_CAUSE.TOO_FEW_ROWS, naObserved: nR, naMinimum: 4,
       description: "Too few rows for sequence detection (need at least 4)." };
   }
 

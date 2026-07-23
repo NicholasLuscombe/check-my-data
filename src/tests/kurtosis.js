@@ -76,7 +76,7 @@ export function testKurtosis(matrix, condCtx, rng) {
   const rowConditions = condCtx?.rowConditions || null;
   const rowConditionsCols = condCtx?.rowConditionsCols || null;
   const nR=matrix.length, nC=matrix[0]?.length||0;
-  if(nC<2||nR<20) return {name:"Excess Kurtosis",category:"replicate",flag:"N/A",naCause:nC<2?NA_CAUSE.TOO_FEW_COLUMNS:NA_CAUSE.TOO_FEW_ROWS,description:"Insufficient data (≥2 cols, ≥20 rows)."};
+  if(nC<2||nR<20) return {name:"Excess Kurtosis",category:"replicate",flag:"N/A",naCause:nC<2?NA_CAUSE.TOO_FEW_COLUMNS:NA_CAUSE.TOO_FEW_ROWS,naObserved:nC<2?nC:nR,naMinimum:nC<2?2:20,description:"Insufficient data (≥2 cols, ≥20 rows)."};
 
   // Per-row local sigma and means
   const localSigma=matrix.map(row=>{

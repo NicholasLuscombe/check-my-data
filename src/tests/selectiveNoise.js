@@ -216,7 +216,7 @@ export function testSelectiveNoise(matrix, condCtx) {
   const b = _runBartlett(matrix);
   if (!b) {
     const nC = matrix[0]?.length || 0;
-    if (nC < 3) return { name: NAME, category: CAT, flag: "N/A", naCause: NA_CAUSE.TOO_FEW_COLUMNS, description: "Need ≥3 replicate columns and ≥10 rows." };
+    if (nC < 3) return { name: NAME, category: CAT, flag: "N/A", naCause: NA_CAUSE.TOO_FEW_COLUMNS, naObserved: nC, naMinimum: 3, description: "Need ≥3 replicate columns and ≥10 rows." };
     return { name: NAME, category: CAT, flag: "N/A", naCause: NA_CAUSE.EMPTY_INPUT, description: "Insufficient valid columns after filtering." };
   }
 

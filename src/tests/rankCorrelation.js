@@ -23,7 +23,7 @@ export function testSpearmanCrossCondition(matrix, condCtx) {
   }
 
   if(condProfiles.length<2)
-    return {name:"Cross-Condition Rank Correlation",category:"group",flag:"N/A",naCause:NA_CAUSE.TOO_FEW_CONDITIONS,
+    return {name:"Cross-Condition Rank Correlation",category:"group",flag:"N/A",naCause:NA_CAUSE.TOO_FEW_CONDITIONS,naObserved:condProfiles.length,naMinimum:2,
       description:"Need ≥2 conditions with ≥5 rows each."};
 
   // Compute per-pair ρ
