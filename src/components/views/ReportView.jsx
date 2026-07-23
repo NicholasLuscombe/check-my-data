@@ -1371,30 +1371,36 @@ export function ReportView({ results: baseResults, importConfig, matrix, rowMap,
                   // copy, verbatim, each with a singular variant for a count of
                   // one (the verb and pronoun change, not only the noun).
                   const cov = summarizeCoverage(results);
+                  // One "not run" figure across the page. The applicability case
+                  // and the errored case both mean the test did not run; the
+                  // detail sections below carry the per-test reason. Merging them
+                  // replaces the old pair of sentences that gave "not run" two
+                  // meanings side by side. classifyCoverage assigns each result
+                  // exactly one bucket, so notApplicable and errored never overlap
+                  // and the sum is clean.
+                  const notRun = cov.notApplicable + cov.errored;
+                  const notRunClause = notRun === 1
+                    ? `1 test was not run — see the detail sections for why.`
+                    : `${notRun} tests were not run — see the detail sections for why.`;
                   const lead = `No signal above threshold in the ${cov.ran} tests that completed. `;
-                  let main;
+                  let text;
                   if (cov.pending > 0) {
-                    main = lead + (cov.pending === 1
+                    const p = cov.pending === 1
                       ? `1 test is waiting on grouping confirmation — confirm above to run it.`
-                      : `${cov.pending} tests are waiting on grouping confirmation — confirm above to run them.`);
+                      : `${cov.pending} tests are waiting on grouping confirmation — confirm above to run them.`;
+                    text = lead + p + (notRun > 0 ? " " + notRunClause : "");
                   } else if (cov.unassessed > 0) {
-                    main = lead + (cov.unassessed === 1
+                    const u = cov.unassessed === 1
                       ? `1 test was left unassessed because grouping was not confirmed — this screen says nothing about it.`
-                      : `${cov.unassessed} tests were left unassessed because grouping was not confirmed — this screen says nothing about them.`);
-                  } else if (cov.notApplicable > 0) {
-                    main = lead + (cov.notApplicable === 1
-                      ? `1 test did not apply to this data and was not run.`
-                      : `${cov.notApplicable} tests did not apply to this data and were not run.`);
+                      : `${cov.unassessed} tests were left unassessed because grouping was not confirmed — this screen says nothing about them.`;
+                    text = lead + u + (notRun > 0 ? " " + notRunClause : "");
+                  } else if (notRun > 0) {
+                    text = lead + notRunClause;
                   } else {
-                    main = `All ${cov.ran} of 29 tests completed. None returned a signal above threshold.`;
+                    text = `All ${cov.ran} of 29 tests completed. None returned a signal above threshold.`;
                   }
-                  const errAppendix = cov.errored > 0
-                    ? (cov.errored === 1
-                      ? ` 1 test could not complete and is not counted in this result.`
-                      : ` ${cov.errored} tests could not complete and are not counted in this result.`)
-                    : "";
                   return (
-                    <div style={{fontSize:FS.base,color:C.TEXT_3,padding:"4px 0"}}>{main}{errAppendix}</div>
+                    <div style={{fontSize:FS.base,color:C.TEXT_3,padding:"4px 0"}}>{text}</div>
                   );
                 })()
               ) : (
@@ -1447,13 +1453,16 @@ export function ReportView({ results: baseResults, importConfig, matrix, rowMap,
               // non-N/A-over-total form that undercounted and over-reported at
               // once. "completed" replaces "applied": an errored test applied and
               // then failed, so "applied" was wrong for a figure that excludes it.
-              // Unassessed and errored are carried as trailing clauses when
-              // present; not-applicable is the implicit remainder.
+              // A single "not run" clause carries the applicability and errored
+              // counts together — the figure §4 shows — so the page reads one
+              // vocabulary. notApplicable is no longer the implicit remainder; it
+              // is named here as part of "not run". Unassessed stays its own clause.
               const cov = summarizeCoverage(results);
               const skippedNames = new Set(results.filter(r=>r.flag==="N/A").map(r=>r.name));
+              const notRun = cov.notApplicable + cov.errored;
               const coverageExtra = [];
+              if (notRun > 0) coverageExtra.push(notRun === 1 ? `1 not run` : `${notRun} not run`);
               if (cov.unassessed > 0) coverageExtra.push(`${cov.unassessed} left unassessed`);
-              if (cov.errored > 0) coverageExtra.push(`${cov.errored} could not complete`);
               return (
                 <Section number={5} title="Test coverage">
                   <div style={{fontSize:FS.base,color:C.TEXT,marginBottom:"12px"}}>
