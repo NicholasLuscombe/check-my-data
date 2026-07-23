@@ -3,7 +3,7 @@ import { extractLocalizations, buildMechanismGroups } from "../../analysis/local
 import { buildConvergenceFromFindings } from "../../analysis/convergence.js";
 import { buildFindings } from "../../analysis/findings.js";
 import { computeSeverity } from "../../analysis/severity.js";
-import { summarizeCoverage } from "../../analysis/coverage.js";
+import { summarizeCoverage, classifyCoverage } from "../../analysis/coverage.js";
 import { VerdictBanner } from "./VerdictBanner.jsx";
 import { ACTION_LABEL } from "../../analysis/narrative.js";
 import { buildHandoffModel } from "../../analysis/handoffModel.js";
@@ -1450,7 +1450,16 @@ export function ReportView({ results: baseResults, importConfig, matrix, rowMap,
               // Unassessed and errored are carried as trailing clauses when
               // present; not-applicable is the implicit remainder.
               const cov = summarizeCoverage(results);
-              const skippedNames = new Set(results.filter(r=>r.flag==="N/A").map(r=>r.name));
+              // Strike a test only when it did not run and will not — the
+              // notApplicable and errored coverage states. The old flag==="N/A"
+              // filter missed a thrown test (Producer A sets flag "ERROR", not
+              // "N/A"), so a crash rendered as if it had run — the coverage line
+              // even counted it under "could not complete" while the battery left
+              // it unstruck. It also struck pending and unassessed tests, which
+              // have not run but are not ruled out: a pending test still runs
+              // once grouping is confirmed, and unassessed is already named in the
+              // count line above. classifyCoverage keeps both off the strike set.
+              const skippedNames = new Set(results.filter(r=>{const c=classifyCoverage(r);return c==="notApplicable"||c==="errored";}).map(r=>r.name));
               const coverageExtra = [];
               if (cov.unassessed > 0) coverageExtra.push(`${cov.unassessed} left unassessed`);
               if (cov.errored > 0) coverageExtra.push(`${cov.errored} could not complete`);
