@@ -23,7 +23,7 @@ export function testBenford2(matrix, rng) {
 
   const absVals = allVals.map(Math.abs).filter(v => v > 0);
   const actualSpan = robustLogSpan(absVals);
-  if (actualSpan < 1.0) return { name: NAME, category: CAT, flag: "N/A", naCause: NA_CAUSE.RANGE_TOO_NARROW,
+  if (actualSpan < 1.0) return { name: NAME, category: CAT, flag: "N/A", naCause: NA_CAUSE.RANGE_OUT_OF_BAND,
     description: `Data spans only ${actualSpan.toFixed(1)} orders of magnitude — Benford's Law requires ≥1 for meaningful application.` };
 
   // Expected second-digit probabilities: P(d₂=k) = Σ_{d₁=1}^{9} log₁₀(1+1/(10d₁+k))

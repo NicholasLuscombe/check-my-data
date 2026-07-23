@@ -33,7 +33,7 @@ export const NA_CAUSE = {
   TOO_FEW_OBSERVATIONS: 'tooFewObservations',   // fewer non-null observations per column (within a group) than the minimum
   TOO_FEW_DISTINCT: 'tooFewDistinct',           // fewer distinct values than the minimum
   TOO_FEW_CONDITIONS: 'tooFewConditions',       // fewer conditions / condition pairs than the minimum
-  RANGE_TOO_NARROW: 'rangeTooNarrow',           // value span / range outside the usable band (also the one too-wide case; see report)
+  RANGE_OUT_OF_BAND: 'rangeOutOfBand',          // value span / range outside the usable band — too narrow (Benford, Noise Scaling) or too wide (Value-Frequency Spike)
   SHAPE_NOT_COVERED: 'shapeNotCovered',         // distribution shape (or scale/positivity) outside what the test's model covers
   SINGULAR_COMPUTATION: 'singularComputation',  // a required computation is degenerate (singular covariance); only found by running
   MISSINGNESS_OUT_OF_BAND: 'missingnessOutOfBand', // missing-cell count / rate outside the testable band

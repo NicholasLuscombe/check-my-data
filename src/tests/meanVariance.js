@@ -31,7 +31,7 @@ export function testMeanVariance(matrix, assay) {
   // to distinguish slope=1 from slope=2 (Poisson vs proportional).
   const ptMeans=points.map(p=>p.mean);
   const meanRange = Math.log10(arrayMax(ptMeans)) - Math.log10(arrayMin(ptMeans));
-  if(meanRange<1.0 && expSlope!==0) return {name:"Noise Scaling With Measurement Size",category:"replicate",flag:"N/A",naCause:NA_CAUSE.RANGE_TOO_NARROW,
+  if(meanRange<1.0 && expSlope!==0) return {name:"Noise Scaling With Measurement Size",category:"replicate",flag:"N/A",naCause:NA_CAUSE.RANGE_OUT_OF_BAND,
     description:`Row means span only ${meanRange.toFixed(1)} orders of magnitude — need ≥1.0 for a reliable log-log slope estimate. Noise Scaling test is inapplicable for narrow-range data.`};
   const logM=points.map(p=>Math.log(p.mean));
   const logV=points.map(p=>Math.log(p.variance));

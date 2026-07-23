@@ -278,7 +278,7 @@ function buildFullValuePass(matrix) {
     return {
       tested: [], diag: { nValues: intVals.length, nDistinct, span },
       na: `Integer range ${vMin}–${vMax} (span ${span}) is too wide for local frequency analysis. This test is designed for bounded integer scales.`,
-      naCause: NA_CAUSE.RANGE_TOO_NARROW
+      naCause: NA_CAUSE.RANGE_OUT_OF_BAND
     };
   }
 
