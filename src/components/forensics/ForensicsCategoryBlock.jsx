@@ -17,6 +17,7 @@
 import { useState, useMemo } from "react";
 import { C, FS, FW, FF, CR, SEV_VERDICT, UI } from "../../constants/tokens.js";
 import { DISPLAY_NAMES } from "../../constants/mechanisms.js";
+import { NA_CAUSE } from "../../constants/naCause.js";
 import { formatSkipDetail, isGroupingRefusal } from "../../analysis/handoffModel.js";
 import { TestCardLayout } from "../shared/TestCardLayout.jsx";
 import { ClusterRow } from "../shared/ClusterRow.jsx";
@@ -83,7 +84,7 @@ function ForensicsTestCard({ result, mk, expanded, onToggle, importConfig, rowMa
 export function ForensicsCategoryBlock({
   mk, label, isFlagged, hasHigh, description, testResults,
   pendingTests = [], unassessedTests = [],
-  notApplicableTests = [],
+  notApplicableTests = [], erroredTests = [],
   coverage,
   isExpanded, onToggle,
   expandedTestEvidence, onToggleTestEvidence,
@@ -126,6 +127,7 @@ export function ForensicsCategoryBlock({
   const [naOpen, setNaOpen] = useState(false);
   const [skipOpen, setSkipOpen] = useState(false);
   const [refusedOpen, setRefusedOpen] = useState(false);
+  const [erroredOpen, setErroredOpen] = useState(false);
   const clearNames = clearTests.map(r => DISPLAY_NAMES[r.name] || r.name).join(", ");
   const clearIcon = <span style={{ color: SEV_VERDICT[0].color, fontSize: FS.base, flexShrink: 0 }}>✓</span>;
 
@@ -224,6 +226,13 @@ export function ForensicsCategoryBlock({
             {renderNoVerdictSection(refusedTests, n => `${n === 1 ? "needs" : "need"} a different grouping`, refusedOpen, setRefusedOpen)}
             {renderNoVerdictSection(skippedTests, "skipped", skipOpen, setSkipOpen)}
             {renderNoVerdictSection(trueNaTests, "not applicable", naOpen, setNaOpen)}
+            {/* Errored tests — coverage state "errored": the test ran per group
+                and no group could complete, or a thrown test. Rendered last,
+                because unlike a grouping refusal the reader cannot act on it.
+                The reason is composed from the result's naCause, not the generic
+                "No group had sufficient data" description — that sentence is
+                false when the cause is shape and the groups were large. */}
+            {renderErroredSection(erroredTests, erroredOpen, setErroredOpen)}
           </div>
         </div>
       )}
@@ -294,6 +303,105 @@ function groupNotApplicableByReason(tests) {
     const g = byReason.get(reason);
     return { reason, names: g.names, detail: g.detail };
   });
+}
+
+// ── "Not run" reason composition (P39 step 3) ──
+// An errored result carries a structured naCause (and naCauses when the groups
+// disagreed). The reason line is built from that, never from the generic
+// "No group had sufficient data" description, which is false when the cause is
+// shape and the groups were large. naObserved / naMinimum are read when present,
+// but the aggregator does not carry them onto an errored result today, so the
+// numbered line stays dormant here until a later step reduces the per-group
+// counts.
+
+// Noun for each count cause, for the numbered line.
+const NOT_RUN_NOUN = {
+  [NA_CAUSE.TOO_FEW_ROWS]: "rows",
+  [NA_CAUSE.TOO_FEW_OBSERVATIONS]: "observations",
+  [NA_CAUSE.TOO_FEW_DISTINCT]: "distinct values",
+  [NA_CAUSE.TOO_FEW_COLUMNS]: "columns",
+  [NA_CAUSE.TOO_FEW_CONDITIONS]: "conditions",
+};
+
+// Plain sentence per cause when no number is available — no number, no implied
+// threshold.
+const NOT_RUN_SENTENCE = {
+  [NA_CAUSE.TOO_FEW_ROWS]: "No group had enough rows for this test.",
+  [NA_CAUSE.TOO_FEW_OBSERVATIONS]: "No group had enough observations for this test.",
+  [NA_CAUSE.TOO_FEW_DISTINCT]: "No group had enough distinct values for this test.",
+  [NA_CAUSE.TOO_FEW_COLUMNS]: "There were too few columns for this test.",
+  [NA_CAUSE.TOO_FEW_CONDITIONS]: "There were too few conditions for this test.",
+  [NA_CAUSE.EMPTY_INPUT]: "No group produced any values this test could use.",
+  [NA_CAUSE.SINGULAR_COMPUTATION]: "The columns were too collinear for this test to compute.",
+};
+
+// shapeNotCovered means different things per test, and the distribution names
+// belong to Column Goodness-of-Fit alone — they live in that test's skip prose,
+// not on the result. Keyed by test so the message is never wrong for another
+// (Modality and Column Goodness-of-Fit both reach this section).
+const NOT_RUN_SHAPE = {
+  "Column Goodness-of-Fit": "None of the standard distributions this test checks — normal, Poisson, negative binomial — fit these columns.",
+  "Modality Test": "The columns are too close to uniform for this test's shape check.",
+};
+const NOT_RUN_SHAPE_DEFAULT = "The column shapes fall outside what this test can model.";
+
+function notRunReasonLine(r) {
+  // A thrown test — the other errored producer. It carries no cause code.
+  if (r.error === true || r.flag === "ERROR") {
+    return "This test hit an error and could not run.";
+  }
+  // Groups disagreed — no single cause. Placeholder; no fixture exercises it.
+  if (!r.naCause && Array.isArray(r.naCauses) && r.naCauses.length > 1) {
+    return `Groups failed for more than one reason (${r.naCauses.join(", ")}).`;
+  }
+  const cause = r.naCause;
+  if (cause === NA_CAUSE.SHAPE_NOT_COVERED) {
+    return NOT_RUN_SHAPE[r.name] || NOT_RUN_SHAPE_DEFAULT;
+  }
+  // Numbered line, when both numbers are present (dormant on errored results).
+  if (r.naObserved != null && r.naMinimum != null && NOT_RUN_NOUN[cause]) {
+    return `Smallest group has ${r.naObserved} ${NOT_RUN_NOUN[cause]}; this test needs ${r.naMinimum}.`;
+  }
+  return NOT_RUN_SENTENCE[cause] || "This test could not run on the data as grouped.";
+}
+
+// Group errored tests by their composed reason, so an identical reason is stated
+// once with the test names beneath it — the same accounting shape the
+// not-applicable section uses, but keyed on the composed reason.
+function groupErroredByReason(tests) {
+  const order = [];
+  const byReason = new Map();
+  for (const r of tests) {
+    const reason = notRunReasonLine(r);
+    if (!byReason.has(reason)) { byReason.set(reason, []); order.push(reason); }
+    byReason.get(reason).push(DISPLAY_NAMES[r.name] || r.name);
+  }
+  return order.map(reason => ({ reason, names: byReason.get(reason) }));
+}
+
+// The "Not run" section. Mirrors renderNoVerdictSection's disclosure shape and
+// tokens, but composes its reason from naCause and renders no size-detail line.
+// Kept a separate function so the other three no-verdict sections are untouched.
+function renderErroredSection(tests, open, setOpen) {
+  if (!tests.length) return null;
+  const names = tests.map(r => DISPLAY_NAMES[r.name] || r.name).join(", ");
+  const groups = groupErroredByReason(tests);
+  return (
+    <>
+      <CollapsedSummaryRow count={tests.length} label="not run" names={names}
+        onToggle={() => setOpen(!open)} expanded={open} />
+      {open && (
+        <div style={{ display: "flex", flexDirection: "column", gap: "10px", paddingLeft: RAIL_GUTTER }}>
+          {groups.map((g, i) => (
+            <div key={i}>
+              <div style={NO_VERDICT_NAME}>{g.names.join(" · ")}</div>
+              <div style={NO_VERDICT_REASON}>{g.reason}</div>
+            </div>
+          ))}
+        </div>
+      )}
+    </>
+  );
 }
 
 // A held-pending test row, visually distinct (amber attention rule) from a
