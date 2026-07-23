@@ -1,5 +1,6 @@
 import { mean, zToP, oneSampleT, bhFDR, stddev, normalQuantile, tQuantileTwoSided } from "../stats/primitives.js";
 import { flagFromP, ALPHA, flagRankOf } from "../constants/thresholds.js";
+import { NA_CAUSE } from "../constants/naCause.js";
 
 /* 7. Runs Test */
 /**
@@ -13,7 +14,7 @@ export function testRuns(matrix, condCtx, rng) {
   const rowConditions = condCtx?.rowConditions || null;
   const nC=matrix[0]?.length||0;
   const nR=matrix.length;
-  if(nC<2) return {name:"Runs Test",category:"replicate",flag:"N/A",description:"Need \u22652 replicate columns."};
+  if(nC<2) return {name:"Runs Test",category:"replicate",flag:"N/A",naCause:NA_CAUSE.TOO_FEW_COLUMNS,description:"Need \u22652 replicate columns."};
   const res=[];
   const allZ=[];
 

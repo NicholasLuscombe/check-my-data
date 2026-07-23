@@ -1,5 +1,6 @@
 import { mean, variance, chiSquaredP, bhFDR, regIncBeta } from "../stats/primitives.js";
 import { flagFromP, ALPHA } from "../constants/thresholds.js";
+import { NA_CAUSE } from "../constants/naCause.js";
 
 /**
  * One-vs-rest Levene test: compare one column's residual variance against pooled rest.
@@ -162,7 +163,7 @@ export function testSelectiveNoise(matrix, condCtx) {
     for (const slice of slices) {
       const b = _runBartlett(slice.matrix);
       if (!b) {
-        condResults.push({ condition: slice.name, flag: "N/A", reason: "Insufficient data" });
+        condResults.push({ condition: slice.name, flag: "N/A", naCause: NA_CAUSE.TOO_FEW_ROWS, reason: "Insufficient data" });
         continue;
       }
       // Apply same effect-size gate as pooled path
@@ -182,7 +183,7 @@ export function testSelectiveNoise(matrix, condCtx) {
     }
 
     if (pValues.length === 0) {
-      return { name: NAME, category: CAT, flag: "N/A", description: "No conditions with sufficient data." };
+      return { name: NAME, category: CAT, flag: "N/A", naCause: NA_CAUSE.EMPTY_INPUT, description: "No conditions with sufficient data." };
     }
 
     // BH-FDR across per-condition p-values
@@ -215,8 +216,8 @@ export function testSelectiveNoise(matrix, condCtx) {
   const b = _runBartlett(matrix);
   if (!b) {
     const nC = matrix[0]?.length || 0;
-    if (nC < 3) return { name: NAME, category: CAT, flag: "N/A", description: "Need ≥3 replicate columns and ≥10 rows." };
-    return { name: NAME, category: CAT, flag: "N/A", description: "Insufficient valid columns after filtering." };
+    if (nC < 3) return { name: NAME, category: CAT, flag: "N/A", naCause: NA_CAUSE.TOO_FEW_COLUMNS, description: "Need ≥3 replicate columns and ≥10 rows." };
+    return { name: NAME, category: CAT, flag: "N/A", naCause: NA_CAUSE.EMPTY_INPUT, description: "Insufficient valid columns after filtering." };
   }
 
   // Flag: Bartlett p-value with effect-size gate at large N.

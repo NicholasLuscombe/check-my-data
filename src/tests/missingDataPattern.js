@@ -1,5 +1,6 @@
 import { bhFDR, chiSquaredP, lnGamma } from "../stats/primitives.js";
 import { flagFromP } from "../constants/thresholds.js";
+import { NA_CAUSE } from "../constants/naCause.js";
 
 /* Missing Data Pattern Analysis
    Detects structured missingness indicating selective deletion or sloppy fabrication.
@@ -23,7 +24,7 @@ export function testMissingDataPattern(matrix, condCtx, assay) {
   const CAT = "replicate"; // Cross-Replicate Comparisons (TEST_MECHANISM key — interim home per parked #9)
 
   const nR = matrix.length, nC = matrix[0]?.length || 0;
-  if (nR < 10 || nC < 2) return _na(NAME, CAT, "Insufficient data for missingness analysis.");
+  if (nR < 10 || nC < 2) return _na(NAME, CAT, "Insufficient data for missingness analysis.", nC < 2 ? NA_CAUSE.TOO_FEW_COLUMNS : NA_CAUSE.TOO_FEW_ROWS);
 
   // Build binary missingness matrix and per-column missing rates
   let nMissing = 0;
@@ -45,10 +46,10 @@ export function testMissingDataPattern(matrix, condCtx, assay) {
   const missRate = nMissing / total;
 
   // Gates
-  if (missRate < 0.01) return _na(NAME, CAT, `Missing rate ${(missRate * 100).toFixed(1)}% is below 1% threshold.`);
-  if (missRate > 0.50) return _na(NAME, CAT, `Missing rate ${(missRate * 100).toFixed(1)}% exceeds 50% threshold.`);
-  if (nMissing < 10) return _na(NAME, CAT, `Only ${nMissing} missing cells — too few for pattern analysis.`);
-  if (assay === "genomics") return _na(NAME, CAT, "Not applicable to genomics data. Structured missingness from low-expression filtering is biologically expected.");
+  if (missRate < 0.01) return _na(NAME, CAT, `Missing rate ${(missRate * 100).toFixed(1)}% is below 1% threshold.`, NA_CAUSE.MISSINGNESS_OUT_OF_BAND);
+  if (missRate > 0.50) return _na(NAME, CAT, `Missing rate ${(missRate * 100).toFixed(1)}% exceeds 50% threshold.`, NA_CAUSE.PREMISE_VOID);
+  if (nMissing < 10) return _na(NAME, CAT, `Only ${nMissing} missing cells — too few for pattern analysis.`, NA_CAUSE.MISSINGNESS_OUT_OF_BAND);
+  if (assay === "genomics") return _na(NAME, CAT, "Not applicable to genomics data. Structured missingness from low-expression filtering is biologically expected.", NA_CAUSE.ASSAY_NOT_APPLICABLE);
 
   const colMissRate = colMiss.map(c => c / nR);
   const allPs = []; // collect all sub-signal raw p-values
@@ -146,7 +147,7 @@ export function testMissingDataPattern(matrix, condCtx, assay) {
   }
 
   // ── Combined flag ─────────────────────────────────────────────────
-  if (allPs.length === 0) return _na(NAME, CAT, "No testable missingness patterns found.");
+  if (allPs.length === 0) return _na(NAME, CAT, "No testable missingness patterns found.", NA_CAUSE.MISSINGNESS_OUT_OF_BAND);
 
   const combinedAdj = bhFDR(allPs);
   const minAdjP = Math.min(...combinedAdj);
@@ -191,8 +192,8 @@ export function testMissingDataPattern(matrix, condCtx, assay) {
 
 // ── Helpers ──────────────────────────────────────────────────────────
 
-function _na(name, cat, desc) {
-  return { name, category: cat, flag: "N/A", primaryP: null, description: desc };
+function _na(name, cat, desc, naCause) {
+  return { name, category: cat, flag: "N/A", naCause, primaryP: null, description: desc };
 }
 
 /** Fisher's exact test (two-sided) for 2×2 contingency table.

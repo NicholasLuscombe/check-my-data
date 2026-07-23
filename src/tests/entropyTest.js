@@ -19,19 +19,20 @@
 
 import { mean, variance, bhFDR, modalPrecision } from "../stats/primitives.js";
 import { flagFromP } from "../constants/thresholds.js";
+import { NA_CAUSE, dominantCause } from "../constants/naCause.js";
 
 export function testEntropy(matrix, rng, dataType) {
   const NAME = "Entropy / Zipf Analysis";
   const CAT = "shapes";
 
   if (dataType === "ordinal") {
-    return { name: NAME, category: CAT, flag: "N/A",
+    return { name: NAME, category: CAT, flag: "N/A", naCause: NA_CAUSE.DATA_TYPE_MISMATCH,
       description: "Not applicable to ordinal data — discrete ordinal scales have inherently constrained entropy." };
   }
 
   const nR = matrix.length;
   const nC = matrix[0]?.length || 0;
-  if (nC < 1) return { name: NAME, category: CAT, flag: "N/A", description: "No DATA columns." };
+  if (nC < 1) return { name: NAME, category: CAT, flag: "N/A", naCause: NA_CAUSE.EMPTY_INPUT, description: "No DATA columns." };
 
   const B = 999; // bootstrap iterations
   const columnResults = [];
@@ -45,7 +46,7 @@ export function testEntropy(matrix, rng, dataType) {
     }
 
     if (vals.length < 20) {
-      columnResults.push({ col: ci, skip: true, reason: "< 20 observations" });
+      columnResults.push({ col: ci, skip: true, reason: "< 20 observations", naCause: NA_CAUSE.TOO_FEW_OBSERVATIONS });
       continue;
     }
 
@@ -115,7 +116,7 @@ export function testEntropy(matrix, rng, dataType) {
   // Collect non-skipped columns
   const tested = columnResults.filter(c => !c.skip);
   if (tested.length === 0) {
-    return { name: NAME, category: CAT, flag: "N/A",
+    return { name: NAME, category: CAT, flag: "N/A", naCause: dominantCause(columnResults.map(c => c.naCause)),
       description: "All columns had insufficient observations (< 20) for entropy analysis." };
   }
 

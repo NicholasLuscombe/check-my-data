@@ -1,5 +1,6 @@
 import { mean, stddev, kurtosis, trimmedKurtosis, normalCDF, zToP, fitPredictedSigma, bhFDR } from "../stats/primitives.js";
 import { flagFromP, ALPHA, EFFECT_SIZE } from "../constants/thresholds.js";
+import { NA_CAUSE } from "../constants/naCause.js";
 
 /* 6. Excess Kurtosis */
 
@@ -75,7 +76,7 @@ export function testKurtosis(matrix, condCtx, rng) {
   const rowConditions = condCtx?.rowConditions || null;
   const rowConditionsCols = condCtx?.rowConditionsCols || null;
   const nR=matrix.length, nC=matrix[0]?.length||0;
-  if(nC<2||nR<20) return {name:"Excess Kurtosis",category:"replicate",flag:"N/A",description:"Insufficient data (≥2 cols, ≥20 rows)."};
+  if(nC<2||nR<20) return {name:"Excess Kurtosis",category:"replicate",flag:"N/A",naCause:nC<2?NA_CAUSE.TOO_FEW_COLUMNS:NA_CAUSE.TOO_FEW_ROWS,description:"Insufficient data (≥2 cols, ≥20 rows)."};
 
   // Per-row local sigma and means
   const localSigma=matrix.map(row=>{

@@ -43,6 +43,7 @@ import { extractAnalysisInputs } from './engine.js';
 import { aggregatePerGroup } from './aggregation.js';
 import { createPRNG } from '../stats/prng.js';
 import { DATATYPE_SKIP } from '../constants/assays.js';
+import { NA_CAUSE } from '../constants/naCause.js';
 import { noGroupMeetsMin } from './applicability.js';
 import { testMahalanobisOutlier, MIN_COLS as MAHAL_MIN_COLS } from '../tests/mahalanobis.js';
 import { testEntropy } from '../tests/entropyTest.js';
@@ -83,7 +84,7 @@ export async function runConfirmedGroupedTests({ data, roles, condColSet, zeroAs
 
   const rng = createPRNG(matrix);
   const skipMap = DATATYPE_SKIP[dataType] || {};
-  const dtSkip = (name, category) => { const reason = skipMap[name]; return reason ? { name, category, flag: 'N/A', description: reason } : null; };
+  const dtSkip = (name, category) => { const reason = skipMap[name]; return reason ? { name, category, flag: 'N/A', naCause: NA_CAUSE.DATA_TYPE_MISMATCH, description: reason } : null; };
   const tagVST = (r) => { if (hasVST && r) r.vstTransform = vstType; return r; };
 
   // ── S327 refusal ──
@@ -108,8 +109,8 @@ export async function runConfirmedGroupedTests({ data, roles, condColSet, zeroAs
   // The figures were only ever in the prose; carrying them as fields is what
   // lets the display tell a refusal from a settled not-applicable without
   // parsing a sentence. Same shape the skip uses for its size-ceiling figures.
-  const refuse = (name, category, needClause) => ({
-    name, category, flag: "N/A",
+  const refuse = (name, category, needClause, naCause) => ({
+    name, category, flag: "N/A", naCause,
     description: `${givesClause()}. ${needClause}`,
     confirmedGroups: rgStatus.nGroups ?? 0,
     confirmedLargestGroup: rgStatus.maxSize ?? 0,
@@ -118,10 +119,10 @@ export async function runConfirmedGroupedTests({ data, roles, condColSet, zeroAs
   // ── Mahalanobis Row Outlier (engine.js:430-479) ──
   const mahal = await (async () => {
     const dt = dtSkip('Mahalanobis Row Outlier', 'distributional'); if (dt) return dt;
-    if (assay === 'genomics') return { name: 'Mahalanobis Row Outlier', category: 'distributional', flag: 'N/A',
+    if (assay === 'genomics') return { name: 'Mahalanobis Row Outlier', category: 'distributional', flag: 'N/A', naCause: NA_CAUSE.ASSAY_NOT_APPLICABLE,
       description: 'Not applicable to genomics data. Count distributions violate the multivariate normality assumption required for χ²-based D² thresholds. Biological expression heterogeneity produces widespread outliers that are not anomalous.' };
     if ((matrix[0]?.length || 0) < MAHAL_MIN_COLS) {
-      return { name: "Mahalanobis Row Outlier", category: "replicate", flag: "N/A",
+      return { name: "Mahalanobis Row Outlier", category: "replicate", flag: "N/A", naCause: NA_CAUSE.TOO_FEW_COLUMNS,
         description: `Not applicable with fewer than ${MAHAL_MIN_COLS} replicate columns — the row-distance measure this test uses needs at least that many.` };
     }
     const mahalCtx = hasVST ? vstCondCtx : condCtx;
@@ -139,7 +140,7 @@ export async function runConfirmedGroupedTests({ data, roles, condColSet, zeroAs
     if (groupingUnusable) {
       const nCols = matrix[0]?.length || 0;
       return refuse("Mahalanobis Row Outlier", "replicate",
-        `This test needs ${3 * nCols} rows in one group to estimate a stable covariance across ${nCols} columns.`);
+        `This test needs ${3 * nCols} rows in one group to estimate a stable covariance across ${nCols} columns.`, NA_CAUSE.TOO_FEW_ROWS);
     }
     // Pooled fallback (single group / no row-groups): engine.js:478 runPairVST.
     return tagVST(hasVST ? testMahalanobisOutlier(vstMatrix, assay) : testMahalanobisOutlier(matrix, assay));
@@ -152,7 +153,7 @@ export async function runConfirmedGroupedTests({ data, roles, condColSet, zeroAs
     if (rg) return await aggregatePerGroup(m => testEntropy(m, rng, dataType), rg);
     if (groupingUnusable) {
       return refuse("Entropy / Zipf Analysis", "shapes",
-        "No group is large enough to analyse — this test needs at least 20 values in a column within a group.");
+        "No group is large enough to analyse — this test needs at least 20 values in a column within a group.", NA_CAUSE.TOO_FEW_OBSERVATIONS);
     }
     return testEntropy(matrix, rng, dataType);
   })();
@@ -163,14 +164,14 @@ export async function runConfirmedGroupedTests({ data, roles, condColSet, zeroAs
     const rg = condCtx?.rowGroups();
     if (rg) {
       if (noGroupMeetsMin(rg, GOF_MIN_OBS)) {
-        return { name: "Column Goodness-of-Fit", category: "shapes", flag: "N/A",
+        return { name: "Column Goodness-of-Fit", category: "shapes", flag: "N/A", naCause: NA_CAUSE.TOO_FEW_OBSERVATIONS,
           description: `Not applicable — no condition group has the ${GOF_MIN_OBS} values this goodness-of-fit test needs to fit a distribution.` };
       }
       return await aggregatePerGroup(m => testColumnGof(m, rng, dataType), rg);
     }
     if (groupingUnusable) {
       return refuse("Column Goodness-of-Fit", "shapes",
-        `This test needs ${GOF_MIN_OBS} values in a group to fit a distribution.`);
+        `This test needs ${GOF_MIN_OBS} values in a group to fit a distribution.`, NA_CAUSE.TOO_FEW_OBSERVATIONS);
     }
     return testColumnGof(matrix, rng, dataType);
   })();
@@ -181,14 +182,14 @@ export async function runConfirmedGroupedTests({ data, roles, condColSet, zeroAs
     const rg = condCtx?.rowGroups();
     if (rg) {
       if (noGroupMeetsMin(rg, MODALITY_MIN_N)) {
-        return { name: "Modality Test", category: "shapes", flag: "N/A",
+        return { name: "Modality Test", category: "shapes", flag: "N/A", naCause: NA_CAUSE.TOO_FEW_OBSERVATIONS,
           description: `Not applicable — no condition group has the ${MODALITY_MIN_N} values this modality test needs.` };
       }
       return await aggregatePerGroup(m => testModality(m, rng, dataType), rg);
     }
     if (groupingUnusable) {
       return refuse("Modality Test", "shapes",
-        `This test needs ${MODALITY_MIN_N} values in a group.`);
+        `This test needs ${MODALITY_MIN_N} values in a group.`, NA_CAUSE.TOO_FEW_OBSERVATIONS);
     }
     return testModality(matrix, rng, dataType);
   })();

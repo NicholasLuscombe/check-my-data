@@ -1,5 +1,6 @@
 import { robustLogSpan, chiSquaredP } from "../stats/primitives.js";
 import { ALPHA } from "../constants/thresholds.js";
+import { NA_CAUSE } from "../constants/naCause.js";
 
 /* 9. Benford's Law */
 /**
@@ -11,7 +12,7 @@ import { ALPHA } from "../constants/thresholds.js";
  */
 export function testBenford(matrix, rng) {
   const allVals=matrix.flat().filter(v=>v!=null&&isFinite(v)&&v!==0);
-  if(allVals.length<100) return {name:"Benford's Law (First Digit)",category:"digits",flag:"N/A",description:"Insufficient data (need ≥100 non-zero values)."};
+  if(allVals.length<100) return {name:"Benford's Law (First Digit)",category:"digits",flag:"N/A",naCause:NA_CAUSE.TOO_FEW_ROWS,description:"Insufficient data (need ≥100 non-zero values)."};
   // S109 Part 2 applicability tighten (METHODOLOGY §3.2):
   // (i) Positivity-fraction pretest. Benford's Law requires a positive-scale,
   //     scale-invariant multiplicative process. Centered-symmetric distributions
@@ -19,14 +20,14 @@ export function testBenford(matrix, rng) {
   //     not positive-scale. Require ≥80% of non-zero values to be positive.
   // (ii) OOM span tightened 1.0 → 1.5 to match spec.
   const positivityFrac = allVals.filter(v => v > 0).length / allVals.length;
-  if (positivityFrac < 0.80) return {name:"Benford's Law (First Digit)",category:"digits",flag:"N/A",description:`Not positive-scale data (${(positivityFrac*100).toFixed(0)}% positive) — Benford's Law assumes a positive-scale multiplicative process.`};
+  if (positivityFrac < 0.80) return {name:"Benford's Law (First Digit)",category:"digits",flag:"N/A",naCause:NA_CAUSE.SHAPE_NOT_COVERED,description:`Not positive-scale data (${(positivityFrac*100).toFixed(0)}% positive) — Benford's Law assumes a positive-scale multiplicative process.`};
   const absVals=allVals.map(Math.abs).filter(v=>v>0);
   const actualSpan=robustLogSpan(absVals);
-  if(actualSpan<1.5) return {name:"Benford's Law (First Digit)",category:"digits",flag:"N/A",description:`OOM span ${actualSpan.toFixed(1)} < 1.5 — Benford's Law requires ≥1.5 orders of magnitude for meaningful application.`};
+  if(actualSpan<1.5) return {name:"Benford's Law (First Digit)",category:"digits",flag:"N/A",naCause:NA_CAUSE.RANGE_OUT_OF_BAND,description:`OOM span ${actualSpan.toFixed(1)} < 1.5 — Benford's Law requires ≥1.5 orders of magnitude for meaningful application.`};
   const benf=[]; for(let d=1;d<=9;d++) benf.push(Math.log10(1+1/d));
   const counts=new Array(9).fill(0); let total=0;
   for(const v of allVals){const s=Math.abs(v).toExponential();const ld=parseInt(s[0]);if(ld>=1&&ld<=9){counts[ld-1]++;total++;}}
-  if(total<50) return {name:"Benford's Law (First Digit)",category:"digits",flag:"N/A",description:"Insufficient valid leading digits."};
+  if(total<50) return {name:"Benford's Law (First Digit)",category:"digits",flag:"N/A",naCause:NA_CAUSE.EMPTY_INPUT,description:"Insufficient valid leading digits."};
   let chi=0;
   const det=counts.map((c,i)=>{const e=benf[i]*total;chi+=(c-e)**2/e;
     return{digit:i+1,observed:c,expected:e.toFixed(1),benfordPct:(benf[i]*100).toFixed(1)+"%",observedPct:((c/total)*100).toFixed(1)+"%"};});

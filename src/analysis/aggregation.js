@@ -68,17 +68,39 @@ async function aggregatePerGroup(testFn, groups, parentCondCtx) {
   }
   const applicable=perGroup.filter(r=>r.flag!=="N/A");
   if(!applicable.length){
-    // No group produced a verdict — the test ran per group and could not
-    // complete for want of rows. This is an errored coverage state, not a
-    // not-applicable one. Take only the name and category from an empty-matrix
-    // probe; compose the description here rather than inherit the probe's. The
-    // probe hits each test's nC < 1 guard, whose "No DATA columns." message is
-    // false about a dataset that does have columns. `erroredCoverage` marks the
-    // state explicitly so the coverage classifier reads a field, not this note.
+    // No group produced a verdict — the test ran per group and none could
+    // complete. This is an errored coverage state, not a not-applicable one.
+    // Take only the name and category from an empty-matrix probe; compose the
+    // description here rather than inherit the probe's. The probe hits each
+    // test's nC < 1 guard, whose "No DATA columns." message is false about a
+    // dataset that does have columns. `erroredCoverage` marks the state
+    // explicitly so the coverage classifier reads a field, not this note.
+    //
+    // Roll the per-group cause up. Every per-group N/A result carries the
+    // structured `naCause` stamped at its return site. Read them: when every
+    // group agrees, carry that one code; when they disagree, carry the distinct
+    // set in `naCauses` and leave `naCause` null, so no consumer mistakes a
+    // mixed bucket for a single cause. Additive — flag, erroredCoverage,
+    // description and details are unchanged, so no verdict moves.
+    //
+    // Counts are deliberately NOT carried. A useful count needs two numbers per
+    // group: the count that tripped the shortfall and the test's declared
+    // minimum. Neither is reachable here. The per-group result holds only the
+    // code and a prose description — the numbers live inside that sentence, not
+    // as fields. And the minimums are mostly bare literals inside each test, not
+    // exported constants; one code even maps to different minimums across tests
+    // (tooFewObservations is 20 in Entropy, 30 in Column Goodness-of-Fit, 50 in
+    // Modality). A count pair here would mean duplicating those literals or
+    // keying a drift-prone test-to-minimum map. The clean path is for each test
+    // to emit its count and minimum on its own N/A result; that is a per-test
+    // change, deferred. See the session summary for the reachability audit.
     const proto=testFn([]);
     const reason="No group had sufficient data for this test.";
+    const distinctCauses=[...new Set(perGroup.map(pg=>pg.result?.naCause).filter(Boolean))];
     return{ name:proto.name, category:proto.category, flag:"N/A",
       erroredCoverage:true,
+      naCause: distinctCauses.length===1 ? distinctCauses[0] : null,
+      naCauses: distinctCauses,
       description:reason,
       details:[{note:reason}]};
   }

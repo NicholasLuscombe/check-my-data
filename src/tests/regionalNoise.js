@@ -1,5 +1,6 @@
 import { stddev, fitPredictedSigma, bhFDR } from "../stats/primitives.js";
 import { flagFromP, ALPHA } from "../constants/thresholds.js";
+import { NA_CAUSE } from "../constants/naCause.js";
 
 /* 15. Regional Noise Homogeneity
    Tests whether any replicate column has locally anomalous noise compared
@@ -26,7 +27,7 @@ import { flagFromP, ALPHA } from "../constants/thresholds.js";
  */
 export function testRegionalNoise(matrix, rng) {
   const nR = matrix.length, nC = matrix[0]?.length || 0;
-  if (nC < 3 || nR < 20) return { name: "Regional Noise Homogeneity", category: "replicate", flag: "N/A",
+  if (nC < 3 || nR < 20) return { name: "Regional Noise Homogeneity", category: "replicate", flag: "N/A", naCause: nC < 3 ? NA_CAUSE.TOO_FEW_COLUMNS : NA_CAUSE.TOO_FEW_ROWS,
     description: "Need ≥3 replicate columns and ≥20 rows." };
 
   // ── Step 1: predicted σ per row from mean-variance fit ──
@@ -50,7 +51,7 @@ export function testRegionalNoise(matrix, rng) {
       if (nValid >= nC) validRows.push(r);
     }
   }
-  if (validRows.length < 20) return { name: "Regional Noise Homogeneity", category: "replicate", flag: "N/A",
+  if (validRows.length < 20) return { name: "Regional Noise Homogeneity", category: "replicate", flag: "N/A", naCause: NA_CAUSE.TOO_FEW_ROWS,
     description: `Only ${validRows.length} rows with complete data and valid σ — need ≥20.` };
 
   // Standardised residuals matrix: validRows.length × nC
@@ -69,7 +70,7 @@ export function testRegionalNoise(matrix, rng) {
   // (window × column) pairs. Permutation null: row-shuffle preserves
   // global variance but redistributes window membership.
   const WIN = 15;
-  if (validRows.length < WIN) return { name: "Regional Noise Homogeneity", category: "replicate", flag: "N/A",
+  if (validRows.length < WIN) return { name: "Regional Noise Homogeneity", category: "replicate", flag: "N/A", naCause: NA_CAUSE.TOO_FEW_ROWS,
     description: `Only ${validRows.length} valid rows — need ≥${WIN} for windowed scan.` };
   const stride = Math.max(1, Math.floor(WIN / 3));
 
@@ -130,7 +131,7 @@ export function testRegionalNoise(matrix, rng) {
     if (maxR > obsScanStat) { obsScanStat = maxR; bestWinIdx = allWindows.length - 1; }
   }
 
-  if (!allWindows.length) return { name: "Regional Noise Homogeneity", category: "replicate", flag: "N/A",
+  if (!allWindows.length) return { name: "Regional Noise Homogeneity", category: "replicate", flag: "N/A", naCause: NA_CAUSE.EMPTY_INPUT,
     description: "No valid windows for scan." };
 
   // ── Step 4: permutation null ──

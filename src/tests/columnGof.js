@@ -29,6 +29,7 @@
 
 import { mean, variance, bhFDR, modalPrecision, normalCDF, chiSquaredP } from "../stats/primitives.js";
 import { flagFromP } from "../constants/thresholds.js";
+import { NA_CAUSE, dominantCause } from "../constants/naCause.js";
 
 const NAME = "Column Goodness-of-Fit";
 const CAT  = "shapes";
@@ -50,13 +51,13 @@ export const MIN_OBS = 30;
 
 export function testColumnGof(matrix, rng, dataType) {
   if (dataType === "ordinal") {
-    return { name: NAME, category: CAT, flag: "N/A",
+    return { name: NAME, category: CAT, flag: "N/A", naCause: NA_CAUSE.DATA_TYPE_MISMATCH,
       description: "Not applicable to ordinal data — discrete ordinal scales do not fit {Normal, Poisson, NB} families." };
   }
 
   const nR = matrix.length;
   const nC = matrix[0]?.length || 0;
-  if (nC < 1) return { name: NAME, category: CAT, flag: "N/A", description: "No DATA columns." };
+  if (nC < 1) return { name: NAME, category: CAT, flag: "N/A", naCause: NA_CAUSE.EMPTY_INPUT, description: "No DATA columns." };
 
   const isCount = dataType === "count";
   const columnResults = [];
@@ -69,12 +70,12 @@ export function testColumnGof(matrix, rng, dataType) {
     }
 
     if (vals.length < MIN_OBS) {
-      columnResults.push({ col: ci, skip: true, reason: `< ${MIN_OBS} observations` });
+      columnResults.push({ col: ci, skip: true, reason: `< ${MIN_OBS} observations`, naCause: NA_CAUSE.TOO_FEW_OBSERVATIONS });
       continue;
     }
     const distinct = new Set(vals).size;
     if (distinct < 10) {
-      columnResults.push({ col: ci, skip: true, reason: "< 10 distinct values" });
+      columnResults.push({ col: ci, skip: true, reason: "< 10 distinct values", naCause: NA_CAUSE.TOO_FEW_DISTINCT });
       continue;
     }
 
@@ -114,7 +115,7 @@ export function testColumnGof(matrix, rng, dataType) {
       const kurtFailFloor = g2 < EXKURT_FLOOR;
       const kurtFailHighN = g2 < EXKURT_GATE_HIGHN && vals.length >= GAMMA_N_ADAPTIVE_THRESHOLD;
       if (skewFail || kurtFailFloor || kurtFailHighN) {
-        columnResults.push({ col: ci, skip: true,
+        columnResults.push({ col: ci, skip: true, naCause: NA_CAUSE.SHAPE_NOT_COVERED,
           reason: `Pre-skip: γ₁=${g1.toFixed(2)}, γ₂=${g2.toFixed(2)} — family set {Normal, Poisson, NB} does not cover this shape (v1.1 extension planned)`,
           g1, g2 });
         continue;
@@ -198,9 +199,9 @@ export function testColumnGof(matrix, rng, dataType) {
   const skipped = columnResults.filter(c => c.skip);
 
   if (tested.length === 0) {
-    return { name: NAME, category: CAT, flag: "N/A",
+    return { name: NAME, category: CAT, flag: "N/A", naCause: dominantCause(skipped.map(s => s.naCause)),
       description: `All columns routed to N/A (${skipped.length} columns; most common: ${skipped[0]?.reason || "n/a"}).`,
-      skippedColumns: skipped.map(s => ({ col: s.col + 1, reason: s.reason })) };
+      skippedColumns: skipped.map(s => ({ col: s.col + 1, reason: s.reason, naCause: s.naCause })) };
   }
 
   // BH-FDR across applicable columns only (skipped columns excluded from denominator).
@@ -255,7 +256,7 @@ export function testColumnGof(matrix, rng, dataType) {
     fewColumnsNote: fewColumns ? "Fewer than 5 columns tested — BH-FDR correction may be conservative." : null,
     colRatios,
     details,
-    skippedColumns: skipped.map(s => ({ col: s.col + 1, reason: s.reason })),
+    skippedColumns: skipped.map(s => ({ col: s.col + 1, reason: s.reason, naCause: s.naCause })),
   };
 }
 

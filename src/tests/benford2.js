@@ -1,5 +1,6 @@
 import { robustLogSpan, chiSquaredP } from "../stats/primitives.js";
 import { ALPHA } from "../constants/thresholds.js";
+import { NA_CAUSE } from "../constants/naCause.js";
 
 /* 17. Second-Digit Benford
    Complements first-digit Benford's Law (test 12). Fabricators who know about
@@ -17,12 +18,12 @@ export function testBenford2(matrix, rng) {
   const NAME = "Benford's Law (Second Digit)";
   const CAT = "digits";
 
-  if (allVals.length < 100) return { name: NAME, category: CAT, flag: "N/A",
+  if (allVals.length < 100) return { name: NAME, category: CAT, flag: "N/A", naCause: NA_CAUSE.TOO_FEW_ROWS,
     description: "Insufficient data (need ≥100 non-zero values)." };
 
   const absVals = allVals.map(Math.abs).filter(v => v > 0);
   const actualSpan = robustLogSpan(absVals);
-  if (actualSpan < 1.0) return { name: NAME, category: CAT, flag: "N/A",
+  if (actualSpan < 1.0) return { name: NAME, category: CAT, flag: "N/A", naCause: NA_CAUSE.RANGE_OUT_OF_BAND,
     description: `Data spans only ${actualSpan.toFixed(1)} orders of magnitude — Benford's Law requires ≥1 for meaningful application.` };
 
   // Expected second-digit probabilities: P(d₂=k) = Σ_{d₁=1}^{9} log₁₀(1+1/(10d₁+k))
@@ -55,7 +56,7 @@ export function testBenford2(matrix, rng) {
       total++;
     }
   }
-  if (total < 50) return { name: NAME, category: CAT, flag: "N/A",
+  if (total < 50) return { name: NAME, category: CAT, flag: "N/A", naCause: NA_CAUSE.EMPTY_INPUT,
     description: "Insufficient valid second digits." };
 
   // χ² goodness-of-fit

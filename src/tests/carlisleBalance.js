@@ -1,5 +1,6 @@
 import { mean, normalCDF, regIncBeta } from "../stats/primitives.js";
 import { flagFromP } from "../constants/thresholds.js";
+import { NA_CAUSE } from "../constants/naCause.js";
 
 /* Carlisle Baseline Balance Test
    Detects suspiciously perfect or imperfect balance between experimental conditions.
@@ -37,7 +38,7 @@ export function testCarlisleBalance(matrix, condCtx) {
   const CAT = "group";
 
   if (!condCtx || !condCtx.has || condCtx.count < 2) {
-    return _na(NAME, CAT, "Requires ≥2 experimental conditions.");
+    return _na(NAME, CAT, "Requires ≥2 experimental conditions.", NA_CAUSE.TOO_FEW_CONDITIONS);
   }
 
   // Determine features and condition groups based on condCtx type
@@ -47,10 +48,10 @@ export function testCarlisleBalance(matrix, condCtx) {
   if (condCtx.type === "row-grouped") {
     // Features = DATA columns, conditions = COND row groups
     const slices = condCtx.slices();
-    if (slices.length < 2) return _na(NAME, CAT, "Requires ≥2 conditions with ≥3 rows each.");
+    if (slices.length < 2) return _na(NAME, CAT, "Requires ≥2 conditions with ≥3 rows each.", NA_CAUSE.TOO_FEW_CONDITIONS);
 
     const nC = matrix[0]?.length || 0;
-    if (nC < 5) return _na(NAME, CAT, `Only ${nC} DATA columns — need ≥5 features for meaningful balance test.`);
+    if (nC < 5) return _na(NAME, CAT, `Only ${nC} DATA columns — need ≥5 features for meaningful balance test.`, NA_CAUSE.TOO_FEW_COLUMNS);
 
     for (let c = 0; c < nC; c++) {
       // Collect values per condition for this column
@@ -76,10 +77,10 @@ export function testCarlisleBalance(matrix, condCtx) {
   } else if (condCtx.type === "column-grouped") {
     // Features = rows, conditions = column groups
     const slices = condCtx.slices();
-    if (slices.length < 2) return _na(NAME, CAT, "Requires ≥2 condition column groups.");
+    if (slices.length < 2) return _na(NAME, CAT, "Requires ≥2 condition column groups.", NA_CAUSE.TOO_FEW_CONDITIONS);
 
     const nR = matrix.length;
-    if (nR < 10) return _na(NAME, CAT, `Only ${nR} rows — need ≥10 features for meaningful balance test.`);
+    if (nR < 10) return _na(NAME, CAT, `Only ${nR} rows — need ≥10 features for meaningful balance test.`, NA_CAUSE.TOO_FEW_ROWS);
 
     for (let r = 0; r < nR; r++) {
       const groups = [];
@@ -104,16 +105,16 @@ export function testCarlisleBalance(matrix, condCtx) {
       }
     }
   } else {
-    return _na(NAME, CAT, "No condition structure available.");
+    return _na(NAME, CAT, "No condition structure available.", NA_CAUSE.TOO_FEW_CONDITIONS);
   }
 
   const nFeatures = featurePValues.length;
-  if (nFeatures < 5) return _na(NAME, CAT, `Only ${nFeatures} testable features — need ≥5 for meaningful balance test.`);
+  if (nFeatures < 5) return _na(NAME, CAT, `Only ${nFeatures} testable features — need ≥5 for meaningful balance test.`, NA_CAUSE.TOO_FEW_COLUMNS);
 
   // Gate: skip if >50% of features show significant differences (conditions genuinely different)
   const nSig = featurePValues.filter(p => p < 0.05).length;
   if (nSig / nFeatures > 0.50) {
-    return _na(NAME, CAT, `${nSig}/${nFeatures} features (${(nSig / nFeatures * 100).toFixed(0)}%) show significant condition differences — conditions are genuinely different. Balance test not applicable.`);
+    return _na(NAME, CAT, `${nSig}/${nFeatures} features (${(nSig / nFeatures * 100).toFixed(0)}%) show significant condition differences — conditions are genuinely different. Balance test not applicable.`, NA_CAUSE.PREMISE_VOID);
   }
 
   // ── Test (a): Binomial test for excess p > 0.95 (too balanced) ──
@@ -220,8 +221,8 @@ function _cvOfMeans(condMeans) {
   return (cv * 100).toFixed(2) + "%";
 }
 
-function _na(name, cat, desc) {
-  return { name, category: cat, flag: "N/A", primaryP: null, description: desc };
+function _na(name, cat, desc, naCause) {
+  return { name, category: cat, flag: "N/A", naCause, primaryP: null, description: desc };
 }
 
 /** One-way ANOVA F-test. Returns p-value. groups = [[vals], [vals], ...]. */

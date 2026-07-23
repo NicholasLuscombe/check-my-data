@@ -1,5 +1,6 @@
 import { chiSquaredP } from "../stats/primitives.js";
 import { flagFromP } from "../constants/thresholds.js";
+import { NA_CAUSE } from "../constants/naCause.js";
 
 /* 8. Terminal Digit Uniformity */
 /**
@@ -11,14 +12,14 @@ import { flagFromP } from "../constants/thresholds.js";
  */
 export function testTerminalDigits(matrix, assay='general') {
   const vals=matrix.flat().filter(v=>v!=null&&isFinite(v));
-  if(vals.length<50) return {name:"Terminal Digit Uniformity",category:"digits",flag:"N/A",description:"Insufficient data (need \u226550 values)."};
+  if(vals.length<50) return {name:"Terminal Digit Uniformity",category:"digits",flag:"N/A",naCause:NA_CAUSE.TOO_FEW_ROWS,description:"Insufficient data (need \u226550 values)."};
   // Integer guard: terminal digit analysis tests whether the LAST DECIMAL DIGIT is uniform,
   // which detects human digit preference when fabricating continuous measurements (Simonsohn 2013).
   // For integer data (counts, scores), the "terminal digit" is just the units digit, which has
   // no reason to be uniform — count distributions naturally produce non-uniform units digits.
   // Return N/A to avoid false positives on integer/count data.
   const intFrac=vals.filter(v=>Number.isInteger(v)).length/vals.length;
-  if(intFrac>0.95) return {name:"Terminal Digit Uniformity",category:"digits",flag:"N/A",
+  if(intFrac>0.95) return {name:"Terminal Digit Uniformity",category:"digits",flag:"N/A",naCause:NA_CAUSE.DATA_TYPE_MISMATCH,
     description:`Data is ${(intFrac*100).toFixed(0)}% integer values. Terminal digit analysis tests the last decimal digit of continuous measurements \u2014 for integer/count data, the units digit distribution depends on the count-generating process and is not expected to be uniform. Test not applicable.`};  const counts=new Array(10).fill(0); let total=0;
   for(const v of vals){
     const s=Math.abs(v).toString();
@@ -29,7 +30,7 @@ export function testTerminalDigits(matrix, assay='general') {
     const m=s.match(/(\d)$/);
     if(m){counts[parseInt(m[1])]++;total++;}
   }
-  if(!total) return {name:"Terminal Digit Uniformity",category:"digits",flag:"N/A",description:"No valid terminal digits extracted."};
+  if(!total) return {name:"Terminal Digit Uniformity",category:"digits",flag:"N/A",naCause:NA_CAUSE.EMPTY_INPUT,description:"No valid terminal digits extracted."};
 
   const exp10=total/10; let chi10=0;
   const det=counts.map((c,d)=>{chi10+=(c-exp10)**2/exp10;return{digit:d,observed:c,expected:exp10.toFixed(1),pct:((c/total)*100).toFixed(1)+"%",isAvoided:c<exp10*0.5};});

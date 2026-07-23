@@ -19,6 +19,7 @@
  */
 import { regIncBeta, bhFDR } from '../stats/primitives.js';
 import { flagFromP } from '../constants/thresholds.js';
+import { NA_CAUSE } from '../constants/naCause.js';
 
 export function testDecimalPrecision(matrix, rawMatrix, assay) {
   // Use rawMatrix (string values) when available so that trailing zeros are preserved.
@@ -29,7 +30,7 @@ export function testDecimalPrecision(matrix, rawMatrix, assay) {
   const withDec = rawMatrix
     ? vals.filter(v => String(v).includes("."))
     : vals.filter(v => !Number.isInteger(v));
-  if (withDec.length < 30) return { name: "Decimal Precision Consistency", category: "digits", flag: "N/A", description: "Insufficient decimal-valued data (need ≥30 non-integer values)." };
+  if (withDec.length < 30) return { name: "Decimal Precision Consistency", category: "digits", flag: "N/A", naCause: NA_CAUSE.TOO_FEW_ROWS, description: "Insufficient decimal-valued data (need ≥30 non-integer values)." };
 
   // Count values per decimal-place level
   const prec = {};

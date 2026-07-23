@@ -1,5 +1,6 @@
 import { spearmanR } from "../stats/primitives.js";
 import { flagFromP, EFFECT_SIZE } from "../constants/thresholds.js";
+import { NA_CAUSE } from "../constants/naCause.js";
 
 /* 19. Residual Spike Correlation
    Detects coordinated editing across groups/conditions.
@@ -31,7 +32,7 @@ export function testResidualSpikeCorrelation(matrix, condCtx, rng) {
   // Need ≥2 groups with matched rows.
   const slices = condCtx?.has ? condCtx.slices() : [];
   if (slices.length < 2) {
-    return { name: NAME, category: CAT, flag: "N/A",
+    return { name: NAME, category: CAT, flag: "N/A", naCause: NA_CAUSE.PREMISE_VOID,
       description: "No condition grouping found. Residual spike correlation requires ≥2 conditions." };
   }
 
@@ -40,7 +41,7 @@ export function testResidualSpikeCorrelation(matrix, condCtx, rng) {
   // Both column-grouped and row-grouped use slices uniformly.
   // For row-grouped, truncate to the shortest condition (position-matched features).
   const nFeatures = Math.min(...slices.map(s => s.matrix.length));
-  if (nFeatures < 10) return { name: NAME, category: CAT, flag: "N/A",
+  if (nFeatures < 10) return { name: NAME, category: CAT, flag: "N/A", naCause: NA_CAUSE.TOO_FEW_ROWS,
     description: "Insufficient rows (<10) for residual spike correlation analysis." };
 
   for (const s of slices) {
@@ -63,7 +64,7 @@ export function testResidualSpikeCorrelation(matrix, condCtx, rng) {
     groupResiduals.push({ name: s.name, absResid: normRes });
   }
 
-  if (groupResiduals.length < 2) return { name: NAME, category: CAT, flag: "N/A",
+  if (groupResiduals.length < 2) return { name: NAME, category: CAT, flag: "N/A", naCause: NA_CAUSE.TOO_FEW_CONDITIONS,
     description: "Need ≥2 conditions with sufficient data for residual spike correlation." };
 
   const nR = groupResiduals[0].absResid.length;

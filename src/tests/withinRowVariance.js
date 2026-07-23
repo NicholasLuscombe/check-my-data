@@ -1,5 +1,6 @@
 import { mean, stddev, normalCDF, bhFDR } from "../stats/primitives.js";
 import { flagFromP } from "../constants/thresholds.js";
+import { NA_CAUSE } from "../constants/naCause.js";
 
 // Flag cutoff: rows with |z| beyond this are outliers (Step 4). Exported so the
 // card plot draws its threshold line at the same value the verdict gates on.
@@ -30,8 +31,8 @@ export function testWithinRowVariance(matrix, rng, rowSemantics = 'ordered') {
   const CAT = "replicate";
   const nR = matrix.length, nC = matrix[0]?.length || 0;
 
-  if (nC < 3) return { name: NAME, category: CAT, flag: "N/A", description: "Need ≥3 replicate columns for meaningful within-row SD." };
-  if (nR < 40) return { name: NAME, category: CAT, flag: "N/A", description: `Insufficient rows (${nR}). Need ≥40 for stable mean-variance fit.` };
+  if (nC < 3) return { name: NAME, category: CAT, flag: "N/A", naCause: NA_CAUSE.TOO_FEW_COLUMNS, description: "Need ≥3 replicate columns for meaningful within-row SD." };
+  if (nR < 40) return { name: NAME, category: CAT, flag: "N/A", naCause: NA_CAUSE.TOO_FEW_ROWS, description: `Insufficient rows (${nR}). Need ≥40 for stable mean-variance fit.` };
 
   // Step 1: Compute per-row mean and SD
   const rowStats = [];
@@ -44,7 +45,7 @@ export function testWithinRowVariance(matrix, rng, rowSemantics = 'ordered') {
   }
 
   const validRows = rowStats.map((s, i) => s ? { ...s, idx: i } : null).filter(Boolean);
-  if (validRows.length < 40) return { name: NAME, category: CAT, flag: "N/A", description: `Only ${validRows.length} rows with ≥3 valid replicates. Need ≥40.` };
+  if (validRows.length < 40) return { name: NAME, category: CAT, flag: "N/A", naCause: NA_CAUSE.TOO_FEW_ROWS, description: `Only ${validRows.length} rows with ≥3 valid replicates. Need ≥40.` };
 
   // Step 2: Fit mean-variance relationship via binned local regression
   // Sort by mean, bin, compute median SD and MAD per bin

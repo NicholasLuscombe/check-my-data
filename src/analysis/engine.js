@@ -5,6 +5,7 @@
 import { createPRNG } from '../stats/prng.js';
 import { flagRankOf } from '../constants/thresholds.js';
 import { DATATYPE_SKIP } from '../constants/assays.js';
+import { NA_CAUSE } from '../constants/naCause.js';
 import { ROW_SEMANTICS_FULL_SKIP, ROW_SEMANTICS_SKIP_REASON } from '../import/rowSemantics.js';
 import { aggregatePerGroup, buildGroups } from './aggregation.js';
 import { createConditionContext } from './conditionContext.js';
@@ -301,7 +302,7 @@ export async function runFullAnalysis(matrix, rawMatrix, condCtx, assay, onProgr
   function dtSkip(testName, category) {
     const reason = skipMap[testName];
     if (!reason) return null;
-    return { name: testName, category, flag: "N/A", description: reason };
+    return { name: testName, category, flag: "N/A", naCause: NA_CAUSE.DATA_TYPE_MISMATCH, description: reason };
   }
 
   // Conditions-mode skip helper: replicate-comparison tests are N/A
@@ -309,7 +310,7 @@ export async function runFullAnalysis(matrix, rawMatrix, condCtx, assay, onProgr
   const COND_SKIP_REASON = "Not applicable when columns are non-replicates. These tests compare replicate measurements of the same quantity — columns representing different treatments, instruments, or time points are expected to differ.";
   function condSkip(testName, category) {
     if (!isConditionsMode) return null;
-    return { name: testName, category, flag: "N/A", description: COND_SKIP_REASON };
+    return { name: testName, category, flag: "N/A", naCause: NA_CAUSE.COLUMNS_NOT_REPLICATES, description: COND_SKIP_REASON };
   }
 
   // Row-semantics gate (S118 Track H): full-test skip for the 8 sequential
@@ -320,7 +321,7 @@ export async function runFullAnalysis(matrix, rawMatrix, condCtx, assay, onProgr
   function rsSkip(testName, category) {
     if (!isArbitraryRowOrder) return null;
     if (!ROW_SEMANTICS_FULL_SKIP.has(testName)) return null;
-    return { name: testName, category, flag: "N/A", description: ROW_SEMANTICS_SKIP_REASON };
+    return { name: testName, category, flag: "N/A", naCause: NA_CAUSE.ROW_ORDER_ARBITRARY, description: ROW_SEMANTICS_SKIP_REASON };
   }
 
   // Dev-only perf skip (S251): the two long-pole tests (Blocked Mahalanobis
@@ -355,16 +356,16 @@ export async function runFullAnalysis(matrix, rawMatrix, condCtx, assay, onProgr
     // --- Unusual Digits ---
     ["Benford's Law",                () => {
       if (assay === "cell_count") return { name: "Benford's Law (First Digit)", category: "digit",
-        flag: "N/A", description: "Not applicable to cell count data. Poisson count data from a single counting process has a mathematically determined leading-digit distribution that depends on λ, not Benford's law. Benford applicability requires data spanning multiple orders of magnitude from heterogeneous natural processes." };
+        flag: "N/A", naCause: NA_CAUSE.ASSAY_NOT_APPLICABLE, description: "Not applicable to cell count data. Poisson count data from a single counting process has a mathematically determined leading-digit distribution that depends on λ, not Benford's law. Benford applicability requires data spanning multiple orders of magnitude from heterogeneous natural processes." };
       return testBenford(matrix, rng);
     }],
     ["Benford's Law (2nd Digit)",    () => {
       if (assay === "cell_count") return { name: "Benford's Law (Second Digit)", category: "digit",
-        flag: "N/A", description: "Not applicable to cell count data. See Benford's First Digit for rationale." };
+        flag: "N/A", naCause: NA_CAUSE.ASSAY_NOT_APPLICABLE, description: "Not applicable to cell count data. See Benford's First Digit for rationale." };
       const allV = matrix.flat().filter(v => v != null && isFinite(v));
       const intFrac = allV.filter(v => Number.isInteger(v)).length / (allV.length || 1);
       if (intFrac > 0.9) return { name: "Benford's Law (Second Digit)", category: "digit",
-        flag: "N/A", description: "Not applicable to integer/count data. Count values naturally concentrate second significant digits at 0 (e.g. 10, 20, 100, 200) — this is an intrinsic property of integer distributions, not a meaningful signal." };
+        flag: "N/A", naCause: NA_CAUSE.DATA_TYPE_MISMATCH, description: "Not applicable to integer/count data. Count values naturally concentrate second significant digits at 0 (e.g. 10, 20, 100, 200) — this is an intrinsic property of integer distributions, not a meaningful signal." };
       return testBenford2(matrix, rng);
     }],
     ["Terminal Digit Uniformity",    () => testTerminalDigits(matrix, assay)],
@@ -421,7 +422,7 @@ export async function runFullAnalysis(matrix, rawMatrix, condCtx, assay, onProgr
       const ctx = hasVST ? vstCondCtx : condCtx;
       if (!ctx || !ctx.has || ctx.count < 2) {
         return { name: "Cross-Condition Consistency", category: "group",
-          flag: "N/A", description: "Need ≥2 experimental conditions." };
+          flag: "N/A", naCause: NA_CAUSE.TOO_FEW_CONDITIONS, description: "Need ≥2 experimental conditions." };
       }
       const r = testCrossConditionConsistency(m, ctx, rng, { originalMatrix: matrix, hasVST });
       if (hasVST) r.vstTransform = vstType;
@@ -431,14 +432,14 @@ export async function runFullAnalysis(matrix, rawMatrix, condCtx, assay, onProgr
       const csMH = condSkip("Mahalanobis Row Outlier","distributional"); if (csMH) return csMH;
       const dtMH = dtSkip("Mahalanobis Row Outlier","distributional"); if (dtMH) return dtMH;
       if (assay === "genomics") return { name: "Mahalanobis Row Outlier", category: "distributional",
-        flag: "N/A", description: "Not applicable to genomics data. Count distributions violate the multivariate normality assumption required for χ²-based D² thresholds. Biological expression heterogeneity produces widespread outliers that are not anomalous." };
+        flag: "N/A", naCause: NA_CAUSE.ASSAY_NOT_APPLICABLE, description: "Not applicable to genomics data. Count distributions violate the multivariate normality assumption required for χ²-based D² thresholds. Biological expression heterogeneity produces widespread outliers that are not anomalous." };
       if (groupingPending) return pendingResult("Mahalanobis Row Outlier", "replicate");
       // S324: the covariance distance needs at least MAHAL_MIN_COLS replicate
       // columns to be defined. Column count is a whole-dataset fact, so check it
       // here before any per-condition row split, rather than finding the
       // shortage once per group.
       if ((matrix[0]?.length || 0) < MAHAL_MIN_COLS) {
-        return { name: "Mahalanobis Row Outlier", category: "replicate", flag: "N/A",
+        return { name: "Mahalanobis Row Outlier", category: "replicate", flag: "N/A", naCause: NA_CAUSE.TOO_FEW_COLUMNS,
           description: `Not applicable with fewer than ${MAHAL_MIN_COLS} replicate columns — the row-distance measure this test uses needs at least that many.` };
       }
       // S127 Path 1 dispatch: METHODOLOGY.md §2.6 step 1 specifies
@@ -529,7 +530,7 @@ export async function runFullAnalysis(matrix, rawMatrix, condCtx, assay, onProgr
       const rg = condCtx?.rowGroups();
       if (rg) {
         if (noGroupMeetsMin(rg, GOF_MIN_OBS)) {
-          return { name: "Column Goodness-of-Fit", category: "shapes", flag: "N/A",
+          return { name: "Column Goodness-of-Fit", category: "shapes", flag: "N/A", naCause: NA_CAUSE.TOO_FEW_OBSERVATIONS,
             description: `Not applicable — no condition group has the ${GOF_MIN_OBS} values this goodness-of-fit test needs to fit a distribution.` };
         }
         return await aggregatePerGroup(m => testColumnGof(m, rng, dataType), rg);
@@ -542,7 +543,7 @@ export async function runFullAnalysis(matrix, rawMatrix, condCtx, assay, onProgr
       const rg = condCtx?.rowGroups();
       if (rg) {
         if (noGroupMeetsMin(rg, MODALITY_MIN_N)) {
-          return { name: "Modality Test", category: "shapes", flag: "N/A",
+          return { name: "Modality Test", category: "shapes", flag: "N/A", naCause: NA_CAUSE.TOO_FEW_OBSERVATIONS,
             description: `Not applicable — no condition group has the ${MODALITY_MIN_N} values this modality test needs.` };
         }
         return await aggregatePerGroup(m => testModality(m, rng, dataType), rg);
@@ -580,7 +581,7 @@ export async function runFullAnalysis(matrix, rawMatrix, condCtx, assay, onProgr
       // biological expression heterogeneity. Independent of row order — kept
       // alongside the S118 sub-unit suppression (windowed scan only) below.
       if (assay === "genomics") return { name: "Within-Row Variance", category: "noise",
-        flag: "N/A", description: "Not applicable to genomics data. Within-row variance across technical replicates of the same gene has different semantics — biological expression heterogeneity dominates." };
+        flag: "N/A", naCause: NA_CAUSE.ASSAY_NOT_APPLICABLE, description: "Not applicable to genomics data. Within-row variance across technical replicates of the same gene has different semantics — biological expression heterogeneity dominates." };
       return testWithinRowVariance(matrix, rng, rowSemantics);
     }],
     // --- Cross-Replicate Comparisons (spatial / sectional) ---
@@ -601,7 +602,7 @@ export async function runFullAnalysis(matrix, rawMatrix, condCtx, assay, onProgr
       // no row labels; check here and return not-applicable rather than fanning
       // the test over each column group, where every group returns N/A.
       if (!condCtx?.rowConditions) {
-        return { name: "Row-Mean Runs", category: "replicate", flag: "N/A",
+        return { name: "Row-Mean Runs", category: "replicate", flag: "N/A", naCause: NA_CAUSE.PREMISE_VOID,
           description: "Not applicable without row-level condition labels. This test looks for shifts within a condition's rows, so it needs the rows grouped by condition." };
       }
       return tagVST(await runPairVST((m, childCtx) => testRowMeanRuns(m, childCtx, rng), condCtx));
