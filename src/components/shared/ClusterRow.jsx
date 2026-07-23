@@ -100,7 +100,14 @@ export function ClusterRow({
   // sits beside the fraction, whose gap is the same errored test; the two agree
   // arithmetically (ran + errored = couldRun) rather than contradicting.
   const clauses = [];
-  if (couldRun > 0)       clauses.push(`${cov.ran} of ${couldRun}`);
+  // The ratio is the cluster's only test count — the "(N tests)" parenthetical
+  // was retired in its favour. Keep it only when nothing is outstanding, so it
+  // still reports the count on a clear or flagged cluster. When a not-run /
+  // unassessed / pending clause is present, that clause already states the
+  // coverage gap; the ratio would only restate it and make the reader subtract,
+  // so drop it and let the clause stand.
+  const outstanding = cov.errored + cov.unassessed + cov.pending;
+  if (couldRun > 0 && outstanding === 0) clauses.push(`${cov.ran} of ${couldRun}`);
   if (cov.errored > 0)    clauses.push(`${cov.errored} not run`);
   if (cov.unassessed > 0) clauses.push(`${cov.unassessed} unassessed`);
   if (cov.pending > 0)    clauses.push(`${cov.pending} pending`);
