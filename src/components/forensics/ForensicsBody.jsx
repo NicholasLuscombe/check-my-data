@@ -60,7 +60,7 @@ import { GroupingConfirmCard } from "./GroupingConfirmCard.jsx";
 
 // Clean-state copy renders as a bold count lead plus a normal continuation,
 // threaded to StickySurface where it shows above the Data toggle when no chips
-// exist in any lane. The lead now states coverage ("{N} of 29 tests completed")
+// exist in any lane. The lead now states coverage ("{N} of {battery} tests completed")
 // instead of a bare "All checks passed"; the count and the errored/zero cases
 // are computed per render inside the component (see cleanStateLead below).
 
@@ -455,6 +455,12 @@ export function ForensicsBody({
           // classifyCoverage keeps this off the pending / unassessed / errored
           // buckets, which have their own rows or are held for later.
           const notApplicableTests = group.tests.filter(r => classifyCoverage(r) === "notApplicable");
+          // Errored tests — coverage state "errored" (a per-group dispatch where
+          // no group could complete, or a thrown test). classifyCoverage catches
+          // both producers; a raw-flag filter would catch only one, because the
+          // two carry different flags. Their own section so they stop reading as
+          // "not applicable", a different and wrong claim.
+          const erroredTests = group.tests.filter(r => classifyCoverage(r) === "errored");
           return (
             <div key={mk}>
               {idx > 0 && <div style={{borderTop:`1px solid ${C.BORDER_L}`, margin:"8px 0"}}/>}
@@ -467,6 +473,7 @@ export function ForensicsBody({
                 pendingTests={pendingTests}
                 unassessedTests={unassessedTests}
                 notApplicableTests={notApplicableTests}
+                erroredTests={erroredTests}
                 coverage={summarizeCoverage(group.tests)}
                 isExpanded={expandedCats[mk]} onToggle={()=>toggleCat(mk)}
                 expandedTestEvidence={expandedTestEvidence}

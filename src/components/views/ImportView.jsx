@@ -369,8 +369,13 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
   // unresolved (Run is gated when this would be null, see handleProceed).
   const effectiveRowSem = rowSemantics || 'ordered';
   const rowSemRequired = !rowSemantics && data && roles.length > 0 && rowSemSuggestion.value === null;
-  const tests=useMemo(()=>sum?getApplicabilityTests(sum,effectiveColRel):[],[sum,effectiveColRel]);
-  const nOk=tests.filter(t=>t.ok).length;
+  const tests=useMemo(()=>sum?getApplicabilityTests(sum,effectiveColRel,dataType,effectiveRowSem):[],[sum,effectiveColRel,dataType,effectiveRowSem]);
+  // Two numbers, not one: tests that will run, and tests that clear every
+  // predictable check but whose final call is only known by running.
+  const nApply=tests.filter(t=>t.ok&&!t.runOnly).length;
+  const dependTests=tests.filter(t=>t.ok&&t.runOnly);
+  const nDepend=dependTests.length;
+  const dependNames=dependTests.map(t=>DISPLAY_NAMES[t.name]||t.name);
   const fams=useMemo(()=>{const f={};for(const t of tests){if(!f[t.fam])f[t.fam]={ok:0,n:0};f[t.fam].n++;if(t.ok)f[t.fam].ok++;}return f;},[tests]);
 
   const condSpans=useMemo(()=>buildCondSpans(condPerCol),[condPerCol]);
@@ -1041,7 +1046,7 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
             <button onClick={()=>setApplicExpanded(p=>!p)}
               style={{background:"none",border:"none",cursor:"pointer",padding:"4px 0",fontSize:FS.base,fontWeight:FW.MED,color:C.TEXT,display:"flex",alignItems:"center",gap:"6px",flexWrap:"wrap"}}>
               <span style={{color:C.TEXT_3,fontSize:FS.sm,transform:applicExpanded?"rotate(90deg)":"",transition:"0.15s"}}>▶</span>
-              <span>{nOk} of {tests.length} tests applicable</span>
+              <span>{nApply} {nApply===1?"test applies":"tests apply"} to this dataset.{nDepend>0?(nDepend===1?" Up to 1 more depends on the data.":` Up to ${nDepend} more depend on the data.`):""}</span>
               {!applicExpanded&&<span style={{fontSize:FS.sm,color:C.TEXT_3}}>
                 — {summaryParts.map(({m,g})=>`${m.label} ${g.ok}/${g.total}`).join(" · ")}
               </span>}
@@ -1069,6 +1074,11 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
                     </div>
                   );
                 })}
+                {dependNames.length>0&&(
+                  <div style={{fontSize:FS.sm,color:C.TEXT_3,marginTop:"4px",paddingLeft:"14px"}}>
+                    Depend on the data (known only after running): {dependNames.join(", ")}.
+                  </div>
+                )}
               </div>
             )}
           </div>

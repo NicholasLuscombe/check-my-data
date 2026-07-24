@@ -96,10 +96,19 @@ export function ClusterRow({
   // "completed" label — the word plus the fraction already says it. Then only the
   // outstanding buckets that explain a gap in the fraction. Not-applicable is not
   // shown at cluster level (the fraction already excludes it; §5 keeps the full
-  // count). "could not complete" matches §4 and §5 — one phrase for one state.
+  // count). "not run" matches §4 and §5 — one phrase across the page. The word
+  // sits beside the fraction, whose gap is the same errored test; the two agree
+  // arithmetically (ran + errored = couldRun) rather than contradicting.
   const clauses = [];
-  if (couldRun > 0)       clauses.push(`${cov.ran} of ${couldRun}`);
-  if (cov.errored > 0)    clauses.push(`${cov.errored} could not complete`);
+  // The ratio is the cluster's only test count — the "(N tests)" parenthetical
+  // was retired in its favour. Keep it only when nothing is outstanding, so it
+  // still reports the count on a clear or flagged cluster. When a not-run /
+  // unassessed / pending clause is present, that clause already states the
+  // coverage gap; the ratio would only restate it and make the reader subtract,
+  // so drop it and let the clause stand.
+  const outstanding = cov.errored + cov.unassessed + cov.pending;
+  if (couldRun > 0 && outstanding === 0) clauses.push(`${cov.ran} of ${couldRun}`);
+  if (cov.errored > 0)    clauses.push(`${cov.errored} not run`);
   if (cov.unassessed > 0) clauses.push(`${cov.unassessed} unassessed`);
   if (cov.pending > 0)    clauses.push(`${cov.pending} pending`);
   const coverageText = clauses.join(" · ");
