@@ -114,7 +114,7 @@ export function testCarlisleBalance(matrix, condCtx) {
   // Gate: skip if >50% of features show significant differences (conditions genuinely different)
   const nSig = featurePValues.filter(p => p < 0.05).length;
   if (nSig / nFeatures > 0.50) {
-    return _na(NAME, CAT, `${nSig}/${nFeatures} features (${(nSig / nFeatures * 100).toFixed(0)}%) show significant condition differences — conditions are genuinely different. Balance test not applicable.`, NA_CAUSE.PREMISE_VOID);
+    return _na(NAME, CAT, `Not applicable — the conditions genuinely differ, so there is no balance to check. ${nSig} of ${nFeatures} measures (${(nSig / nFeatures * 100).toFixed(0)}%) differ significantly between conditions; this test only makes sense when the groups are expected to start out similar.`, NA_CAUSE.PREMISE_VOID);
   }
 
   // ── Test (a): Binomial test for excess p > 0.95 (too balanced) ──

@@ -167,7 +167,7 @@ function dipPValue(n, D) {
 export function testModality(matrix, rng, dataType) {
   if (dataType === "ordinal") {
     return { name: NAME, category: CAT, flag: "N/A", naCause: NA_CAUSE.DATA_TYPE_MISMATCH,
-      description: "Not applicable to ordinal data — Hartigan dip is not meaningful on sparse discrete support." };
+      description: "Not applicable to ordinal data such as ratings from 1 to 5. This test looks for separate peaks in the distribution, which needs a continuous scale with many possible values; a few ranked categories cannot show them." };
   }
 
   const nR = matrix.length;

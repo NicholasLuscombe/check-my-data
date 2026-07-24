@@ -32,7 +32,7 @@ export function testMeanVariance(matrix, assay) {
   const ptMeans=points.map(p=>p.mean);
   const meanRange = Math.log10(arrayMax(ptMeans)) - Math.log10(arrayMin(ptMeans));
   if(meanRange<1.0 && expSlope!==0) return {name:"Noise Scaling With Measurement Size",category:"replicate",flag:"N/A",naCause:NA_CAUSE.RANGE_OUT_OF_BAND,
-    description:`Row means span only ${meanRange.toFixed(1)} orders of magnitude — need ≥1.0 for a reliable log-log slope estimate. Noise Scaling test is inapplicable for narrow-range data.`};
+    description:`Not applicable — the row averages cover too narrow a range for this test. They span ${meanRange.toFixed(1)} orders of magnitude, and at least 1 (a ten-fold range) is needed to see whether the scatter of repeated measurements grows with their size.`};
   const logM=points.map(p=>Math.log(p.mean));
   const logV=points.map(p=>Math.log(p.variance));
   const mLM=mean(logM), mLV=mean(logV);

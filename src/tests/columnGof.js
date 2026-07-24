@@ -52,7 +52,7 @@ export const MIN_OBS = 30;
 export function testColumnGof(matrix, rng, dataType) {
   if (dataType === "ordinal") {
     return { name: NAME, category: CAT, flag: "N/A", naCause: NA_CAUSE.DATA_TYPE_MISMATCH,
-      description: "Not applicable to ordinal data — discrete ordinal scales do not fit {Normal, Poisson, NB} families." };
+      description: "Not applicable to ordinal data such as ratings from 1 to 5. This test checks whether a column follows a standard distribution — normal, Poisson, or negative binomial — and ranked categories follow none of them." };
   }
 
   const nR = matrix.length;

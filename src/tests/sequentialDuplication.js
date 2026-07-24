@@ -6,9 +6,9 @@ import { NA_CAUSE } from "../constants/naCause.js";
    string and the display can collapse them into one stanza — the row count
    rides alongside on its own field instead. */
 const SCAN_SKIPPED_REASON =
-  "The sequence scan was skipped because this dataset is too large for it. " +
-  "The scan's cost grows with rows, columns and offsets together, so it carries a size cap. " +
-  "This is a limit of the scan, not a property of the data.";
+  "This test was skipped because the dataset is too large for its scan. " +
+  "The scan compares many rows, columns and offsets at once, so it stops on very large tables to stay fast. " +
+  "This is a limit of the scan, not a sign of anything in the data.";
 
 /* §2.4 — Recurring value sequences. Per-column offset scan for a contiguous run
    of h ≥ 3 values in one column whose value sequence recurs lower in the SAME

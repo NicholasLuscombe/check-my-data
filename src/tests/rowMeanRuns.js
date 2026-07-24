@@ -29,7 +29,7 @@ export function testRowMeanRuns(matrix, condCtx, rng) {
   // meaningful within-condition, where biological between-condition signal is absent.
   const hasConditions = rowConditions && rowConditions.some(c => c);
   if (!hasConditions) return { name: "Row-Mean Runs", category: "replicate", flag: "N/A", naCause: NA_CAUSE.PREMISE_VOID,
-    description: "Requires row-level condition labels. Without per-condition grouping, biological variation in row means produces natural clustering that cannot be distinguished from data concerns." };
+    description: "Not applicable — the rows are not labelled by experimental condition, which this test requires. It looks for drift or sudden shifts in the row averages within one condition; without those labels, ordinary differences between samples would look like drift." };
 
   // ── helpers ──────────────────────────────────────────────────────────
   function rowMeans(rowIdxs) {

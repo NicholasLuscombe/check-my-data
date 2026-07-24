@@ -46,10 +46,10 @@ export function testMissingDataPattern(matrix, condCtx, assay) {
   const missRate = nMissing / total;
 
   // Gates
-  if (missRate < 0.01) return _na(NAME, CAT, `Missing rate ${(missRate * 100).toFixed(1)}% is below 1% threshold.`, NA_CAUSE.MISSINGNESS_OUT_OF_BAND);
-  if (missRate > 0.50) return _na(NAME, CAT, `Missing rate ${(missRate * 100).toFixed(1)}% exceeds 50% threshold.`, NA_CAUSE.PREMISE_VOID);
-  if (nMissing < 10) return _na(NAME, CAT, `Only ${nMissing} missing cells — too few for pattern analysis.`, NA_CAUSE.MISSINGNESS_OUT_OF_BAND);
-  if (assay === "genomics") return _na(NAME, CAT, "Not applicable to genomics data. Structured missingness from low-expression filtering is biologically expected.", NA_CAUSE.ASSAY_NOT_APPLICABLE);
+  if (missRate < 0.01) return _na(NAME, CAT, `Not applicable — almost no cells are empty, too few to look for a pattern. Only ${(missRate * 100).toFixed(1)}% are missing, below the 1% this test needs.`, NA_CAUSE.MISSINGNESS_OUT_OF_BAND);
+  if (missRate > 0.50) return _na(NAME, CAT, `Not applicable — too much of the data is missing to analyse. Over half the cells are empty (${(missRate * 100).toFixed(1)}%), so where the gaps fall says nothing reliable about the data that is present.`, NA_CAUSE.PREMISE_VOID);
+  if (nMissing < 10) return _na(NAME, CAT, `Not applicable — only ${nMissing} cells are empty, too few to look for a pattern. This test needs at least 10 before a pattern can be told apart from chance.`, NA_CAUSE.MISSINGNESS_OUT_OF_BAND);
+  if (assay === "genomics") return _na(NAME, CAT, "Not applicable to genomics data. In gene-expression tables a missing value usually means the gene was too lowly expressed to measure, so the gaps are expected and not a sign of tampering.", NA_CAUSE.ASSAY_NOT_APPLICABLE);
 
   const colMissRate = colMiss.map(c => c / nR);
   const allPs = []; // collect all sub-signal raw p-values

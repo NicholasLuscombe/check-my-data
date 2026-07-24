@@ -20,7 +20,7 @@ export function testTerminalDigits(matrix, assay='general') {
   // Return N/A to avoid false positives on integer/count data.
   const intFrac=vals.filter(v=>Number.isInteger(v)).length/vals.length;
   if(intFrac>0.95) return {name:"Terminal Digit Uniformity",category:"digits",flag:"N/A",naCause:NA_CAUSE.DATA_TYPE_MISMATCH,
-    description:`Data is ${(intFrac*100).toFixed(0)}% integer values. Terminal digit analysis tests the last decimal digit of continuous measurements \u2014 for integer/count data, the units digit distribution depends on the count-generating process and is not expected to be uniform. Test not applicable.`};  const counts=new Array(10).fill(0); let total=0;
+    description:`Not applicable to whole-number data (${(intFrac*100).toFixed(0)}% of values are integers). This test checks the last decimal digit of measured values for even spacing, which flags rounded or invented numbers; whole numbers have no such digit to check.`};  const counts=new Array(10).fill(0); let total=0;
   for(const v of vals){
     const s=Math.abs(v).toString();
     // Only extract terminal digit from values that have a decimal component,
