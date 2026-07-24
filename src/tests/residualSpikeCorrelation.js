@@ -33,7 +33,7 @@ export function testResidualSpikeCorrelation(matrix, condCtx, rng) {
   const slices = condCtx?.has ? condCtx.slices() : [];
   if (slices.length < 2) {
     return { name: NAME, category: CAT, flag: "N/A", naCause: NA_CAUSE.PREMISE_VOID,
-      description: "No condition grouping found. Residual spike correlation requires ≥2 conditions." };
+      description: "Not applicable — the data has no experimental conditions to compare. This test needs at least two; it looks for the same rows being unusually noisy across conditions, which can point to copied values." };
   }
 
   let groupResiduals = []; // array of { name, absResid: number[] } — normalised |residuals| per row

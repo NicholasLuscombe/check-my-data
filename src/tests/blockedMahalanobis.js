@@ -397,7 +397,7 @@ export async function testBlockedMahalanobis(matrix, condCtx, rng, dataType = 'c
 
   if (dataType !== 'continuous') {
     return { name: NAME, category: CAT, flag: "N/A", naCause: NA_CAUSE.DATA_TYPE_MISMATCH,
-      description: `Not applicable to ${dataType} data (covariance structure null is only stable on continuous measurements).` };
+      description: `Not applicable to ${dataType} data. This test compares how the replicate columns vary together against a reference that only holds for measurements on a continuous scale.` };
   }
 
   const nR = matrix.length;

@@ -78,8 +78,7 @@ export const ROW_SEMANTICS_FULL_SKIP = new Set([
  * tests; sub-unit suppression in IRC / WRV uses test-specific phrasing.
  */
 export const ROW_SEMANTICS_SKIP_REASON =
-  "Not applicable when row order is arbitrary. " +
-  "These tests depend on meaningful row sequence (plate position, " +
-  "instrument run order, dose gradient); under long-format pivots " +
-  "or arbitrary-order data (gene lists, alphabetised protein IDs) " +
-  "the per-row position carries no forensic signal.";
+  "Not applicable because the order of the rows carries no meaning here. " +
+  "These tests read the row sequence as real (plate position, instrument run order, a dose gradient), " +
+  "but in reshaped tables or lists ordered by name (gene lists, alphabetised protein IDs) " +
+  "a row's position tells you nothing, so there is no sequence to check.";

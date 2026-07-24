@@ -23,7 +23,7 @@ export function testBenford(matrix, rng) {
   if (positivityFrac < 0.80) return {name:"Benford's Law (First Digit)",category:"digits",flag:"N/A",naCause:NA_CAUSE.SHAPE_NOT_COVERED,description:`Not positive-scale data (${(positivityFrac*100).toFixed(0)}% positive) — Benford's Law assumes a positive-scale multiplicative process.`};
   const absVals=allVals.map(Math.abs).filter(v=>v>0);
   const actualSpan=robustLogSpan(absVals);
-  if(actualSpan<1.5) return {name:"Benford's Law (First Digit)",category:"digits",flag:"N/A",naCause:NA_CAUSE.RANGE_OUT_OF_BAND,description:`OOM span ${actualSpan.toFixed(1)} < 1.5 — Benford's Law requires ≥1.5 orders of magnitude for meaningful application.`};
+  if(actualSpan<1.5) return {name:"Benford's Law (First Digit)",category:"digits",flag:"N/A",naCause:NA_CAUSE.RANGE_OUT_OF_BAND,description:`Not applicable — these values span too narrow a range for Benford's law. They cover ${actualSpan.toFixed(1)} orders of magnitude, and this test needs at least 1.5 (about a thirty-fold range) before the leading-digit pattern means anything.`};
   const benf=[]; for(let d=1;d<=9;d++) benf.push(Math.log10(1+1/d));
   const counts=new Array(9).fill(0); let total=0;
   for(const v of allVals){const s=Math.abs(v).toExponential();const ld=parseInt(s[0]);if(ld>=1&&ld<=9){counts[ld-1]++;total++;}}

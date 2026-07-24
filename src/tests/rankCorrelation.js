@@ -50,7 +50,7 @@ export function testSpearmanCrossCondition(matrix, condCtx) {
       flag:"N/A",
       naCause:NA_CAUSE.PREMISE_VOID,
       insufficientPairs:true,
-      description:"With fewer than 4 condition pairs, LOO null has too few degrees of freedom to distinguish fabrication from routine biological similarity (most features non-differentially expressed). This test requires ≥4 condition pairs to make statistical inference. Shown here as contextual information only.",
+      description:"Not applicable — there are fewer than four condition pairs, too few for a reliable comparison. With so few, a strong similarity between conditions cannot be told apart from the ordinary similarity real biological samples show. Reported here as context only.",
       nConditionPairs:results.length, nSuspicious:0,
       details:results };
   }

@@ -362,7 +362,7 @@ function notRunReasonLine(r) {
   if (r.naObserved != null && r.naMinimum != null && NOT_RUN_NOUN[cause]) {
     return `Smallest group has ${r.naObserved} ${NOT_RUN_NOUN[cause]}; this test needs ${r.naMinimum}.`;
   }
-  return NOT_RUN_SENTENCE[cause] || "This test could not run on the data as grouped.";
+  return NOT_RUN_SENTENCE[cause] || r.description || "This test could not run on the data as grouped.";
 }
 
 // Group errored tests by their composed reason, so an identical reason is stated

@@ -255,7 +255,7 @@ function buildFullValuePass(matrix) {
   if (intFrac < 0.8) {
     return {
       tested: [], diag: { nValues: N, intFrac: (intFrac * 100).toFixed(1) + "%" },
-      na: "Not applicable — data is primarily non-integer. This test detects anomalous frequency spikes in integer value distributions.",
+      na: "Not applicable — most of these values are not whole numbers. This test looks for particular whole numbers that repeat far more often than chance allows, so it needs data made of counts or integers.",
       naCause: NA_CAUSE.DATA_TYPE_MISMATCH
     };
   }
@@ -277,7 +277,7 @@ function buildFullValuePass(matrix) {
   if (span > 10000) {
     return {
       tested: [], diag: { nValues: intVals.length, nDistinct, span },
-      na: `Integer range ${vMin}–${vMax} (span ${span}) is too wide for local frequency analysis. This test is designed for bounded integer scales.`,
+      na: `Not applicable — these whole numbers are spread across too wide a range for this test. They run from ${vMin} to ${vMax} (a span of ${span}), and the test compares how often each value appears against its close neighbours, which only works on a span of 10,000 or less.`,
       naCause: NA_CAUSE.RANGE_OUT_OF_BAND
     };
   }

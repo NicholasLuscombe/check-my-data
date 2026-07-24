@@ -121,7 +121,7 @@ export async function runConfirmedGroupedTests({ data, roles, condColSet, zeroAs
   const mahal = await (async () => {
     const dt = dtSkip('Mahalanobis Row Outlier', 'distributional'); if (dt) return dt;
     if (assay === 'genomics') return { name: 'Mahalanobis Row Outlier', category: 'distributional', flag: 'N/A', naCause: NA_CAUSE.ASSAY_NOT_APPLICABLE,
-      description: 'Not applicable to genomics data. Count distributions violate the multivariate normality assumption required for χ²-based D² thresholds. Biological expression heterogeneity produces widespread outliers that are not anomalous.' };
+      description: 'Not applicable to genomics data. This test flags rows that sit far from the rest, assuming the measurements follow a bell-shaped spread. Gene-expression counts do not, and normal biological variation puts many genes far out without anything being wrong.' };
     if ((matrix[0]?.length || 0) < MAHAL_MIN_COLS) {
       return { name: "Mahalanobis Row Outlier", category: "replicate", flag: "N/A", naCause: NA_CAUSE.TOO_FEW_COLUMNS, naObserved: matrix[0]?.length || 0, naMinimum: MAHAL_MIN_COLS,
         description: `Not applicable with fewer than ${MAHAL_MIN_COLS} replicate columns — the row-distance measure this test uses needs at least that many.` };

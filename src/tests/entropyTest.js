@@ -27,7 +27,7 @@ export function testEntropy(matrix, rng, dataType) {
 
   if (dataType === "ordinal") {
     return { name: NAME, category: CAT, flag: "N/A", naCause: NA_CAUSE.DATA_TYPE_MISMATCH,
-      description: "Not applicable to ordinal data — discrete ordinal scales have inherently constrained entropy." };
+      description: "Not applicable to ordinal data such as ratings from 1 to 5. These scales take only a few distinct values, so the measure of how spread out the values are cannot separate fabricated data from real." };
   }
 
   const nR = matrix.length;
