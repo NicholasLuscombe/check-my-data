@@ -3,7 +3,7 @@ import { extractLocalizations, buildMechanismGroups } from "../../analysis/local
 import { buildConvergenceFromFindings } from "../../analysis/convergence.js";
 import { buildFindings } from "../../analysis/findings.js";
 import { computeSeverity } from "../../analysis/severity.js";
-import { summarizeCoverage } from "../../analysis/coverage.js";
+import { summarizeCoverage, classifyCoverage } from "../../analysis/coverage.js";
 import { VerdictBanner } from "./VerdictBanner.jsx";
 import { ACTION_LABEL } from "../../analysis/narrative.js";
 import { buildHandoffModel } from "../../analysis/handoffModel.js";
@@ -15,7 +15,7 @@ import { PulseStyle } from "../forensics/PulseStyle.jsx";
 import { ForensicsBody } from "../forensics/ForensicsBody.jsx";
 import { C, FF, FW, FS, CR, BADGE, SIGNAL, ACCENT, SEV_VERDICT, DUP_GROUP_PALETTE } from "../../constants/tokens.js";
 import { FLAG_STYLES, ALPHA, fmtP } from "../../constants/thresholds.js";
-import { MECHANISMS, MECHANISM_ORDER, DISPLAY_NAMES, TEST_DESCRIPTIONS, TEST_MECHANISM, GLOBAL_TESTS } from "../../constants/mechanisms.js";
+import { MECHANISMS, MECHANISM_ORDER, DISPLAY_NAMES, TEST_DESCRIPTIONS, TEST_MECHANISM, GLOBAL_TESTS, BATTERY_SIZE } from "../../constants/mechanisms.js";
 import { ASSAYS, DATA_TYPES } from "../../constants/assays.js";
 import { ROLES } from "../../constants/roles.js";
 import { Section } from "../shared/Section.jsx";
@@ -42,6 +42,7 @@ const SEV_COLORS={3:SEV_VERDICT[3].color,2:SEV_VERDICT[2].color,1:SEV_VERDICT[1]
 const METHOD_BATTERY = [
   { label: "Copy, paste, edit", tests: [
     ["Exact Duplicate Detection",          "Duplicate detection"],
+    ["Sequential Duplication",             "recurring value sequences"],
     ["Constant-Offset Blocks",             "constant-offset blocks"],
     ["Residual Spike Correlation",         "residual spike correlation"],
   ]},
@@ -153,7 +154,7 @@ export function ReportView({ results: baseResults, importConfig, matrix, rowMap,
     if (severity === 0) {
       lines.push(cov.ran === 0
         ? `No tests could run on this data. This report says nothing about it.`
-        : `(${cov.ran} of 29 completed — no signals above threshold. This report does not establish that the data is genuine.)`);
+        : `(${cov.ran} of ${BATTERY_SIZE} completed — no signals above threshold. This report does not establish that the data is genuine.)`);
       lines.push(``);
     }
     // Mechanism-grouped output (matches UI)
@@ -1397,7 +1398,7 @@ export function ReportView({ results: baseResults, importConfig, matrix, rowMap,
                   } else if (notRun > 0) {
                     text = lead + notRunClause;
                   } else {
-                    text = `All ${cov.ran} of 29 tests completed. None returned a signal above threshold.`;
+                    text = `All ${cov.ran} of ${BATTERY_SIZE} tests completed. None returned a signal above threshold.`;
                   }
                   return (
                     <div style={{fontSize:FS.base,color:C.TEXT_3,padding:"4px 0"}}>{text}</div>
@@ -1458,7 +1459,13 @@ export function ReportView({ results: baseResults, importConfig, matrix, rowMap,
               // vocabulary. notApplicable is no longer the implicit remainder; it
               // is named here as part of "not run". Unassessed stays its own clause.
               const cov = summarizeCoverage(results);
-              const skippedNames = new Set(results.filter(r=>r.flag==="N/A").map(r=>r.name));
+              // Un-struck means "completed". Key on the completed result names,
+              // not on the N/A names: a test skipped through dtSkip/condSkip/rsSkip
+              // is stamped with its dispatch label ("Kurtosis", "Selective Noise"),
+              // which differs from the battery's result name for two tests, so an
+              // N/A-name check leaves those two wrongly un-struck. The completed
+              // set always carries the result name a running test stamps.
+              const completedNames = new Set(results.filter(r=>classifyCoverage(r)==="ran").map(r=>r.name));
               const notRun = cov.notApplicable + cov.errored;
               const coverageExtra = [];
               if (notRun > 0) coverageExtra.push(notRun === 1 ? `1 not run` : `${notRun} not run`);
@@ -1476,13 +1483,13 @@ export function ReportView({ results: baseResults, importConfig, matrix, rowMap,
                   {showMethodBattery && (
                     <div style={{padding:"10px 14px",background:C.BG_L,borderRadius:CR.SM,fontSize:FS.sm,color:C.TEXT}}>
                       {METHOD_BATTERY.map((cat,ci)=>{
-                        const allSkipped=cat.tests.every(([n])=>skippedNames.has(n));
+                        const allSkipped=cat.tests.every(([n])=>!completedNames.has(n));
                         const isLast=ci===METHOD_BATTERY.length-1;
                         return (
                           <div key={cat.label} style={isLast?undefined:{marginBottom:"4px"}}>
                             <span style={{fontWeight:FW.SEMI,color:allSkipped?C.TEXT_3:C.TEXT,...(allSkipped&&{textDecoration:"line-through",textDecorationThickness:"1.5px"})}}>{cat.label}:</span>{" "}
                             {cat.tests.flatMap(([n,label],i)=>{
-                              const sk=skippedNames.has(n);
+                              const sk=!completedNames.has(n);
                               const span=<span key={n} style={{color:sk?C.TEXT_3:C.TEXT,...(sk&&{textDecoration:"line-through",textDecorationThickness:"1.5px"})}}>{label}</span>;
                               return i===0?[span]:[", ",span];
                             })}

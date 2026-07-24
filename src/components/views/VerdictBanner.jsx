@@ -1,5 +1,5 @@
 import { C, FS, FW, CR, SEV_VERDICT, MECH_COLOR } from "../../constants/tokens.js";
-import { MECHANISMS, MECHANISM_ORDER } from "../../constants/mechanisms.js";
+import { MECHANISMS, MECHANISM_ORDER, BATTERY_SIZE } from "../../constants/mechanisms.js";
 import { MechIcon, mechIconSize } from "../shared/MechIcon.jsx";
 import { VERDICT_TEXT } from "../../analysis/narrative.js";
 import { buildMechanismGroups } from "../../analysis/localization.js";
@@ -84,7 +84,7 @@ export function VerdictBanner({ severity, results, importConfig, nRows, nCols, m
     const errClause = cov.errored > 0
       ? (cov.errored === 1 ? " · 1 could not complete" : ` · ${cov.errored} could not complete`)
       : "";
-    cleanSubline = `${cov.ran} of 29 tests completed${errClause}`;
+    cleanSubline = `${cov.ran} of ${BATTERY_SIZE} tests completed${errClause}`;
   }
   // S156 (A1.D0c-bis D2 lock): split K = HIGH + MOD count into per-tier
   // counts. The opener count clause renders three branches: HIGH only,

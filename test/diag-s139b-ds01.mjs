@@ -1,5 +1,5 @@
 // S139b — DS01 applicability dimming verification.
-// (1) Confirms METHOD_BATTERY covers all 28 canonical tests in TEST_MECHANISM.
+// (1) Confirms METHOD_BATTERY covers all 29 canonical tests in TEST_MECHANISM.
 // (2) Runs the engine on DS01, builds the applied/skipped partition off
 //     r.flag === "N/A", cross-references against METHOD_BATTERY by name.
 // (3) Reports per-category dim state (all members skipped → category dims).

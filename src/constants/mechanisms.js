@@ -68,6 +68,12 @@ export const TEST_MECHANISM = {
   "Missing Data Pattern":             "replicate",
 };
 
+// The battery total, derived from the canonical test→mechanism map above so no
+// consumer hardcodes it. This is the single source for "N of 29" everywhere:
+// the import-screen applicability list, the report coverage line, and the
+// section-5 methodology block all read this, not a pasted literal.
+export const BATTERY_SIZE = Object.keys(TEST_MECHANISM).length;
+
 // Display names — internal test names → user-facing labels
 export const DISPLAY_NAMES = {
   "Exact Duplicate Detection": "Duplicated Data",
