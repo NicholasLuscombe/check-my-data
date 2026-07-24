@@ -60,7 +60,7 @@ import { GroupingConfirmCard } from "./GroupingConfirmCard.jsx";
 
 // Clean-state copy renders as a bold count lead plus a normal continuation,
 // threaded to StickySurface where it shows above the Data toggle when no chips
-// exist in any lane. The lead now states coverage ("{N} of 29 tests completed")
+// exist in any lane. The lead now states coverage ("{N} of {battery} tests completed")
 // instead of a bare "All checks passed"; the count and the errored/zero cases
 // are computed per render inside the component (see cleanStateLead below).
 

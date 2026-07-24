@@ -15,7 +15,7 @@ import { PulseStyle } from "../forensics/PulseStyle.jsx";
 import { ForensicsBody } from "../forensics/ForensicsBody.jsx";
 import { C, FF, FW, FS, CR, BADGE, SIGNAL, ACCENT, SEV_VERDICT, DUP_GROUP_PALETTE } from "../../constants/tokens.js";
 import { FLAG_STYLES, ALPHA, fmtP } from "../../constants/thresholds.js";
-import { MECHANISMS, MECHANISM_ORDER, DISPLAY_NAMES, TEST_DESCRIPTIONS, TEST_MECHANISM, GLOBAL_TESTS } from "../../constants/mechanisms.js";
+import { MECHANISMS, MECHANISM_ORDER, DISPLAY_NAMES, TEST_DESCRIPTIONS, TEST_MECHANISM, GLOBAL_TESTS, BATTERY_SIZE } from "../../constants/mechanisms.js";
 import { ASSAYS, DATA_TYPES } from "../../constants/assays.js";
 import { ROLES } from "../../constants/roles.js";
 import { Section } from "../shared/Section.jsx";
@@ -42,6 +42,7 @@ const SEV_COLORS={3:SEV_VERDICT[3].color,2:SEV_VERDICT[2].color,1:SEV_VERDICT[1]
 const METHOD_BATTERY = [
   { label: "Copy, paste, edit", tests: [
     ["Exact Duplicate Detection",          "Duplicate detection"],
+    ["Sequential Duplication",             "recurring value sequences"],
     ["Constant-Offset Blocks",             "constant-offset blocks"],
     ["Residual Spike Correlation",         "residual spike correlation"],
   ]},
@@ -153,7 +154,7 @@ export function ReportView({ results: baseResults, importConfig, matrix, rowMap,
     if (severity === 0) {
       lines.push(cov.ran === 0
         ? `No tests could run on this data. This report says nothing about it.`
-        : `(${cov.ran} of 29 completed — no signals above threshold. This report does not establish that the data is genuine.)`);
+        : `(${cov.ran} of ${BATTERY_SIZE} completed — no signals above threshold. This report does not establish that the data is genuine.)`);
       lines.push(``);
     }
     // Mechanism-grouped output (matches UI)
@@ -1397,7 +1398,7 @@ export function ReportView({ results: baseResults, importConfig, matrix, rowMap,
                   } else if (notRun > 0) {
                     text = lead + notRunClause;
                   } else {
-                    text = `All ${cov.ran} of 29 tests completed. None returned a signal above threshold.`;
+                    text = `All ${cov.ran} of ${BATTERY_SIZE} tests completed. None returned a signal above threshold.`;
                   }
                   return (
                     <div style={{fontSize:FS.base,color:C.TEXT_3,padding:"4px 0"}}>{text}</div>
