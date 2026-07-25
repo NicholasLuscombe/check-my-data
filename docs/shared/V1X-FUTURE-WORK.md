@@ -13,7 +13,7 @@ This doc owns the v1.x view. The v1.0 surfaces stay authoritative for their doma
 | Surface | Scope | Status |
 |---|---|---|
 | Methodology gaps (forensics framework) | 6 dimension-attributed coverage gaps | Mirrored from METHODOLOGY-MAP §Gap audit |
-| Test additions (post-v1.0 forensics) | Rectangular Blocked Mahalanobis; genuine-block detection; coherence-cleanup residue; column-localised sequential duplication detector; role/condition inference for real-world column shapes; **test-consistency audit beyond the closed item-28 audit (§2.6) — four demonstrated axes, axis 4 (input representation defeats Decimal Precision) added S330**; arbitrary-offset block duplication detector (§2.7); **group-attribute column recognition — the largest demonstrated false-positive surface in the corpus (§2.8, BUILT S315)**; **scattered partial-row duplication — the coverage failure mode, exposed by §2.8's outcome (§2.9, BUILT S316)**; **row-grouping produces units the tests were not designed for — the tool's own applicability failure, half the row-grouping corpus (§2.10, trigger + confirm card BUILT S320–S321, stance cross-validated S322, twelve fixes unpromoted)**; **structural omission as a signal — the absence "not applicable" would neutralise (§2.12, open scope)**; **cost ceilings measure the wrong variable — row count does not predict scan cost, factor of 124 at identical shape (§2.13, S327)**; **the sequence-duplication null already prices categorical columns correctly — but those columns carry evidence, and the cardinality guard is KILLED (§2.14, S327, amended S328)** | New scope, this doc |
+| Test additions (post-v1.0 forensics) | Rectangular Blocked Mahalanobis; genuine-block detection; coherence-cleanup residue; column-localised sequential duplication detector; role/condition inference for real-world column shapes; **test-consistency audit beyond the closed item-28 audit (§2.6) — four demonstrated axes, axis 4 (input representation defeats Decimal Precision) added S330**; arbitrary-offset block duplication detector (§2.7); **group-attribute column recognition — the largest demonstrated false-positive surface in the corpus (§2.8, BUILT S315)**; **scattered partial-row duplication — the coverage failure mode, exposed by §2.8's outcome (§2.9, BUILT S316)**; **row-grouping produces units the tests were not designed for — the tool's own applicability failure, half the row-grouping corpus (§2.10, trigger + confirm card BUILT S320–S321, stance cross-validated S322, twelve fixes unpromoted)**; **structural omission as a signal — the absence "not applicable" would neutralise (§2.12, open scope)**; **cost ceilings measure the wrong variable — row count does not predict scan cost, factor of 124 at identical shape (§2.13, S327)**; **the sequence-duplication null already prices categorical columns correctly — but those columns carry evidence, and the cardinality guard is KILLED (§2.14, S327, amended S328)**; **one question, two owners — applicability is decided twice and the answers diverge (§2.15, S332)** | New scope, this doc |
 | Variance-estimator unification | Catalogue + scoped sub-refactors | Extends ROADMAP Track F; related to §2.6 (same forced-vs-artefact discipline) |
 | AI Screening mode | Five new tests + mode toggle + reweighting | Restored from S125 chat history |
 | Calibration audits banked | Permutation B=9999; severity-formula diversity metric; Modality plot upgrade | Mirrored from STATUS parked items |
@@ -930,6 +930,46 @@ A p-value that does not move and evidence that disappears are different things. 
 - **The group-attribute pass discards more than labels.** Ten of twenty-four sheet columns never reach the matrix on C14. `STAND_ID` is a label and `Species`/`DamageSev` are conditions, but **seven measurement columns are held out as attributes** — ring count, DBH, tree basal area among them. That is data the tests are not seeing, and it is what blinds the tool to the defect's own signature: rows 262↔263 differ only in `STAND_ID`, so the tool can say the rows are identical but not that they are supposedly different stands.
 
 **What follows for cost.** Those two columns still carry 95% of kept sequences and C14 still takes 8.4 s post-dedup on a blocking main thread. The cost is real and unaddressed. It has to be bought somewhere that is not the evidence — async yielding (Blocked Mahalanobis already does it, S169) is the standing candidate.
+
+---
+
+### 2.15 One question, two owners — applicability is decided twice and the answers diverge (S332)
+
+Whether a test applies to a dataset is answered in two places by two separate implementations. The import screen predicts it. The engine decides it. They drift, and the drift is visible to the reader as two screens contradicting each other about the same run.
+
+**The measurement.** On `14-crctest-survey.csv` — six columns of Likert ratings, eighty rows, no conditions — the import screen said **20 of 28 tests applicable** and the report said **3 of 29 completed, 26 not run**. Neither number was the battery size. The engine dispatches 29; the prediction counted from a hand-written list of 28 that omitted Sequential Duplication entirely, and that omitted test was one of the three that ran.
+
+**Why the prediction missed.** `getApplicabilityTests` re-encoded the engine's column and row minimums as 28 boolean expressions. It consulted seven summary fields and the column relationship. It did not consult `dataType`. Sixteen tests declined on that axis alone — correctly, and on a documented premise: forcing the replicate battery onto Likert items produces roughly 7% false positives on honest controls (ground truth, DS14).
+
+The import screen had already resolved the data as ordinal. The value was displayed on that same screen, locked, in a control the reader could see. The predictor did not read it. **This was never an ordering problem — the information was in hand and unused.**
+
+**The tier structure, established by classification over all 29 tests.**
+
+| Tier | Count | What the decline needs |
+|---|---|---|
+| Summary | 8 | Row counts, column counts, integer fraction — already held |
+| Matrix | 13 | A linear scan of the loaded matrix: distinct counts, valid-row counts, trimmed spans |
+| Run-only | 8 | Singular covariance; shape outside the fitted families; every feature differing between conditions |
+
+The run-only eight are an irreducible margin. No input predicts them.
+
+Separately, the three dispatch helpers — `dtSkip`, `condSkip`, `rsSkip` — read a test name plus three state values and never touch the matrix. All three values exist on the import screen before Run. That is the sixteen-test gap, available for the price of passing two arguments.
+
+**What landed at S332.** The prediction now derives from the same exported tables the helpers read (`DATATYPE_SKIP`, `ROW_SEMANTICS_FULL_SKIP`) and consults two summary axes it already held but ignored (`intF` for Terminal Digit, Benford second digit and Value-Frequency Spike; `miss` for Missing Data Pattern). `BATTERY_SIZE` in `mechanisms.js` is the single source for the total, replacing three hand-written values across six sites. File 14's overshoot went from 17 to 1; no fixture overshoots by more than 2.
+
+**What did not land, and why.**
+
+*The matrix tier, by judgment not cost.* The thirteen scans are cheap and would not slow the screen. They were left out because thirteen more predicates is thirteen more chances to be wrong on a surface the batch cannot see, against a residual of at most two tests per fixture. A deliberate stop, not an omission.
+
+*`condSkip`'s per-test membership.* Not exported, so it remains transcribed in the summary predicates. **One of the three axes is still a copy.** The drift risk is reduced, not eliminated.
+
+*Two name spaces.* `DATATYPE_SKIP` and `ROW_SEMANTICS_FULL_SKIP` key on dispatch label; `TEST_MECHANISM` keys on result name. `Excess Kurtosis`/`Kurtosis` and `Selective Noise Partitioning`/`Selective Noise` differ. Bridged by a two-entry alias in the predictor and eliminated in §5 by inverting its strike predicate. It will surface again on the next test added.
+
+**The design question this settled, against Chat's position.** Chat proposed the import screen lead with prose describing the data kind and which parts of the battery fit it, keeping the count secondary. Four external models were asked to attack it; three answered and all three rejected it.
+
+The decisive argument: **the run-only eight argue against prose, not for it.** A number reads as incomplete and invites "of what?" Prose reads as finished and discourages the question. Chat had the reasoning inverted. Two further points landed — a wrong count is one visible line that disagrees with the report, while wrong prose built on a bad auto-detect is globally wrong and reads as authoritative; and the position rested on a single vivid file. The count stays primary, derives from the engine, and names the run-only margin in the line rather than absorbing it.
+
+**What remains open.** Section 5 still frames its output as "26 not run" while the import screen now says four applied — consistent facts told in incompatible ways, and the reader will not reconcile them. Twenty-six struck entries and three struck cluster labels read as near-total failure on a file where the tool found the fabrication it was aimed at. Cluster labels are not tests and should never strike. Two vocabularies name the same tests across the two screens ("Recurring value sequences" against "Sequential duplication"). **The real fix is that the dispatch helpers should answer the question once and both surfaces should ask them** — that requires exporting or lifting them out of `runFullAnalysis`, which is an engine refactor and was explicitly out of scope at S332.
 
 ---
 
