@@ -4,6 +4,7 @@ import { buildConvergenceFromFindings } from "../../analysis/convergence.js";
 import { buildFindings } from "../../analysis/findings.js";
 import { computeSeverity } from "../../analysis/severity.js";
 import { summarizeCoverage, classifyCoverage } from "../../analysis/coverage.js";
+import { groupNotApplicableByReason, groupErroredByReason } from "../../analysis/noVerdictReasons.js";
 import { VerdictBanner } from "./VerdictBanner.jsx";
 import { ACTION_LABEL } from "../../analysis/narrative.js";
 import { buildHandoffModel } from "../../analysis/handoffModel.js";
@@ -13,7 +14,7 @@ import { HotspotExcerptList } from "./HotspotExcerptList.jsx";
 import { PulseProvider } from "../forensics/pulseContext.jsx";
 import { PulseStyle } from "../forensics/PulseStyle.jsx";
 import { ForensicsBody } from "../forensics/ForensicsBody.jsx";
-import { C, FF, FW, FS, CR, BADGE, SIGNAL, ACCENT, SEV_VERDICT, DUP_GROUP_PALETTE } from "../../constants/tokens.js";
+import { C, FF, FW, FS, CR, BADGE, SIGNAL, ACCENT, SEV_VERDICT, DUP_GROUP_PALETTE, MECH_COLOR } from "../../constants/tokens.js";
 import { FLAG_STYLES, ALPHA, fmtP } from "../../constants/thresholds.js";
 import { MECHANISMS, MECHANISM_ORDER, DISPLAY_NAMES, TEST_DESCRIPTIONS, TEST_MECHANISM, GLOBAL_TESTS, BATTERY_SIZE } from "../../constants/mechanisms.js";
 import { ASSAYS, DATA_TYPES } from "../../constants/assays.js";
@@ -80,6 +81,156 @@ const METHOD_BATTERY = [
     ["Cross-Condition Consistency",        "cross-condition consistency"],
   ]},
 ];
+
+/* ── S334 TEMPORARY — section-5 form comparison ────────────────────────────
+   Throwaway. Two candidate replacements for the §5 strike list, plus the strike
+   list itself, on one screen so the choice is a screenshot judgment. Delete with
+   the losing candidates once the form is chosen. Reasons compose through
+   noVerdictReasons.js; display names come from DISPLAY_NAMES (the source §3
+   uses); errored reasons come from naCause, never from `description`. */
+
+// Group the full result set by mechanism cluster, in display order. Two tests
+// carry a dispatch-label name when skipped ("Kurtosis", "Selective Noise") that
+// TEST_MECHANISM does not key; both belong to the replicate cluster, which is
+// the fallback here (the same fallback the import screen uses).
+function s5ClusterGroups(results) {
+  const byMech = {};
+  for (const r of results) {
+    const mk = TEST_MECHANISM[r.name] || "replicate";
+    (byMech[mk] = byMech[mk] || []).push(r);
+  }
+  return MECHANISM_ORDER
+    .map(mk => ({ mk, label: MECHANISMS[mk].label, color: MECH_COLOR[mk], tests: byMech[mk] || [] }))
+    .filter(g => g.tests.length);
+}
+
+// One test's "why it produced no verdict" line, composed through
+// noVerdictReasons.js. Errored routes through groupErroredByReason (naCause);
+// not-applicable through groupNotApplicableByReason (its exact reason plus any
+// size-ceiling detail). Returns null for a test that ran.
+function s5ReasonFor(r) {
+  const cov = classifyCoverage(r);
+  if (cov === "ran") return null;
+  if (cov === "errored") return { reason: groupErroredByReason([r])[0].reason, detail: null };
+  if (cov === "unassessed") return { reason: "Not assessed — grouping left unconfirmed.", detail: null };
+  if (cov === "pending") return { reason: "Grouping needs confirmation.", detail: null };
+  const g = groupNotApplicableByReason([r])[0];
+  return { reason: g.reason, detail: g.detail };
+}
+
+// Position A — tick grid. Matches the import screen's applicability shape: a
+// cluster header (dot + label + ran-count), each test on its own line marked ran
+// (✓) or not (✗). A not-ran line reveals its reason on tap; a ran line does not.
+// Errored lines carry a muted "not run" tag and compose their reason from
+// naCause via s5ReasonFor.
+function S5TickGrid({ results, open, setOpen }) {
+  const groups = s5ClusterGroups(results);
+  return (
+    <div>
+      {groups.map(g => {
+        const ran = g.tests.filter(r => classifyCoverage(r) === "ran").length;
+        return (
+          <div key={g.mk} style={{ marginBottom: "10px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "4px" }}>
+              <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: g.color, display: "inline-block", flexShrink: 0 }} />
+              <span style={{ fontSize: FS.base, color: C.TEXT, fontWeight: FW.SEMI }}>{g.label}</span>
+              <span style={{ fontSize: FS.sm, color: C.TEXT_3 }}>{ran}/{g.tests.length}</span>
+            </div>
+            <div style={{ paddingLeft: "14px" }}>
+              {/* Errored tests sink to the end of the cluster so they read as
+                  their own group; a stable sort keeps battery order otherwise. */}
+              {[...g.tests].sort((a, b) => (classifyCoverage(a) === "errored" ? 1 : 0) - (classifyCoverage(b) === "errored" ? 1 : 0)).map(r => {
+                const cov = classifyCoverage(r);
+                const didRun = cov === "ran";
+                const name = DISPLAY_NAMES[r.name] || r.name;
+                const isOpen = !!open[r.name];
+                const why = didRun ? null : s5ReasonFor(r);
+                return (
+                  <div key={r.name} style={{ marginBottom: "2px" }}>
+                    <div
+                      onClick={didRun ? undefined : () => setOpen(o => ({ ...o, [r.name]: !o[r.name] }))}
+                      style={{ fontSize: FS.sm, color: didRun ? C.TEXT_2 : C.TEXT_3, display: "flex", alignItems: "center", gap: "4px", cursor: didRun ? "default" : "pointer" }}
+                    >
+                      <span style={{ color: didRun ? g.color : C.TEXT_3, width: "10px", flexShrink: 0 }}>{didRun ? "✓" : "✗"}</span>
+                      <span>{name}</span>
+                      {cov === "errored" && <span style={{ color: C.TEXT_3, fontSize: FS.xs }}>· not run</span>}
+                      {!didRun && <span style={{ color: C.TEXT_3, fontSize: FS.xs, marginLeft: "2px" }}>{isOpen ? "▾" : "▸"}</span>}
+                    </div>
+                    {!didRun && isOpen && why && (
+                      <div style={{ paddingLeft: "14px", marginTop: "2px", marginBottom: "4px" }}>
+                        <div style={{ fontSize: FS.sm, color: C.TEXT_3, lineHeight: "1.5" }}>{why.reason}</div>
+                        {why.detail && <div style={{ fontSize: FS.xs, color: C.TEXT_3, marginTop: "2px" }}>{why.detail}</div>}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// Position B — reasons. Every declined test with its full "why" shown, grouped
+// by cluster, no tap. Ran tests collapse to one compact line so the section
+// still reads as coverage; errored tests form their own "Not run" group per
+// cluster, composed from naCause. Long by design on the survey file — that
+// length is the point of the comparison, so it is not abbreviated.
+function S5Reasons({ results }) {
+  const groups = s5ClusterGroups(results);
+  return (
+    <div>
+      {groups.map(g => {
+        const ranTests = g.tests.filter(r => classifyCoverage(r) === "ran");
+        const erroredTests = g.tests.filter(r => classifyCoverage(r) === "errored");
+        const declinedTests = g.tests.filter(r => {
+          const c = classifyCoverage(r);
+          return c !== "ran" && c !== "errored";
+        });
+        return (
+          <div key={g.mk} style={{ marginBottom: "14px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "6px" }}>
+              <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: g.color, display: "inline-block", flexShrink: 0 }} />
+              <span style={{ fontSize: FS.base, color: C.TEXT, fontWeight: FW.SEMI }}>{g.label}</span>
+              <span style={{ fontSize: FS.sm, color: C.TEXT_3 }}>{ranTests.length}/{g.tests.length}</span>
+            </div>
+            {ranTests.length > 0 && (
+              <div style={{ fontSize: FS.sm, color: C.TEXT_3, marginBottom: "6px", paddingLeft: "14px", lineHeight: "1.5" }}>
+                Ran: {ranTests.map(r => DISPLAY_NAMES[r.name] || r.name).join(", ")}.
+              </div>
+            )}
+            {declinedTests.map(r => {
+              const why = s5ReasonFor(r);
+              return (
+                <div key={r.name} style={{ paddingLeft: "14px", marginBottom: "8px" }}>
+                  <div style={{ fontSize: FS.sm, fontWeight: FW.MED, color: C.TEXT_2 }}>{DISPLAY_NAMES[r.name] || r.name}</div>
+                  <div style={{ fontSize: FS.sm, color: C.TEXT_3, lineHeight: "1.5", marginTop: "2px" }}>{why.reason}</div>
+                  {why.detail && <div style={{ fontSize: FS.xs, color: C.TEXT_3, marginTop: "2px" }}>{why.detail}</div>}
+                </div>
+              );
+            })}
+            {erroredTests.length > 0 && (
+              <div style={{ paddingLeft: "14px", marginTop: "4px" }}>
+                <div style={{ fontSize: FS.xs, fontWeight: FW.SEMI, color: C.TEXT_3, marginBottom: "4px" }}>Not run</div>
+                {erroredTests.map(r => {
+                  const why = s5ReasonFor(r);
+                  return (
+                    <div key={r.name} style={{ marginBottom: "8px" }}>
+                      <div style={{ fontSize: FS.sm, fontWeight: FW.MED, color: C.TEXT_2 }}>{DISPLAY_NAMES[r.name] || r.name}</div>
+                      <div style={{ fontSize: FS.sm, color: C.TEXT_3, lineHeight: "1.5", marginTop: "2px" }}>{why.reason}</div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
 export function ReportView({ results: baseResults, importConfig, matrix, rowMap, onBack, onChangeFile }) {
   // S321 move 2, round 3 — confirmed grouping. When the user confirms a grouping
@@ -753,6 +904,10 @@ export function ReportView({ results: baseResults, importConfig, matrix, rowMap,
   const ensureTestCardExpanded = (testName) =>
     setExpandedTestEvidence(prev => prev[testName] ? prev : ({...prev, [testName]: true}));
   const [showMethodBattery, setShowMethodBattery] = useState(false);
+  // S334 TEMPORARY — §5 form comparison. Which candidate is on screen ("A"/"B"/
+  // "C") and, for A, which not-ran rows are tapped open. Delete with the views.
+  const [s5Form, setS5Form] = useState("A");
+  const [s5Open, setS5Open] = useState({});
   const [aiCopied, setAiCopied] = useState(false);
   // S161 (A1.D2): §4 prompt body now sourced from the shared HandoffModel
   // via renderPromptBody. handoffModel construction is memoized so the
@@ -1482,20 +1637,43 @@ export function ReportView({ results: baseResults, importConfig, matrix, rowMap,
                   </button>
                   {showMethodBattery && (
                     <div style={{padding:"10px 14px",background:C.BG_L,borderRadius:CR.SM,fontSize:FS.sm,color:C.TEXT}}>
-                      {METHOD_BATTERY.map((cat,ci)=>{
-                        const allSkipped=cat.tests.every(([n])=>!completedNames.has(n));
-                        const isLast=ci===METHOD_BATTERY.length-1;
-                        return (
-                          <div key={cat.label} style={isLast?undefined:{marginBottom:"4px"}}>
-                            <span style={{fontWeight:FW.SEMI,color:allSkipped?C.TEXT_3:C.TEXT,...(allSkipped&&{textDecoration:"line-through",textDecorationThickness:"1.5px"})}}>{cat.label}:</span>{" "}
-                            {cat.tests.flatMap(([n,label],i)=>{
-                              const sk=!completedNames.has(n);
-                              const span=<span key={n} style={{color:sk?C.TEXT_3:C.TEXT,...(sk&&{textDecoration:"line-through",textDecorationThickness:"1.5px"})}}>{label}</span>;
-                              return i===0?[span]:[", ",span];
-                            })}
-                          </div>
-                        );
-                      })}
+                      {/* S334 TEMPORARY — three-way form comparison for §5.
+                          A tick grid (import-screen shape) · B reasons · C the
+                          current strike list. Remove with the losing candidates
+                          once the form is chosen. */}
+                      <div style={{display:"flex",alignItems:"center",gap:"8px",marginBottom:"12px",flexWrap:"wrap"}}>
+                        <span style={{fontSize:FS.xs,color:C.TEXT_3}}>Temporary — comparing forms:</span>
+                        {[["A","A · Tick grid"],["B","B · Reasons"],["C","C · Current"]].map(([k,lbl])=>{
+                          const active=s5Form===k;
+                          return (
+                            <button key={k} onClick={()=>setS5Form(k)}
+                              style={{fontSize:FS.sm,fontFamily:FF.UI,fontWeight:active?FW.MED:FW.NORM,padding:"3px 10px",borderRadius:CR.SM,cursor:"pointer",
+                                background:active?C.TEXT_2:C.WHITE,color:active?C.WHITE:C.TEXT_2,border:`1px solid ${active?C.TEXT_2:C.BORDER}`}}>
+                              {lbl}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      {s5Form==="A" && <S5TickGrid results={results} open={s5Open} setOpen={setS5Open} />}
+                      {s5Form==="B" && <S5Reasons results={results} />}
+                      {s5Form==="C" && (
+                        <div>
+                          {METHOD_BATTERY.map((cat,ci)=>{
+                            const allSkipped=cat.tests.every(([n])=>!completedNames.has(n));
+                            const isLast=ci===METHOD_BATTERY.length-1;
+                            return (
+                              <div key={cat.label} style={isLast?undefined:{marginBottom:"4px"}}>
+                                <span style={{fontWeight:FW.SEMI,color:allSkipped?C.TEXT_3:C.TEXT,...(allSkipped&&{textDecoration:"line-through",textDecorationThickness:"1.5px"})}}>{cat.label}:</span>{" "}
+                                {cat.tests.flatMap(([n,label],i)=>{
+                                  const sk=!completedNames.has(n);
+                                  const span=<span key={n} style={{color:sk?C.TEXT_3:C.TEXT,...(sk&&{textDecoration:"line-through",textDecorationThickness:"1.5px"})}}>{label}</span>;
+                                  return i===0?[span]:[", ",span];
+                                })}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
                   )}
                 </Section>
