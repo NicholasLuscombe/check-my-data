@@ -34,60 +34,14 @@ const lazyExportToExcel = async (opts) => {
 
 const SEV_COLORS={3:SEV_VERDICT[3].color,2:SEV_VERDICT[2].color,1:SEV_VERDICT[1].color,0:SEV_VERDICT[0].color,"SKIP":ROLES.condition.color,"ERROR":SIGNAL.RED.dot};
 
-// §5 Test coverage battery — surface-specific handwritten phrasings (NOT
-// DISPLAY_NAMES). Each row maps a canonical engine test name (r.name in
-// results[]) to the §5-local conversational label. Order within category
-// = engine execution / display order from TEST_MECHANISM. Applicability
-// dimming (S139b): per-test skipped marker is r.flag === "N/A"; category
-// dims when every member is skipped.
-const METHOD_BATTERY = [
-  { label: "Copy, paste, edit", tests: [
-    ["Exact Duplicate Detection",          "Duplicate detection"],
-    ["Sequential Duplication",             "recurring value sequences"],
-    ["Constant-Offset Blocks",             "constant-offset blocks"],
-    ["Residual Spike Correlation",         "residual spike correlation"],
-  ]},
-  { label: "Unusual digits", tests: [
-    ["Terminal Digit Uniformity",          "Terminal digit preference"],
-    ["Benford's Law (First Digit)",        "Benford 1st digit"],
-    ["Benford's Law (Second Digit)",       "Benford 2nd digit"],
-    ["Decimal Precision Consistency",      "decimal precision clustering"],
-    ["Value-Frequency Spike",              "value-frequency spikes"],
-  ]},
-  { label: "Distribution shapes", tests: [
-    ["Entropy / Zipf Analysis",            "Entropy / Zipf analysis"],
-    ["Column Goodness-of-Fit",             "column goodness-of-fit"],
-    ["Modality Test",                      "modality test"],
-  ]},
-  { label: "Cross-replicate comparisons", tests: [
-    ["Inter-Replicate Correlation",        "Inter-replicate correlation"],
-    ["Excess Kurtosis",                    "kurtosis + Anderson-Darling"],
-    ["Autocorrelation",                    "autocorrelation"],
-    ["Windowed Autocorrelation",           "windowed autocorrelation"],
-    ["Runs Test",                          "runs test"],
-    ["Noise Scaling With Measurement Size","noise scaling"],
-    ["Within-Row Variance",                "within-row variance"],
-    ["Selective Noise Partitioning",       "selective noise"],
-    ["Regional Noise Homogeneity",         "regional noise"],
-    ["LOESS Residual Analysis",            "LOESS + CUSUM noise changepoint"],
-    ["Row-Mean Runs",                      "row-mean runs"],
-    ["Mahalanobis Row Outlier",            "Mahalanobis unusual rows"],
-    ["Blocked Mahalanobis",                "blocked Mahalanobis"],
-    ["Missing Data Pattern",               "missing data patterns"],
-  ]},
-  { label: "Cross-condition comparisons", tests: [
-    ["Cross-Condition Rank Correlation",   "Cross-condition Spearman rank"],
-    ["Baseline Balance",                   "Carlisle condition balance"],
-    ["Cross-Condition Consistency",        "cross-condition consistency"],
-  ]},
-];
-
-/* ── S334 TEMPORARY — section-5 form comparison ────────────────────────────
-   Throwaway. Two candidate replacements for the §5 strike list, plus the strike
-   list itself, on one screen so the choice is a screenshot judgment. Delete with
-   the losing candidates once the form is chosen. Reasons compose through
-   noVerdictReasons.js; display names come from DISPLAY_NAMES (the source §3
-   uses); errored reasons come from naCause, never from `description`. */
+/* ── S334 — section-5 "Which tests ran, and why" ──────────────────────────
+   Grouped reasons view. Per cluster: a ran-line, then the declined tests grouped
+   by shared reason (groupNotApplicableByReason), then an errored group
+   (groupErroredByReason, composed from naCause). Reasons come from
+   noVerdictReasons.js; display names from resolveDisplayName. The survey opener
+   dedup — 19 declines sharing an opener but each with its own tail — is a later
+   composition change (2b), not done here: files like the survey render as groups
+   of one, the same as the ungrouped view. */
 
 // Group the full result set by mechanism cluster, in display order. Two tests
 // carry a dispatch-label name when skipped ("Kurtosis", "Selective Noise") that
@@ -104,81 +58,34 @@ function s5ClusterGroups(results) {
     .filter(g => g.tests.length);
 }
 
-// One test's "why it produced no verdict" line, composed through
-// noVerdictReasons.js. Errored routes through groupErroredByReason (naCause);
-// not-applicable through groupNotApplicableByReason (its exact reason plus any
-// size-ceiling detail). Returns null for a test that ran.
-function s5ReasonFor(r) {
-  const cov = classifyCoverage(r);
-  if (cov === "ran") return null;
-  if (cov === "errored") return { reason: groupErroredByReason([r])[0].reason, detail: null };
-  if (cov === "unassessed") return { reason: "Not assessed — grouping left unconfirmed.", detail: null };
-  if (cov === "pending") return { reason: "Grouping needs confirmation.", detail: null };
-  const g = groupNotApplicableByReason([r])[0];
-  return { reason: g.reason, detail: g.detail };
-}
+// Registers shared by every reason group, matching section 3's no-verdict lines:
+// the names lead (darker, medium), the shared reason sits beneath (lighter), the
+// size-ceiling detail is fine print one size down.
+const S5_NAME = { fontSize: FS.sm, fontWeight: FW.MED, color: C.TEXT_2 };
+const S5_REASON = { fontSize: FS.sm, fontWeight: FW.NORM, color: C.TEXT_3, lineHeight: "1.5", marginTop: "2px" };
+const S5_DETAIL = { fontSize: FS.xs, fontWeight: FW.NORM, color: C.TEXT_3, marginTop: "2px" };
 
-// Position A — tick grid. Matches the import screen's applicability shape: a
-// cluster header (dot + label + ran-count), each test on its own line marked ran
-// (✓) or not (✗). A not-ran line reveals its reason on tap; a ran line does not.
-// Errored lines carry a muted "not run" tag and compose their reason from
-// naCause via s5ReasonFor.
-function S5TickGrid({ results, open, setOpen }) {
-  const groups = s5ClusterGroups(results);
+// One reason group: the test names on one line (one name or many, joined with
+// " · "), then the shared reason once, then the size-ceiling detail when present.
+// A group of one and a group of five render through the same block — the only
+// difference is how many names sit on the first line, so a single item never
+// carries group furniture a multi-item group would not.
+function S5Group({ names, reason, detail }) {
   return (
-    <div>
-      {groups.map(g => {
-        const ran = g.tests.filter(r => classifyCoverage(r) === "ran").length;
-        return (
-          <div key={g.mk} style={{ marginBottom: "10px" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "4px" }}>
-              <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: g.color, display: "inline-block", flexShrink: 0 }} />
-              <span style={{ fontSize: FS.base, color: C.TEXT, fontWeight: FW.SEMI }}>{g.label}</span>
-              <span style={{ fontSize: FS.sm, color: C.TEXT_3 }}>{ran}/{g.tests.length}</span>
-            </div>
-            <div style={{ paddingLeft: "14px" }}>
-              {/* Errored tests sink to the end of the cluster so they read as
-                  their own group; a stable sort keeps battery order otherwise. */}
-              {[...g.tests].sort((a, b) => (classifyCoverage(a) === "errored" ? 1 : 0) - (classifyCoverage(b) === "errored" ? 1 : 0)).map(r => {
-                const cov = classifyCoverage(r);
-                const didRun = cov === "ran";
-                const name = resolveDisplayName(r.name);
-                const isOpen = !!open[r.name];
-                const why = didRun ? null : s5ReasonFor(r);
-                return (
-                  <div key={r.name} style={{ marginBottom: "2px" }}>
-                    <div
-                      onClick={didRun ? undefined : () => setOpen(o => ({ ...o, [r.name]: !o[r.name] }))}
-                      style={{ fontSize: FS.sm, color: didRun ? C.TEXT_2 : C.TEXT_3, display: "flex", alignItems: "center", gap: "4px", cursor: didRun ? "default" : "pointer" }}
-                    >
-                      <span style={{ color: didRun ? g.color : C.TEXT_3, width: "10px", flexShrink: 0 }}>{didRun ? "✓" : "✗"}</span>
-                      <span>{name}</span>
-                      {cov === "errored" && <span style={{ color: C.TEXT_3, fontSize: FS.xs }}>· not run</span>}
-                      {!didRun && <span style={{ color: C.TEXT_3, fontSize: FS.xs, marginLeft: "2px" }}>{isOpen ? "▾" : "▸"}</span>}
-                    </div>
-                    {!didRun && isOpen && why && (
-                      <div style={{ paddingLeft: "14px", marginTop: "2px", marginBottom: "4px" }}>
-                        <div style={{ fontSize: FS.sm, color: C.TEXT_3, lineHeight: "1.5" }}>{why.reason}</div>
-                        {why.detail && <div style={{ fontSize: FS.xs, color: C.TEXT_3, marginTop: "2px" }}>{why.detail}</div>}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        );
-      })}
+    <div style={{ paddingLeft: "14px", marginBottom: "8px" }}>
+      <div style={S5_NAME}>{names.join(" · ")}</div>
+      <div style={S5_REASON}>{reason}</div>
+      {detail && <div style={S5_DETAIL}>{detail}</div>}
     </div>
   );
 }
 
-// Position B — reasons. Every declined test with its full "why" shown, grouped
-// by cluster, no tap. Ran tests collapse to one compact line so the section
-// still reads as coverage; errored tests form their own "Not run" group per
-// cluster, composed from naCause. Long by design on the survey file — that
-// length is the point of the comparison, so it is not abbreviated.
-function S5Reasons({ results }) {
+// Grouped B — "Which tests ran, and why". Per cluster in battery order: header,
+// a compact ran-line, the declined tests grouped by shared reason, then the
+// errored tests under their own "Could not complete" group. Declined here is
+// every non-ran, non-errored test, routed through groupNotApplicableByReason;
+// errored is routed through groupErroredByReason (composed from naCause).
+function S5GroupedReasons({ results }) {
   const groups = s5ClusterGroups(results);
   return (
     <div>
@@ -189,6 +96,8 @@ function S5Reasons({ results }) {
           const c = classifyCoverage(r);
           return c !== "ran" && c !== "errored";
         });
+        const naGroups = groupNotApplicableByReason(declinedTests);
+        const errGroups = groupErroredByReason(erroredTests);
         return (
           <div key={g.mk} style={{ marginBottom: "14px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "6px" }}>
@@ -201,28 +110,15 @@ function S5Reasons({ results }) {
                 Ran: {ranTests.map(r => resolveDisplayName(r.name)).join(", ")}.
               </div>
             )}
-            {declinedTests.map(r => {
-              const why = s5ReasonFor(r);
-              return (
-                <div key={r.name} style={{ paddingLeft: "14px", marginBottom: "8px" }}>
-                  <div style={{ fontSize: FS.sm, fontWeight: FW.MED, color: C.TEXT_2 }}>{resolveDisplayName(r.name)}</div>
-                  <div style={{ fontSize: FS.sm, color: C.TEXT_3, lineHeight: "1.5", marginTop: "2px" }}>{why.reason}</div>
-                  {why.detail && <div style={{ fontSize: FS.xs, color: C.TEXT_3, marginTop: "2px" }}>{why.detail}</div>}
-                </div>
-              );
-            })}
-            {erroredTests.length > 0 && (
-              <div style={{ paddingLeft: "14px", marginTop: "4px" }}>
-                <div style={{ fontSize: FS.xs, fontWeight: FW.SEMI, color: C.TEXT_3, marginBottom: "4px" }}>Not run</div>
-                {erroredTests.map(r => {
-                  const why = s5ReasonFor(r);
-                  return (
-                    <div key={r.name} style={{ marginBottom: "8px" }}>
-                      <div style={{ fontSize: FS.sm, fontWeight: FW.MED, color: C.TEXT_2 }}>{resolveDisplayName(r.name)}</div>
-                      <div style={{ fontSize: FS.sm, color: C.TEXT_3, lineHeight: "1.5", marginTop: "2px" }}>{why.reason}</div>
-                    </div>
-                  );
-                })}
+            {naGroups.map((grp, i) => (
+              <S5Group key={"na" + i} names={grp.names} reason={grp.reason} detail={grp.detail} />
+            ))}
+            {errGroups.length > 0 && (
+              <div style={{ marginTop: "4px" }}>
+                <div style={{ fontSize: FS.xs, fontWeight: FW.SEMI, color: C.TEXT_3, marginBottom: "4px", paddingLeft: "14px" }}>Could not complete</div>
+                {errGroups.map((grp, i) => (
+                  <S5Group key={"err" + i} names={grp.names} reason={grp.reason} detail={null} />
+                ))}
               </div>
             )}
           </div>
@@ -904,10 +800,6 @@ export function ReportView({ results: baseResults, importConfig, matrix, rowMap,
   const ensureTestCardExpanded = (testName) =>
     setExpandedTestEvidence(prev => prev[testName] ? prev : ({...prev, [testName]: true}));
   const [showMethodBattery, setShowMethodBattery] = useState(false);
-  // S334 TEMPORARY — §5 form comparison. Which candidate is on screen ("A"/"B"/
-  // "C") and, for A, which not-ran rows are tapped open. Delete with the views.
-  const [s5Form, setS5Form] = useState("A");
-  const [s5Open, setS5Open] = useState({});
   const [aiCopied, setAiCopied] = useState(false);
   // S161 (A1.D2): §4 prompt body now sourced from the shared HandoffModel
   // via renderPromptBody. handoffModel construction is memoized so the
@@ -1585,25 +1477,13 @@ export function ReportView({ results: baseResults, importConfig, matrix, rowMap,
             </Section>
 
             {/* ── §5 TEST COVERAGE ──
-                Post-S139c surface: count line + battery-details expandable. Nothing else.
-                Screening-aid disclaimer relocated to report-top (above §1) as a report-
-                level preamble; references retired (partial list — full citations live in
-                METHODOLOGY.md). §5 spec-complete on copy, rendering, and structure.
-                S139 (Phase C.3): typography-system migration — test-count line on Body
-                (FS.base C.TEXT); battery body on Footnote/reference (FS.sm C.TEXT);
-                disclosure toggle on Button (FS.base FW.MED C.TEXT); per-category labels
-                explicit FW.SEMI.
-                S139b: section renamed "Methodology" → "Test coverage" (lowered reader
-                expectation to match the surface's count-line + battery scope). Battery list
-                rebuilt from canonical METHOD_BATTERY (module-top) — per-test applicability
-                dimming (Shape A). Category header dims when every member is skipped.
-                Labels are §5-local handwritten phrasings; DO NOT substitute DISPLAY_NAMES.
-                S139b-fix1: contrast pushed from one-step to two-step — applied at C.TEXT,
-                skipped at C.TEXT_3. Per-span colour explicit on both states; wrapper colour
-                C.TEXT so inherited punctuation (':' / ', ') aligns with the dominant tone.
-                S139b-fix2: strikethrough added on skipped tests + all-skipped category
-                headers (textDecoration "line-through" + textDecorationThickness "1.5px").
-                Decoration colour inherits naturally from each span's color. */}
+                A count line and a "Which tests ran, and why" expandable. The
+                expandable renders grouped reasons (S5GroupedReasons, module-top):
+                per cluster a ran-line, then the declined tests grouped by shared
+                reason, then an errored "Could not complete" group composed from
+                naCause. Display names resolve through resolveDisplayName; reasons
+                compose in noVerdictReasons.js. The summary sentence below is
+                unchanged. */}
             {(()=>{
               // Completed count against the full battery, not the old
               // non-N/A-over-total form that undercounted and over-reported at
@@ -1614,13 +1494,6 @@ export function ReportView({ results: baseResults, importConfig, matrix, rowMap,
               // vocabulary. notApplicable is no longer the implicit remainder; it
               // is named here as part of "not run". Unassessed stays its own clause.
               const cov = summarizeCoverage(results);
-              // Un-struck means "completed". Key on the completed result names,
-              // not on the N/A names: a test skipped through dtSkip/condSkip/rsSkip
-              // is stamped with its dispatch label ("Kurtosis", "Selective Noise"),
-              // which differs from the battery's result name for two tests, so an
-              // N/A-name check leaves those two wrongly un-struck. The completed
-              // set always carries the result name a running test stamps.
-              const completedNames = new Set(results.filter(r=>classifyCoverage(r)==="ran").map(r=>r.name));
               const notRun = cov.notApplicable + cov.errored;
               const coverageExtra = [];
               if (notRun > 0) coverageExtra.push(notRun === 1 ? `1 not run` : `${notRun} not run`);
@@ -1633,47 +1506,11 @@ export function ReportView({ results: baseResults, importConfig, matrix, rowMap,
                   {/* Battery */}
                   <button onClick={()=>setShowMethodBattery(v=>!v)} style={{background:"none",border:"none",padding:0,cursor:"pointer",color:C.TEXT,fontSize:FS.base,fontWeight:FW.MED,fontFamily:FF.UI,display:"flex",alignItems:"center",gap:"4px",marginBottom:"4px"}}>
                     <span>{showMethodBattery?"▾":"▸"}</span>
-                    <span>Test battery details</span>
+                    <span>Which tests ran, and why</span>
                   </button>
                   {showMethodBattery && (
                     <div style={{padding:"10px 14px",background:C.BG_L,borderRadius:CR.SM,fontSize:FS.sm,color:C.TEXT}}>
-                      {/* S334 TEMPORARY — three-way form comparison for §5.
-                          A tick grid (import-screen shape) · B reasons · C the
-                          current strike list. Remove with the losing candidates
-                          once the form is chosen. */}
-                      <div style={{display:"flex",alignItems:"center",gap:"8px",marginBottom:"12px",flexWrap:"wrap"}}>
-                        <span style={{fontSize:FS.xs,color:C.TEXT_3}}>Temporary — comparing forms:</span>
-                        {[["A","A · Tick grid"],["B","B · Reasons"],["C","C · Current"]].map(([k,lbl])=>{
-                          const active=s5Form===k;
-                          return (
-                            <button key={k} onClick={()=>setS5Form(k)}
-                              style={{fontSize:FS.sm,fontFamily:FF.UI,fontWeight:active?FW.MED:FW.NORM,padding:"3px 10px",borderRadius:CR.SM,cursor:"pointer",
-                                background:active?C.TEXT_2:C.WHITE,color:active?C.WHITE:C.TEXT_2,border:`1px solid ${active?C.TEXT_2:C.BORDER}`}}>
-                              {lbl}
-                            </button>
-                          );
-                        })}
-                      </div>
-                      {s5Form==="A" && <S5TickGrid results={results} open={s5Open} setOpen={setS5Open} />}
-                      {s5Form==="B" && <S5Reasons results={results} />}
-                      {s5Form==="C" && (
-                        <div>
-                          {METHOD_BATTERY.map((cat,ci)=>{
-                            const allSkipped=cat.tests.every(([n])=>!completedNames.has(n));
-                            const isLast=ci===METHOD_BATTERY.length-1;
-                            return (
-                              <div key={cat.label} style={isLast?undefined:{marginBottom:"4px"}}>
-                                <span style={{fontWeight:FW.SEMI,color:allSkipped?C.TEXT_3:C.TEXT,...(allSkipped&&{textDecoration:"line-through",textDecorationThickness:"1.5px"})}}>{cat.label}:</span>{" "}
-                                {cat.tests.flatMap(([n,label],i)=>{
-                                  const sk=!completedNames.has(n);
-                                  const span=<span key={n} style={{color:sk?C.TEXT_3:C.TEXT,...(sk&&{textDecoration:"line-through",textDecorationThickness:"1.5px"})}}>{label}</span>;
-                                  return i===0?[span]:[", ",span];
-                                })}
-                              </div>
-                            );
-                          })}
-                        </div>
-                      )}
+                      <S5GroupedReasons results={results} />
                     </div>
                   )}
                 </Section>
