@@ -19,7 +19,7 @@
       genuinely different cause is never merged into another. There is a matching
       note at confirmGrouping.js:33. Do not loosen the match. */
 
-import { DISPLAY_NAMES } from "../constants/mechanisms.js";
+import { resolveDisplayName } from "../constants/mechanisms.js";
 import { NA_CAUSE } from "../constants/naCause.js";
 import { formatSkipDetail, isGroupingRefusal } from "./handoffModel.js";
 
@@ -60,7 +60,7 @@ export function groupNotApplicableByReason(tests) {
     const reason = r.description || "";
     if (!byReason.has(reason)) { byReason.set(reason, { names: [], detail: null }); order.push(reason); }
     const g = byReason.get(reason);
-    g.names.push(DISPLAY_NAMES[r.name] || r.name);
+    g.names.push(resolveDisplayName(r.name));
     // Size-ceiling numbers, when the test carries them. Only Sequential
     // Duplication does today, so a stanza holds at most one detail and first
     // wins. If a second test ever joins, what a shared stanza should show is
@@ -142,7 +142,7 @@ export function groupErroredByReason(tests) {
   for (const r of tests) {
     const reason = notRunReasonLine(r);
     if (!byReason.has(reason)) { byReason.set(reason, []); order.push(reason); }
-    byReason.get(reason).push(DISPLAY_NAMES[r.name] || r.name);
+    byReason.get(reason).push(resolveDisplayName(r.name));
   }
   return order.map(reason => ({ reason, names: byReason.get(reason) }));
 }

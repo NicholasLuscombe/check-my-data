@@ -16,7 +16,7 @@ import { PulseStyle } from "../forensics/PulseStyle.jsx";
 import { ForensicsBody } from "../forensics/ForensicsBody.jsx";
 import { C, FF, FW, FS, CR, BADGE, SIGNAL, ACCENT, SEV_VERDICT, DUP_GROUP_PALETTE, MECH_COLOR } from "../../constants/tokens.js";
 import { FLAG_STYLES, ALPHA, fmtP } from "../../constants/thresholds.js";
-import { MECHANISMS, MECHANISM_ORDER, DISPLAY_NAMES, TEST_DESCRIPTIONS, TEST_MECHANISM, GLOBAL_TESTS, BATTERY_SIZE } from "../../constants/mechanisms.js";
+import { MECHANISMS, MECHANISM_ORDER, DISPLAY_NAMES, resolveDisplayName, TEST_DESCRIPTIONS, TEST_MECHANISM, GLOBAL_TESTS, BATTERY_SIZE } from "../../constants/mechanisms.js";
 import { ASSAYS, DATA_TYPES } from "../../constants/assays.js";
 import { ROLES } from "../../constants/roles.js";
 import { Section } from "../shared/Section.jsx";
@@ -142,7 +142,7 @@ function S5TickGrid({ results, open, setOpen }) {
               {[...g.tests].sort((a, b) => (classifyCoverage(a) === "errored" ? 1 : 0) - (classifyCoverage(b) === "errored" ? 1 : 0)).map(r => {
                 const cov = classifyCoverage(r);
                 const didRun = cov === "ran";
-                const name = DISPLAY_NAMES[r.name] || r.name;
+                const name = resolveDisplayName(r.name);
                 const isOpen = !!open[r.name];
                 const why = didRun ? null : s5ReasonFor(r);
                 return (
@@ -198,14 +198,14 @@ function S5Reasons({ results }) {
             </div>
             {ranTests.length > 0 && (
               <div style={{ fontSize: FS.sm, color: C.TEXT_3, marginBottom: "6px", paddingLeft: "14px", lineHeight: "1.5" }}>
-                Ran: {ranTests.map(r => DISPLAY_NAMES[r.name] || r.name).join(", ")}.
+                Ran: {ranTests.map(r => resolveDisplayName(r.name)).join(", ")}.
               </div>
             )}
             {declinedTests.map(r => {
               const why = s5ReasonFor(r);
               return (
                 <div key={r.name} style={{ paddingLeft: "14px", marginBottom: "8px" }}>
-                  <div style={{ fontSize: FS.sm, fontWeight: FW.MED, color: C.TEXT_2 }}>{DISPLAY_NAMES[r.name] || r.name}</div>
+                  <div style={{ fontSize: FS.sm, fontWeight: FW.MED, color: C.TEXT_2 }}>{resolveDisplayName(r.name)}</div>
                   <div style={{ fontSize: FS.sm, color: C.TEXT_3, lineHeight: "1.5", marginTop: "2px" }}>{why.reason}</div>
                   {why.detail && <div style={{ fontSize: FS.xs, color: C.TEXT_3, marginTop: "2px" }}>{why.detail}</div>}
                 </div>
@@ -218,7 +218,7 @@ function S5Reasons({ results }) {
                   const why = s5ReasonFor(r);
                   return (
                     <div key={r.name} style={{ marginBottom: "8px" }}>
-                      <div style={{ fontSize: FS.sm, fontWeight: FW.MED, color: C.TEXT_2 }}>{DISPLAY_NAMES[r.name] || r.name}</div>
+                      <div style={{ fontSize: FS.sm, fontWeight: FW.MED, color: C.TEXT_2 }}>{resolveDisplayName(r.name)}</div>
                       <div style={{ fontSize: FS.sm, color: C.TEXT_3, lineHeight: "1.5", marginTop: "2px" }}>{why.reason}</div>
                     </div>
                   );
