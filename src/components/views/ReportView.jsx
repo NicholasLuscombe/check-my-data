@@ -1407,73 +1407,81 @@ export function ReportView({ results: baseResults, importConfig, matrix, rowMap,
 
             {/* ── §4 INVESTIGATE FURTHER ── */}
             <Section number={4} title="Investigate further">
-              {severity === 0 ? (
-                (() => {
-                  // Clean-result copy is coverage-aware: a severity-0 verdict says
-                  // nothing about the tests that did not run, so the coverage
-                  // buckets pick the sentence. Selection order is pending, then
-                  // unassessed, then not-applicable, then the all-ran state.
-                  // Pending leads because it is the only state the reader can act
-                  // on from here — confirm the grouping above. The errored count
-                  // is appended to whichever state fires. Strings are authored
-                  // copy, verbatim, each with a singular variant for a count of
-                  // one (the verb and pronoun change, not only the noun).
-                  const cov = summarizeCoverage(results);
-                  // One "not run" figure across the page. The applicability case
-                  // and the errored case both mean the test did not run; the
-                  // detail sections below carry the per-test reason. Merging them
-                  // replaces the old pair of sentences that gave "not run" two
-                  // meanings side by side. classifyCoverage assigns each result
-                  // exactly one bucket, so notApplicable and errored never overlap
-                  // and the sum is clean.
-                  const notRun = cov.notApplicable + cov.errored;
-                  const notRunClause = notRun === 1
-                    ? `1 test was not run — see the detail sections for why.`
-                    : `${notRun} tests were not run — see the detail sections for why.`;
-                  const lead = `No signal above threshold in the ${cov.ran} tests that completed. `;
-                  let text;
-                  if (cov.pending > 0) {
-                    const p = cov.pending === 1
-                      ? `1 test is waiting on grouping confirmation — confirm above to run it.`
-                      : `${cov.pending} tests are waiting on grouping confirmation — confirm above to run them.`;
-                    text = lead + p + (notRun > 0 ? " " + notRunClause : "");
-                  } else if (cov.unassessed > 0) {
-                    const u = cov.unassessed === 1
-                      ? `1 test was left unassessed because grouping was not confirmed — this screen says nothing about it.`
-                      : `${cov.unassessed} tests were left unassessed because grouping was not confirmed — this screen says nothing about them.`;
-                    text = lead + u + (notRun > 0 ? " " + notRunClause : "");
-                  } else if (notRun > 0) {
-                    text = lead + notRunClause;
-                  } else {
-                    text = `All ${cov.ran} of ${BATTERY_SIZE} tests completed. None returned a signal above threshold.`;
-                  }
-                  return (
-                    <div style={{fontSize:FS.base,color:C.TEXT_3,padding:"4px 0"}}>{text}</div>
-                  );
-                })()
-              ) : (
-                <>
-                  <div style={{fontSize:FS.base,color:C.TEXT,lineHeight:"1.6",marginBottom:"12px"}}>
-                    Copy the prompt below and paste it into an AI assistant. You can attach the dataset, paper, or annotated Excel report alongside it for a deeper cross-walk.
-                  </div>
-                  {/* S161 (A1.D2) — confidentiality callout. Neutral grey
-                      UI.FRAME.callout register. Two-line copy, em-dash on
-                      line 1, persistent (no dismiss state, no icon). */}
-                  <AsideCallout tone="frame">
-                    Check My Data runs in your browser — your data stays on your machine.<br/>
-                    Anything you paste or upload to an LLM is subject to that service's terms. Review them before uploading sensitive or unpublished data.
-                  </AsideCallout>
-                  <div style={{background:C.BG_L,border:`1px solid ${C.BORDER}`,borderRadius:CR.MD,padding:"12px 16px",fontSize:FS.sm,fontWeight:FW.NORM,color:C.TEXT,lineHeight:"1.6",fontFamily:FF.MONO,whiteSpace:"pre-wrap",maxHeight:"180px",overflow:"auto",marginBottom:"10px"}}>
-                    {promptBody}
-                  </div>
-                  <button onClick={handleAIConsult}
-                    onMouseEnter={e => { if (!aiCopied) e.currentTarget.style.background = C.BG_L; }}
-                    onMouseLeave={e => { if (!aiCopied) e.currentTarget.style.background = C.BG; }}
-                    style={{padding:"8px 18px",background:aiCopied?SIGNAL.GREEN.dot:C.BG,border:aiCopied?"none":`1px solid ${C.BORDER}`,borderRadius:CR.MD,color:aiCopied?C.WHITE:C.TEXT,fontWeight:FW.MED,fontSize:FS.base,cursor:"pointer",transition:"background 0.2s"}}>
-                    {aiCopied ? "✓ Copied to clipboard" : "Copy prompt"}
-                  </button>
-                </>
-              )}
+              {(() => {
+                const cov = summarizeCoverage(results);
+                // One "not run" figure across the page, pointing at §5 by title so
+                // the pointer survives renumbering. Not-applicable and errored both
+                // mean the test did not run; Test coverage carries the per-test
+                // reason. classifyCoverage assigns each result exactly one bucket,
+                // so notApplicable and errored never overlap and the sum is clean.
+                // Shared by both §4 variants: the no-signal sentence and the
+                // flagged pointer name the same section in the same words.
+                const notRun = cov.notApplicable + cov.errored;
+                const notRunClause = notRun === 1
+                  ? `1 test was not run — see Test coverage below for why.`
+                  : `${notRun} tests were not run — see Test coverage below for why.`;
+                return severity === 0 ? (
+                  (() => {
+                    // Clean-result copy is coverage-aware: a severity-0 verdict says
+                    // nothing about the tests that did not run, so the coverage
+                    // buckets pick the sentence. Selection order is pending, then
+                    // unassessed, then not-applicable, then the all-ran state.
+                    // Pending leads because it is the only state the reader can act
+                    // on from here — confirm the grouping above. The not-run count
+                    // is appended to whichever state fires. Strings are authored
+                    // copy, verbatim, each with a singular variant for a count of
+                    // one (the verb and pronoun change, not only the noun).
+                    const lead = `No signal above threshold in the ${cov.ran} tests that completed. `;
+                    let text;
+                    if (cov.pending > 0) {
+                      const p = cov.pending === 1
+                        ? `1 test is waiting on grouping confirmation — confirm above to run it.`
+                        : `${cov.pending} tests are waiting on grouping confirmation — confirm above to run them.`;
+                      text = lead + p + (notRun > 0 ? " " + notRunClause : "");
+                    } else if (cov.unassessed > 0) {
+                      const u = cov.unassessed === 1
+                        ? `1 test was left unassessed because grouping was not confirmed — this screen says nothing about it.`
+                        : `${cov.unassessed} tests were left unassessed because grouping was not confirmed — this screen says nothing about them.`;
+                      text = lead + u + (notRun > 0 ? " " + notRunClause : "");
+                    } else if (notRun > 0) {
+                      text = lead + notRunClause;
+                    } else {
+                      text = `All ${cov.ran} of ${BATTERY_SIZE} tests completed. None returned a signal above threshold.`;
+                    }
+                    return (
+                      <div style={{fontSize:FS.base,color:C.TEXT_3,padding:"4px 0"}}>{text}</div>
+                    );
+                  })()
+                ) : (
+                  <>
+                    <div style={{fontSize:FS.base,color:C.TEXT,lineHeight:"1.6",marginBottom:"12px"}}>
+                      Copy the prompt below and paste it into an AI assistant. You can attach the dataset, paper, or annotated Excel report alongside it for a deeper cross-walk.
+                    </div>
+                    {/* S161 (A1.D2) — confidentiality callout. Neutral grey
+                        UI.FRAME.callout register. Two-line copy, em-dash on
+                        line 1, persistent (no dismiss state, no icon). */}
+                    <AsideCallout tone="frame">
+                      Check My Data runs in your browser — your data stays on your machine.<br/>
+                      Anything you paste or upload to an LLM is subject to that service's terms. Review them before uploading sensitive or unpublished data.
+                    </AsideCallout>
+                    <div style={{background:C.BG_L,border:`1px solid ${C.BORDER}`,borderRadius:CR.MD,padding:"12px 16px",fontSize:FS.sm,fontWeight:FW.NORM,color:C.TEXT,lineHeight:"1.6",fontFamily:FF.MONO,whiteSpace:"pre-wrap",maxHeight:"180px",overflow:"auto",marginBottom:"10px"}}>
+                      {promptBody}
+                    </div>
+                    <button onClick={handleAIConsult}
+                      onMouseEnter={e => { if (!aiCopied) e.currentTarget.style.background = C.BG_L; }}
+                      onMouseLeave={e => { if (!aiCopied) e.currentTarget.style.background = C.BG; }}
+                      style={{padding:"8px 18px",background:aiCopied?SIGNAL.GREEN.dot:C.BG,border:aiCopied?"none":`1px solid ${C.BORDER}`,borderRadius:CR.MD,color:aiCopied?C.WHITE:C.TEXT,fontWeight:FW.MED,fontSize:FS.base,cursor:"pointer",transition:"background 0.2s"}}>
+                      {aiCopied ? "✓ Copied to clipboard" : "Copy prompt"}
+                    </button>
+                    {/* After the §3 declined expandables were removed, a flagged
+                        report explains its not-run tests only here — so point to §5
+                        when any test declined. Same words as the no-signal variant. */}
+                    {notRun > 0 && (
+                      <div style={{fontSize:FS.base,color:C.TEXT_3,padding:"4px 0",marginTop:"8px"}}>{notRunClause}</div>
+                    )}
+                  </>
+                );
+              })()}
             </Section>
 
             {/* ── §5 TEST COVERAGE ──
@@ -1489,12 +1497,14 @@ export function ReportView({ results: baseResults, importConfig, matrix, rowMap,
               // non-N/A-over-total form that undercounted and over-reported at
               // once. "completed" replaces "applied": an errored test applied and
               // then failed, so "applied" was wrong for a figure that excludes it.
-              // A single "not run" clause carries the applicability and errored
-              // counts together — the figure §4 shows — so the page reads one
-              // vocabulary. notApplicable is no longer the implicit remainder; it
-              // is named here as part of "not run". Unassessed stays its own clause.
+              // A single "not run" clause carries the applicability, errored and
+              // pending counts together — the same non-ran tests the panel below
+              // lists, grouped by reason. Pending folds in here rather than
+              // vanishing: the panel renders it, so the sentence must count it.
+              // Unassessed keeps its own clause; the two clauses together sum to
+              // every test that did not run (total − ran).
               const cov = summarizeCoverage(results);
-              const notRun = cov.notApplicable + cov.errored;
+              const notRun = cov.notApplicable + cov.errored + cov.pending;
               const coverageExtra = [];
               if (notRun > 0) coverageExtra.push(notRun === 1 ? `1 not run` : `${notRun} not run`);
               if (cov.unassessed > 0) coverageExtra.push(`${cov.unassessed} left unassessed`);
