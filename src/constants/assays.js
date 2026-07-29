@@ -82,6 +82,19 @@ export function joinDeclineReason(cause, tail) {
   return tail ? `${cause} ${tail}` : cause;
 }
 
+// The one sentence both Benford tests share when the values are too flat for a
+// leading-digit argument. First and second digit measure the same quantity with
+// the same estimator (robustLogSpan) and decline at different thresholds — 1.5
+// and 1, deliberately, see the note at benford.js. The threshold, the fold-range
+// gloss and the digit named all belong to the test, so they live in its tail;
+// only the sentence that is genuinely the same lives here. Splitting at the full
+// stop is what lets the two group under one cause. It is NOT shared with Noise
+// Scaling's narrow-range decline, which spans row averages rather than values,
+// uses a plain min-to-max range rather than a trimmed one, and carries an
+// expected-slope exemption — a different gate that happens to read alike.
+export const BENFORD_SPAN_CAUSE =
+  "Not applicable — these values span too narrow a range for Benford's law.";
+
 // Auto-detect assay type from filename and column headers.
 // Returns { assay, confidence: "high"|"low" } or null if no signal found.
 export function detectAssay(fileName, headers) {

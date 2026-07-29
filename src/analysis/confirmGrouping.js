@@ -118,13 +118,25 @@ export async function runConfirmedGroupedTests({ data, roles, condColSet, zeroAs
   // The figures were only ever in the prose; carrying them as fields is what
   // lets the display tell a refusal from a settled not-applicable without
   // parsing a sentence. Same shape the skip uses for its size-ceiling figures.
-  const refuse = (name, category, needClause, naCause, naMinimum) => ({
-    name, category, flag: "N/A", naCause,
-    naObserved: rgStatus.maxSize ?? 0, naMinimum,
-    description: `${givesClause()}. ${needClause}`,
-    confirmedGroups: rgStatus.nGroups ?? 0,
-    confirmedLargestGroup: rgStatus.maxSize ?? 0,
-  });
+  // All four refusals read one rgStatus, so givesClause() hands each of them the
+  // same sentence on any given run. That made the opener shared in fact but not
+  // in code: with no cause field every refusal keyed on its whole description and
+  // rendered its own block. Emitting the cause and the tail puts them in the
+  // cause key space, where groupNotApplicableByReason states the opener once and
+  // indents the four minimums under it. description is composed through
+  // joinDeclineReason and stays byte-identical to the string it always was.
+  const refuse = (name, category, needClause, naCause, naMinimum) => {
+    const cause = `${givesClause()}.`;
+    return {
+      name, category, flag: "N/A", naCause,
+      naObserved: rgStatus.maxSize ?? 0, naMinimum,
+      description: joinDeclineReason(cause, needClause),
+      naCauseText: cause,
+      naTailText: needClause,
+      confirmedGroups: rgStatus.nGroups ?? 0,
+      confirmedLargestGroup: rgStatus.maxSize ?? 0,
+    };
+  };
 
   // ── Mahalanobis Row Outlier (engine.js:430-479) ──
   const mahal = await (async () => {

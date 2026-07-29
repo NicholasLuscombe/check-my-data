@@ -38,7 +38,7 @@ export function testCarlisleBalance(matrix, condCtx) {
   const CAT = "group";
 
   if (!condCtx || !condCtx.has || condCtx.count < 2) {
-    return _na(NAME, CAT, "Requires ≥2 experimental conditions.", NA_CAUSE.TOO_FEW_CONDITIONS, condCtx?.count ?? 0, 2);
+    return _na(NAME, CAT, "Need ≥2 experimental conditions.", NA_CAUSE.TOO_FEW_CONDITIONS, condCtx?.count ?? 0, 2);
   }
 
   // Determine features and condition groups based on condCtx type
