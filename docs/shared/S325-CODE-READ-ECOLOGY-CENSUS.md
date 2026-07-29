@@ -10,7 +10,7 @@
 > Residual rose from Low to High, and Missing Data Pattern moved from not applicable to
 > High. Its two errored tests were diagnosed against the 21-column shape — Mahalanobis now
 > needs 117 rows where it needed 63. The C07 section below is kept as the historical
-> reading; `S326-CODE-READ-ECOLOGY-RERUN.md` carries the measured detail. Every other
+> reading; `docs/shared/archive/S326-CODE-READ-ECOLOGY-RERUN.md` carries the measured detail. Every other
 > file's entry stands on the engine path; for the confirm path, see the note below.
 
 > **Stale finding — the confirm path.** This census names cross-file confirm-path divergence
