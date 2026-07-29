@@ -64,17 +64,50 @@ function s5ClusterGroups(results) {
 const S5_NAME = { fontSize: FS.sm, fontWeight: FW.MED, color: C.TEXT_2 };
 const S5_REASON = { fontSize: FS.sm, fontWeight: FW.NORM, color: C.TEXT_3, lineHeight: "1.5", marginTop: "2px" };
 const S5_DETAIL = { fontSize: FS.xs, fontWeight: FW.NORM, color: C.TEXT_3, marginTop: "2px" };
+// Gap between the per-test entries of a shared-cause group. Same 6px the
+// cluster header and ran-line already use; no new step.
+const S5_ITEM = { marginTop: "6px" };
+// Indent that puts the per-test entries INSIDE the shared cause. Containment is
+// what says the cause governs them; without it the cause sits at the same
+// weight, size and colour as the "Ran:" line above and reads as a second
+// cluster caption rather than as a header the tests below inherit. Same 14px
+// the group blocks already indent by — one more turn of the existing step, no
+// new one.
+const S5_INDENT = { paddingLeft: "14px" };
 
-// One reason group: the test names on one line (one name or many, joined with
-// " · "), then the shared reason once, then the size-ceiling detail when present.
-// A group of one and a group of five render through the same block — the only
-// difference is how many names sit on the first line, so a single item never
-// carries group furniture a multi-item group would not.
-function S5Group({ names, reason, detail }) {
+// One reason group, in either of the two shapes groupNotApplicableByReason
+// emits.
+//
+// No tails — the whole reason is shared. The test names go on one line (one
+// name or many, joined with " · "), then the reason once, then the size-ceiling
+// detail when present. A group of one and a group of five render through the
+// same block, so a single item never carries group furniture a multi-item group
+// would not.
+//
+// Tails — the cause is shared but each test closes differently. The cause leads
+// the group, said once, and the tests sit indented beneath it so the layout
+// itself says they inherit it; each carries only what is its own. A test whose
+// tail is empty renders its name alone: the cause above already said
+// everything, and an empty line under the name would claim otherwise.
+function S5Group({ names, reason, tails, detail }) {
+  if (!tails) {
+    return (
+      <div style={{ paddingLeft: "14px", marginBottom: "8px" }}>
+        <div style={S5_NAME}>{names.join(" · ")}</div>
+        <div style={S5_REASON}>{reason}</div>
+        {detail && <div style={S5_DETAIL}>{detail}</div>}
+      </div>
+    );
+  }
   return (
     <div style={{ paddingLeft: "14px", marginBottom: "8px" }}>
-      <div style={S5_NAME}>{names.join(" · ")}</div>
       <div style={S5_REASON}>{reason}</div>
+      {names.map((n, i) => (
+        <div key={i} style={{ ...S5_ITEM, ...S5_INDENT }}>
+          <div style={S5_NAME}>{n}</div>
+          {tails[i] && <div style={S5_REASON}>{tails[i]}</div>}
+        </div>
+      ))}
       {detail && <div style={S5_DETAIL}>{detail}</div>}
     </div>
   );
@@ -111,7 +144,7 @@ function S5GroupedReasons({ results }) {
               </div>
             )}
             {naGroups.map((grp, i) => (
-              <S5Group key={"na" + i} names={grp.names} reason={grp.reason} detail={grp.detail} />
+              <S5Group key={"na" + i} names={grp.names} reason={grp.reason} tails={grp.tails} detail={grp.detail} />
             ))}
             {errGroups.length > 0 && (
               <div style={{ marginTop: "4px" }}>
@@ -1501,17 +1534,23 @@ export function ReportView({ results: baseResults, importConfig, matrix, rowMap,
               // pending counts together — the same non-ran tests the panel below
               // lists, grouped by reason. Pending folds in here rather than
               // vanishing: the panel renders it, so the sentence must count it.
-              // Unassessed keeps its own clause; the two clauses together sum to
-              // every test that did not run (total − ran).
+              // The span counts the categories the COMPLETED tests reach, not
+              // the five the battery has. The clause sits inside a sentence
+              // about the tests that ran, so a fixed 5 claimed a reach those
+              // tests do not have — on a survey file three completed tests
+              // were said to span all five. Same clusters and same "ran"
+              // predicate the panel below uses, so the sentence and the panel
+              // can never disagree.
               const cov = summarizeCoverage(results);
+              const spanned = s5ClusterGroups(results)
+                .filter(g => g.tests.some(r => classifyCoverage(r) === "ran")).length;
               const notRun = cov.notApplicable + cov.errored + cov.pending;
               const coverageExtra = [];
               if (notRun > 0) coverageExtra.push(notRun === 1 ? `1 not run` : `${notRun} not run`);
-              if (cov.unassessed > 0) coverageExtra.push(`${cov.unassessed} left unassessed`);
               return (
                 <Section number={5} title="Test coverage">
                   <div style={{fontSize:FS.base,color:C.TEXT,marginBottom:"12px"}}>
-                    {cov.ran} of {cov.total} tests completed, spanning 5 investigation categories.{coverageExtra.length > 0 ? ` ${coverageExtra.join(", ")}.` : ""}
+                    {cov.ran} of {cov.total} tests completed{spanned > 0 ? `, spanning ${spanned} investigation ${spanned === 1 ? "category" : "categories"}` : ""}.{coverageExtra.length > 0 ? ` ${coverageExtra.join(", ")}.` : ""}
                   </div>
                   {/* Battery */}
                   <button onClick={()=>setShowMethodBattery(v=>!v)} style={{background:"none",border:"none",padding:0,cursor:"pointer",color:C.TEXT,fontSize:FS.base,fontWeight:FW.MED,fontFamily:FF.UI,display:"flex",alignItems:"center",gap:"4px",marginBottom:"4px"}}>

@@ -14,10 +14,15 @@
       insufficient group data when the real cause was shape. notRunReasonLine
       builds the line from `naCause` instead.
 
-   2. groupNotApplicableByReason keys on the EXACT `description` string. The
-      exact match is deliberate — near-identical reasons stay separate so a
-      genuinely different cause is never merged into another. There is a matching
-      note at confirmGrouping.js:33. Do not loosen the match. */
+   2. groupNotApplicableByReason matches EXACTLY, on one of two keys. A producer
+      that emits `naCauseText` (the data-type skips, which share one sentence per
+      data type and differ only in a per-test tail) is keyed on that cause. Every
+      other producer writes its reason whole and is keyed on the EXACT
+      `description` string, as all of them were before. Both matches are exact —
+      near-identical reasons stay separate so a genuinely different cause is
+      never merged into another. There is a matching note at
+      confirmGrouping.js:33. Do not loosen either match, and do not make the
+      cause key a prefix or fuzzy match on `description`. */
 
 import { resolveDisplayName } from "../constants/mechanisms.js";
 import { NA_CAUSE } from "../constants/naCause.js";
@@ -47,29 +52,51 @@ export function splitNotApplicable(notApplicableTests) {
   return { refusedTests, skippedTests, trueNaTests };
 }
 
-// Group not-applicable tests by their exact reason string (S324). One
-// dataset-level cause (columns are non-replicates, row order arbitrary, too few
-// columns) drives many tests at once; stating it once, then the test names,
-// reads as accounting rather than a wall of identical rows. Order follows first
-// appearance so the layout is stable. Match is exact — near-identical reasons
-// stay separate, which keeps a genuinely different cause from being merged.
+// Group not-applicable tests by their reason (S324). One dataset-level cause
+// (columns are non-replicates, row order arbitrary, too few columns) drives many
+// tests at once; stating it once, then the test names, reads as accounting
+// rather than a wall of identical rows. Order follows first appearance so the
+// layout is stable.
+//
+// Two group shapes come out, and the caller tells them apart by `tails`:
+//
+//   tails === null — one reason for the whole group. Every member's whole
+//     `description` was identical, so the group states it once. This is the
+//     only shape that existed before, and it is still how the fully shared
+//     reasons group: the row-order constant and the separate-conditions
+//     constant hand every test the same string with nothing test-specific
+//     after it.
+//
+//   tails is an array parallel to `names` — the members share a cause sentence
+//     but each has its own tail. The data-type skips are the case: sixteen
+//     ordinal declines opened with one sentence and closed with sixteen
+//     different ones, so keying on the whole string put each in its own block.
+//     A tail may be "", meaning the shared cause is that test's whole reason.
+//
+// Both matches are exact. The two key spaces are kept apart by a prefix so a
+// cause sentence can never collide with some other test's whole description.
 export function groupNotApplicableByReason(tests) {
   const order = [];
-  const byReason = new Map();
+  const byKey = new Map();
   for (const r of tests) {
-    const reason = r.description || "";
-    if (!byReason.has(reason)) { byReason.set(reason, { names: [], detail: null }); order.push(reason); }
-    const g = byReason.get(reason);
+    const cause = r.naCauseText || null;
+    const key = cause ? "cause: " + cause : "whole: " + (r.description || "");
+    if (!byKey.has(key)) {
+      byKey.set(key, { reason: cause || r.description || "", names: [], tails: cause ? [] : null, detail: null });
+      order.push(key);
+    }
+    const g = byKey.get(key);
     g.names.push(resolveDisplayName(r.name));
+    if (g.tails) g.tails.push(r.naTailText || "");
     // Size-ceiling numbers, when the test carries them. Only Sequential
     // Duplication does today, so a stanza holds at most one detail and first
     // wins. If a second test ever joins, what a shared stanza should show is
     // a Chat decision, not a shape to guess at here.
     if (g.detail == null) g.detail = formatSkipDetail(r);
   }
-  return order.map(reason => {
-    const g = byReason.get(reason);
-    return { reason, names: g.names, detail: g.detail };
+  return order.map(key => {
+    const g = byKey.get(key);
+    return { reason: g.reason, names: g.names, tails: g.tails, detail: g.detail };
   });
 }
 

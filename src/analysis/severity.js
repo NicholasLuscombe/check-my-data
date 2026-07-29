@@ -122,8 +122,11 @@ export function getApplicabilityTests(s, colRel, dataType = 'continuous', rowSem
     const fam = TEST_MECHANISM[name];
     const dtName = DT_SKIP_ALIAS[name] || name;
     // Dispatch tier -- the same tables dtSkip and rsSkip read, plus Blocked
-    // Mahalanobis's own continuous-only guard (not in the skip table).
-    const dataTypeNA = !!dtMap[dtName] || (name === "Blocked Mahalanobis" && dataType !== 'continuous');
+    // Mahalanobis's own continuous-only guard (which still covers the count
+    // case; the skip table now carries only its ordinal entry). Presence is a
+    // key test, matching dtSkip: map values are per-test tails and a tail of
+    // "" is a real entry, invisible to a truthiness check.
+    const dataTypeNA = (dtName in dtMap) || (name === "Blocked Mahalanobis" && dataType !== 'continuous');
     const rowSemNA = arbitrary && ROW_SEMANTICS_FULL_SKIP.has(name);
     const ok = !dataTypeNA && !rowSemNA && summaryApplicable(name, s, isCond);
     return { name, fam, ok, runOnly: RUN_ONLY_TESTS.has(name) };

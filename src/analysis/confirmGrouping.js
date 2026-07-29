@@ -42,7 +42,7 @@
 import { extractAnalysisInputs } from './engine.js';
 import { aggregatePerGroup } from './aggregation.js';
 import { createPRNG } from '../stats/prng.js';
-import { DATATYPE_SKIP } from '../constants/assays.js';
+import { DATATYPE_SKIP, DATATYPE_CAUSE, joinDeclineReason } from '../constants/assays.js';
 import { NA_CAUSE } from '../constants/naCause.js';
 import { noGroupMeetsMin } from './applicability.js';
 import { testMahalanobisOutlier, MIN_COLS as MAHAL_MIN_COLS } from '../tests/mahalanobis.js';
@@ -83,8 +83,17 @@ export async function runConfirmedGroupedTests({ data, roles, condColSet, zeroAs
   const vstCondCtx = hasVST ? condCtx.withMatrix(vstMatrix) : null;
 
   const rng = createPRNG(matrix);
+  // Same three-field emit as engine.js's dtSkip, joined through the same
+  // helper so the two can't drift. Presence is a key test — a tail of "" is a
+  // real entry whose whole reason is the shared cause.
   const skipMap = DATATYPE_SKIP[dataType] || {};
-  const dtSkip = (name, category) => { const reason = skipMap[name]; return reason ? { name, category, flag: 'N/A', naCause: NA_CAUSE.DATA_TYPE_MISMATCH, description: reason } : null; };
+  const skipCause = DATATYPE_CAUSE[dataType] || null;
+  const dtSkip = (name, category) => {
+    if (!skipCause || !(name in skipMap)) return null;
+    const tail = skipMap[name];
+    return { name, category, flag: 'N/A', naCause: NA_CAUSE.DATA_TYPE_MISMATCH,
+      description: joinDeclineReason(skipCause, tail), naCauseText: skipCause, naTailText: tail };
+  };
   const tagVST = (r) => { if (hasVST && r) r.vstTransform = vstType; return r; };
 
   // ── S327 refusal ──

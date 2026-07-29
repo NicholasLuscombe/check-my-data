@@ -26,33 +26,61 @@ export const ASSAY_DATATYPE_MAP = {
   cell_count: "count", genomics: "count", survey: "ordinal",
 };
 
-// Data type → tests to suppress (return N/A with explanation)
+// Data type → the one sentence every test skipped for that data type shares.
+// Every entry in a DATATYPE_SKIP block opened with this sentence and then
+// closed with its own; the shared half now lives here once, so the no-verdict
+// panel can state it once and list the tests beneath it. A data type with no
+// skips needs no cause.
+export const DATATYPE_CAUSE = {
+  ordinal: "Not applicable to ordinal data such as ratings from 1 to 5.",
+  count:   "Not applicable to count data.",
+};
+
+// Data type → tests to suppress (return N/A with explanation). Values are the
+// PER-TEST TAIL only — what this test alone has to say. DATATYPE_CAUSE holds
+// the shared opener, and joinDeclineReason puts the two back together for
+// `description`. A tail of "" means the shared cause says everything there is
+// to say about that test.
 export const DATATYPE_SKIP = {
   ordinal: {
-    "Selective Noise":            "Not applicable to ordinal data such as ratings from 1 to 5. The columns are different scale items, not repeats of one measurement, so a difference in spread between them is expected rather than suspicious.",
-    "Autocorrelation":            "Not applicable to ordinal data such as ratings from 1 to 5. This test compares repeat measurements of the same quantity column by column, and these columns are separate scale items instead.",
-    "Kurtosis":                   "Not applicable to ordinal data such as ratings from 1 to 5. This test measures the shape of the differences between repeat measurements, which has no meaning when the columns are separate scale items.",
-    "Runs Test":                  "Not applicable to ordinal data such as ratings from 1 to 5. This test reads the run of ups and downs between repeat measurements, and these columns are separate scale items rather than repeats.",
-    "Row-Mean Runs":              "Not applicable to ordinal data such as ratings from 1 to 5. This test averages each row across the columns, and averaging different rating items together gives a number that means nothing.",
-    "Inter-Replicate Correlation":"Not applicable to ordinal data such as ratings from 1 to 5. The columns are different scale items rather than repeats of one measurement, so correlation between them is expected rather than a warning sign.",
-    "Regional Noise Homogeneity": "Not applicable to ordinal data such as ratings from 1 to 5. This test checks whether measurement noise stays even across the table, which needs repeat measurements that share one noise pattern.",
-    "Noise Scaling With Measurement Size": "Not applicable to ordinal data such as ratings from 1 to 5. This test checks whether the scatter of repeat measurements grows with their size, which needs numbers on a continuous scale.",
-    "LOESS Residual Analysis":    "Not applicable to ordinal data such as ratings from 1 to 5. This test studies the noise left after fitting a smooth trend through repeat measurements, and these columns are separate scale items.",
-    "Residual Spike Correlation": "Not applicable to ordinal data such as ratings from 1 to 5. This test compares the leftover noise across repeat measurements, and these columns are separate scale items rather than repeats.",
-    "Within-Row Variance":        "Not applicable to ordinal data such as ratings from 1 to 5. This test measures the spread within each row across repeat measurements, which needs numbers on a continuous scale.",
-    "Constant-Offset Blocks":     "Not applicable to ordinal data such as ratings from 1 to 5. This test looks for blocks of values copied and shifted by a fixed amount between repeat columns, which needs those columns to be repeats.",
-    "Mahalanobis Row Outlier":     "Not applicable to ordinal data such as ratings from 1 to 5. This test flags rows that sit far from the rest, assuming a smooth bell-shaped spread; a scale of a few fixed values cannot provide one.",
-    "Entropy / Zipf Analysis":     "Not applicable to ordinal data such as ratings from 1 to 5. These scales take only a few distinct values, so the measure of how spread out the values are cannot separate fabricated data from real.",
-    "Column Goodness-of-Fit":      "Not applicable to ordinal data such as ratings from 1 to 5. This test checks whether a column follows a standard distribution — normal, Poisson, or negative binomial — and ranked categories follow none of them.",
-    "Modality Test":               "Not applicable to ordinal data such as ratings from 1 to 5. This test looks for separate peaks in the distribution, which needs a continuous scale with many possible values; a few ranked categories cannot show them.",
+    "Selective Noise":            "The columns are different scale items, not repeats of one measurement, so a difference in spread between them is expected rather than suspicious.",
+    "Autocorrelation":            "This test compares repeat measurements of the same quantity column by column, and these columns are separate scale items instead.",
+    "Kurtosis":                   "This test measures the shape of the differences between repeat measurements, which has no meaning when the columns are separate scale items.",
+    "Runs Test":                  "This test reads the run of ups and downs between repeat measurements, and these columns are separate scale items rather than repeats.",
+    "Row-Mean Runs":              "This test averages each row across the columns, and averaging different rating items together gives a number that means nothing.",
+    "Inter-Replicate Correlation":"The columns are different scale items rather than repeats of one measurement, so correlation between them is expected rather than a warning sign.",
+    "Regional Noise Homogeneity": "This test checks whether measurement noise stays even across the table, which needs repeat measurements that share one noise pattern.",
+    "Noise Scaling With Measurement Size": "This test checks whether the scatter of repeat measurements grows with their size, which needs numbers on a continuous scale.",
+    "LOESS Residual Analysis":    "This test studies the noise left after fitting a smooth trend through repeat measurements, and these columns are separate scale items.",
+    "Residual Spike Correlation": "This test compares the leftover noise across repeat measurements, and these columns are separate scale items rather than repeats.",
+    "Within-Row Variance":        "This test measures the spread within each row across repeat measurements, which needs numbers on a continuous scale.",
+    "Constant-Offset Blocks":     "This test looks for blocks of values copied and shifted by a fixed amount between repeat columns, which needs those columns to be repeats.",
+    "Mahalanobis Row Outlier":     "This test flags rows that sit far from the rest, assuming a smooth bell-shaped spread; a scale of a few fixed values cannot provide one.",
+    "Entropy / Zipf Analysis":     "These scales take only a few distinct values, so the measure of how spread out the values are cannot separate fabricated data from real.",
+    "Column Goodness-of-Fit":      "This test checks whether a column follows a standard distribution — normal, Poisson, or negative binomial — and ranked categories follow none of them.",
+    "Modality Test":               "This test looks for separate peaks in the distribution, which needs a continuous scale with many possible values; a few ranked categories cannot show them.",
+    // Before this key existed dtSkip returned null here and the test's own
+    // ordinal guard (blockedMahalanobis.js) answered instead, in wording that
+    // differed from every other ordinal decline and so could never group with
+    // them. The tail below is that guard's own second sentence, kept verbatim —
+    // only the opener changed.
+    "Blocked Mahalanobis":         "This test compares how the replicate columns vary together against a reference that only holds for measurements on a continuous scale.",
   },
   count: {
-    "Entropy / Zipf Analysis":     "Not applicable to count data. To judge whether a column is unusual this test compares it against a single standard distribution, and real count data rarely matches any one of them closely enough for the comparison to be fair.",
-    "Column Goodness-of-Fit":      "Not applicable to count data. This test checks whether a column matches a standard distribution — normal, Poisson, or negative binomial — but real counts often fit none of them well enough to give a trustworthy result.",
-    "Modality Test":               "Not applicable to count data. This test looks for more than one peak in the distribution, and its reference assumes a smooth single-peak continuous curve that whole-number counts do not follow.",
+    "Entropy / Zipf Analysis":     "To judge whether a column is unusual this test compares it against a single standard distribution, and real count data rarely matches any one of them closely enough for the comparison to be fair.",
+    "Column Goodness-of-Fit":      "This test checks whether a column matches a standard distribution — normal, Poisson, or negative binomial — but real counts often fit none of them well enough to give a trustworthy result.",
+    "Modality Test":               "This test looks for more than one peak in the distribution, and its reference assumes a smooth single-peak continuous curve that whole-number counts do not follow.",
   },
   continuous: {},
 };
+
+// Put a shared cause and a per-test tail back together into the one sentence
+// pair `description` has always carried. An empty tail returns the cause
+// alone — no trailing space, no doubled full stop. Both dtSkip sites (engine
+// and the confirmed-grouping re-run) join through here so the two can't drift.
+export function joinDeclineReason(cause, tail) {
+  return tail ? `${cause} ${tail}` : cause;
+}
 
 // Auto-detect assay type from filename and column headers.
 // Returns { assay, confidence: "high"|"low" } or null if no signal found.
