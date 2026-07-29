@@ -1,7 +1,7 @@
 # Check My Data — Investigation Display UI Specification
 
-**Version:** 7.6 (Chat S324 — not-applicable surface shipped; S323 coverage vocabulary; S213 single severity scale + plot colour-semantics reference; S211 composition rollout)
-**Status:** QC mode ✅ (Code S21). Forensics mode ✅ (Code S25+S69+S71, S156+S157 chrome lock). Peer review mode ✅ (Code S70+S71). Coverage vocabulary § — shipped S323. Not-applicable surface § — shipped S324 (main `fc8fe21`), verified on DS03/DS14/DS19; export paths not yet verified.
+**Version:** 7.7 (Chat S336 — section 5 not-applicable surface, shared cause plus per-test tail, computed category span; S324 not-applicable surface; S323 coverage vocabulary; S213 single severity scale + plot colour-semantics reference; S211 composition rollout)
+**Status:** QC mode ✅ (Code S21). Forensics mode ✅ (Code S25+S69+S71, S156+S157 chrome lock). Peer review mode ✅ (Code S70+S71). Coverage vocabulary § — shipped S323. Not-applicable surface § — moved from §3 to §5 at S334, reason composition rebuilt S335 (main `e8b1ad6`), verified on screen across three shapes; export paths still not verified.
 
 This document is the authoritative reference for how Check My Data presents analysis results across three modes. It covers:
 1. **Category system** — what observation categories exist and which tests map to them
@@ -1371,8 +1371,8 @@ AI consultation prompt + Excel download. See Guidance System § Tier 3 below.
 
 **5 · Methodology**
 
-- Summary line: see § Coverage vocabulary (S323). Shipped form is "{N} of 29 tests completed,
-  spanning 5 investigation categories." plus an errored clause where one applies.
+- Summary line: **see § Coverage vocabulary → The shipped surfaces → §5 coverage line.** That
+  entry is the single statement of the string. Do not restate it here.
 - Disclaimer: "This report is a screening aid, not a determination of misconduct." (Trust aside-callout register, S148 chrome.)
 - Expandable "Test battery details" — cluster-grouped test list (now uses post-S157-fix3 "Cross-condition comparisons" cluster label)
 - Expandable "References" — citation list
@@ -1607,6 +1607,11 @@ nine clean clusters rendered green across the batch; after, thirty-one.
 The two surfaces answer different questions. §1 and §5 answer "how much of the battery was
 brought to bear". A cluster header answers "did this cluster reach a verdict". Do not unify them.
 
+**The category span is a third quantity and takes neither rule.** "{N} of 29" counts tests
+against the whole battery. "Spanning {C} investigation categories" counts categories against what
+completed. They sit in one sentence and answer different questions, so do not reconcile them or
+make one follow the other's denominator.
+
 ### "Completed", not "ran"
 
 Every user-facing string says **completed**. The buckets always distinguished a completed test
@@ -1702,7 +1707,15 @@ noun. Pending leads the order because it is the only state the reader can act on
 are standing.
 
 **§5 coverage line:**
-> {N} of 29 tests completed, spanning 5 investigation categories. {K} could not complete.
+> {N} of 29 tests completed, spanning {C} investigation categories. {K} could not complete.
+
+`{C}` is **computed, not fixed**. It counts the categories the completed tests actually span —
+`s5ClusterGroups` filtered to `classifyCoverage(r) === "ran"` — which is the same predicate the
+panel beneath it uses, so the sentence and the panel cannot disagree. The survey file drops to two
+categories; DS01 reads five and now earns it rather than happening to match. An earlier build
+hardcoded five and was right only by luck.
+
+Where no test completed, the spanning clause drops entirely rather than reading "0 categories".
 
 **Excel narrative** (`excelExport.js`, severity 0):
 > {N} of 29 tests completed — no signal above threshold. This report does not establish that the data is genuine.
@@ -1775,84 +1788,121 @@ only the live surface catches what a design gets wrong.
 
 ---
 
-## The not-applicable surface — where a test that did not run is shown (S324)
+## The not-applicable surface — where a test that did not run is shown (S324, moved to §5 at S334, composition rebuilt S335)
 
-**Status: shipped at S324, main `fc8fe21`.** Verified on screen for DS03, DS14 and DS19. **Not yet
-verified on DS01, DS09, the Excel export, or the clipboard summary** — those four are open at the
-time of writing. Where this section and the build disagree, read the build and amend this.
+**Status: shipped at S324 in §3; moved to §5 at S334; reason composition rebuilt at S335, main
+`e8b1ad6`.** Verified on screen across three shapes — cause groups on the survey file, the
+fallback shape on DS09, and a file where the cause branch never fires on DS01. The Excel export
+and the clipboard summary are still unverified. Where this section and the build disagree, read
+the build and amend this.
 
-The coverage vocabulary section above governs what the tool may claim about what it examined. This
-section governs where a test that did not run is actually shown, and what it says there.
+The coverage vocabulary section above governs what the tool may claim about what it examined.
+This section governs where a test that did not run is shown, and what it says there.
 
 ### Why the surface exists
 
 S324 moved four applicability checks upfront, so eight results that previously errored now return
 not-applicable honestly. That was correct and it made those tests **invisible**. §4 said eight
-tests did not apply to this data; §3 gave the reader no way to find out which eight, or why. Four
-cause-specific reason strings had been written and none could be read.
+tests did not apply; §3 gave the reader no way to find out which eight, or why. Four cause-specific
+reason strings had been written and none could be read.
 
 **A correct classification is not automatically a visible one.** Not-applicable tests leave the
 cluster header fraction by design — that is the cluster-level denominator rule and it is right.
 But leaving the fraction is not the same as leaving the report. Ask what a state's display path is
 before routing results into it.
 
-### Where it sits
+### Where it sits — §5, not §3
 
-Inside an expanded cluster, **after** the completed test rows and after the cleared summary row.
-Not interleaved in test order — a reader scanning results should pass over it; a reader asking why
-a test is missing should find it where the test would have been.
+The surface lives in **section 5**. Section 3 carries a pointer to it and nothing more; the
+in-cluster expandable that S324 built was removed at S334.
 
-A cluster with no not-applicable tests shows nothing. The section never renders empty.
+> **Confirm the pointer's exact wording against the build before treating this line as final.**
+> It is the one string in this section not read at source.
 
-### Collapsed by default
+The move settled a question §3 could not. Inside a cluster the reasons competed with results for
+the same reading; in §5 they sit under methodology, where a reader who wants them goes looking and
+a reader scanning findings never meets them.
 
-The section renders as a single summary row that reuses the cleared row's component:
+### Composition: one shared cause, one tail per test
 
-```
-▸ 3 tests not applicable — Distinct numbers, Column Goodness-of-Fit, Number of peaks
-```
+This is the contract, and it is the part most easily broken by a well-meant simplification.
 
-`CollapsedSummaryRow` is shared by both the cleared group and the not-applicable group. The cleared
-group passes a green tick and the word "cleared"; the not-applicable group passes no icon and the
-words "not applicable". Count, em dash, truncated name list and disclosure triangle behave
-identically in both. There is no parallel implementation and no bespoke shape — §3 stays one
-pattern throughout.
+`DATATYPE_CAUSE` holds **one opener per data type**. `DATATYPE_SKIP` entries hold **only their own
+tails**. `joinDeclineReason` puts them back together. Both `dtSkip` sites emit `description` — the
+joined string, unchanged — plus `naCauseText` and `naTailText` alongside.
 
-**It always starts collapsed, at any count.** The cleared row collapses at one test; this does too.
-A cluster with two not-applicable tests gets a collapsed line the same as one with eleven.
+**The additive shape is deliberate.** Five consumers read `description`: the clipboard prompt, the
+plain-text report and the Excel export among them. Emitting the parts alongside rather than instead
+of the whole string meant nothing downstream moved and producers could migrate one at a time.
 
-This was the load-bearing decision. An expanded list works at three stanzas and fails at eleven:
-DS14's Cross-replicate cluster has eleven tests failing for one cause, each with its own wording,
-and expanded it read as a wall rather than as accounting. Collapsing it costs nothing, scales to
-any count, and needed no engine change.
+**One copy of the sentence, not sixteen.** Code offered two shapes — change the map's value type to
+`{cause, tail}`, or strip the opener and add one `DATATYPE_CAUSE` constant. The second is smaller,
+but the reason to take it is that it leaves one copy of the shared sentence. That removes the class
+of defect rather than the instance.
 
-### Expanded: grouped by reason, no chrome
+Three implementation rules that are not optional:
 
-Expanding shows the tests grouped by their **exact** reason string — the reason once, then the
-names of the tests it applies to:
+- **`groupNotApplicableByReason` keys on the cause where a producer emits one, and on the whole
+  description otherwise.** The fallback path is load-bearing, not a safety net — the row-order and
+  separate-conditions constants are fully shared with no tail and go through it.
+- **Map readers use `name in map`, never `!!map[name]`.** An empty tail is a valid entry. A
+  truthiness check silently drops it.
+- **The helper runs per cluster, not once.** A perfect shared-cause grouping yields one stanza per
+  cluster, not one overall.
 
-```
-Not applicable when columns are non-replicates. These tests compare replicate measurements
-of the same quantity — columns representing different treatments, instruments, or time points
-are expected to differ.
-Inter-Replicate Correlation · Unusual rows · Shifted blocks · Noise scaling · …
-```
+**`naCause` cannot key the grouping. That route is closed for good.** On one file
+`dataTypeMismatch` carries four distinct openers — ordinal with a ratings clause, bare ordinal,
+whole-number, and whole-number with a percentage — and `assayNotApplicable` splits into genomics
+and cell-count. The cause code cuts *across* the openers rather than sitting above or below them.
+Any split must carry its own cause text.
 
-Where reasons differ, there is more than one group. DS03's Distribution shapes cluster produces
-two — a 30-value case and a 50-value case — each with its own name list.
+### Matching is still by exact string
 
-Matching is by exact string. **Do not cluster near-identical reasons.** Two tests that fail for
-genuinely different consequences of the same cause are two groups, and collapsing them would erase
-a real distinction.
+**The rule from S324 stands unchanged: match on the exact string, and do not cluster near-identical
+reasons.** Two tests failing for genuinely different consequences of the same cause are two groups,
+and collapsing them would erase a real distinction.
 
-**No card chrome.** No white background, no border, no per-row container. Muted text only. These
-rows are a note beneath the results, not more results. Giving them result chrome makes a reader
-count them as findings.
+What changed at S335 is not the rule but the strings. Near-identical reasons used to fail to group
+because each carried its own copy of a shared opening sentence. Re-engineering them so the shared
+part is *literally shared* makes exact matching succeed where it previously could not. **No fuzzy
+matching was introduced and none should be.**
 
-Reason strings that head a group of more than one test are written in the plural. Two such strings
-exist (`COND_SKIP_REASON`, `ROW_SEMANTICS_SKIP_REASON`); every other reason is unique to one test
-and stays singular.
+This section predicted that fix before it was built — see the ordinal-stem entry under Known rough
+edges, which named the shape exactly: state the shared cause once, list test plus specific tail,
+and accept that it needs the strings to separate stem from tail.
 
+Reason strings that head a group of more than one test are written in the plural.
+
+### The cause governs by containment, not by weight
+
+**Settled on screen, and the first attempt got it wrong.** A shared cause leading its group in the
+same weight, size and colour as the line above it reads as a second caption, not a header. Twelve
+tests hung off what looked like a summary line and appeared unattached.
+
+**Indenting the tests beneath the cause fixes it.** `S5_INDENT`, 14px — the step already used at
+four sites, applied one level deeper. No new step entered the ladder.
+
+The contrast with the fallback shape is what named the defect. DS09 leads with bold test names and
+puts the shared reason underneath, so attachment is obvious. The cause shape reverses that order
+and leads with the one element typographically identical to the line above it.
+
+**The repetition is not a defect. Do not reopen it.** The ordinal cause prints three times, once
+per cluster. That was held open at scoping as a screenshot judgment, and the screenshot answered it
+in neither direction the options assumed: the repetition was never the problem, the attachment was.
+Three section headers each stating their reason is ordinary document behaviour once attachment is
+expressed.
+
+### One lever at a time
+
+The indent shipped alone. Spacing was considered and deliberately not stacked on top. The indent
+was enough — and had it not been, there would have been exactly one thing to change. Two untested
+layout changes at once leave no way to tell which did the work.
+
+### No card chrome
+
+No white background, no border, no per-row container. Muted text only. These rows are a note
+beneath the results, not more results. Giving them result chrome makes a reader count them as
+findings.
 ### The cluster header word
 
 A cluster where every test is not applicable reads **"Not applicable"**, word alone, no fraction.
@@ -1870,14 +1920,11 @@ and falls through to its own branch. No ordering ambiguity.
 
 ### Known rough edges
 
-- **Header and row say the same thing.** On an all-not-applicable cluster the header reads "Not
-  applicable" and the collapsed row reads "3 tests not applicable". Redundant on thirteen fixtures.
-  Lean: auto-expand the collapsed row when it is a cluster's only content, since there is nothing
-  else to show and the reasons are what the reader wants.
-- **The ordinal stem repeats.** Eleven DS14 strings open "Not applicable to ordinal data" and then
-  diverge into genuinely different consequences. Collapse hides it; it does not fix it. The proper
-  shape states the shared cause once and lists test plus specific tail, which needs the strings to
-  separate stem from tail — an engine change to eleven strings, not display work.
+- **~~Header and row say the same thing.~~ Resolved at S334** — the surface moved to §5, so the
+  collapsed row no longer sits beneath a cluster header repeating it.
+- **~~The ordinal stem repeats.~~ Resolved at S335** — the strings now separate stem from tail, and
+  the shared cause prints once per cluster as a group header. This entry named the fix before it
+  was built.
 - **Some reasons were never written to be read.** The surface now exposes pre-existing engine
   strings drafted when nobody expected a user to see them. "Need ≥60 complete rows per condition
   (have 50 total rows across conditions)" is more terse and more technical than the four written
