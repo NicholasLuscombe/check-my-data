@@ -59,11 +59,12 @@ export const DATATYPE_SKIP = {
     "Entropy / Zipf Analysis":     "These scales take only a few distinct values, so the measure of how spread out the values are cannot separate fabricated data from real.",
     "Column Goodness-of-Fit":      "This test checks whether a column follows a standard distribution — normal, Poisson, or negative binomial — and ranked categories follow none of them.",
     "Modality Test":               "This test looks for separate peaks in the distribution, which needs a continuous scale with many possible values; a few ranked categories cannot show them.",
-    // Empty tail — the shared cause is the whole reason. Before this key
-    // existed dtSkip returned null here and the test's own ordinal guard
-    // (blockedMahalanobis.js) answered instead, in wording that differed from
-    // every other ordinal decline and so could never group with them.
-    "Blocked Mahalanobis":         "",
+    // Before this key existed dtSkip returned null here and the test's own
+    // ordinal guard (blockedMahalanobis.js) answered instead, in wording that
+    // differed from every other ordinal decline and so could never group with
+    // them. The tail below is that guard's own second sentence, kept verbatim —
+    // only the opener changed.
+    "Blocked Mahalanobis":         "This test compares how the replicate columns vary together against a reference that only holds for measurements on a continuous scale.",
   },
   count: {
     "Entropy / Zipf Analysis":     "To judge whether a column is unusual this test compares it against a single standard distribution, and real count data rarely matches any one of them closely enough for the comparison to be fair.",
