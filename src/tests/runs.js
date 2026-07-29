@@ -1,6 +1,10 @@
 import { mean, zToP, oneSampleT, bhFDR, stddev, normalQuantile, tQuantileTwoSided } from "../stats/primitives.js";
 import { flagFromP, ALPHA, flagRankOf } from "../constants/thresholds.js";
 import { NA_CAUSE } from "../constants/naCause.js";
+import { TOO_FEW_REPLICATE_COLS_CAUSE, joinDeclineReason } from "../constants/assays.js";
+
+// Tail under the shared too-few-replicate-columns cause.
+const COLS_TAIL = "This test needs at least 2.";
 
 /* 7. Runs Test */
 /**
@@ -14,7 +18,8 @@ export function testRuns(matrix, condCtx, rng) {
   const rowConditions = condCtx?.rowConditions || null;
   const nC=matrix[0]?.length||0;
   const nR=matrix.length;
-  if(nC<2) return {name:"Runs Test",category:"replicate",flag:"N/A",naCause:NA_CAUSE.TOO_FEW_COLUMNS,naObserved:nC,naMinimum:2,description:"Need \u22652 replicate columns."};
+  if(nC<2) return {name:"Runs Test",category:"replicate",flag:"N/A",naCause:NA_CAUSE.TOO_FEW_COLUMNS,naObserved:nC,naMinimum:2,
+    description:joinDeclineReason(TOO_FEW_REPLICATE_COLS_CAUSE,COLS_TAIL),naCauseText:TOO_FEW_REPLICATE_COLS_CAUSE,naTailText:COLS_TAIL};
   const res=[];
   const allZ=[];
 

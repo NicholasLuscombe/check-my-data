@@ -4,7 +4,7 @@
 
 import { createPRNG } from '../stats/prng.js';
 import { flagRankOf } from '../constants/thresholds.js';
-import { DATATYPE_SKIP, DATATYPE_CAUSE, joinDeclineReason } from '../constants/assays.js';
+import { DATATYPE_SKIP, DATATYPE_CAUSE, TOO_FEW_REPLICATE_COLS_CAUSE, joinDeclineReason } from '../constants/assays.js';
 import { NA_CAUSE } from '../constants/naCause.js';
 import { ROW_SEMANTICS_FULL_SKIP, ROW_SEMANTICS_SKIP_REASON } from '../import/rowSemantics.js';
 import { aggregatePerGroup, buildGroups } from './aggregation.js';
@@ -447,8 +447,13 @@ export async function runFullAnalysis(matrix, rawMatrix, condCtx, assay, onProgr
       // here before any per-condition row split, rather than finding the
       // shortage once per group.
       if ((matrix[0]?.length || 0) < MAHAL_MIN_COLS) {
+        // Same test as mahalanobis.js:30 but a different site, and the two have
+        // always stated different purposes — an invertible covariance matrix
+        // there, the row-distance measure here. Each keeps its own claim; only
+        // one of the two can fire on a run.
+        const colsTail = `This test needs at least ${MAHAL_MIN_COLS}, for the row-distance measure it uses.`;
         return { name: "Mahalanobis Row Outlier", category: "replicate", flag: "N/A", naCause: NA_CAUSE.TOO_FEW_COLUMNS, naObserved: matrix[0]?.length || 0, naMinimum: MAHAL_MIN_COLS,
-          description: `Not applicable with fewer than ${MAHAL_MIN_COLS} replicate columns — the row-distance measure this test uses needs at least that many.` };
+          description: joinDeclineReason(TOO_FEW_REPLICATE_COLS_CAUSE, colsTail), naCauseText: TOO_FEW_REPLICATE_COLS_CAUSE, naTailText: colsTail };
       }
       // S127 Path 1 dispatch: METHODOLOGY.md §2.6 step 1 specifies
       // per-condition (μ, Σ). When the dataset is row-grouped with ≥2

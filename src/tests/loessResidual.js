@@ -1,6 +1,12 @@
 import { mean, variance, cusumStat, loessSmooth, bhFDR, fitPredictedSigma } from "../stats/primitives.js";
 import { flagFromP, ALPHA, flagRankOf } from "../constants/thresholds.js";
 import { NA_CAUSE } from "../constants/naCause.js";
+import { TOO_FEW_REPLICATE_COLS_CAUSE, joinDeclineReason } from "../constants/assays.js";
+
+// Tail under the shared too-few-replicate-columns cause. The guard below is
+// compound, so only the column branch takes the cause — the row branch keeps
+// its own string, which is a different decline.
+const COLS_TAIL = "This test needs at least 2.";
 
 /* 20. LOESS Residual Analysis
    Detects regions where noise character changes — indicating partial fabrication
@@ -29,7 +35,8 @@ export function testLoessResidual(matrix, rng) {
   const nR = matrix.length, nC = matrix[0]?.length || 0;
 
   if (nC < 2 || nR < 30) return { name: NAME, category: CAT, flag: "N/A", naCause: nC < 2 ? NA_CAUSE.TOO_FEW_COLUMNS : NA_CAUSE.TOO_FEW_ROWS, naObserved: nC < 2 ? nC : nR, naMinimum: nC < 2 ? 2 : 30,
-    description: `Need ≥2 replicate columns and ≥30 rows for LOESS analysis (have ${nR} rows × ${nC} cols).` };
+    description: nC < 2 ? joinDeclineReason(TOO_FEW_REPLICATE_COLS_CAUSE, COLS_TAIL) : `Need ≥2 replicate columns and ≥30 rows for LOESS analysis (have ${nR} rows × ${nC} cols).`,
+    ...(nC < 2 ? { naCauseText: TOO_FEW_REPLICATE_COLS_CAUSE, naTailText: COLS_TAIL } : {}) };
 
   // Step 1: compute mean absolute inter-replicate difference per row
   const rowAbsDiffs = [];

@@ -95,6 +95,20 @@ export function joinDeclineReason(cause, tail) {
 export const BENFORD_SPAN_CAUSE =
   "Not applicable — these values span too narrow a range for Benford's law.";
 
+// The one sentence every test skipped for want of replicate columns shares.
+// Fourteen sites said this fourteen ways, so fourteen declines that are the
+// same decline rendered as fourteen blocks. It carries no number, because the
+// minimum differs per test and belongs in the tail, and no test noun, because
+// it heads a group of one as readily as a group of nine.
+//
+// It claims REPLICATE columns — repeats of one measurement. A test that needs
+// columns for some other reason does not take this cause. Missing Data Pattern
+// reads only which cells are empty and never compares values, so it keeps its
+// own; Baseline Balance needs five distinct measured features, not repeats, and
+// keeps its own too.
+export const TOO_FEW_REPLICATE_COLS_CAUSE =
+  "Not applicable — this file does not have enough replicate columns.";
+
 // Auto-detect assay type from filename and column headers.
 // Returns { assay, confidence: "high"|"low" } or null if no signal found.
 export function detectAssay(fileName, headers) {

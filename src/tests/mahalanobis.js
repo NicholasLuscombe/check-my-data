@@ -1,6 +1,10 @@
 import { normalCDF, chiSquaredP, invertMatrix, chiSquaredQuantile, bhFDR } from "../stats/primitives.js";
 import { ALPHA } from "../constants/thresholds.js";
 import { NA_CAUSE } from "../constants/naCause.js";
+import { TOO_FEW_REPLICATE_COLS_CAUSE, joinDeclineReason } from "../constants/assays.js";
+
+// Tail under the shared too-few-replicate-columns cause. "invertible covariance matrix" is kept verbatim — it is jargon, and rewriting it would mean deciding what it means to a reader, which is a methodology call.
+const COLS_TAIL = "This test needs at least 3, for an invertible covariance matrix.";
 
 // Minimum columns for an invertible covariance matrix. Exported so the engine
 // can check the whole-dataset column count before any per-condition row split
@@ -28,7 +32,7 @@ export function testMahalanobisOutlier(matrix, assay='general') {
 
   // Minimum requirements: need ≥MIN_COLS columns for invertible covariance, and N ≥ 3×nC for stability
   if (nC < MIN_COLS) return { name: NAME, category: CAT, flag: "N/A", naCause: NA_CAUSE.TOO_FEW_COLUMNS, naObserved: nC, naMinimum: MIN_COLS,
-    description: "Requires ≥3 replicate columns for invertible covariance matrix." };
+    description: joinDeclineReason(TOO_FEW_REPLICATE_COLS_CAUSE, COLS_TAIL), naCauseText: TOO_FEW_REPLICATE_COLS_CAUSE, naTailText: COLS_TAIL };
   if (nR < 3 * nC) return { name: NAME, category: CAT, flag: "N/A", naCause: NA_CAUSE.TOO_FEW_ROWS, naObserved: nR, naMinimum: 3 * nC,
     description: `Insufficient rows (${nR}) for ${nC} columns — need ≥${3*nC} for stable covariance estimate.` };
 
