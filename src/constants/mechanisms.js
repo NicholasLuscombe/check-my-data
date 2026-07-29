@@ -107,6 +107,28 @@ export const DISPLAY_NAMES = {
   "Cross-Condition Consistency": "Overall condition similarity",
 };
 
+// ── Result-name → display-name resolution ──
+// Two tests carry a dispatch-label result name on the skip path — "Kurtosis" and
+// "Selective Noise" — that differs from the canonical name DISPLAY_NAMES keys on
+// ("Excess Kurtosis", "Selective Noise Partitioning"). The import screen maps
+// canonical → dispatch through DT_SKIP_ALIAS to read the skip table; the
+// no-verdict surfaces need the reverse, so a skipped test shows its display name
+// rather than the raw dispatch label. DT_SKIP_ALIAS lives here (name identity has
+// one home); severity.js imports it for the skip-table lookup.
+export const DT_SKIP_ALIAS = {
+  "Excess Kurtosis": "Kurtosis",
+  "Selective Noise Partitioning": "Selective Noise",
+};
+const DISPATCH_TO_CANONICAL = Object.fromEntries(
+  Object.entries(DT_SKIP_ALIAS).map(([canonical, dispatch]) => [dispatch, canonical])
+);
+// Alias-aware form of `DISPLAY_NAMES[name] || name`: reverse the dispatch alias
+// to canonical first, then look up the display name.
+export function resolveDisplayName(name) {
+  const canonical = DISPATCH_TO_CANONICAL[name] || name;
+  return DISPLAY_NAMES[canonical] || canonical;
+}
+
 // ── Shared marker symbols ──
 // Circled numbers for hotspots and Key Findings list
 export const RANK_NUMS = ["\u2460","\u2461","\u2462","\u2463","\u2464","\u2465","\u2466","\u2467","\u2468","\u2469",

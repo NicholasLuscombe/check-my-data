@@ -4,6 +4,7 @@ import { buildConvergenceFromFindings } from "../../analysis/convergence.js";
 import { buildFindings } from "../../analysis/findings.js";
 import { computeSeverity } from "../../analysis/severity.js";
 import { summarizeCoverage, classifyCoverage } from "../../analysis/coverage.js";
+import { groupNotApplicableByReason, groupErroredByReason } from "../../analysis/noVerdictReasons.js";
 import { VerdictBanner } from "./VerdictBanner.jsx";
 import { ACTION_LABEL } from "../../analysis/narrative.js";
 import { buildHandoffModel } from "../../analysis/handoffModel.js";
@@ -13,9 +14,9 @@ import { HotspotExcerptList } from "./HotspotExcerptList.jsx";
 import { PulseProvider } from "../forensics/pulseContext.jsx";
 import { PulseStyle } from "../forensics/PulseStyle.jsx";
 import { ForensicsBody } from "../forensics/ForensicsBody.jsx";
-import { C, FF, FW, FS, CR, BADGE, SIGNAL, ACCENT, SEV_VERDICT, DUP_GROUP_PALETTE } from "../../constants/tokens.js";
+import { C, FF, FW, FS, CR, BADGE, SIGNAL, ACCENT, SEV_VERDICT, DUP_GROUP_PALETTE, MECH_COLOR } from "../../constants/tokens.js";
 import { FLAG_STYLES, ALPHA, fmtP } from "../../constants/thresholds.js";
-import { MECHANISMS, MECHANISM_ORDER, DISPLAY_NAMES, TEST_DESCRIPTIONS, TEST_MECHANISM, GLOBAL_TESTS, BATTERY_SIZE } from "../../constants/mechanisms.js";
+import { MECHANISMS, MECHANISM_ORDER, DISPLAY_NAMES, resolveDisplayName, TEST_DESCRIPTIONS, TEST_MECHANISM, GLOBAL_TESTS, BATTERY_SIZE } from "../../constants/mechanisms.js";
 import { ASSAYS, DATA_TYPES } from "../../constants/assays.js";
 import { ROLES } from "../../constants/roles.js";
 import { Section } from "../shared/Section.jsx";
@@ -33,53 +34,99 @@ const lazyExportToExcel = async (opts) => {
 
 const SEV_COLORS={3:SEV_VERDICT[3].color,2:SEV_VERDICT[2].color,1:SEV_VERDICT[1].color,0:SEV_VERDICT[0].color,"SKIP":ROLES.condition.color,"ERROR":SIGNAL.RED.dot};
 
-// §5 Test coverage battery — surface-specific handwritten phrasings (NOT
-// DISPLAY_NAMES). Each row maps a canonical engine test name (r.name in
-// results[]) to the §5-local conversational label. Order within category
-// = engine execution / display order from TEST_MECHANISM. Applicability
-// dimming (S139b): per-test skipped marker is r.flag === "N/A"; category
-// dims when every member is skipped.
-const METHOD_BATTERY = [
-  { label: "Copy, paste, edit", tests: [
-    ["Exact Duplicate Detection",          "Duplicate detection"],
-    ["Sequential Duplication",             "recurring value sequences"],
-    ["Constant-Offset Blocks",             "constant-offset blocks"],
-    ["Residual Spike Correlation",         "residual spike correlation"],
-  ]},
-  { label: "Unusual digits", tests: [
-    ["Terminal Digit Uniformity",          "Terminal digit preference"],
-    ["Benford's Law (First Digit)",        "Benford 1st digit"],
-    ["Benford's Law (Second Digit)",       "Benford 2nd digit"],
-    ["Decimal Precision Consistency",      "decimal precision clustering"],
-    ["Value-Frequency Spike",              "value-frequency spikes"],
-  ]},
-  { label: "Distribution shapes", tests: [
-    ["Entropy / Zipf Analysis",            "Entropy / Zipf analysis"],
-    ["Column Goodness-of-Fit",             "column goodness-of-fit"],
-    ["Modality Test",                      "modality test"],
-  ]},
-  { label: "Cross-replicate comparisons", tests: [
-    ["Inter-Replicate Correlation",        "Inter-replicate correlation"],
-    ["Excess Kurtosis",                    "kurtosis + Anderson-Darling"],
-    ["Autocorrelation",                    "autocorrelation"],
-    ["Windowed Autocorrelation",           "windowed autocorrelation"],
-    ["Runs Test",                          "runs test"],
-    ["Noise Scaling With Measurement Size","noise scaling"],
-    ["Within-Row Variance",                "within-row variance"],
-    ["Selective Noise Partitioning",       "selective noise"],
-    ["Regional Noise Homogeneity",         "regional noise"],
-    ["LOESS Residual Analysis",            "LOESS + CUSUM noise changepoint"],
-    ["Row-Mean Runs",                      "row-mean runs"],
-    ["Mahalanobis Row Outlier",            "Mahalanobis unusual rows"],
-    ["Blocked Mahalanobis",                "blocked Mahalanobis"],
-    ["Missing Data Pattern",               "missing data patterns"],
-  ]},
-  { label: "Cross-condition comparisons", tests: [
-    ["Cross-Condition Rank Correlation",   "Cross-condition Spearman rank"],
-    ["Baseline Balance",                   "Carlisle condition balance"],
-    ["Cross-Condition Consistency",        "cross-condition consistency"],
-  ]},
-];
+/* ── S334 — section-5 "Which tests ran, and why" ──────────────────────────
+   Grouped reasons view. Per cluster: a ran-line, then the declined tests grouped
+   by shared reason (groupNotApplicableByReason), then an errored group
+   (groupErroredByReason, composed from naCause). Reasons come from
+   noVerdictReasons.js; display names from resolveDisplayName. The survey opener
+   dedup — 19 declines sharing an opener but each with its own tail — is a later
+   composition change (2b), not done here: files like the survey render as groups
+   of one, the same as the ungrouped view. */
+
+// Group the full result set by mechanism cluster, in display order. Two tests
+// carry a dispatch-label name when skipped ("Kurtosis", "Selective Noise") that
+// TEST_MECHANISM does not key; both belong to the replicate cluster, which is
+// the fallback here (the same fallback the import screen uses).
+function s5ClusterGroups(results) {
+  const byMech = {};
+  for (const r of results) {
+    const mk = TEST_MECHANISM[r.name] || "replicate";
+    (byMech[mk] = byMech[mk] || []).push(r);
+  }
+  return MECHANISM_ORDER
+    .map(mk => ({ mk, label: MECHANISMS[mk].label, color: MECH_COLOR[mk], tests: byMech[mk] || [] }))
+    .filter(g => g.tests.length);
+}
+
+// Registers shared by every reason group, matching section 3's no-verdict lines:
+// the names lead (darker, medium), the shared reason sits beneath (lighter), the
+// size-ceiling detail is fine print one size down.
+const S5_NAME = { fontSize: FS.sm, fontWeight: FW.MED, color: C.TEXT_2 };
+const S5_REASON = { fontSize: FS.sm, fontWeight: FW.NORM, color: C.TEXT_3, lineHeight: "1.5", marginTop: "2px" };
+const S5_DETAIL = { fontSize: FS.xs, fontWeight: FW.NORM, color: C.TEXT_3, marginTop: "2px" };
+
+// One reason group: the test names on one line (one name or many, joined with
+// " · "), then the shared reason once, then the size-ceiling detail when present.
+// A group of one and a group of five render through the same block — the only
+// difference is how many names sit on the first line, so a single item never
+// carries group furniture a multi-item group would not.
+function S5Group({ names, reason, detail }) {
+  return (
+    <div style={{ paddingLeft: "14px", marginBottom: "8px" }}>
+      <div style={S5_NAME}>{names.join(" · ")}</div>
+      <div style={S5_REASON}>{reason}</div>
+      {detail && <div style={S5_DETAIL}>{detail}</div>}
+    </div>
+  );
+}
+
+// Grouped B — "Which tests ran, and why". Per cluster in battery order: header,
+// a compact ran-line, the declined tests grouped by shared reason, then the
+// errored tests under their own "Could not complete" group. Declined here is
+// every non-ran, non-errored test, routed through groupNotApplicableByReason;
+// errored is routed through groupErroredByReason (composed from naCause).
+function S5GroupedReasons({ results }) {
+  const groups = s5ClusterGroups(results);
+  return (
+    <div>
+      {groups.map(g => {
+        const ranTests = g.tests.filter(r => classifyCoverage(r) === "ran");
+        const erroredTests = g.tests.filter(r => classifyCoverage(r) === "errored");
+        const declinedTests = g.tests.filter(r => {
+          const c = classifyCoverage(r);
+          return c !== "ran" && c !== "errored";
+        });
+        const naGroups = groupNotApplicableByReason(declinedTests);
+        const errGroups = groupErroredByReason(erroredTests);
+        return (
+          <div key={g.mk} style={{ marginBottom: "14px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "6px" }}>
+              <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: g.color, display: "inline-block", flexShrink: 0 }} />
+              <span style={{ fontSize: FS.base, color: C.TEXT, fontWeight: FW.SEMI }}>{g.label}</span>
+              <span style={{ fontSize: FS.sm, color: C.TEXT_3 }}>{ranTests.length}/{g.tests.length}</span>
+            </div>
+            {ranTests.length > 0 && (
+              <div style={{ fontSize: FS.sm, color: C.TEXT_3, marginBottom: "6px", paddingLeft: "14px", lineHeight: "1.5" }}>
+                Ran: {ranTests.map(r => resolveDisplayName(r.name)).join(", ")}.
+              </div>
+            )}
+            {naGroups.map((grp, i) => (
+              <S5Group key={"na" + i} names={grp.names} reason={grp.reason} detail={grp.detail} />
+            ))}
+            {errGroups.length > 0 && (
+              <div style={{ marginTop: "4px" }}>
+                <div style={{ fontSize: FS.xs, fontWeight: FW.SEMI, color: C.TEXT_3, marginBottom: "4px", paddingLeft: "14px" }}>Could not complete</div>
+                {errGroups.map((grp, i) => (
+                  <S5Group key={"err" + i} names={grp.names} reason={grp.reason} detail={null} />
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
 export function ReportView({ results: baseResults, importConfig, matrix, rowMap, onBack, onChangeFile }) {
   // S321 move 2, round 3 — confirmed grouping. When the user confirms a grouping
@@ -1360,113 +1407,104 @@ export function ReportView({ results: baseResults, importConfig, matrix, rowMap,
 
             {/* ── §4 INVESTIGATE FURTHER ── */}
             <Section number={4} title="Investigate further">
-              {severity === 0 ? (
-                (() => {
-                  // Clean-result copy is coverage-aware: a severity-0 verdict says
-                  // nothing about the tests that did not run, so the coverage
-                  // buckets pick the sentence. Selection order is pending, then
-                  // unassessed, then not-applicable, then the all-ran state.
-                  // Pending leads because it is the only state the reader can act
-                  // on from here — confirm the grouping above. The errored count
-                  // is appended to whichever state fires. Strings are authored
-                  // copy, verbatim, each with a singular variant for a count of
-                  // one (the verb and pronoun change, not only the noun).
-                  const cov = summarizeCoverage(results);
-                  // One "not run" figure across the page. The applicability case
-                  // and the errored case both mean the test did not run; the
-                  // detail sections below carry the per-test reason. Merging them
-                  // replaces the old pair of sentences that gave "not run" two
-                  // meanings side by side. classifyCoverage assigns each result
-                  // exactly one bucket, so notApplicable and errored never overlap
-                  // and the sum is clean.
-                  const notRun = cov.notApplicable + cov.errored;
-                  const notRunClause = notRun === 1
-                    ? `1 test was not run — see the detail sections for why.`
-                    : `${notRun} tests were not run — see the detail sections for why.`;
-                  const lead = `No signal above threshold in the ${cov.ran} tests that completed. `;
-                  let text;
-                  if (cov.pending > 0) {
-                    const p = cov.pending === 1
-                      ? `1 test is waiting on grouping confirmation — confirm above to run it.`
-                      : `${cov.pending} tests are waiting on grouping confirmation — confirm above to run them.`;
-                    text = lead + p + (notRun > 0 ? " " + notRunClause : "");
-                  } else if (cov.unassessed > 0) {
-                    const u = cov.unassessed === 1
-                      ? `1 test was left unassessed because grouping was not confirmed — this screen says nothing about it.`
-                      : `${cov.unassessed} tests were left unassessed because grouping was not confirmed — this screen says nothing about them.`;
-                    text = lead + u + (notRun > 0 ? " " + notRunClause : "");
-                  } else if (notRun > 0) {
-                    text = lead + notRunClause;
-                  } else {
-                    text = `All ${cov.ran} of ${BATTERY_SIZE} tests completed. None returned a signal above threshold.`;
-                  }
-                  return (
-                    <div style={{fontSize:FS.base,color:C.TEXT_3,padding:"4px 0"}}>{text}</div>
-                  );
-                })()
-              ) : (
-                <>
-                  <div style={{fontSize:FS.base,color:C.TEXT,lineHeight:"1.6",marginBottom:"12px"}}>
-                    Copy the prompt below and paste it into an AI assistant. You can attach the dataset, paper, or annotated Excel report alongside it for a deeper cross-walk.
-                  </div>
-                  {/* S161 (A1.D2) — confidentiality callout. Neutral grey
-                      UI.FRAME.callout register. Two-line copy, em-dash on
-                      line 1, persistent (no dismiss state, no icon). */}
-                  <AsideCallout tone="frame">
-                    Check My Data runs in your browser — your data stays on your machine.<br/>
-                    Anything you paste or upload to an LLM is subject to that service's terms. Review them before uploading sensitive or unpublished data.
-                  </AsideCallout>
-                  <div style={{background:C.BG_L,border:`1px solid ${C.BORDER}`,borderRadius:CR.MD,padding:"12px 16px",fontSize:FS.sm,fontWeight:FW.NORM,color:C.TEXT,lineHeight:"1.6",fontFamily:FF.MONO,whiteSpace:"pre-wrap",maxHeight:"180px",overflow:"auto",marginBottom:"10px"}}>
-                    {promptBody}
-                  </div>
-                  <button onClick={handleAIConsult}
-                    onMouseEnter={e => { if (!aiCopied) e.currentTarget.style.background = C.BG_L; }}
-                    onMouseLeave={e => { if (!aiCopied) e.currentTarget.style.background = C.BG; }}
-                    style={{padding:"8px 18px",background:aiCopied?SIGNAL.GREEN.dot:C.BG,border:aiCopied?"none":`1px solid ${C.BORDER}`,borderRadius:CR.MD,color:aiCopied?C.WHITE:C.TEXT,fontWeight:FW.MED,fontSize:FS.base,cursor:"pointer",transition:"background 0.2s"}}>
-                    {aiCopied ? "✓ Copied to clipboard" : "Copy prompt"}
-                  </button>
-                </>
-              )}
+              {(() => {
+                const cov = summarizeCoverage(results);
+                // One "not run" figure across the page, pointing at §5 by title so
+                // the pointer survives renumbering. Not-applicable and errored both
+                // mean the test did not run; Test coverage carries the per-test
+                // reason. classifyCoverage assigns each result exactly one bucket,
+                // so notApplicable and errored never overlap and the sum is clean.
+                // Shared by both §4 variants: the no-signal sentence and the
+                // flagged pointer name the same section in the same words.
+                const notRun = cov.notApplicable + cov.errored;
+                const notRunClause = notRun === 1
+                  ? `1 test was not run — see Test coverage below for why.`
+                  : `${notRun} tests were not run — see Test coverage below for why.`;
+                return severity === 0 ? (
+                  (() => {
+                    // Clean-result copy is coverage-aware: a severity-0 verdict says
+                    // nothing about the tests that did not run, so the coverage
+                    // buckets pick the sentence. Selection order is pending, then
+                    // unassessed, then not-applicable, then the all-ran state.
+                    // Pending leads because it is the only state the reader can act
+                    // on from here — confirm the grouping above. The not-run count
+                    // is appended to whichever state fires. Strings are authored
+                    // copy, verbatim, each with a singular variant for a count of
+                    // one (the verb and pronoun change, not only the noun).
+                    const lead = `No signal above threshold in the ${cov.ran} tests that completed. `;
+                    let text;
+                    if (cov.pending > 0) {
+                      const p = cov.pending === 1
+                        ? `1 test is waiting on grouping confirmation — confirm above to run it.`
+                        : `${cov.pending} tests are waiting on grouping confirmation — confirm above to run them.`;
+                      text = lead + p + (notRun > 0 ? " " + notRunClause : "");
+                    } else if (cov.unassessed > 0) {
+                      const u = cov.unassessed === 1
+                        ? `1 test was left unassessed because grouping was not confirmed — this screen says nothing about it.`
+                        : `${cov.unassessed} tests were left unassessed because grouping was not confirmed — this screen says nothing about them.`;
+                      text = lead + u + (notRun > 0 ? " " + notRunClause : "");
+                    } else if (notRun > 0) {
+                      text = lead + notRunClause;
+                    } else {
+                      text = `All ${cov.ran} of ${BATTERY_SIZE} tests completed. None returned a signal above threshold.`;
+                    }
+                    return (
+                      <div style={{fontSize:FS.base,color:C.TEXT_3,padding:"4px 0"}}>{text}</div>
+                    );
+                  })()
+                ) : (
+                  <>
+                    <div style={{fontSize:FS.base,color:C.TEXT,lineHeight:"1.6",marginBottom:"12px"}}>
+                      Copy the prompt below and paste it into an AI assistant. You can attach the dataset, paper, or annotated Excel report alongside it for a deeper cross-walk.
+                    </div>
+                    {/* S161 (A1.D2) — confidentiality callout. Neutral grey
+                        UI.FRAME.callout register. Two-line copy, em-dash on
+                        line 1, persistent (no dismiss state, no icon). */}
+                    <AsideCallout tone="frame">
+                      Check My Data runs in your browser — your data stays on your machine.<br/>
+                      Anything you paste or upload to an LLM is subject to that service's terms. Review them before uploading sensitive or unpublished data.
+                    </AsideCallout>
+                    <div style={{background:C.BG_L,border:`1px solid ${C.BORDER}`,borderRadius:CR.MD,padding:"12px 16px",fontSize:FS.sm,fontWeight:FW.NORM,color:C.TEXT,lineHeight:"1.6",fontFamily:FF.MONO,whiteSpace:"pre-wrap",maxHeight:"180px",overflow:"auto",marginBottom:"10px"}}>
+                      {promptBody}
+                    </div>
+                    <button onClick={handleAIConsult}
+                      onMouseEnter={e => { if (!aiCopied) e.currentTarget.style.background = C.BG_L; }}
+                      onMouseLeave={e => { if (!aiCopied) e.currentTarget.style.background = C.BG; }}
+                      style={{padding:"8px 18px",background:aiCopied?SIGNAL.GREEN.dot:C.BG,border:aiCopied?"none":`1px solid ${C.BORDER}`,borderRadius:CR.MD,color:aiCopied?C.WHITE:C.TEXT,fontWeight:FW.MED,fontSize:FS.base,cursor:"pointer",transition:"background 0.2s"}}>
+                      {aiCopied ? "✓ Copied to clipboard" : "Copy prompt"}
+                    </button>
+                    {/* After the §3 declined expandables were removed, a flagged
+                        report explains its not-run tests only here — so point to §5
+                        when any test declined. Same words as the no-signal variant. */}
+                    {notRun > 0 && (
+                      <div style={{fontSize:FS.base,color:C.TEXT_3,padding:"4px 0",marginTop:"8px"}}>{notRunClause}</div>
+                    )}
+                  </>
+                );
+              })()}
             </Section>
 
             {/* ── §5 TEST COVERAGE ──
-                Post-S139c surface: count line + battery-details expandable. Nothing else.
-                Screening-aid disclaimer relocated to report-top (above §1) as a report-
-                level preamble; references retired (partial list — full citations live in
-                METHODOLOGY.md). §5 spec-complete on copy, rendering, and structure.
-                S139 (Phase C.3): typography-system migration — test-count line on Body
-                (FS.base C.TEXT); battery body on Footnote/reference (FS.sm C.TEXT);
-                disclosure toggle on Button (FS.base FW.MED C.TEXT); per-category labels
-                explicit FW.SEMI.
-                S139b: section renamed "Methodology" → "Test coverage" (lowered reader
-                expectation to match the surface's count-line + battery scope). Battery list
-                rebuilt from canonical METHOD_BATTERY (module-top) — per-test applicability
-                dimming (Shape A). Category header dims when every member is skipped.
-                Labels are §5-local handwritten phrasings; DO NOT substitute DISPLAY_NAMES.
-                S139b-fix1: contrast pushed from one-step to two-step — applied at C.TEXT,
-                skipped at C.TEXT_3. Per-span colour explicit on both states; wrapper colour
-                C.TEXT so inherited punctuation (':' / ', ') aligns with the dominant tone.
-                S139b-fix2: strikethrough added on skipped tests + all-skipped category
-                headers (textDecoration "line-through" + textDecorationThickness "1.5px").
-                Decoration colour inherits naturally from each span's color. */}
+                A count line and a "Which tests ran, and why" expandable. The
+                expandable renders grouped reasons (S5GroupedReasons, module-top):
+                per cluster a ran-line, then the declined tests grouped by shared
+                reason, then an errored "Could not complete" group composed from
+                naCause. Display names resolve through resolveDisplayName; reasons
+                compose in noVerdictReasons.js. The summary sentence below is
+                unchanged. */}
             {(()=>{
               // Completed count against the full battery, not the old
               // non-N/A-over-total form that undercounted and over-reported at
               // once. "completed" replaces "applied": an errored test applied and
               // then failed, so "applied" was wrong for a figure that excludes it.
-              // A single "not run" clause carries the applicability and errored
-              // counts together — the figure §4 shows — so the page reads one
-              // vocabulary. notApplicable is no longer the implicit remainder; it
-              // is named here as part of "not run". Unassessed stays its own clause.
+              // A single "not run" clause carries the applicability, errored and
+              // pending counts together — the same non-ran tests the panel below
+              // lists, grouped by reason. Pending folds in here rather than
+              // vanishing: the panel renders it, so the sentence must count it.
+              // Unassessed keeps its own clause; the two clauses together sum to
+              // every test that did not run (total − ran).
               const cov = summarizeCoverage(results);
-              // Un-struck means "completed". Key on the completed result names,
-              // not on the N/A names: a test skipped through dtSkip/condSkip/rsSkip
-              // is stamped with its dispatch label ("Kurtosis", "Selective Noise"),
-              // which differs from the battery's result name for two tests, so an
-              // N/A-name check leaves those two wrongly un-struck. The completed
-              // set always carries the result name a running test stamps.
-              const completedNames = new Set(results.filter(r=>classifyCoverage(r)==="ran").map(r=>r.name));
-              const notRun = cov.notApplicable + cov.errored;
+              const notRun = cov.notApplicable + cov.errored + cov.pending;
               const coverageExtra = [];
               if (notRun > 0) coverageExtra.push(notRun === 1 ? `1 not run` : `${notRun} not run`);
               if (cov.unassessed > 0) coverageExtra.push(`${cov.unassessed} left unassessed`);
@@ -1478,24 +1516,11 @@ export function ReportView({ results: baseResults, importConfig, matrix, rowMap,
                   {/* Battery */}
                   <button onClick={()=>setShowMethodBattery(v=>!v)} style={{background:"none",border:"none",padding:0,cursor:"pointer",color:C.TEXT,fontSize:FS.base,fontWeight:FW.MED,fontFamily:FF.UI,display:"flex",alignItems:"center",gap:"4px",marginBottom:"4px"}}>
                     <span>{showMethodBattery?"▾":"▸"}</span>
-                    <span>Test battery details</span>
+                    <span>Which tests ran, and why</span>
                   </button>
                   {showMethodBattery && (
                     <div style={{padding:"10px 14px",background:C.BG_L,borderRadius:CR.SM,fontSize:FS.sm,color:C.TEXT}}>
-                      {METHOD_BATTERY.map((cat,ci)=>{
-                        const allSkipped=cat.tests.every(([n])=>!completedNames.has(n));
-                        const isLast=ci===METHOD_BATTERY.length-1;
-                        return (
-                          <div key={cat.label} style={isLast?undefined:{marginBottom:"4px"}}>
-                            <span style={{fontWeight:FW.SEMI,color:allSkipped?C.TEXT_3:C.TEXT,...(allSkipped&&{textDecoration:"line-through",textDecorationThickness:"1.5px"})}}>{cat.label}:</span>{" "}
-                            {cat.tests.flatMap(([n,label],i)=>{
-                              const sk=!completedNames.has(n);
-                              const span=<span key={n} style={{color:sk?C.TEXT_3:C.TEXT,...(sk&&{textDecoration:"line-through",textDecorationThickness:"1.5px"})}}>{label}</span>;
-                              return i===0?[span]:[", ",span];
-                            })}
-                          </div>
-                        );
-                      })}
+                      <S5GroupedReasons results={results} />
                     </div>
                   )}
                 </Section>

@@ -1,28 +1,35 @@
-/* S327 render probe — does the size-ceiling detail actually reach both surfaces?
+/* S327 / S334 — does the size-ceiling detail reach the reader?
  *
- * Dumps what a reader would see for a not-run test that declined to scan for
- * size, on the two surfaces that render the not-applicable reason:
+ * The surface moved. Section 3 no longer renders the not-applicable reasons —
+ * S334 step 3 removed those expandables — so section 5 is the coverage surface
+ * now, and the handoff prompt body (§4) still carries the same detail. This
+ * probe covers the two surviving surfaces:
  *
- *   §3  the expanded not-applicable stanza (ForensicsCategoryBlock)
- *   §4  the "not run" line in the handoff prompt body (promptBodyRenderer)
+ *   §5  the grouped reasons carry the detail. S5GroupedReasons renders each
+ *       group's `detail` straight from groupNotApplicableByReason, so proving the
+ *       helper carries it proves it reaches the surface. The component itself is
+ *       private to ReportView; its render of `detail` is a one-line
+ *       `{detail && ...}`, and the §4 test below exercises a real render path.
+ *   §4  the "not run" line in the handoff prompt body (promptBodyRenderer).
  *
- * This mounts the real component and clicks the real toggle — it does not
- * re-implement the render. It is cheaper than a screenshot round and it is
- * NOT a substitute for one: it proves the strings and the conditional, and
- * says nothing about spacing, hierarchy or whether the line reads well in
- * place. That still needs Nick's eyes on C14.
+ * The control result carries no size-ceiling fields: its group must carry a null
+ * detail and its prompt line no parenthetical.
  *
- * The control result carries no size-ceiling fields. Its stanza must render
- * exactly as it does today — no detail line, no empty slot, no separator.
+ * No fixture reaches this — Sequential Duplication only skips for size on a file
+ * over 5,000 rows — so SKIPPED is synthetic, its numbers from C14 (9,398 rows
+ * against the 5,000 ceiling).
+ *
+ * The three-header split this file used to cover (skip / not-applicable / refusal
+ * as separate §3 stanzas) is gone: section 5 groups declines by their reason, not
+ * by coverage state, so there is nothing to port.
  *
  * Run: npx vitest run test/probes/probe-s327-skip-detail.test.jsx
  */
 
 import { describe, it, expect } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
 
-import { ForensicsCategoryBlock } from "../../src/components/forensics/ForensicsCategoryBlock.jsx";
-import { buildHandoffModel, formatSkipDetail, isGroupingRefusal } from "../../src/analysis/handoffModel.js";
+import { buildHandoffModel, formatSkipDetail } from "../../src/analysis/handoffModel.js";
+import { groupNotApplicableByReason } from "../../src/analysis/noVerdictReasons.js";
 import { renderPromptBody } from "../../src/analysis/promptBodyRenderer.js";
 
 // C14's real numbers: 9,398 rows against the 5,000 ceiling.
@@ -47,40 +54,7 @@ const CONTROL = {
   description: "No condition grouping found. Residual spike correlation requires ≥2 conditions.",
 };
 
-function renderBlock(naTests) {
-  return render(
-    <ForensicsCategoryBlock
-      mk="copied"
-      label="Copy, Paste, Edit"
-      description="Whether values were copied, pasted or edited."
-      isFlagged={false}
-      hasHigh={false}
-      testResults={[]}
-      notApplicableTests={naTests}
-      coverage={{ ran: 0, notApplicable: naTests.length, unassessed: 0, errored: 0, pending: 0, total: naTests.length }}
-      isExpanded={true}
-      onToggle={() => {}}
-      expandedTestEvidence={{}}
-      onToggleTestEvidence={() => {}}
-      importConfig={{}}
-      rowMap={null}
-    />
-  );
-}
-
-// Expand every collapsed no-verdict row so the stanzas mount. Since S328 a
-// cluster can carry two of them — "N tests skipped" and "N tests not
-// applicable" — so this opens whichever are present rather than assuming one.
-// Match the count span specifically: the bare words "Not applicable" also
-// appear as the cluster header word, which is a different control. The click
-// bubbles from the span to the row's onClick.
-function openStanzas() {
-  const rows = screen.queryAllByText(/^\d+ tests? (skipped|not applicable)$/i);
-  expect(rows.length).toBeGreaterThan(0);
-  for (const row of rows) fireEvent.click(row);
-}
-
-describe("S327 — size-ceiling detail on both surfaces", () => {
+describe("S327 — size-ceiling detail on the surviving surfaces", () => {
   it("formats the detail with pinned locale separators", () => {
     console.log("\n── formatSkipDetail ──");
     console.log("  with fields   :", JSON.stringify(formatSkipDetail(SKIPPED)));
@@ -89,28 +63,21 @@ describe("S327 — size-ceiling detail on both surfaces", () => {
     expect(formatSkipDetail(CONTROL)).toBeNull();
   });
 
-  it("§3 stanza shows the detail beneath the reason", () => {
-    const { container } = renderBlock([SKIPPED]);
-    openStanzas();
-    const text = container.textContent;
-    console.log("\n── §3 stanza, test WITH size-ceiling fields ──");
-    console.log("  reason :", SKIPPED.description);
-    console.log("  detail :", "9,398 rows, against a limit of 5,000");
-    console.log("  names  :", "Recurring value sequences");
-    expect(text).toContain("9,398 rows, against a limit of 5,000");
-    expect(text).toContain("Recurring value sequences");
-  });
+  it("§5 grouped reasons carry the detail, and null for the control", () => {
+    // This is exactly what S5GroupedReasons feeds into each S5Group: the group's
+    // `detail` field, rendered beneath the shared reason when present.
+    const withDetail = groupNotApplicableByReason([SKIPPED]);
+    expect(withDetail).toHaveLength(1);
+    console.log("\n── §5 group, test WITH size-ceiling fields ──");
+    console.log("  names  :", withDetail[0].names.join(" · "));
+    console.log("  detail :", JSON.stringify(withDetail[0].detail));
+    expect(withDetail[0].names).toContain("Recurring value sequences");
+    expect(withDetail[0].detail).toBe("9,398 rows, against a limit of 5,000");
 
-  it("§3 stanza renders no detail slot for a test without the fields", () => {
-    const { container } = renderBlock([CONTROL]);
-    openStanzas();
-    const text = container.textContent;
-    console.log("\n── §3 stanza, control WITHOUT the fields ──");
-    console.log("  reason :", CONTROL.description);
-    console.log("  detail : (none — no line rendered)");
-    expect(text).toContain(CONTROL.description);
-    expect(text).not.toMatch(/against a limit of/);
-    expect(text).not.toMatch(/\brows,\s*against\b/);
+    const noDetail = groupNotApplicableByReason([CONTROL]);
+    console.log("\n── §5 group, control WITHOUT the fields ──");
+    console.log("  detail :", JSON.stringify(noDetail[0].detail), "(no line rendered)");
+    expect(noDetail[0].detail).toBeNull();
   });
 
   it("§4 prompt body carries the same words on one line", () => {
@@ -150,123 +117,5 @@ describe("S327 — size-ceiling detail on both surfaces", () => {
       const ctlLine = body.split("\n").find(l => l.startsWith("- Residual Spike"));
       if (ctlLine) expect(ctlLine).not.toMatch(/against a limit of/);
     }
-  });
-});
-
-/* S328 — the two states must not share a header, and each test's name must lead
- * its own detail. Renders the real component with one skip and one genuine
- * not-applicable in the same cluster, which is exactly C14's Copy/Paste/Edit
- * shape, and reads back what a user would see. */
-describe("S328 — skipped and not applicable are separate headers", () => {
-  it("splits a mixed group into two headers with their own counts", () => {
-    const { container } = renderBlock([SKIPPED, CONTROL]);
-    const text = container.textContent;
-    console.log("\n── mixed group, collapsed ──");
-    console.log("  " + text.replace(/\s+/g, " ").trim());
-    expect(text).toContain("1 test skipped");
-    expect(text).toContain("1 test not applicable");
-    // The old single header must be gone — two tests, never one row of two.
-    expect(text).not.toMatch(/2 tests not applicable/);
-  });
-
-  it("puts each test name above its own reason and figures", () => {
-    const { container } = renderBlock([SKIPPED, CONTROL]);
-    fireEvent.click(screen.getByText(/^\d+ tests? skipped$/i));
-    const text = container.textContent;
-    const iName = text.indexOf("Recurring value sequences");
-    const iReason = text.indexOf("The sequence scan was skipped");
-    const iDetail = text.indexOf("9,398 rows, against a limit of 5,000");
-    console.log("\n── skip stanza, expanded ──");
-    console.log(`  name at ${iName}, reason at ${iReason}, detail at ${iDetail}`);
-    expect(iName).toBeGreaterThan(-1);
-    expect(iReason).toBeGreaterThan(iName);   // name leads
-    expect(iDetail).toBeGreaterThan(iReason); // figures last
-  });
-
-  it("leaves a not-applicable-only group reading exactly as before", () => {
-    const { container } = renderBlock([CONTROL]);
-    const text = container.textContent;
-    console.log("\n── not-applicable only ──");
-    console.log("  " + text.replace(/\s+/g, " ").trim());
-    expect(text).toContain("1 test not applicable");
-    expect(text).not.toMatch(/skipped/);
-  });
-
-  it("uses plural wording when a group holds more than one skip", () => {
-    const second = { ...SKIPPED, name: "Exact Duplicate Detection",
-      description: SKIPPED.description + " ", scanSkippedRows: 12000, scanRowLimit: 5000 };
-    const { container } = renderBlock([SKIPPED, second]);
-    const text = container.textContent;
-    console.log("\n── two skips ──");
-    console.log("  " + text.replace(/\s+/g, " ").trim());
-    expect(text).toContain("2 tests skipped");
-  });
-});
-
-/* A refusal is a third thing. The user confirmed a grouping the test cannot run
- * on — the data shape is fine and nothing declined on cost — and it is the only
- * one of the three the reader can fix, by unticking a column. It must not share
- * a header with either of the others. */
-const REFUSED = {
-  name: "Column Goodness-of-Fit",
-  category: "shapes",
-  flag: "N/A",
-  description: "The confirmed grouping gives 60 groups, the largest with 1 row. " +
-    "This test needs 30 values in a group to fit a distribution.",
-  confirmedGroups: 60,
-  confirmedLargestGroup: 1,
-};
-
-describe("S328 — a refusal is not a skip and not a not-applicable", () => {
-  it("recognises a refusal by the figures it carries, not by its prose", () => {
-    console.log("\n── isGroupingRefusal ──");
-    console.log("  refusal        :", isGroupingRefusal(REFUSED));
-    console.log("  skip           :", isGroupingRefusal(SKIPPED));
-    console.log("  not applicable :", isGroupingRefusal(CONTROL));
-    expect(isGroupingRefusal(REFUSED)).toBe(true);
-    expect(isGroupingRefusal(SKIPPED)).toBe(false);
-    expect(isGroupingRefusal(CONTROL)).toBe(false);
-  });
-
-  it("gives refusals their own header and never says not applicable", () => {
-    const { container } = renderBlock([REFUSED]);
-    const text = container.textContent;
-    console.log("\n── refusal only ──");
-    console.log("  " + text.replace(/\s+/g, " ").trim());
-    expect(text).toContain("1 test needs a different grouping");
-    expect(text).not.toMatch(/tests? not applicable/);
-    expect(text).not.toMatch(/tests? skipped/);
-  });
-
-  it("splits all three kinds into three headers", () => {
-    const { container } = renderBlock([REFUSED, SKIPPED, CONTROL]);
-    const text = container.textContent;
-    console.log("\n── all three kinds ──");
-    console.log("  " + text.replace(/\s+/g, " ").trim());
-    expect(text).toMatch(/1 test needs a different grouping/);
-    expect(text).toMatch(/1 test skipped/);
-    expect(text).toMatch(/1 test not applicable/);
-    expect(text).not.toMatch(/3 tests not applicable/);
-  });
-
-  it("agrees the verb with the count", () => {
-    const second = { ...REFUSED, name: "Modality Test",
-      description: REFUSED.description + " " };
-    const { container } = renderBlock([REFUSED, second]);
-    const text = container.textContent;
-    console.log("\n── two refusals ──");
-    console.log("  " + text.replace(/\s+/g, " ").trim());
-    expect(text).toContain("2 tests need a different grouping");
-    expect(text).not.toMatch(/tests needs/);
-  });
-
-  it("drops the wrong prefix from the refusal body", () => {
-    const { container } = renderBlock([REFUSED]);
-    fireEvent.click(screen.getByText(/needs? a different grouping$/i));
-    const text = container.textContent;
-    console.log("\n── refusal body, expanded ──");
-    console.log("  " + text.split("grouping")[2]?.replace(/\s+/g, " ").trim().slice(0, 140));
-    expect(text).toContain("The confirmed grouping gives 60 groups");
-    expect(text).not.toMatch(/Not applicable —/);
   });
 });

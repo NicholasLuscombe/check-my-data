@@ -52,7 +52,7 @@ import { useMemo, useState, useRef, useCallback } from "react";
 import { Section } from "../shared/Section.jsx";
 import { MECHANISM_ORDER, TEST_MECHANISM } from "../../constants/mechanisms.js";
 import { CATEGORY_SHORT_DESCRIPTIONS } from "../../constants/descriptions.js";
-import { summarizeCoverage, classifyCoverage } from "../../analysis/coverage.js";
+import { summarizeCoverage } from "../../analysis/coverage.js";
 import { C } from "../../constants/tokens.js";
 import { StickySurface, STICKY_SURFACE_SELECTOR } from "./StickySurface.jsx";
 import { ForensicsCategoryBlock } from "./ForensicsCategoryBlock.jsx";
@@ -448,19 +448,10 @@ export function ForensicsBody({
           // kept separate from pendingTests so the header's pending tally (the
           // DRAFT-contract rollup) is unchanged by them.
           const unassessedTests = group.tests.filter(r => r.flag === "N/A" && r.groupingUnassessed);
-          // Settled not-applicable tests in this dimension — coverage state
-          // "notApplicable" (flag N/A, no grouping-held or errored stamp). These
-          // carry a cause-specific reason string and used to vanish from the
-          // expanded cluster; surface them so the reason is reachable (S324).
-          // classifyCoverage keeps this off the pending / unassessed / errored
-          // buckets, which have their own rows or are held for later.
-          const notApplicableTests = group.tests.filter(r => classifyCoverage(r) === "notApplicable");
-          // Errored tests — coverage state "errored" (a per-group dispatch where
-          // no group could complete, or a thrown test). classifyCoverage catches
-          // both producers; a raw-flag filter would catch only one, because the
-          // two carry different flags. Their own section so they stop reading as
-          // "not applicable", a different and wrong claim.
-          const erroredTests = group.tests.filter(r => classifyCoverage(r) === "errored");
+          // Not-applicable and errored tests are no longer surfaced here — section
+          // 5 lists every declined test grouped by reason (S333 split). Only the
+          // grouping-held rows (pending / unassessed) stay in §3, since the reader
+          // resolves those in place.
           return (
             <div key={mk}>
               {idx > 0 && <div style={{borderTop:`1px solid ${C.BORDER_L}`, margin:"8px 0"}}/>}
@@ -472,8 +463,6 @@ export function ForensicsBody({
                 testResults={applicable}
                 pendingTests={pendingTests}
                 unassessedTests={unassessedTests}
-                notApplicableTests={notApplicableTests}
-                erroredTests={erroredTests}
                 coverage={summarizeCoverage(group.tests)}
                 isExpanded={expandedCats[mk]} onToggle={()=>toggleCat(mk)}
                 expandedTestEvidence={expandedTestEvidence}

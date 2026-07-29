@@ -17,7 +17,6 @@
 import { useState, useMemo } from "react";
 import { C, FS, FW, FF, CR, SEV_VERDICT, UI } from "../../constants/tokens.js";
 import { DISPLAY_NAMES } from "../../constants/mechanisms.js";
-import { splitNotApplicable, groupNotApplicableByReason, groupErroredByReason } from "../../analysis/noVerdictReasons.js";
 import { TestCardLayout } from "../shared/TestCardLayout.jsx";
 import { ClusterRow } from "../shared/ClusterRow.jsx";
 import { TestCard } from "../cards/TestCard.jsx";
@@ -83,7 +82,6 @@ function ForensicsTestCard({ result, mk, expanded, onToggle, importConfig, rowMa
 export function ForensicsCategoryBlock({
   mk, label, isFlagged, hasHigh, description, testResults,
   pendingTests = [], unassessedTests = [],
-  notApplicableTests = [], erroredTests = [],
   coverage,
   isExpanded, onToggle,
   expandedTestEvidence, onToggleTestEvidence,
@@ -100,13 +98,6 @@ export function ForensicsCategoryBlock({
   const flaggedTests = sorted.filter(r => r.flag === "HIGH" || r.flag === "MODERATE");
   const clearTests = sorted.filter(r => r.flag === "LOW");
   const [clearOpen, setClearOpen] = useState(false);
-  // Not-applicable tests collapse the same way (S324). Always start collapsed,
-  // regardless of count — one row for two tests or eleven.
-  const { refusedTests, skippedTests, trueNaTests } = splitNotApplicable(notApplicableTests);
-  const [naOpen, setNaOpen] = useState(false);
-  const [skipOpen, setSkipOpen] = useState(false);
-  const [refusedOpen, setRefusedOpen] = useState(false);
-  const [erroredOpen, setErroredOpen] = useState(false);
   const clearNames = clearTests.map(r => DISPLAY_NAMES[r.name] || r.name).join(", ");
   const clearIcon = <span style={{ color: SEV_VERDICT[0].color, fontSize: FS.base, flexShrink: 0 }}>✓</span>;
 
@@ -193,93 +184,16 @@ export function ForensicsCategoryBlock({
             {unassessedTests.map(r => (
               <PendingRow key={r.name} result={r} />
             ))}
-            {/* Tests that produced no verdict, split by cause. Three states
-                that a single "not applicable" used to flatten: the grouping the
-                user confirmed cannot support the test, the scan declined on
-                cost, or the data shape genuinely does not fit. Each gets its own
-                header and disclosure. Refusals lead, because they are the only
-                one the reader can act on. Each stanza leads with the test name and
-                puts that test's reason and figures beneath it — the name used to
-                render last, under text it was meant to head. Collapsed by
-                default, the same shape the cleared group uses. */}
-            {renderNoVerdictSection(refusedTests, n => `${n === 1 ? "needs" : "need"} a different grouping`, refusedOpen, setRefusedOpen)}
-            {renderNoVerdictSection(skippedTests, "skipped", skipOpen, setSkipOpen)}
-            {renderNoVerdictSection(trueNaTests, "not applicable", naOpen, setNaOpen)}
-            {/* Errored tests — coverage state "errored": the test ran per group
-                and no group could complete, or a thrown test. Rendered last,
-                because unlike a grouping refusal the reader cannot act on it.
-                The reason is composed from the result's naCause, not the generic
-                "No group had sufficient data" description — that sentence is
-                false when the cause is shape and the groups were large. */}
-            {renderErroredSection(erroredTests, erroredOpen, setErroredOpen)}
+            {/* Not-applicable and errored tests no longer render here. Section 5
+                ("Which tests ran, and why") is the coverage surface and lists
+                every declined test grouped by reason — this block kept its own
+                copy of those reasons, the duplication the S333 split removed. The
+                cleared group and the grouping-hold rows (pending / unassessed)
+                stay, since those are results the reader acts on in place. */}
           </div>
         </div>
       )}
     </div>
-  );
-}
-
-// One collapsed section for tests that produced no verdict. Called twice —
-// once for skips, once for genuine not-applicables — so each carries its own
-// count, its own header word and its own disclosure. Renders nothing when the
-// set is empty, which is what keeps a file with only one kind reading exactly
-// as it did before. CollapsedSummaryRow already handles test/tests.
-function renderNoVerdictSection(tests, label, open, setOpen) {
-  if (!tests.length) return null;
-  const names = tests.map(r => DISPLAY_NAMES[r.name] || r.name).join(", ");
-  const groups = groupNotApplicableByReason(tests);
-  // A label carrying a verb has to agree with the count — "1 test needs a
-  // different grouping" but "2 tests need a different grouping". Labels that are
-  // plain adjectives pass through as strings.
-  const text = typeof label === "function" ? label(tests.length) : label;
-  return (
-    <>
-      <CollapsedSummaryRow count={tests.length} label={text} names={names}
-        onToggle={() => setOpen(!open)} expanded={open} />
-      {open && (
-        <div style={{ display: "flex", flexDirection: "column", gap: "10px", paddingLeft: RAIL_GUTTER }}>
-          {groups.map((g, i) => (
-            <div key={i}>
-              <div style={NO_VERDICT_NAME}>{g.names.join(" · ")}</div>
-              <div style={NO_VERDICT_REASON}>{g.reason}</div>
-              {g.detail && <div style={NO_VERDICT_DETAIL}>{g.detail}</div>}
-            </div>
-          ))}
-        </div>
-      )}
-    </>
-  );
-}
-
-// Registers for the three lines of a no-verdict stanza. Name leads, so it takes
-// the darker, heavier step; the reason sits under it; the figures are fine print
-// one size down. Same tokens the block used before the reorder.
-const NO_VERDICT_NAME = { fontSize: FS.sm, fontWeight: FW.MED, color: C.TEXT_2 };
-const NO_VERDICT_REASON = { fontSize: FS.sm, fontWeight: FW.NORM, color: C.TEXT_3, lineHeight: "1.5", marginTop: "2px" };
-const NO_VERDICT_DETAIL = { fontSize: FS.xs, fontWeight: FW.NORM, color: C.TEXT_3, marginTop: "2px" };
-
-// The "Not run" section. Mirrors renderNoVerdictSection's disclosure shape and
-// tokens, but composes its reason from naCause and renders no size-detail line.
-// Kept a separate function so the other three no-verdict sections are untouched.
-function renderErroredSection(tests, open, setOpen) {
-  if (!tests.length) return null;
-  const names = tests.map(r => DISPLAY_NAMES[r.name] || r.name).join(", ");
-  const groups = groupErroredByReason(tests);
-  return (
-    <>
-      <CollapsedSummaryRow count={tests.length} label="not run" names={names}
-        onToggle={() => setOpen(!open)} expanded={open} />
-      {open && (
-        <div style={{ display: "flex", flexDirection: "column", gap: "10px", paddingLeft: RAIL_GUTTER }}>
-          {groups.map((g, i) => (
-            <div key={i}>
-              <div style={NO_VERDICT_NAME}>{g.names.join(" · ")}</div>
-              <div style={NO_VERDICT_REASON}>{g.reason}</div>
-            </div>
-          ))}
-        </div>
-      )}
-    </>
   );
 }
 

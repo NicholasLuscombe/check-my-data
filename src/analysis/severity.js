@@ -1,7 +1,7 @@
 // ── Severity & Applicability ─────────────────────────────────────────
 // Extracted from App.jsx — pure functions.
 
-import { TEST_MECHANISM } from "../constants/mechanisms.js";
+import { TEST_MECHANISM, DT_SKIP_ALIAS } from "../constants/mechanisms.js";
 import { DATATYPE_SKIP } from "../constants/assays.js";
 import { ROW_SEMANTICS_FULL_SKIP } from "../import/rowSemantics.js";
 
@@ -42,12 +42,9 @@ export function computeSeverity(results) {
 // be an engine refactor; consulting the same exported tables reaches the same
 // verdict without touching the engine.
 
-// Two tests carry a result name that differs from the dispatch label the skip
-// table is keyed by; map result name -> dispatch label for the lookup.
-const DT_SKIP_ALIAS = {
-  "Excess Kurtosis": "Kurtosis",
-  "Selective Noise Partitioning": "Selective Noise",
-};
+// DT_SKIP_ALIAS (result name -> dispatch label) now lives in mechanisms.js, next
+// to DISPLAY_NAMES and the resolveDisplayName resolver that reverses it. Imported
+// above; the lookup below is unchanged.
 
 // Tests whose decline can only be known by running (singular covariance, a shape
 // the fitted families do not cover, no valid pairs/patterns, conditions that

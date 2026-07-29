@@ -64,51 +64,48 @@ export function ClusterRow({
 }) {
   const borderColor = (mk && MECH_COLOR[mk]) || flagColor;
   const cov = coverage || { ran: 0, notApplicable: 0, unassessed: 0, errored: 0, pending: 0, total: 0 };
-  // The fraction counts only tests that could have run — not-applicable comes out
-  // of both numerator and denominator, because those tests were never on the
-  // table for this data. couldRun is the honest denominator for "did this cluster
-  // reach a verdict"; not-applicable is reported separately as a trailing clause.
-  const couldRun = cov.total - cov.notApplicable;
-  // Header word + colour. A flagged cluster keeps High / Moderate. A clean
-  // cluster reports coverage: green "Clear" only when every test that could run
-  // completed; a neutral word when work is genuinely outstanding. Not-applicable
-  // no longer holds a cluster below "Clear" — only errored, unassessed, or
-  // pending do (the last two a user action resolves). "Not applicable" is the
-  // case where every test in the cluster is not applicable, so nothing could
-  // run. That is distinct from "Not assessed" (user declined to confirm
-  // grouping), which a user action reverses — this state nothing reverses.
+  // The fraction counts only tests that could have reached a verdict. Both
+  // not-applicable and errored come out of numerator and denominator: a
+  // not-applicable test was never on the table for this data, and an errored test
+  // could not finish — neither bears on whether the cluster is clean. §5 is the
+  // coverage surface and accounts for both; the header verdict comes from what
+  // actually ran.
+  const couldRun = cov.total - cov.notApplicable - cov.errored;
+  // Header word + colour. A flagged cluster keeps High / Moderate. A clean cluster
+  // reports coverage: green "Clear" only when every test that could run completed;
+  // a neutral word when work is genuinely outstanding (unassessed / pending, both
+  // resolved by a user action). When nothing could run, the label names why:
+  // "Not applicable" when every decline genuinely does not apply, the neutral
+  // "Not run" when any decline is an error (all-errored or mixed) — an errored
+  // test is neither applicable nor inapplicable, so "Not applicable" would state
+  // something false about the data.
   let wordText, wordColor;
   if (hasHigh) {
     wordText = "High"; wordColor = SEV_VERDICT[3].color;
   } else if (isFlagged) {
     wordText = "Moderate"; wordColor = SEV_VERDICT[2].color;
   } else if (couldRun === 0) {
-    wordText = "Not applicable"; wordColor = C.TEXT_3;
-  } else if (cov.errored > 0) {
-    wordText = "Incomplete"; wordColor = C.TEXT_3;
+    wordText = cov.errored > 0 ? "Not run" : "Not applicable"; wordColor = C.TEXT_3;
   } else if ((cov.unassessed + cov.pending) > 0) {
     wordText = "Clear so far"; wordColor = C.TEXT_3;
   } else {
     wordText = "Clear"; wordColor = SEV_VERDICT[0].color;
   }
   // Coverage clauses, kept short so the cluster subtitle stays readable. The
-  // fraction runs against couldRun (not the full battery) and carries no
-  // "completed" label — the word plus the fraction already says it. Then only the
-  // outstanding buckets that explain a gap in the fraction. Not-applicable is not
-  // shown at cluster level (the fraction already excludes it; §5 keeps the full
-  // count). "not run" matches §4 and §5 — one phrase across the page. The word
-  // sits beside the fraction, whose gap is the same errored test; the two agree
-  // arithmetically (ran + errored = couldRun) rather than contradicting.
+  // fraction runs against couldRun (which now excludes errored as well as
+  // not-applicable) and carries no "completed" label — the word plus the fraction
+  // already says it. Errored is not shown at cluster level: like not-applicable
+  // the fraction already excludes it, and §5 keeps the full count. Only the states
+  // a user action resolves — unassessed and pending — trail as clauses.
   const clauses = [];
-  // The ratio is the cluster's only test count — the "(N tests)" parenthetical
-  // was retired in its favour. Keep it only when nothing is outstanding, so it
-  // still reports the count on a clear or flagged cluster. When a not-run /
-  // unassessed / pending clause is present, that clause already states the
-  // coverage gap; the ratio would only restate it and make the reader subtract,
-  // so drop it and let the clause stand.
-  const outstanding = cov.errored + cov.unassessed + cov.pending;
+  // The ratio is the cluster's only test count — the "(N tests)" parenthetical was
+  // retired in its favour. Keep it only when nothing is outstanding, so it still
+  // reports the count on a clear or flagged cluster. When an unassessed / pending
+  // clause is present, that clause already states the coverage gap; the ratio
+  // would only restate it and make the reader subtract, so drop it and let the
+  // clause stand.
+  const outstanding = cov.unassessed + cov.pending;
   if (couldRun > 0 && outstanding === 0) clauses.push(`${cov.ran} of ${couldRun}`);
-  if (cov.errored > 0)    clauses.push(`${cov.errored} not run`);
   if (cov.unassessed > 0) clauses.push(`${cov.unassessed} unassessed`);
   if (cov.pending > 0)    clauses.push(`${cov.pending} pending`);
   const coverageText = clauses.join(" · ");
@@ -146,10 +143,10 @@ export function ClusterRow({
           </span>
           {/* Header word — colour-on-chrome / words-stay-plain rule. Flagged
               clusters carry High / Moderate in SEV colour; a clean cluster
-              carries a coverage-gated word (Clear / Clear so far / Incomplete /
+              carries a coverage-gated word (Clear / Clear so far / Not run /
               Not applicable), green only when every test that could run completed.
-              The short coverage clauses trail the word; "Not applicable" stands
-              alone with no trailing separator. */}
+              The short coverage clauses trail the word; "Not run" and "Not
+              applicable" stand alone with no trailing separator. */}
           <span style={{ fontSize: FS.base, fontWeight: FW.NORM, marginLeft: "auto", flexShrink: 0 }}>
             <span style={{ color: wordColor }}>{wordText}</span>
             {coverageText && <span style={{ color: C.TEXT_3 }}>{` · ${coverageText}`}</span>}
