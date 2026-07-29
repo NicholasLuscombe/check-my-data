@@ -21,21 +21,43 @@ import { regIncBeta, bhFDR } from '../stats/primitives.js';
 import { flagFromP } from '../constants/thresholds.js';
 import { NA_CAUSE } from '../constants/naCause.js';
 
+// A double carries at most fifteen decimal significant digits of guaranteed
+// precision, so a value needing sixteen or more is not a decimal anyone wrote —
+// it is the nearest double to something else (3.5100000000000002 for 3.51).
+// Round to fifteen significant digits, and keep the rounded form ONLY when the
+// rounding actually moves the value.
+//
+// The `rounded === n` guard is load-bearing. On the CSV path the string is the
+// file's own text and trailing zeros are this test's whole subject — its model
+// is about trailing-zero stripping. Re-stringifying unconditionally would turn
+// "3.510" into "3.51" and destroy 3dp evidence. The guard returns the original
+// string untouched whenever rounding is a no-op, which is every genuine value.
+function normaliseForDpCount(v) {
+  const n = Number(v);
+  if (!isFinite(n)) return String(v);
+  const rounded = Number(n.toPrecision(15));
+  return rounded === n ? String(v) : String(rounded);
+}
+
 export function testDecimalPrecision(matrix, rawMatrix, assay) {
   // Use rawMatrix (string values) when available so that trailing zeros are preserved.
   const sourceMatrix = rawMatrix || matrix;
   const vals = rawMatrix
     ? rawMatrix.flat().filter(v => v != null)
     : matrix.flat().filter(v => v != null && isFinite(v));
+  // Normalise once. The withDec filter and the histogram below both read this
+  // array, so they cannot disagree about a value's decimal places.
+  const normed = rawMatrix
+    ? vals.map(v => normaliseForDpCount(v))
+    : vals.map(v => normaliseForDpCount(Math.abs(v)));
   const withDec = rawMatrix
-    ? vals.filter(v => String(v).includes("."))
-    : vals.filter(v => !Number.isInteger(v));
+    ? normed.filter(s => s.includes("."))
+    : normed.filter(s => !Number.isInteger(Number(s)));
   if (withDec.length < 30) return { name: "Decimal Precision Consistency", category: "digits", flag: "N/A", naCause: NA_CAUSE.TOO_FEW_ROWS, naObserved: withDec.length, naMinimum: 30, description: "Insufficient decimal-valued data (need ≥30 non-integer values)." };
 
   // Count values per decimal-place level
   const prec = {};
-  for (const v of withDec) {
-    const s = rawMatrix ? String(v) : String(Math.abs(v));
+  for (const s of withDec) {
     const dp = s.includes(".") ? s.split(".")[1].length : 0;
     prec[dp] = (prec[dp] || 0) + 1;
   }
