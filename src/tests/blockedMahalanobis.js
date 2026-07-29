@@ -1,6 +1,7 @@
 import { bhFDR } from "../stats/primitives.js";
 import { flagFromP, ALPHA } from "../constants/thresholds.js";
 import { NA_CAUSE } from "../constants/naCause.js";
+import { DATATYPE_CAUSE, joinDeclineReason } from "../constants/assays.js";
 
 /* 27. Blocked Mahalanobis Covariance-Anomaly Detection
    Detects contiguous row blocks whose cross-replicate covariance Σ or mean μ
@@ -398,8 +399,19 @@ export async function testBlockedMahalanobis(matrix, condCtx, rng, dataType = 'c
   const CAT = "replicate";
 
   if (dataType !== 'continuous') {
+    // The opener is the shared data-type cause, read from the map rather than
+    // rebuilt here. Writing it inline produced a sentence byte-identical to
+    // DATATYPE_CAUSE.count but carrying no cause field, so this decline could
+    // never join the other count declines under one opener.
+    //
+    // Count is the only data type that reaches this guard. Ordinal is caught
+    // upstream by dtSkip (engine.js:507) against DATATYPE_SKIP.ordinal, which
+    // carries this test. The fallback keeps today's wording for any data type
+    // the map does not cover.
+    const tail = "This test compares how the replicate columns vary together against a reference that only holds for measurements on a continuous scale.";
+    const cause = DATATYPE_CAUSE[dataType] || `Not applicable to ${dataType} data.`;
     return { name: NAME, category: CAT, flag: "N/A", naCause: NA_CAUSE.DATA_TYPE_MISMATCH,
-      description: `Not applicable to ${dataType} data. This test compares how the replicate columns vary together against a reference that only holds for measurements on a continuous scale.` };
+      description: joinDeclineReason(cause, tail), naCauseText: cause, naTailText: tail };
   }
 
   const nR = matrix.length;
