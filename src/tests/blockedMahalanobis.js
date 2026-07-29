@@ -361,10 +361,12 @@ function scanCondition(rows, windows, p, scratch, perWindowOut) {
  *
  * Applicability gates (fail-fast, in order):
  *   1. dataType === 'continuous'. Count routes to N/A inside this function
- *      (DATATYPE_SKIP['count'] is empty — no engine-level upstream skip).
- *      Survey resolves to 'ordinal' via ASSAY_DATATYPE_MAP and is skipped
- *      upstream by DATATYPE_SKIP['ordinal']; the internal check still
- *      backstops it. Both paths converge on N/A.
+ *      (DATATYPE_SKIP['count'] carries no entry for this test — no
+ *      engine-level upstream skip). Survey resolves to 'ordinal' via
+ *      ASSAY_DATATYPE_MAP and is skipped upstream by DATATYPE_SKIP['ordinal'],
+ *      which gained this test's key at S335 so its ordinal decline reads in
+ *      the same words as every other one; the internal check still backstops
+ *      it. Both paths converge on N/A.
  *   2. nC ≥ 3 replicate columns.
  *   3. Per-condition row count ≥ 60 after null filtering.
  *   4. Enough rows for ≥ 1 full window at W = max(30, 3·nC), stride W/3.

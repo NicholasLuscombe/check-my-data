@@ -4,7 +4,7 @@
 
 import { createPRNG } from '../stats/prng.js';
 import { flagRankOf } from '../constants/thresholds.js';
-import { DATATYPE_SKIP } from '../constants/assays.js';
+import { DATATYPE_SKIP, DATATYPE_CAUSE, joinDeclineReason } from '../constants/assays.js';
 import { NA_CAUSE } from '../constants/naCause.js';
 import { ROW_SEMANTICS_FULL_SKIP, ROW_SEMANTICS_SKIP_REASON } from '../import/rowSemantics.js';
 import { aggregatePerGroup, buildGroups } from './aggregation.js';
@@ -297,12 +297,20 @@ export async function runFullAnalysis(matrix, rawMatrix, condCtx, assay, onProgr
   }
   function tagVST(r) { if (hasVST) { r.vstTransform = vstType; } return r; }
 
-  // Data-type skip helper
+  // Data-type skip helper. The map holds the per-test tail; DATATYPE_CAUSE holds
+  // the one sentence every test skipped for this data type shares. The result
+  // carries all three: `description` is the joined pair, byte-identical to what
+  // it has always been, and naCauseText / naTailText carry the halves so the
+  // no-verdict panel can state the shared cause once instead of once per test.
+  // Presence is a key test, not a truthiness test — a tail of "" is a real
+  // entry, meaning the shared cause is the whole reason.
   const skipMap = DATATYPE_SKIP[dataType] || {};
+  const skipCause = DATATYPE_CAUSE[dataType] || null;
   function dtSkip(testName, category) {
-    const reason = skipMap[testName];
-    if (!reason) return null;
-    return { name: testName, category, flag: "N/A", naCause: NA_CAUSE.DATA_TYPE_MISMATCH, description: reason };
+    if (!skipCause || !(testName in skipMap)) return null;
+    const tail = skipMap[testName];
+    return { name: testName, category, flag: "N/A", naCause: NA_CAUSE.DATA_TYPE_MISMATCH,
+      description: joinDeclineReason(skipCause, tail), naCauseText: skipCause, naTailText: tail };
   }
 
   // Conditions-mode skip helper: replicate-comparison tests are N/A
