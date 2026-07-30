@@ -1045,12 +1045,11 @@ export function ReportView({ results: baseResults, importConfig, matrix, rowMap,
         // the absence of an answer was, and `> 6` excluded every file that had
         // no answer — the widest of them has six data columns.
         if(!hasConds && !answeredByUser) return (
-          <AsideCallout tone="warn" strongLabel="⚠ Column structure note">
-            All {nDC} data columns are being treated as replicates of a single condition.
-            If these are different biological samples, conditions, or time points, structural tests
-            (duplicates, constant-offset, selective noise) and distributional tests (autocorrelation, runs, kurtosis, inter-replicate correlation)
-            will flag inter-sample variation as anomalous. Use "Revise import" to assign condition groups if applicable.
-            {importConfig.assay==="genomics" && " For raw RNA-seq counts, library size differences between samples naturally produce variance heterogeneity — normalize counts before forensic screening, or interpret Selective Noise with caution."}
+          <AsideCallout tone="warn" strongLabel="⚠ Column structure assumed">
+            All {nDC} data columns are being treated as repeated measurements of one quantity. Batch analysis assumes this and does not ask.<br/>
+            If they are separate conditions or treatments instead, the tests that rely on that assumption will read the difference between them as a pattern in the data.
+            {importConfig.assay==="genomics" && " For raw RNA-seq counts, library size differences between samples naturally produce variance heterogeneity — normalize counts before forensic screening, or interpret Selective Noise with caution."}<br/>
+            To answer the question yourself, analyse this file on the Import screen. It asks before it runs.
           </AsideCallout>
         );
         return null;
