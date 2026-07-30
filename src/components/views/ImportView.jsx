@@ -34,7 +34,20 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
   const [condColorMap,setCondColorMap]=useState({});
   const [headerRows,setHeaderRows]=useState(1);
   const [assay,setAssay]=useState("general");
-  const [assayAutoDetected,setAssayAutoDetected]=useState(false);
+  // Renamed from assayAutoDetected. It tracks whether the HEADERS alone reached
+  // detectAssay's two-point threshold, which is the right test for the Auto
+  // badge below — a filename-only match should not earn one — and the wrong test
+  // for provenance, because a filename-only match is still a detection. It kept
+  // the badge and lost the tag.
+  const [assayDetectedFromHeaders,setAssayDetectedFromHeaders]=useState(false);
+  // The contract word itself, held directly rather than derived. Three states
+  // cannot come out of the flags above: a user choosing "Unspecified / General"
+  // leaves assay='general' with both of them falsy, byte-identical to detection
+  // returning nothing, and that option is the first entry in ASSAYS. Every
+  // attempt this session to read provenance off a behaviour flag has been wrong,
+  // so this one says what it means. Initial 'assumed' matches the initial
+  // assay='general', which nothing detected and nobody chose.
+  const [assayProvenance,setAssayProvenance]=useState('assumed');
   const [assaySuggestion,setAssaySuggestion]=useState(null);
   const [dataType,setDataType]=useState("continuous");
   const [zeroAsMissing,setZeroAsMissing]=useState(false);
@@ -70,6 +83,12 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
       setRoles(initialConfig.roles||[]);
       setCondPerCol(initialConfig.condPerCol||null);
       setAssay(initialConfig.assay||"general");
+      // Restored with the value it describes, for the same reason the three gate
+      // flags are: nothing on this path re-derives it. applyHeaders never runs,
+      // so the detection sites cannot re-set it, and leaving it at the initial
+      // 'assumed' would report every detected assay as a default on the second
+      // Run — the same shape of defect the last two passes closed.
+      setAssayProvenance(initialConfig.provenance?.assay||'assumed');
       setDataType(initialConfig.dataType||"continuous");
       setZeroAsMissing(!!initialConfig.zeroAsMissing);
       setColRelationship(initialConfig.colRelationship||null);
@@ -88,7 +107,7 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
       // its flag restores false and the guard still fails. Correct in both
       // directions, which is why the restore belongs here and not in the guards.
       //
-      setAssayAutoDetected(!!initialConfig.assayAutoDetected);
+      setAssayDetectedFromHeaders(!!initialConfig.assayAutoDetected);
       setColRelAutoSet(!!initialConfig.colRelAutoSet);
       setRowSemAutoSet(!!initialConfig.rowSemanticsAuto);
       // The transform pair, restored together. `vstChoice` is the card's own
@@ -173,8 +192,8 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
     const det=detectAssay(fileNameRef.current,h);
     // Apply detection: "high" (headers match) → auto badge; "low" (filename only) → apply but show as suggestion.
     // Matches batch mode behaviour (both confidence levels apply the assay).
-    if(det&&(det.confidence==="high"||det.confidence==="low")){setAssay(det.assay);setAssayAutoDetected(det.confidence==="high");setAssaySuggestion(det.confidence==="low"?det.assay:null);const _dt=ASSAY_DATATYPE_MAP[det.assay]||'continuous';setDataType(_dt);}
-    else{setAssay("general");setAssayAutoDetected(false);setAssaySuggestion(null);}
+    if(det&&(det.confidence==="high"||det.confidence==="low")){setAssay(det.assay);setAssayProvenance("auto");setAssayDetectedFromHeaders(det.confidence==="high");setAssaySuggestion(det.confidence==="low"?det.assay:null);const _dt=ASSAY_DATATYPE_MAP[det.assay]||'continuous';setDataType(_dt);}
+    else{setAssay("general");setAssayProvenance("assumed");setAssayDetectedFromHeaders(false);setAssaySuggestion(null);}
   },[]);
 
   const loadBlock=useCallback(blockRows=>{
@@ -321,7 +340,20 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
     // Re-run assay detection on original pre-pivot headers — pivoted headers are
     // condition names with no instrument signal. Original headers (CT, Tm1, Eff…) have full signal.
     const det=detectAssay(fileNameRef.current, headers);
-    if(det&&(det.confidence==="high"||det.confidence==="low")){setAssay(det.assay);setAssayAutoDetected(det.confidence==="high");setAssaySuggestion(det.confidence==="low"?det.assay:null);const _dt=ASSAY_DATATYPE_MAP[det.assay]||'continuous';setDataType(_dt);}
+    if(det&&(det.confidence==="high"||det.confidence==="low")){setAssay(det.assay);setAssayProvenance("auto");setAssayDetectedFromHeaders(det.confidence==="high");setAssaySuggestion(det.confidence==="low"?det.assay:null);const _dt=ASSAY_DATATYPE_MAP[det.assay]||'continuous';setDataType(_dt);}
+    // A plain else, not a guard. The user cannot be holding a chosen assay when
+    // this runs: parseAndLoad returns before applyHeaders on the long-format
+    // branch, so `data` is still null while the modal is open, and Zone 1 —
+    // which holds the dropdown — renders only when `data` is set. There is
+    // nothing on screen to choose with, so nothing to overwrite.
+    //
+    // Only the provenance word is set here. `assay` itself can still be a stale
+    // value carried from a previous file, because neither onFile nor
+    // parseAndLoad resets it and this path never reaches applyHeaders. That is a
+    // separate defect, reported not fixed — changeMeasureCol's else resets the
+    // assay and this one does not, and reconciling them changes what gets
+    // analysed rather than what gets labelled.
+    else{setAssayProvenance("assumed");}
   },[longFormatModal,applyHeaders]);
 
   const dismissPivot=useCallback(()=>{
@@ -341,8 +373,8 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
     setRoles(prev => prev.map(r => r === 'condition' ? 'data' : r));
     // Re-detect assay on original headers (same as confirmPivot)
     const det=detectAssay(fileNameRef.current, originalHeaders);
-    if(det&&(det.confidence==="high"||det.confidence==="low")){setAssay(det.assay);setAssayAutoDetected(det.confidence==="high");setAssaySuggestion(det.confidence==="low"?det.assay:null);const _dt=ASSAY_DATATYPE_MAP[det.assay]||'continuous';setDataType(_dt);}
-    else{setAssay("general");setAssayAutoDetected(false);setAssaySuggestion(null);}
+    if(det&&(det.confidence==="high"||det.confidence==="low")){setAssay(det.assay);setAssayProvenance("auto");setAssayDetectedFromHeaders(det.confidence==="high");setAssaySuggestion(det.confidence==="low"?det.assay:null);const _dt=ASSAY_DATATYPE_MAP[det.assay]||'continuous';setDataType(_dt);}
+    else{setAssay("general");setAssayProvenance("assumed");setAssayDetectedFromHeaders(false);setAssaySuggestion(null);}
   },[pivotConfig,applyHeaders]);
 
   const sum=useMemo(()=>data&&roles.length?summarize(data,roles,condPerCol,zeroAsMissing):null,[data,roles,condPerCol,zeroAsMissing]);
@@ -510,6 +542,15 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
         // the transform the user had declined. Confirmed on screen on
         // 07-elisa-clean. Role edits, the zero-as-missing toggle and the
         // data-type select reach it the same way.
+        // HAZARD, and it is the dependency array below, not this line. The
+        // guard reads `vstDecision` and `vstAutoSet` from the render closure
+        // while neither is a dependency. That is correct: useMemo runs its
+        // factory during render, so the factory sees the current values, and
+        // omitting them means a user's click does not re-run the memo at all.
+        // Adding them to the deps — which reads like a fix — makes the memo
+        // re-run on its own writes and brings the churn back with this guard
+        // still in place and still reading the right values. Do not add them.
+        // The setState-inside-useMemo shape is the real cause and is parked.
         if(vstDecision===null||vstAutoSet){
           setVstDecision('apply');
           setVstAutoSet(true);
@@ -539,7 +580,7 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
   };
 
   const handleProceed=()=>{
-    const config={data,roles,hdrs,condPerCol,zeroAsMissing,assay,assayAutoDetected,dataType,fileName,isPivoted:!!pivotConfig,colRelationship:effectiveColRel,colRelAutoSet,rowSemantics:effectiveRowSem,rowSemanticsAuto:rowSemAutoSet,vstAutoSet,excelMeta,
+    const config={data,roles,hdrs,condPerCol,zeroAsMissing,assay,assayAutoDetected:assayDetectedFromHeaders,dataType,fileName,isPivoted:!!pivotConfig,colRelationship:effectiveColRel,colRelAutoSet,rowSemantics:effectiveRowSem,rowSemanticsAuto:rowSemAutoSet,vstAutoSet,excelMeta,
       skippedRows:prepInfo?.skippedRows||0,
       headerRows:headerRows||0,
       removedCols:prepInfo?.removedCols||[],
@@ -566,6 +607,27 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
       // changed what the gate proposed after Back. Same key BatchView already
       // puts on its own config, same meaning.
       longFormatDetected,
+      // Provenance of the four settings the report banner names, same shape and
+      // keys as the object BatchView sends. Once this exists, ReportView reads
+      // it instead of falling back to a boolean pair that cannot express a
+      // default — which is the whole mechanism by which the tags change.
+      // ReportView itself needs no edit.
+      provenance:{
+        // Both derive correctly from their existing flags. Verified on the
+        // fresh-load path and, since the flag restore landed, on the
+        // Back-from-report path too — 27 of 27 fixtures agree across both.
+        cols: colRelAutoSet ? 'auto' : 'user-set',
+        rows: rowSemAutoSet ? 'auto' : 'user-set',
+        // Held directly. See the state declaration for why it cannot be derived.
+        assay: assayProvenance,
+        // Derived from component state rather than from `vstChoice` above,
+        // because the state is the direct source here and vstChoice exists for
+        // the restore. A non-null decision with the flag cleared is reachable
+        // only from the two card buttons, so it means the user chose; every
+        // other combination is the machine, including a detected `raw` where no
+        // card renders and nothing was ever offered.
+        transform: (vstDecision !== null && !vstAutoSet) ? 'user-set' : 'auto',
+      },
     };
     if(dataType==='ordinal'){
       onProceed({...config, vstDecision:{transform:'raw',reason:'Ordinal data — no transform applied'}});
@@ -645,7 +707,7 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
           style={{display:"flex",alignItems:"center",gap:"10px",padding:"10px 16px",
             background:dragging?C.BG:C.WHITE,border:`1px solid ${dragging?CC.OBS:C.BORDER}`,borderRadius:CR.MD,
             fontSize:FS.base,flexWrap:"wrap",transition:"all 0.2s"}}>
-          <button onClick={()=>{setData(null);setRawRows(null);setFileName("");setErr(null);setPrepInfo(null);setBlocks(null);setSelectedBlock(0);setHdrs([]);setRoles([]);setCondPerCol(null);setCondColorMap({});setAssay("general");setAssayAutoDetected(false);setAssaySuggestion(null);setDataType("continuous");setZeroAsMissing(false);setColRelationship(null);setColRelAutoSet(false);setRowSemantics(null);setRowSemAutoSet(false);setLongFormatDetected(false);setPivotConfig(null);setVstProposal(null);setVstDecision(null);setVstAutoSet(false);setExcelMeta(null);setExcelSheetPicker(null);setApplicExpanded(false);}}
+          <button onClick={()=>{setData(null);setRawRows(null);setFileName("");setErr(null);setPrepInfo(null);setBlocks(null);setSelectedBlock(0);setHdrs([]);setRoles([]);setCondPerCol(null);setCondColorMap({});setAssay("general");setAssayProvenance("assumed");setAssayDetectedFromHeaders(false);setAssaySuggestion(null);setDataType("continuous");setZeroAsMissing(false);setColRelationship(null);setColRelAutoSet(false);setRowSemantics(null);setRowSemAutoSet(false);setLongFormatDetected(false);setPivotConfig(null);setVstProposal(null);setVstDecision(null);setVstAutoSet(false);setExcelMeta(null);setExcelSheetPicker(null);setApplicExpanded(false);}}
             style={{background:"none",border:"none",cursor:"pointer",color:C.TEXT,fontSize:FS.base,fontWeight:FW.MED,padding:0}}>← Back</button>
           <span style={{color:C.BORDER}}>|</span>
           <span style={{color:C.TEXT,fontWeight:FW.SEMI,fontSize:FS.base}}>{fileName}</span>
@@ -728,13 +790,13 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
               <span style={{display:"flex",alignItems:"center",gap:"6px"}}>
                 {ASSAYS.find(a=>a.v===assay)?.l}
                 {/* S123 — AUTO badge covers both high-confidence detection
-                    (assayAutoDetected=true) and low-confidence silent
+                    (assayDetectedFromHeaders=true) and low-confidence silent
                     application (assay was set by detectAssay to the
                     suggestion value; user has not touched it). User click
                     clears assaySuggestion → badge drops. S141 — passive
                     provenance badge: sentence-case content, chrome
                     preserved pending C.5b chip-family redesign. */}
-                {(assayAutoDetected||(assay!=="general"&&assaySuggestion===assay))&&<span style={{display:"inline-block",fontSize:FS.xs,background:BADGE.AUTO.bg,color:BADGE.AUTO.text,borderRadius:CR.S2,padding:"2px 6px",fontWeight:FW.MED,userSelect:"none"}}>Auto</span>}
+                {(assayDetectedFromHeaders||(assay!=="general"&&assaySuggestion===assay))&&<span style={{display:"inline-block",fontSize:FS.xs,background:BADGE.AUTO.bg,color:BADGE.AUTO.text,borderRadius:CR.S2,padding:"2px 6px",fontWeight:FW.MED,userSelect:"none"}}>Auto</span>}
                 {data&&assay==="general"&&<span style={{display:"inline-block",fontSize:FS.xs,background:BADGE.SET_ME.bg,color:BADGE.SET_ME.text,borderRadius:CR.S2,padding:"2px 6px",fontWeight:FW.MED,userSelect:"none"}}>SET ME</span>}
               </span>
               <span style={{color:C.TEXT_3,transform:assayOpen?"rotate(180deg)":"",transition:"0.15s"}}>▾</span>
@@ -742,7 +804,7 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
             {assayOpen&&(
               <div style={{position:"absolute",top:"100%",left:0,right:0,marginTop:"3px",zIndex:50,background:C.WHITE,border:`1px solid ${C.BORDER}`,borderRadius:CR.LG,boxShadow:"0 8px 24px rgba(0,0,0,.1)",maxHeight:"260px",overflowY:"auto"}}>
                 {ASSAYS.map(a=>(
-                  <button key={a.v} onClick={()=>{setAssay(a.v);setAssayAutoDetected(false);setAssaySuggestion(null);setAssayOpen(false);const _dt=ASSAY_DATATYPE_MAP[a.v]||'continuous';setDataType(_dt);setVstProposal(null);setVstDecision(null);setVstAutoSet(false);}}
+                  <button key={a.v} onClick={()=>{setAssay(a.v);setAssayProvenance("user-set");setAssayDetectedFromHeaders(false);setAssaySuggestion(null);setAssayOpen(false);const _dt=ASSAY_DATATYPE_MAP[a.v]||'continuous';setDataType(_dt);setVstProposal(null);setVstDecision(null);setVstAutoSet(false);}}
                     style={{display:"block",width:"100%",textAlign:"left",padding:"10px 12px",border:"none",background:a.v===assay?C.BG:C.WHITE,cursor:"pointer",borderBottom:`1px solid ${C.BORDER_L}`}}>
                     <div style={{fontSize:FS.base,fontWeight:FW.MED,color:C.TEXT}}>{a.l}</div>
                     <div style={{fontSize:FS.sm,color:C.TEXT_3,marginTop:"2px"}}>{a.d}</div>
@@ -767,7 +829,7 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
         {/* Assay hints — below the control row, not embedded in the assay column */}
         {data&&assay==="general"&&<div style={{fontSize:FS.sm,color:UI.WARN.text,marginBottom:"4px"}}>Select a measurement type for instrument-specific noise flagging{assaySuggestion&&(()=>{
           const sug=ASSAYS.find(a=>a.v===assaySuggestion);
-          return sug?<span> · Suggested: <button onClick={()=>{setAssay(sug.v);setAssayAutoDetected(false);setAssaySuggestion(null);setAssayOpen(false);}}
+          return sug?<span> · Suggested: <button onClick={()=>{setAssay(sug.v);setAssayProvenance("user-set");setAssayDetectedFromHeaders(false);setAssaySuggestion(null);setAssayOpen(false);}}
             style={{background:"none",border:"none",color:CC.OBS,fontWeight:FW.MED,cursor:"pointer",textDecoration:"underline",fontSize:FS.sm,padding:0}}>{sug.l}</button></span>:null;
         })()}</div>}
         {(()=>{const hint=assayPlausibilityHint(assay,sum);return hint&&(
