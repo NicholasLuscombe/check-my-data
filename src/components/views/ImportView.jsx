@@ -75,6 +75,28 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
       setColRelationship(initialConfig.colRelationship||null);
       setRowSemantics(initialConfig.rowSemantics||null);
       setExcelMeta(initialConfig.excelMeta||null);
+      // Provenance of the three gates, restored alongside the values they
+      // describe. handleProceed writes all three and this effect used to read
+      // none, so a second Run after Back reported machine-supplied answers as
+      // the reader's own: 6 tags on the assay, 16 on columns, 13 on row order.
+      //
+      // The two auto-apply effects below cannot recover them. Each is guarded
+      // on `<value> === null || <flag>`, and this effect restores the value
+      // non-null — so with the flag left false the guard fails and the flag
+      // stays false. Restoring it makes the guard pass and re-set the same
+      // value, which is a no-op, while a user's own choice still holds because
+      // its flag restores false and the guard still fails. Correct in both
+      // directions, which is why the restore belongs here and not in the guards.
+      //
+      // `vstAutoSet` is deliberately NOT restored. It is written, but it only
+      // means something next to the card's own `vstDecision`, and that value is
+      // not in the config — handleProceed writes the resolved {transform,
+      // reason} object instead. Restoring the flag alone would be overwritten
+      // by the VST memo on its first run and would read as meaningful when it
+      // is not. The pair goes together, once handleProceed carries the choice.
+      setAssayAutoDetected(!!initialConfig.assayAutoDetected);
+      setColRelAutoSet(!!initialConfig.colRelAutoSet);
+      setRowSemAutoSet(!!initialConfig.rowSemanticsAuto);
       if(initialConfig.headerRows) setHeaderRows(initialConfig.headerRows);
       if(initialConfig.condPerCol){
         const names=[...new Set(initialConfig.condPerCol.filter(c=>c))];
