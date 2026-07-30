@@ -228,6 +228,149 @@ async function runFixture(file, assay, label, nPerm, synthetic = false) {
 }
 
 // ── main ──────────────────────────────────────────────────────────────────
+// ── Route 3: empirical null on the pooled statistic (--route3) ─────────────
+// Keeps the parametric pooled statistic and replaces its null with the row
+// shuffle. Empirical p = (exceed + 1) / (P + 1), so the smallest reachable
+// value is 1/(P+1): MODERATE (p < ALPHA.NOTE = 0.01) needs P >= 100, and HIGH
+// (p < ALPHA.FLAG = 0.001) needs P >= 1000 — at exactly 1000 HIGH requires
+// zero exceedances, so it carries no resolution below the boundary.
+//
+// Both dispatches are reproduced from engine.js and both are asserted against
+// runFullAnalysis before any permutation runs. Autocorrelation goes through
+// runPairVST with NO parent context, so aggregatePerGroup's third argument is
+// null; Runs goes through it WITH condCtx as parent, so the third argument is
+// the context, and the test also takes the engine's rng from createPRNG on the
+// unpermuted matrix.
+//
+// Env: P=<count> ONLY=<comma-separated test names> FILES=<comma-separated>
+if (process.argv.includes('--route3')) {
+  const { testRuns } = await import(B + 'src/tests/runs.js');
+  const { createPRNG } = await import(B + 'src/stats/prng.js');
+  const { flagFromP } = await import(B + 'src/constants/thresholds.js');
+  const { runFullAnalysis } = await import(B + 'src/analysis/engine.js');
+  const { ASSAY_DATATYPE_MAP } = await import(B + 'src/constants/assays.js');
+  const { EXPECTED } = await import(B + 'test/batch-fixtures.mjs');
+  const P = Number(process.env.P) || 1000;
+  const only = process.env.ONLY ? process.env.ONLY.split(',') : null;
+  const pick = process.env.FILES ? process.env.FILES.split(',') : null;
+  const files = readdirSync(FIX).filter(f => f.endsWith('.csv') && EXPECTED[f] && (!pick || pick.includes(f))).sort();
+
+  console.log(`### Route 3 — empirical null on the pooled statistic, P = ${P}`);
+  console.log(`    floor 1/(P+1) = ${(1/(P+1)).toExponential(2)} -> HIGH ${1/(P+1) < 0.001 ? 'reachable' : 'UNREACHABLE'} at this count\n`);
+  console.log('  ' + 'fixture'.padEnd(36) + 'test'.padEnd(18) + 'R1'.padEnd(10) + 'pooled p'.padEnd(12) + 'emp p'.padEnd(10) + 'R3'.padEnd(10) + 'cost');
+  console.log('  ' + '-'.repeat(112));
+
+  for (const file of files) {
+    const base = readFixture(file);
+    const assay = EXPECTED[file]?.assay || 'general';
+    const dataType = ASSAY_DATATYPE_MAP[assay] || 'continuous';
+    const { matrix, rawMatrix, condCtx } = base;
+    const vst = detectVST(matrix, assay);
+    const vstMatrix = applyVST(matrix, vst?.transform || 'raw');
+    const effMatrix = vstMatrix || matrix;
+    const effCtx = vstMatrix ? condCtx.withMatrix(vstMatrix) : condCtx;
+    const useAgg = condCtx.type === 'column-grouped' && condCtx.count >= 2;
+    const rng = createPRNG(matrix);
+    const real = await runFullAnalysis(matrix, rawMatrix, condCtx, assay, null, vst,
+      { isPivoted: false }, dataType, 'ordered');
+
+    const DEFS = [
+      { name: 'Autocorrelation',
+        run: (m, ctx) => useAgg ? aggregatePerGroup(testAutocorrelation, ctx.slices(), null)
+                                : testAutocorrelation(m, null) },
+      { name: 'Runs Test',
+        run: (m, ctx) => useAgg ? aggregatePerGroup((mm, cc) => testRuns(mm, cc, rng), ctx.slices(), ctx)
+                                : testRuns(m, ctx, rng) },
+    ];
+
+    for (const d of DEFS) {
+      if (only && !only.includes(d.name)) continue;
+      const r1 = real.find(x => x.name === d.name);
+      if (!r1 || r1.flag === 'N/A') { console.log('  ' + file.padEnd(36) + d.name.padEnd(18) + 'N/A'); continue; }
+      const obs = await d.run(effMatrix, effCtx);
+      const obsStat = num(obs.pooledP);
+      if (obs.flag !== r1.flag || num(r1.pooledP) !== obsStat) {
+        console.log('  ' + file.padEnd(36) + d.name.padEnd(18) +
+          `*** dispatch MISMATCH: probe ${obs.flag}/${obsStat} vs engine ${r1.flag}/${num(r1.pooledP)} — skipped ***`);
+        continue;
+      }
+      const rnd = mulberry32(0xC0FFEE);
+      let exceed = 0; const t0 = Date.now();
+      for (let k = 0; k < P; k++) {
+        const perm = permutation(effMatrix.length, rnd);
+        const m = perm.map(i => effMatrix[i]);
+        const s = num((await d.run(m, condCtx.withMatrix(m))).pooledP);
+        if (Number.isFinite(s) && s <= obsStat) exceed++;   // smaller pooled p = stronger
+      }
+      const secs = (Date.now() - t0) / 1000;
+      const empP = (exceed + 1) / (P + 1);
+      console.log('  ' + file.padEnd(36) + d.name.padEnd(18) + r1.flag.padEnd(10) +
+        obsStat.toPrecision(3).padEnd(12) + empP.toFixed(4).padEnd(10) +
+        flagFromP(empP).padEnd(10) + `${secs.toFixed(1)}s`);
+    }
+  }
+  process.exit(0);
+}
+
+// ── Route 2 calibration (--cal2) ───────────────────────────────────────────
+// Route 2's own false-positive rate under the row shuffle. Route 2 fires
+// MODERATE-or-higher exactly when the minimum per-unit BH-adjusted p clears
+// ALPHA.NOTE, which `nSignificant` reports on the complete per-unit set.
+//
+// Route 3 is not measured here. An exact permutation test is calibrated by
+// construction against the null it permutes: if rows are exchangeable, the
+// empirical p is uniform, so its false-positive rate is nominal by definition
+// rather than by measurement. Measuring it would need a nested permutation at
+// P-squared cost and would only reproduce that identity.
+if (process.argv.includes('--cal2')) {
+  const { testRuns } = await import(B + 'src/tests/runs.js');
+  const { createPRNG } = await import(B + 'src/stats/prng.js');
+  const { ASSAY_DATATYPE_MAP } = await import(B + 'src/constants/assays.js');
+  const { EXPECTED } = await import(B + 'test/batch-fixtures.mjs');
+  const P = Number(process.env.P) || 500;
+  const only = process.env.ONLY ? process.env.ONLY.split(',') : null;
+  const files = (process.env.FILES || '02-densitometry-fabricated.csv,17-densitometry-carlisle-clean.csv,20-bimodal-fab.csv').split(',');
+  console.log(`### Route 2 calibration — ${P} row-order permutations, MODERATE+ rate against nominal 1%\n`);
+  console.log('  ' + 'fixture'.padEnd(36) + 'test'.padEnd(18) + 'R2 MOD+'.padEnd(10) + 'R1 MOD+'.padEnd(10) + 'cost');
+  console.log('  ' + '-'.repeat(90));
+  for (const file of files) {
+    const { matrix, condCtx } = readFixture(file);
+    const assay = EXPECTED[file]?.assay || 'general';
+    const vst = detectVST(matrix, assay);
+    const effMatrix = applyVST(matrix, vst?.transform || 'raw') || matrix;
+    const useAgg = condCtx.type === 'column-grouped' && condCtx.count >= 2;
+    const rng = createPRNG(matrix);
+    const DEFS = [
+      { name: 'Autocorrelation',
+        run: (m, ctx) => useAgg ? aggregatePerGroup(testAutocorrelation, ctx.slices(), null)
+                                : testAutocorrelation(m, null) },
+      { name: 'Runs Test',
+        run: (m, ctx) => useAgg ? aggregatePerGroup((mm, cc) => testRuns(mm, cc, rng), ctx.slices(), ctx)
+                                : testRuns(m, ctx, rng) },
+    ];
+    for (const d of DEFS) {
+      if (only && !only.includes(d.name)) continue;
+      const rnd = mulberry32(0xC0FFEE);
+      let r2 = 0, r1 = 0, ran = 0; const t0 = Date.now();
+      for (let k = 0; k < P; k++) {
+        const perm = permutation(effMatrix.length, rnd);
+        const m = perm.map(i => effMatrix[i]);
+        const res = await d.run(m, condCtx.withMatrix(m));
+        if (res.flag === 'N/A') continue;
+        ran++;
+        // Route 2 fires when any per-unit BH-adjusted p clears ALPHA.NOTE.
+        // On the aggregated path nSignificant is the worst group's count.
+        if ((res.nSignificant || 0) > 0) r2++;
+        if (res.flag === 'MODERATE' || res.flag === 'HIGH') r1++;
+      }
+      const secs = (Date.now() - t0) / 1000;
+      console.log('  ' + file.padEnd(36) + d.name.padEnd(18) +
+        `${(100*r2/ran).toFixed(1)}%`.padEnd(10) + `${(100*r1/ran).toFixed(1)}%`.padEnd(10) + `${secs.toFixed(0)}s`);
+    }
+  }
+  process.exit(0);
+}
+
 console.log(`Autocorrelation calibration probe — ${N_PERM} iterations per file\n`);
 
 const TARGETS = [

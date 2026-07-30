@@ -102,6 +102,66 @@ const isFlagged = f => f === 'MODERATE' || f === 'HIGH';
 const pad = (s, n) => String(s).padEnd(n);
 const pc = (n, d) => d ? `${(100 * n / d).toFixed(1)}%` : '—';
 
+// ── Route comparison mode (--routes) ────────────────────────────────────────
+// Reports, per fixture, what each candidate severity route returns for the
+// three tests that pool parametrically across units sharing data.
+//
+//  Route 1  current. flagFromP(parametric pooled p).
+//  Route 2  per-unit adjusted, modelled on Inter-Replicate Correlation.
+//           IRC's ladder is: BH-FDR across per-pair p, then flag from the best
+//           adjusted p among pairs passing a directional + effect-size gate,
+//           falling back to MODERATE when any pair clears ALPHA.FLAG.
+//           Autocorrelation and Runs have NO directional or effect-size gate at
+//           the pair level (their per-pair p is two-sided via zToP), so only the
+//           core transfers: flagFromP(min per-unit BH-adjusted p).
+//           Selective Noise has no per-unit member of its deciding family at
+//           all — its only per-column statistic is a one-vs-rest Levene that is
+//           display-only. Route 2 there means promoting a different test.
+//
+// Resolution note: `nSignificant` is computed on the complete per-unit set
+// before `details` is truncated to 15, so "min adjP < ALPHA.NOTE" is exact on
+// every fixture. Separating HIGH from MODERATE needs the actual minimum, which
+// is only recoverable when the emitted details are complete.
+if (process.argv.includes('--routes')) {
+  const { flagFromP, ALPHA } = await import(B + 'src/constants/thresholds.js');
+  const { readdirSync } = await import('fs');
+  const TESTS = ['Autocorrelation', 'Runs Test', 'Selective Noise Partitioning'];
+  const files = readdirSync(FIX).filter(f => f.endsWith('.csv') && EXPECTED[f]).sort();
+  console.log(`### Route 1 vs Route 2, ${files.length} fixtures\n`);
+  console.log('  ' + pad('fixture', 36) + pad('test', 30) + pad('R1', 10) + pad('units sig', 12) + pad('R2', 10) + 'R2 basis');
+  console.log('  ' + '-'.repeat(118));
+  for (const file of files) {
+    const { matrix, rawMatrix, condCtx, assay, dataType } = prepare(file);
+    const res = await analyse(matrix, rawMatrix, condCtx, assay, dataType);
+    for (const t of TESTS) {
+      const r = res.find(x => x.name === t);
+      if (!r) continue;
+      if (r.flag === 'N/A') { console.log('  ' + pad(file, 36) + pad(t, 30) + pad('N/A', 10)); continue; }
+      let sig = null, tot = null, minAdj = null, basis = '';
+      if (t === 'Selective Noise Partitioning') {
+        const pc = r.perColumnResults || [];
+        tot = pc.length; sig = pc.filter(c => c.flagged).length;
+        const adj = pc.map(c => Number(c.adjP)).filter(Number.isFinite);
+        minAdj = adj.length ? Math.min(...adj) : null;
+        basis = 'per-column Levene (display-only test)';
+      } else {
+        sig = r.nSignificant; tot = r.nPairs;
+        const d = (r.subDetails || r.details || []).filter(x => x.source !== 'window' && Number.isFinite(Number(x.adjP)));
+        const complete = d.length >= (tot || 0);
+        minAdj = complete && d.length ? Math.min(...d.map(x => Number(x.adjP))) : null;
+        basis = complete ? 'per-pair BH adj-p (complete)' : `per-pair BH adj-p (details truncated: ${d.length} of ${tot})`;
+      }
+      // Exact where the minimum is recoverable; otherwise resolved only as far
+      // as nSignificant allows, which separates LOW from MODERATE-or-higher.
+      const r2 = minAdj != null ? flagFromP(minAdj)
+               : (sig > 0 ? 'MOD-or-HIGH' : 'LOW');
+      console.log('  ' + pad(file, 36) + pad(t, 30) + pad(r.flag, 10) +
+                  pad(`${sig} of ${tot}`, 12) + pad(r2, 10) + basis);
+    }
+  }
+  process.exit(0);
+}
+
 for (const file of ANCHORS) {
   const { matrix, rawMatrix, condCtx, assay, dataType } = prepare(file);
   const observed = await analyse(matrix, rawMatrix, condCtx, assay, dataType);
