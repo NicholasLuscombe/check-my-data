@@ -1184,6 +1184,703 @@ if (process.argv.includes('--floorjoint')) {
   process.exit(0);
 }
 
+// ══ Route 4, and whether combining it with Route 2 stays calibrated ════════
+// Route 4 keeps the pooled lag-1 statistic and rescales its standard error by an
+// inflation factor estimated from row shuffles of the dataset in hand, instead
+// of replacing the null with a tail quantile. A scale needs about 100 shuffles
+// where a p < 0.001 quantile needs 1000, which is the whole affordability
+// argument. Route 4 had never been measured for power.
+//
+// PRECISION. `pooledMeanR1` is stored at 4dp and Runs' `pooledMeanZ` at 3dp,
+// both for display. A scale estimated as the spread of a rounded quantity
+// carries quantisation noise, so the pooled mean and its SE are recomputed here
+// at full precision from the same per-pair values the engine pools. Both
+// reconstructions are asserted against the engine's own fields, to the precision
+// the engine stores them, before any number below is taken.
+//
+// WHAT ROUTE 4 CORRECTS. The standard error, and nothing else. The pooled mean
+// also carries the -1/n lag-1 estimator bias, which Route 4 leaves in place.
+//
+// THE COMBINATION IS NOT A TEST. "Take the higher of the two flags" is a union
+// of two rejection regions, not a statistic with a null, so it has no joint null
+// to be calibrated against. Its size is whatever that union measures under H0
+// and is knowable only by measurement — which is what the false-positive parts
+// below do. Each route at half alpha is the Bonferroni bound on the union, so
+// that variant cannot exceed nominal by construction; the open question for it
+// is what it costs in power, not whether it is calibrated.
+
+// Shared Route 4 machinery. Sync, so it can be handed to aggregatePerGroup as a
+// testFn without changing that function's contract.
+const _R4 = await (async () => {
+  const { acfAtLag, zToP, bhFDR, pooledTtoP } = await import(B + 'src/stats/primitives.js');
+  const { flagFromP, ALPHA, EFFECT_SIZE } = await import(B + 'src/constants/thresholds.js');
+  // Same t-to-p convention oneSampleT uses: normal above df 30, Student-t at or
+  // below. A normal everywhere over-fires on narrow matrices, where the pooled t
+  // has only k-1 = 2 degrees of freedom.
+  const twoSided = (t, df) => (df > 30 ? zToP(t) : pooledTtoP(t, df));
+
+  // Full-precision pooled lag-1 family: per-pair r1 via acfAtLag, per-pair p via
+  // zToP at SE = 1/sqrt(n), BH across pairs. The same three calls
+  // testAutocorrelation makes, in the same order.
+  const fam = (matrix) => {
+    const nR = matrix.length, nC = matrix[0]?.length || 0;
+    if (nC < 2) return null;
+    const r1s = [], ps = [];
+    for (let c1 = 0; c1 < nC; c1++) for (let c2 = c1 + 1; c2 < nC; c2++) {
+      const d = [];
+      for (let r = 0; r < nR; r++) if (matrix[r][c1] != null && matrix[r][c2] != null) d.push(matrix[r][c1] - matrix[r][c2]);
+      if (d.length < 10) continue;
+      const m = mean(d), den = d.reduce((s, x) => s + (x - m) ** 2, 0);
+      const r1 = acfAtLag(d, m, den, 1);
+      r1s.push(r1); ps.push(zToP(r1 * Math.sqrt(d.length)));
+    }
+    if (r1s.length < 2) return null;
+    const adj = bhFDR(ps);
+    let minAdj = adj[0];
+    for (let i = 1; i < adj.length; i++) if (adj[i] < minAdj) minAdj = adj[i];
+    const m = mean(r1s), s = sd(r1s);
+    return { m, se: s / Math.sqrt(r1s.length), k: r1s.length, minAdj };
+  };
+
+  // Pooled runs-z family, reconstructed from runs.js: sign method, ties stripped
+  // Wald-Wolfowitz, zToP per pair, BH across pairs. Pooled only — the internal
+  // window scan is not part of it.
+  const runsFam = (matrix) => {
+    const nR = matrix.length, nC = matrix[0]?.length || 0;
+    if (nC < 2) return null;
+    const zs = [], ps = [];
+    for (let c1 = 0; c1 < nC; c1++) for (let c2 = c1 + 1; c2 < nC; c2++) {
+      const diffs = [];
+      for (let r = 0; r < nR; r++) if (matrix[r][c1] != null && matrix[r][c2] != null) diffs.push(matrix[r][c1] - matrix[r][c2]);
+      if (diffs.length < 10) continue;
+      let nP = 0, nM = 0; const nz = [];
+      for (const d of diffs) { if (d > 0) { nP++; nz.push(1); } else if (d < 0) { nM++; nz.push(-1); } }
+      let runs = nz.length ? 1 : 0;
+      for (let i = 1; i < nz.length; i++) if (nz[i] !== nz[i - 1]) runs++;
+      const n = nP + nM; if (nP === 0 || nM === 0 || n < 10) continue;
+      const er = (2 * nP * nM) / n + 1, vr = (2 * nP * nM * (2 * nP * nM - n)) / (n * n * (n - 1));
+      if (vr <= 0) continue;
+      const z = (runs - er) / Math.sqrt(vr);
+      zs.push(z); ps.push(zToP(z));
+    }
+    if (zs.length < 2) return null;
+    const adj = bhFDR(ps);
+    let minAdj = adj[0];
+    for (let i = 1; i < adj.length; i++) if (adj[i] < minAdj) minAdj = adj[i];
+    const m = mean(zs), s = sd(zs);
+    return { m, se: s / Math.sqrt(zs.length), k: zs.length, minAdj };
+  };
+
+  // The scale estimate. The row shuffle IS the null, so the spread of the pooled
+  // mean over shuffles is its true SE and the mean of the test's own SE over the
+  // same shuffles is what the t assumed. The ratio is the multiplier. The
+  // shuffle-by-shuffle series is returned too, so a prefix gives the estimate at
+  // a smaller shuffle count without re-running.
+  const scale = (matrix, pin, rnd, famFn = fam) => {
+    const ms = [], ses = [];
+    for (let i = 0; i < pin; i++) {
+      const p = permutation(matrix.length, rnd);
+      const q = famFn(p.map(j => matrix[j]));
+      if (q) { ms.push(q.m); ses.push(q.se); }
+    }
+    if (ms.length < 5) return null;
+    return { infl: sd(ms) / mean(ses), ms, ses };
+  };
+  const inflFrom = (ms, ses, upto) => {
+    if (upto < 5 || ms.length < upto) return null;
+    return sd(ms.slice(0, upto)) / mean(ses.slice(0, upto));
+  };
+
+  return { fam, runsFam, scale, inflFrom, twoSided, flagFromP, ALPHA, EFFECT_SIZE };
+})();
+
+// ── Part 1 + 2a: Route 4's power, and the combination, on the Part 2 sweep ──
+// Same construction as --power (one independent AR(1) per column, so every pair
+// carries the same weak effect), same effect sizes, same Route 2 and Route 3
+// definitions. Route 4, the union, and the union at half alpha are added.
+// Column count is swept because the dependence Route 4 rescales grows with
+// width, so the band's width need not be constant.
+//
+// PASS CONDITION, stated before the numbers. Route 4 closes the band if its
+// detection rate is within 5 points of Route 3's at every effect size in
+// 0.06-0.14 while its rho=0 rate stays at or under 2%. It partly closes it if it
+// beats Route 2 by more than 5 points somewhere in that range on the same
+// calibration terms. It fails if it is inside 5 points of Route 2 throughout, or
+// if its rho=0 rate exceeds 2%.
+if (process.argv.includes('--r4sweep')) {
+  const { fam, scale, twoSided } = _R4;
+  const RUNS = Number(process.env.RUNS) || 1000;
+  const N = Number(process.env.N) || 200;
+  const PIN = Number(process.env.PIN) || 100;
+  const NULLSIM = Number(process.env.NULLSIM) || 20000;
+  const CS = (process.env.CS || '4,8,12,18').split(',').map(Number);
+  const RHOS = (process.env.RHOS || '0,0.02,0.04,0.06,0.08,0.10,0.14,0.18,0.25').split(',').map(Number);
+  const A = 0.01, AH = 0.005;
+
+  console.log(`### Part 1 — Route 4's power on the Part 2 sweep. N=${N} rows, ${RUNS} runs per cell,`);
+  console.log(`    scale from ${PIN} shuffles per dataset, Route 3 critical value from ${NULLSIM} null draws.\n`);
+
+  // Faithfulness: the full-precision reconstruction against the engine's own
+  // fields, at the precision the engine stores them.
+  {
+    const nrm = _normal(mulberry32(31));
+    const m = _colsToMatrix(Array.from({ length: 8 }, () => _arCol(N, 0.15, nrm)));
+    const q = fam(m), eng = testAutocorrelation(m, null);
+    const dM = Math.abs(q.m - Number(eng.pooledMeanR1));
+    const dSE = Math.abs(q.se - Number(eng.pooledR1SE));
+    const dP = Math.abs(q.minAdj - Number(eng.minAdjP));
+    const ok = dM < 5e-5 && dSE < 1e-12 && dP < 1e-12 && q.k === eng.nPairs;
+    console.log(`  reconstruction vs testAutocorrelation: pooled mean delta ${dM.toExponential(1)} (stored at 4dp),` +
+                ` SE delta ${dSE.toExponential(1)}, minAdjP delta ${dP.toExponential(1)},` +
+                ` pairs ${q.k}/${eng.nPairs} -> ${ok ? 'MATCHES' : '*** MISMATCH — numbers below are untrustworthy ***'}\n`);
+  }
+
+  for (const C of CS) {
+    const build = (rho, nrm) => _colsToMatrix(Array.from({ length: C }, () => _arCol(N, rho, nrm)));
+    // Route 3's reference distribution: the pooled mean at rho=0, same N and C.
+    // Rows are iid by construction, so a fresh null matrix and a shuffle of one
+    // give the same distribution. This is Route 3 at unlimited shuffle count —
+    // its ceiling, not the P=1000 implementation, which cannot resolve below
+    // p = 1/1001. The symmetric critical value is very slightly conservative
+    // because the null centres near -1/n rather than 0.
+    const nrm0 = _normal(mulberry32(23 + C));
+    const nullPooled = [];
+    for (let i = 0; i < NULLSIM; i++) { const q = fam(build(0, nrm0)); if (q) nullPooled.push(q.m); }
+    nullPooled.sort((a, b) => a - b);
+    const crit = Math.max(Math.abs(quant(nullPooled, 0.005)), Math.abs(quant(nullPooled, 0.995)));
+
+    console.log(`  C = ${C} columns, ${C * (C - 1) / 2} pairs.  Route 3 critical |pooled mean r1| > ${crit.toFixed(5)} at alpha ${A}`);
+    console.log('  ' + 'rho'.padEnd(7) + 'mean r1'.padEnd(10) + 'R2'.padEnd(9) + 'R3'.padEnd(9) + 'R4'.padEnd(9) +
+                'R2 or R4'.padEnd(11) + 'both at a/2'.padEnd(13) + 'scale mean'.padEnd(12) + 'scale sd');
+    console.log('  ' + '-'.repeat(96));
+    for (const rho of RHOS) {
+      const nrm = _normal(mulberry32(0xBEEF + C * 7919 + Math.round(rho * 1000)));
+      const rnd = mulberry32(0xC0FFEE + C * 104729 + Math.round(rho * 1000));
+      let r2 = 0, r3 = 0, r4 = 0, un = 0, unH = 0, ran = 0, rAcc = 0, rN = 0;
+      const infls = [];
+      for (let run = 0; run < RUNS; run++) {
+        const m = build(rho, nrm);
+        const q = fam(m);
+        if (!q) continue;
+        const sc = scale(m, PIN, rnd);
+        if (!sc) continue;
+        ran++;
+        infls.push(sc.infl);
+        rAcc += q.m * q.k; rN += q.k;
+        const p4 = twoSided(q.m / (q.se * sc.infl), q.k - 1);
+        const h2 = q.minAdj < A, h3 = Math.abs(q.m) > crit, h4 = p4 < A;
+        if (h2) r2++;
+        if (h3) r3++;
+        if (h4) r4++;
+        if (h2 || h4) un++;
+        if (q.minAdj < AH || p4 < AH) unH++;
+      }
+      const p = (x) => `${(100 * x / ran).toFixed(1)}%`;
+      console.log('  ' + rho.toFixed(2).padEnd(7) + (rAcc / rN).toFixed(4).padEnd(10) +
+        p(r2).padEnd(9) + p(r3).padEnd(9) + p(r4).padEnd(9) + p(un).padEnd(11) + p(unH).padEnd(13) +
+        mean(infls).toFixed(3).padEnd(12) + sd(infls).toFixed(3));
+    }
+    console.log('');
+  }
+  process.exit(0);
+}
+
+// ── Part 3b: how few shuffles the scale estimate tolerates (--r4pin) ───────
+// A scale is a cheaper thing to estimate than a tail quantile. If 50 shuffles
+// work as well as 100 the cost halves again. Shuffles are drawn once per dataset
+// and the estimate is taken from nested prefixes, which is the same thing as
+// independent draws per count and a quarter of the cost.
+//
+// PASS CONDITION. A shuffle count is adequate if its detection rate is within
+// 2 points of the largest count's rate at every effect size measured AND its
+// rho=0 rate stays at or under 2%.
+if (process.argv.includes('--r4pin')) {
+  const { fam, scale, inflFrom, twoSided } = _R4;
+  const RUNS = Number(process.env.RUNS) || 400;
+  const N = Number(process.env.N) || 200;
+  const PINS = (process.env.PINS || '10,25,50,100,200,400').split(',').map(Number);
+  const MAXPIN = Math.max(...PINS);
+  const CS = (process.env.CS || '8,18').split(',').map(Number);
+  const RHOS = (process.env.RHOS || '0,0.08,0.10,0.14').split(',').map(Number);
+  const A = 0.01;
+  console.log(`### Part 3b — scale-estimate stability. N=${N}, ${RUNS} runs per cell, prefixes of ${MAXPIN} shuffles.\n`);
+  for (const C of CS) {
+    const build = (rho, nrm) => _colsToMatrix(Array.from({ length: C }, () => _arCol(N, rho, nrm)));
+    console.log(`  C = ${C} columns, ${C * (C - 1) / 2} pairs.   detection rate at each shuffle count | sd of the scale estimate`);
+    console.log('  ' + 'rho'.padEnd(7) + PINS.map(p => `P=${p}`.padEnd(9)).join('') + '| ' + PINS.map(p => `P=${p}`.padEnd(9)).join(''));
+    console.log('  ' + '-'.repeat(11 + 18 * PINS.length));
+    for (const rho of RHOS) {
+      const nrm = _normal(mulberry32(0x5A11 + C * 7919 + Math.round(rho * 1000)));
+      const rnd = mulberry32(0x1234 + C * 104729 + Math.round(rho * 1000));
+      const hit = PINS.map(() => 0);
+      const inf = PINS.map(() => []);
+      let ran = 0;
+      for (let run = 0; run < RUNS; run++) {
+        const m = build(rho, nrm);
+        const q = fam(m);
+        if (!q) continue;
+        const sc = scale(m, MAXPIN, rnd);
+        if (!sc) continue;
+        ran++;
+        PINS.forEach((pin, i) => {
+          const infl = inflFrom(sc.ms, sc.ses, pin);
+          if (infl == null) return;
+          inf[i].push(infl);
+          if (twoSided(q.m / (q.se * infl), q.k - 1) < A) hit[i]++;
+        });
+      }
+      console.log('  ' + rho.toFixed(2).padEnd(7) +
+        hit.map(h => `${(100 * h / ran).toFixed(1)}%`.padEnd(9)).join('') + '| ' +
+        inf.map(v => sd(v).toFixed(3).padEnd(9)).join(''));
+    }
+    console.log('');
+  }
+  process.exit(0);
+}
+
+// ── Part 2b: the combination's false-positive rate on the anchors (--r4anchors)
+// Row shuffle on DS17 clean, DS02 and DS20, so the number is comparable with
+// every other calibration figure taken against these three files. Route 4's
+// scale is re-estimated from scratch on every shuffled dataset, so the
+// estimation noise in the scale sits inside the measured rate rather than being
+// assumed away.
+//
+// Both routes go through the shipped dispatch shape: aggregatePerGroup on
+// column-grouped fixtures with two or more conditions, a single pooled call
+// otherwise. Route 4 substitutes the corrected p as each group's primaryP and
+// lets the real Fisher combination do the rest.
+//
+// TWO FIRE CRITERIA, both reported. The flag criterion is the shipped one —
+// the dispatch's own flag reaching MODERATE. On the aggregate path that flag is
+// max(Fisher flag, worst group flag) and the worst group flag can be promoted by
+// evidence no single p carries, so there is no one scalar behind it and half
+// alpha is not defined on it. The p criterion reduces each route to one scalar —
+// primaryP on the pooled path, min(fisherP, worst group primaryP) on the
+// aggregate path — which half alpha does apply to. Both are shown at full alpha
+// so the gap between the two criteria is visible, not hidden inside the
+// half-alpha column.
+//
+// PASS CONDITION. The union is acceptable if its MODERATE-or-higher rate stays
+// at or under 2% on all three files. Report the inflation over Route 2 alone
+// either way.
+if (process.argv.includes('--r4anchors')) {
+  const { fam, scale, twoSided, flagFromP, EFFECT_SIZE } = _R4;
+  const { EXPECTED } = await import(B + 'test/batch-fixtures.mjs');
+  const PCAL = Number(process.env.PCAL) || 1000;
+  const PIN = Number(process.env.PIN) || 100;
+  const FILES = (process.env.FILES || '17-densitometry-carlisle-clean.csv,02-densitometry-fabricated.csv,20-bimodal-fab.csv').split(',');
+  const A = 0.01, AH = 0.005;
+  const RANK = { 'N/A': 0, LOW: 1, MODERATE: 2, HIGH: 3 };
+
+  console.log(`### Part 2b — false positives under the row shuffle. ${PCAL} shuffles, scale re-estimated from ${PIN} shuffles each.\n`);
+  console.log('  ' + 'fixture'.padEnd(42) + 'route'.padEnd(8) +
+              'R2 flag'.padEnd(9) + 'R4 flag'.padEnd(9) + 'union flag'.padEnd(12) +
+              'R2 p<a'.padEnd(9) + 'R4 p<a'.padEnd(9) + 'union p<a'.padEnd(11) + 'union a/2'.padEnd(11) +
+              'scale'.padEnd(8) + 'cost');
+  console.log('  ' + '-'.repeat(128));
+
+  for (const file of FILES) {
+    const { matrix, condCtx } = readFixture(file);
+    const assay = EXPECTED[file]?.assay || 'general';
+    const vst = detectVST(matrix, assay);
+    const eff = applyVST(matrix, vst?.transform || 'raw') || matrix;
+    const useAgg = condCtx.type === 'column-grouped' && condCtx.count >= 2;
+    const infls = [];
+    let seed = 0x5EED;
+
+    // Route 4 as a testFn: same result object, primaryP and flag replaced by the
+    // SE-corrected pooled p. The shipped effect-size gate reads the pooled mean,
+    // which IS Route 4's statistic, so it is carried across unchanged.
+    const r4fn = (m, cc) => {
+      const base = testAutocorrelation(m, cc);
+      if (base.flag === 'N/A') return base;
+      const q = fam(m);
+      if (!q) return base;
+      const sc = scale(m, PIN, mulberry32(seed++));
+      if (!sc) return base;
+      infls.push(sc.infl);
+      const p4 = twoSided(q.m / (q.se * sc.infl), q.k - 1);
+      const gate = m.length >= 500 && Math.abs(q.m) < EFFECT_SIZE.AUTOCORR_STRONG;
+      const pf = gate ? 1 : p4;
+      return { ...base, primaryP: pf, flag: flagFromP(pf) };
+    };
+    // One deciding scalar per route. fisherP is stored at 4dp and floors at
+    // 0.0000, which the shipped flag path reads the same way.
+    const decide = (res) => {
+      if (!useAgg) return num(res.primaryP);
+      const fp = num(res.fisherP), pp = num(res.primaryP);
+      return Math.min(Number.isFinite(fp) ? fp : 1, Number.isFinite(pp) ? pp : 1);
+    };
+
+    const rnd = mulberry32(0xC0FFEE);
+    let f2 = 0, f4 = 0, fu = 0, d2c = 0, d4c = 0, duc = 0, dhc = 0, ran = 0;
+    const t0 = Date.now();
+    for (let k = 0; k < PCAL; k++) {
+      const perm = permutation(eff.length, rnd);
+      const m = perm.map(i => eff[i]);
+      const ctx = condCtx.withMatrix(m);
+      const r2res = useAgg ? await aggregatePerGroup(testAutocorrelation, ctx.slices(), null)
+                           : testAutocorrelation(m, null);
+      if (r2res.flag === 'N/A') continue;
+      const r4res = useAgg ? await aggregatePerGroup(r4fn, ctx.slices(), null) : r4fn(m, null);
+      if (r4res.flag === 'N/A') continue;
+      ran++;
+      const hit2 = RANK[r2res.flag] >= 2, hit4 = RANK[r4res.flag] >= 2;
+      if (hit2) f2++;
+      if (hit4) f4++;
+      if (hit2 || hit4) fu++;
+      const d2 = decide(r2res), d4 = decide(r4res);
+      if (d2 < A) d2c++;
+      if (d4 < A) d4c++;
+      if (d2 < A || d4 < A) duc++;
+      if (d2 < AH || d4 < AH) dhc++;
+    }
+    const secs = (Date.now() - t0) / 1000;
+    const p = (x) => `${(100 * x / ran).toFixed(1)}%`;
+    console.log('  ' + file.padEnd(42) + (useAgg ? 'fisher' : 'pooled').padEnd(8) +
+      p(f2).padEnd(9) + p(f4).padEnd(9) + p(fu).padEnd(12) +
+      p(d2c).padEnd(9) + p(d4c).padEnd(9) + p(duc).padEnd(11) + p(dhc).padEnd(11) +
+      mean(infls).toFixed(2).padEnd(8) + `${secs.toFixed(0)}s`);
+  }
+  process.exit(0);
+}
+
+// ── Where Route 4's excess false positives come from (--r4diag) ───────────
+// --r4anchors measures Route 4 at 5.4% on DS17 clean against a nominal 1%. A
+// rate that far off is not usable as a power figure until it is attributed, so
+// this measures Route 4 at three scopes on the same shuffles and adds a
+// bias-corrected variant at each.
+//
+// SCOPES. Whole matrix, one pooled test over every pair. Per group, one pooled
+// test per condition slice with no Fisher layer, counted over (shuffle x group).
+// Aggregate, the real per-condition dispatch with the real Fisher combination —
+// the figure --r4anchors reports.
+//
+// THE BIAS VARIANT. Route 4 rescales the standard error and leaves the pooled
+// mean alone, so the lag-1 estimator's -1/n shift stays in the numerator. The
+// centred variant subtracts the shuffled null's own mean before dividing, which
+// removes that shift using numbers the scale estimate has already paid for. If
+// the centred rate lands at nominal, the excess is the bias; if it does not, the
+// excess is the scale estimate or the Fisher layer.
+if (process.argv.includes('--r4diag')) {
+  const { fam, scale, twoSided, flagFromP, EFFECT_SIZE } = _R4;
+  const { EXPECTED } = await import(B + 'test/batch-fixtures.mjs');
+  const { chiSquaredP } = await import(B + 'src/stats/primitives.js');
+  const PCAL = Number(process.env.PCAL) || 500;
+  const PIN = Number(process.env.PIN) || 100;
+  const FILES = (process.env.FILES || '17-densitometry-carlisle-clean.csv,02-densitometry-fabricated.csv,20-bimodal-fab.csv').split(',');
+  const A = 0.01;
+
+  console.log(`### Route 4's false positives, attributed. ${PCAL} row shuffles, scale from ${PIN} shuffles each.\n`);
+  console.log('  ' + 'fixture'.padEnd(38) + 'scope'.padEnd(14) + 'units'.padEnd(8) + 'rows'.padEnd(7) +
+              'pairs'.padEnd(7) + 'as-is'.padEnd(9) + 'centred'.padEnd(9) + 'null mean'.padEnd(12) + '-1/n'.padEnd(10) + 'channel split');
+  console.log('  ' + '-'.repeat(120));
+
+  for (const file of FILES) {
+    const { matrix, condCtx } = readFixture(file);
+    const assay = EXPECTED[file]?.assay || 'general';
+    const vst = detectVST(matrix, assay);
+    const eff = applyVST(matrix, vst?.transform || 'raw') || matrix;
+    const useAgg = condCtx.type === 'column-grouped' && condCtx.count >= 2;
+
+    const one = (m, rnd) => {
+      const q = fam(m);
+      if (!q) return null;
+      const sc = scale(m, PIN, rnd);
+      if (!sc) return null;
+      const nullMean = mean(sc.ms);
+      return {
+        p: twoSided(q.m / (q.se * sc.infl), q.k - 1),
+        pc: twoSided((q.m - nullMean) / (q.se * sc.infl), q.k - 1),
+        nullMean, k: q.k, rows: m.length,
+      };
+    };
+
+    const rnd = mulberry32(0xC0FFEE);
+    let seed = 0x5EED;
+    let wA = 0, wAc = 0, wN = 0, wNull = 0, wRows = 0, wK = 0;
+    let gA = 0, gAc = 0, gN = 0, gNull = 0, gRows = 0, gK = 0;
+    let fA = 0, fAc = 0, fN = 0, fFish = 0, fWorst = 0;
+    for (let it = 0; it < PCAL; it++) {
+      const perm = permutation(eff.length, rnd);
+      const m = perm.map(i => eff[i]);
+      // whole matrix
+      const w = one(m, mulberry32(seed++));
+      if (w) { wN++; if (w.p < A) wA++; if (w.pc < A) wAc++; wNull += w.nullMean; wRows = w.rows; wK = w.k; }
+      // per group, and Fisher over the same per-group values
+      if (useAgg) {
+        const slices = condCtx.withMatrix(m).slices();
+        const ps = [], pcs = [];
+        for (const g of slices) {
+          const r = one(g.matrix, mulberry32(seed++));
+          if (!r) continue;
+          gN++; if (r.p < A) gA++; if (r.pc < A) gAc++; gNull += r.nullMean; gRows = r.rows; gK = r.k;
+          ps.push(r.p); pcs.push(r.pc);
+        }
+        if (ps.length >= 2) {
+          fN++;
+          const fish = (arr) => chiSquaredP(-2 * arr.reduce((s, p) => s + Math.log(Math.max(p, 1e-300)), 0), 2 * arr.length);
+          // The real aggregation's flag is max(Fisher flag, worst group flag). The
+          // two channels are also counted separately, because a per-condition
+          // dispatch gives every condition its own chance to fire whether or not
+          // Fisher is in the picture — so "drop Fisher" is only a fix if the
+          // worst-group channel alone lands at nominal.
+          if (fish(ps) < A || Math.min(...ps) < A) fA++;
+          if (fish(pcs) < A || Math.min(...pcs) < A) fAc++;
+          if (fish(ps) < A) fFish++;
+          if (Math.min(...ps) < A) fWorst++;
+        }
+      }
+    }
+    const p = (x, n) => `${(100 * x / n).toFixed(1)}%`;
+    console.log('  ' + file.padEnd(38) + 'whole matrix'.padEnd(14) + String(wN).padEnd(8) + String(wRows).padEnd(7) +
+      String(wK).padEnd(7) + p(wA, wN).padEnd(9) + p(wAc, wN).padEnd(9) +
+      (wNull / wN).toFixed(5).padEnd(12) + (-1 / wRows).toFixed(5).padEnd(10) + '-');
+    if (useAgg) {
+      console.log('  ' + ''.padEnd(38) + 'per group'.padEnd(14) + String(gN).padEnd(8) + String(gRows).padEnd(7) +
+        String(gK).padEnd(7) + p(gA, gN).padEnd(9) + p(gAc, gN).padEnd(9) +
+        (gNull / gN).toFixed(5).padEnd(12) + (-1 / gRows).toFixed(5).padEnd(10) + '-');
+      console.log('  ' + ''.padEnd(38) + 'aggregate'.padEnd(14) + String(fN).padEnd(8) + '-'.padEnd(7) +
+        '-'.padEnd(7) + p(fA, fN).padEnd(9) + p(fAc, fN).padEnd(9) + '-'.padEnd(12) + '-'.padEnd(10) +
+        `Fisher channel alone ${p(fFish, fN)}, worst-group channel alone ${p(fWorst, fN)}`);
+    }
+  }
+  console.log(`\n  "units" is how many corrected p-values the rate is taken over: one per shuffle at whole-matrix`);
+  console.log(`  and aggregate scope, one per shuffle per condition at group scope.`);
+  console.log(`  The aggregate row reproduces the real rule, max(Fisher flag, worst group flag), on the same`);
+  console.log(`  per-group p-values as the row above it. The channel split separates the two halves of that`);
+  console.log(`  rule: a per-condition dispatch gives every condition its own chance to fire, so the`);
+  console.log(`  worst-group channel alone already multiplies the per-group rate by roughly the condition`);
+  console.log(`  count. Dropping Fisher is therefore only part of a fix, and the split says how much of one.`);
+  process.exit(0);
+}
+
+
+// ── Part 3a: what the scale estimate costs (--r4cost) ─────────────────────
+// The number that decides whether this ships: the per-dataset scale estimate
+// against the full engine run on the same file. Measured on the widest fixtures,
+// where the pair count is largest, and on the tallest.
+//
+// Runs Test is measured on the pooled-only family alone. Its Route 3 figure of
+// 364 seconds timed the whole test including the internal window scan; the
+// pooled-only figure was inferred, not measured. This measures it.
+if (process.argv.includes('--r4cost')) {
+  const { fam, runsFam, scale } = _R4;
+  const { testRuns } = await import(B + 'src/tests/runs.js');
+  const { createPRNG } = await import(B + 'src/stats/prng.js');
+  const { runFullAnalysis } = await import(B + 'src/analysis/engine.js');
+  const { ASSAY_DATATYPE_MAP } = await import(B + 'src/constants/assays.js');
+  const { EXPECTED } = await import(B + 'test/batch-fixtures.mjs');
+  const PIN = Number(process.env.PIN) || 100;
+  const FILES = (process.env.FILES ||
+    '16-densitometry-carlisle-overbalanced.csv,17-densitometry-carlisle-clean.csv,' +
+    '01-densitometry-clean.csv,02-densitometry-fabricated.csv,20-bimodal-fab.csv,' +
+    '21-localised-ar.csv,11-rnaseq-multicondition.csv').split(',');
+
+  console.log(`### Part 3a — cost of the scale estimate, ${PIN} shuffles.\n`);
+  // Faithfulness of the Runs pooled-only reconstruction, on a fixture.
+  {
+    const f = '20-bimodal-fab.csv';
+    const { matrix } = readFixture(f);
+    const eff = applyVST(matrix, detectVST(matrix, EXPECTED[f].assay)?.transform || 'raw') || matrix;
+    const q = runsFam(eff), eng = testRuns(eff, null, createPRNG(matrix));
+    const dM = Math.abs(q.m - Number(eng.pooledMeanZ));
+    const dSE = Math.abs(q.se - Number(eng.pooledZSE));
+    const dP = Math.abs(q.minAdj - Number(eng.minAdjP));
+    const ok = dM < 5e-4 && dSE < 1e-12 && dP < 1e-12 && q.k === eng.nPairs;
+    console.log(`  Runs pooled-only reconstruction vs testRuns on DS20: mean z delta ${dM.toExponential(1)} (stored at 3dp),` +
+                ` SE delta ${dSE.toExponential(1)},`);
+    console.log(`  minAdjP delta ${dP.toExponential(1)}, pairs ${q.k}/${eng.nPairs}` +
+                ` -> ${ok ? 'MATCHES' : '*** MISMATCH — numbers below are untrustworthy ***'}\n`);
+  }
+
+  console.log('  ' + 'fixture'.padEnd(42) + 'rows'.padEnd(6) + 'cols'.padEnd(6) + 'pairs'.padEnd(7) +
+              'scale autocorr'.padEnd(16) + 'scale runs'.padEnd(13) + 'full engine'.padEnd(14) + 'both scales as % of engine');
+  console.log('  ' + '-'.repeat(122));
+  for (const file of FILES) {
+    const base = readFixture(file);
+    const assay = EXPECTED[file]?.assay || 'general';
+    const vst = detectVST(base.matrix, assay);
+    const eff = applyVST(base.matrix, vst?.transform || 'raw') || base.matrix;
+    const useAgg = base.condCtx.type === 'column-grouped' && base.condCtx.count >= 2;
+    // Estimate on whatever matrices the shipped dispatch hands the test: the
+    // per-condition slices where it aggregates, the whole matrix otherwise.
+    const targets = useAgg ? base.condCtx.withMatrix(eff).slices().map(g => g.matrix) : [eff];
+
+    const timeScale = (famFn) => {
+      const t0 = Date.now();
+      for (const m of targets) scale(m, PIN, mulberry32(0xC0FFEE), famFn);
+      return (Date.now() - t0) / 1000;
+    };
+    const tA = timeScale(fam);
+    const tR = timeScale(runsFam);
+
+    const t0 = Date.now();
+    await runFullAnalysis(base.matrix, base.rawMatrix, base.condCtx, assay, null, vst,
+      { isPivoted: false }, ASSAY_DATATYPE_MAP[assay] || 'continuous', 'ordered');
+    const tEng = (Date.now() - t0) / 1000;
+
+    const nc = base.matrix[0].length;
+    console.log('  ' + file.padEnd(42) + String(base.matrix.length).padEnd(6) + String(nc).padEnd(6) +
+      String(nc * (nc - 1) / 2).padEnd(7) +
+      `${tA.toFixed(3)}s`.padEnd(16) + `${tR.toFixed(3)}s`.padEnd(13) + `${tEng.toFixed(2)}s`.padEnd(14) +
+      `${(100 * (tA + tR) / tEng).toFixed(2)}%`);
+  }
+  console.log(`\n  Autocorrelation's scale runs on its own dispatch shape (per condition where it aggregates);`);
+  console.log(`  Runs' figure is the pooled-only family on the same matrices, its window scan excluded.`);
+  process.exit(0);
+}
+
+// ── Part 4: Route 4 and the combination on all 27 fixtures (--r4fix) ──────
+// What each returns, and whether any outcome tier moves. The tier is recomputed
+// by substituting the Autocorrelation result's flag into the real
+// computeSeverity, leaving every other result exactly as the engine produced it,
+// so a moved tier is attributable to this one test.
+//
+// DS21 and DS22 are the ones to watch. Route 4 gave them LOW earlier, which is
+// right because their Route 1 fires were artefacts of a broken null. If the
+// combination resurrects either, the combination is not the corrected route it
+// looks like.
+if (process.argv.includes('--r4fix')) {
+  const { fam, scale, twoSided, flagFromP, EFFECT_SIZE } = _R4;
+  const { computeSeverity } = await import(B + 'src/analysis/severity.js');
+  const { runFullAnalysis } = await import(B + 'src/analysis/engine.js');
+  const { ASSAY_DATATYPE_MAP } = await import(B + 'src/constants/assays.js');
+  const { EXPECTED } = await import(B + 'test/batch-fixtures.mjs');
+  const PIN = Number(process.env.PIN) || 100;
+  const RANK = { 'N/A': 0, LOW: 1, MODERATE: 2, HIGH: 3 };
+  const files = readdirSync(FIX).filter(f => f.endsWith('.csv') && EXPECTED[f]).sort();
+
+  console.log(`### Part 4 — all fixtures. Scale from ${PIN} shuffles.\n`);
+  console.log('  ' + 'fixture'.padEnd(42) + 'GT'.padEnd(4) + 'R2 shipped'.padEnd(12) + 'R2 p'.padEnd(11) +
+              'R4 p'.padEnd(11) + 'R4'.padEnd(10) + 'union'.padEnd(10) + 'scale'.padEnd(8) +
+              'tier R2'.padEnd(9) + 'tier union');
+  console.log('  ' + '-'.repeat(126));
+  const moved = [];
+  for (const file of files) {
+    const base = readFixture(file);
+    const assay = EXPECTED[file].assay;
+    const vst = detectVST(base.matrix, assay);
+    const results = await runFullAnalysis(base.matrix, base.rawMatrix, base.condCtx, assay, null, vst,
+      { isPivoted: false }, ASSAY_DATATYPE_MAP[assay] || 'continuous', 'ordered');
+    const shipped = results.find(r => r.name === 'Autocorrelation');
+    if (!shipped) continue;
+    if (shipped.flag === 'N/A') {
+      console.log('  ' + file.padEnd(42) + String(EXPECTED[file].severity).padEnd(4) + 'N/A');
+      continue;
+    }
+    const eff = applyVST(base.matrix, vst?.transform || 'raw') || base.matrix;
+    const useAgg = base.condCtx.type === 'column-grouped' && base.condCtx.count >= 2;
+    let seed = 0xBEEF;
+    const infls = [];
+    const r4fn = (m, cc) => {
+      const b = testAutocorrelation(m, cc);
+      if (b.flag === 'N/A') return b;
+      const q = fam(m);
+      if (!q) return b;
+      const sc = scale(m, PIN, mulberry32(seed++));
+      if (!sc) return b;
+      infls.push(sc.infl);
+      const p4 = twoSided(q.m / (q.se * sc.infl), q.k - 1);
+      const gate = m.length >= 500 && Math.abs(q.m) < EFFECT_SIZE.AUTOCORR_STRONG;
+      const pf = gate ? 1 : p4;
+      return { ...b, primaryP: pf, flag: flagFromP(pf) };
+    };
+    const r4res = useAgg
+      ? await aggregatePerGroup(r4fn, base.condCtx.withMatrix(eff).slices(), null)
+      : r4fn(eff, null);
+    const combFlag = RANK[r4res.flag] > RANK[shipped.flag] ? r4res.flag : shipped.flag;
+
+    const tierOf = (flag) => computeSeverity(results.map(r => r.name === 'Autocorrelation' ? { ...r, flag } : r)).severity;
+    const tR2 = tierOf(shipped.flag), tC = tierOf(combFlag);
+    if (tR2 !== tC) moved.push(`${file} ${tR2} -> ${tC}`);
+
+    console.log('  ' + file.padEnd(42) + String(EXPECTED[file].severity).padEnd(4) +
+      shipped.flag.padEnd(12) + num(shipped.primaryP).toPrecision(3).padEnd(11) +
+      num(r4res.primaryP).toPrecision(3).padEnd(11) + r4res.flag.padEnd(10) +
+      combFlag.padEnd(10) + (infls.length ? mean(infls).toFixed(2) : '-').padEnd(8) +
+      String(tR2).padEnd(9) + String(tC));
+  }
+  console.log(`\n  Outcome tiers that move under the union: ${moved.length ? moved.join('; ') : 'none'}`);
+  console.log(`  The tier R2 column is the engine's own severity with the shipped Autocorrelation flag, so it`);
+  console.log(`  reproduces the batch's expected severity wherever Autocorrelation is not the sole driver.`);
+  console.log(`  On the aggregate path the two p columns are the worst group's primaryP, while the flag beside`);
+  console.log(`  them also carries the Fisher combination across conditions — read the flag, not the p, there.`);
+  console.log(`  Route 4 needs at least two pairs, so it is undefined on the two-column vfs fixtures; those rows`);
+  console.log(`  carry Route 2's own p unchanged and are not a Route 4 measurement.`);
+  process.exit(0);
+}
+
+// ── Runs Test: the same sweep, if the scale estimate is affordable (--r4runs)
+// Autocorrelation is the deliverable. Runs has the same blind spot in principle,
+// so if its pooled-only scale estimate costs about what Autocorrelation's costs,
+// the same power sweep runs. If it does not, --r4cost reports the number and
+// this mode is not the answer — Runs then needs its own pass.
+//
+// Route 2 for Runs is the min per-pair BH-adjusted p, the same quantity its
+// shipped verdict reads. The windowed permutation scan is excluded: it is a
+// separate promotion channel with its own null, not part of the pooled-versus-
+// per-pair question, and including it would confound the comparison.
+//
+// Route 3 here rejects outside the null's own 0.5th and 99.5th percentiles
+// rather than on a symmetric critical value, because the Wald-Wolfowitz z has a
+// small-sample negative bias and its null does not centre on zero.
+if (process.argv.includes('--r4runs')) {
+  const { runsFam, scale, twoSided } = _R4;
+  const RUNS = Number(process.env.RUNS) || 600;
+  const N = Number(process.env.N) || 200;
+  const PIN = Number(process.env.PIN) || 100;
+  const NULLSIM = Number(process.env.NULLSIM) || 10000;
+  const CS = (process.env.CS || '8,18').split(',').map(Number);
+  const RHOS = (process.env.RHOS || '0,0.06,0.08,0.10,0.14,0.18,0.25').split(',').map(Number);
+  const A = 0.01, AH = 0.005;
+  console.log(`### Runs Test — same construction, same effect sizes. N=${N}, ${RUNS} runs per cell,`);
+  console.log(`    scale from ${PIN} shuffles, Route 3 percentiles from ${NULLSIM} null draws.\n`);
+  for (const C of CS) {
+    const build = (rho, nrm) => _colsToMatrix(Array.from({ length: C }, () => _arCol(N, rho, nrm)));
+    const nrm0 = _normal(mulberry32(41 + C));
+    const nullPooled = [];
+    for (let i = 0; i < NULLSIM; i++) { const q = runsFam(build(0, nrm0)); if (q) nullPooled.push(q.m); }
+    nullPooled.sort((a, b) => a - b);
+    const lo = quant(nullPooled, 0.005), hi = quant(nullPooled, 0.995);
+    console.log(`  C = ${C} columns, ${C * (C - 1) / 2} pairs.  Route 3 rejects pooled mean z outside ` +
+                `[${lo.toFixed(4)}, ${hi.toFixed(4)}]  (null centres at ${mean(nullPooled).toFixed(4)}, not 0)`);
+    console.log('  ' + 'rho'.padEnd(7) + 'mean z'.padEnd(11) + 'R2'.padEnd(9) + 'R3'.padEnd(9) + 'R4'.padEnd(9) +
+                'R2 or R4'.padEnd(11) + 'both at a/2'.padEnd(13) + 'scale mean'.padEnd(12) + 'scale sd');
+    console.log('  ' + '-'.repeat(96));
+    for (const rho of RHOS) {
+      const nrm = _normal(mulberry32(0xD00D + C * 7919 + Math.round(rho * 1000)));
+      const rnd = mulberry32(0xFACE + C * 104729 + Math.round(rho * 1000));
+      let r2 = 0, r3 = 0, r4 = 0, un = 0, unH = 0, ran = 0, zAcc = 0;
+      const infls = [];
+      for (let run = 0; run < RUNS; run++) {
+        const m = build(rho, nrm);
+        const q = runsFam(m);
+        if (!q) continue;
+        const sc = scale(m, PIN, rnd, runsFam);
+        if (!sc) continue;
+        ran++;
+        infls.push(sc.infl);
+        zAcc += q.m;
+        const p4 = twoSided(q.m / (q.se * sc.infl), q.k - 1);
+        const h2 = q.minAdj < A, h3 = q.m < lo || q.m > hi, h4 = p4 < A;
+        if (h2) r2++;
+        if (h3) r3++;
+        if (h4) r4++;
+        if (h2 || h4) un++;
+        if (q.minAdj < AH || p4 < AH) unH++;
+      }
+      const p = (x) => `${(100 * x / ran).toFixed(1)}%`;
+      console.log('  ' + rho.toFixed(2).padEnd(7) + (zAcc / ran).toFixed(4).padEnd(11) +
+        p(r2).padEnd(9) + p(r3).padEnd(9) + p(r4).padEnd(9) + p(un).padEnd(11) + p(unH).padEnd(13) +
+        mean(infls).toFixed(3).padEnd(12) + sd(infls).toFixed(3));
+    }
+    console.log('');
+  }
+  process.exit(0);
+}
+
+
 console.log(`Autocorrelation calibration probe — ${N_PERM} iterations per file\n`);
 
 const TARGETS = [
