@@ -1,6 +1,6 @@
 # Check My Data — Investigation Display UI Specification
 
-**Version:** 7.7 (Chat S336 — section 5 not-applicable surface, shared cause plus per-test tail, computed category span; S324 not-applicable surface; S323 coverage vocabulary; S213 single severity scale + plot colour-semantics reference; S211 composition rollout)
+**Version:** 7.8 (Chat S337 — §4 owns the coverage pointer, shared cause for the too-few-columns family, two block orderings recorded; S336 section 5 not-applicable surface, shared cause plus per-test tail, computed category span; S324 not-applicable surface; S323 coverage vocabulary; S213 single severity scale + plot colour-semantics reference; S211 composition rollout)
 **Status:** QC mode ✅ (Code S21). Forensics mode ✅ (Code S25+S69+S71, S156+S157 chrome lock). Peer review mode ✅ (Code S70+S71). Coverage vocabulary § — shipped S323. Not-applicable surface § — moved from §3 to §5 at S334, reason composition rebuilt S335 (main `e8b1ad6`), verified on screen across three shapes; export paths still not verified.
 
 This document is the authoritative reference for how Check My Data presents analysis results across three modes. It covers:
@@ -1796,6 +1796,13 @@ fallback shape on DS09, and a file where the cause branch never fires on DS01. T
 and the clipboard summary are still unverified. Where this section and the build disagree, read
 the build and amend this.
 
+**Extended at S337** (`995adeb`, `84e6285`). The two Benford span strings split at the full stop.
+Seventeen sites that reported too few columns reduced to one shared cause plus a tail each, with
+Missing Data Pattern given its own cause and Baseline Balance held out. Both changes confirmed on
+screen. The shared cause carries **no number**, because minimums differ across its members — two,
+three and five — and a number in the shared sentence would split the group it exists to create.
+The number sits in the tail.
+
 The coverage vocabulary section above governs what the tool may claim about what it examined.
 This section governs where a test that did not run is shown, and what it says there.
 
@@ -1813,11 +1820,16 @@ before routing results into it.
 
 ### Where it sits — §5, not §3
 
-The surface lives in **section 5**. Section 3 carries a pointer to it and nothing more; the
-in-cluster expandable that S324 built was removed at S334.
+The surface lives in **section 5**. The in-cluster expandable that S324 built was removed at S334.
 
-> **Confirm the pointer's exact wording against the build before treating this line as final.**
-> It is the one string in this section not read at source.
+**Section 3 carries no pointer to it.** Read at source at S337: the only reference to §5 anywhere in
+§3 is a source comment. The live pointer belongs to **section 4**, at `ReportView.jsx:1453-1455`:
+
+> {N} tests were not run — see Test coverage below for why.
+
+It names the section by title rather than by number, so it survives renumbering. Earlier drafts of
+this document attributed the pointer to §3 and flagged the wording as unread. The wording is now
+read; the attribution was never true.
 
 The move settled a question §3 could not. Inside a cluster the reasons competed with results for
 the same reading; in §5 they sit under methodology, where a reader who wants them goes looking and
@@ -1928,8 +1940,17 @@ and falls through to its own branch. No ordering ambiguity.
 - **Some reasons were never written to be read.** The surface now exposes pre-existing engine
   strings drafted when nobody expected a user to see them. "Need ≥60 complete rows per condition
   (have 50 total rows across conditions)" is more terse and more technical than the four written
-  at S324, though it carries a specific number, which is more useful than a general statement. A
-  sweep is due.
+  at S324, though it carries a specific number, which is more useful than a general statement.
+  **S337 swept the largest family** — the seventeen too-few-columns sites — and the Benford span
+  pair. The notation half of the sweep is still due: 41 user-facing strings across 23 files carry
+  `≥`, and S337 converted seventeen and left the rest, so §5 now shows both registers on one
+  screen. Partial conversion of a register reads worse than uniform wrong notation.
+- **Two block orderings coexist in one cluster.** A shared cause **with** tails leads with the
+  cause and indents the tests beneath it. A shared cause **without** tails lists the test names
+  first and puts the reason underneath. Both are defensible alone. Adjacent — and after S337 they
+  are adjacent on `vfs-a-pigeonhole-clear` — they read as two conventions rather than one. Seen on
+  screen at S337 and unsettled. The fix is a rule stating which ordering governs, not a change to
+  either shape in isolation.
 - **"Missing rate 0.0% is below 1% threshold" reads oddly here.** That describes a clean dataset
   with nothing to analyse. Classifying it not-applicable is defensible, but under a heading about
   what the tool could not do it reads as a limitation rather than a pass.
