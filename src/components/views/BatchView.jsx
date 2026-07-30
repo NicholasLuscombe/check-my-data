@@ -159,6 +159,33 @@ export function BatchView({ onBack }) {
 
         const vst=detectVST(matrix,assay);
 
+        // Provenance of the four import settings the report banner names. One
+        // of three states: 'auto' (something computed the value from the data),
+        // 'user-set' (a human answered), 'assumed' (a default supplied it —
+        // nothing computed it and nobody chose it).
+        //
+        // Batch mode is unattended, so 'user-set' is unreachable here. Before
+        // this, three flags were written as `true` and row order was written
+        // null whenever the suggest helper did not resolve, which the banner
+        // read as "(user-set)" — telling the reader they had answered a
+        // question this screen never asks. Every value below is derived from
+        // what actually resolved it; none is asserted.
+        const provenance = {
+          // batchColRel above is a literal. No column-relationship detector
+          // exists in src/, and batch mode has no gate to ask on.
+          cols: 'assumed',
+          // 'auto' where the suggest helper resolved a value; 'assumed' where
+          // the `|| 'ordered'` fallback on batchRowSem supplied it.
+          rows: rsSuggestion.value ? 'auto' : 'assumed',
+          // 'auto' where detectAssay returned a usable result; 'assumed' where
+          // it returned null and the assay fell back to "general".
+          assay: detected ? 'auto' : 'assumed',
+          // detectVST always returns a decision object and nothing on this path
+          // can override it, so the applied transform is always a detection.
+          // Derived anyway, so it stops being a claim the code cannot check.
+          transform: vst ? 'auto' : 'assumed',
+        };
+
         // Run analysis
         const testResults=await runFullAnalysis(matrix,rawMatrix,condCtx,assay,null,vst,{isPivoted:!!(config&&config.isPivoted)},config?.dataType||'continuous',batchRowSem);
 
@@ -175,11 +202,12 @@ export function BatchView({ onBack }) {
           vstFull:vst||null,
           assay,
           zeroAsMissing,
+          colRelationship:batchColRel,
           rowSemantics:batchRowSem,
+          // Still the reason code the per-file pill reads below; it is no
+          // longer what the report banner's row-order tag keys on.
           rowSemanticsAuto:rsSuggestion.auto?rsSuggestion.reason:null,
-          assayAutoDetected:true,
-          colRelAutoSet:true,
-          vstAutoSet:true,
+          provenance,
           longFormatDetected:lfDetected,
           nRows:matrix.length,
           nCols:matrix[0]?.length||0,
@@ -265,11 +293,25 @@ export function BatchView({ onBack }) {
       data: r.data || null,
       roles: r.roles || [],
       hdrs: r.hdrs || [],
+      // The value the engine actually ran on. Omitting it made ReportView's
+      // "Columns" row read "replicates" by falling through a ternary rather
+      // than by reading anything.
+      colRelationship: r.colRelationship,
       rowSemantics: r.rowSemantics,
       rowSemanticsAuto: r.rowSemanticsAuto,
-      assayAutoDetected: r.assayAutoDetected,
-      colRelAutoSet: r.colRelAutoSet,
-      vstAutoSet: r.vstAutoSet,
+      // Replaces the three asserted booleans this object used to carry. The
+      // banner's tags read this. `colRelAutoSet` and `vstAutoSet` had no other
+      // consumer and are gone.
+      provenance: r.provenance,
+      // `assayAutoDetected` does have one: handoffModel.js:163 turns it into
+      // the "Measurement type: X (auto)" line in the section 4 prompt body.
+      // Derived, not asserted — but a boolean cannot carry 'assumed', so that
+      // line still reads "(auto)" on the files where detectAssay returned
+      // nothing and the assay fell back to "general". Only what this boolean
+      // can honestly express is claimed here: nobody chose the value. Closing
+      // the rest means teaching handoffModel and promptBodyRenderer the third
+      // state, which is a copy change and not this pass's.
+      assayAutoDetected: r.provenance?.assay !== 'user-set',
       longFormatDetected: r.longFormatDetected,
     };
     return <div><ReportView results={r.results} importConfig={batchImportConfig} matrix={r.matrix||null} rowMap={r.rowMap||null} onBack={()=>setSelectedIdx(null)} backLabel="Back to batch"/></div>;

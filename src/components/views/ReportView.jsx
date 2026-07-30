@@ -34,6 +34,11 @@ const lazyExportToExcel = async (opts) => {
 
 const SEV_COLORS={3:SEV_VERDICT[3].color,2:SEV_VERDICT[2].color,1:SEV_VERDICT[1].color,0:SEV_VERDICT[0].color,"SKIP":ROLES.condition.color,"ERROR":SIGNAL.RED.dot};
 
+// The three provenance states a verdict-banner setting can carry. See the
+// dataProfile comment for which surface supplies which. An unrecognised value
+// falls through to the boolean path rather than rendering a fourth word.
+const PROV_TAG = { auto: "(auto)", "user-set": "(user-set)", assumed: "(assumed)" };
+
 /* ── S334 — section-5 "Which tests ran, and why" ──────────────────────────
    Grouped reasons view. Per cluster: a ran-line, then the declined tests grouped
    by shared reason (groupNotApplicableByReason), then an errored group
@@ -869,15 +874,29 @@ export function ReportView({ results: baseResults, importConfig, matrix, rowMap,
   // condition names — datasets without condition columns drop to a
   // 2-row identity block.
   //
-  // Provenance tags `(user-set)` / `(auto)` reflect actual plumbing.
-  // Four importConfig boolean fields are threaded by
-  // ImportView.handleProceed (ImportView.jsx:440) and by BatchView
-  // per-result rows: `assayAutoDetected` (Measurement type identity
-  // row), `colRelAutoSet` (Columns settings row), `rowSemanticsAuto`
-  // (Row order settings row), `vstAutoSet` (Transform settings row).
-  // Truthy → "(auto)", otherwise → "(user-set)". S153 A4 closed the
-  // parked-#13 plumbing gap; BatchView path retains its
-  // `rowSemanticsAuto` write at BatchView.jsx:179.
+  // Provenance tags say how each of the four settings was arrived at. Three
+  // states, not two: `(auto)` means something computed the value from the
+  // data, `(user-set)` means a human answered, `(assumed)` means a default
+  // supplied it — nothing computed it and nobody chose it.
+  //
+  // A surface that knows which of the three applies sends an
+  // `importConfig.provenance` object keyed `cols` / `rows` / `assay` /
+  // `transform`; the batch screen is the one that does, because it answers
+  // both import gates itself and needs to say so. When the object is absent
+  // the older boolean pair decides, which is how the single-file path still
+  // resolves: it blocks Run until both gates are answered, so every value
+  // there is genuinely computed or chosen and two states are enough.
+  // ImportView.handleProceed threads those booleans — `assayAutoDetected`
+  // (Measurement type), `colRelAutoSet` (Columns), `rowSemanticsAuto`
+  // (Row order), `vstAutoSet` (Transform); truthy → "(auto)", else
+  // "(user-set)". Do not collapse the two paths back into one boolean: it
+  // cannot express a default, and reading a default as "(user-set)" tells the
+  // reader they answered something they were never asked.
+  //
+  // STATUS parked #13 (provenance plumbing) covered this. The batch half is
+  // closed here; the single-file half still has one gap of its own, because a
+  // user who leaves the assay dropdown alone after detectAssay found nothing
+  // gets "(user-set)" on a value nothing set.
   const dataProfile = (() => {
     const s = importConfig.summary;
     const precKeys = s ? Object.keys(s.prec).map(Number).sort((a,b)=>a-b) : [];
@@ -891,13 +910,17 @@ export function ReportView({ results: baseResults, importConfig, matrix, rowMap,
       ? "conditions"
       : "replicates";
 
+    // One tag per setting. `provenance` wins where a surface supplies it;
+    // otherwise the boolean the single-file path already sets decides, so that
+    // path renders exactly as before.
+    const provTag = (key, legacyAuto) =>
+      PROV_TAG[importConfig.provenance?.[key]] || (legacyAuto ? "(auto)" : "(user-set)");
+
     // S138-fix1: settings carries `{ label, value }` pairs so the right
-    // column mirrors the identity-row paired-fact split. Provenance tag
-    // (user-set / auto) on Row order preserves S133h hard-coding —
-    // STATUS parked #13 (provenance plumbing) is the real fix.
+    // column mirrors the identity-row paired-fact split.
     let rowsPair = null;
     if (importConfig.rowSemantics) {
-      const tag = importConfig.rowSemanticsAuto ? "(auto)" : "(user-set)";
+      const tag = provTag('rows', importConfig.rowSemanticsAuto);
       rowsPair = { label: "Row order", value: `${importConfig.rowSemantics} ${tag}` };
     }
 
@@ -906,16 +929,18 @@ export function ReportView({ results: baseResults, importConfig, matrix, rowMap,
                           : tf && tf !== 'raw'  ? "Anscombe"
                           : "raw";
 
-    const colsTag = importConfig.colRelAutoSet ? "(auto)" : "(user-set)";
-    const transformTag = importConfig.vstAutoSet ? "(auto)" : "(user-set)";
-    const assayTag = importConfig.assayAutoDetected ? "(auto)" : "(user-set)";
+    const colsTag = provTag('cols', importConfig.colRelAutoSet);
+    const transformTag = provTag('transform', importConfig.vstAutoSet);
+    const assayTag = provTag('assay', importConfig.assayAutoDetected);
 
     const settings = [{ label: "Columns", value: `${colsValue} ${colsTag}` }];
     if (rowsPair) settings.push(rowsPair);
-    settings.push(
-      { label: "Transform", value: `${transformValue} ${transformTag}` },
-      { label: "Precision", value: precValue },
-    );
+    settings.push({ label: "Transform", value: `${transformValue} ${transformTag}` });
+    // No summary means nothing measured the precision. The row used to read
+    // "integer" in that case, which is the empty-precKeys fallback showing
+    // through as a finding — it claimed a measurement that never ran. An
+    // absent row says nothing; a row saying "integer" says something false.
+    if (s) settings.push({ label: "Precision", value: precValue });
 
     const identityRows = [
       ["Measurement type", `${assayLabel} ${assayTag}`],
@@ -991,17 +1016,25 @@ export function ReportView({ results: baseResults, importConfig, matrix, rowMap,
       </AsideCallout>
 
       {/* Replicate-structure advisory: when many ungrouped columns are treated as replicates
-          AND user has not explicitly classified them via the column relationship gate,
-          warn that tests assume columns are replicates. Suppressed when colRelationship
-          was explicitly set (user made an informed choice). S137 (Phase C.1):
+          AND nobody answered the column-relationship gate, warn that tests assume columns
+          are replicates. Suppressed when a human made that choice. S137 (Phase C.1):
           status/warning aside-callout. S161 (A1.D2) → AsideCallout extraction; body
-          register unchanged. */}
+          register unchanged.
+
+          `answeredByUser` tests PROVENANCE, not presence, and the distinction is
+          load-bearing. It used to read the value itself, so any surface that
+          carried a column relationship counted as having chosen one. The batch
+          screen now carries the value it actually ran on, and the batch screen
+          never asks — so a presence test would suppress this advisory on exactly
+          the surface where nothing answered the question. */}
       {(() => {
         const nDC = nCols;
         const hasConds = importConfig.condPerCol?.some(c=>c) || false;
-        const userChose = importConfig.colRelationship; // explicit choice via gate
-        if(userChose === 'conditions') return null; // conditions mode — note not needed
-        if(nDC > 6 && !hasConds && !userChose) return (
+        const answeredByUser = importConfig.provenance
+          ? importConfig.provenance.cols === 'user-set'
+          : !!importConfig.colRelationship;
+        if(importConfig.colRelationship === 'conditions') return null; // conditions mode — note not needed
+        if(nDC > 6 && !hasConds && !answeredByUser) return (
           <AsideCallout tone="warn" strongLabel="⚠ Column structure note">
             All {nDC} data columns are being treated as replicates of a single condition.
             If these are different biological samples, conditions, or time points, structural tests
