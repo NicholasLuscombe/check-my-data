@@ -114,14 +114,22 @@ function arms(r) {
   const worstRank = Math.max(...groups.map(d => RANK[d.flag] ?? 0));
   const fp = num(r.fisherP);
   const fisherFlag = Number.isFinite(fp) ? flagFromP(fp) : 'LOW';
+  // The corrected worst-group arm. `multiplicityCorrected` says whether the
+  // layer's purity check passed on this call; when it did not, the corrected arm
+  // IS the raw arm, so the two columns coincide and that is the honest reading.
+  const corrRank = r.multiplicityCorrected
+    ? RANK[flagFromP(num(r.groupMinPAdj))]
+    : worstRank;
   return {
     nGroups: groups.length,
     groupHits: groups.filter(d => RANK[d.flag] >= 2).length,
     worstHit: worstRank >= 2,
+    corrHit: corrRank >= 2,
     fisherHit: RANK[fisherFlag] >= 2,
     aggHit: RANK[r.flag] >= 2,
-    consistent: RANK[r.flag] === Math.max(RANK[fisherFlag], worstRank),
+    consistent: RANK[r.flag] === Math.max(RANK[fisherFlag], corrRank),
     fisherUsed: Number.isFinite(fp) && fp < 1,
+    corrected: !!r.multiplicityCorrected,
   };
 }
 
@@ -273,6 +281,72 @@ if (process.argv.includes('--null')) {
   process.exit(0);
 }
 
+// ── The purity check (--purity) ───────────────────────────────────────────
+// A multiplicity correction re-derives a flag from a p-value, so it is only
+// safe where the flag is already a function of that p. Autocorrelation's is not:
+//   flag = max(pairPromoted, esGate ? LOW : flagFromP(minAdjP))
+// so both the pair promotion and the effect-size gate bypass `primaryP`.
+// Substituting a p-derived flag there would silently drop them.
+//
+// Purity is a property of the test function, not of the layer, so it is measured
+// on the POOLED path — where `runFullAnalysis` returns the test's own single
+// result carrying both `flag` and `primaryP` — and read across to the per-group
+// path, where the same function runs on a sub-matrix. Aggregated results are
+// skipped: their `flag` is the aggregate and their `primaryP` is the worst
+// group's, so comparing the two says nothing about the test.
+//
+// Measured across permutation draws, not read off one, because a test with a
+// promotion path can agree on any single dataset by coincidence.
+if (process.argv.includes('--purity')) {
+  const NDRAW = Number(process.env.NDRAW) || 20;
+  const files = (process.env.FILES || '05-cellcount-clean.csv,07-elisa-clean.csv,08-elisa-fabricated.csv,' +
+    '13-vfstest-cellcountest.csv,23-recurrence-null-mixed.csv,09-proteomics-clean.csv,' +
+    '20-bimodal-fab.csv,12b-uniform-mixture-fabricated.csv').split(',');
+  console.log(`### Purity — does each test's own flag equal flagFromP(primaryP)?  ${NDRAW} draws per fixture\n`);
+  const acc = new Map();
+  for (const file of files) {
+    const base = readFixture(file);
+    const assay = EXPECTED[file].assay;
+    const rnd = mulberry32(0xC0FFEE);
+    for (let d = 0; d <= NDRAW; d++) {
+      const perm = d === 0 ? base.matrix.map((_, i) => i) : permutation(base.matrix.length, rnd);
+      const m = perm.map(i => base.matrix[i]);
+      const rm = perm.map(i => base.rawMatrix[i]);
+      const res = await analyse(base, assay, m, rm, base.condCtx.withMatrix(m));
+      for (const r of res) {
+        if (r.groupsAssessed !== undefined) continue;      // aggregate, not the test's own verdict
+        if (!r.flag || r.flag === 'N/A') continue;
+        const p = num(r.primaryP);
+        if (!Number.isFinite(p)) continue;
+        if (!acc.has(r.name)) acc.set(r.name, { n: 0, ok: 0, up: 0, down: 0, ex: [] });
+        const a = acc.get(r.name);
+        a.n++;
+        const want = flagFromP(p);
+        if (want === r.flag) { a.ok++; continue; }
+        if (RANK[r.flag] > RANK[want]) a.up++; else a.down++;
+        if (a.ex.length < 3) a.ex.push(`${file.replace(/-.*/, '')} flag=${r.flag} flagFromP(${p.toPrecision(3)})=${want}`);
+      }
+    }
+  }
+  const LAYER = new Set(['Autocorrelation', 'Exact Duplicate Detection', 'Excess Kurtosis',
+    'LOESS Residual Analysis', 'Mahalanobis Row Outlier', 'Regional Noise Homogeneity', 'Runs Test',
+    'Selective Noise Partitioning', 'Windowed Autocorrelation', 'Entropy / Zipf Analysis',
+    'Column Goodness-of-Fit', 'Modality Test']);
+  console.log('  ' + 'test'.padEnd(32) + 'on layer'.padEnd(10) + 'checks'.padEnd(9) + 'agree'.padEnd(10) +
+              'flag above p'.padEnd(14) + 'flag below p'.padEnd(14) + 'verdict');
+  console.log('  ' + '-'.repeat(120));
+  for (const [name, a] of [...acc].sort()) {
+    console.log('  ' + name.padEnd(32) + (LAYER.has(name) ? 'yes' : 'no').padEnd(10) + String(a.n).padEnd(9) +
+      `${(100 * a.ok / a.n).toFixed(1)}%`.padEnd(10) + String(a.up).padEnd(14) + String(a.down).padEnd(14) +
+      (a.ok === a.n ? 'PURE' : 'IMPURE'));
+  }
+  console.log('\n  Disagreement examples (first three per impure test):');
+  for (const [name, a] of [...acc].sort()) if (a.ex.length) console.log(`    ${name}: ${a.ex.join(' | ')}`);
+  console.log('\n  "flag above p" means the test promoted past what its p says — a promotion path.');
+  console.log('  "flag below p" means the test suppressed what its p says — a gate.');
+  process.exit(0);
+}
+
 // ── Parts 3 and 5: the layer's contribution, arm by arm (--layer) ─────────
 // PASS CONDITION, stated before running. The layer is sound if the aggregate
 // rate is at most about 1.2 times one group's own rate — the aggregation adding
@@ -295,8 +369,9 @@ if (process.argv.includes('--layer')) {
   console.log('  Rates are MODERATE-or-higher. "per group" counts over draws x groups; every other column');
   console.log('  counts over draws. "ratio" is aggregate over per group — the layer\'s contribution.\n');
   console.log('  ' + 'fixture'.padEnd(43) + 'test'.padEnd(28) + 'grps'.padEnd(6) +
-              'per group'.padEnd(11) + 'worst arm'.padEnd(11) + 'Fisher arm'.padEnd(12) +
-              'aggregate'.padEnd(11) + 'ratio'.padEnd(8) + 'distinct'.padEnd(10) + 'arms agree');
+              'per group'.padEnd(11) + 'worst raw'.padEnd(11) + 'worst corr'.padEnd(12) +
+              'Fisher arm'.padEnd(12) + 'aggregate'.padEnd(11) + 'ratio'.padEnd(8) +
+              'corrected'.padEnd(11) + 'distinct'.padEnd(10) + 'arms agree');
   console.log('  ' + '-'.repeat(128));
 
   for (const file of files) {
@@ -320,19 +395,22 @@ if (process.argv.includes('--layer')) {
         s.n++; s.gu += a.nGroups; s.gh += a.groupHits; s.ng = a.nGroups;
         s.seen.add(`${r.flag}|${num(r.primaryP)}`);
         if (a.worstHit) s.w++;
+        if (a.corrHit) s.c = (s.c || 0) + 1;
         if (a.fisherHit) s.f++;
         if (a.aggHit) s.ag++;
         if (!a.consistent) s.bad++;
         if (a.fisherUsed) s.fu++;
+        if (a.corrected) s.cor = (s.cor || 0) + 1;
       }
     }
     const secs = (Date.now() - t0) / 1000;
     for (const [name, s] of [...acc].sort()) {
       const pg = s.gh / s.gu, ag = s.ag / s.n;
       console.log('  ' + file.replace('.csv', '').padEnd(43) + name.padEnd(28) + String(s.ng).padEnd(6) +
-        pct(s.gh, s.gu).padEnd(11) + pct(s.w, s.n).padEnd(11) +
+        pct(s.gh, s.gu).padEnd(11) + pct(s.w, s.n).padEnd(11) + pct(s.c || 0, s.n).padEnd(12) +
         (s.fu ? pct(s.f, s.n) : 'not used').padEnd(12) + pct(s.ag, s.n).padEnd(11) +
         (pg > 0 ? `${(ag / pg).toFixed(2)}x` : '-').padEnd(8) +
+        pct(s.cor || 0, s.n).padEnd(11) +
         (s.seen.size === 1 ? 'INERT' : String(s.seen.size)).padEnd(10) +
         (s.bad ? `*** ${s.bad}/${s.n} MISREAD ***` : 'yes'));
     }
@@ -364,8 +442,8 @@ if (process.argv.includes('--groupcount')) {
   console.log(`    ${PCAL} whole-matrix row permutations per matrix; ${NROWS} rows, ${REPS_PER_GROUP} replicates per condition.`);
   console.log(`    Synthetic, because every column-grouped fixture in the suite has exactly three conditions.\n`);
   console.log('  ' + 'G'.padEnd(4) + 'cols'.padEnd(6) + 'test'.padEnd(28) + 'per group'.padEnd(11) +
-              'worst arm'.padEnd(11) + 'Fisher arm'.padEnd(12) + 'aggregate'.padEnd(11) +
-              'ratio'.padEnd(8) + '1-(1-p)^G'.padEnd(11) + 'arms agree');
+              'worst raw'.padEnd(11) + 'worst corr'.padEnd(12) + 'Fisher arm'.padEnd(12) +
+              'aggregate'.padEnd(11) + 'ratio'.padEnd(8) + '1-(1-p)^G'.padEnd(11) + 'arms agree');
   console.log('  ' + '-'.repeat(132));
 
   for (const G of GS) {
@@ -417,6 +495,7 @@ if (process.argv.includes('--groupcount')) {
         const s = acc.get(r.name);
         s.n++; s.gu += a.nGroups; s.gh += a.groupHits;
         if (a.worstHit) s.w++;
+        if (a.corrHit) s.c = (s.c || 0) + 1;
         if (a.fisherHit) s.f++;
         if (a.aggHit) s.ag++;
         if (!a.consistent) s.bad++;
@@ -427,7 +506,7 @@ if (process.argv.includes('--groupcount')) {
       const pg = s.gh / s.gu, ag = s.ag / s.n;
       const indep = 1 - Math.pow(1 - pg, G);
       console.log('  ' + String(G).padEnd(4) + String(nC).padEnd(6) + name.padEnd(28) +
-        pct(s.gh, s.gu).padEnd(11) + pct(s.w, s.n).padEnd(11) +
+        pct(s.gh, s.gu).padEnd(11) + pct(s.w, s.n).padEnd(11) + pct(s.c || 0, s.n).padEnd(12) +
         (s.fu ? pct(s.f, s.n) : 'not used').padEnd(12) + pct(s.ag, s.n).padEnd(11) +
         (pg > 0 ? `${(ag / pg).toFixed(2)}x` : '-').padEnd(8) +
         `${(100 * indep).toFixed(2)}%`.padEnd(11) +
