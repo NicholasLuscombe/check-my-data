@@ -916,9 +916,17 @@ function autocorrelation(r /*, ctx */) {
   const higherLagWasDecisive = !!r.higherLagWasDecisive;
 
   const evidenceLines = [];
+  // S339: the verdict comes from the per-pair family, so the deciding value
+  // leads and the pooled figures are marked as context. Without that mark a
+  // reader checking the pooled p against the stated alpha reads a significant
+  // number beside a LOW verdict and concludes the tool is miscalibrated.
+  // `minAdjPairR1` is the producer's emit, not read off `details`, which
+  // truncates at 15 and drops the driving pair on wide matrices.
   evidenceLines.push(
-    `Pooled lag-1 r = ${pooledR1} across ${nPairs} replicate ${pl(nPairs, "pair")} (t = ${pooledT}, ${formatPClause("p", pooledP)}); ` +
-    `${nSig} of ${nPairs} ${pl(nPairs, "pair")} reach BH-FDR adjusted significance at lag 1.`
+    `Strongest pair after adjustment: ${formatPClause("p", r.minAdjP)} (lag-1 r = ${r.minAdjPairR1}). ` +
+    `${nSig} of ${nPairs} ${pl(nPairs, "pair")} reach adjusted significance. ` +
+    `Mean lag-1 r across all ${nPairs} ${pl(nPairs, "pair")} = ${pooledR1} ` +
+    `(pooled t = ${pooledT}, ${formatPClause("p", pooledP)}) — context only; the verdict comes from the per-pair result above.`
   );
   if (higherLagPromoted && lagTable.length > 0) {
     const promoted = lagTable.filter(l => l.isPromotionTrigger);
