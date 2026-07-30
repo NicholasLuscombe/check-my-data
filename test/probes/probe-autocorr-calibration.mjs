@@ -371,6 +371,202 @@ if (process.argv.includes('--cal2')) {
   process.exit(0);
 }
 
+// ── Per-pair calibration (--perpair) ───────────────────────────────────────
+// Route 2 reads per-unit p, so if the per-PAIR test is itself off-nominal
+// Route 2 inherits a floor on every file, not only narrow ones. Measures the
+// per-pair two-sided p directly under the row shuffle.
+//
+// This calls testAutocorrelation on the whole matrix rather than through the
+// per-condition dispatch, because the quantity under test is the pair statistic
+// itself, not how pairs are grouped. Details are complete at 15 pairs or fewer;
+// wider matrices are marked and their pairs are a truncated sample.
+//
+// A -1/n estimator bias predicts a rate barely above nominal: the pooled z
+// carries a mean shift of -1/sqrt(n), giving about 1.0-1.1% at these row
+// counts. The predicted column below is that arithmetic, printed alongside.
+if (process.argv.includes('--perpair')) {
+  const { EXPECTED } = await import(B + 'test/batch-fixtures.mjs');
+  const P = Number(process.env.P) || 500;
+  const files = readdirSync(FIX).filter(f => f.endsWith('.csv') && EXPECTED[f]).sort();
+  // Standard normal CDF via erf approximation (Abramowitz & Stegun 7.1.26).
+  const Phi = z => { const t = 1/(1+0.2316419*Math.abs(z));
+    const d = 0.3989423*Math.exp(-z*z/2);
+    const p = d*t*(0.3193815+t*(-0.3565638+t*(1.781478+t*(-1.821256+t*1.330274))));
+    return z > 0 ? 1-p : p; };
+  console.log(`### Per-pair two-sided p under the row shuffle, P = ${P}\n`);
+  console.log('  ' + 'fixture'.padEnd(36) + 'rows'.padEnd(7) + 'pairs'.padEnd(8) +
+              'p<0.01'.padEnd(9) + 'predicted'.padEnd(11) + 'p<0.001'.padEnd(10) + 'complete?');
+  console.log('  ' + '-'.repeat(100));
+  const rows = [];
+  for (const file of files) {
+    const { matrix } = readFixture(file);
+    const assay = EXPECTED[file]?.assay || 'general';
+    const eff = applyVST(matrix, detectVST(matrix, assay)?.transform || 'raw') || matrix;
+    const n = eff.length, nc = eff[0]?.length || 0;
+    if (nc < 2 || n < 10) continue;
+    const nPairs = nc*(nc-1)/2;
+    const rnd = mulberry32(0xC0FFEE);
+    let tot = 0, lt01 = 0, lt001 = 0;
+    for (let k = 0; k < P; k++) {
+      const perm = permutation(n, rnd);
+      const r = testAutocorrelation(perm.map(i => eff[i]), null);
+      for (const d of (r.details || [])) {
+        const pv = Number(d.rawP);
+        if (!Number.isFinite(pv)) continue;
+        tot++; if (pv < 0.01) lt01++; if (pv < 0.001) lt001++;
+      }
+    }
+    if (!tot) continue;
+    const mu = 1/Math.sqrt(n);           // magnitude of the -1/n-induced z shift
+    const pred = Phi(-2.5758 + mu) + (1 - Phi(2.5758 + mu));
+    rows.push({ file, n, nPairs, r01: lt01/tot, r001: lt001/tot, pred });
+    console.log('  ' + file.padEnd(36) + String(n).padEnd(7) + String(nPairs).padEnd(8) +
+      `${(100*lt01/tot).toFixed(2)}%`.padEnd(9) + `${(100*pred).toFixed(2)}%`.padEnd(11) +
+      `${(100*lt001/tot).toFixed(3)}%`.padEnd(10) + (nPairs <= 15 ? 'yes' : `no (15 of ${nPairs})`));
+  }
+  const w = rows.reduce((s,r)=>s+r.r01,0)/rows.length;
+  console.log(`\n  mean measured rate at p<0.01: ${(100*w).toFixed(2)}%  (nominal 1%)`);
+  console.log(`  mean predicted from -1/n bias : ${(100*rows.reduce((s,r)=>s+r.pred,0)/rows.length).toFixed(2)}%`);
+  const byN = rows.slice().sort((a,b)=>a.n-b.n);
+  console.log(`  smallest n (${byN[0].n} rows): ${(100*byN[0].r01).toFixed(2)}%   largest n (${byN[byN.length-1].n} rows): ${(100*byN[byN.length-1].r01).toFixed(2)}%`);
+  process.exit(0);
+}
+
+// ── Variance inflation across fixtures (--inflation) ───────────────────────
+// Route 4 keeps the pooled statistic and corrects its standard error. If the
+// inflation is predictable from column and pair count, Route 4 needs no
+// permutations at all. This measures it directly: the true spread of the pooled
+// mean over shuffles, against the SE the one-sample t assumes.
+//
+// A design effect for the mean of k units with average pairwise correlation
+// rho-bar is 1 + (k-1)*rho-bar, so the implied rho-bar is printed alongside. If
+// one rho-bar fits every fixture, a closed form exists.
+if (process.argv.includes('--inflation')) {
+  const { EXPECTED } = await import(B + 'test/batch-fixtures.mjs');
+  const P = Number(process.env.P) || 200;
+  const files = readdirSync(FIX).filter(f => f.endsWith('.csv') && EXPECTED[f]).sort();
+  console.log(`### Variance inflation of the pooled lag-1 mean, P = ${P} shuffles\n`);
+  console.log('  ' + 'fixture'.padEnd(36) + 'rows'.padEnd(7) + 'cols'.padEnd(6) + 'pairs k'.padEnd(9) +
+              'assumed SE'.padEnd(12) + 'true SE'.padEnd(11) + 'var infl'.padEnd(10) + 'implied rho-bar');
+  console.log('  ' + '-'.repeat(112));
+  const out = [];
+  for (const file of files) {
+    const { matrix } = readFixture(file);
+    const assay = EXPECTED[file]?.assay || 'general';
+    const eff = applyVST(matrix, detectVST(matrix, assay)?.transform || 'raw') || matrix;
+    const n = eff.length, nc = eff[0]?.length || 0;
+    if (nc < 3 || n < 10) continue;             // need >=2 pairs for a pooled t
+    const k = nc*(nc-1)/2;
+    const rnd = mulberry32(0xC0FFEE);
+    const means = [], ses = [];
+    for (let i = 0; i < P; i++) {
+      const perm = permutation(n, rnd);
+      const r = testAutocorrelation(perm.map(j => eff[j]), null);
+      const m = num(r.pooledMeanR1), se = num(r.pooledR1SE);
+      if (Number.isFinite(m)) means.push(m);
+      if (Number.isFinite(se) && se > 0) ses.push(se);
+    }
+    if (means.length < 10 || !ses.length) continue;
+    const trueSE = sd(means), assumedSE = mean(ses);
+    const infl = (trueSE/assumedSE)**2;
+    const rho = k > 1 ? (infl - 1)/(k - 1) : NaN;
+    out.push({ file, n, nc, k, infl, rho });
+    console.log('  ' + file.padEnd(36) + String(n).padEnd(7) + String(nc).padEnd(6) + String(k).padEnd(9) +
+      assumedSE.toFixed(5).padEnd(12) + trueSE.toFixed(5).padEnd(11) +
+      `${infl.toFixed(2)}x`.padEnd(10) + (Number.isFinite(rho) ? rho.toFixed(4) : '-'));
+  }
+  const rhos = out.map(o => o.rho).filter(Number.isFinite);
+  const lo = Math.min(...rhos), hi = Math.max(...rhos);
+  console.log(`\n  implied rho-bar spans ${lo.toFixed(4)} to ${hi.toFixed(4)} (ratio ${(hi/lo).toFixed(1)}x)`);
+  console.log(`  a single closed form in (cols, pairs) requires one rho-bar to fit all of them.`);
+  // Does inflation track k alone?
+  const byK = {};
+  for (const o of out) (byK[o.k] ||= []).push(o.infl);
+  console.log('\n  inflation grouped by pair count k:');
+  for (const kk of Object.keys(byK).sort((a,b)=>a-b)) {
+    const v = byK[kk];
+    console.log(`    k=${String(kk).padStart(3)}: ${v.map(x=>x.toFixed(2)+'x').join(', ')}`);
+  }
+  process.exit(0);
+}
+
+// ── Route 4: pooled statistic, empirically corrected SE (--route4) ─────────
+// Keeps the pooled statistic and rescales its standard error by an inflation
+// factor estimated from the row shuffle, instead of replacing the null with a
+// tail quantile. A scale needs ~100 shuffles where a p<0.001 quantile needs
+// ~10,000, which is the whole affordability argument.
+//
+// The inflation is a property of the dataset under the null, and shuffling IS
+// the null, so it is estimated once from the observed data and then applied.
+// That is what an implementation would do; it avoids nesting shuffles.
+//
+// SE only. The pooled mean also carries the -1/n estimator bias, which this
+// does NOT correct — measured separately by --perpair and left alone here.
+if (process.argv.includes('--route4')) {
+  const { flagFromP } = await import(B + 'src/constants/thresholds.js');
+  const { EXPECTED } = await import(B + 'test/batch-fixtures.mjs');
+  const PIN = Number(process.env.PIN) || 100;    // shuffles for the scale estimate
+  const PCAL = Number(process.env.PCAL) || 1000; // shuffles for the fire rate
+  const pick = process.env.FILES ? process.env.FILES.split(',') : null;
+  const files = readdirSync(FIX).filter(f => f.endsWith('.csv') && EXPECTED[f] && (!pick || pick.includes(f))).sort();
+  // Same t-to-p convention oneSampleT uses: normal above df 30, Student-t at or
+  // below it. Substituting a normal everywhere over-fires on narrow matrices,
+  // where the pooled t has only k-1 = 2 degrees of freedom.
+  const { pooledTtoP, zToP } = await import(B + 'src/stats/primitives.js');
+  const twoSided = (t, df) => (df > 30 ? zToP(t) : pooledTtoP(t, df));
+
+  console.log(`### Route 4 — pooled statistic, SE rescaled by an empirical inflation factor`);
+  console.log(`    scale from ${PIN} shuffles; fire rate from ${PCAL} shuffles\n`);
+  console.log('  ' + 'fixture'.padEnd(36) + 'GT'.padEnd(4) + 'R1'.padEnd(10) + 'infl'.padEnd(8) +
+              'R4 p'.padEnd(11) + 'R4'.padEnd(10) + 'R4 fire'.padEnd(9) + 'R1 fire'.padEnd(9) + 'cost');
+  console.log('  ' + '-'.repeat(112));
+  for (const file of files) {
+    const { matrix } = readFixture(file);
+    const assay = EXPECTED[file]?.assay || 'general';
+    const eff = applyVST(matrix, detectVST(matrix, assay)?.transform || 'raw') || matrix;
+    const n = eff.length, nc = eff[0]?.length || 0;
+    if (nc < 3 || n < 10) continue;
+    const obs = testAutocorrelation(eff, null);
+    if (obs.flag === 'N/A') continue;
+
+    const t0 = Date.now();
+    const rnd = mulberry32(0xC0FFEE);
+    const means = [], ses = [];
+    for (let i = 0; i < PIN; i++) {
+      const perm = permutation(n, rnd);
+      const r = testAutocorrelation(perm.map(j => eff[j]), null);
+      const m = num(r.pooledMeanR1), se = num(r.pooledR1SE);
+      if (Number.isFinite(m)) means.push(m);
+      if (Number.isFinite(se) && se > 0) ses.push(se);
+    }
+    const scaleCost = (Date.now() - t0) / 1000;
+    if (means.length < 10 || !ses.length) continue;
+    const infl = sd(means) / mean(ses);          // SE multiplier, not variance
+    const dfPooled = obs.nPairs - 1;
+    const corrected = (m, se) => twoSided(m / (se * infl), dfPooled);
+
+    const r4p = corrected(num(obs.pooledMeanR1), num(obs.pooledR1SE));
+    // Fire rate: apply the same correction to fresh shuffles.
+    const rnd2 = mulberry32(0xBEEF);
+    let fire4 = 0, fire1 = 0, ran = 0;
+    for (let i = 0; i < PCAL; i++) {
+      const perm = permutation(n, rnd2);
+      const r = testAutocorrelation(perm.map(j => eff[j]), null);
+      if (r.flag === 'N/A') continue;
+      ran++;
+      const m = num(r.pooledMeanR1), se = num(r.pooledR1SE);
+      if (Number.isFinite(m) && Number.isFinite(se) && corrected(m, se) < 0.01) fire4++;
+      if (num(r.pooledP) < 0.01) fire1++;
+    }
+    console.log('  ' + file.padEnd(36) + String(EXPECTED[file]?.severity ?? '-').padEnd(4) +
+      obs.flag.padEnd(10) + `${(infl*infl).toFixed(1)}x`.padEnd(8) +
+      r4p.toPrecision(3).padEnd(11) + flagFromP(r4p).padEnd(10) +
+      `${(100*fire4/ran).toFixed(1)}%`.padEnd(9) + `${(100*fire1/ran).toFixed(1)}%`.padEnd(9) +
+      `${scaleCost.toFixed(2)}s`);
+  }
+  process.exit(0);
+}
+
 console.log(`Autocorrelation calibration probe — ${N_PERM} iterations per file\n`);
 
 const TARGETS = [

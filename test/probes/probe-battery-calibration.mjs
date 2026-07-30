@@ -162,6 +162,82 @@ if (process.argv.includes('--routes')) {
   process.exit(0);
 }
 
+// ── Outcome-tier comparison (--outcome) ────────────────────────────────────
+// Runs the full battery per fixture, then recomputes the severity tier with
+// Autocorrelation and Runs Test taking their flag from Route 2 instead of the
+// parametric pooled p. The question is not whether a flag changes but whether
+// the file's OUTCOME changes — a lost flag on a file that still lands in the
+// right tier costs a user nothing.
+//
+// Selective Noise Partitioning is HELD AT ROUTE 1 here. Route 2 is not defined
+// for it: its only per-column statistic is a one-vs-rest Levene that is
+// display-only, so "Route 2" there would mean promoting a different test to
+// verdict status. Its calibration is also unmeasured, because the row shuffle
+// is a no-op for it. Both wait on the within-row null.
+//
+// Route 2 flag = flagFromP(min per-unit BH-adjusted p). `nSignificant` counts
+// units with adjusted p below ALPHA.NOTE and is computed on the COMPLETE set
+// before `details` is truncated to 15, so nSignificant === 0 gives LOW exactly.
+// Above zero the minimum is only recoverable when details are complete; where
+// they are not, the tier is reported for both bounds.
+if (process.argv.includes('--outcome')) {
+  const { flagFromP } = await import(B + 'src/constants/thresholds.js');
+  const { readdirSync } = await import('fs');
+  const ROUTE2 = ['Autocorrelation', 'Runs Test'];
+  const files = readdirSync(FIX).filter(f => f.endsWith('.csv') && EXPECTED[f]).sort();
+
+  const flagged = rs => rs.filter(r => r.flag === 'HIGH' || r.flag === 'MODERATE')
+                          .map(r => `${r.name}:${r.flag === 'HIGH' ? 'H' : 'M'}`);
+
+  console.log('### Outcome tier, Route 1 vs Route 2 on Autocorrelation + Runs Test');
+  console.log('    Selective Noise Partitioning held at Route 1 (Route 2 undefined for it).\n');
+  const moved = [];
+  for (const file of files) {
+    const { matrix, rawMatrix, condCtx, assay, dataType } = prepare(file);
+    const res = await analyse(matrix, rawMatrix, condCtx, assay, dataType);
+    const sev1 = computeSeverity(res).severity;
+
+    // Derive each Route-2 flag, tracking whether the minimum was recoverable.
+    let ambiguous = null;
+    const mk = (hi) => res.map(r => {
+      if (!ROUTE2.includes(r.name) || r.flag === 'N/A') return r;
+      const sig = r.nSignificant, tot = r.nPairs;
+      if (!sig) return { ...r, flag: 'LOW' };
+      const d = (r.subDetails || r.details || [])
+        .filter(x => x.source !== 'window' && Number.isFinite(Number(x.adjP)));
+      if (d.length >= (tot || 0) && d.length) {
+        return { ...r, flag: flagFromP(Math.min(...d.map(x => Number(x.adjP)))) };
+      }
+      ambiguous = `${r.name} (${sig} of ${tot} sig, details ${d.length})`;
+      return { ...r, flag: hi ? 'HIGH' : 'MODERATE' };
+    });
+
+    const sev2lo = computeSeverity(mk(false)).severity;
+    const sev2hi = computeSeverity(mk(true)).severity;
+    const same = sev2lo === sev2hi;
+    const tier2 = same ? `${sev2lo}` : `${sev2lo}-${sev2hi}`;
+    const changed = sev1 !== sev2lo || sev1 !== sev2hi;
+    const gtSev = EXPECTED[file]?.severity;
+
+    console.log(`${changed ? '>>' : '  '} ${file.padEnd(36)} GT ${gtSev}   R1 ${sev1}   R2 ${tier2}` +
+                (ambiguous ? `   [ambiguous: ${ambiguous}]` : ''));
+    const dropped = ROUTE2.filter(n => {
+      const a = res.find(r => r.name === n), b = mk(false).find(r => r.name === n);
+      return a && b && a.flag !== b.flag && (a.flag === 'HIGH' || a.flag === 'MODERATE');
+    });
+    if (dropped.length) {
+      console.log(`     dropped: ${dropped.map(n => `${n} ${res.find(r=>r.name===n).flag} -> ${mk(false).find(r=>r.name===n).flag}`).join(', ')}`);
+      console.log(`     carried by: ${flagged(mk(false)).join(', ') || '(nothing — no flags remain)'}`);
+    }
+    if (changed) moved.push({ file, gtSev, sev1, tier2 });
+  }
+  console.log(`\n### Tiers that moved: ${moved.length}`);
+  for (const m of moved) console.log(`   ${m.file.padEnd(36)} GT ${m.gtSev}  ${m.sev1} -> ${m.tier2}`);
+  const clean = files.filter(f => EXPECTED[f]?.severity === 0);
+  console.log(`\n### Clean fixtures (${clean.length}): ${moved.filter(m => m.gtSev === 0).length} moved off 0`);
+  process.exit(0);
+}
+
 for (const file of ANCHORS) {
   const { matrix, rawMatrix, condCtx, assay, dataType } = prepare(file);
   const observed = await analyse(matrix, rawMatrix, condCtx, assay, dataType);
