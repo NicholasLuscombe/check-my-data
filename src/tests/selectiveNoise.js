@@ -1,6 +1,10 @@
 import { mean, variance, chiSquaredP, bhFDR, regIncBeta } from "../stats/primitives.js";
 import { flagFromP, ALPHA } from "../constants/thresholds.js";
 import { NA_CAUSE } from "../constants/naCause.js";
+import { TOO_FEW_REPLICATE_COLS_CAUSE, joinDeclineReason } from "../constants/assays.js";
+
+// Tail under the shared too-few-replicate-columns cause.
+const COLS_TAIL = "This test needs at least 3.";
 
 /**
  * One-vs-rest Levene test: compare one column's residual variance against pooled rest.
@@ -216,7 +220,8 @@ export function testSelectiveNoise(matrix, condCtx) {
   const b = _runBartlett(matrix);
   if (!b) {
     const nC = matrix[0]?.length || 0;
-    if (nC < 3) return { name: NAME, category: CAT, flag: "N/A", naCause: NA_CAUSE.TOO_FEW_COLUMNS, naObserved: nC, naMinimum: 3, description: "Need ≥3 replicate columns and ≥10 rows." };
+    if (nC < 3) return { name: NAME, category: CAT, flag: "N/A", naCause: NA_CAUSE.TOO_FEW_COLUMNS, naObserved: nC, naMinimum: 3,
+      description: joinDeclineReason(TOO_FEW_REPLICATE_COLS_CAUSE, COLS_TAIL), naCauseText: TOO_FEW_REPLICATE_COLS_CAUSE, naTailText: COLS_TAIL };
     return { name: NAME, category: CAT, flag: "N/A", naCause: NA_CAUSE.EMPTY_INPUT, description: "Insufficient valid columns after filtering." };
   }
 

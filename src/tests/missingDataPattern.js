@@ -24,7 +24,16 @@ export function testMissingDataPattern(matrix, condCtx, assay) {
   const CAT = "replicate"; // Cross-Replicate Comparisons (TEST_MECHANISM key — interim home per parked #9)
 
   const nR = matrix.length, nC = matrix[0]?.length || 0;
-  if (nR < 10 || nC < 2) return _na(NAME, CAT, "Insufficient data for missingness analysis.", nC < 2 ? NA_CAUSE.TOO_FEW_COLUMNS : NA_CAUSE.TOO_FEW_ROWS, nC < 2 ? nC : nR, nC < 2 ? 2 : 10);
+  // The column branch does NOT take the shared replicate-columns cause. This
+  // test reads the pattern of empty cells and never compares measured values,
+  // so it needs two columns to compare gaps between, not two repeats of one
+  // measurement. Its interim "replicate" mechanism key is a grouping decision
+  // (parked #9), not a claim about what it reads.
+  if (nR < 10 || nC < 2) return _na(NAME, CAT,
+    nC < 2
+      ? "Not applicable — a pattern of missing data needs at least two columns to compare, and this file has fewer."
+      : "Insufficient data for missingness analysis.",
+    nC < 2 ? NA_CAUSE.TOO_FEW_COLUMNS : NA_CAUSE.TOO_FEW_ROWS, nC < 2 ? nC : nR, nC < 2 ? 2 : 10);
 
   // Build binary missingness matrix and per-column missing rates
   let nMissing = 0;

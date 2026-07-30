@@ -1,6 +1,12 @@
 import { mean, stddev, kurtosis, trimmedKurtosis, normalCDF, zToP, fitPredictedSigma, bhFDR } from "../stats/primitives.js";
 import { flagFromP, ALPHA, EFFECT_SIZE } from "../constants/thresholds.js";
 import { NA_CAUSE } from "../constants/naCause.js";
+import { TOO_FEW_REPLICATE_COLS_CAUSE, joinDeclineReason } from "../constants/assays.js";
+
+// Tail under the shared too-few-replicate-columns cause. The guard below is
+// compound, so only the column branch takes the cause — the row branch keeps
+// its own string, which is a different decline.
+const COLS_TAIL = "This test needs at least 2.";
 
 /* 6. Excess Kurtosis */
 
@@ -76,7 +82,9 @@ export function testKurtosis(matrix, condCtx, rng) {
   const rowConditions = condCtx?.rowConditions || null;
   const rowConditionsCols = condCtx?.rowConditionsCols || null;
   const nR=matrix.length, nC=matrix[0]?.length||0;
-  if(nC<2||nR<20) return {name:"Excess Kurtosis",category:"replicate",flag:"N/A",naCause:nC<2?NA_CAUSE.TOO_FEW_COLUMNS:NA_CAUSE.TOO_FEW_ROWS,naObserved:nC<2?nC:nR,naMinimum:nC<2?2:20,description:"Insufficient data (≥2 cols, ≥20 rows)."};
+  if(nC<2||nR<20) return {name:"Excess Kurtosis",category:"replicate",flag:"N/A",naCause:nC<2?NA_CAUSE.TOO_FEW_COLUMNS:NA_CAUSE.TOO_FEW_ROWS,naObserved:nC<2?nC:nR,naMinimum:nC<2?2:20,
+    description:nC<2?joinDeclineReason(TOO_FEW_REPLICATE_COLS_CAUSE,COLS_TAIL):"Insufficient data (≥2 cols, ≥20 rows).",
+    ...(nC<2?{naCauseText:TOO_FEW_REPLICATE_COLS_CAUSE,naTailText:COLS_TAIL}:{})};
 
   // Per-row local sigma and means
   const localSigma=matrix.map(row=>{

@@ -1,6 +1,12 @@
 import { mean, acfAtLag, zToP, bhFDR, oneSampleT, stddev, normalQuantile, tQuantileTwoSided } from "../stats/primitives.js";
 import { flagFromP, flagRankOf, ALPHA, EFFECT_SIZE } from "../constants/thresholds.js";
 import { NA_CAUSE } from "../constants/naCause.js";
+import { TOO_FEW_REPLICATE_COLS_CAUSE, joinDeclineReason } from "../constants/assays.js";
+
+// Tail under the shared too-few-replicate-columns cause. The guard below is
+// compound, so only the column branch takes the cause — the row branch keeps
+// its own string, which is a different decline.
+const COLS_TAIL = "This test needs at least 2.";
 
 /* 5. Autocorrelation */
 const MAX_LAG = 10;
@@ -20,7 +26,9 @@ const PAIR_CORROB_MIN = 2;        // minimum pairs passing (iii) to allow promot
  */
 export function testAutocorrelation(matrix) {
   const nR=matrix.length, nC=matrix[0]?.length||0;
-  if(nC<2||nR<10) return {name:"Autocorrelation",category:"replicate",flag:"N/A",naCause:nC<2?NA_CAUSE.TOO_FEW_COLUMNS:NA_CAUSE.TOO_FEW_ROWS,naObserved:nC<2?nC:nR,naMinimum:nC<2?2:10,description:"Insufficient data (≥2 cols, ≥10 rows)."};
+  if(nC<2||nR<10) return {name:"Autocorrelation",category:"replicate",flag:"N/A",naCause:nC<2?NA_CAUSE.TOO_FEW_COLUMNS:NA_CAUSE.TOO_FEW_ROWS,naObserved:nC<2?nC:nR,naMinimum:nC<2?2:10,
+    description:nC<2?joinDeclineReason(TOO_FEW_REPLICATE_COLS_CAUSE,COLS_TAIL):"Insufficient data (≥2 cols, ≥10 rows).",
+    ...(nC<2?{naCauseText:TOO_FEW_REPLICATE_COLS_CAUSE,naTailText:COLS_TAIL}:{})};
   const res=[];
   const lagAcc=new Array(MAX_LAG).fill(0);
   let lagN=0;

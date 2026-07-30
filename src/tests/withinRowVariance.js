@@ -1,6 +1,10 @@
 import { mean, stddev, normalCDF, bhFDR } from "../stats/primitives.js";
 import { flagFromP } from "../constants/thresholds.js";
 import { NA_CAUSE } from "../constants/naCause.js";
+import { TOO_FEW_REPLICATE_COLS_CAUSE, joinDeclineReason } from "../constants/assays.js";
+
+// Tail under the shared too-few-replicate-columns cause.
+const COLS_TAIL = "This test needs at least 3, for a meaningful within-row standard deviation.";
 
 // Flag cutoff: rows with |z| beyond this are outliers (Step 4). Exported so the
 // card plot draws its threshold line at the same value the verdict gates on.
@@ -31,7 +35,8 @@ export function testWithinRowVariance(matrix, rng, rowSemantics = 'ordered') {
   const CAT = "replicate";
   const nR = matrix.length, nC = matrix[0]?.length || 0;
 
-  if (nC < 3) return { name: NAME, category: CAT, flag: "N/A", naCause: NA_CAUSE.TOO_FEW_COLUMNS, naObserved: nC, naMinimum: 3, description: "Need ≥3 replicate columns for meaningful within-row SD." };
+  if (nC < 3) return { name: NAME, category: CAT, flag: "N/A", naCause: NA_CAUSE.TOO_FEW_COLUMNS, naObserved: nC, naMinimum: 3,
+    description: joinDeclineReason(TOO_FEW_REPLICATE_COLS_CAUSE, COLS_TAIL), naCauseText: TOO_FEW_REPLICATE_COLS_CAUSE, naTailText: COLS_TAIL };
   if (nR < 40) return { name: NAME, category: CAT, flag: "N/A", naCause: NA_CAUSE.TOO_FEW_ROWS, naObserved: nR, naMinimum: 40, description: `Insufficient rows (${nR}). Need ≥40 for stable mean-variance fit.` };
 
   // Step 1: Compute per-row mean and SD

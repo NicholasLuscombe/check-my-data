@@ -1,7 +1,7 @@
 import { bhFDR } from "../stats/primitives.js";
 import { flagFromP, ALPHA } from "../constants/thresholds.js";
 import { NA_CAUSE } from "../constants/naCause.js";
-import { DATATYPE_CAUSE, joinDeclineReason } from "../constants/assays.js";
+import { DATATYPE_CAUSE, TOO_FEW_REPLICATE_COLS_CAUSE, joinDeclineReason } from "../constants/assays.js";
 
 /* 27. Blocked Mahalanobis Covariance-Anomaly Detection
    Detects contiguous row blocks whose cross-replicate covariance Σ or mean μ
@@ -41,6 +41,12 @@ import { DATATYPE_CAUSE, joinDeclineReason } from "../constants/assays.js";
 
 const MIN_N_CONSTRUCT = 60;
 const MIN_NC = 3;
+// Tail under the shared too-few-replicate-columns cause. The minimum is read
+// from MIN_NC rather than written out, as the old string did, so the sentence
+// cannot drift from the constant. The observed count the old string carried in
+// "(have N)" is dropped from the prose — the shared cause states no number and
+// naObserved already carries it as a field.
+const COLS_TAIL = `This test needs at least ${MIN_NC}, for a non-degenerate covariance estimate.`;
 const DETAILS_CAP = 30;
 
 /** Compute p×p sample covariance (unbiased, N-1 denominator) of `rows`
@@ -418,7 +424,7 @@ export async function testBlockedMahalanobis(matrix, condCtx, rng, dataType = 'c
   const nC = matrix[0]?.length || 0;
   if (nC < MIN_NC) {
     return { name: NAME, category: CAT, flag: "N/A", naCause: NA_CAUSE.TOO_FEW_COLUMNS, naObserved: nC, naMinimum: MIN_NC,
-      description: `Need ≥${MIN_NC} replicate columns for a non-degenerate covariance estimate (have ${nC}).` };
+      description: joinDeclineReason(TOO_FEW_REPLICATE_COLS_CAUSE, COLS_TAIL), naCauseText: TOO_FEW_REPLICATE_COLS_CAUSE, naTailText: COLS_TAIL };
   }
 
   // Resolve per-condition slices. Falls back to a single "All data" slice when

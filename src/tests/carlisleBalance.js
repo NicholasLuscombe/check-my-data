@@ -51,7 +51,7 @@ export function testCarlisleBalance(matrix, condCtx) {
     if (slices.length < 2) return _na(NAME, CAT, "Requires ≥2 conditions with ≥3 rows each.", NA_CAUSE.TOO_FEW_CONDITIONS, slices.length, 2);
 
     const nC = matrix[0]?.length || 0;
-    if (nC < 5) return _na(NAME, CAT, `Only ${nC} DATA columns — need ≥5 features for meaningful balance test.`, NA_CAUSE.TOO_FEW_COLUMNS, nC, 5);
+    if (nC < 5) return _na(NAME, CAT, `Only ${nC} measured column${nC === 1 ? "" : "s"} — this test needs at least 5 features.`, NA_CAUSE.TOO_FEW_COLUMNS, nC, 5);
 
     for (let c = 0; c < nC; c++) {
       // Collect values per condition for this column
@@ -109,7 +109,13 @@ export function testCarlisleBalance(matrix, condCtx) {
   }
 
   const nFeatures = featurePValues.length;
-  if (nFeatures < 5) return _na(NAME, CAT, `Only ${nFeatures} testable features — need ≥5 for meaningful balance test.`, NA_CAUSE.TOO_FEW_COLUMNS, nFeatures, 5);
+  // "Only 0 testable features" reads as a broken sentence, so zero gets its own
+  // wording. The count is kept for one to four, where it is the useful number.
+  if (nFeatures < 5) return _na(NAME, CAT,
+    nFeatures === 0
+      ? "No testable features — this test needs at least 5."
+      : `Only ${nFeatures} testable feature${nFeatures === 1 ? "" : "s"} — this test needs at least 5.`,
+    NA_CAUSE.TOO_FEW_COLUMNS, nFeatures, 5);
 
   // Gate: skip if >50% of features show significant differences (conditions genuinely different)
   const nSig = featurePValues.filter(p => p < 0.05).length;

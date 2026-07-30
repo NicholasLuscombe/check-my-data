@@ -1,6 +1,10 @@
 import { bhFDR, arrayMin } from "../stats/primitives.js";
 import { flagFromP } from "../constants/thresholds.js";
 import { NA_CAUSE } from "../constants/naCause.js";
+import { TOO_FEW_REPLICATE_COLS_CAUSE, joinDeclineReason } from "../constants/assays.js";
+
+// Tail under the shared too-few-replicate-columns cause.
+const COLS_TAIL = "This test needs at least 2, for paired differences.";
 
 /* 25. Windowed Autocorrelation
    Detects localised lag-1 serial structure in replicate differences within
@@ -73,7 +77,7 @@ export async function testWindowedAutocorrelation(matrix, rng, onPermProgress = 
   const CAT = "replicate";
   const nR = matrix.length, nC = matrix[0]?.length || 0;
   if (nC < 2) return { name: NAME, category: CAT, flag: "N/A", naCause: NA_CAUSE.TOO_FEW_COLUMNS, naObserved: nC, naMinimum: 2,
-    description: "Need ≥2 replicate columns for paired differences." };
+    description: joinDeclineReason(TOO_FEW_REPLICATE_COLS_CAUSE, COLS_TAIL), naCauseText: TOO_FEW_REPLICATE_COLS_CAUSE, naTailText: COLS_TAIL };
   if (nR < MIN_ROWS) return { name: NAME, category: CAT, flag: "N/A", naCause: NA_CAUSE.TOO_FEW_ROWS, naObserved: nR, naMinimum: MIN_ROWS,
     description: `Need ≥${MIN_ROWS} rows for ≥4 windows at size ${WIN} / stride ${STRIDE} (got ${nR}).` };
 

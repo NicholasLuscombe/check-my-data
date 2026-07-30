@@ -1,6 +1,10 @@
 import { mean, variance, stddev, arrayMin, arrayMax, chiSquaredP, zToP } from "../stats/primitives.js";
 import { flagFromP, ALPHA } from "../constants/thresholds.js";
 import { NA_CAUSE } from "../constants/naCause.js";
+import { TOO_FEW_REPLICATE_COLS_CAUSE, joinDeclineReason } from "../constants/assays.js";
+
+// Tail under the shared too-few-replicate-columns cause.
+const COLS_TAIL = "This test needs at least 3, to estimate within-row variance.";
 
 /* 11. Mean–Variance Relationship */
 /**
@@ -12,7 +16,8 @@ import { NA_CAUSE } from "../constants/naCause.js";
  */
 export function testMeanVariance(matrix, assay) {
   const nC=matrix[0]?.length||0;
-  if(nC<3) return {name:"Noise Scaling With Measurement Size",category:"replicate",flag:"N/A",naCause:NA_CAUSE.TOO_FEW_COLUMNS,naObserved:nC,naMinimum:3,description:"Need ≥3 replicate columns to estimate within-row variance."};
+  if(nC<3) return {name:"Noise Scaling With Measurement Size",category:"replicate",flag:"N/A",naCause:NA_CAUSE.TOO_FEW_COLUMNS,naObserved:nC,naMinimum:3,
+    description:joinDeclineReason(TOO_FEW_REPLICATE_COLS_CAUSE,COLS_TAIL),naCauseText:TOO_FEW_REPLICATE_COLS_CAUSE,naTailText:COLS_TAIL};
   const points=[];
   for(let r=0;r<matrix.length;r++){
     const vals=matrix[r].filter(v=>v!=null);

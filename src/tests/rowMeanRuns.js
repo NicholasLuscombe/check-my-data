@@ -1,6 +1,12 @@
 import { mean, zToP, bhFDR, arrayMin } from "../stats/primitives.js";
 import { flagFromP, ALPHA, flagRankOf } from "../constants/thresholds.js";
 import { NA_CAUSE } from "../constants/naCause.js";
+import { TOO_FEW_REPLICATE_COLS_CAUSE, joinDeclineReason } from "../constants/assays.js";
+
+// Tail under the shared too-few-replicate-columns cause. The guard below is
+// compound, so only the column branch takes the cause — the row branch keeps
+// its own string, which is a different decline.
+const COLS_TAIL = "This test needs at least 2.";
 
 /* 7b. Row-Mean Runs Test (Item 2 — METHODOLOGY §5.5)
  * Detects uniform additive shifts applied to all replicates of a row block.
@@ -21,7 +27,8 @@ export function testRowMeanRuns(matrix, condCtx, rng) {
   const nC = matrix[0]?.length || 0;
   const nR = matrix.length;
   if (nC < 2 || nR < 10) return { name: "Row-Mean Runs", category: "replicate", flag: "N/A", naCause: nC < 2 ? NA_CAUSE.TOO_FEW_COLUMNS : NA_CAUSE.TOO_FEW_ROWS, naObserved: nC < 2 ? nC : nR, naMinimum: nC < 2 ? 2 : 10,
-    description: "Need \u22652 replicate columns and \u226510 rows." };
+    description: nC < 2 ? joinDeclineReason(TOO_FEW_REPLICATE_COLS_CAUSE, COLS_TAIL) : "Need \u22652 replicate columns and \u226510 rows.",
+    ...(nC < 2 ? { naCauseText: TOO_FEW_REPLICATE_COLS_CAUSE, naTailText: COLS_TAIL } : {}) };
 
   // Require row-level condition labels. Without them, row means carry biological
   // variation (different samples have different true values) which produces natural

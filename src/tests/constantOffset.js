@@ -1,6 +1,12 @@
 import { bhFDR } from "../stats/primitives.js";
 import { flagFromP, ALPHA, EFFECT_SIZE } from "../constants/thresholds.js";
 import { NA_CAUSE } from "../constants/naCause.js";
+import { TOO_FEW_REPLICATE_COLS_CAUSE, joinDeclineReason } from "../constants/assays.js";
+
+// Tail under the shared too-few-replicate-columns cause. The guard below is
+// compound, so only the column branch takes the cause — the row branch keeps
+// its own string, which is a different decline.
+const COLS_TAIL = "This test needs at least 2.";
 
 /* 2. Constant-Offset Blocks (Additive + Multiplicative)
    Null model: birthday-problem on the observed *difference* distribution.
@@ -23,7 +29,9 @@ export function testConstantOffset(matrix, rng) {
   const NAME = "Constant-Offset Blocks";
   const CAT = "copied";
   const nR = matrix.length, nC = matrix[0]?.length || 0;
-  if (nC < 2 || nR < 4) return { name: NAME, category: CAT, flag: "N/A", naCause: nC < 2 ? NA_CAUSE.TOO_FEW_COLUMNS : NA_CAUSE.TOO_FEW_ROWS, naObserved: nC < 2 ? nC : nR, naMinimum: nC < 2 ? 2 : 4, description: "Insufficient data (≥2 cols, ≥4 rows required)." };
+  if (nC < 2 || nR < 4) return { name: NAME, category: CAT, flag: "N/A", naCause: nC < 2 ? NA_CAUSE.TOO_FEW_COLUMNS : NA_CAUSE.TOO_FEW_ROWS, naObserved: nC < 2 ? nC : nR, naMinimum: nC < 2 ? 2 : 4,
+    description: nC < 2 ? joinDeclineReason(TOO_FEW_REPLICATE_COLS_CAUSE, COLS_TAIL) : "Insufficient data (≥2 cols, ≥4 rows required).",
+    ...(nC < 2 ? { naCauseText: TOO_FEW_REPLICATE_COLS_CAUSE, naTailText: COLS_TAIL } : {}) };
 
   // ── Additive pass: d = col_j - col_i ──
   const addDiffVecs = [];
