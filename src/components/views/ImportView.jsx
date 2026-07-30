@@ -88,15 +88,27 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
       // its flag restores false and the guard still fails. Correct in both
       // directions, which is why the restore belongs here and not in the guards.
       //
-      // `vstAutoSet` is deliberately NOT restored. It is written, but it only
-      // means something next to the card's own `vstDecision`, and that value is
-      // not in the config — handleProceed writes the resolved {transform,
-      // reason} object instead. Restoring the flag alone would be overwritten
-      // by the VST memo on its first run and would read as meaningful when it
-      // is not. The pair goes together, once handleProceed carries the choice.
       setAssayAutoDetected(!!initialConfig.assayAutoDetected);
       setColRelAutoSet(!!initialConfig.colRelAutoSet);
       setRowSemAutoSet(!!initialConfig.rowSemanticsAuto);
+      // The transform pair, restored together. `vstChoice` is the card's own
+      // 'apply' | 'raw' | null; `vstAutoSet` says whether that value is still
+      // the machine's. Either alone is useless — the flag without the choice
+      // gets overwritten by the VST memo on its first run, and the choice
+      // without the flag cannot say who made it.
+      //
+      // Restoring both is what makes the memo's guard hold across Back. A
+      // user's 'raw' restores with the flag false, the guard fails, and the
+      // choice survives; before this the choice was gone and 'apply' returned,
+      // so the engine applied the transform they had declined.
+      setVstDecision(initialConfig.vstChoice||null);
+      setVstAutoSet(!!initialConfig.vstAutoSet);
+      // Pivot identity. `isPivoted` reaches the engine and was already correct
+      // on the first Run; this is what keeps it correct on the second.
+      setPivotConfig(initialConfig.pivotConfig||null);
+      // Feeds the row-order suggestion, so without it the gate proposed
+      // something different the second time round.
+      setLongFormatDetected(!!initialConfig.longFormatDetected);
       if(initialConfig.headerRows) setHeaderRows(initialConfig.headerRows);
       if(initialConfig.condPerCol){
         const names=[...new Set(initialConfig.condPerCol.filter(c=>c))];
@@ -533,6 +545,27 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
       removedCols:prepInfo?.removedCols||[],
       headerContent:rawRows?rawRows.slice(0,headerRows||0):[],
       summary:sum,
+      // Three values the mount effect needs and could not read, because this
+      // object only ever carried what the engine wanted.
+      //
+      // `vstChoice` is the CARD's state — 'apply' | 'raw' | null. `vstDecision`
+      // below is the RESOLVED transform, and App.jsx reads that one; the two are
+      // not interchangeable. The resolved object collapses the card's two
+      // 'apply' states into identical bytes, which are exactly the two the
+      // transform provenance has to tell apart, so the card state gets its own
+      // key rather than being reconstructed from the resolved one. Named
+      // `vstChoice` because `vstDecision` is taken and means something else;
+      // the only consumer is the mount effect in this file.
+      vstChoice:vstDecision,
+      // `isPivoted:!!pivotConfig` above is what the engine reads and stays. The
+      // object itself is what a restore needs: without it the next Run reports
+      // isPivoted false on pivoted data, and engine.js stops demoting Selective
+      // Noise to LOW and stops appending its pivot caveat to that description.
+      pivotConfig,
+      // Never written before. It drives the row-order suggestion, so losing it
+      // changed what the gate proposed after Back. Same key BatchView already
+      // puts on its own config, same meaning.
+      longFormatDetected,
     };
     if(dataType==='ordinal'){
       onProceed({...config, vstDecision:{transform:'raw',reason:'Ordinal data — no transform applied'}});
