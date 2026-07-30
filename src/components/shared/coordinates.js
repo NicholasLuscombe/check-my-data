@@ -79,6 +79,32 @@ export function buildOriginalColMap(dataColCount, removedCols) {
 }
 
 /**
+ * Does this file already answer the condition question, and by which route?
+ *
+ * A file answers it two ways, and a predicate that tests one route reports
+ * "no conditions" on files that answered by the other. Both routes belong to
+ * one question, so it has one owner here rather than a copy per caller.
+ *
+ *   'header' — a two-row header carrying two or more distinct column groups
+ *   'cond'   — a column assigned the condition role
+ *   false    — neither; nothing in the file says what the columns are
+ *
+ * Lifted verbatim out of ImportView, which computed exactly this and got it
+ * right. The 'header' / 'cond' distinction is kept because it names the route
+ * for a reader; both callers only test truthiness today.
+ *
+ * @param {string[]|null} condPerCol — per-column condition names
+ * @param {string[]|null|undefined} roles — per-column roles
+ * @returns {'header'|'cond'|false}
+ */
+export function condStructureKind(condPerCol, roles) {
+  const uniqGrps = condPerCol ? [...new Set(condPerCol.filter(Boolean))] : [];
+  if (uniqGrps.length >= 2) return 'header';
+  if (roles?.some(r => r === 'condition')) return 'cond';
+  return false;
+}
+
+/**
  * Build condition spans from a condPerCol array.
  * Groups consecutive columns sharing the same condition name.
  * @param {string[]|null} condPerCol — per-column condition names (from importConfig)

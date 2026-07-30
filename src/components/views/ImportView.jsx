@@ -15,7 +15,7 @@ import { C, FF, FW, FS, CR, CC, M, UI, BADGE, SIGNAL, ACCENT } from "../../const
 import { FLAG_STYLES } from "../../constants/thresholds.js";
 import { ROLES, ROLE_KEYS, COND_COLORS, buildCondColorMap } from "../../constants/roles.js";
 import { MECHANISMS, MECHANISM_ORDER, TEST_MECHANISM, DISPLAY_NAMES } from "../../constants/mechanisms.js";
-import { buildCondSpans, colToExcelLetter, originalFileRow } from "../shared/coordinates.js";
+import { buildCondSpans, colToExcelLetter, originalFileRow, condStructureKind } from "../shared/coordinates.js";
 import { COL_W, FREEZE_COL_W, FREEZE_Z, countFrozenCols, colWidthFromMaxLen } from "../shared/styles.js";
 import { ScrollTable } from "../shared/ScrollTable.jsx";
 
@@ -315,12 +315,10 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
 
   // Determine if condition structure already exists from header or COND column.
   // When it does, columns within each group are replicates — no gate needed.
-  const hasCondStructure=useMemo(()=>{
-    const uniqGrps=condPerCol?[...new Set(condPerCol.filter(Boolean))]:[];
-    if(uniqGrps.length>=2) return 'header'; // two-row header with column groups
-    if(roles.some(r=>r==='condition')) return 'cond'; // COND column assigned
-    return false;
-  },[condPerCol,roles]);
+  // The two-route test moved to coordinates.js so the report's column-structure
+  // advisory asks the same question this gate asks; it used to test the header
+  // route only and called every condition-column file structure-free.
+  const hasCondStructure=useMemo(()=>condStructureKind(condPerCol,roles),[condPerCol,roles]);
 
   // Effective column relationship: prefer user/auto-set choice; fall back to
   // 'replicates' when condition structure exists but the colRel useEffect
