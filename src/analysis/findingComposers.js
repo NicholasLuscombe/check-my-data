@@ -970,8 +970,6 @@ function windowedAutocorrelation(r /*, ctx */) {
 // Runs Test — global runs Z + per-pair when stratified.
 function runsTest(r /*, ctx */) {
   const pooledZ = r.pooledMeanZ;
-  const pooledT = r.pooledT;
-  const pooledP = r.pooledP;
   const nSig = r.nSignificant;
   const nPairs = r.nPairs;
   const obsOverExp = r.obsOverExp;
@@ -981,9 +979,16 @@ function runsTest(r /*, ctx */) {
   const direction = Number.isFinite(z) && z < 0 ? "too few runs — consecutive same-sign streaks" : "too many runs — over-alternation";
 
   const evidenceLines = [];
+  // S339: the verdict comes from the per-pair family, so the deciding value
+  // leads. The pooled figures stay — they are still evidence — but are marked
+  // as context, because a reader checking a pooled p against the stated alpha
+  // would otherwise read a LOW verdict beside a significant-looking number and
+  // conclude the tool is miscalibrated.
   evidenceLines.push(
-    `Pooled runs Z = ${pooledZ} (${direction}); observed/expected runs ratio = ${parseNum(obsOverExp).toFixed(2)}; ` +
-    `pooled t = ${pooledT}, ${formatPClause("p", pooledP)} across ${nPairs} ${pl(nPairs, "pair")}.`
+    `Strongest pair after adjustment: ${formatPClause("p", r.minAdjP)}. ` +
+    `${nSig} of ${nPairs} ${pl(nPairs, "pair")} reach adjusted significance. ` +
+    `Pooled runs Z = ${pooledZ} (${direction}); observed/expected runs ratio = ${parseNum(obsOverExp).toFixed(2)} ` +
+    `— context only; the verdict comes from the per-pair result above.`
   );
   if (nSig > 0 && worstPair) {
     evidenceLines.push(`${nSig} of ${nPairs} ${pl(nPairs, "pair")} flag individually; most extreme: ${worstPair}.`);
