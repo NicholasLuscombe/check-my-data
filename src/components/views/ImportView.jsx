@@ -459,9 +459,27 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
       const{matrix}=extractAnalysisInputs(config);
       const proposed=detectVST(matrix,assay);
       if(proposed && proposed.transform!=='raw'){
+        // The proposal always refreshes — it is the detector's output, not a
+        // choice, and the card's label reads from it.
         setVstProposal(proposed);
-        setVstDecision('apply');
-        setVstAutoSet(true);
+        // The pre-selection does not. Same guard the two sibling gates carry
+        // (colRelAutoSet at the hasCondStructure effect, rowSemAutoSet at the
+        // rowSemSuggestion one): pre-select only when nothing has been chosen,
+        // or when the current value is still the auto default. A click on
+        // either card button sets vstAutoSet false and freezes the choice.
+        //
+        // Without this, every dep below re-ran the pre-selection over a user's
+        // answer — and `colRelationship` reaches the deps through
+        // effectiveColRel while the proposal does not depend on it at all, so
+        // answering the columns gate after choosing "Keep raw" silently
+        // restored 'apply'. handleProceed reads vstDecision, so the engine ran
+        // the transform the user had declined. Confirmed on screen on
+        // 07-elisa-clean. Role edits, the zero-as-missing toggle and the
+        // data-type select reach it the same way.
+        if(vstDecision===null||vstAutoSet){
+          setVstDecision('apply');
+          setVstAutoSet(true);
+        }
       } else {
         setVstProposal(null);
         setVstDecision(null);
