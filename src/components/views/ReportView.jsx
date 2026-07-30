@@ -166,7 +166,12 @@ function S5GroupedReasons({ results }) {
   );
 }
 
-export function ReportView({ results: baseResults, importConfig, matrix, rowMap, onBack, onChangeFile }) {
+// `backLabel` names where the back button goes. The default keeps the
+// single-file surface reading "← Back"; the batch drill-in passes "Back to
+// batch" so the first step of the route out says where it lands. The arrow is
+// a literal in the button below and in BatchView's own back button — two
+// independent strings, composed nowhere.
+export function ReportView({ results: baseResults, importConfig, matrix, rowMap, onBack, onChangeFile, backLabel = "Back" }) {
   // S321 move 2, round 3 — confirmed grouping. When the user confirms a grouping
   // on the confirm card, the four grouped tests run on that ticked set and their
   // real results replace the four N/A-pending ones. Everything downstream reads
@@ -962,14 +967,22 @@ export function ReportView({ results: baseResults, importConfig, matrix, rowMap,
             registers re-pointed to the typography system —
             Button: base Medium C.TEXT; Filename: base Semibold C.TEXT. */}
         <div style={{display:"flex",alignItems:"center",gap:"10px",padding:"10px 16px",fontSize:FS.base}}>
-          <button onClick={onBack} style={{background:"none",border:"none",cursor:"pointer",color:C.TEXT,fontSize:FS.base,fontWeight:FW.MED,padding:0}}>← Back</button>
+          <button onClick={onBack} style={{background:"none",border:"none",cursor:"pointer",color:C.TEXT,fontSize:FS.base,fontWeight:FW.MED,padding:0}}>← {backLabel}</button>
           <span style={{color:C.BORDER}}>|</span>
           <span style={{color:C.TEXT,fontWeight:FW.SEMI,fontSize:FS.base}}>{importConfig.fileName||"Uploaded file"}</span>
           <span style={{flex:1}}/>
+          {/* Only where a handler exists to take the file. The batch drill-in
+              passes none, so the control used to render and throw on click —
+              and it is the control a reader reaches for when the column-
+              structure advisory tells them to analyse the file elsewhere.
+              Changing files makes no sense on a screen reached from a batch of
+              them, so it goes rather than being guarded and left visible. */}
+          {onChangeFile && (
           <label style={{cursor:"pointer",padding:"0 12px",height:"30px",background:C.BG,border:`1px solid ${C.BORDER}`,borderRadius:CR.SM,color:C.TEXT,fontSize:FS.base,fontWeight:FW.MED,display:"inline-flex",alignItems:"center",lineHeight:"normal",boxSizing:"border-box"}}>
             Change file
             <input type="file" accept=".csv,.tsv,.txt,.xlsx,.xls" onChange={e=>{const f=e.target.files?.[0]; if(f) onChangeFile(f);}} style={{display:"none"}}/>
           </label>
+          )}
         </div>
         <div style={{borderTop:`1px solid ${C.BORDER_L}`,margin:"0 16px"}}/>
         {/* Row 2: mode tabs + ⋯ actions. S137 (Phase C.1): tabs onto
@@ -1047,7 +1060,7 @@ export function ReportView({ results: baseResults, importConfig, matrix, rowMap,
         if(!hasConds && !answeredByUser) return (
           <AsideCallout tone="warn" strongLabel="⚠ Column structure assumed">
             All {nDC} data columns are being treated as repeated measurements of one quantity. Batch analysis assumes this and does not ask.<br/>
-            If they are separate conditions or treatments instead, the tests that rely on that assumption will read the difference between them as a pattern in the data.
+            If they are separate samples, conditions or time points instead, the tests that rely on that assumption will read the difference between them as a pattern in the data.
             {importConfig.assay==="genomics" && " For raw RNA-seq counts, library size differences between samples naturally produce variance heterogeneity — normalize counts before forensic screening, or interpret Selective Noise with caution."}<br/>
             To answer the question yourself, analyse this file on the Import screen. It asks before it runs.
           </AsideCallout>
