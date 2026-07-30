@@ -160,7 +160,16 @@ function buildDataset(importConfig, nRows, nCols) {
     rows: nRows,
     cols: nCols,
     assay: assayEntry?.l || importConfig.assay || "general",
-    assayProvenance: importConfig.assayAutoDetected ? "auto" : "user-set",
+    // Three states, not two: 'auto' (something computed it from the data),
+    // 'user-set' (a human answered), 'assumed' (a default supplied it —
+    // nothing computed it and nobody chose it). A boolean cannot carry the
+    // third, and this text goes to an LLM that reasons in the words it is
+    // given: told "(auto)", it treats a hardcoded default as a measurement.
+    // Same precedence the banner's provTag uses — provenance wins where a
+    // surface supplies it, the older boolean decides otherwise.
+    assayProvenance:
+      importConfig.provenance?.assay ||
+      (importConfig.assayAutoDetected ? "auto" : "user-set"),
     dataType: dataTypeEntry?.l || "Continuous",
     conditions,
     vstLabel: VST_LABEL[vstTransform] || vstTransform,
