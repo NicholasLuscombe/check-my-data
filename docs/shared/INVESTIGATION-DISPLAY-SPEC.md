@@ -1,6 +1,6 @@
 # Check My Data — Investigation Display UI Specification
 
-**Version:** 7.8 (Chat S337 — §4 owns the coverage pointer, shared cause for the too-few-columns family, two block orderings recorded; S336 section 5 not-applicable surface, shared cause plus per-test tail, computed category span; S324 not-applicable surface; S323 coverage vocabulary; S213 single severity scale + plot colour-semantics reference; S211 composition rollout)
+**Version:** 7.9 (Chat S338 — one ordering governs both §5 block shapes, indent token audited, the bold-names claim corrected at source; S337 §4 owns the coverage pointer, shared cause for the too-few-columns family; S336 section 5 not-applicable surface, shared cause plus per-test tail, computed category span; S324 not-applicable surface; S323 coverage vocabulary; S213 single severity scale + plot colour-semantics reference; S211 composition rollout)
 **Status:** QC mode ✅ (Code S21). Forensics mode ✅ (Code S25+S69+S71, S156+S157 chrome lock). Peer review mode ✅ (Code S70+S71). Coverage vocabulary § — shipped S323. Not-applicable surface § — moved from §3 to §5 at S334, reason composition rebuilt S335 (main `e8b1ad6`), verified on screen across three shapes; export paths still not verified.
 
 This document is the authoritative reference for how Check My Data presents analysis results across three modes. It covers:
@@ -1894,15 +1894,75 @@ tests hung off what looked like a summary line and appeared unattached.
 **Indenting the tests beneath the cause fixes it.** `S5_INDENT`, 14px — the step already used at
 four sites, applied one level deeper. No new step entered the ladder.
 
-The contrast with the fallback shape is what named the defect. DS09 leads with bold test names and
+The contrast with the fallback shape is what named the defect. DS09 leads with its test names and
 puts the shared reason underneath, so attachment is obvious. The cause shape reverses that order
 and leads with the one element typographically identical to the line above it.
+
+**Correction, read at source at S338.** Earlier drafts of this section said DS09 leads with *bold*
+test names. It does not, and neither shape does. Both render names through one constant, `S5_NAME`
+at `ReportView.jsx:64` — `FW.MED`, weight 500. `FW.BOLD` is 700 and its comment in `tokens.js`
+reserves it for the verdict headline; nothing in §5 uses it. The names are distinguished from the
+reason line by weight 500 against 400 and by colour `C.TEXT_2` against `C.TEXT_3`.
+
+The argument above survives the correction untouched, because it never rested on weight. It rests
+on order and containment, which is what the heading of this section already says. **The lesson is
+that a claim about type can sit in a spec for four sessions without anyone reading the constant.**
 
 **The repetition is not a defect. Do not reopen it.** The ordinal cause prints three times, once
 per cluster. That was held open at scoping as a screenshot judgment, and the screenshot answered it
 in neither direction the options assumed: the repetition was never the problem, the attachment was.
 Three section headers each stating their reason is ordinary document behaviour once attachment is
 expressed.
+
+### One ordering governs both shapes
+
+**Settled at S338. Not yet built** — both shapes render as they did at S337 until a pass
+implements this, and the rough-edge entry below says so.
+
+**The rule: the cause always leads, and the tests always sit indented beneath it.** In the
+with-tail shape and in the no-tail fallback shape alike. One ordering.
+
+**The tails decide it, not preference.** The two shapes are not symmetric in what they can give
+up, which is why the question felt unresolvable while it was framed as a choice between two
+defensible orderings.
+
+The no-tail shape can adopt cause-first and lose nothing. Its names carry no per-test content, so
+moving them below the cause costs no information and gains the containment established above.
+
+The with-tail shape cannot adopt names-first. There are only two outcomes. Drop the tails, which
+throws away the specific numbers and the purpose clauses S337 preserved verbatim — a straight
+regression. Or keep them and put the cause last, where the reader meets two tails before learning
+what governs them and the cause reads as a footnote. Worse, a cause below its list contains
+nothing, and containment is the property that fixes attachment.
+
+So one shape can move and the other cannot. The rule follows from the structure.
+
+**Line treatment follows tail presence.** A test with a tail takes its own row, because the tail
+belongs to it. A test without one joins a list separated by `" · "`, as the fallback shape already
+does. Eight names on one line rather than eight rows carrying no extra information each.
+
+This is derived from content rather than being a second convention. It is also the residual: two
+line treatments under one ordering may still read as two treatments on screen, and that is a
+screenshot judgment to take when the rule is built.
+
+**Single-member groups need no special case.** `S5Group` renders one test and nine through the
+same branch, deliberately, and the source says so at `ReportView.jsx:83-85`. There is no inline
+path and no third shape to reconcile.
+
+### The indent is a token in one place and a literal in two
+
+Read at source at S338. `S5_INDENT` is defined at `ReportView.jsx:76` as `paddingLeft: "14px"` and
+applied at exactly **one** site, `:106`, on each item of the with-tail shape. Both shape wrappers —
+`:95` for no-tail, `:103` for with-tail — carry an inline `paddingLeft: "14px"` literal of the same
+value.
+
+So the with-tail shape's names sit at 28px total and the no-tail shape's at 14px. Building the
+ordering rule above moves the no-tail names from 14px to 28px.
+
+**Route the two wrapper literals through the constant in that same change.** It is visually
+byte-neutral, and the containment argument rests on the step being a named token rather than a
+repeated literal. A spec that argues from a ladder of steps should not have two of its rungs
+written as magic numbers.
 
 ### One lever at a time
 
@@ -1945,12 +2005,9 @@ and falls through to its own branch. No ordering ambiguity.
   pair. The notation half of the sweep is still due: 41 user-facing strings across 23 files carry
   `≥`, and S337 converted seventeen and left the rest, so §5 now shows both registers on one
   screen. Partial conversion of a register reads worse than uniform wrong notation.
-- **Two block orderings coexist in one cluster.** A shared cause **with** tails leads with the
-  cause and indents the tests beneath it. A shared cause **without** tails lists the test names
-  first and puts the reason underneath. Both are defensible alone. Adjacent — and after S337 they
-  are adjacent on `vfs-a-pigeonhole-clear` — they read as two conventions rather than one. Seen on
-  screen at S337 and unsettled. The fix is a rule stating which ordering governs, not a change to
-  either shape in isolation.
+- **~~Two block orderings coexist in one cluster.~~ Settled at S338** — the rule is stated under
+  *One ordering governs both shapes* above. **The rule is not built.** Both shapes render as they
+  did at S337 until a pass implements it, so the two conventions are still on screen.
 - **"Missing rate 0.0% is below 1% threshold" reads oddly here.** That describes a clean dataset
   with nothing to analyse. Classifying it not-applicable is defensible, but under a heading about
   what the tool could not do it reads as a limitation rather than a pass.
