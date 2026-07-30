@@ -1184,6 +1184,374 @@ if (process.argv.includes('--floorjoint')) {
   process.exit(0);
 }
 
+// ══ Can family shape separate what magnitude cannot (--shape) ══════════════
+// A floor on the driving pair's |r| is dead: the trivial pervasive case produces
+// a LARGER driving |r| than the real concentrated one (0.1844 mean at 500 rows
+// and rho 0.12 against 0.1482 for an injected 0.3), so it is an inversion rather
+// than a gap to split. Removing the floor is dead too — pervasive rho 0.05 flags
+// 94% of the time at 3000 rows with no floor at all.
+//
+// The information that magnitude throws away is the SHAPE of the per-pair
+// family. Pervasive trivia lifts every pair together. A concentrated finding
+// puts one or two pairs far above the rest. This measures whether a shape
+// statistic separates the two where magnitude did not.
+//
+// WHY THE INVERSION HAPPENS, and it is checked here rather than assumed.
+// Differencing an affected column against a clean one halves the effect: for
+// X an AR(1) at rho and Y independent white noise, Var(X-Y) = 2 while the lag-1
+// autocovariance is rho, so the pair's r is rho/2. When every column carries the
+// effect both autocovariances survive, giving 2rho over a variance of 2, so r is
+// rho at full strength. Taking a maximum over C(C-1)/2 pairs then lifts the
+// pervasive case further. Section 1 measures both.
+//
+// GUARDING AGAINST FITTING TO TWO SHAPES. Any rule chosen from two synthetic
+// extremes is fitted to them, and no fixture carries either. So three more
+// shapes are measured alongside: two columns injected and half the columns
+// injected, which sit between the extremes; a pervasive effect at forensic
+// strength, which every rule must KEEP; and a concentrated effect at trivial
+// strength, which every rule must BLOCK and which a breadth-only rule waves
+// straight through. A candidate that separates the two anchors but fails an
+// interpolation has been fitted, not found.
+//
+// WHAT IS MEASURABLE AT THE DECISION POINT. `nSignificant` is computed at
+// autocorrelation.js line 58 over the complete per-pair set, the gate at line 88
+// and the flag at line 107, so breadth is available where the flag is decided.
+// `allR1` is in scope at line 88 too, so the contrast statistics are as well.
+// Neither candidate needs a field the test does not already hold.
+//
+// ADMIT, NOT SUPPRESS. Every rule below returns admit or block, where admit
+// means the flag becomes flagFromP(minAdjP). The current gate is the rule
+// `|pooled mean r1| >= 0.25`, applied only at 500 rows or more.
+if (process.argv.includes('--shape')) {
+  const { flagFromP, ALPHA, EFFECT_SIZE } = await import(B + 'src/constants/thresholds.js');
+  const { acfAtLag, zToP, bhFDR } = await import(B + 'src/stats/primitives.js');
+  const REPS = Number(process.env.REPS) || 600;
+  const T_POOLED = EFFECT_SIZE.AUTOCORR_STRONG;          // 0.25, the gate as it stands
+  const T_HALF = T_POOLED / 2;                            // 0.125, the same standard after differencing
+
+  // Complete per-pair family. `details` truncates at 15, so a C=12 matrix would
+  // lose 51 of its 66 pairs — every statistic below needs the full set. Asserted
+  // against testAutocorrelation's own complete-set fields before use.
+  const family = (matrix) => {
+    const nR = matrix.length, nC = matrix[0].length;
+    const rs = [], ps = [], pc = [];
+    for (let c1 = 0; c1 < nC; c1++) for (let c2 = c1 + 1; c2 < nC; c2++) {
+      const d = [];
+      for (let r = 0; r < nR; r++) if (matrix[r][c1] != null && matrix[r][c2] != null) d.push(matrix[r][c1] - matrix[r][c2]);
+      if (d.length < 10) continue;
+      const m = mean(d), den = d.reduce((s, x) => s + (x - m) ** 2, 0);
+      const r1 = acfAtLag(d, m, den, 1);
+      rs.push(r1); ps.push(zToP(r1 * Math.sqrt(d.length))); pc.push([c1, c2]);
+    }
+    if (!rs.length) return null;
+    const adj = bhFDR(ps);
+    let mi = 0;
+    for (let i = 1; i < adj.length; i++) if (adj[i] < adj[mi]) mi = i;
+    const abs = rs.map(Math.abs).sort((a, b) => a - b);
+    const driving = Math.abs(rs[mi]);
+    const med = quant(abs, 0.5), mn = mean(abs);
+    return {
+      k: rs.length,
+      nSig: adj.filter(p => p < ALPHA.NOTE).length,
+      minAdj: adj[mi],
+      driving,
+      pooled: Math.abs(mean(rs)),
+      breadth: adj.filter(p => p < ALPHA.NOTE).length / rs.length,
+      gap: driving - med,
+      ratio: mn > 0 ? driving / mn : Infinity,
+      pairCols: pc, rs,
+    };
+  };
+
+  // ── shapes ──────────────────────────────────────────────────────────────
+  // Each returns the matrix plus which columns carry the injection, so the
+  // halving check can split pairs by whether they touch one.
+  const shapes = {
+    // every column carries the effect — survives differencing at full strength
+    triv: (N, C, rho, nrm) => ({ m: _colsToMatrix(Array.from({ length: C }, () => _arCol(N, rho, nrm))), inj: new Set(Array.from({ length: C }, (_, i) => i)) }),
+    // one column carries it — halved by differencing against a clean column
+    conc1: (N, C, rho, nrm) => ({ m: _colsToMatrix([_arCol(N, rho, nrm), ...Array.from({ length: C - 1 }, () => _whiteCol(N, nrm))]), inj: new Set([0]) }),
+    conc2: (N, C, rho, nrm) => ({ m: _colsToMatrix([_arCol(N, rho, nrm), _arCol(N, rho, nrm), ...Array.from({ length: C - 2 }, () => _whiteCol(N, nrm))]), inj: new Set([0, 1]) }),
+    half: (N, C, rho, nrm) => { const h = Math.ceil(C / 2);
+      return { m: _colsToMatrix([...Array.from({ length: h }, () => _arCol(N, rho, nrm)), ...Array.from({ length: C - h }, () => _whiteCol(N, nrm))]), inj: new Set(Array.from({ length: h }, (_, i) => i)) }; },
+  };
+
+  // Faithfulness. Four of the five statistics come straight from fields the
+  // engine computes over its own complete set, so they can be checked at any
+  // width including the ones where `details` truncates.
+  {
+    let worst = 0; const acc = new Map();
+    for (const C of [6, 8, 12]) {
+      const nrm = _normal(mulberry32(97 + C));
+      const { m } = shapes.conc1(600, C, 0.5, nrm);
+      const f = family(m), e = testAutocorrelation(m, null);
+      const d = [
+        ['nPairs', f.k, e.nPairs, 0],
+        ['nSignificant', f.nSig, e.nSignificant, 0],
+        ['minAdjP', f.minAdj, Number(e.minAdjP), 1e-12],
+        ['driving |r|', f.driving, Math.abs(Number(e.minAdjPairR1)), 5e-5],
+        ['pooled |r|', f.pooled, Math.abs(Number(e.pooledMeanR1)), 5e-5],
+      ];
+      for (const [nm, a, b, tol] of d) {
+        const dd = Math.abs(a - b);
+        if (dd > tol) worst = 1;
+        acc.set(nm, Math.max(acc.get(nm) ?? 0, dd));
+      }
+    }
+    console.log(`### Reconstruction vs testAutocorrelation at C = 6, 8 and 12 (details truncates at 15 pairs)`);
+    console.log(`    worst delta over the three widths: ${[...acc].map(([k, v]) => `${k} ${v.toExponential(1)}`).join(', ')}`);
+    console.log(`    -> ${worst === 0 ? 'MATCHES' : '*** MISMATCH — numbers below are untrustworthy ***'}\n`);
+  }
+
+  // ── Section 1: is the halving what produces the deflated maximum ─────────
+  console.log(`### Section 1 — does differencing halve a single-column injection?  ${REPS} draws per cell\n`);
+  console.log('  Predicted: a pair touching one injected column reads rho/2, a pair touching two reads rho,');
+  console.log('  a pair touching none reads 0. The driving |r| is a maximum over pairs, so it sits above');
+  console.log('  whichever of those the shape allows.\n');
+  console.log('  ' + 'shape'.padEnd(8) + 'C'.padEnd(4) + 'N'.padEnd(7) + 'rho'.padEnd(7) +
+              'r, 1 injected'.padEnd(17) + 'r, 2 injected'.padEnd(17) + 'r, 0 injected'.padEnd(17) +
+              'driving |r|'.padEnd(13) + 'pooled |r|');
+  console.log('  ' + '-'.repeat(108));
+  for (const [name, N, C, rho] of [
+    ['conc1', 600, 8, 0.3], ['conc1', 600, 8, 0.5], ['conc1', 600, 8, 0.7],
+    ['conc1', 600, 12, 0.3], ['conc1', 600, 12, 0.5], ['conc1', 600, 12, 0.7],
+    ['conc2', 600, 8, 0.3], ['half', 600, 8, 0.3],
+    ['triv', 500, 6, 0.12], ['triv', 600, 8, 0.3], ['triv', 3000, 6, 0.05],
+  ]) {
+    const nrm = _normal(mulberry32(0x513 + C * 131 + Math.round(rho * 1000) + N));
+    let s1 = 0, n1 = 0, s2 = 0, n2 = 0, s0 = 0, n0 = 0, dr = 0, po = 0, nn = 0;
+    for (let i = 0; i < REPS; i++) {
+      const { m, inj } = shapes[name](N, C, rho, nrm);
+      const f = family(m);
+      if (!f) continue;
+      nn++; dr += f.driving; po += f.pooled;
+      f.pairCols.forEach(([a, b], j) => {
+        const t = (inj.has(a) ? 1 : 0) + (inj.has(b) ? 1 : 0);
+        if (t === 1) { s1 += f.rs[j]; n1++; } else if (t === 2) { s2 += f.rs[j]; n2++; } else { s0 += f.rs[j]; n0++; }
+      });
+    }
+    const fmt = (s, n, ref) => n ? `${(s / n).toFixed(4)} (${((s / n) / ref).toFixed(2)}x)` : '-';
+    console.log('  ' + name.padEnd(8) + String(C).padEnd(4) + String(N).padEnd(7) + rho.toFixed(2).padEnd(7) +
+      fmt(s1, n1, rho).padEnd(17) + fmt(s2, n2, rho).padEnd(17) + fmt(s0, n0, rho).padEnd(17) +
+      (dr / nn).toFixed(4).padEnd(13) + (po / nn).toFixed(4));
+  }
+  console.log(`\n  The bracketed multiple is the pair r divided by the injected rho, so 0.50 is the halving.`);
+
+  // ── the cells every candidate is judged on ──────────────────────────────
+  // KEEP cells: findings the gate currently demotes, plus a pervasive effect at
+  // forensic strength that every rule must also keep.
+  const KEEP = [];
+  for (const C of [8, 12]) for (const rho of [0.3, 0.5, 0.7]) KEEP.push(['conc1', 600, C, rho, 'the six']);
+  for (const C of [8, 12]) for (const rho of [0.3, 0.5]) KEEP.push(['conc2', 600, C, rho, 'two injected']);
+  for (const C of [8, 12]) for (const rho of [0.3, 0.5]) KEEP.push(['half', 600, C, rho, 'half injected']);
+  for (const C of [6, 8, 12]) for (const rho of [0.4, 0.6]) KEEP.push(['triv', 600, C, rho, 'pervasive strong']);
+  // BLOCK cells: the trivial band, pervasive at the recorded 0.03-0.15
+  // background, plus a concentrated effect at trivial strength — the leak class
+  // a breadth-only rule cannot see.
+  const BLOCK = [];
+  for (const C of [6, 8, 12]) for (const N of [500, 1000, 3000]) for (const rho of [0.03, 0.05, 0.08, 0.12, 0.15]) BLOCK.push(['triv', N, C, rho, 'trivial band']);
+  for (const C of [6, 8, 12]) for (const N of [500, 1000, 3000]) for (const rho of [0.06, 0.10, 0.15]) BLOCK.push(['conc1', N, C, rho, 'trivial concentrated']);
+
+  // ── the candidates ──────────────────────────────────────────────────────
+  // Each takes the family statistics and a threshold, and returns admit.
+  const RULES = [
+    { id: 'current', label: 'pooled |r| >= 0.25 (as it stands)', ts: [null],
+      fn: (f) => f.pooled >= T_POOLED },
+    { id: 'breadth', label: 'breadth <= T', ts: [0.20, 0.30, 0.40, 0.50, 0.60],
+      fn: (f, t) => f.breadth <= t },
+    { id: 'gap', label: 'driving |r| - median |r| >= T', ts: [0.05, 0.08, 0.10, 0.125, 0.15, 0.20],
+      fn: (f, t) => f.gap >= t },
+    { id: 'ratio', label: 'driving |r| / mean |r| >= T', ts: [1.5, 2.0, 2.5, 3.0, 4.0],
+      fn: (f, t) => f.ratio >= t },
+    { id: 'branch', label: 'breadth > T ? pooled >= 0.25 : driving >= 0.125', ts: [0.20, 0.30, 0.40, 0.50, 0.60],
+      fn: (f, t) => (f.breadth > t ? f.pooled >= T_POOLED : f.driving >= T_HALF) },
+    { id: 'union', label: 'pooled >= 0.25 OR gap >= T', ts: [0.05, 0.08, 0.10, 0.125, 0.15, 0.20],
+      fn: (f, t) => f.pooled >= T_POOLED || f.gap >= t },
+    { id: 'unionB', label: 'pooled >= 0.25 OR (breadth <= 0.5 AND driving >= 0.125)', ts: [null],
+      fn: (f) => f.pooled >= T_POOLED || (f.breadth <= 0.5 && f.driving >= T_HALF) },
+  ];
+
+  // Draw every cell once, store the family statistics, then score every rule on
+  // the same draws. One set of draws for all candidates, so the comparison
+  // carries no sampling difference between them.
+  const runCell = ([name, N, C, rho, band]) => {
+    const nrm = _normal(mulberry32(0xA5E + C * 7919 + N * 31 + Math.round(rho * 1000)));
+    const fs = [];
+    for (let i = 0; i < REPS; i++) {
+      const { m } = shapes[name](N, C, rho, nrm);
+      const f = family(m);
+      if (f) fs.push(f);
+    }
+    return { name, N, C, rho, band, fs, pFlag: fs.filter(f => flagFromP(f.minAdj) !== 'LOW').length };
+  };
+  const keepCells = KEEP.map(runCell);
+  const blockCells = BLOCK.map(runCell);
+
+  // ── Section 2: the statistics, by shape ─────────────────────────────────
+  const statLine = (c) => {
+    const g = (sel) => { const v = c.fs.map(sel).filter(Number.isFinite).sort((a, b) => a - b);
+      return v.length ? `${mean(v).toFixed(3)}/${quant(v, 0.05).toFixed(3)}/${quant(v, 0.95).toFixed(3)}` : '-'; };
+    return '  ' + c.name.padEnd(7) + String(c.C).padEnd(4) + String(c.N).padEnd(6) + c.rho.toFixed(2).padEnd(6) +
+      `${(100 * c.pFlag / c.fs.length).toFixed(0)}%`.padEnd(9) +
+      g(f => f.breadth).padEnd(21) + g(f => f.gap).padEnd(21) + g(f => f.ratio).padEnd(23) +
+      g(f => f.pooled).padEnd(21) + g(f => f.driving);
+  };
+  const statHead = () => {
+    console.log('  ' + 'shape'.padEnd(7) + 'C'.padEnd(4) + 'N'.padEnd(6) + 'rho'.padEnd(6) + 'p flags'.padEnd(9) +
+      'breadth'.padEnd(21) + 'gap'.padEnd(21) + 'ratio'.padEnd(23) + 'pooled |r|'.padEnd(21) + 'driving |r|');
+    console.log('  ' + '-'.repeat(140));
+  };
+  console.log(`\n\n### Section 2 — the shape statistics. Each cell is mean/5th/95th over ${REPS} draws.\n`);
+  console.log('  "p flags" is how often the p-value alone reaches MODERATE, i.e. how often any gate is asked');
+  console.log('  the question at all. Cells where it is 0% carry no information about any rule.\n');
+  console.log('  MUST KEEP\n');
+  statHead();
+  for (const c of keepCells) console.log(statLine(c));
+  console.log('\n  MUST BLOCK\n');
+  statHead();
+  for (const c of blockCells) console.log(statLine(c));
+
+  // ── Section 3: the candidates scored ────────────────────────────────────
+  console.log(`\n\n### Section 3 — every candidate at every threshold.\n`);
+  console.log('  Each keep column counts how many cells in that band the rule admits on 95% or more of the');
+  console.log('  draws where the p-value alone flags. "six" is the six concentrated cells the gate demotes');
+  console.log('  today. "2col" and "half" are the interpolations, "pervS" a pervasive effect at forensic');
+  console.log('  strength that every rule must keep. Leak is the flag rate under the rule, so it is directly');
+  console.log('  comparable to the pooled-mean gate\'s 0%.\n');
+  console.log('  ' + 'rule'.padEnd(9) + 'T'.padEnd(8) + 'six'.padEnd(7) + '2col'.padEnd(7) + 'half'.padEnd(7) +
+              'pervS'.padEnd(8) + 'leak 500'.padEnd(11) + 'leak 1000'.padEnd(11) + 'leak 3000'.padEnd(11) + 'worst leaking cell');
+  console.log('  ' + '-'.repeat(128));
+  const BANDS = [['the six', 'six'], ['two injected', '2col'], ['half injected', 'half'], ['pervasive strong', 'pervS']];
+  const results = [];
+  for (const r of RULES) {
+    for (const t of r.ts) {
+      const admitRate = (c) => {
+        const asked = c.fs.filter(f => flagFromP(f.minAdj) !== 'LOW');
+        return asked.length ? asked.filter(f => r.fn(f, t)).length / asked.length : null;
+      };
+      const kept = {}, tot = {};
+      for (const [band] of BANDS) { kept[band] = 0; tot[band] = 0; }
+      for (const c of keepCells) {
+        tot[c.band]++;
+        const a = admitRate(c);
+        if (a != null && a >= 0.95) kept[c.band]++;
+      }
+      const six = kept['the six'];
+      const leakOf = (c) => c.fs.filter(f => flagFromP(f.minAdj) !== 'LOW' && r.fn(f, t)).length / c.fs.length;
+      const byN = {};
+      let worst = { v: -1, c: null };
+      for (const c of blockCells) {
+        const v = leakOf(c);
+        byN[c.N] = Math.max(byN[c.N] ?? 0, v);
+        if (v > worst.v) worst = { v, c };
+      }
+      results.push({ id: r.id, t, six, kept, tot, byN, worst });
+      console.log('  ' + r.id.padEnd(9) + (t == null ? '-' : String(t)).padEnd(8) +
+        BANDS.map(([band, lbl], i) => `${kept[band]}/${tot[band]}`.padEnd(i === 3 ? 8 : 7)).join('') +
+        `${(100 * (byN[500] ?? 0)).toFixed(1)}%`.padEnd(11) +
+        `${(100 * (byN[1000] ?? 0)).toFixed(1)}%`.padEnd(11) +
+        `${(100 * (byN[3000] ?? 0)).toFixed(1)}%`.padEnd(11) +
+        (worst.v > 0 ? `${(100 * worst.v).toFixed(1)}% at ${worst.c.name} C=${worst.c.C} N=${worst.c.N} rho=${worst.c.rho}` : 'nothing leaks'));
+    }
+  }
+  console.log('\n  Rule definitions:');
+  for (const r of RULES) console.log(`    ${r.id.padEnd(9)} ${r.label}`);
+
+  // ── Section 5: if no rule separates, is the shape at least reportable ────
+  // A gate has to answer two questions at once — which shape is this, and is the
+  // effect large enough — and Section 3 says no single statistic answers both.
+  // Describing the shape is a weaker demand: it only has to answer the first.
+  // This measures whether it can, pooled over every draw where the p-value
+  // flags, so the answer does not depend on picking a cell.
+  //
+  // The two classes are the two constructions: every column carrying the effect,
+  // and one column carrying it. The interpolations are reported separately
+  // because they have no correct label — they ARE the middle.
+  console.log(`\n\n### Section 5 — is the shape reportable even though it cannot gate?\n`);
+  const asked = (cs, nm) => cs.filter(c => c.name === nm)
+    .flatMap(c => c.fs.filter(f => flagFromP(f.minAdj) !== 'LOW'));
+  const all = [...keepCells, ...blockCells];
+  const perv = asked(all, 'triv'), conc = asked(all, 'conc1');
+  const mid = [...asked(all, 'conc2'), ...asked(all, 'half')];
+  console.log(`  Draws where the p-value flags: ${perv.length} pervasive, ${conc.length} concentrated, ${mid.length} in between.\n`);
+  for (const [nm, sel] of [['breadth', f => f.breadth], ['ratio', f => f.ratio], ['gap', f => f.gap]]) {
+    const q = (arr) => { const v = arr.map(sel).filter(Number.isFinite).sort((a, b) => a - b);
+      return `${quant(v, 0.05).toFixed(3)} / ${quant(v, 0.5).toFixed(3)} / ${quant(v, 0.95).toFixed(3)}`; };
+    console.log(`  ${nm.padEnd(9)} pervasive ${q(perv).padEnd(26)} concentrated ${q(conc).padEnd(26)} between ${q(mid)}`);
+  }
+  console.log('\n  Best single split, scanned over the statistic, minimising the larger of the two error rates:');
+  console.log('  ' + 'statistic'.padEnd(11) + 'split'.padEnd(9) + 'pervasive called concentrated'.padEnd(31) +
+              'concentrated called pervasive'.padEnd(31) + 'worse of the two');
+  console.log('  ' + '-'.repeat(96));
+  for (const [nm, sel, lo, hi, step, dir] of [
+    ['breadth', f => f.breadth, 0.05, 0.95, 0.01, 'concLow'],
+    ['ratio', f => f.ratio, 1.0, 4.0, 0.02, 'concHigh'],
+    ['gap', f => f.gap, 0.0, 0.30, 0.005, 'concHigh'],
+  ]) {
+    let best = null;
+    for (let t = lo; t <= hi + 1e-9; t += step) {
+      // concLow: a concentrated family sits BELOW the split. concHigh: above it.
+      const isConc = (f) => dir === 'concLow' ? sel(f) <= t : sel(f) >= t;
+      const e1 = perv.filter(isConc).length / perv.length;       // pervasive mislabelled
+      const e2 = conc.filter(f => !isConc(f)).length / conc.length; // concentrated mislabelled
+      const w = Math.max(e1, e2);
+      if (!best || w < best.w) best = { t, e1, e2, w };
+    }
+    console.log('  ' + nm.padEnd(11) + best.t.toFixed(3).padEnd(9) +
+      `${(100 * best.e1).toFixed(1)}%`.padEnd(31) + `${(100 * best.e2).toFixed(1)}%`.padEnd(31) +
+      `${(100 * best.w).toFixed(1)}%`);
+  }
+  console.log('\n  This is a classification of shape only. It carries no information about whether the effect');
+  console.log('  is large enough to matter, which is why Section 3 finds no rule that gates on it.');
+
+
+  // ── Section 4: margins, for choosing on robustness ──────────────────────
+  // A rule that separates at a knife edge on two synthetic shapes will not
+  // survive a real file. For every candidate that reaches six of six with no
+  // leak, report the distance between the closest keep and the closest block on
+  // its own statistic — that distance is the margin, and it is the property to
+  // choose on.
+  console.log(`\n\n### Section 4 — margins for the candidates that pass.\n`);
+  const STAT = { breadth: f => f.breadth, gap: f => f.gap, ratio: f => f.ratio,
+                 branch: f => f.breadth, union: f => f.gap, unionB: f => f.breadth, current: f => f.pooled };
+  const passing = results.filter(r => r.six === 6 && Math.max(...Object.values(r.byN)) === 0);
+  if (!passing.length) {
+    console.log('  No candidate reaches six of six with a zero leak. Section 3 holds the near misses.');
+  } else {
+    console.log('  ' + 'rule'.padEnd(9) + 'T'.padEnd(8) + 'tightest keep'.padEnd(30) + 'tightest block'.padEnd(30) + 'margin');
+    console.log('  ' + '-'.repeat(104));
+    for (const p of passing) {
+      const sel = STAT[p.id];
+      // Tightest keep: across all must-keep cells, the 5th percentile of the
+      // statistic among draws the p-value flags — how close the hardest real
+      // finding comes to the threshold. Tightest block: the 95th percentile on
+      // the block side.
+      let kTight = null, kCell = null, bTight = null, bCell = null;
+      for (const c of keepCells) {
+        const v = c.fs.filter(f => flagFromP(f.minAdj) !== 'LOW').map(sel).filter(Number.isFinite).sort((a, b) => a - b);
+        if (!v.length) continue;
+        const q = quant(v, 0.05);
+        if (kTight == null || q < kTight) { kTight = q; kCell = c; }
+      }
+      for (const c of blockCells) {
+        const v = c.fs.filter(f => flagFromP(f.minAdj) !== 'LOW').map(sel).filter(Number.isFinite).sort((a, b) => a - b);
+        if (!v.length) continue;
+        const q = quant(v, 0.95);
+        if (bTight == null || q > bTight) { bTight = q; bCell = c; }
+      }
+      const desc = (v, c) => c ? `${v.toFixed(3)} (${c.name} C=${c.C} N=${c.N} rho=${c.rho})` : '-';
+      console.log('  ' + p.id.padEnd(9) + (p.t == null ? '-' : String(p.t)).padEnd(8) +
+        desc(kTight, kCell).padEnd(30) + desc(bTight, bCell).padEnd(30) +
+        `${(kTight - bTight).toFixed(3)} absolute, ${(kTight / Math.max(bTight, 1e-9)).toFixed(2)}x`);
+    }
+    console.log('\n  Keep is the 5th percentile on the keep side, block the 95th on the block side, both taken');
+    console.log('  only over draws where the p-value flags. A negative margin means the two overlap and the');
+    console.log('  rule passes on the threshold sitting inside the overlap rather than outside it.');
+  }
+  process.exit(0);
+}
+
+
 // ══ Route 4, and whether combining it with Route 2 stays calibrated ════════
 // Route 4 keeps the pooled lag-1 statistic and rescales its standard error by an
 // inflation factor estimated from row shuffles of the dataset in hand, instead
