@@ -15,6 +15,7 @@ import { C, FF, FW, FS, CR, CC, M, UI, SIGNAL, ACCENT, SEV_VERDICT } from "../..
 import { fmtPBadge } from "../../constants/thresholds.js";
 import { MECHANISM_ORDER } from "../../constants/mechanisms.js";
 import { ROLES } from "../../constants/roles.js";
+import { condStructureKind } from "../shared/coordinates.js";
 
 // S152 (A3-sibling): per-file severity badge migrated from SIGNAL.*.dot
 // hex-math (sevC+"18"/sevC+"44") to SEV_VERDICT[s].{color,bg,border} — the
@@ -138,6 +139,14 @@ export function BatchView({ onBack }) {
         // Infer roles
         const roles=inferRoles(data,hdrs,condPerCol);
 
+        // Does this file answer the condition question. Computed here because
+        // `condPerCol` is local: the drill-in config deliberately sends
+        // `condPerCol: null`, and carrying the real array instead would change
+        // what five other consumers read — the excerpt table's condition spans,
+        // the condition colour map, the residual-spike highlight spec and two
+        // card evidence tables. The report needs one fact, so one fact travels.
+        const hasCondStructure=!!condStructureKind(condPerCol,roles);
+
         // Detect assay
         const detected=detectAssay(file.name, hdrs);
         const assay=detected?detected.assay:"general";
@@ -203,6 +212,7 @@ export function BatchView({ onBack }) {
           assay,
           zeroAsMissing,
           colRelationship:batchColRel,
+          hasCondStructure,
           rowSemantics:batchRowSem,
           // Still the reason code the per-file pill reads below; it is no
           // longer what the report banner's row-order tag keys on.
@@ -297,6 +307,9 @@ export function BatchView({ onBack }) {
       // "Columns" row read "replicates" by falling through a ternary rather
       // than by reading anything.
       colRelationship: r.colRelationship,
+      // Answers the condition question for the advisory, since `condPerCol`
+      // above is null and cannot.
+      hasCondStructure: r.hasCondStructure,
       rowSemantics: r.rowSemantics,
       rowSemanticsAuto: r.rowSemanticsAuto,
       // Replaces the three asserted booleans this object used to carry. The

@@ -25,7 +25,7 @@ import { ExcelMetaCard } from "../cards/ExcelMetaCard.jsx";
 import { TestCard } from "../cards/TestCard.jsx";
 import { MODE_ORDER, MODES, CATEGORY_GUIDANCE, QC_HOTSPOT_NARRATIVE } from "../../constants/guidance.js";
 import { CATEGORY_SHORT_DESCRIPTIONS, QC_CATEGORY_DESCRIPTIONS } from "../../constants/descriptions.js";
-import { originalFileRow, colToExcelLetter, buildOriginalColMap } from "../shared/coordinates.js";
+import { originalFileRow, colToExcelLetter, buildOriginalColMap, condStructureKind } from "../shared/coordinates.js";
 // Dynamic import: export module + SheetJS + JSZip loaded only when user clicks Export
 const lazyExportToExcel = async (opts) => {
   const { exportToExcel } = await import("../../export/excelExport.js");
@@ -1029,12 +1029,22 @@ export function ReportView({ results: baseResults, importConfig, matrix, rowMap,
           the surface where nothing answered the question. */}
       {(() => {
         const nDC = nCols;
-        const hasConds = importConfig.condPerCol?.some(c=>c) || false;
+        // Both routes to a condition answer, not just the header one. The old
+        // test read `condPerCol` alone, so every file that answered with a
+        // condition column counted as having no structure — twelve of the
+        // twenty-seven fixtures. `condStructureKind` owns the question;
+        // `hasCondStructure` is the precomputed answer from a surface that
+        // withholds `condPerCol` on purpose.
+        const hasConds = importConfig.hasCondStructure
+          ?? !!condStructureKind(importConfig.condPerCol, importConfig.roles);
         const answeredByUser = importConfig.provenance
           ? importConfig.provenance.cols === 'user-set'
           : !!importConfig.colRelationship;
         if(importConfig.colRelationship === 'conditions') return null; // conditions mode — note not needed
-        if(nDC > 6 && !hasConds && !answeredByUser) return (
+        // No column-count term. The count was never what made this relevant;
+        // the absence of an answer was, and `> 6` excluded every file that had
+        // no answer — the widest of them has six data columns.
+        if(!hasConds && !answeredByUser) return (
           <AsideCallout tone="warn" strongLabel="⚠ Column structure note">
             All {nDC} data columns are being treated as replicates of a single condition.
             If these are different biological samples, conditions, or time points, structural tests
