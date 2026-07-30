@@ -1,4 +1,4 @@
-import { mean, acfAtLag, zToP, bhFDR, oneSampleT, stddev, normalQuantile, tQuantileTwoSided } from "../stats/primitives.js";
+import { mean, acfAtLag, zToP, bhFDR, oneSampleT, stddev, normalQuantile, tQuantileTwoSided, arrayMin } from "../stats/primitives.js";
 import { flagFromP, flagRankOf, ALPHA, EFFECT_SIZE } from "../constants/thresholds.js";
 import { NA_CAUSE } from "../constants/naCause.js";
 import { TOO_FEW_REPLICATE_COLS_CAUSE, joinDeclineReason } from "../constants/assays.js";
@@ -86,7 +86,17 @@ export function testAutocorrelation(matrix) {
   const effectSizeClass = absR1 >= EFFECT_SIZE.AUTOCORR_STRONG ? "strong"
     : absR1 >= EFFECT_SIZE.AUTOCORR_MODERATE ? "moderate" : "weak";
   const esGate = nR>=500 && absR1<EFFECT_SIZE.AUTOCORR_STRONG;
-  const pooledFlag=esGate?"LOW":flagFromP(pooled.p);
+  // The verdict reads the per-pair family, not the pooled t. Pairs drawn from
+  // C columns share a column C-1 times over, so they are not the independent
+  // observations a one-sample t assumes: measured variance inflation is about
+  // 4x, which halves the standard error. On a clean fixture that put 44.8% of
+  // row orderings above MODERATE. `minAdjP` is the minimum over the COMPLETE
+  // per-pair set, computed here before `details` is truncated for display.
+  // The pooled statistic keeps computing and reporting — it is still evidence,
+  // it just no longer decides. Effect-size gate unchanged and still applied
+  // ahead of the flag, exactly as it was to the pooled one.
+  const minAdjP = arrayMin(acfAdjPs);
+  const pooledFlag=esGate?"LOW":flagFromP(minAdjP);
   // Pair-level promotion: if any individual pair survives BH-FDR at ALPHA.FLAG,
   // promote to at least MODERATE. One strong outlier pair shouldn't be diluted
   // by many weak pairs in the pooled test.
@@ -176,7 +186,11 @@ export function testAutocorrelation(matrix) {
     nSignificant:nSig, nPairs:res.length,
     pooledMeanR1:pooledMeanR1.toFixed(4),
     pooledT:pooled.t.toFixed(3), pooledP:pooled.p.toFixed(4),
-    primaryP: Math.min(pooled.p, ...(anyPairFlagged ? acfAdjPs.filter(p=>p<ALPHA.FLAG) : [1])),
+    // The deciding quantity, so it is what the aggregator combines and what the
+    // report reads as this test's p. Was the pooled t's p; that value stays
+    // available as `pooledP` for display.
+    primaryP: minAdjP,
+    minAdjP,
     effectSizeClass,
     pooledR1SD, pooledR1SE, pooledR1CI,
     lagTable, higherLagPromoted, higherLagWasDecisive,

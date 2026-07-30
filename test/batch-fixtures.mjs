@@ -55,8 +55,8 @@ export const EXPECTED = {
   '02-densitometry-fabricated.csv': { severity: 3, assay: 'densitometry', flags: {
     'Inter-Replicate Correlation': ['MODERATE', 'HIGH'],   // rescaled-copy near-linear replicate dep.
     'Residual Spike Correlation':  ['MODERATE', 'HIGH'],   // FISHER_EXEMPT, shared row-noise across cond
-    'Autocorrelation':             ['MODERATE', 'HIGH'],   // near-linear serial structure (lag-1)
-    'Runs Test':                   ['MODERATE', 'HIGH'],   // sign-clustering from serial structure
+    'Autocorrelation':             ['LOW'],                 // S339: pooled route retired; per-pair family clears (0 of 6 pairs). Fixture carried by IRC + Residual Spike.
+    'Runs Test':                   ['LOW'],                 // S339: same — 0 of 6 pairs, empirical p 0.049 against the row-shuffle null.
   } },
   '03-qpcr-clean.csv':            { severity: 0, assay: 'qpcr' },
   '04-qpcr-fabricated.csv':       { severity: 3, assay: 'qpcr', flags: {
@@ -151,7 +151,7 @@ export const EXPECTED = {
   '20-bimodal-fab.csv': { severity: 3, assay: 'general', flags: {
     'Column Goodness-of-Fit':         ['MODERATE', 'HIGH'],   // GT line 33, calibration gradient cols 4–7
     'Selective Noise Partitioning':   ['HIGH'],               // p≈0; GT-named Dim III collateral (S183 Phase 2)
-    'Autocorrelation':                ['MODERATE', 'HIGH'],   // p≈1.7e-3; GT-named Dim III collateral, near MOD/HIGH boundary (S183)
+    'Autocorrelation':                ['LOW'],                 // S339: pooled route retired; 0 of 28 pairs. GT names this Dim III collateral, not a primary channel — Column GoF + Selective Noise carry the fixture.
   } },
   // DS21: localised AR(1) in Control only. Primary targets Windowed Autocorr
   //   (Dim III) + Cross-Cond Consistency Stage 2 (Dim IV).
@@ -163,7 +163,7 @@ export const EXPECTED = {
   //   Severity 2 → 3 per S111 Phase 2 forecast; GT entry updated.
   '21-localised-ar.csv': { severity: 3, assay: 'general', flags: {
     'Autocorrelation':            ['HIGH'],                  // lag-1 HIGH p=2.5e-8, rock-solid
-    'Runs Test':                  ['MODERATE', 'HIGH'],      // HIGH p=0.0004, widened (near HIGH/MOD line)
+    'Runs Test':                  ['LOW'],                   // S339: pooled route retired; 0 of 28 pairs. Autocorrelation still HIGH here and the AR injection keeps 4 convergent channels.
     'Row-Mean Runs':              ['MODERATE', 'HIGH'],      // HIGH p=0.0007, widened
     'Blocked Mahalanobis':        ['MODERATE', 'HIGH'],      // HIGH, FISHER_EXEMPT → widened
     'Regional Noise Homogeneity': ['MODERATE', 'HIGH'],      // MOD p=0.002
@@ -175,10 +175,10 @@ export const EXPECTED = {
   //   Mahalanobis MOD + Autocorrelation MOD convergent. Blocked Mahal
   //   attribution gap (S110 parked) cleared; K/N=0.15 detection ceiling
   //   holds per METHODOLOGY §2.6b.
-  '22-covariance-block.csv': { severity: 2, assay: 'general', flags: {
-    'Runs Test':                  ['MODERATE', 'HIGH'],     // HIGH p=0.0002, widened
-    'Blocked Mahalanobis':        ['MODERATE', 'HIGH'],     // MOD, FISHER_EXEMPT → widened
-    'Autocorrelation':            ['MODERATE', 'HIGH'],     // MOD p=0.0012
+  '22-covariance-block.csv': { severity: 1, assay: 'general', flags: {
+    'Runs Test':                  ['LOW'],                  // S339: the HIGH was not the planted mechanism — inside rows 80-109 on Rep4-7 it returns p=0.98 / 0.92; the signal sat in Treatment rows outside the block, stronger in the clean Rep1-3.
+    'Blocked Mahalanobis':        ['MODERATE', 'HIGH'],     // MOD, FISHER_EXEMPT → widened. Sole surviving channel; carries severity 1.
+    'Autocorrelation':            ['LOW'],                  // S339: pooled route retired; 0 of 21 pairs.
   } },
 
   // §2.6 fix-verification fixtures. Reproduce CORPUS-03's axis-1 (false
@@ -240,6 +240,7 @@ export const ACKNOWLEDGED = {
   // declared HIGH near-dup detection in expected.flags (S308) — the five ×10
   // recurrences are a genuine concentration-path catch, no longer incidental.
   '23-recurrence-null-mixed.csv': {
+    'Runs Test': "S339: per-pair routing surfaces one pair at BH-adjusted p just under ALPHA.NOTE. Incidental to the recurrence carrier — repeated values produce zero differences, which the runs test strips, distorting the sign sequence. Not a sequence finding; primary channels are Benford 1st/2nd + VFS",
     'Entropy / Zipf Analysis': "recur's low-entropy concentrated column; intrinsic to the recurrence carrier (S297)",
     'Column Goodness-of-Fit': "recur's normal-fit shape mismatch from the 5×10 recurrence; intrinsic to the recurrence carrier (S297)",
     'Selective Noise Partitioning': "coupled to the Benford span column — the wide column's variance outlier trips the Bartlett; inseparable from the span-borrowing carrier (S297)",
