@@ -3,9 +3,9 @@
 **GENERATED — DO NOT HAND-EDIT** — regenerate via
 `node scripts/build-test-display-map.mjs`
 
-- Generated: 2026-07-13 06:58:26Z
-- Commit:    `56118ca` (`56118ca0c9708e4bee13295b4b8991b0733918da`)
-- Branch:    `main`
+- Generated: 2026-07-30 14:36:04Z
+- Commit:    `4d03d59` (`4d03d591b492891175ea6a45e306503d516f0615`)
+- Branch:    `claude/sidak-worst-arm`
 - Batch:     live `result.flag` via the validate-batch pipeline over the shared 22-fixture set (`test/batch-fixtures.mjs`)
 
 Answers one question for the visual walk: **which dataset do I load to see a
@@ -65,7 +65,7 @@ Sorted by cluster in fixed display order (copied → digits → shapes → repli
 
 | Code test name | UI name | Cluster | Fires on |
 |---|---|---|---|
-| Column Goodness-of-Fit | Column Goodness-of-Fit | Distribution Shapes | DS10 MOD/HIGH, DS20 MOD/HIGH, DS23 MOD (ack), DS24 MOD (ack) |
+| Column Goodness-of-Fit | Column Goodness-of-Fit | Distribution Shapes | DS10 MOD/HIGH, DS20 MOD/HIGH, DS23 HIGH (ack), DS24 MOD (ack) |
 | Entropy / Zipf Analysis | Distinct numbers | Distribution Shapes | DS23 MOD (ack), DS24 MOD (ack) |
 | Modality Test | Number of peaks | Distribution Shapes | — latent |
 
@@ -77,11 +77,11 @@ Sorted by cluster in fixed display order (copied → digits → shapes → repli
 | Inter-Replicate Correlation | Inter-Replicate Correlation | Cross-Replicate Comparisons | DS02 MOD/HIGH, DS08 MOD/HIGH |
 | Windowed Autocorrelation | Local noise correlation | Cross-Replicate Comparisons | — latent |
 | Missing Data Pattern | Missing-data pattern | Cross-Replicate Comparisons | DS15 HIGH |
-| Autocorrelation | Noise correlation | Cross-Replicate Comparisons | DS02 MOD/HIGH, DS11 HIGH, DS20 MOD/HIGH, DS21 HIGH, DS22 MOD/HIGH |
+| Autocorrelation | Noise correlation | Cross-Replicate Comparisons | DS11 HIGH, DS21 HIGH |
 | LOESS Residual Analysis | Noise level trend | Cross-Replicate Comparisons | DS08 MOD/HIGH, DS10 MOD/HIGH, DS12b MOD/HIGH |
 | Noise Scaling With Measurement Size | Noise scaling | Cross-Replicate Comparisons | DS06 HIGH |
 | Excess Kurtosis | Noise shape | Cross-Replicate Comparisons | — latent |
-| Runs Test | Noise sign-pattern | Cross-Replicate Comparisons | DS02 MOD/HIGH, DS21 MOD/HIGH, DS22 MOD/HIGH |
+| Runs Test | Noise sign-pattern | Cross-Replicate Comparisons | DS23 MOD (ack) |
 | Regional Noise Homogeneity | Region-to-region noise | Cross-Replicate Comparisons | DS10 MOD/HIGH, DS21 MOD/HIGH |
 | Row-Mean Runs | Row-mean patterns | Cross-Replicate Comparisons | DS21 MOD/HIGH |
 | Blocked Mahalanobis | Shifted blocks | Cross-Replicate Comparisons | DS15 MOD/HIGH, DS21 MOD/HIGH, DS22 MOD/HIGH |

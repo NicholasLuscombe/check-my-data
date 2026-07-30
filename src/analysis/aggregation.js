@@ -2,7 +2,7 @@
 // Extracted from App.jsx — pure extraction, no logic changes.
 
 import { flagFromP, flagRankOf } from '../constants/thresholds.js';
-import { chiSquaredP, kurtosis, trimmedKurtosis, bhFDR } from '../stats/primitives.js';
+import { chiSquaredP, kurtosis, trimmedKurtosis, bhFDR, sidakAdjust } from '../stats/primitives.js';
 
 /** Yield to the browser between groups to prevent kill-dialog. */
 const tick = () => new Promise(r => requestAnimationFrame(() => setTimeout(r, 0)));
@@ -119,6 +119,43 @@ async function aggregatePerGroup(testFn, groups, parentCondCtx) {
 
   // Extract primary p-value from each group's test result
   const groupPs = applicable.map(r => extractPrimaryP(r.result));
+
+  // ── Multiplicity correction on the worst-group arm ──
+  // `worstGroupFlag` is a maximum over G group verdicts, so under the null its
+  // size is 1 − (1 − p)^G rather than p. Measured on the row shuffle, the arm
+  // tracks that expression to within sampling noise at every group count from
+  // two to six and for every test that reaches this layer — for example at six
+  // groups Autocorrelation's arm reads 2.33% against 2.31% predicted, and
+  // Windowed Autocorrelation's 8.33% against 8.67%. Because the law is exact its
+  // inverse is determined rather than chosen: Šidák restores nominal by
+  // construction, with no threshold to site.
+  //
+  // SAFE ONLY WHERE THE FLAG IS THE P. Re-deriving a flag from a p-value drops
+  // anything the group's own flag carries that its `primaryP` does not —
+  // Autocorrelation's effect-size gate and pair promotion, Runs Test's window
+  // scan inside `primaryP`, Excess Kurtosis's directional gate, Entropy's gate.
+  // That property is per (test, dataset) and not per test: Autocorrelation is
+  // pure on every fixture under 500 rows and impure on DS11 where its gate can
+  // fire, and Runs Test is pure on DS11 and impure on one draw in 168 elsewhere.
+  // So the check is made here, against the groups in hand, rather than from a
+  // list of test names that would be wrong in both directions. When the two
+  // maxima disagree the bare maximum stands, so this can only ever decline to
+  // correct — never correct something it should not.
+  //
+  // Šidák only inflates a p, so the corrected flag can never exceed the bare
+  // maximum. The aggregate can get less severe here, never more.
+  const groupPFlags = groupPs.map(p => (p !== null && isFinite(p)) ? flagFromP(p) : null);
+  const pDerivedFlag = groupPFlags.includes(null) ? null : groupPFlags.reduce(
+    (worst, f) => flagRankOf(f) > flagRankOf(worst) ? f : worst, "LOW");
+  let groupArmFlag = worstGroupFlag;
+  let groupMinP = null, groupMinPAdj = null, multiplicityCorrected = false;
+  if (pDerivedFlag === worstGroupFlag && applicable.length >= 2) {
+    groupMinP = Math.min(...groupPs);
+    groupMinPAdj = sidakAdjust(groupMinP, applicable.length);
+    groupArmFlag = flagFromP(groupMinPAdj);
+    multiplicityCorrected = true;
+  }
+
   let fisherFlag = "LOW";
   let fisherP = 1;
   let fisherChi = 0;
@@ -176,8 +213,8 @@ async function aggregatePerGroup(testFn, groups, parentCondCtx) {
   }
 
   // Scenario C: Fisher's can only promote
-  const flag = flagRankOf(fisherFlag) >= flagRankOf(worstGroupFlag)
-    ? fisherFlag : worstGroupFlag;
+  const flag = flagRankOf(fisherFlag) >= flagRankOf(groupArmFlag)
+    ? fisherFlag : groupArmFlag;
 
   // Build per-group summary table (top-level details)
 
@@ -336,6 +373,10 @@ async function aggregatePerGroup(testFn, groups, parentCondCtx) {
     groupsAssessed:applicable.length,
     groupsFlagged:applicable.filter(r=>r.flag==="HIGH"||r.flag==="MODERATE").length,
     fisherChi:fisherChi.toFixed(2), fisherDF:validPs.length*2, fisherP:fisherP.toFixed(4),
+    // Worst-group arm diagnostics, the siblings of the three Fisher fields
+    // above. `worstGroupFlagRaw` is the uncorrected maximum, kept so the
+    // correction's effect is readable without re-running the groups.
+    worstGroupFlagRaw:worstGroupFlag, groupMinP, groupMinPAdj, multiplicityCorrected,
     // Propagate test-specific metrics from the worst-flagged group so that
     // display code and copy-summary can read them at the top level.
     // S166 A6/A7: also surface the worst group's NAME as `worstGroup` so

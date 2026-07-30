@@ -246,6 +246,26 @@ export function bhFDR(pValues) {
   return adj;
 }
 
+/** Šidák adjustment: the size of a MAXIMUM over k independent tests each
+ *  carrying p. Inverts 1 − (1 − p)^k, so it restores nominal exactly wherever
+ *  that expression is the true size — it needs no threshold and no tuning.
+ *
+ *  Written with log1p/expm1 rather than the literal `1 - (1 - p) ** k`. At small
+ *  p the literal form computes `1 - p` first, which rounds away every digit of p
+ *  below the double's resolution near 1, and the outer subtraction then returns
+ *  a value with no significant digits left — at p = 1e-17 it returns 0. The
+ *  log1p/expm1 pair keeps full relative precision across the whole range and
+ *  degrades to k*p on its own at small p, so there is no branch to place wrongly.
+ *  @param {number} p - a p-value in [0, 1]
+ *  @param {number} k - number of independent tests the maximum was taken over
+ *  @returns {number} the adjusted p-value */
+export function sidakAdjust(p, k) {
+  if (!(k > 1) || !isFinite(p)) return p;
+  if (p <= 0) return 0;
+  if (p >= 1) return 1;
+  return -Math.expm1(k * Math.log1p(-p));
+}
+
 // ── Functions used by individual tests but shared across multiple ──
 
 /** Spearman rank correlation coefficient.

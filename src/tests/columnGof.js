@@ -14,7 +14,7 @@
           |γ₁| > 1.5 → N/A (log-normal / heavy-skew); γ₂ < −1.2 → N/A (uniform-or-flatter,
           universal); γ₂ < −0.8 AND N ≥ 100 → N/A (strict gate where γ₂ is precise).
    3. Classical AD² against fitted CDF, F̂ clipped to [1e-6, 1−1e-6].
-   4. Refit bootstrap null (B=999): draw → discretise to modal precision → REFIT → A²
+   4. Refit bootstrap null (B, see constant): draw → discretise to modal precision → REFIT → A²
       against refit CDF. Refit is load-bearing; fixed-param bootstrap is anti-conservative.
    5. Two-sided p: p = min(p_low, p_high) × 2, capped at 1.
    6. BH-FDR across applicable columns.
@@ -33,7 +33,19 @@ import { NA_CAUSE, dominantCause } from "../constants/naCause.js";
 
 const NAME = "Column Goodness-of-Fit";
 const CAT  = "shapes";
-const B    = 999;
+// Bootstrap draws. The floor this sets is the whole reachable range of the
+// test: the two counters below start at 1 and the p is doubled for two-sidedness,
+// so the smallest raw p is 2/(1+B). At B = 999 that was 0.002 — above the 0.001
+// HIGH threshold, so HIGH was unreachable at any effect size, and after the
+// aggregator's Sidak correction at two conditions even MODERATE became
+// unreachable on a fixture whose driving column sits at BH rank 2 of 7 (DS20:
+// 0.002 x 7/2 = 0.007, Sidak at G=2 = 0.0139). B = 2000 puts the floor at
+// 2/2001 = 0.00099950, which clears 0.001, and puts DS20's driving column at
+// 0.0035 and 0.00698 after correction. Costs one extra pass of the bootstrap
+// loop: measured at 730 ms on the tallest fixture (DS11, 1500 rows) against a
+// 2.69 s engine run, so this doubles a 27% share on that one file and adds
+// about 5% on a typical one.
+const B    = 2000;
 const CLIP_LO = 1e-6;
 const CLIP_HI = 1 - 1e-6;
 const RATIO_HIGH = 2.0;   // mismatch direction: A²_obs / median ≥ this
@@ -250,7 +262,7 @@ export function testColumnGof(matrix, rng, dataType) {
   return {
     name: NAME, category: CAT, flag, primaryP,
     description: "Anderson–Darling goodness-of-fit per column against a moment-matched {Normal, Poisson, NB} family. " +
-      "Parametric bootstrap null with refit (B=999) calibrates the per-column AD² distribution; two-sided test flags " +
+      `Parametric bootstrap null with refit (B=${B}) calibrates the per-column AD² distribution; two-sided test flags ` +
       "both shape mismatch (AD too large) and too-tight fits (AD too small, suggesting RNG padding).",
     nTested: tested.length,
     nSkipped: skipped.length,
