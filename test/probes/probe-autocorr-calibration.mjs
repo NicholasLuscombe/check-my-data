@@ -394,7 +394,8 @@ if (process.argv.includes('--perpair')) {
     const p = d*t*(0.3193815+t*(-0.3565638+t*(1.781478+t*(-1.821256+t*1.330274))));
     return z > 0 ? 1-p : p; };
   console.log(`### Per-pair two-sided p under the row shuffle, P = ${P}\n`);
-  console.log('  ' + 'fixture'.padEnd(36) + 'rows'.padEnd(7) + 'pairs'.padEnd(8) +
+  const { ASSAY_DATATYPE_MAP } = await import(B + 'src/constants/assays.js');
+  console.log('  ' + 'fixture'.padEnd(36) + 'dataType'.padEnd(12) + 'rows'.padEnd(7) + 'pairs'.padEnd(8) +
               'p<0.01'.padEnd(9) + 'predicted'.padEnd(11) + 'p<0.001'.padEnd(10) + 'complete?');
   console.log('  ' + '-'.repeat(100));
   const rows = [];
@@ -420,7 +421,7 @@ if (process.argv.includes('--perpair')) {
     const mu = 1/Math.sqrt(n);           // magnitude of the -1/n-induced z shift
     const pred = Phi(-2.5758 + mu) + (1 - Phi(2.5758 + mu));
     rows.push({ file, n, nPairs, r01: lt01/tot, r001: lt001/tot, pred });
-    console.log('  ' + file.padEnd(36) + String(n).padEnd(7) + String(nPairs).padEnd(8) +
+    console.log('  ' + file.padEnd(36) + (ASSAY_DATATYPE_MAP[assay]||'continuous').padEnd(12) + String(n).padEnd(7) + String(nPairs).padEnd(8) +
       `${(100*lt01/tot).toFixed(2)}%`.padEnd(9) + `${(100*pred).toFixed(2)}%`.padEnd(11) +
       `${(100*lt001/tot).toFixed(3)}%`.padEnd(10) + (nPairs <= 15 ? 'yes' : `no (15 of ${nPairs})`));
   }
@@ -564,6 +565,136 @@ if (process.argv.includes('--route4')) {
       `${(100*fire4/ran).toFixed(1)}%`.padEnd(9) + `${(100*fire1/ran).toFixed(1)}%`.padEnd(9) +
       `${scaleCost.toFixed(2)}s`);
   }
+  process.exit(0);
+}
+
+// ── DS11 under an exact per-pair null (--ds11) ─────────────────────────────
+// The per-pair z-test assumes the lag-1 correlation of the replicate
+// differences is normal. On count data with heavy tying that assumption fails,
+// and DS11's per-pair test measured at 22x nominal at p<0.001. This replaces it
+// with the exact alternative: permute the difference sequence, recompute lag-1
+// r with the real acfAtLag, take the empirical p. Permuting the sequence
+// preserves its marginal distribution exactly, ties included, so it assumes
+// nothing about normality or discreteness.
+//
+// Also reports mean |r| against the effect-size floor, because a detection that
+// clears 0.25 by a wide margin does not depend on the p-value at all.
+if (process.argv.includes('--ds11')) {
+  const { acfAtLag, bhFDR } = await import(B + 'src/stats/primitives.js');
+  const { flagFromP, EFFECT_SIZE, ALPHA } = await import(B + 'src/constants/thresholds.js');
+  const { EXPECTED } = await import(B + 'test/batch-fixtures.mjs');
+  const file = process.env.FILE || '11-rnaseq-multicondition.csv';
+  const P = Number(process.env.P) || 2000;
+  const { matrix } = readFixture(file);
+  const assay = EXPECTED[file]?.assay || 'general';
+  const eff = applyVST(matrix, detectVST(matrix, assay)?.transform || 'raw') || matrix;
+  const nC = eff[0].length;
+  console.log(`### ${file} — per-pair lag-1 under an exact permutation null, P = ${P}`);
+  console.log(`    ${eff.length} rows x ${nC} cols, assay ${assay}, effect-size floor ${EFFECT_SIZE.AUTOCORR_STRONG}\n`);
+  console.log('  ' + 'pair'.padEnd(8) + 'n'.padEnd(7) + 'r1'.padEnd(11) + 'ties %'.padEnd(9) +
+              'z-test p'.padEnd(12) + 'perm p'.padEnd(11) + 'BH adj (perm)');
+  console.log('  ' + '-'.repeat(88));
+  const rows = [];
+  for (let c1 = 0; c1 < nC; c1++) for (let c2 = c1+1; c2 < nC; c2++) {
+    const diffs = [];
+    for (let r = 0; r < eff.length; r++) {
+      if (eff[r][c1] != null && eff[r][c2] != null) diffs.push(eff[r][c1] - eff[r][c2]);
+    }
+    if (diffs.length < 10) continue;
+    const m = mean(diffs);
+    const den = diffs.reduce((s,d)=>s+(d-m)**2, 0);
+    const r1 = acfAtLag(diffs, m, den, 1);
+    const se = 1/Math.sqrt(diffs.length);
+    const zp = 2*(1 - 0.5*(1+erf(Math.abs(r1/se)/Math.SQRT2)));
+    const ties = 100*(1 - new Set(diffs.map(d=>d.toPrecision(12))).size/diffs.length);
+    const rnd = mulberry32(0xC0FFEE + c1*97 + c2);
+    let exceed = 0;
+    const buf = diffs.slice();
+    for (let k = 0; k < P; k++) {
+      for (let i = buf.length-1; i > 0; i--) { const j = Math.floor(rnd()*(i+1)); const t=buf[i]; buf[i]=buf[j]; buf[j]=t; }
+      const mm = mean(buf);
+      const dd = buf.reduce((s,d)=>s+(d-mm)**2, 0);
+      if (Math.abs(acfAtLag(buf, mm, dd, 1)) >= Math.abs(r1)) exceed++;
+    }
+    const permP = (exceed+1)/(P+1);
+    rows.push({ pair:`${c1+1}-${c2+1}`, n:diffs.length, r1, zp, permP, ties });
+  }
+  const adj = bhFDR(rows.map(r=>r.permP));
+  rows.forEach((r,i)=>{ r.adj = adj[i]; });
+  for (const r of rows) {
+    console.log('  ' + r.pair.padEnd(8) + String(r.n).padEnd(7) + r.r1.toFixed(4).padEnd(11) +
+      r.ties.toFixed(1).padEnd(9) + r.zp.toExponential(2).padEnd(12) +
+      r.permP.toFixed(4).padEnd(11) + r.adj.toFixed(4));
+  }
+  const nSig = rows.filter(r=>r.adj < ALPHA.NOTE).length;
+  const minAdj = Math.min(...rows.map(r=>r.adj));
+  const meanAbsR = mean(rows.map(r=>Math.abs(r.r1)));
+  const pooledMeanR = mean(rows.map(r=>r.r1));
+  console.log(`\n  pairs significant at BH-adjusted p < ${ALPHA.NOTE}: ${nSig} of ${rows.length}`);
+  console.log(`  Route 2 flag under the exact null: ${nSig ? flagFromP(minAdj) : 'LOW'}  (min adj p ${minAdj.toExponential(2)})`);
+  console.log(`  mean |r1| = ${meanAbsR.toFixed(4)}   pooled mean r1 = ${pooledMeanR.toFixed(4)}`);
+  console.log(`  effect-size floor = ${EFFECT_SIZE.AUTOCORR_STRONG}  ->  ${meanAbsR >= EFFECT_SIZE.AUTOCORR_STRONG ? 'CLEARS' : 'does NOT clear'}`);
+  console.log(`  recorded generator value rho ~ 0.55  ->  measured mean |r1| is ${(meanAbsR/0.55).toFixed(3)}x that`);
+  process.exit(0);
+}
+function erf(x){const s=x<0?-1:1;x=Math.abs(x);const a1=0.254829592,a2=-0.284496736,a3=1.421413741,a4=-1.453152027,a5=1.061405429,pp=0.3275911;const t=1/(1+pp*x);const y=1-(((((a5*t+a4)*t)+a3)*t+a2)*t+a1)*t*Math.exp(-x*x);return s*y;}
+
+// ── DS22: is the Runs signal inside the planted block (--ds22) ─────────────
+// The planted mechanism is a covariance block at rows 80-109 within each
+// condition, on Rep4-7. If the Runs flag is detecting that block, its signal
+// should sit inside the window and not outside it.
+//
+// Calls the real testRuns on row subsets rather than recomputing runs, so the
+// statistic is the engine's. The window is 30 rows, where the Wald-Wolfowitz
+// normal approximation is marginal, so an exact permutation null on the same
+// sign sequence is reported beside the analytic z.
+if (process.argv.includes('--ds22')) {
+  const { testRuns } = await import(B + 'src/tests/runs.js');
+  const { createPRNG } = await import(B + 'src/stats/prng.js');
+  const { EXPECTED } = await import(B + 'test/batch-fixtures.mjs');
+  const file = '22-covariance-block.csv';
+  const P = Number(process.env.P) || 5000;
+  const LO = Number(process.env.LO) || 80, HI = Number(process.env.HI) || 110; // [LO, HI)
+  const { matrix, condCtx } = readFixture(file);
+  const rng = createPRNG(matrix);
+  const groups = condCtx.rowGroups();
+  console.log(`### ${file} — Runs signal inside vs outside the planted block`);
+  console.log(`    window = rows [${LO}, ${HI}) within each condition; planted on Rep4-7\n`);
+
+  const runsPerm = (signs) => {
+    const nz = signs.filter(s => s !== 0);
+    const count = a => { let r = a.length ? 1 : 0; for (let i=1;i<a.length;i++) if (a[i]!==a[i-1]) r++; return r; };
+    const obs = count(nz);
+    const buf = nz.slice(); const rnd = mulberry32(0xC0FFEE); let le = 0;
+    for (let k=0;k<P;k++){ for(let i=buf.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));const t=buf[i];buf[i]=buf[j];buf[j]=t;} if (count(buf) <= obs) le++; }
+    return { obs, permP: (le+1)/(P+1), n: nz.length };
+  };
+
+  for (const g of groups) {
+    const inRows = g.matrix.slice(LO, HI);
+    const outRows = g.matrix.filter((_, i) => i < LO || i >= HI);
+    console.log(`  ${g.name}: ${g.matrix.length} rows -> window ${inRows.length}, outside ${outRows.length}`);
+    for (const [label, sub] of [['INSIDE ', inRows], ['OUTSIDE', outRows]]) {
+      const r = await testRuns(sub, null, rng);
+      if (r.flag === 'N/A') { console.log(`    ${label}: N/A`); continue; }
+      console.log(`    ${label}  flag=${r.flag}  pooledZ=${r.pooledMeanZ}  pooledP=${r.pooledP}  ${r.nSignificant}/${r.nPairs} pairs adj-sig`);
+      // details truncates at 15 pairs and the planted Rep4-7 pairs sit past it,
+      // so each column block is run as its own submatrix instead.
+      for (const [name, cols] of [['Rep4-7 (planted)', [3,4,5,6]], ['Rep1-3 (clean)', [0,1,2]]]) {
+        const sm = sub.map(row => cols.map(c => row[c]));
+        const rr = await testRuns(sm, null, rng);
+        if (rr.flag === 'N/A') { console.log(`       ${name.padEnd(18)} N/A`); continue; }
+        const dets = (rr.details || []).filter(d => d.source !== 'window' && d.signs);
+        const perms = dets.map(d => runsPerm(d.signs).permP).sort((a,b)=>a-b);
+        console.log(`       ${name.padEnd(18)} pooledZ=${rr.pooledMeanZ.padStart(7)} pooledP=${rr.pooledP}` +
+          `  ${rr.nSignificant}/${rr.nPairs} adj-sig` +
+          (perms.length ? `  exact perm p: min=${perms[0].toFixed(4)} median=${perms[Math.floor(perms.length/2)].toFixed(4)}` : ''));
+      }
+    }
+  }
+  // What the engine actually sees on the whole fixture.
+  const whole = await testRuns(matrix, condCtx, createPRNG(matrix));
+  console.log(`\n  engine view (whole fixture): flag=${whole.flag} pooledZ=${whole.pooledMeanZ} pooledP=${whole.pooledP} ${whole.nSignificant}/${whole.nPairs} pairs adj-sig`);
   process.exit(0);
 }
 
