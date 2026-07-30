@@ -316,14 +316,13 @@ export function BatchView({ onBack }) {
       // banner's tags read this. `colRelAutoSet` and `vstAutoSet` had no other
       // consumer and are gone.
       provenance: r.provenance,
-      // `assayAutoDetected` does have one: handoffModel.js:163 turns it into
-      // the "Measurement type: X (auto)" line in the section 4 prompt body.
-      // Derived, not asserted — but a boolean cannot carry 'assumed', so that
-      // line still reads "(auto)" on the files where detectAssay returned
-      // nothing and the assay fell back to "general". Only what this boolean
-      // can honestly express is claimed here: nobody chose the value. Closing
-      // the rest means teaching handoffModel and promptBodyRenderer the third
-      // state, which is a copy change and not this pass's.
+      // `assayAutoDetected` no longer reaches the section 4 prompt body:
+      // handoffModel reads `provenance.assay` and falls back to this boolean
+      // only when a surface sends no provenance object. This screen always
+      // sends one, so nothing on the batch path reads this now. Kept because
+      // it is still derived rather than asserted, and still true as far as a
+      // boolean can be — but it is dead here, and a reader looking for the
+      // Measurement type tag should follow `provenance` above instead.
       assayAutoDetected: r.provenance?.assay !== 'user-set',
       longFormatDetected: r.longFormatDetected,
     };
