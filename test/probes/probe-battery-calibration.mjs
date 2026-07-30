@@ -326,6 +326,152 @@ if (process.argv.includes('--snroutes')) {
   process.exit(0);
 }
 
+// ── Clean-file outcome tier under shuffle (--tier) ─────────────────────────
+// Every calibration number so far is per-test. A user reads one sentence, and
+// it comes from the aggregation. This measures how often a ground-truth clean
+// file produces each tier under the row shuffle, through the real
+// runFullAnalysis.
+//
+// Every test's flag is stored for every shuffle, not just the tier, because
+// computeSeverity reads only flag plus TEST_MECHANISM[name] (falling back to
+// r.category). That makes the tier recomputable offline under any hold-out
+// without re-running, which is what the as-shipped versus held-out split needs.
+//
+// LIMITATION, stated in the report too: the row shuffle only reaches tests that
+// read row order. Order-invariant tests contribute their observed flags
+// unchanged — LOW on a clean fixture — so the tier fires seen here are
+// attributable to the order-dependent tests. This is not a false-positive rate
+// for the battery; the fifteen order-invariant nulls are untested.
+if (process.argv.includes('--tier')) {
+  const { readdirSync } = await import('fs');
+  const { TEST_MECHANISM } = await import(B + 'src/constants/mechanisms.js');
+  const P = Number(process.env.P) || 500;
+  const CLEAN = readdirSync(FIX).filter(f => f.endsWith('.csv') && EXPECTED[f]?.severity === 0).sort();
+  const HEAD = [
+    'tier 0  All checks passed / Proceed with dataset',
+    'tier 1  Minor anomalies detected / Review dataset at your discretion',
+    'tier 2  Anomalies detected / Review dataset carefully before proceeding  [action: Investigate]',
+    'tier 3  Significant anomalies detected / Investigate dataset before proceeding  [action: Investigate closely]',
+  ];
+  const tierOf = (recs) => computeSeverity(recs).severity;
+
+  console.log(`### Clean-file outcome tier under the row shuffle. ${CLEAN.length} fixtures, P = ${P} each\n`);
+  for (const h of HEAD) console.log('    ' + h);
+  console.log('');
+
+  // Control first. If any clean fixture is not tier 0 as delivered, stop.
+  const control = {};
+  for (const f of CLEAN) {
+    const { matrix, rawMatrix, condCtx, assay, dataType } = prepare(f);
+    const res = await analyse(matrix, rawMatrix, condCtx, assay, dataType);
+    control[f] = computeSeverity(res).severity;
+  }
+  const bad = Object.entries(control).filter(([,v]) => v !== 0);
+  console.log('  control (unshuffled): ' + Object.entries(control).map(([f,v])=>`${f.slice(0,12)}=${v}`).join(' '));
+  if (bad.length) { console.log(`\n  *** STOP: ${bad.map(([f])=>f).join(', ')} is not tier 0 as delivered ***`); process.exit(1); }
+  console.log('  all eight return tier 0 as delivered.\n');
+
+  const store = {};   // fixture -> array of per-shuffle [{name,flag,category}]
+  for (const f of CLEAN) {
+    const { matrix, rawMatrix, condCtx, assay, dataType } = prepare(f);
+    const rnd = mulberry32(0xC0FFEE);
+    const runs = [];
+    const t0 = Date.now();
+    for (let k = 0; k < P; k++) {
+      const perm = permutation(matrix.length, rnd);
+      const m = perm.map(i => matrix[i]);
+      const rm = rawMatrix ? perm.map(i => rawMatrix[i]) : rawMatrix;
+      const res = await analyse(m, rm, condCtx.withMatrix(m), assay, dataType);
+      runs.push(res.map(r => ({ name: r.name, flag: r.flag, category: r.category })));
+    }
+    store[f] = runs;
+    console.log(`  ${f.padEnd(34)} ${P} shuffles in ${((Date.now()-t0)/1000).toFixed(0)}s`);
+  }
+
+  const isFl = x => x.flag === 'HIGH' || x.flag === 'MODERATE';
+  const pctOf = (n,d) => `${(100*n/d).toFixed(1)}%`;
+
+  // ── As shipped ──
+  console.log('\n\n### As shipped\n');
+  console.log('  ' + 'fixture'.padEnd(34) + 'tier 0'.padEnd(9) + 'tier 1'.padEnd(9) + 'tier 2'.padEnd(9) +
+              'tier 3'.padEnd(9) + '>=2 (Investigate)'.padEnd(19) + '>=1');
+  console.log('  ' + '-'.repeat(96));
+  let agg = [0,0,0,0];
+  for (const f of CLEAN) {
+    const c = [0,0,0,0];
+    for (const recs of store[f]) c[tierOf(recs)]++;
+    c.forEach((v,i)=>{ agg[i]+=v; });
+    console.log('  ' + f.padEnd(34) + c.map(v=>pctOf(v,P).padEnd(9)).join('') +
+      pctOf(c[2]+c[3], P).padEnd(19) + pctOf(c[1]+c[2]+c[3], P));
+  }
+  const T = P*CLEAN.length;
+  console.log('  ' + '-'.repeat(96));
+  console.log('  ' + 'ALL CLEAN FIXTURES'.padEnd(34) + agg.map(v=>pctOf(v,T).padEnd(9)).join('') +
+    pctOf(agg[2]+agg[3], T).padEnd(19) + pctOf(agg[1]+agg[2]+agg[3], T));
+
+  // ── Hold-out chosen by measurement: any test whose own fire rate on that
+  //    fixture exceeds 5%. ──
+  console.log('\n\n### Held out: tests whose own shuffle fire rate on that fixture exceeds 5%\n');
+  const heldBy = {};
+  for (const f of CLEAN) {
+    const rate = {}, ran = {};
+    for (const recs of store[f]) for (const x of recs) {
+      if (x.flag === 'N/A') continue;
+      ran[x.name] = (ran[x.name]||0)+1;
+      if (isFl(x)) rate[x.name] = (rate[x.name]||0)+1;
+    }
+    heldBy[f] = Object.keys(ran).filter(n => (rate[n]||0)/ran[n] > 0.05);
+  }
+  console.log('  ' + 'fixture'.padEnd(34) + 'held out (own fire rate)');
+  console.log('  ' + '-'.repeat(96));
+  for (const f of CLEAN) {
+    const rate = {}, ran = {};
+    for (const recs of store[f]) for (const x of recs) {
+      if (x.flag === 'N/A') continue;
+      ran[x.name] = (ran[x.name]||0)+1; if (isFl(x)) rate[x.name] = (rate[x.name]||0)+1;
+    }
+    console.log('  ' + f.padEnd(34) + (heldBy[f].map(n=>`${n} ${pctOf(rate[n]||0, ran[n])}`).join(', ') || '(none)'));
+  }
+  console.log('\n  ' + 'fixture'.padEnd(34) + 'tier 0'.padEnd(9) + 'tier 1'.padEnd(9) + 'tier 2'.padEnd(9) +
+              'tier 3'.padEnd(9) + '>=2 (Investigate)'.padEnd(19) + '>=1');
+  console.log('  ' + '-'.repeat(96));
+  let agg2 = [0,0,0,0];
+  for (const f of CLEAN) {
+    const c = [0,0,0,0];
+    for (const recs of store[f]) c[tierOf(recs.filter(x=>!heldBy[f].includes(x.name)))]++;
+    c.forEach((v,i)=>{ agg2[i]+=v; });
+    console.log('  ' + f.padEnd(34) + c.map(v=>pctOf(v,P).padEnd(9)).join('') +
+      pctOf(c[2]+c[3], P).padEnd(19) + pctOf(c[1]+c[2]+c[3], P));
+  }
+  console.log('  ' + '-'.repeat(96));
+  console.log('  ' + 'ALL CLEAN FIXTURES'.padEnd(34) + agg2.map(v=>pctOf(v,T).padEnd(9)).join('') +
+    pctOf(agg2[2]+agg2[3], T).padEnd(19) + pctOf(agg2[1]+agg2[2]+agg2[3], T));
+
+  // ── Attribution on the shuffles that reach the Investigate tier ──
+  console.log('\n\n### Which flags were present on shuffles reaching tier >= 2 (as shipped)\n');
+  const drv = {}; let nInv = 0;
+  for (const f of CLEAN) for (const recs of store[f]) {
+    if (tierOf(recs) < 2) continue; nInv++;
+    for (const x of recs) if (isFl(x)) drv[x.name] = (drv[x.name]||0)+1;
+  }
+  if (!nInv) console.log('  No shuffle on any clean fixture reached tier 2 or above.');
+  else {
+    console.log(`  ${nInv} of ${T} shuffles reached tier >= 2. Flags present:`);
+    for (const [n,v] of Object.entries(drv).sort((a,b)=>b[1]-a[1]))
+      console.log(`    ${n.padEnd(34)} ${v} (${pctOf(v,nInv)} of those shuffles)`);
+  }
+
+  // ── Confound: order-invariant tests that moved at all (PRNG reseeding) ──
+  console.log('\n\n### Order-invariant tests that moved under the shuffle (Monte Carlo jitter, not row order)\n');
+  for (const f of CLEAN) {
+    const seen = {};
+    for (const recs of store[f]) for (const x of recs) (seen[x.name] ||= new Set()).add(x.flag);
+    const moved = Object.entries(seen).filter(([,v])=>v.size>1).map(([n])=>n);
+    console.log('  ' + f.padEnd(34) + (moved.length ? moved.join(', ') : '(none moved)'));
+  }
+  process.exit(0);
+}
+
 for (const file of ANCHORS) {
   const { matrix, rawMatrix, condCtx, assay, dataType } = prepare(file);
   const observed = await analyse(matrix, rawMatrix, condCtx, assay, dataType);
