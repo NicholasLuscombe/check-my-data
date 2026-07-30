@@ -698,6 +698,100 @@ if (process.argv.includes('--ds22')) {
   process.exit(0);
 }
 
+// ── Selective Noise under a within-row null (--snoise) ─────────────────────
+// Bartlett builds each column's sample as matrix[r][c] - rowMeans[r], so the k
+// residuals in a row are constrained to sum to zero and cannot be the k
+// independent samples Bartlett assumes. The row shuffle cannot test that: the
+// statistic never reads row order. The right null permutes values WITHIN each
+// row, which preserves the row mean and the row's multiset exactly and destroys
+// only column identity — the thing the test claims to read.
+//
+// Validity needs columns exchangeable under the null. Checked, not assumed:
+// every Bartlett call in this battery sees replicate columns of a single
+// condition. Column-grouped fixtures dispatch through aggregatePerGroup, so
+// values are permuted only within a group's own columns; row-grouped and
+// ungrouped fixtures put all data columns in one call, and those are replicates.
+// The one fixture whose columns are not replicates (the survey, heterogeneous
+// items) is already N/A on data type.
+if (process.argv.includes('--snoise')) {
+  const { testSelectiveNoise } = await import(B + 'src/tests/selectiveNoise.js');
+  const { runFullAnalysis } = await import(B + 'src/analysis/engine.js');
+  const { ASSAY_DATATYPE_MAP } = await import(B + 'src/constants/assays.js');
+  const { EXPECTED } = await import(B + 'test/batch-fixtures.mjs');
+  const P = Number(process.env.P) || 1000;
+  const pick = process.env.FILES ? process.env.FILES.split(',') : null;
+  const files = readdirSync(FIX).filter(f => f.endsWith('.csv') && EXPECTED[f] && (!pick || pick.includes(f))).sort();
+
+  console.log(`### Selective Noise Partitioning under a within-row permutation null, P = ${P}\n`);
+  console.log('  ' + 'fixture'.padEnd(36) + 'k'.padEnd(5) + 'R1'.padEnd(9) + 'chi obs'.padEnd(10) +
+              'null mean chi'.padEnd(15) + 'df=k-1'.padEnd(8) + 'ratio'.padEnd(8) +
+              'pred k/(k-1)'.padEnd(14) + 'R1 fire'.padEnd(9) + 'perm p'.padEnd(9) + 'cost');
+  console.log('  ' + '-'.repeat(132));
+
+  for (const file of files) {
+    const base = readFixture(file);
+    const assay = EXPECTED[file]?.assay || 'general';
+    const dataType = ASSAY_DATATYPE_MAP[assay] || 'continuous';
+    const { matrix, rawMatrix, condCtx } = base;
+    const vst = detectVST(matrix, assay);
+    const vstMatrix = applyVST(matrix, vst?.transform || 'raw');
+    const eff = vstMatrix || matrix;
+    const effCtx = vstMatrix ? condCtx.withMatrix(vstMatrix) : condCtx;
+    const useAgg = condCtx.type === 'column-grouped' && condCtx.count >= 2;
+
+    const real = (await runFullAnalysis(matrix, rawMatrix, condCtx, assay, null, vst,
+      { isPivoted: false }, dataType, 'ordered')).find(r => r.name === 'Selective Noise Partitioning');
+    if (!real || real.flag === 'N/A') { console.log('  ' + file.padEnd(36) + 'N/A'); continue; }
+
+    const dispatch = (m, ctx) => useAgg
+      ? aggregatePerGroup(testSelectiveNoise, ctx.slices(), ctx)
+      : testSelectiveNoise(m, ctx);
+
+    const obs = await dispatch(eff, effCtx);
+    if (obs.flag !== real.flag) {
+      console.log('  ' + file.padEnd(36) + `*** dispatch MISMATCH probe ${obs.flag} vs engine ${real.flag} — skipped ***`);
+      continue;
+    }
+    // Column blocks to permute within. Column-grouped: each condition's own
+    // columns. Otherwise: every data column, which are replicates.
+    const blocks = useAgg ? condCtx.slices().map(s => s.colIndices)
+                          : [Array.from({ length: eff[0].length }, (_, i) => i)];
+    const k = blocks[0].length;
+    const chiObs = num(obs.bartlettChi);
+
+    const rnd = mulberry32(0xC0FFEE);
+    const chis = []; let fire = 0, ran = 0, ge = 0;
+    const t0 = Date.now();
+    for (let it = 0; it < P; it++) {
+      const m = eff.map(row => {
+        const out = row.slice();
+        for (const cols of blocks) {
+          const vals = cols.map(c => row[c]);
+          for (let i = vals.length - 1; i > 0; i--) { const j = Math.floor(rnd()*(i+1)); const t=vals[i]; vals[i]=vals[j]; vals[j]=t; }
+          cols.forEach((c, i) => { out[c] = vals[i]; });
+        }
+        return out;
+      });
+      const r = await dispatch(m, condCtx.withMatrix(m));
+      if (r.flag === 'N/A') continue;
+      ran++;
+      if (r.flag === 'MODERATE' || r.flag === 'HIGH') fire++;
+      const c = num(r.bartlettChi);
+      if (Number.isFinite(c)) { chis.push(c); if (c >= chiObs) ge++; }
+    }
+    const secs = (Date.now() - t0)/1000;
+    const nullMean = chis.length ? mean(chis) : NaN;
+    const df = k - 1;
+    const permP = (ge + 1)/(ran + 1);
+    console.log('  ' + file.padEnd(36) + String(k).padEnd(5) + real.flag.padEnd(9) +
+      (Number.isFinite(chiObs)?chiObs.toFixed(2):'-').padEnd(10) +
+      nullMean.toFixed(3).padEnd(15) + String(df).padEnd(8) +
+      (nullMean/df).toFixed(3).padEnd(8) + (k/(k-1)).toFixed(3).padEnd(14) +
+      `${(100*fire/ran).toFixed(1)}%`.padEnd(9) + permP.toFixed(4).padEnd(9) + `${secs.toFixed(1)}s`);
+  }
+  process.exit(0);
+}
+
 console.log(`Autocorrelation calibration probe — ${N_PERM} iterations per file\n`);
 
 const TARGETS = [

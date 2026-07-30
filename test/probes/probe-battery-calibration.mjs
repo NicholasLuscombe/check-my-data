@@ -238,6 +238,94 @@ if (process.argv.includes('--outcome')) {
   process.exit(0);
 }
 
+// ── Selective Noise route comparison + outcome tier (--snroutes) ───────────
+// Route 1 current Bartlett chi-squared.
+// Route 2 promote the display-only per-column Levene: flagFromP(min BH adj p).
+// Route 3 permutation null on Bartlett's chi-squared under the within-row
+//         permutation described in probe-autocorr-calibration.mjs --snoise.
+// Tiers are computed with Autocorrelation and Runs Test already on Route 2,
+// since those two are settled, so the only variable is Selective Noise.
+if (process.argv.includes('--snroutes')) {
+  const { flagFromP } = await import(B + 'src/constants/thresholds.js');
+  const { testSelectiveNoise } = await import(B + 'src/tests/selectiveNoise.js');
+  const { aggregatePerGroup } = await import(B + 'src/analysis/aggregation.js');
+  const { readdirSync } = await import('fs');
+  const P = Number(process.env.P) || 1000;
+  const files = readdirSync(FIX).filter(f => f.endsWith('.csv') && EXPECTED[f]).sort();
+  const applyVST = (m, t) => t === 'log' ? m.map(r=>r.map(v=>v!=null&&v>0?Math.log(v):null))
+                    : t === 'anscombe' ? m.map(r=>r.map(v=>v!=null&&v>=0?Math.sqrt(v+0.375):null)) : null;
+  const mul = a => () => { a|=0; a=(a+0x6D2B79F5)|0; let t=Math.imul(a^(a>>>15),1|a);
+    t=(t+Math.imul(t^(t>>>7),61|t))^t; return ((t^(t>>>14))>>>0)/4294967296; };
+
+  // Autocorrelation and Runs on Route 2, exactly as --outcome derives them.
+  const route2 = r => {
+    if (r.flag === 'N/A') return r;
+    if (!r.nSignificant) return { ...r, flag: 'LOW' };
+    const d = (r.subDetails || r.details || []).filter(x => x.source !== 'window' && Number.isFinite(Number(x.adjP)));
+    return (d.length >= (r.nPairs||0) && d.length)
+      ? { ...r, flag: flagFromP(Math.min(...d.map(x=>Number(x.adjP)))) }
+      : { ...r, flag: 'MODERATE' };   // lower bound; --outcome showed the tier is the same either way
+  };
+
+  console.log('### Selective Noise routes, with Autocorrelation and Runs already on Route 2\n');
+  console.log('  ' + 'fixture'.padEnd(36) + 'GT'.padEnd(4) + 'SN R1'.padEnd(9) + 'SN R2'.padEnd(9) + 'SN R3'.padEnd(9) +
+              'tier R1'.padEnd(9) + 'tier R2'.padEnd(9) + 'tier R3');
+  console.log('  ' + '-'.repeat(104));
+  const moves = { r1: [], r2: [], r3: [] };
+  for (const file of files) {
+    const { matrix, rawMatrix, condCtx, assay, dataType } = prepare(file);
+    const res = await analyse(matrix, rawMatrix, condCtx, assay, dataType);
+    const sn = res.find(r => r.name === 'Selective Noise Partitioning');
+    const gt = EXPECTED[file]?.severity;
+    if (!sn || sn.flag === 'N/A') {
+      const base = res.map(r => ['Autocorrelation','Runs Test'].includes(r.name) ? route2(r) : r);
+      const t = computeSeverity(base).severity;
+      console.log('  ' + file.padEnd(36) + String(gt).padEnd(4) + 'N/A'.padEnd(9) + 'N/A'.padEnd(9) + 'N/A'.padEnd(9) +
+                  String(t).padEnd(9) + String(t).padEnd(9) + String(t));
+      continue;
+    }
+    // Route 2: per-column Levene, BH-adjusted, already on the result.
+    const pc = sn.perColumnResults || [];
+    const adjs = pc.map(c => Number(c.adjP)).filter(Number.isFinite);
+    const snR2 = adjs.length ? flagFromP(Math.min(...adjs)) : 'LOW';
+    // Route 3: within-row permutation null on Bartlett's chi-squared.
+    const vst = detectVST(matrix, assay);
+    const vm = applyVST(matrix, vst?.transform || 'raw');
+    const eff = vm || matrix, effCtx = vm ? condCtx.withMatrix(vm) : condCtx;
+    const useAgg = condCtx.type === 'column-grouped' && condCtx.count >= 2;
+    const dispatch = (m, ctx) => useAgg ? aggregatePerGroup(testSelectiveNoise, ctx.slices(), ctx)
+                                        : testSelectiveNoise(m, ctx);
+    const blocks = useAgg ? condCtx.slices().map(s => s.colIndices)
+                          : [Array.from({length: eff[0].length}, (_,i)=>i)];
+    const chiObs = Number((await dispatch(eff, effCtx)).bartlettChi);
+    const rnd = mul(0xC0FFEE); let ge = 0, ran = 0;
+    for (let it = 0; it < P; it++) {
+      const m = eff.map(row => { const out = row.slice();
+        for (const cols of blocks) { const v = cols.map(c=>row[c]);
+          for (let i=v.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));const t=v[i];v[i]=v[j];v[j]=t;}
+          cols.forEach((c,i)=>{out[c]=v[i];}); } return out; });
+      const r = await dispatch(m, condCtx.withMatrix(m));
+      if (r.flag === 'N/A') continue; ran++;
+      if (Number(r.bartlettChi) >= chiObs) ge++;
+    }
+    const snR3 = flagFromP((ge+1)/(ran+1));
+
+    const tier = (snFlag) => computeSeverity(res.map(r => {
+      if (['Autocorrelation','Runs Test'].includes(r.name)) return route2(r);
+      if (r.name === 'Selective Noise Partitioning') return { ...r, flag: snFlag };
+      return r;
+    })).severity;
+    const t1 = tier(sn.flag), t2 = tier(snR2), t3 = tier(snR3);
+    console.log('  ' + file.padEnd(36) + String(gt).padEnd(4) + sn.flag.padEnd(9) + snR2.padEnd(9) + snR3.padEnd(9) +
+                String(t1).padEnd(9) + String(t2).padEnd(9) + String(t3));
+    if (t1 !== gt) moves.r1.push(file); if (t2 !== gt) moves.r2.push(file); if (t3 !== gt) moves.r3.push(file);
+  }
+  console.log(`\n  tiers differing from ground truth — R1: ${moves.r1.length} (${moves.r1.join(', ')||'none'})`);
+  console.log(`                                     R2: ${moves.r2.length} (${moves.r2.join(', ')||'none'})`);
+  console.log(`                                     R3: ${moves.r3.length} (${moves.r3.join(', ')||'none'})`);
+  process.exit(0);
+}
+
 for (const file of ANCHORS) {
   const { matrix, rawMatrix, condCtx, assay, dataType } = prepare(file);
   const observed = await analyse(matrix, rawMatrix, condCtx, assay, dataType);
