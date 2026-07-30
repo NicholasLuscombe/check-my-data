@@ -974,7 +974,7 @@ if (process.argv.includes('--esgate')) {
   const N = Number(process.env.N) || 600;
   console.log(`### Part 3 — effect-size gate on a concentrated effect. N=${N} rows (gate needs >=500)\n`);
   console.log('  ' + 'C'.padEnd(5) + 'rho'.padEnd(7) + 'pooled mean r1'.padEnd(16) + 'gate fires'.padEnd(12) +
-              'minAdjP'.padEnd(12) + 'flag WITH gate'.padEnd(16) + 'flag from minAdjP alone');
+              'minAdjP'.padEnd(12) + 'flag WITH gate'.padEnd(16) + 'flag from minAdjP alone'.padEnd(24) + 'driving |r|');
   console.log('  ' + '-'.repeat(96));
   for (const C of [8, 12]) {
     for (const rho of [0.3, 0.5, 0.7]) {
@@ -985,7 +985,8 @@ if (process.argv.includes('--esgate')) {
       const gate = N >= 500 && pooledAbs < EFFECT_SIZE.AUTOCORR_STRONG;
       console.log('  ' + String(C).padEnd(5) + rho.toFixed(1).padEnd(7) + Number(r.pooledMeanR1).toFixed(4).padEnd(16) +
         String(gate).padEnd(12) + Number(r.minAdjP).toExponential(2).padEnd(12) +
-        r.flag.padEnd(16) + flagFromP(Number(r.minAdjP)));
+        r.flag.padEnd(16) + flagFromP(Number(r.minAdjP)).padEnd(24) +
+        Math.abs(Number(r.minAdjPairR1)).toFixed(4));
     }
   }
   process.exit(0);
@@ -1030,6 +1031,156 @@ if (process.argv.includes('--heavytail')) {
     console.log('  ' + label.padEnd(26) + kurt.toFixed(2).padEnd(14) +
       `${(100*lt01/tot).toFixed(2)}%`.padEnd(10) + `${(100*lt001/tot).toFixed(3)}%`);
   }
+  process.exit(0);
+}
+
+// ── Effect-size floor: does a per-pair threshold separate (--floor) ────────
+// The gate exists to stop a trivially small effect flagging merely because N is
+// large. It currently reads the pooled mean across pairs, while the verdict
+// reads one pair. This measures the driving pair's |r| on every fixture, and on
+// synthetic large-N cases carrying a real but negligible per-pair effect — the
+// kind the gate was written to stop. A threshold only exists if the two
+// populations separate.
+if (process.argv.includes('--floor')) {
+  const { testAutocorrelation } = await import(B + 'src/tests/autocorrelation.js');
+  const { flagFromP, ALPHA } = await import(B + 'src/constants/thresholds.js');
+  const { ASSAY_DATATYPE_MAP } = await import(B + 'src/constants/assays.js');
+  const { runFullAnalysis } = await import(B + 'src/analysis/engine.js');
+  const { EXPECTED } = await import(B + 'test/batch-fixtures.mjs');
+
+  console.log('### Driving pair |r| on every fixture where Autocorrelation returns a flag\n');
+  console.log('  ' + 'fixture'.padEnd(36) + 'rows'.padEnd(7) + 'flag'.padEnd(10) + 'driving |r|'.padEnd(13) +
+              'minAdjP'.padEnd(12) + 'pooled mean r'.padEnd(15) + 'gate live? (N>=500)');
+  console.log('  ' + '-'.repeat(104));
+  const rows = [];
+  for (const f of readdirSync(FIX).filter(x => x.endsWith('.csv') && EXPECTED[x]).sort()) {
+    const base = readFixture(f);
+    const assay = EXPECTED[f].assay;
+    const dt = ASSAY_DATATYPE_MAP[assay] || 'continuous';
+    const vst = detectVST(base.matrix, assay);
+    const res = await runFullAnalysis(base.matrix, base.rawMatrix, base.condCtx, assay, null, vst,
+      { isPivoted: false }, dt, 'ordered');
+    const r = res.find(x => x.name === 'Autocorrelation');
+    if (!r || r.flag === 'N/A') continue;
+    const dr = Math.abs(num(r.minAdjPairR1));
+    rows.push({ f, flag: r.flag, dr, sev: EXPECTED[f].severity });
+    console.log('  ' + f.padEnd(36) + String(base.matrix.length).padEnd(7) + r.flag.padEnd(10) +
+      dr.toFixed(4).padEnd(13) + num(r.minAdjP).toExponential(2).padEnd(12) +
+      Math.abs(num(r.pooledMeanR1)).toFixed(4).padEnd(15) + (base.matrix.length >= 500 ? 'YES' : 'no'));
+  }
+  const flagged = rows.filter(x => x.flag !== 'LOW');
+  const clean = rows.filter(x => x.sev === 0);
+  console.log(`\n  flagged fixtures: driving |r| ${flagged.map(x=>x.dr.toFixed(3)).sort().join(', ')}`);
+  console.log(`  clean fixtures:   driving |r| max ${Math.max(...clean.map(x=>x.dr)).toFixed(4)}`);
+
+  // Synthetic large-N: a real but negligible per-pair effect. Independent
+  // per-column AR(1) gives per-pair r ~= rho (verified by --power).
+  console.log('\n\n### Synthetic large-N with a real but negligible per-pair effect, C=6\n');
+  console.log('  ' + 'rows'.padEnd(8) + 'rho'.padEnd(7) + 'driving |r|'.padEnd(13) + 'minAdjP'.padEnd(12) +
+              'flag WITHOUT any floor'.padEnd(24) + 'would a floor need to block it?');
+  console.log('  ' + '-'.repeat(96));
+  const trivial = [];
+  for (const N of [1000, 2000, 5000, 20000]) {
+    for (const rho of [0.02, 0.03, 0.05, 0.08, 0.12]) {
+      const nrm = _normal(mulberry32(0x5A5A + N + Math.round(rho*1000)));
+      const m = _colsToMatrix(Array.from({length:6}, () => _arCol(N, rho, nrm)));
+      const r = testAutocorrelation(m, null);
+      const dr = Math.abs(num(r.minAdjPairR1));
+      const bare = flagFromP(num(r.minAdjP));
+      const needsBlock = bare !== 'LOW';
+      if (needsBlock) trivial.push({ N, rho, dr });
+      console.log('  ' + String(N).padEnd(8) + rho.toFixed(2).padEnd(7) + dr.toFixed(4).padEnd(13) +
+        num(r.minAdjP).toExponential(2).padEnd(12) + bare.padEnd(24) + (needsBlock ? 'YES' : 'no — p alone clears it'));
+    }
+  }
+  console.log('\n### Separation\n');
+  const keepMin = Math.min(...flagged.map(x=>x.dr));
+  if (!trivial.length) {
+    console.log('  No synthetic case reached a flag without a floor, so nothing needs blocking at these effect sizes.');
+  } else {
+    const blockMax = Math.max(...trivial.map(x=>x.dr));
+    console.log(`  must KEEP  (real findings)      : driving |r| >= ${keepMin.toFixed(4)}`);
+    console.log(`  must BLOCK (trivial at large N) : driving |r| <= ${blockMax.toFixed(4)}`);
+    console.log(`  -> ${blockMax < keepMin ? `SEPARATES. Any threshold in (${blockMax.toFixed(4)}, ${keepMin.toFixed(4)}) works.`
+                                           : 'OVERLAP — no single threshold separates them.'}`);
+  }
+  process.exit(0);
+}
+
+// ── Where the trivial band actually tops out (--floorband) ────────────────
+// The driving |r| is a MAX over pairs, so sampling noise inflates it above the
+// underlying process rho — most at the small end of "large N", which is exactly
+// where the gate switches on. One draw per cell is not enough to site a
+// threshold. This takes the distribution.
+if (process.argv.includes('--floorband')) {
+  const { testAutocorrelation } = await import(B + 'src/tests/autocorrelation.js');
+  const { flagFromP } = await import(B + 'src/constants/thresholds.js');
+  const REPS = Number(process.env.REPS) || 400;
+  const C = Number(process.env.C) || 6;
+  console.log(`### Distribution of the driving |r| on trivial large-N cases, C=${C}, ${REPS} draws per cell\n`);
+  console.log('  ' + 'rows'.padEnd(8) + 'rho'.padEnd(7) + 'mean |r|'.padEnd(11) + 'p95'.padEnd(9) +
+              'p99'.padEnd(9) + 'max'.padEnd(9) + 'flags without a floor');
+  console.log('  ' + '-'.repeat(74));
+  let worst99 = 0, worstMax = 0;
+  for (const N of [500, 600, 800, 1200, 3000]) {
+    for (const rho of [0.05, 0.08, 0.12, 0.15]) {
+      const nrm = _normal(mulberry32(0x9E3 + N + Math.round(rho*1000)));
+      const drs = []; let fired = 0;
+      for (let i = 0; i < REPS; i++) {
+        const r = testAutocorrelation(_colsToMatrix(Array.from({length:C},()=>_arCol(N, rho, nrm))), null);
+        drs.push(Math.abs(num(r.minAdjPairR1)));
+        if (flagFromP(num(r.minAdjP)) !== 'LOW') fired++;
+      }
+      drs.sort((a,b)=>a-b);
+      const p99 = quant(drs, 0.99), mx = drs[drs.length-1];
+      if (rho <= 0.12) { worst99 = Math.max(worst99, p99); worstMax = Math.max(worstMax, mx); }
+      console.log('  ' + String(N).padEnd(8) + rho.toFixed(2).padEnd(7) + mean(drs).toFixed(4).padEnd(11) +
+        quant(drs,0.95).toFixed(4).padEnd(9) + p99.toFixed(4).padEnd(9) + mx.toFixed(4).padEnd(9) +
+        `${(100*fired/REPS).toFixed(0)}%`);
+    }
+  }
+  console.log(`\n  Treating rho <= 0.12 as the trivial band (the recorded rationale puts background at 0.03-0.15):`);
+  console.log(`    99th percentile of driving |r| across those cells: ${worst99.toFixed(4)}`);
+  console.log(`    maximum observed                                 : ${worstMax.toFixed(4)}`);
+  console.log(`  Tightest real finding in the suite (DS21): 0.3066`);
+  process.exit(0);
+}
+
+// ── Joint effect of a driving-|r| floor (--floorjoint) ────────────────────
+// A case only flags if the adjusted p is significant AND the driving |r| clears
+// the floor. Marginal distributions of |r| overlap; what decides whether a
+// floor is usable is the joint rate. Also reports what the CURRENT pooled-mean
+// gate does to the same cases, since the two quantities catch different shapes.
+if (process.argv.includes('--floorjoint')) {
+  const { testAutocorrelation } = await import(B + 'src/tests/autocorrelation.js');
+  const { flagFromP } = await import(B + 'src/constants/thresholds.js');
+  const REPS = Number(process.env.REPS) || 400;
+  const C = 6;
+  const Ts = [0.15, 0.20, 0.25, 0.30];
+  console.log(`### Flag rate on trivial large-N cases under a driving-|r| floor, C=${C}, ${REPS} draws\n`);
+  console.log('  ' + 'rows'.padEnd(7) + 'rho'.padEnd(6) + 'no floor'.padEnd(10) +
+              Ts.map(t=>`T=${t.toFixed(2)}`.padEnd(9)).join('') + 'current pooled-mean gate');
+  console.log('  ' + '-'.repeat(84));
+  for (const N of [500, 800, 3000]) {
+    for (const rho of [0.05, 0.08, 0.12]) {
+      const nrm = _normal(mulberry32(0x9E3 + N + Math.round(rho*1000)));
+      let bare = 0; const byT = Ts.map(()=>0); let cur = 0;
+      for (let i = 0; i < REPS; i++) {
+        const r = testAutocorrelation(_colsToMatrix(Array.from({length:C},()=>_arCol(N, rho, nrm))), null);
+        const sig = flagFromP(num(r.minAdjP)) !== 'LOW';
+        const dr = Math.abs(num(r.minAdjPairR1));
+        const pooledAbs = Math.abs(num(r.pooledMeanR1));
+        if (sig) bare++;
+        Ts.forEach((t,k)=>{ if (sig && dr >= t) byT[k]++; });
+        if (sig && !(pooledAbs < 0.25)) cur++;   // current gate lets it through only if pooled mean >= 0.25
+      }
+      console.log('  ' + String(N).padEnd(7) + rho.toFixed(2).padEnd(6) + `${(100*bare/REPS).toFixed(0)}%`.padEnd(10) +
+        byT.map(v=>`${(100*v/REPS).toFixed(1)}%`.padEnd(9)).join('') + `${(100*cur/REPS).toFixed(1)}%`);
+    }
+  }
+  console.log('\n  Real findings must survive the same floor:');
+  console.log('    DS11 driving |r| = 0.4402 (1500 rows, gate live)  -> passes every T listed');
+  console.log('    DS21 driving |r| = 0.3066 (400 rows, gate NOT live at N<500)');
   process.exit(0);
 }
 
