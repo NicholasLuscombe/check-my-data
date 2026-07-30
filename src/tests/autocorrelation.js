@@ -96,6 +96,14 @@ export function testAutocorrelation(matrix) {
   // it just no longer decides. Effect-size gate unchanged and still applied
   // ahead of the flag, exactly as it was to the pooled one.
   const minAdjP = arrayMin(acfAdjPs);
+  // The lag-1 r of the pair that achieves minAdjP. `acfAdjPs` is index-aligned
+  // to `res` (push-only, never sorted), so the driving pair is identifiable
+  // here without recomputing the family — and it has to be found here, because
+  // `details` truncates at 15 and on a wide matrix the driving pair is often
+  // past that cut. Ties take the first, which matches arrayMin.
+  let minAdjIdx = 0;
+  for (let i = 1; i < acfAdjPs.length; i++) if (acfAdjPs[i] < acfAdjPs[minAdjIdx]) minAdjIdx = i;
+  const minAdjPairR1 = res.length ? res[minAdjIdx].lag1 : null;
   const pooledFlag=esGate?"LOW":flagFromP(minAdjP);
   // Pair-level promotion: if any individual pair survives BH-FDR at ALPHA.FLAG,
   // promote to at least MODERATE. One strong outlier pair shouldn't be diluted
@@ -190,7 +198,7 @@ export function testAutocorrelation(matrix) {
     // report reads as this test's p. Was the pooled t's p; that value stays
     // available as `pooledP` for display.
     primaryP: minAdjP,
-    minAdjP,
+    minAdjP, minAdjPairR1,
     effectSizeClass,
     pooledR1SD, pooledR1SE, pooledR1CI,
     lagTable, higherLagPromoted, higherLagWasDecisive,
