@@ -792,6 +792,247 @@ if (process.argv.includes('--snoise')) {
   process.exit(0);
 }
 
+// ══ Route 2 validation modes ═══════════════════════════════════════════════
+// Shared helpers for the four synthetic validations below.
+function _normal(rnd) {
+  let spare = null;
+  return () => {
+    if (spare !== null) { const v = spare; spare = null; return v; }
+    let u = 0, v = 0, sq = 0;
+    do { u = rnd()*2-1; v = rnd()*2-1; sq = u*u+v*v; } while (sq === 0 || sq >= 1);
+    const f = Math.sqrt(-2*Math.log(sq)/sq);
+    spare = v*f; return u*f;
+  };
+}
+// Stationary AR(1) column, unit marginal variance so `rho` is the only knob.
+function _arCol(n, rho, nrm) {
+  const out = new Array(n);
+  const sd = Math.sqrt(1 - rho*rho);
+  let x = nrm();
+  for (let i = 0; i < n; i++) { x = rho*x + sd*nrm(); out[i] = x; }
+  return out;
+}
+function _whiteCol(n, nrm) { const o = new Array(n); for (let i=0;i<n;i++) o[i]=nrm(); return o; }
+function _colsToMatrix(cols) {
+  const n = cols[0].length, C = cols.length, m = new Array(n);
+  for (let r = 0; r < n; r++) { const row = new Array(C); for (let c=0;c<C;c++) row[c]=cols[c][r]; m[r]=row; }
+  return m;
+}
+// Per-pair lag-1 family, built from the engine's own primitives: acfAtLag for
+// the statistic, zToP for the p, bhFDR for the adjustment. Same three calls
+// testAutocorrelation makes. Validated against it in --bh before use.
+async function _perPair(matrix) {
+  const { acfAtLag, zToP, bhFDR } = await import(B + 'src/stats/primitives.js');
+  const nR = matrix.length, nC = matrix[0].length;
+  const pairs = [];
+  for (let c1 = 0; c1 < nC; c1++) for (let c2 = c1+1; c2 < nC; c2++) {
+    const d = [];
+    for (let r = 0; r < nR; r++) if (matrix[r][c1]!=null && matrix[r][c2]!=null) d.push(matrix[r][c1]-matrix[r][c2]);
+    if (d.length < 10) continue;
+    const m = mean(d), den = d.reduce((s,x)=>s+(x-m)**2, 0);
+    const r1 = acfAtLag(d, m, den, 1);
+    pairs.push({ c1, c2, r1, rawP: zToP(r1/(1/Math.sqrt(d.length))) });
+  }
+  const adj = bhFDR(pairs.map(x=>x.rawP));
+  pairs.forEach((x,i)=>{ x.adjP = adj[i]; });
+  return pairs;
+}
+
+// ── Part 1: does BH hold under a partial null (--bh) ───────────────────────
+// One column carries a lag-1 effect. Every pair containing it is contaminated;
+// every pair that does not is null. BH bounds the FALSE DISCOVERY RATE, E[V/R]
+// — not the fraction of true nulls rejected, which can climb well above q as
+// real signal relaxes the threshold. Both are reported; they answer different
+// questions and only the first is BH's guarantee.
+if (process.argv.includes('--bh')) {
+  const { testAutocorrelation } = await import(B + 'src/tests/autocorrelation.js');
+  const RUNS = Number(process.env.RUNS) || 2000;
+  const N = Number(process.env.N) || 200;
+  const Q = 0.01;
+
+  // Faithfulness: the reconstruction must match the engine's own per-pair
+  // numbers on a width where details is complete.
+  {
+    const nrm = _normal(mulberry32(7));
+    const cols = [_arCol(N, 0.5, nrm), ...Array.from({length:5},()=>_whiteCol(N,nrm))];
+    const m = _colsToMatrix(cols);
+    const mine = await _perPair(m);
+    const eng = testAutocorrelation(m, null);
+    const ed = (eng.details||[]).filter(d=>Number.isFinite(Number(d.adjP)));
+    // adjP is stored full-precision and must match exactly. lag1 is stored as
+    // toFixed(4) for display, so it can only be checked to its own precision.
+    let wAdj = 0, wR = 0;
+    for (const d of ed) {
+      const [a,b] = d.pair.split(/[–-]/).map(Number);
+      const mm = mine.find(x=>x.c1===a-1 && x.c2===b-1);
+      wAdj = Math.max(wAdj, Math.abs(mm.adjP - Number(d.adjP)));
+      wR = Math.max(wR, Math.abs(mm.r1 - Number(d.lag1)));
+    }
+    const ok = wAdj < 1e-12 && wR < 1e-4;
+    console.log(`### Part 1 — BH under a partial null. N=${N} rows, ${RUNS} runs per cell, q=${Q}`);
+    console.log(`    reconstruction vs engine on ${ed.length} pairs: adjP delta ${wAdj.toExponential(1)}, ` +
+                `r1 delta ${wR.toExponential(1)} (r1 stored at 4dp) ` +
+                `-> ${ok ? 'MATCHES' : '*** MISMATCH — numbers below are untrustworthy ***'}\n`);
+  }
+
+  console.log('  ' + 'C'.padEnd(5) + 'rho'.padEnd(7) + 'null pairs'.padEnd(12) + 'mean|r| contam'.padEnd(16) +
+              'mean|r| null'.padEnd(14) + 'FDR E[V/R]'.padEnd(12) + 'null-pair rej rate'.padEnd(20) + 'any-null-rejected');
+  console.log('  ' + '-'.repeat(112));
+  for (const C of [4, 6, 8, 12]) {
+    for (const rho of [0, 0.1, 0.2, 0.3, 0.5, 0.7]) {
+      const rnd = mulberry32(0xC0FFEE + C*1000 + Math.round(rho*100));
+      const nrm = _normal(rnd);
+      let fdrSum = 0, vTot = 0, m0Tot = 0, anyNull = 0, cSum = 0, cN = 0, nSum = 0, nN = 0;
+      for (let run = 0; run < RUNS; run++) {
+        const cols = [_arCol(N, rho, nrm), ...Array.from({length:C-1},()=>_whiteCol(N,nrm))];
+        const pairs = await _perPair(_colsToMatrix(cols));
+        let V = 0, R = 0, m0 = 0, anyV = false;
+        for (const x of pairs) {
+          const isNull = x.c1 !== 0 && x.c2 !== 0;
+          if (isNull) { m0++; nSum += Math.abs(x.r1); nN++; } else { cSum += Math.abs(x.r1); cN++; }
+          if (x.adjP < Q) { R++; if (isNull) { V++; anyV = true; } }
+        }
+        fdrSum += R > 0 ? V/R : 0;
+        vTot += V; m0Tot += m0; if (anyV) anyNull++;
+      }
+      console.log('  ' + String(C).padEnd(5) + rho.toFixed(1).padEnd(7) + String((C-1)*(C-2)/2).padEnd(12) +
+        (cSum/cN).toFixed(4).padEnd(16) + (nSum/nN).toFixed(4).padEnd(14) +
+        (fdrSum/RUNS).toFixed(4).padEnd(12) + (vTot/m0Tot).toFixed(4).padEnd(20) +
+        `${(100*anyNull/RUNS).toFixed(1)}%`);
+    }
+  }
+  console.log('\n  FDR is what BH bounds at q=0.01. The null-pair rejection rate is not bounded by BH');
+  console.log('  and is reported because it is what the evidence line shows a reader.');
+  process.exit(0);
+}
+
+// ── Part 2: did dropping the pooled statistic cost power (--power) ─────────
+// Every column gets its own independent AR(1), so every pair carries the same
+// weak effect. The construction is verified before any detection rate is taken.
+if (process.argv.includes('--power')) {
+  const { flagFromP } = await import(B + 'src/constants/thresholds.js');
+  const RUNS = Number(process.env.RUNS) || 1000;
+  const N = Number(process.env.N) || 200;
+  const C = Number(process.env.C) || 8;
+  const NULLSIM = Number(process.env.NULLSIM) || 20000;
+
+  const build = (rho, nrm) => _colsToMatrix(Array.from({length:C},()=>_arCol(N, rho, nrm)));
+
+  // Verify the construction: what per-pair r1 does it actually produce?
+  console.log(`### Part 2 — power. N=${N}, C=${C}, ${RUNS} runs per rho\n`);
+  console.log('  construction check — intended per-pair effect vs measured:');
+  for (const rho of [0.1, 0.2, 0.3]) {
+    const nrm = _normal(mulberry32(11));
+    let acc = 0, n = 0;
+    for (let i = 0; i < 200; i++) { for (const x of await _perPair(build(rho, nrm))) { acc += x.r1; n++; } }
+    console.log(`    rho=${rho.toFixed(1)}  mean per-pair r1 = ${(acc/n).toFixed(4)}  ` +
+                `(full strength would be ${rho.toFixed(2)}, half would be ${(rho/2).toFixed(2)})`);
+  }
+
+  // Route 3's null: the pooled mean r1 distribution at rho=0, same N and C.
+  // This is the permutation null's reference distribution — permuting rows of a
+  // null matrix and generating a fresh null matrix give the same thing here,
+  // because the rows are iid by construction.
+  const nrm0 = _normal(mulberry32(23));
+  const nullPooled = [];
+  for (let i = 0; i < NULLSIM; i++) {
+    const pp = await _perPair(build(0, nrm0));
+    nullPooled.push(mean(pp.map(x=>x.r1)));
+  }
+  nullPooled.sort((a,b)=>a-b);
+  const crit = Math.max(Math.abs(quant(nullPooled, 0.005)), Math.abs(quant(nullPooled, 0.995)));
+  console.log(`\n  Route 3 critical value from ${NULLSIM} null draws: |pooled mean r1| > ${crit.toFixed(5)} at alpha=0.01\n`);
+
+  console.log('  ' + 'rho'.padEnd(7) + 'mean per-pair r1'.padEnd(18) + 'Route 2 detect'.padEnd(16) +
+              'Route 3 detect'.padEnd(16) + 'gap');
+  console.log('  ' + '-'.repeat(72));
+  for (const rho of [0, 0.02, 0.04, 0.06, 0.08, 0.10, 0.14, 0.18, 0.25]) {
+    const nrm = _normal(mulberry32(0xBEEF + Math.round(rho*1000)));
+    let r2 = 0, r3 = 0, rAcc = 0, rN = 0;
+    for (let run = 0; run < RUNS; run++) {
+      const pp = await _perPair(build(rho, nrm));
+      const minAdj = Math.min(...pp.map(x=>x.adjP));
+      const pooled = mean(pp.map(x=>x.r1));
+      for (const x of pp) { rAcc += x.r1; rN++; }
+      if (flagFromP(minAdj) !== 'LOW') r2++;
+      if (Math.abs(pooled) > crit) r3++;
+    }
+    const a = 100*r2/RUNS, b = 100*r3/RUNS;
+    console.log('  ' + rho.toFixed(2).padEnd(7) + (rAcc/rN).toFixed(4).padEnd(18) +
+      `${a.toFixed(1)}%`.padEnd(16) + `${b.toFixed(1)}%`.padEnd(16) +
+      (b - a > 5 ? `Route 3 ahead by ${(b-a).toFixed(1)} pts` : ''));
+  }
+  process.exit(0);
+}
+
+// ── Part 3: does the effect-size gate suppress a concentrated finding (--esgate)
+// The gate reads |mean r1| across ALL pairs. Concentrate a strong effect in a
+// few pairs and the mean stays under 0.25 while one pair is highly significant.
+if (process.argv.includes('--esgate')) {
+  const { testAutocorrelation } = await import(B + 'src/tests/autocorrelation.js');
+  const { flagFromP, EFFECT_SIZE } = await import(B + 'src/constants/thresholds.js');
+  const N = Number(process.env.N) || 600;
+  console.log(`### Part 3 — effect-size gate on a concentrated effect. N=${N} rows (gate needs >=500)\n`);
+  console.log('  ' + 'C'.padEnd(5) + 'rho'.padEnd(7) + 'pooled mean r1'.padEnd(16) + 'gate fires'.padEnd(12) +
+              'minAdjP'.padEnd(12) + 'flag WITH gate'.padEnd(16) + 'flag from minAdjP alone');
+  console.log('  ' + '-'.repeat(96));
+  for (const C of [8, 12]) {
+    for (const rho of [0.3, 0.5, 0.7]) {
+      const nrm = _normal(mulberry32(0xFEED + C*100 + Math.round(rho*100)));
+      const m = _colsToMatrix([_arCol(N, rho, nrm), ...Array.from({length:C-1},()=>_whiteCol(N,nrm))]);
+      const r = testAutocorrelation(m, null);
+      const pooledAbs = Math.abs(Number(r.pooledMeanR1));
+      const gate = N >= 500 && pooledAbs < EFFECT_SIZE.AUTOCORR_STRONG;
+      console.log('  ' + String(C).padEnd(5) + rho.toFixed(1).padEnd(7) + Number(r.pooledMeanR1).toFixed(4).padEnd(16) +
+        String(gate).padEnd(12) + Number(r.minAdjP).toExponential(2).padEnd(12) +
+        r.flag.padEnd(16) + flagFromP(Number(r.minAdjP)));
+    }
+  }
+  process.exit(0);
+}
+
+// ── Part 4: heavy tails in log space (--heavytail) ─────────────────────────
+// One hypothesis, tested and then stopped. Rows are iid by construction, so the
+// data is already null and no shuffle is needed.
+if (process.argv.includes('--heavytail')) {
+  const RUNS = Number(process.env.RUNS) || 400;
+  const N = Number(process.env.N) || 1500;
+  const C = 4;
+  console.log(`### Part 4 — does heavy-tailed log-space data inflate the per-pair test? N=${N}, C=${C}, ${RUNS} runs`);
+  console.log(`    nominal 1.00% at p<0.01 and 0.100% at p<0.001; DS11 measures 2.40% and 2.167%\n`);
+  const tdist = (nrm, rnd, df) => () => {
+    let ss = 0; for (let i=0;i<df;i++) { const z = nrm(); ss += z*z; }
+    return nrm()/Math.sqrt(ss/df);
+  };
+  const cases = [
+    ['normal (control)',      (nrm,rnd)=>nrm()],
+    ['t, df=5',               (nrm,rnd)=>tdist(nrm,rnd,5)()],
+    ['t, df=3 (inf 4th mom)', (nrm,rnd)=>tdist(nrm,rnd,3)()],
+    ['t, df=2 (inf variance)',(nrm,rnd)=>tdist(nrm,rnd,2)()],
+    ['log of NB-like counts', (nrm,rnd)=>{ const mu=Math.exp(nrm()*1.8+4); let k=0,L=Math.exp(-Math.min(mu,600)),p=1;
+        do { p*=rnd(); k++; } while (p>L && k<4000); return Math.log(Math.max(k-1,0)+1); }],
+  ];
+  console.log('  ' + 'distribution'.padEnd(26) + 'excess kurt'.padEnd(14) + 'p<0.01'.padEnd(10) + 'p<0.001');
+  console.log('  ' + '-'.repeat(64));
+  for (const [label, draw] of cases) {
+    const rnd = mulberry32(0xABCD); const nrm = _normal(rnd);
+    let lt01 = 0, lt001 = 0, tot = 0, m1=0,m2=0,m4=0,mn=0;
+    for (let run = 0; run < RUNS; run++) {
+      const cols = Array.from({length:C}, () => Array.from({length:N}, () => draw(nrm, rnd)));
+      for (const c of cols) for (const v of c) { m1+=v; mn++; }
+      const mm = m1/mn;
+      for (const c of cols) for (const v of c) { m2+=(v-mm)**2; m4+=(v-mm)**4; }
+      for (const x of await _perPair(_colsToMatrix(cols))) {
+        tot++; if (x.rawP < 0.01) lt01++; if (x.rawP < 0.001) lt001++;
+      }
+    }
+    const varr = m2/mn, kurt = m4/mn/(varr*varr) - 3;
+    console.log('  ' + label.padEnd(26) + kurt.toFixed(2).padEnd(14) +
+      `${(100*lt01/tot).toFixed(2)}%`.padEnd(10) + `${(100*lt001/tot).toFixed(3)}%`);
+  }
+  process.exit(0);
+}
+
 console.log(`Autocorrelation calibration probe — ${N_PERM} iterations per file\n`);
 
 const TARGETS = [
