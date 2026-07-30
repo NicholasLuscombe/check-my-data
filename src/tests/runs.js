@@ -1,4 +1,4 @@
-import { mean, zToP, oneSampleT, bhFDR, stddev, normalQuantile, tQuantileTwoSided } from "../stats/primitives.js";
+import { mean, zToP, oneSampleT, bhFDR, stddev, normalQuantile, tQuantileTwoSided, arrayMin } from "../stats/primitives.js";
 import { flagFromP, ALPHA, flagRankOf } from "../constants/thresholds.js";
 import { NA_CAUSE } from "../constants/naCause.js";
 import { TOO_FEW_REPLICATE_COLS_CAUSE, joinDeclineReason } from "../constants/assays.js";
@@ -204,7 +204,15 @@ export function testRuns(matrix, condCtx, rng) {
   // Global flag (computed before scan to determine esGate)
   const runsRatio = totalExp>0 ? totalRuns/totalExp : 1;
   const esGate = nR>=500 && runsRatio>0.70;
-  const globalFlag=esGate?"LOW":flagFromP(pooled.p);
+  // The verdict reads the per-pair family, not the pooled t. Pairs drawn from C
+  // columns share a column C-1 times over, so the one-sample t over per-pair z
+  // scores treats dependent units as independent — the same defect measured on
+  // Autocorrelation. `minAdjP` is the minimum over the COMPLETE per-pair set,
+  // taken before `details` is truncated for display. The pooled statistic keeps
+  // computing and reporting; it just no longer decides. Effect-size gate
+  // unchanged and still applied ahead of the flag.
+  const minAdjP = arrayMin(runsAdjPs);
+  const globalFlag=esGate?"LOW":flagFromP(minAdjP);
 
   // Permutation scan — skip entirely when esGate fires (large N, trivial deficit)
   let scanP=1;
@@ -257,10 +265,12 @@ export function testRuns(matrix, condCtx, rng) {
   const winSig = anyWindowFlagged ? allWindowResults.filter(w => w.rawZ < -1.96).slice(0, 20) : [];
   winSig.forEach(w => { w.significant = true; w.scanP = scanP; w.source = "window"; });
 
-  // primaryP: best of pooled, scan p, strongest pair, strongest window (for display only)
-  const bestPairP = anyPairFlagged ? Math.min(...runsAdjPs.filter(p => p < ALPHA.FLAG)) : 1;
+  // primaryP: the deciding quantity, so the aggregator combines it and the
+  // report reads it as this test's p. The windowed scan is an empirical null and
+  // can still promote, so it stays in the minimum alongside the per-pair family.
+  // The pooled t's p is no longer part of it; it stays available as `pooledP`.
   const bestWindowP = anyWindowFlagged ? Math.min(...windowAdjPs.filter(p => p < ALPHA.FLAG)) : 1;
-  const bestP = Math.min(pooled.p, scanP, bestPairP, bestWindowP);
+  const bestP = Math.min(minAdjP, scanP, bestWindowP);
 
   // Generate matched simulated permutation for strip display
   // Shuffle the worst pair's sign array ~50 times, pick closest to expected runs
@@ -293,7 +303,7 @@ export function testRuns(matrix, condCtx, rng) {
     description:"In random data, which replicate is larger should switch back and forth unpredictably as you go down the rows. If one replicate stays consistently above another for long stretches, the row ordering is not random \u2014 suggesting the values were constructed sequentially rather than measured independently.",
     nRows: matrix.length,
     nSignificant:nSig, nPairs:res.length,
-    pooledMeanZ:pooledMeanZ.toFixed(3), pooledT:pooled.t.toFixed(3), pooledP:pooled.p.toFixed(4), primaryP:bestP,
+    pooledMeanZ:pooledMeanZ.toFixed(3), pooledT:pooled.t.toFixed(3), pooledP:pooled.p.toFixed(4), primaryP:bestP, minAdjP,
     pooledZSD, pooledZSE, pooledZCI_flag,
     // Observed/expected runs ratio over all pairs. Drives the N>=500
     // effect-size gate (runsRatio > 0.70 → LOW even when p-value would
