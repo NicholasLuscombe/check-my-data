@@ -160,8 +160,16 @@ N/A are omitted.
 | **23-recurrence-null-mixed** | **1st** | **0.000e+0** | **2.000e-4** | HIGH → HIGH |
 | **23-recurrence-null-mixed** | **2nd** | **0.000e+0 – 2.000e-4** | **2.000e-4 – 3.999e-4** | HIGH → HIGH |
 
-Every p moved, as expected. **Six cells were emitting exactly `p = 0`** — DS08 1st, DS09 1st,
-DS10 2nd, DS11 2nd, DS23 1st, DS23 2nd (the last two at some seeds).
+Every p moved, as expected. **Six Benford cells were emitting exactly `p = 0`** at one or more
+seeds, out of 17 that run at all. Re-measured at source after the fix (any cell now sitting exactly
+at the `1/5001` floor had k = 0), disambiguated by seed because a bare count is ambiguous and three
+different figures were in circulation:
+
+| k = 0 at | cells | which |
+|---|---|---|
+| **all 8 seeds** | **4** | DS08 1st, DS09 1st, DS11 2nd, DS23 1st |
+| **some seeds** | **2** | DS10 2nd (5/8), DS23 2nd (7/8) |
+| union (≥1 seed) | **6** | — |
 
 **DS09 is the sharpest illustration and it is a *clean* fixture.** `09-proteomics-clean` was
 emitting `p = 0` on first-digit Benford — an assertion of impossibility on a fixture whose
