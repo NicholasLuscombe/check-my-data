@@ -1,0 +1,279 @@
+S340 eight-seed channel dump — 8 seeds, 27 fixtures
+seeds 0, 1, 2, 3, 4, 5, 6, 7 (0 = the shipped stream)
+
+A declaration should rest on a channel that holds its tier at every seed.
+Cells marked UNSTABLE change tier across seeds and are not safe to declare.
+"count" is the resample count the test publishes; blank means it publishes none,
+and null means its permutation arm did not run on that fixture.
+
+==============================================================================================================
+01-densitometry-clean.csv    declared severity 0    observed 0 0 0 0 0 0 0 0
+--------------------------------------------------------------------------------------------------------------
+  no test fires above LOW at any seed.
+  quiet at every seed (29): Benford's Law (First Digit), Benford's Law (Second Digit), Terminal Digit Uniformity, Decimal Precision Consistency, Value-Frequency Spike, Inter-Replicate Correlation, Exact Duplicate Detection, Sequential Duplication, Constant-Offset Blocks, Residual Spike Correlation, Baseline Balance, Cross-Condition Rank Correlation, Cross-Condition Consistency, Mahalanobis Row Outlier, Blocked Mahalanobis, Noise Scaling With Measurement Size, Excess Kurtosis, Entropy / Zipf Analysis, Column Goodness-of-Fit, Modality Test, Autocorrelation, Windowed Autocorrelation, Runs Test, Within-Row Variance, LOESS Residual Analysis, Row-Mean Runs, Selective Noise Partitioning, Regional Noise Homogeneity, Missing Data Pattern
+
+==============================================================================================================
+02-densitometry-fabricated.csv    declared severity 3    observed 3 3 3 3 3 3 3 3
+--------------------------------------------------------------------------------------------------------------
+  test                               count   flags by seed / p by seed
+  Inter-Replicate Correlation        999     M M M M M M M M [declared]
+                                             0.004  0.004  0.006  0.007  0.007  0.006  0.008  0.005
+  Residual Spike Correlation         999     M M M M M M M M [declared]
+                                             0.001  0.001  0.001  0.001  0.001  0.001  0.001  0.001
+  quiet at every seed (27): Benford's Law (First Digit), Benford's Law (Second Digit), Terminal Digit Uniformity, Decimal Precision Consistency, Value-Frequency Spike, Exact Duplicate Detection, Sequential Duplication, Constant-Offset Blocks, Baseline Balance, Cross-Condition Rank Correlation, Cross-Condition Consistency, Mahalanobis Row Outlier, Blocked Mahalanobis, Noise Scaling With Measurement Size, Excess Kurtosis, Entropy / Zipf Analysis, Column Goodness-of-Fit, Modality Test, Autocorrelation, Windowed Autocorrelation, Runs Test, Within-Row Variance, LOESS Residual Analysis, Row-Mean Runs, Selective Noise Partitioning, Regional Noise Homogeneity, Missing Data Pattern
+
+==============================================================================================================
+03-qpcr-clean.csv    declared severity 0    observed 0 0 0 0 0 0 0 0
+--------------------------------------------------------------------------------------------------------------
+  no test fires above LOW at any seed.
+  quiet at every seed (29): Benford's Law (First Digit), Benford's Law (Second Digit), Terminal Digit Uniformity, Decimal Precision Consistency, Value-Frequency Spike, Inter-Replicate Correlation, Exact Duplicate Detection, Sequential Duplication, Constant-Offset Blocks, Residual Spike Correlation, Baseline Balance, Cross-Condition Rank Correlation, Cross-Condition Consistency, Mahalanobis Row Outlier, Blocked Mahalanobis, Noise Scaling With Measurement Size, Excess Kurtosis, Entropy / Zipf Analysis, Column Goodness-of-Fit, Modality Test, Autocorrelation, Windowed Autocorrelation, Runs Test, Within-Row Variance, LOESS Residual Analysis, Row-Mean Runs, Selective Noise Partitioning, Regional Noise Homogeneity, Missing Data Pattern
+
+==============================================================================================================
+04-qpcr-fabricated.csv    declared severity 3    observed 3 3 3 3 3 3 3 3
+--------------------------------------------------------------------------------------------------------------
+  test                               count   flags by seed / p by seed
+  Exact Duplicate Detection                  H H H H H H H H [declared]
+                                             2.15e-6  2.15e-6  2.15e-6  2.15e-6  2.15e-6  2.15e-6  2.15e-6  2.15e-6
+  Terminal Digit Uniformity                  H H H H H H H H [declared]
+                                             4.54e-7  4.54e-7  4.54e-7  4.54e-7  4.54e-7  4.54e-7  4.54e-7  4.54e-7
+  quiet at every seed (27): Benford's Law (First Digit), Benford's Law (Second Digit), Decimal Precision Consistency, Value-Frequency Spike, Inter-Replicate Correlation, Sequential Duplication, Constant-Offset Blocks, Residual Spike Correlation, Baseline Balance, Cross-Condition Rank Correlation, Cross-Condition Consistency, Mahalanobis Row Outlier, Blocked Mahalanobis, Noise Scaling With Measurement Size, Excess Kurtosis, Entropy / Zipf Analysis, Column Goodness-of-Fit, Modality Test, Autocorrelation, Windowed Autocorrelation, Runs Test, Within-Row Variance, LOESS Residual Analysis, Row-Mean Runs, Selective Noise Partitioning, Regional Noise Homogeneity, Missing Data Pattern
+
+==============================================================================================================
+05-cellcount-clean.csv    declared severity 0    observed 0 0 0 0 0 0 0 0
+--------------------------------------------------------------------------------------------------------------
+  no test fires above LOW at any seed.
+  quiet at every seed (29): Benford's Law (First Digit), Benford's Law (Second Digit), Terminal Digit Uniformity, Decimal Precision Consistency, Value-Frequency Spike, Inter-Replicate Correlation, Exact Duplicate Detection, Sequential Duplication, Constant-Offset Blocks, Residual Spike Correlation, Baseline Balance, Cross-Condition Rank Correlation, Cross-Condition Consistency, Mahalanobis Row Outlier, Blocked Mahalanobis, Noise Scaling With Measurement Size, Excess Kurtosis, Entropy / Zipf Analysis, Column Goodness-of-Fit, Modality Test, Autocorrelation, Windowed Autocorrelation, Runs Test, Within-Row Variance, LOESS Residual Analysis, Row-Mean Runs, Selective Noise Partitioning, Regional Noise Homogeneity, Missing Data Pattern
+
+==============================================================================================================
+06-cellcount-fabricated.csv    declared severity 3    observed 3 3 3 3 3 3 3 3
+--------------------------------------------------------------------------------------------------------------
+  test                               count   flags by seed / p by seed
+  Exact Duplicate Detection                  H H H H H H H H [declared]
+                                             7.08e-25  7.08e-25  7.08e-25  7.08e-25  7.08e-25  7.08e-25  7.08e-25  7.08e-25
+  Mahalanobis Row Outlier                    H H H H H H H H
+                                             0.0004498  0.0004498  0.0004498  0.0004498  0.0004498  0.0004498  0.0004498  0.0004498
+  Noise Scaling With Measurement Size         H H H H H H H H [declared]
+                                             1.50e-5  1.50e-5  1.50e-5  1.50e-5  1.50e-5  1.50e-5  1.50e-5  1.50e-5
+  Value-Frequency Spike                      M M M M M M M M [declared]
+                                             0.009485  0.009485  0.009485  0.009485  0.009485  0.009485  0.009485  0.009485
+  quiet at every seed (25): Benford's Law (First Digit), Benford's Law (Second Digit), Terminal Digit Uniformity, Decimal Precision Consistency, Inter-Replicate Correlation, Sequential Duplication, Constant-Offset Blocks, Residual Spike Correlation, Baseline Balance, Cross-Condition Rank Correlation, Cross-Condition Consistency, Blocked Mahalanobis, Excess Kurtosis, Entropy / Zipf Analysis, Column Goodness-of-Fit, Modality Test, Autocorrelation, Windowed Autocorrelation, Runs Test, Within-Row Variance, LOESS Residual Analysis, Row-Mean Runs, Selective Noise Partitioning, Regional Noise Homogeneity, Missing Data Pattern
+
+==============================================================================================================
+07-elisa-clean.csv    declared severity 0    observed 0 0 0 0 0 0 0 0
+--------------------------------------------------------------------------------------------------------------
+  no test fires above LOW at any seed.
+  quiet at every seed (29): Benford's Law (First Digit), Benford's Law (Second Digit), Terminal Digit Uniformity, Decimal Precision Consistency, Value-Frequency Spike, Inter-Replicate Correlation, Exact Duplicate Detection, Sequential Duplication, Constant-Offset Blocks, Residual Spike Correlation, Baseline Balance, Cross-Condition Rank Correlation, Cross-Condition Consistency, Mahalanobis Row Outlier, Blocked Mahalanobis, Noise Scaling With Measurement Size, Excess Kurtosis, Entropy / Zipf Analysis, Column Goodness-of-Fit, Modality Test, Autocorrelation, Windowed Autocorrelation, Runs Test, Within-Row Variance, LOESS Residual Analysis, Row-Mean Runs, Selective Noise Partitioning, Regional Noise Homogeneity, Missing Data Pattern
+
+==============================================================================================================
+08-elisa-fabricated.csv    declared severity 3    observed 3 3 3 3 3 3 3 3
+--------------------------------------------------------------------------------------------------------------
+  test                               count   flags by seed / p by seed
+  Benford's Law (First Digit)        5000    H H H H H H H H [declared]
+                                             0  0  0  0  0  0  0  0
+  Constant-Offset Blocks             999     M M M M M M M M [declared]
+                                             0.002  0.002  0.001  0.003  0.002  0.001  0.001  0.002
+  Inter-Replicate Correlation        999     H H H H H H H H [declared]
+                                             0.0006298  0.0006298  0.0006298  0.0006298  0.0006298  0.0006298  0.0006298  0.0006298
+  LOESS Residual Analysis            4999    H H H H H H H H [declared]
+                                             0.0002  0.0002  0.0002  0.0002  0.0002  0.0002  0.0002  0.0002
+  Mahalanobis Row Outlier                    M M M M M M M M
+                                             0.001698  0.001698  0.001698  0.001698  0.001698  0.001698  0.001698  0.001698
+  Regional Noise Homogeneity         4999    M M M M M M M M
+                                             0.0066  0.007  0.009  0.0056  0.0082  0.007  0.0078  0.0066
+  Selective Noise Partitioning               H H H H H H H H [declared]
+                                             0.0005878  0.0005878  0.0005878  0.0005878  0.0005878  0.0005878  0.0005878  0.0005878
+  quiet at every seed (22): Benford's Law (Second Digit), Terminal Digit Uniformity, Decimal Precision Consistency, Value-Frequency Spike, Exact Duplicate Detection, Sequential Duplication, Residual Spike Correlation, Baseline Balance, Cross-Condition Rank Correlation, Cross-Condition Consistency, Blocked Mahalanobis, Noise Scaling With Measurement Size, Excess Kurtosis, Entropy / Zipf Analysis, Column Goodness-of-Fit, Modality Test, Autocorrelation, Windowed Autocorrelation, Runs Test, Within-Row Variance, Row-Mean Runs, Missing Data Pattern
+
+==============================================================================================================
+09-proteomics-clean.csv    declared severity 0    observed 0 0 0 1 0 0 1 1   SEVERITY NOT CONSTANT
+--------------------------------------------------------------------------------------------------------------
+  test                               count   flags by seed / p by seed
+  Cross-Condition Consistency        499     l l l M l l M M  UNSTABLE
+                                             0.012  0.012  0.012  0.006  0.012  0.012  0.006  0.006
+  quiet at every seed (28): Benford's Law (First Digit), Benford's Law (Second Digit), Terminal Digit Uniformity, Decimal Precision Consistency, Value-Frequency Spike, Inter-Replicate Correlation, Exact Duplicate Detection, Sequential Duplication, Constant-Offset Blocks, Residual Spike Correlation, Baseline Balance, Cross-Condition Rank Correlation, Mahalanobis Row Outlier, Blocked Mahalanobis, Noise Scaling With Measurement Size, Excess Kurtosis, Entropy / Zipf Analysis, Column Goodness-of-Fit, Modality Test, Autocorrelation, Windowed Autocorrelation, Runs Test, Within-Row Variance, LOESS Residual Analysis, Row-Mean Runs, Selective Noise Partitioning, Regional Noise Homogeneity, Missing Data Pattern
+
+==============================================================================================================
+10-proteomics-fabricated.csv    declared severity 3    observed 3 3 3 3 3 3 3 3
+--------------------------------------------------------------------------------------------------------------
+  test                               count   flags by seed / p by seed
+  Benford's Law (Second Digit)       5000    H H H H H H H H [declared]
+                                             0  0  0  0.0002  0  0  0.0002  0.0002
+  Column Goodness-of-Fit             2000    H H H H H H H H [declared]
+                                             0.0009995  0.0009995  0.0009995  0.0009995  0.0009995  0.0009995  0.0009995  0.0009995
+  Exact Duplicate Detection                  H H H H H H H H [declared]
+                                             0  0  0  0  0  0  0  0
+  LOESS Residual Analysis            499     M M M M M M M M [declared]
+                                             0.002  0.002  0.002  0.002  0.002  0.002  0.002  0.002
+  Regional Noise Homogeneity         499     M M M M M M M M [declared]
+                                             0.002  0.002  0.002  0.004  0.002  0.002  0.002  0.002
+  quiet at every seed (24): Benford's Law (First Digit), Terminal Digit Uniformity, Decimal Precision Consistency, Value-Frequency Spike, Inter-Replicate Correlation, Sequential Duplication, Constant-Offset Blocks, Residual Spike Correlation, Baseline Balance, Cross-Condition Rank Correlation, Cross-Condition Consistency, Mahalanobis Row Outlier, Blocked Mahalanobis, Noise Scaling With Measurement Size, Excess Kurtosis, Entropy / Zipf Analysis, Modality Test, Autocorrelation, Windowed Autocorrelation, Runs Test, Within-Row Variance, Row-Mean Runs, Selective Noise Partitioning, Missing Data Pattern
+
+==============================================================================================================
+11-rnaseq-multicondition.csv    declared severity 3    observed 3 3 3 3 3 3 3 3
+--------------------------------------------------------------------------------------------------------------
+  test                               count   flags by seed / p by seed
+  Autocorrelation                            H H H H H H H H [declared]
+                                             0  0  0  0  0  0  0  0
+  Benford's Law (Second Digit)       5000    H H H H H H H H [declared]
+                                             0  0  0  0  0  0  0  0
+  Residual Spike Correlation         999     M M M M M M M M [declared]
+                                             0.003  0.005  0.001  0.004  0.003  0.002  0.003  0.003
+  quiet at every seed (26): Benford's Law (First Digit), Terminal Digit Uniformity, Decimal Precision Consistency, Value-Frequency Spike, Inter-Replicate Correlation, Exact Duplicate Detection, Sequential Duplication, Constant-Offset Blocks, Baseline Balance, Cross-Condition Rank Correlation, Cross-Condition Consistency, Mahalanobis Row Outlier, Blocked Mahalanobis, Noise Scaling With Measurement Size, Excess Kurtosis, Entropy / Zipf Analysis, Column Goodness-of-Fit, Modality Test, Windowed Autocorrelation, Runs Test, Within-Row Variance, LOESS Residual Analysis, Row-Mean Runs, Selective Noise Partitioning, Regional Noise Homogeneity, Missing Data Pattern
+
+==============================================================================================================
+12a-uniform-mixture-clean.csv    declared severity 0    observed 0 0 0 0 0 0 0 0
+--------------------------------------------------------------------------------------------------------------
+  no test fires above LOW at any seed.
+  quiet at every seed (29): Benford's Law (First Digit), Benford's Law (Second Digit), Terminal Digit Uniformity, Decimal Precision Consistency, Value-Frequency Spike, Inter-Replicate Correlation, Exact Duplicate Detection, Sequential Duplication, Constant-Offset Blocks, Residual Spike Correlation, Baseline Balance, Cross-Condition Rank Correlation, Cross-Condition Consistency, Mahalanobis Row Outlier, Blocked Mahalanobis, Noise Scaling With Measurement Size, Excess Kurtosis, Entropy / Zipf Analysis, Column Goodness-of-Fit, Modality Test, Autocorrelation, Windowed Autocorrelation, Runs Test, Within-Row Variance, LOESS Residual Analysis, Row-Mean Runs, Selective Noise Partitioning, Regional Noise Homogeneity, Missing Data Pattern
+
+==============================================================================================================
+12b-uniform-mixture-fabricated.csv    declared severity 1    observed 1 1 1 1 1 1 1 1
+--------------------------------------------------------------------------------------------------------------
+  test                               count   flags by seed / p by seed
+  Regional Noise Homogeneity         499     M M M l M l M l  UNSTABLE
+                                             0.008  0.006  0.006  0.01  0.008  0.01  0.008  0.01
+  LOESS Residual Analysis            499     M M M M M M M M [declared]
+                                             0.002  0.002  0.002  0.002  0.002  0.002  0.002  0.002
+  quiet at every seed (27): Benford's Law (First Digit), Benford's Law (Second Digit), Terminal Digit Uniformity, Decimal Precision Consistency, Value-Frequency Spike, Inter-Replicate Correlation, Exact Duplicate Detection, Sequential Duplication, Constant-Offset Blocks, Residual Spike Correlation, Baseline Balance, Cross-Condition Rank Correlation, Cross-Condition Consistency, Mahalanobis Row Outlier, Blocked Mahalanobis, Noise Scaling With Measurement Size, Excess Kurtosis, Entropy / Zipf Analysis, Column Goodness-of-Fit, Modality Test, Autocorrelation, Windowed Autocorrelation, Runs Test, Within-Row Variance, Row-Mean Runs, Selective Noise Partitioning, Missing Data Pattern
+
+==============================================================================================================
+13-vfstest-cellcountest.csv    declared severity 2    observed 2 2 2 2 2 2 2 2
+--------------------------------------------------------------------------------------------------------------
+  test                               count   flags by seed / p by seed
+  Value-Frequency Spike                      H H H H H H H H [declared]
+                                             1.57e-6  1.57e-6  1.57e-6  1.57e-6  1.57e-6  1.57e-6  1.57e-6  1.57e-6
+  quiet at every seed (28): Benford's Law (First Digit), Benford's Law (Second Digit), Terminal Digit Uniformity, Decimal Precision Consistency, Inter-Replicate Correlation, Exact Duplicate Detection, Sequential Duplication, Constant-Offset Blocks, Residual Spike Correlation, Baseline Balance, Cross-Condition Rank Correlation, Cross-Condition Consistency, Mahalanobis Row Outlier, Blocked Mahalanobis, Noise Scaling With Measurement Size, Excess Kurtosis, Entropy / Zipf Analysis, Column Goodness-of-Fit, Modality Test, Autocorrelation, Windowed Autocorrelation, Runs Test, Within-Row Variance, LOESS Residual Analysis, Row-Mean Runs, Selective Noise Partitioning, Regional Noise Homogeneity, Missing Data Pattern
+
+==============================================================================================================
+14-crctest-survey.csv    declared severity 2    observed 2 2 2 2 2 2 2 2
+--------------------------------------------------------------------------------------------------------------
+  test                               count   flags by seed / p by seed
+  Exact Duplicate Detection                  H H H H H H H H [declared]
+                                             0  0  0  0  0  0  0  0
+  quiet at every seed (28): Benford's Law (First Digit), Benford's Law (Second Digit), Terminal Digit Uniformity, Decimal Precision Consistency, Value-Frequency Spike, Inter-Replicate Correlation, Sequential Duplication, Constant-Offset Blocks, Residual Spike Correlation, Baseline Balance, Cross-Condition Rank Correlation, Cross-Condition Consistency, Mahalanobis Row Outlier, Blocked Mahalanobis, Noise Scaling With Measurement Size, Kurtosis, Entropy / Zipf Analysis, Column Goodness-of-Fit, Modality Test, Autocorrelation, Windowed Autocorrelation, Runs Test, Within-Row Variance, LOESS Residual Analysis, Row-Mean Runs, Selective Noise, Regional Noise Homogeneity, Missing Data Pattern
+
+==============================================================================================================
+15-missing-carlisle.csv    declared severity 3    observed 3 3 2 3 3 3 3 3   SEVERITY NOT CONSTANT
+--------------------------------------------------------------------------------------------------------------
+  test                               count   flags by seed / p by seed
+  Cross-Condition Consistency        999     M M l M M M M M [declared]  UNSTABLE
+                                             0.009  0.006  0.012  0.006  0.009  0.006  0.009  0.006
+  Blocked Mahalanobis                4999    M M M M M M M M [declared]
+                                             0.002  0.004  0.0048  0.004  0.0044  0.004  0.004  0.0036
+  Missing Data Pattern                       H H H H H H H H [declared]
+                                             5.32e-34  5.32e-34  5.32e-34  5.32e-34  5.32e-34  5.32e-34  5.32e-34  5.32e-34
+  quiet at every seed (26): Benford's Law (First Digit), Benford's Law (Second Digit), Terminal Digit Uniformity, Decimal Precision Consistency, Value-Frequency Spike, Inter-Replicate Correlation, Exact Duplicate Detection, Sequential Duplication, Constant-Offset Blocks, Residual Spike Correlation, Baseline Balance, Cross-Condition Rank Correlation, Mahalanobis Row Outlier, Noise Scaling With Measurement Size, Excess Kurtosis, Entropy / Zipf Analysis, Column Goodness-of-Fit, Modality Test, Autocorrelation, Windowed Autocorrelation, Runs Test, Within-Row Variance, LOESS Residual Analysis, Row-Mean Runs, Selective Noise Partitioning, Regional Noise Homogeneity
+
+==============================================================================================================
+16-densitometry-carlisle-overbalanced.csv    declared severity 2    observed 2 2 2 2 2 2 2 2
+--------------------------------------------------------------------------------------------------------------
+  test                               count   flags by seed / p by seed
+  Baseline Balance                           H H H H H H H H [declared]
+                                             0  0  0  0  0  0  0  0
+  quiet at every seed (28): Benford's Law (First Digit), Benford's Law (Second Digit), Terminal Digit Uniformity, Decimal Precision Consistency, Value-Frequency Spike, Inter-Replicate Correlation, Exact Duplicate Detection, Sequential Duplication, Constant-Offset Blocks, Residual Spike Correlation, Cross-Condition Rank Correlation, Cross-Condition Consistency, Mahalanobis Row Outlier, Blocked Mahalanobis, Noise Scaling With Measurement Size, Excess Kurtosis, Entropy / Zipf Analysis, Column Goodness-of-Fit, Modality Test, Autocorrelation, Windowed Autocorrelation, Runs Test, Within-Row Variance, LOESS Residual Analysis, Row-Mean Runs, Selective Noise Partitioning, Regional Noise Homogeneity, Missing Data Pattern
+
+==============================================================================================================
+17-densitometry-carlisle-clean.csv    declared severity 0    observed 0 0 0 0 0 0 0 0
+--------------------------------------------------------------------------------------------------------------
+  no test fires above LOW at any seed.
+  quiet at every seed (29): Benford's Law (First Digit), Benford's Law (Second Digit), Terminal Digit Uniformity, Decimal Precision Consistency, Value-Frequency Spike, Inter-Replicate Correlation, Exact Duplicate Detection, Sequential Duplication, Constant-Offset Blocks, Residual Spike Correlation, Baseline Balance, Cross-Condition Rank Correlation, Cross-Condition Consistency, Mahalanobis Row Outlier, Blocked Mahalanobis, Noise Scaling With Measurement Size, Excess Kurtosis, Entropy / Zipf Analysis, Column Goodness-of-Fit, Modality Test, Autocorrelation, Windowed Autocorrelation, Runs Test, Within-Row Variance, LOESS Residual Analysis, Row-Mean Runs, Selective Noise Partitioning, Regional Noise Homogeneity, Missing Data Pattern
+
+==============================================================================================================
+19-inheritance-fabricated.csv    declared severity 1    observed 1 1 1 1 1 1 1 1
+--------------------------------------------------------------------------------------------------------------
+  test                               count   flags by seed / p by seed
+  Cross-Condition Consistency        999     M M M M M M M M [declared]
+                                             0.006  0.006  0.006  0.006  0.006  0.006  0.006  0.006
+  quiet at every seed (28): Benford's Law (First Digit), Benford's Law (Second Digit), Terminal Digit Uniformity, Decimal Precision Consistency, Value-Frequency Spike, Inter-Replicate Correlation, Exact Duplicate Detection, Sequential Duplication, Constant-Offset Blocks, Residual Spike Correlation, Baseline Balance, Cross-Condition Rank Correlation, Mahalanobis Row Outlier, Blocked Mahalanobis, Noise Scaling With Measurement Size, Excess Kurtosis, Entropy / Zipf Analysis, Column Goodness-of-Fit, Modality Test, Autocorrelation, Windowed Autocorrelation, Runs Test, Within-Row Variance, LOESS Residual Analysis, Row-Mean Runs, Selective Noise Partitioning, Regional Noise Homogeneity, Missing Data Pattern
+
+==============================================================================================================
+20-bimodal-fab.csv    declared severity 3    observed 3 3 3 3 3 3 3 3
+--------------------------------------------------------------------------------------------------------------
+  test                               count   flags by seed / p by seed
+  Column Goodness-of-Fit             2000    M M M M M M M M [declared]
+                                             0.003498  0.003498  0.003498  0.003498  0.006997  0.003498  0.003498  0.003498
+  Selective Noise Partitioning               H H H H H H H H [declared]
+                                             0  0  0  0  0  0  0  0
+  quiet at every seed (27): Benford's Law (First Digit), Benford's Law (Second Digit), Terminal Digit Uniformity, Decimal Precision Consistency, Value-Frequency Spike, Inter-Replicate Correlation, Exact Duplicate Detection, Sequential Duplication, Constant-Offset Blocks, Residual Spike Correlation, Baseline Balance, Cross-Condition Rank Correlation, Cross-Condition Consistency, Mahalanobis Row Outlier, Blocked Mahalanobis, Noise Scaling With Measurement Size, Excess Kurtosis, Entropy / Zipf Analysis, Modality Test, Autocorrelation, Windowed Autocorrelation, Runs Test, Within-Row Variance, LOESS Residual Analysis, Row-Mean Runs, Regional Noise Homogeneity, Missing Data Pattern
+
+==============================================================================================================
+21-localised-ar.csv    declared severity 3    observed 3 3 3 3 3 3 3 3
+--------------------------------------------------------------------------------------------------------------
+  test                               count   flags by seed / p by seed
+  Autocorrelation                            H H H H H H H H [declared]
+                                             2.45e-8  2.45e-8  2.45e-8  2.45e-8  2.45e-8  2.45e-8  2.45e-8  2.45e-8
+  Blocked Mahalanobis                4999    H H H H H H H H [declared]
+                                             0.0008  0.0008  0.0008  0.0008  0.0008  0.0008  0.0008  0.0008
+  Regional Noise Homogeneity         499     M M M M M M M M [declared]
+                                             0.002  0.002  0.002  0.002  0.002  0.002  0.002  0.002
+  Row-Mean Runs                              H H H H H H H H [declared]
+                                             0.0006915  0.0006915  0.0006915  0.0006915  0.0006915  0.0006915  0.0006915  0.0006915
+  quiet at every seed (25): Benford's Law (First Digit), Benford's Law (Second Digit), Terminal Digit Uniformity, Decimal Precision Consistency, Value-Frequency Spike, Inter-Replicate Correlation, Exact Duplicate Detection, Sequential Duplication, Constant-Offset Blocks, Residual Spike Correlation, Baseline Balance, Cross-Condition Rank Correlation, Cross-Condition Consistency, Mahalanobis Row Outlier, Noise Scaling With Measurement Size, Excess Kurtosis, Entropy / Zipf Analysis, Column Goodness-of-Fit, Modality Test, Windowed Autocorrelation, Runs Test, Within-Row Variance, LOESS Residual Analysis, Selective Noise Partitioning, Missing Data Pattern
+
+==============================================================================================================
+22-covariance-block.csv    declared severity 1    observed 1 1 1 1 1 1 1 1
+--------------------------------------------------------------------------------------------------------------
+  test                               count   flags by seed / p by seed
+  Blocked Mahalanobis                4999    M M M M M M M M [declared]
+                                             0.0056  0.0056  0.0072  0.0024  0.0072  0.0064  0.0064  0.0088
+  quiet at every seed (28): Benford's Law (First Digit), Benford's Law (Second Digit), Terminal Digit Uniformity, Decimal Precision Consistency, Value-Frequency Spike, Inter-Replicate Correlation, Exact Duplicate Detection, Sequential Duplication, Constant-Offset Blocks, Residual Spike Correlation, Baseline Balance, Cross-Condition Rank Correlation, Cross-Condition Consistency, Mahalanobis Row Outlier, Noise Scaling With Measurement Size, Excess Kurtosis, Entropy / Zipf Analysis, Column Goodness-of-Fit, Modality Test, Autocorrelation, Windowed Autocorrelation, Runs Test, Within-Row Variance, LOESS Residual Analysis, Row-Mean Runs, Selective Noise Partitioning, Regional Noise Homogeneity, Missing Data Pattern
+
+==============================================================================================================
+23-recurrence-null-mixed.csv    declared severity 3    observed 3 3 3 3 3 3 3 3
+--------------------------------------------------------------------------------------------------------------
+  test                               count   flags by seed / p by seed
+  Column Goodness-of-Fit             2000    H H M H H H H M  UNSTABLE
+                                             0.0009995  0.0009995  0.001999  0.0009995  0.0009995  0.0009995  0.0009995  0.001999
+  Benford's Law (First Digit)        5000    H H H H H H H H [declared]
+                                             0  0  0  0  0  0  0  0
+  Benford's Law (Second Digit)       5000    H H H H H H H H [declared]
+                                             0  0  0.0002  0  0  0  0  0
+  Decimal Precision Consistency              M M M M M M M M [declared]
+                                             0.002953  0.002953  0.002953  0.002953  0.002953  0.002953  0.002953  0.002953
+  Entropy / Zipf Analysis            999     M M M M M M M M
+                                             0.006  0.006  0.006  0.006  0.006  0.006  0.006  0.006
+  Runs Test                          499     M M M M M M M M
+                                             0.009671  0.009671  0.009671  0.009671  0.009671  0.009671  0.009671  0.009671
+  Selective Noise Partitioning               H H H H H H H H
+                                             0  0  0  0  0  0  0  0
+  Value-Frequency Spike                      H H H H H H H H [declared]
+                                             2.55e-8  2.55e-8  2.55e-8  2.55e-8  2.55e-8  2.55e-8  2.55e-8  2.55e-8
+  quiet at every seed (21): Terminal Digit Uniformity, Inter-Replicate Correlation, Exact Duplicate Detection, Sequential Duplication, Constant-Offset Blocks, Residual Spike Correlation, Baseline Balance, Cross-Condition Rank Correlation, Cross-Condition Consistency, Mahalanobis Row Outlier, Blocked Mahalanobis, Noise Scaling With Measurement Size, Excess Kurtosis, Modality Test, Autocorrelation, Windowed Autocorrelation, Within-Row Variance, LOESS Residual Analysis, Row-Mean Runs, Regional Noise Homogeneity, Missing Data Pattern
+
+==============================================================================================================
+24-recurrence-null-control.csv    declared severity 3    observed 3 3 3 3 3 3 3 3
+--------------------------------------------------------------------------------------------------------------
+  test                               count   flags by seed / p by seed
+  Column Goodness-of-Fit             2000    M M M M M M M M
+                                             0.002999  0.002999  0.002999  0.008996  0.002999  0.002999  0.002999  0.002999
+  Entropy / Zipf Analysis            999     M M M M M M M M
+                                             0.002  0.002  0.002  0.002  0.002  0.002  0.002  0.002
+  Value-Frequency Spike                      H H H H H H H H [declared]
+                                             4.44e-5  4.44e-5  4.44e-5  4.44e-5  4.44e-5  4.44e-5  4.44e-5  4.44e-5
+  quiet at every seed (26): Benford's Law (First Digit), Benford's Law (Second Digit), Terminal Digit Uniformity, Decimal Precision Consistency, Inter-Replicate Correlation, Exact Duplicate Detection, Sequential Duplication, Constant-Offset Blocks, Residual Spike Correlation, Baseline Balance, Cross-Condition Rank Correlation, Cross-Condition Consistency, Mahalanobis Row Outlier, Blocked Mahalanobis, Noise Scaling With Measurement Size, Excess Kurtosis, Modality Test, Autocorrelation, Windowed Autocorrelation, Runs Test, Within-Row Variance, LOESS Residual Analysis, Row-Mean Runs, Selective Noise Partitioning, Regional Noise Homogeneity, Missing Data Pattern
+
+==============================================================================================================
+vfs-a-pigeonhole-clear.csv    declared severity 0    observed 0 0 0 0 0 0 0 0
+--------------------------------------------------------------------------------------------------------------
+  no test fires above LOW at any seed.
+  quiet at every seed (29): Benford's Law (First Digit), Benford's Law (Second Digit), Terminal Digit Uniformity, Decimal Precision Consistency, Value-Frequency Spike, Inter-Replicate Correlation, Exact Duplicate Detection, Sequential Duplication, Constant-Offset Blocks, Residual Spike Correlation, Baseline Balance, Cross-Condition Rank Correlation, Cross-Condition Consistency, Mahalanobis Row Outlier, Blocked Mahalanobis, Noise Scaling With Measurement Size, Excess Kurtosis, Entropy / Zipf Analysis, Column Goodness-of-Fit, Modality Test, Autocorrelation, Windowed Autocorrelation, Runs Test, Within-Row Variance, LOESS Residual Analysis, Row-Mean Runs, Selective Noise Partitioning, Regional Noise Homogeneity, Missing Data Pattern
+
+==============================================================================================================
+vfs-b-recurrence-high.csv    declared severity 2    observed 2 2 2 2 2 2 2 2
+--------------------------------------------------------------------------------------------------------------
+  test                               count   flags by seed / p by seed
+  Value-Frequency Spike                      H H H H H H H H [declared]
+                                             2.87e-6  2.87e-6  2.87e-6  2.87e-6  2.87e-6  2.87e-6  2.87e-6  2.87e-6
+  quiet at every seed (28): Benford's Law (First Digit), Benford's Law (Second Digit), Terminal Digit Uniformity, Decimal Precision Consistency, Inter-Replicate Correlation, Exact Duplicate Detection, Sequential Duplication, Constant-Offset Blocks, Residual Spike Correlation, Baseline Balance, Cross-Condition Rank Correlation, Cross-Condition Consistency, Mahalanobis Row Outlier, Blocked Mahalanobis, Noise Scaling With Measurement Size, Excess Kurtosis, Entropy / Zipf Analysis, Column Goodness-of-Fit, Modality Test, Autocorrelation, Windowed Autocorrelation, Runs Test, Within-Row Variance, LOESS Residual Analysis, Row-Mean Runs, Selective Noise Partitioning, Regional Noise Homogeneity, Missing Data Pattern
+
+==============================================================================================================
+vfs-c-deeptail-high.csv    declared severity 2    observed 2 2 2 2 2 2 2 2
+--------------------------------------------------------------------------------------------------------------
+  test                               count   flags by seed / p by seed
+  Value-Frequency Spike                      H H H H H H H H [declared]
+                                             2.00e-10  2.00e-10  2.00e-10  2.00e-10  2.00e-10  2.00e-10  2.00e-10  2.00e-10
+  quiet at every seed (28): Benford's Law (First Digit), Benford's Law (Second Digit), Terminal Digit Uniformity, Decimal Precision Consistency, Inter-Replicate Correlation, Exact Duplicate Detection, Sequential Duplication, Constant-Offset Blocks, Residual Spike Correlation, Baseline Balance, Cross-Condition Rank Correlation, Cross-Condition Consistency, Mahalanobis Row Outlier, Blocked Mahalanobis, Noise Scaling With Measurement Size, Excess Kurtosis, Entropy / Zipf Analysis, Column Goodness-of-Fit, Modality Test, Autocorrelation, Windowed Autocorrelation, Runs Test, Within-Row Variance, LOESS Residual Analysis, Row-Mean Runs, Selective Noise Partitioning, Regional Noise Homogeneity, Missing Data Pattern
+
+==============================================================================================================
+Firing cells that change tier across the 8 seeds: 4. Those are the cells no declaration can rest on.
+Legend: H = HIGH, M = MODERATE, l = LOW, - = N/A.
