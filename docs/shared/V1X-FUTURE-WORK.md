@@ -16,7 +16,7 @@ This doc owns the v1.x view. The v1.0 surfaces stay authoritative for their doma
 | Test additions (post-v1.0 forensics) | Rectangular Blocked Mahalanobis; genuine-block detection; coherence-cleanup residue; column-localised sequential duplication detector; role/condition inference for real-world column shapes; **test-consistency audit beyond the closed item-28 audit (§2.6) — four demonstrated axes, axis 4 (input representation defeats Decimal Precision) added S330, FIXED S336**; arbitrary-offset block duplication detector (§2.7); **group-attribute column recognition — the largest demonstrated false-positive surface in the corpus (§2.8, BUILT S315)**; **scattered partial-row duplication — the coverage failure mode, exposed by §2.8's outcome (§2.9, BUILT S316)**; **row-grouping produces units the tests were not designed for — the tool's own applicability failure, half the row-grouping corpus (§2.10, trigger + confirm card BUILT S320–S321, stance cross-validated S322, twelve fixes unpromoted)**; **structural omission as a signal — the absence "not applicable" would neutralise (§2.12, open scope)**; **cost ceilings measure the wrong variable — row count does not predict scan cost, factor of 124 at identical shape (§2.13, S327)**; **the sequence-duplication null already prices categorical columns correctly — but those columns carry evidence, and the cardinality guard is KILLED (§2.14, S327, amended S328)**; **one question, two owners — applicability is decided twice and the answers diverge (§2.15, S332)** | New scope, this doc |
 | Variance-estimator unification | Catalogue + scoped sub-refactors | Extends ROADMAP Track F; related to §2.6 (same forced-vs-artefact discipline) |
 | AI Screening mode | Five new tests + mode toggle + reweighting | Restored from S125 chat history |
-| Calibration audits banked | Permutation B=9999; severity-formula diversity metric; Modality plot upgrade | Mirrored from STATUS parked items |
+| Calibration audits banked | **Permutation grid resolution — seven tests cannot reach HIGH, and raising counts is the wrong fix (§5.9, S340)**; severity-formula diversity metric; Modality plot upgrade | §5.9 is primary scope; the rest mirrored from STATUS parked items |
 
 ---
 
@@ -258,7 +258,7 @@ All three are the same failure: a measurement-type label applied with false conf
     - **Landed.** Two fixtures (`23-recurrence-null-mixed`, `24-recurrence-null-control`) merged to main at `8cebafe` via the held `pending` lane (confirmed 23/23 + 2 pending against live output), then flipped to gate (25/25). No engine logic changed. Ground truth: Benford First HIGH, Benford Second HIGH, Decimal-Precision MODERATE, DupDet **LOW** (the pre-fix verdict — fixture `23` pins the bug so the eventual continuous-null fix flips it LOW→HIGH visibly). `ACKNOWLEDGED` set on the mixed file: VFS HIGH, Entropy MODERATE, ColGoF MODERATE, Selective Noise HIGH; on the control: VFS HIGH, Entropy MODERATE, ColGoF MODERATE. Noise Scaling stayed quiet (mixed file held to two scale tiers) and needs no declaration.
     - **Promote note.** `promote.sh` fataled twice on mechanical snags neither the fixture's fault — the script assumes branch `claude/<worktree>` but Code names branches `worktree-<worktree>`, and an untracked read2 copy in main's working tree blocked the merge. Completed by manual `--no-ff` merge. The branch-name mismatch is a Code-owned carry.
 
-- **S298 — the fix track opened, two builds, two clean failures at the gate; the null-model class is reopened.** The session read the null path, scoped the fix, attempted it twice, and stopped both times at a source-confirmation gate before any source edit. No source, fixtures, or batch changed all session. Two reads landed (`SESSION298-NULL-PATH-READ.md`, `SESSION298-ESTIMATOR-READ.md`). What it established:
+- **S298 — the fix track opened, two builds, two clean failures at the gate; the null-model class is reopened.** The session read the null path, scoped the fix, attempted it twice, and stopped both times at a source-confirmation gate before any source edit. No source, fixtures, or batch changed all session. Two reads landed (`docs/shared/archive/SESSION298-NULL-PATH-READ.md`, `docs/shared/archive/SESSION298-ESTIMATOR-READ.md`). What it established:
     - **The null path is small and code-isolated.** The continuous collision null is the empirical Herfindahl index at `duplicateDetection.js:55`, assigned to `p1` at `:147`, tested against the observed same-value-pair count at `:179-184`; consumed nowhere else. The integer/continuous branch splits on `isInteger = dominantDp===0` (`:54`); the integer moderate-N parametric arm is `:58-126`. One call site (`engine.js:323`). The recording grid (`step`, `:39`, from `dominantDp`, `:38`) is already local where the null is built. **Correction to the S296/S297 record:** the empirical index does NOT multiply into all four DupDet sub-channels — the `:55` global index feeds only Test 1 (collision); Tests 2/4 recompute their own *per-column* indices (`:642`, `:219`), and the comment at `:140-146` overstates the coupling. The prior "multiplies into all four channels" claim was true of the method, not the variable.
     - **The per-column stratified combine is clean and survives — reusable.** Splitting the collision test per column (within-column observed pairs against each column's own null, aggregated as a single stratified binomial) reproduces the current verdict on **all 25 fixtures** when the baseline is the per-column empirical index. So the combine rule is sound; only the baseline is in question. Per-column dp is derivable at the build point (`String(v)` precision per column, `:37`) with no threading — the pooled `step`/`dp` at `:38-39` become per-column locals.
     - **Per-column vs pooled grid step was decided per-column** (Chat lock): the pooled step borrows one column's recording precision for another, reintroducing the cross-column false-unification family this fix exists to remove. Each column integrates at its own step. This decision stands regardless of the estimator outcome.
@@ -290,7 +290,7 @@ All three are the same failure: a measurement-type label applied with false conf
 
 **Priority:** Real-world-validated and credibility-bearing for the review paper's methods section (an honest disclosed-limitations pass strengthens the validity claim). **Axis 4 is closed (S336, `4a7cda2`)** — it was the most actionable single item and it landed in one session off one read. The continuous-HHI counterexample (axis 2) is the most defensible single item — a documented safe-claim falsified by external data. The fix-verification fixture is built and landed (S297, batch 25/25 — all three carriers reproduce, collateral declared via `ACKNOWLEDGED`). **There is no remaining null-path fix — the continuous-recurrence defect is proven not separable from the column across all five routes (S298–S301; see the "continuous-recurrence fix — CLOSED" gate above), so §2.6's design programme is complete.** This is now the paper's §5 disclosed limitation, not open work: the tool detects the pattern and correctly declines to over-grade it, a stronger result than a fragile fix. What remains under §2.6 is documentation and the axis-1 guard predicates, not a detector for this defect. The corpus's genuinely resolvable rows route elsewhere: CORPUS-01's contiguous single-column runs to §2.4 (a real, buildable detector for a different defect shape), CORPUS-02/CORPUS-03's role-inference pooling artefacts to §2.5.
 
-**Source:** S293 conversation (CORPUS-03 adjudication) + the S293 Code read of the closed item-28 audit (`docs/shared/archive/TEST-INTEGRITY-AUDIT.md`, METHODOLOGY §1.1, `duplicateDetection.js:135`); the S295 reads (`SESSION295-AUDIT-SUMMARY.md`, `SESSION295-IMPL-SUMMARY.md`, `SESSION295-AXIS2-NULL-CONSTRAINTS.md`); the S296 reads (`SESSION296-AXIS2-ESTIMATOR-READ.md`, `SESSION296-FIXTURE-PREBUILD-READ.md`, and the worktree's `SESSION296-FIXTURE-BUILD-FINDINGS.md`); the S297 second read (`SESSION297-FIXTURE-READ2.md`); the S298 reads (`SESSION298-NULL-PATH-READ.md`, `SESSION298-ESTIMATOR-READ.md`). The candidate-further-axes list is a seed pending its own source-derivation read, not a settled taxonomy.
+**Source:** S293 conversation (CORPUS-03 adjudication) + the S293 Code read of the closed item-28 audit (`docs/shared/archive/TEST-INTEGRITY-AUDIT.md`, METHODOLOGY §1.1, `duplicateDetection.js:135`); the S295 reads (`docs/shared/archive/SESSION295-AUDIT-SUMMARY.md`, `docs/shared/archive/SESSION295-IMPL-SUMMARY.md`, `docs/shared/archive/SESSION295-AXIS2-NULL-CONSTRAINTS.md`); the S296 reads (`docs/shared/archive/SESSION296-AXIS2-ESTIMATOR-READ.md`, `docs/shared/archive/SESSION296-FIXTURE-PREBUILD-READ.md`, and the worktree's `docs/shared/archive/SESSION296-FIXTURE-BUILD-FINDINGS.md`); the S297 second read (`docs/shared/archive/SESSION297-FIXTURE-READ2.md`); the S298 reads (`docs/shared/archive/SESSION298-NULL-PATH-READ.md`, `docs/shared/archive/SESSION298-ESTIMATOR-READ.md`). The candidate-further-axes list is a seed pending its own source-derivation read, not a settled taxonomy. **Paths corrected S340:** these nine reads live in `docs/shared/archive/`, which is gitignored — the citations pointed at bare filenames that resolve for nobody cloning the repo. The two S300 measurements in §2.4 already carried the prefix; this is the same disposition finished. A citation into `archive/` is a record of where a read went, not a promise the reader can open it.
 
 
 **Axis-1 (cross-column pooling) — three real-world span-borrowing instances beyond CORPUS-03 (road-test C25, C11, C21, S305–S306).** Beyond the founding CORPUS-03 case, the road-test sweep has produced three further axis-1 Benford false positives, all the same shape: a per-column digit test run on a cross-column pool where the pool lends one column the ≥1.5-OOM span it individually fails.
@@ -1177,9 +1177,19 @@ Validate that each fixture trips the AI mode at severity 2–3 while real DS01 s
 
 Discrete audit items, lower-effort than the test additions above. Each has a clear scope and a clear "done" state.
 
-### 5.1 Permutation calibration B = 999 → 9999
+### 5.1 Permutation calibration B = 999 → 9999 — SUPERSEDED by §5.9 (S340)
 
-STATUS parked #8. Permutation tests across the battery use B = 999 because BH-FDR adjusted-p floor scales as 2m/(B+1). Increasing to B = 9999 lowers the achievable adjusted-p floor by 10× — relevant for tests where the current floor sits just above the α = 0.001 HIGH threshold. Co-session work: identify which tests genuinely benefit (Constant-Offset Blocks, Regional Noise, Windowed Autocorrelation, Windowed ICC, LOESS Residual Analysis, Residual Spike Correlation, Cross-Condition Consistency framework). Effort: per-test calibration + batch re-verification.
+Original scope, retained for the record: raise B to 9999 across the battery so the adjusted-p floor drops
+by 10×, and identify which tests benefit.
+
+**The premise was right and the remedy was wrong.** S340 measured the whole battery against its own
+thresholds. Raising counts to the level the arithmetic demands costs ×4.9 on the fixture batch and does not
+reach HIGH for two tests at any affordable count, because their floors come from a doubling construction
+rather than from B. The question is no longer "which tests benefit from more draws" but "which severity
+tiers the permutation tests can support at all". See §5.9.
+
+One thing this item had right that survived: the tests it named as sitting just above the HIGH threshold
+are, with one exception, the same tests §5.9 finds cannot reach it.
 
 ### 5.2 Severity-formula diversity metric reconsideration
 
@@ -1257,6 +1267,90 @@ Lifted from ROADMAP Item 6e (archived). Genomics-typed datasets often arrive as 
 
 **Priority:** Open, low priority. Import UX advisory. Distinct from §5.5 (assay-aware severity weighting) — that's a severity-formula change; this is a pre-flight user-confirmation prompt.
 
+### 5.9 Permutation grid resolution — seven tests cannot reach HIGH, and raising counts is the wrong fix (S340)
+
+**The finding.** A permutation p cannot resolve a threshold finer than its own grid step. The requirement is
+arithmetic and no property of the data enters it. Counts in this battery were never chosen against the
+thresholds they are judged by — they were chosen to bound wallclock while `createPRNG` was one stream in
+dispatch order, so any raise displaced every test after it. That constraint was removed at S340 when
+per-test streams landed, which is what made the question askable.
+
+**How it surfaced.** Twice, in the same session, in two tests, at two different thresholds. Windowed
+Autocorrelation's grid steps 0.005 against a 0.01 threshold with one value below it. Column
+Goodness-of-Fit's steps 0.0005 against 0.001, also with one value below it — and that second instance was
+*created* by the S339 fix for the first, which raised B from 999 to 2000 to restore reachable tiers at
+MODERATE and left resolution broken at HIGH. A third instance was going to arrive on its own.
+
+**The ladder is two thresholds, not three.** `flagFromP` (`src/constants/thresholds.js`) compares against
+`ALPHA.FLAG = 0.001` and `ALPHA.NOTE = 0.01`. Nothing else sets a tier. 0.05 appears in several tests as a
+sub-unit significance marker and in display prose, but never in a flag assignment.
+
+**On per-condition routing the flag is not decided on the reported p.** `src/analysis/aggregation.js`
+corrects the worst-group arm with Šidák — `flagFromP(sidakAdjust(groupMinP, G))` — while `primaryP` stays
+uncorrected. So the raw grid must resolve a *tighter* threshold than the one written down. At G = 3 it must
+reach 0.003345 for MODERATE and 0.000333 for HIGH; at G = 2, 0.005013 and 0.000500. Six tests take this
+path on the current batch.
+
+**The derived rule.** A threshold decided by one or two grid positions is a resolution defect. Requiring
+several positions below the threshold gives `step < T/5`, so at T = 0.001 the `(k+1)/(B+1)` family needs
+B ≥ 4999 and the `2(k+1)/(B+1)` family needs B ≥ 9999. The floor is derived; the constant 5 is a judgement
+and 4 or 6 would read the same.
+
+**Seven tests cannot produce a HIGH.** Four are structural, three are fixable by raising:
+
+| test | why | fixable by raising? |
+|---|---|---|
+| Entropy / Zipf | floor `2/(1+B)` from doubling a one-sided p whose count starts at 1; 0.002 at B = 999 | only at B ≥ 19999 |
+| Column Goodness-of-Fit | same `2/(1+B)` construction; B = 2000 puts the floor at 0.0009995, one grid position below 0.001. **Both Column Goodness-of-Fit HIGHs in the whole battery sit on that single position** | only at B ≥ 19999 |
+| Residual Spike Correlation | floor `1/(B+1)` = 0.001 at its fixed B = 999, and `flagFromP` needs strictly less | yes, any raise |
+| Modality | hardcoded `P_FLOOR = 0.001` clamp, and the dip p became a table lookup at S159b, so it does not resample at all | no — only removing the clamp |
+| Constant-Offset Blocks | grid too coarse at every count it takes | yes |
+| Windowed Autocorrelation | same | yes |
+| Cross-Condition Consistency | same | yes |
+
+The earlier three-test list (Entropy, Residual Spike, Modality) was correct on all three and short by four.
+
+**Two tests already clear the requirement:** Benford first and second digit, both at B = 5000 using `k/B`
+with no `+1`, which makes p = 0 reachable.
+
+**Two tests reach HIGH off the grid entirely.** Inter-Replicate Correlation and Runs Test take a minimum
+over arms of which only one resamples. Inter-Replicate Correlation reaches HIGH on DS08 at p = 0.00062984,
+a value no permutation grid in the battery contains. For those two, "HIGH unreachable" is true of the
+permutation arm and false of the test.
+
+**Why raising counts is the wrong answer.** Cost of taking all twelve short tests to their minimum B, each
+measured separately against a 50.8 s baseline batch: **+198 s, roughly ×4.9.** Excess Kurtosis +75%,
+Entropy +67%, Runs +53%, Cross-Condition Consistency +47%, Column Goodness-of-Fit +45%. Regional Noise is
+nearly free at +1%. And the fixture suite is not where the cost lands: a 10 000 × 8 file already runs 103 s
+at shipped counts, single-threaded, in a browser tab. Multiplying counts by ten makes it unusable. We would
+be spending an order of magnitude of compute to buy grid positions near a threshold, when the problem is
+that the p is quantised near the threshold at all.
+
+**Three options, none yet chosen. This is a methodology call and it needs the four-model arc.**
+
+1. **Raise counts.** ×4.9 on the batch, worse on real files, and still leaves Entropy and Column
+   Goodness-of-Fit short at the doubled step. Buys the least for the most.
+2. **Fix the doubling and the floors, then re-ask.** `min(1, min(pLow, pHigh) * 2)` with the count starting
+   at 1 is what creates the `2/(1+B)` floor — a two-sided correction applied to a one-sided permutation p.
+   Whether that is the right construction is a correctness question independent of resolution, it is cheap,
+   and it may move four of the seven on its own. **Answer this before buying draws to work around it.**
+3. **Declare HIGH analytic-only.** Permutation tests report MODERATE as their ceiling and the methodology
+   states why. Honest, free, and it makes the report's tier vocabulary mean something. The cost is that a
+   genuinely extreme permutation result is reported as MODERATE.
+
+Lean: 2, then 3, and against 1.
+
+**Relationship to §5.4.** §5.4 asks whether the tiers fire at matched false-positive rates across tests.
+This asks whether a tier is reachable at all. They are the same abstraction seen from two sides — a tier
+that a third of the battery cannot produce is not a cross-test evidence-strength claim, however well
+calibrated the tests that can produce it. Neither item should be closed without the other in view.
+
+**What is measured and what is not.** Every number above is Code's measurement at S340. What has never been
+measured is what any of this costs in detections — see STATUS P43. The tier arithmetic says HIGH is mostly
+unreachable; it does not say how often a genuine fabrication would have earned one.
+
+---
+
 ---
 
 ## 6. Cross-references — source-of-truth for each topic
@@ -1279,7 +1373,8 @@ When updating these surfaces, edit the source-of-truth first and mirror here.
 | Structural omission (§2.12) | This doc | Single source; **open scope, no capability.** Surfaced by S322 cross-validation of the applicability contract. METHODOLOGY §Applicability cross-references it; the interim position there ("not applicable" is not exculpatory) is a wording constraint, not detection. Not v1.0 — stated as a known limitation in the paper. |
 | Engine correctness — choke points, null-loop cost (§2.11) | This doc | Single source; S317. Four fixes landed (`4dd88c4`); the yield helper, the N_PERM column dimension and `entropy:142` remain open. |
 | AI Screening mode (§4) | This doc | Single source. Original S125 chat history preserved as reference but no longer load-bearing. |
-| Permutation B = 9999 (§5.1) | STATUS parked #8 | Mirror |
+| Permutation B = 9999 (§5.1) | This doc | **Superseded by §5.9 (S340).** Retained for the record; STATUS parked #8 retires with it. |
+| Permutation grid resolution (§5.9) | This doc | Single source; S340. The measurement is Code's resolution audit; the three options are unchosen and need the four-model arc. Read with §5.4 — same abstraction, two sides. |
 | Severity-formula diversity metric (§5.2) | This doc | Primary scope; pairs with §5.5 |
 | Modality plot upgrade (§5.3) | STATUS parked #7 | Mirror |
 | Large-N effect-size gate audit / tier FP-equivalence (§5.4) | STATUS.md §v1.0 blockers | Mirror + methodology detail. Promoted v1.0 blocker S187 (ROADMAP Track G origin). |
