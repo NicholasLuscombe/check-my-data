@@ -16,6 +16,13 @@ per file, so one run is what a user actually sees.
 > a gate-saved cell. That inverts the expectation the instrumentation was built on, and §3 now says
 > why it is the more interesting answer.
 
+> **Followed by `SESSION342-BAND-COUNTERFACTUAL.md`**, which takes the five gate-saved cells below
+> through the shipped `computeSeverity()` and finds that **all five move their fixture's band** — the
+> gates are protecting file verdicts, not only cards. It also sizes the 34 non-running cells, runs the
+> same gates against the fabricated corpus (two suppressed detections, one inside a planted
+> mechanism), and corrects §4d here: two of the seven gates listed as requiring N ≥ 500 count cells
+> rather than rows and have been firing on clean fixtures all along, one of them at 35 rows.
+
 **Why this pass exists.** At S341, `09-proteomics-clean` reached the Benford p floor and was stopped
 only by the `mad < 0.015` gate firing ahead of the p. One fixture doing that is an anecdote. If
 several clean fixtures carry the same shape, the gates are holding the tool together and the
