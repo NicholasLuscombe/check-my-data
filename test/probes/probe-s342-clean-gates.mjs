@@ -161,26 +161,30 @@ const GATED = {
     gateFired: r => num(r.nOutliers) === 0 || r.gated === true,
     ungatedP: r => num(r.primaryP),
   },
+  // The three below were NOT RECOVERABLE at the first S342 pass. Each now
+  // publishes `primaryPUngated` — the minimum the test would report with its
+  // effect-size gate expression deleted and nothing else changed — plus
+  // `nGateSuppressed`, the number of units the gate alone removed.
   'Selective Noise Partitioning': {
     statistic: 'per-block variance ratio', threshold: 3.0,
     site: 'selectiveNoise.js:174, :234',
-    gateFired: () => null,
-    ungatedP: () => null,
-    note: 'NOT RECOVERABLE — gated blocks are pushed as p=1.0 into the BH family (:176) before primaryP is taken, so the pre-gate p is destroyed at the aggregation site',
+    gateFired: r => num(r.nGateSuppressed) > 0,
+    ungatedP: r => num(r.primaryPUngated),
+    note: 'stratified path re-runs BH over the real p-values (same family size, no 1.0 placeholders); single-run path already published the raw p, so ungated === primaryP there',
   },
   'Cross-Condition Consistency': {
     statistic: 'per-unit effectSizeGate', threshold: 'per-property; only when nMin>=500',
     site: 'crossConditionConsistency.js:602, :618',
-    gateFired: () => null,
-    ungatedP: () => null,
-    note: 'NOT RECOVERABLE — gate-failed units are neutralised to 1.0 (:618) before the min is taken',
+    gateFired: r => num(r.nGateSuppressed) > 0,
+    ungatedP: r => num(r.primaryPUngated),
+    note: 'effect-size gate dropped, forensic-direction filter kept; BH is upstream of both so no re-run is needed',
   },
   'Value-Frequency Spike': {
     statistic: 'per-spike ratio / near-dup', threshold: 'ratio>=2.0; near-dup keep-path',
     site: 'valueFrequencySpike.js:488, :496, :505',
-    gateFired: () => null,
-    ungatedP: () => null,
-    note: 'NOT RECOVERABLE — gate-failed spikes are filtered out of the spike set before the min adjP is taken; the surviving primaryP never saw them',
+    gateFired: r => num(r.nGateSuppressed) > 0,
+    ungatedP: r => num(r.primaryPUngated),
+    note: 'ratio/passesEffect dropped, isNearDup keep-path kept; BH is upstream of the filter so families keep their size and ranks',
   },
 };
 

@@ -512,6 +512,35 @@ export function testValueFrequencySpike(matrix, rawMatrix = null) {
   const pass2DeepSpikes = deepTested.filter(t =>
     t.adjP < ALPHA.NOTE && passesEffect(t) && isNearDup(t));
   const pass2Spikes = [...pass2SharedSpikes, ...pass2DeepSpikes];
+
+  // S342 (P50) — the same spike selection with the EFFECT-SIZE predicate
+  // removed and everything else left alone. Two predicates gate a pass-2 tail
+  // and they are separable: `passesEffect` is a magnitude filter, `isNearDup`
+  // is a discriminator on the KIND of spike (a tight recurrence or a deep
+  // shared tail, versus a low-precision pigeonhole collision). P50 asks about
+  // magnitude filters, so only `passesEffect` is dropped and `isNearDup`
+  // stays. Pass 1's `ratio >= 2.0` is the same magnitude filter, dropped here
+  // too. The `adjP < ALPHA.NOTE` significance cut is tier machinery, not a
+  // gate, and stays on every arm.
+  //   No second BH pass is needed at this site. The union bhFDR above (and the
+  // separate deep-tail family) run over every tested entry before any gate is
+  // consulted; the gate is a filter applied downstream to already-adjusted
+  // values. So the BH families keep their exact size and ranks — what changes
+  // is which adjusted values are eligible to be the minimum, not the values
+  // themselves. Report-only: nothing below reads these.
+  const pass1SpikesUngated = allTested.filter(t => t.pass === "full" && t.adjP < ALPHA.NOTE);
+  const pass2SpikesUngated = [
+    ...allTested.filter(t => t.pass === "digit" && t.adjP < ALPHA.NOTE && isNearDup(t)),
+    ...deepTested.filter(t => t.adjP < ALPHA.NOTE && isNearDup(t)),
+  ];
+  const pass1BestPUngated = pass1SpikesUngated.length > 0 ? Math.min(...pass1SpikesUngated.map(s => s.adjP)) : 1;
+  const pass2BestPUngated = pass2SpikesUngated.length > 0 ? Math.min(...pass2SpikesUngated.map(s => s.adjP)) : 1;
+  const primaryPUngated = Math.min(pass1BestPUngated, pass2BestPUngated);
+  // Entries the effect-size predicate alone removed, on either pass.
+  const nGateSuppressed =
+    (pass1SpikesUngated.length - pass1Spikes.length) +
+    (pass2SpikesUngated.length - pass2Spikes.length);
+
   const allSpikes = [...pass1Spikes, ...pass2Spikes];
   allSpikes.sort((a, b) => a.adjP - b.adjP);
 
@@ -694,6 +723,7 @@ export function testValueFrequencySpike(matrix, rawMatrix = null) {
     smoothingWindow: pass1.diag.halfW ? `±${pass1.diag.halfW}` : null,
     bestAdjP: primaryP < 1e-6 ? primaryP.toExponential(2) : primaryP.toFixed(6),
     primaryP,
+    primaryPUngated, nGateSuppressed,
     pass1Status: pass1.na,
     pass2Status: pass2.na,
     pass2Diag: pass2.diag,

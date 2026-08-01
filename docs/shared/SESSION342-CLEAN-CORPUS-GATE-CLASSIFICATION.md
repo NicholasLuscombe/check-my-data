@@ -1,9 +1,26 @@
 # S342 — Clean-Corpus Gate Classification (P50)
 
-**Status:** read-only measurement. Nothing under `src/` was modified, no threshold was tuned, no
-batch was run. The probe (`test/probes/probe-s342-clean-gates.mjs`) imports the engine and reads
-what it returns; it re-implements no test. Default seed, one run — the tool is deterministic per
-file, so one run is what a user actually sees.
+**Status:** measurement. The probe (`test/probes/probe-s342-clean-gates.mjs`) imports the engine and
+reads what it returns; it re-implements no test. Default seed, one run — the tool is deterministic
+per file, so one run is what a user actually sees.
+
+> **Updated — the blind spot is closed. §3 is rewritten; §1, §2, §4 and §5 stand unchanged.**
+>
+> The first pass of this report was read-only and left 19 clean-corpus cells unmeasurable, because
+> three tests destroyed the pre-gate p before it reached the returned object. Those three now publish
+> `primaryPUngated` and `nGateSuppressed` — an additive change at three sites in `src/tests/`, with
+> no tier logic touched and no existing published value moved. The readable set went from 91 cells to
+> **110 of a possible 144**, and nothing is unreadable any more.
+>
+> **The headline did not move: still 5 cells, 5 fixtures, 4 tests.** None of the 19 turned out to be
+> a gate-saved cell. That inverts the expectation the instrumentation was built on, and §3 now says
+> why it is the more interesting answer.
+
+**Why this pass exists.** At S341, `09-proteomics-clean` reached the Benford p floor and was stopped
+only by the `mad < 0.015` gate firing ahead of the p. One fixture doing that is an anecdote. If
+several clean fixtures carry the same shape, the gates are holding the tool together and the
+underlying tests are unfit for this domain without them. If almost none do, the gates are doing very
+little. V1X §5.4's framing turns on which it is.
 
 **Why this pass exists.** At S341, `09-proteomics-clean` reached the Benford p floor and was stopped
 only by the `mad < 0.015` gate firing ahead of the p. One fixture doing that is an anecdote. If
@@ -74,6 +91,16 @@ The three fixtures with no saved cell are `01-densitometry-clean`, `03-qpcr-clea
 
 Three would have been HIGH. Two would have been MODERATE. All five emitted LOW.
 
+**On the two Baseline Balance cells — the p and the gate statistic come from different evidence.**
+`primaryP = Math.min(binomP, ksP)` (`carlisleBalance.js:144`) with no multiplicity correction of any
+kind, and both arms are computed from the same `featurePValues` array. The gate statistic
+`excessFrac = nExcess / nFeatures` (`:150`) counts only the binomial arm's evidence — features with
+`p > 0.95`. On both saved cells the flagging p came **entirely from the KS arm**: `12a` had
+`binomP = 1, ksP = 2.898e-3` with 0 of 6 features excess, and `17-densitometry` had
+`binomP = 0.616, ksP = 1.409e-4` with 3 of 60. So in both cases a KS finding — non-uniformity
+anywhere in the ECDF — was suppressed by a statistic that only measures the upper tail. The gate is a
+valid effect-size measure for the binomial arm and is not one for the KS arm. Full read at §6.
+
 **On the Excess Kurtosis cell.** The result publishes `esGateMode: "directional (leptokurtic,
 informational)"`, which reads as though only the direction arm held it down. It did not. The two arms
 are ORed at `kurtosis.js:382` and `esGateMode` reports whichever it checks first. The magnitude arm
@@ -113,35 +140,120 @@ as instructed — the statements above are read off each test's p construction, 
 
 ---
 
-## 3. The not-recoverable list — 19 cells, the blind spot
+## 3. The blind spot, opened and closed — 19 cells, none of them a save
 
-Three gated tests destroy the pre-gate p before it reaches the returned object. For these, the
-question "would it have flagged on the p alone?" cannot be answered from outside `src/`.
+Three gated tests destroyed the pre-gate p before it reached the returned object, so for 19
+clean-corpus cells the question "would it have flagged on the p alone?" could not be answered from
+outside `src/`. All three now publish the counterfactual.
 
-| test | where the p is destroyed | mechanism |
+### 3a. The instrumentation
+
+Each of the three publishes two new fields, unconditionally, on every result:
+
+- **`primaryPUngated`** — what `primaryP` would be with the effect-size gate expression deleted and
+  nothing else changed. Equal to `primaryP` when nothing was gated.
+- **`nGateSuppressed`** — how many units the effect-size gate alone removed, so the field above is
+  interpretable. No site published such a count before; each needed a new one.
+
+Nothing reads either field. No tier logic changed, no threshold or resample count moved, no dispatch
+key was renamed.
+
+**The BH difficulty turned out to exist at one site of the three, not all three.** The concern was
+that `primaryP` is a BH-adjusted minimum, so substituting a real p for a `1.0` placeholder reorders
+the ranks and the counterfactual cannot be patched in after the fact. That is true only where the
+gate acts *upstream* of the correction:
+
+| test | site | where the gate sits relative to BH | what the counterfactual required |
+|---|---|---|---|
+| Selective Noise Partitioning (stratified path) | `selectiveNoise.js:176` | **upstream** — placeholders enter the family | a **second BH pass** over the real p-values: same family size, same order, no placeholders, no exclusions |
+| Selective Noise Partitioning (single-run path) | `selectiveNoise.js:241` | no family at all | nothing — `primaryP` is already the raw Bartlett p, so ungated equals it |
+| Cross-Condition Consistency | `crossConditionConsistency.js:618` | **downstream** — the three per-stage `bhFDR` calls run over every unit before either mechanism is consulted | re-selection only, no recomputation |
+| Value-Frequency Spike | `valueFrequencySpike.js:488, :505` | **downstream** — the union `bhFDR` and the deep-tail `bhFDR` both run over every tested entry before the filter | re-selection only, no recomputation |
+
+**No family size changed at any site.** For Value-Frequency Spike in particular — the case flagged in
+advance as the likely one — the gate filters *already-adjusted* values, so the BH family
+(`allTested`, plus the separate deep-tail family) keeps its exact size and ranks. What the gate
+changes is which adjusted values are eligible to be the minimum, not the values themselves. The
+family size used is therefore the shipped one, unmodified.
+
+**Two sites tangle two mechanisms, and both separate cleanly.** Cross-Condition Consistency
+neutralises a unit for gate failure (`gatePassed`, a magnitude filter) and for wrong direction
+(`forensic`, a one-sided test); Value-Frequency Spike has the ratio gate (`passesEffect`, magnitude)
+and the near-dup keep-path (`isNearDup`, a discriminator on the kind of spike). At both sites the two
+are separate predicates joined by `&&`, so `primaryPUngated` drops only the magnitude filter and
+leaves the other in place. Nothing had to be guessed and nothing is entangled.
+
+### 3b. The result — the headline does not move
+
+| | before | after |
 |---|---|---|
-| Selective Noise Partitioning | `selectiveNoise.js:176` | gated blocks are pushed into the BH family as `1.0`, so `primaryP = minAdjP` is taken over a set in which the gated p no longer exists |
-| Cross-Condition Consistency | `crossConditionConsistency.js:618` | gate-failed and wrong-direction units are neutralised to `1` in `effAdjPs` before the min |
-| Value-Frequency Spike | `valueFrequencySpike.js:488, :505` | gate-failed spikes are filtered out of the spike set before the min adjP is taken; the surviving `primaryP` never saw them |
+| readable cells | 91 | **110** (of a possible 144) |
+| unreadable cells | 19 | **0** |
+| gate-saved cells | 5 | **5** |
+| fixtures | 5 | **5** |
+| tests | 4 | **4** |
 
-Across the eight clean fixtures this is **19 cells**:
+**None of the 19 newly readable cells is a gate-saved cell.** Every one has `tier(p) = LOW` on the
+ungated p. The counting rules are unchanged from §1.
 
-- Value-Frequency Spike — **7** (`03-qpcr`, `05-cellcount`, `07-elisa`, `09-proteomics`, `12a`, `17-densitometry`, `vfs-a`)
-- Selective Noise Partitioning — **7** (`01-densitometry`, `03-qpcr`, `05-cellcount`, `07-elisa`, `09-proteomics`, `12a`, `17-densitometry`)
-- Cross-Condition Consistency — **5** (`01-densitometry`, `03-qpcr`, `09-proteomics`, `12a`, `17-densitometry`)
+This inverts the expectation the instrumentation was built on, and the reason is not that the gates
+sat idle. They fired on 8 of the 19 cells, and on 3 they moved the reported p by a wide margin:
 
-All 19 emitted LOW. Whether any of them would have flagged on the p alone is unknown and unknowable
-from the result object.
+| fixture | test | shipped `primaryP` | `primaryPUngated` | units gated |
+|---|---|---|---|---|
+| `09-proteomics-clean` | Selective Noise Partitioning | 1 | 0.2558 | 2 (all conditions) |
+| `12a-uniform-mixture-clean` | Selective Noise Partitioning | 1 | 0.2941 | 2 (all conditions) |
+| `12a-uniform-mixture-clean` | Cross-Condition Consistency | 0.5160 | 0.3240 | 5 |
 
-**This is the scope of any follow-up instrumentation, and it is a deliverable in its own right.** The
-fix is the same in all three cases and is small: retain the pre-neutralisation minimum as a separate
-published field (`primaryPUngated`, or equivalent) alongside the existing `primaryP`. No tier logic
-changes, no p changes, nothing in the batch moves. Not built here — this pass is read-only.
+On the other five gated cells the suppressed units were not the minimum, so the published p was
+already the ungated one. The gates are doing real work at these three sites — they are simply doing
+it a long way from any flagging threshold. Nothing here comes within an order of magnitude of
+`ALPHA.NOTE = 0.01`.
 
-Note the asymmetry that makes this worth doing: the three tests whose gates are *invisible* to
-measurement are precisely the three that gate at the *unit* level (per block, per unit, per spike)
-rather than at the test level. Unit-level gating and p-recoverability are in tension by construction,
-and nothing in the codebase currently records that.
+The nearest miss among all 19 is Cross-Condition Consistency on `09-proteomics-clean` at
+**p = 0.012**, which is 1.2× above the MODERATE threshold and was *not* gate-suppressed at the
+minimum — it is simply not significant.
+
+**Value-Frequency Spike's gate never fired at all.** `nGateSuppressed = 0` on all seven clean
+fixtures, and `primaryPUngated = 1` on all seven: with the ratio gate removed, no tested entry on any
+clean fixture clears the `adjP < ALPHA.NOTE` significance cut in the first place. On this corpus the
+significance cut alone excludes everything and the effect-size gate is entirely inert. That is a
+stronger statement than "the gate fired but the p was LOW anyway", and it applies to the whole clean
+corpus.
+
+### 3c. What this means for the shape of the finding
+
+The eleven test-level gates produced all five saves. The three unit-level gates produced none. So the
+split named in the first pass of this report — that unit-level gating is what makes a gate invisible
+to measurement — turns out to track a real behavioural difference and not only a reporting one:
+
+- **A test-level gate** sits between a single computed p and the tier. When it fires, it is by
+  construction suppressing a p that was extreme enough to be worth suppressing.
+- **A unit-level gate** removes members from a family before or after correction. Its effect on the
+  test-level minimum is indirect, and on this corpus it lands on units that were nowhere near
+  significant.
+
+That is a claim about the clean corpus at its current sizes, not a general one. It is worth holding
+lightly for the same reason §1 gives: no clean fixture reaches 500 rows, and three of these unit
+gates are among the seven that require `nR >= 500` (or `b.N >= 500`, or `nMin >= 500`) before they
+can fire at all.
+
+### 3d. A correction to the first pass of this report
+
+The first pass classified Selective Noise Partitioning as unrecoverable on all seven fixtures. That
+was too broad. Selective Noise has two paths and only the stratified one destroys the p — the
+single-run path publishes `primaryP: b.pBartlett`, the raw Bartlett p, gate or no gate. **Four of the
+seven cells took the single-run path and were readable all along:** `01-densitometry`, `05-cellcount`,
+`07-elisa`, `17-densitometry`. Only three (`03-qpcr`, `09-proteomics`, `12a`) took the stratified
+path, and only two of those had anything gated.
+
+So the blind spot was 19 cells as *the probe measured it* and 15 as the code actually stood. The
+probe's `ungatedP: () => null` was applied per test where the code branches per path, and a per-test
+classification cannot see a two-path test. Corrected in the probe.
+
+The general lesson is worth keeping: a recoverability audit has to be run against the *return sites*,
+not the test. A test with two return paths can be recoverable on one and not the other, and reading
+only the gate expression will not show that.
 
 ---
 
@@ -298,7 +410,52 @@ honest statement of the gates' protective work has to carry that qualification, 
 
 ---
 
-## 6. Reproducing this
+## 6. Baseline Balance multiplicity — independent read (read-only)
+
+Baseline Balance produced two of the five confirmed saves, so how its p is built matters. Read at
+source, nothing changed.
+
+**1. No multiplicity correction, of any kind.** `const primaryP = Math.min(binomP, ksP);`
+(`carlisleBalance.js:144`) feeds straight into `let flag = flagFromP(primaryP);` (`:145`). There is no
+Šidák step, no Bonferroni, no doubling, and no other adjustment anywhere between the two statistics
+and the tier. The minimum of two p-values is treated as though it were a single p.
+
+Under a true null with two independent tests, `P(min < α) = 1 − (1−α)² ≈ 2α`, so the realised
+false-positive rate would be about double nominal — a HIGH tier that claims 0.001 firing at nearer
+0.002.
+
+**2. But the two tests are not independent — they read the same evidence.** Both are computed from
+the same array, `featurePValues`. The binomial takes `nExcess = featurePValues.filter(p => p > 0.95)`
+(`:128`) into `_binomialUpperTail` (`:130`). The KS takes a sorted copy of the *same* array (`:133`)
+into a maximum ECDF deviation (`:139`) and then `_ksSurvival` (`:141`). Same features, same data, two
+summaries of one sample — and the KS statistic's range includes the upper tail the binomial reads. So
+the two are positively correlated, which means the 2α figure above is an upper bound on the inflation
+rather than an estimate of it. The true inflation is somewhere between 1× and 2× and has not been
+measured. The direction is anti-conservative either way.
+
+**3. `excessFrac` counts the binomial arm's evidence only, over all testable features.**
+`excessFrac = nExcess / nFeatures` (`:150`), where `nExcess` is the count of features with `p > 0.95`
+(`:128`) and `nFeatures = featurePValues.length` (`:111`).
+
+So the gate statistic and the p **can be computed from different evidence, and on both saved cells
+they were.** `12a-uniform-mixture-clean`: `binomP = 1` (0 of 6 features excess — the binomial arm
+contributed nothing at all), `ksP = 2.898e-3`, and the whole flagging p was the KS statistic.
+`17-densitometry-carlisle-clean`: `binomP = 0.616`, `ksP = 1.409e-4`, 3 of 60 excess — again entirely
+KS.
+
+The gate's own comment (`:147-149`) explains it as guarding against "1-2 high p-values by chance",
+which is a coherent rationale for the binomial arm. It is not a rationale for the KS arm, and the
+code applies it to both because it sits after the `min`. A dataset whose p-distribution is non-uniform
+somewhere other than the top 5% will be suppressed by a statistic that cannot see the deviation that
+flagged it. Both Baseline Balance saves on the clean corpus have exactly that shape.
+
+This is reported, not fixed. It is one finding with two independently actionable halves — the missing
+correction on the `min`, and the arm-mismatched gate — and either could be addressed without the
+other.
+
+---
+
+## 7. Reproducing this
 
 ```bash
 node test/probes/probe-s342-clean-gates.mjs
