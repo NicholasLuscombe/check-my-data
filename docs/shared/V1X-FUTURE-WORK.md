@@ -1203,16 +1203,16 @@ STATUS parked #7. Current Modality plot is the Hartigan dip number; replacement 
 
 **Status: v1.0 blocker, tracked in STATUS.md §v1.0 blockers.** Retained here for the methodology detail; STATUS holds the current-state line. Promoted S187 on the trust argument — the tier vocabulary ("High") is a cross-test evidence-strength claim, and if it doesn't trigger at matched reliability across tests, the abstraction misleads exactly where reviewers rely on it.
 
-**Framing.** The tiers are already *defined* as false-positive rates (HIGH p < 0.001 = <1/1000 clean datasets; MODERATE p < 0.01 = <1/100), unified across the battery by design. FISHER_EXEMPT membership and the Tier-2 effect-size gates are the machinery that *enforces* that definition where a raw p-value would be non-uniform under H₀ — not evidence of miscalibration. The convergence-escalation rule (2× MODERATE → HIGH) already depends on tiers being FP rates, so FP-equivalence is foundational, not optional. Two gaps stand between "defined-as" and "demonstrated-as":
+**Framing.** The tiers are already *defined* as false-positive rates (HIGH p < 0.001 = <1/1000 clean datasets; MODERATE p < 0.01 = <1/100), unified across the battery by design. FISHER_EXEMPT membership and the Tier-2 effect-size gates are the machinery that *enforces* that definition where a raw p-value would be non-uniform under H₀ — not evidence of miscalibration. **S341 — this reading is contested and the honest position is neither.** A gate does not make the p uniform under H₀; it censors results, which under a true null is pure conservatism and pushes the realised rate *below* nominal by an unmeasured, per-test amount. So the gated tests do not report a 0.001 false-positive rate; they report "extreme *and* materially large", which is a different claim. Against that: `09-proteomics-clean` was emitting `p = 0` from Benford and was stopped only by the MAD gate firing ahead of the p, which is direct evidence the gates do real protective work. Both are true. The gates trade an anti-conservative model-misspecification error for an unmeasured conservative censoring, and **neither side has been measured** — which is gap 2 below, and why gap 2 is the load-bearing half of this blocker rather than gap 1. The convergence-escalation rule (2× MODERATE → HIGH) already depends on tiers being FP rates, so FP-equivalence is foundational, not optional. Two gaps stand between "defined-as" and "demonstrated-as":
 
-1. **Six tests lack calibrated effect-size gates at N ≥ 500** — First-Digit Frequencies, Last-Digit Frequencies, Runs, Row-Mean Runs, Decimal Places, Mean-Variance. At large N the p-value floor crashes toward zero on forensically-trivial deviations, so these over-trigger on clean data — a real FP-equivalence violation localised to these tests and the large-N regime. Fix: a per-test effect-size threshold below which p alone does not promote severity — same shape as the existing Tier-2 gates on Bartlett (variance ratio), Mahalanobis (distance), Carlisle (KS distance). Note (S240): for **Runs** the gate is necessary but not sufficient — see the i.i.d.-pairs sub-note below; Runs additionally needs a dependence-aware null, not only a large-N gate.
+1. **Six tests lack calibrated effect-size gates at N ≥ 500** — First-Digit Frequencies, Last-Digit Frequencies, Runs, Row-Mean Runs, Decimal Places, Mean-Variance. **S341: this list is wrong on at least two of six and the gap is smaller than stated.** First-Digit Frequencies gates at `mad < 0.015` (`benford.js:89`, Nigrini nonconformity, ahead of the p) and Runs gates at `nR >= 500 && runsRatio > 0.70` — exactly the gate shape and exactly the N ≥ 500 regime this item scopes. `METHODOLOGY.md` documents effect-size gates at nine separate sites. Re-derive the list at source before scoping any fix; a v1.0 blocker should not rest on a census a third wrong. At large N the p-value floor crashes toward zero on forensically-trivial deviations, so these over-trigger on clean data — a real FP-equivalence violation localised to these tests and the large-N regime. Fix: a per-test effect-size threshold below which p alone does not promote severity — same shape as the existing Tier-2 gates on Bartlett (variance ratio), Mahalanobis (distance), Carlisle (KS distance). Note (S240): for **Runs** the gate is necessary but not sufficient — see the i.i.d.-pairs sub-note below; Runs additionally needs a dependence-aware null, not only a large-N gate.
 2. **The tiers have never been empirically measured against a null set.** The design defines them as FP rates and the enforcement machinery exists, but no null-simulation has confirmed each test's HIGH/MODERATE actually fires at ≤0.1% / ≤1% under H₀.
 
 **Scope (both halves required for the blocker to close):**
 - Close the six gates (per-test effect-size metric + calibration against the batch — see Approach below).
 - Build a **null-set FP-verification harness**: run each test against many clean/null datasets, measure HIGH and MODERATE trigger rates, confirm they hit the stated FP targets, fix any test that misses. This is new infrastructure, but it's the evidence base the review paper needs regardless of the gate work, so it's not gold-plating.
 
-**First step (read-only, sizes the job before any fix):** enumerate, per test, the exact tier-promotion rule and whether it has an effect-size gate / is FISHER_EXEMPT / neither. That inventory shows how many tests sit in the "naked p-value at large N" bucket vs already-gated. Open hypothesis the harness tests first: the uniform-null + standard-adj-p tests may already be roughly FP-matched, with only the FISHER_EXEMPT set diverging — in which case the job narrows to bringing the exempt set onto the same FP footing.
+**First step (read-only, sizes the job before any fix) — DONE at S341, see `docs/shared/SESSION341-HIGH-REACHABILITY-CLASSIFICATION.md`:** enumerate, per test, the exact tier-promotion rule and whether it has an effect-size gate / is FISHER_EXEMPT / neither. That inventory shows how many tests sit in the "naked p-value at large N" bucket vs already-gated. Open hypothesis the harness tests first: the uniform-null + standard-adj-p tests may already be roughly FP-matched, with only the FISHER_EXEMPT set diverging — in which case the job narrows to bringing the exempt set onto the same FP footing.
 
 **Cross-ref:** verdict-legibility synthesis thread (TESTCARD-FINDINGS) — the same read-only inventory feeds the per-card "expose the promotion basis" display work; interim display wording must NOT assert cross-test FP-equivalence until this blocker closes.
 
@@ -1267,23 +1267,27 @@ Lifted from ROADMAP Item 6e (archived). Genomics-typed datasets often arrive as 
 
 **Priority:** Open, low priority. Import UX advisory. Distinct from §5.5 (assay-aware severity weighting) — that's a severity-formula change; this is a pre-flight user-confirmation prompt.
 
-### 5.9 Permutation grid resolution — seven tests cannot reach HIGH, and raising counts is the wrong fix (S340)
+### 5.9 Tier reachability — five mechanisms, not one (S340, substantially corrected S341)
 
-**The finding.** A permutation p cannot resolve a threshold finer than its own grid step. The requirement is
-arithmetic and no property of the data enters it. Counts in this battery were never chosen against the
-thresholds they are judged by — they were chosen to bound wallclock while `createPRNG` was one stream in
-dispatch order, so any raise displaced every test after it. That constraint was removed at S340 when
-per-test streams landed, which is what made the question askable.
+**Status: this section was wrong in five places and is rewritten. The grid arithmetic below is sound; the
+census built on it was not.** The S340 version enumerated tests whose *permutation grid* cannot represent a
+value below the HIGH threshold and reported "seven of 29" as the shape of the problem. There are at least
+five independent mechanisms deciding reachability, this section covered one and a half, and the errors ran
+in both directions — one test was wrongly listed as unreachable and one unreachable test was missing
+entirely. Treat any count here as provisional against
+`docs/shared/SESSION341-HIGH-REACHABILITY-CLASSIFICATION.md`, which is the measured classification.
 
-**How it surfaced.** Twice, in the same session, in two tests, at two different thresholds. Windowed
-Autocorrelation's grid steps 0.005 against a 0.01 threshold with one value below it. Column
-Goodness-of-Fit's steps 0.0005 against 0.001, also with one value below it — and that second instance was
-*created* by the S339 fix for the first, which raised B from 999 to 2000 to restore reachable tiers at
-MODERATE and left resolution broken at HIGH. A third instance was going to arrive on its own.
+**The arithmetic that holds.** A permutation p cannot resolve a threshold finer than its own grid step. The
+requirement is arithmetic and no property of the data enters it. Counts in this battery were never chosen
+against the thresholds they are judged by — they were chosen to bound wallclock while `createPRNG` was one
+stream in dispatch order, so any raise displaced every test after it. That constraint was removed at S340
+when per-test streams landed, which is what made the question askable.
 
 **The ladder is two thresholds, not three.** `flagFromP` (`src/constants/thresholds.js`) compares against
-`ALPHA.FLAG = 0.001` and `ALPHA.NOTE = 0.01`. Nothing else sets a tier. 0.05 appears in several tests as a
-sub-unit significance marker and in display prose, but never in a flag assignment.
+`ALPHA.FLAG = 0.001` and `ALPHA.NOTE = 0.01`. **But it is not the only thing that sets a tier** — at least
+five tests hand-roll the ladder with an effect-size pre-gate ahead of the p, and one carries an
+unconditional cap. 0.05 appears in several tests as a sub-unit marker and in display prose, but never in a
+flag assignment.
 
 **On per-condition routing the flag is not decided on the reported p.** `src/analysis/aggregation.js`
 corrects the worst-group arm with Šidák — `flagFromP(sidakAdjust(groupMinP, G))` — while `primaryP` stays
@@ -1291,63 +1295,181 @@ uncorrected. So the raw grid must resolve a *tighter* threshold than the one wri
 reach 0.003345 for MODERATE and 0.000333 for HIGH; at G = 2, 0.005013 and 0.000500. Six tests take this
 path on the current batch.
 
-**The derived rule.** A threshold decided by one or two grid positions is a resolution defect. Requiring
-several positions below the threshold gives `step < T/5`, so at T = 0.001 the `(k+1)/(B+1)` family needs
-B ≥ 4999 and the `2(k+1)/(B+1)` family needs B ≥ 9999. The floor is derived; the constant 5 is a judgement
-and 4 or 6 would read the same.
+**The reported p on that arm is also biased low, and Šidák does not correct it.** The worst-group p is a
+minimum over noisy per-group estimates. The minimum of estimates is below the minimum of true values in
+expectation, by Jensen. Šidák corrects selection over G nulls; it does not correct selection over G noise
+draws. So the false-HIGH rate on those six tests sits *above* nominal, and raising B would lower the HIGH
+rate systematically rather than sharpening it symmetrically. Unmeasured.
 
-**Seven tests cannot produce a HIGH.** Four are structural, three are fixable by raising:
+## The five mechanisms
 
-| test | why | fixable by raising? |
+1. **Grid floor.** The construction cannot emit a value below the threshold at the count it runs.
+2. **Effect-size pre-gate.** A condition forces LOW before the p is consulted. `benford.js:89` gates at
+   MAD < 0.015; `benford2.js:125` at 0.008; Runs at `nR >= 500 && runsRatio > 0.70`. **METHODOLOGY.md
+   documents effect-size gates at nine separate sites** (lines 634, 758, 983, 1124, 1177, 1235, 1376, 1415,
+   1446, 1519), so this is a substantial fraction of the battery, not a handful of exceptions.
+3. **Unconditional cap.** Cross-Condition Rank Correlation carries `flagRankCap = {"HIGH":"MODERATE", …}`
+   at `rankCorrelation.js:101-103`. It can never emit HIGH at any p, any effect size, any B, and it does not
+   resample. Deliberate and documented — genuine biological similarity also produces high correlation. **No
+   audit of estimators could have found this**, which is why the S340 census missed it.
+4. **Post-hoc multiplicity.** A BH or Šidák adjustment applied after the p tightens the raw value required.
+   Windowed Autocorrelation's raw floor clears the threshold; its blocker is a BH multiplier over roughly
+   18 windows.
+5. **Invalid estimator.** `k/B` with no continuity correction, which emits `p = 0`. Fixed at S341 — see
+   below.
+
+## The corrected census
+
+| test | mechanism | fixable by raising the count? |
 |---|---|---|
-| Entropy / Zipf | floor `2/(1+B)` from doubling a one-sided p whose count starts at 1; 0.002 at B = 999 | only at B ≥ 19999 |
-| Column Goodness-of-Fit | same `2/(1+B)` construction; B = 2000 puts the floor at 0.0009995, one grid position below 0.001. **Both Column Goodness-of-Fit HIGHs in the whole battery sit on that single position** | only at B ≥ 19999 |
-| Residual Spike Correlation | floor `1/(B+1)` = 0.001 at its fixed B = 999, and `flagFromP` needs strictly less | yes, any raise |
-| Modality | hardcoded `P_FLOOR = 0.001` clamp, and the dip p became a table lookup at S159b, so it does not resample at all | no — only removing the clamp |
-| Constant-Offset Blocks | grid too coarse at every count it takes | yes |
-| Windowed Autocorrelation | same | yes |
-| Cross-Condition Consistency | same | yes |
+| Cross-Condition Rank Correlation | unconditional `HIGH → MODERATE` cap | no — it is a product decision, not an estimator limit |
+| Modality | hardcoded `P_FLOOR = 0.001` **and** a `DIP_GATE = 0.04` effect-size gate, on a test whose bootstrap was retired at S159b | no — the clamp preserves the calibration of a resampling step that no longer exists |
+| Entropy / Zipf | floor `2/(1+B)` from doubling a one-sided p whose count starts at 1 | only at B ≥ 19999 |
+| Residual Spike Correlation | floor `1/(B+1)` = 0.001 at fixed B = 999, and `flagFromP` needs strictly less | yes, any raise |
+| Constant-Offset Blocks | **observed** minimum p of exactly 1.000e-3 at its highest declared count — measured under forced-high, not derived | no at any count it can take |
+| Windowed Autocorrelation | raw floor clears; blocked by BH over ~18 windows | partially |
+| Cross-Condition Consistency | doubled floor, distinct from Constant-Offset's bare floor | partially |
 
-The earlier three-test list (Entropy, Residual Spike, Modality) was correct on all three and short by four.
+**Column Goodness-of-Fit is reachable and the S340 entry was wrong.** `bhFDR` is a step-up with monotonicity
+enforcement, so when the whole tested column family sits flat at the `2/2001` floor the `j = m` term returns
+the raw floor and HIGH survives. Narrower than "one grid position" — it needs a flat family, not one column
+landing there — but not "cannot".
 
-**Two tests already clear the requirement:** Benford first and second digit, both at B = 5000 using `k/B`
-with no `+1`, which makes p = 0 reachable.
+**The three tests the S340 table described with one phrase share no mechanism.** "Grid too coarse at every
+count it takes" covered Constant-Offset, Windowed Autocorrelation and Cross-Condition Consistency; they are
+a bare floor landing exactly on `ALPHA.FLAG`, a BH multiplier over windows, and a doubled floor
+respectively. Uniform phrasing across three rows was where the audit flattened three mechanisms into one.
 
-**Two tests reach HIGH off the grid entirely.** Inter-Replicate Correlation and Runs Test take a minimum
-over arms of which only one resamples. Inter-Replicate Correlation reaches HIGH on DS08 at p = 0.00062984,
-a value no permutation grid in the battery contains. For those two, "HIGH unreachable" is true of the
-permutation arm and false of the test.
+**Only one test is blocked by both a floor and a gate: Modality.** So "which tests would gain nothing from
+any count change" is a one-test question, and the argument that raising counts is inert does not hold.
 
-**Why raising counts is the wrong answer.** Cost of taking all twelve short tests to their minimum B, each
-measured separately against a 50.8 s baseline batch: **+198 s, roughly ×4.9.** Excess Kurtosis +75%,
-Entropy +67%, Runs +53%, Cross-Condition Consistency +47%, Column Goodness-of-Fit +45%. Regional Noise is
-nearly free at +1%. And the fixture suite is not where the cost lands: a 10 000 × 8 file already runs 103 s
-at shipped counts, single-threaded, in a browser tab. Multiplying counts by ten makes it unusable. We would
-be spending an order of magnitude of compute to buy grid positions near a threshold, when the problem is
-that the p is quantised near the threshold at all.
+## The census is size-dependent, and the fixtures are the friendly end
 
-**Three options, none yet chosen. This is a methodology call and it needs the four-model arc.**
+**Eight tests take a smaller resample count on larger inputs.** Regional Noise and LOESS take 4999 at ≤ 100
+rows and 499 above; Constant-Offset and Windowed Autocorrelation trip above 1000 and 500 rows. Every branch
+cites wallclock; none cites a threshold; **nobody measured what the change did to results until S341.**
 
-1. **Raise counts.** ×4.9 on the batch, worse on real files, and still leaves Entropy and Column
-   Goodness-of-Fit short at the doubled step. Buys the least for the most.
-2. **Fix the doubling and the floors, then re-ask.** `min(1, min(pLow, pHigh) * 2)` with the count starting
-   at 1 is what creates the `2/(1+B)` floor — a two-sided correction applied to a one-sided permutation p.
-   Whether that is the right construction is a correctness question independent of resolution, it is cheap,
-   and it may move four of the seven on its own. **Answer this before buying draws to work around it.**
-3. **Declare HIGH analytic-only.** Permutation tests report MODERATE as their ceiling and the methodology
-   states why. Honest, free, and it makes the report's tier vocabulary mean something. The cost is that a
-   genuinely extreme permutation result is reported as MODERATE.
+Measured then: forcing all eight to their highest declared count costs **+8% on the battery** — not the
+×4.9 this section previously priced for a different change — and moves three tiers upward at 8/8 seeds, one
+of which moves a declared band. The saving the branch defends is **3.4 seconds**. Blocked Mahalanobis is 68%
+of the scoped runtime and its branch contributes 67 ms; it has never run its coarse branch on any fixture in
+the suite.
 
-Lean: 2, then 3, and against 1.
+**The count rises from seven to ten if every fixture sat on the coarse side, and is ten at the 199 tier**,
+which no fixture has ever run. Real deposited files are larger than the fixtures, and larger means coarser,
+so every reachability number here is an upper bound on what real files get.
 
-**Relationship to §5.4.** §5.4 asks whether the tiers fire at matched false-positive rates across tests.
-This asks whether a tier is reachable at all. They are the same abstraction seen from two sides — a tier
-that a third of the battery cannot produce is not a cross-test evidence-strength claim, however well
-calibrated the tests that can produce it. Neither item should be closed without the other in view.
+## The invalid estimator, fixed at S341
 
-**What is measured and what is not.** Every number above is Code's measurement at S340. What has never been
-measured is what any of this costs in detections — see STATUS P43. The tier arithmetic says HIGH is mostly
-unreachable; it does not say how often a genuine fabrication would have earned one.
+Both Benford tests computed `k / N_SIM` at `N_SIM = 5000` with no continuity correction, so zero exceedances
+emitted exactly `p = 0` — an assertion of impossibility on 5000 draws. **The S340 version of this section
+listed that as two tests "already clearing the requirement".** It is the opposite: `(k+1)/(B+1)` exists to
+prevent it (Phipson & Smyth 2010).
+
+Corrected at S341 to `(k+1)/(N_SIM+1)`. Measured consequences, all counter to prediction:
+
+- **The HIGH boundary does not move.** `(4+1)/5001 = 9.998e-4` is still under `ALPHA.FLAG`, so `k ≤ 4`
+  stands. No decision boundary moves, which is why no tier moved anywhere in the battery. Arithmetic, not
+  luck. (Chat predicted a move to `k ≤ 3` and the arithmetic was wrong.)
+- **No Fisher input set changes**, because no Benford cell is aggregate-routed. Both tests dispatch on the
+  whole matrix (`engine.js:371`, `:380`), sit in `GLOBAL_TESTS`, and never enter `aggregatePerGroup`. The
+  earlier claim that the zero flowed through the Šidák arm, the worst-group maximum and the Fisher filter
+  was reasoned from `FISHER_EXEMPT` non-membership without checking dispatch. None of those paths is ever
+  exercised by Benford.
+- **A clean fixture was emitting `p = 0`.** `09-proteomics-clean` reached maximal confidence and was stopped
+  only by the `mad < 0.015` effect-size gate firing ahead of the p. **That is the strongest available
+  argument that the gates do real protective work**, and it should be weighed against reading them as an
+  unprincipled second definition.
+- The number of cells emitting zero is recorded inconsistently in the S341 reporting (five in one place,
+  six in another). **Do not state a figure until it is re-read at source.**
+
+## Two tests reach HIGH off the grid entirely
+
+Inter-Replicate Correlation and Runs Test take a minimum over arms of which only one resamples.
+Inter-Replicate Correlation reaches HIGH on DS08 at p = 0.00062984, a value no permutation grid in the
+battery contains — and S341 confirmed it is bit-identical at 4999, 999 and 199. For those two, "HIGH
+unreachable" is true of the permutation arm and false of the test.
+
+## Why this matters less than it looked
+
+**HIGH is not what drives the verdict.** `severity.js:19-26` branch 5 — `(mod>=2 && nFlaggedDimensions>=2)`
+— returns the same top band as `high>=2`. Dimensions are the five `TEST_MECHANISM` keys, and the blocked set
+spans four of them. Every test that cannot produce HIGH still reaches the top band through the MODERATE
+path.
+
+Under 29 independent tests at nominal rates, roughly 0.04% of clean files show two HIGHs and roughly 3.4%
+show two MODERATEs. Most top-band verdicts on clean files arrive through MODERATE, and **MODERATE is
+comfortably resolvable at current counts** — ten grid positions of headroom at B = 999. So the tier ceiling
+costs card expressiveness, not detection reach.
+
+**That is a better reason to reject option 1 than the cost argument this section used to carry.**
+
+## The derived rule, and why it is necessary but not sufficient
+
+A threshold decided by one or two grid positions is a resolution defect. Requiring several positions below
+the threshold gives `step < T/5`, so at T = 0.001 the `(k+1)/(B+1)` family needs B ≥ 4999 and the
+`2(k+1)/(B+1)` family needs B ≥ 9999. The floor is derived; the constant 5 is a judgement.
+
+But the grid rule asks whether the estimator can *represent* a value below the threshold, not whether the
+estimate reliably lands on the right side of it. A permutation p is a binomial proportion; an estimate whose
+expected count is k has a spread of about √k grid positions. At B = 4999 and true p = 0.001 the Monte Carlo
+SE is 0.00045, 45% of the threshold. Getting the noise to a fifth of the threshold needs B ≈ 25,000, and
+under Šidák at G = 3, B ≈ 75,000.
+
+**The qualification cuts the other way and matters.** A cell whose true p sits far below the threshold
+produces zero exceedances at almost any B and lands below it reliably once the floor clears. The noise
+problem is confined to cells near the threshold. **Nothing fixes those**, because a p sitting *on* a
+threshold flips with the draw at any resolution — measured directly on DS12b's Regional Noise, where the
+true p sits on `ALPHA.NOTE` and a 10× count increase left the tier split.
+
+The "quarter of all resampling cells sit within two standard errors of a threshold" figure from S340 is
+weaker than it reads: at B = 999 the bands cover roughly everything that is not LOW, and the corpus is
+19/27 fabricated by design. It needs recomputing over clean fixtures, per threshold.
+
+## Options
+
+**Option 3 is dead.** Declaring HIGH analytic-only awards the top tier to the estimators whose far-tail
+calibration is least defensible. Selective Noise fails at 56% on DS06 and 79.9% on DS11 because Bartlett's
+normality assumption breaks on count and heavy-tailed data; Mahalanobis Row Outlier's χ² null is documented
+as miscalibrated under heavy tails with a DS15 reproduction. Those are the tests option 3 would promote.
+
+1. **Raise counts.** Mispriced here as ×4.9 for a fixed-B raise. Sequential Monte Carlo (Besag & Clifford
+   1991; Gandy 2009, "uniformly bounded resampling risk") stops early on unremarkable cells and bounds the
+   probability that the Monte Carlo decision differs from the exact-p decision, with a published validity
+   proof — which is the correctness argument S340 said adaptive B lacked. The saving is smaller than the
+   literature implies here, because this battery's reported p's are minima over sub-units and cluster small.
+   **Do not roll a bespoke two-stage refinement; refining only cells that look extreme breaks p-value
+   validity.** Still low priority, for the MODERATE-drives-the-verdict reason above.
+2. **Replace the doubling construction.** `min(1, 2(k+1)/(B+1))` applies a two-sided correction to a
+   one-sided permutation p. The fix is not to remove the doubling but to take a **one-sided p on a two-sided
+   statistic** — a min-tail-probability or centred-deviation statistic against the null already in hand.
+   That halves the floor, preserves two-sidedness, and dominates both alternatives. For asymmetric nulls use
+   the equal-tailed or min-tail convention, not `|T − mean|`. Cheap, correct, independent of everything else.
+3. ~~Declare HIGH analytic-only.~~ Rejected, above.
+4. **Report resolvability alongside the tier.** A cell within k standard errors of a threshold is reported
+   as sitting on the boundary rather than pinned to whichever side one draw put it. This is the only option
+   that addresses the near-threshold population rather than the census. Same move as P45 — report the shape,
+   do not suppress on it.
+5. **Change what a tier means.** The tool already runs two definitions — pure-p on most tests, "extreme
+   *and* materially large" on the gated ones — and neither is written down as *the* definition. The choice
+   is to pick one and make the others conform. Weighed against: §5.4 states that the convergence-escalation
+   rule depends on tiers being false-positive rates, so dropping that definition removes the stated
+   justification for the rule that carries most of the verdict. Both cannot stand.
+
+**Lean: 2 first, 4 in whatever is chosen, 5 as the real question, 1 last, 3 never.**
+
+**Relationship to §5.4.** §5.4 asks whether the tiers fire at matched false-positive rates across tests;
+this asks whether a tier is reachable at all. They are the same abstraction from two sides, and S341
+collapsed them further: §5.4's stated first step — enumerate per test the exact promotion rule and whether
+it has an effect-size gate — is now largely
+`docs/shared/SESSION341-HIGH-REACHABILITY-CLASSIFICATION.md`. Neither item closes without the other.
+
+**What is measured and what is not.** The S340 numbers were Code's measurements at one seed, on a corpus
+that has been tuned against since roughly S10. What has never been measured is what any of this costs in
+detections (STATUS P43), or what the actual false-positive rate of any tier is under a null set (§5.4 gap 2).
+The tier arithmetic says HIGH is often unreachable; it does not say how often a genuine fabrication would
+have earned one. Both halves need instruments the project does not yet have — a null harness that generates
+fresh clean data at run time, and a held-out dose-response corpus for the false-negative side.
 
 ---
 

@@ -1172,9 +1172,11 @@ After pooled analysis, run independent LOESS + windowed scan + CUSUM for each re
 3. Compute MAD (Mean Absolute Deviation) from Benford's expected distribution.
 4. **Simulation null at all N:** Draw 5000 samples of size min(N, 10000) from the exact Benford distribution (leading digit of 10^U, U ~ Uniform(0,1)). Compute MAD for each. P-value = fraction with MAD ≥ observed MAD.
 
-**Flag:** Simulation pMAD < 0.001 → HIGH, pMAD < 0.01 → MODERATE.
+**Flag:** two branches, effect size first. `MAD < 0.015` → LOW regardless of p (`benford.js:89`, the first branch of the ladder). Only above that threshold does the p decide: simulation pMAD < 0.001 → HIGH, pMAD < 0.01 → MODERATE.
 
-**v0.4 change:** Replaced the hard-coded Nigrini MAD-to-p mapping at N > 10K (pMAD = 0.0001 if MAD > 0.015, etc.) with subsample simulation. Drawing from n=10,000 instead of the full N is conservative (simulated MAD has more variance → p-value biases upward → fewer false positives). Nigrini's MAD conformity labels are retained for reference but do not influence flagging.
+**Effect-size gate:** Nigrini MAD ≥ 0.015 (first-digit nonconformity threshold; Nigrini (2012) Table 7.1 p.160, listed live in the constants table). The second-digit parallel is 0.008. **This means the tier on this test is not a false-positive rate.** It is “extreme *and* materially non-conformant”, and the size of that conjunction under H₀ has never been measured. Recorded as a live gap at V1X §5.4 — a Benford tier is not comparable to a pure-p tier elsewhere in the battery until that closes.
+
+**v0.4 change:** Replaced the hard-coded Nigrini MAD-to-p mapping at N > 10K (pMAD = 0.0001 if MAD > 0.015, etc.) with subsample simulation. Drawing from n=10,000 instead of the full N is conservative (simulated MAD has more variance → p-value biases upward → fewer false positives). Nigrini's MAD conformity labels were retained for reference only and did not influence flagging *at v0.4*. **S341 correction:** that is no longer true. The first-digit nonconformity threshold was later reinstated as a hard pre-gate — `mad < 0.015 → LOW` ahead of any p comparison (`benford.js:89`) — with the second-digit threshold at 0.008 alongside it (`benford2.js:125`). The session that reinstated them is not recorded here. The sentence above was accurate when written and became false without this document being updated; it is corrected rather than deleted so the drift stays visible.
 
 **Known false positives:** Bounded-scale data; narrow-range data;
 assigned numbers. **Resolved S109 Part 2:** centered-symmetric
@@ -1228,7 +1230,7 @@ targeted rather than blanket-suppressive.
 4. Require values spanning ≥1.5 orders of magnitude (same as first-digit Benford).
 5. Subsample simulation for MAD p-value (same approach as first-digit).
 
-**Flag:** Simulation pMAD < 0.001 → HIGH, pMAD < 0.01 → MODERATE.
+**Flag:** effect size first, as with first digit. `MAD < 0.008` → LOW regardless of p (`benford2.js:125`, the first branch of the ladder). Only above that threshold does the p decide: simulation pMAD < 0.001 → HIGH, pMAD < 0.01 → MODERATE. The gate documented immediately below is not an additional filter applied after the p — it precedes it.
 
 **Effect-size gate:** Nigrini MAD ≥ 0.008 (second-digit threshold, less strict than first-digit 0.015).
 
