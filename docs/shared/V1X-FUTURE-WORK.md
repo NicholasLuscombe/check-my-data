@@ -1380,8 +1380,12 @@ Corrected at S341 to `(k+1)/(N_SIM+1)`. Measured consequences, all counter to pr
   only by the `mad < 0.015` effect-size gate firing ahead of the p. **That is the strongest available
   argument that the gates do real protective work**, and it should be weighed against reading them as an
   unprincipled second definition.
-- The number of cells emitting zero is recorded inconsistently in the S341 reporting (five in one place,
-  six in another). **Do not state a figure until it is re-read at source.**
+- **Six cells were emitting `p = 0`, and four of them at every seed.** DS08 first digit, DS09 first
+  digit, DS11 second digit and DS23 first digit always; DS10 second digit at 5 of 8 seeds and DS23
+  second digit at 7 of 8. Seventeen Benford cells run at all across the corpus, so **over a third were
+  emitting an invalid p**, and one of the four persistent cells is a clean fixture. The figure was
+  reported inconsistently at first because no statement of it carried a counting rule — there is no
+  correct bare number, only a number plus a rule.
 
 ## Two tests reach HIGH off the grid entirely
 
