@@ -77,6 +77,7 @@ export const EXPECTED = {
     'Inter-Replicate Correlation':   ['MODERATE', 'HIGH'], // multiplicative offset inflates within-pair r
     'Constant-Offset Blocks':        ['MODERATE', 'HIGH'], // multiplicative offset → additive under log
     "Benford's Law (First Digit)":   ['HIGH'],             // primaryP≈0; leading-1 deficit, see GT S182
+    'Regional Noise Homogeneity':    ['MODERATE'],         // S341: p≈6e-3–9e-3, MODERATE 8/8 seeds; window rows 31–45 / col 2 (Plate2) locates the constant-offset block at rows 35–48
   } },
   '09-proteomics-clean.csv':      { severity: 0, assay: 'proteomics' },
   '10-proteomics-fabricated.csv': { severity: 3, assay: 'proteomics', flags: {
