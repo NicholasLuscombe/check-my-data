@@ -11,7 +11,7 @@
  * carry no `interpretation` field — those emit `[undefined, primaryP]` to
  * the §4 surface.
  *
- * Calibration: `docs/shared/S162b-CALIBRATION.md` (chat-owned design
+ * Calibration: `docs/shared/archive/S162b-CALIBRATION.md` (chat-owned design
  * artefact). The seven anchor composers (LOESS / Benford 1st / IRC / Selective
  * Noise / Mahalanobis Row / DupDet / Baseline Balance) are target-locked
  * against named fixtures; their output for the calibration fixture's

@@ -1,5 +1,5 @@
 // S162b anchor-lock verification. Runs the engine on each of the seven
-// anchor (test, fixture) pairs locked in `docs/shared/S162b-CALIBRATION.md`,
+// anchor (test, fixture) pairs locked in `docs/shared/archive/S162b-CALIBRATION.md`,
 // invokes the per-test composer via the FINDING_COMPOSERS registry, and
 // compares the produced `location` + `evidenceLines` strings against the
 // locked target strings extracted verbatim from the calibration sheet.
@@ -24,7 +24,7 @@ const { composeFinding } = await import('../src/analysis/findingComposers.js');
 
 const FIXTURES = 'test/fixtures';
 
-// ── Locked anchor targets (extracted verbatim from docs/shared/S162b-CALIBRATION.md). ──
+// ── Locked anchor targets (extracted verbatim from docs/shared/archive/S162b-CALIBRATION.md). ──
 
 const LOCKED = [
   {
