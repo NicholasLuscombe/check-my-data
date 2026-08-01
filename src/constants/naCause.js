@@ -5,7 +5,7 @@
    test". This build only stamps the code; nothing reads it yet.
 
    The code set is derived from the site-by-site classification in
-   S331-CODE-READ-NA-SITE-CLASSIFICATION.md. Two families:
+   docs/shared/archive/S331-CODE-READ-NA-SITE-CLASSIFICATION.md. Two families:
 
      Declines — the data KIND or structure is wrong for the test. More data or a
      different grouping would not help. Not a sufficiency failure.
@@ -37,7 +37,7 @@
    which is false for a wrong data kind). Absent, too, on the emptiness sites
    where the tripping count is discarded before the return and only a misleading
    number survives — a deliberate omission, not a gap (see
-   S331-CODE-READ-COUNT-REACHABILITY.md). */
+   docs/shared/archive/S331-CODE-READ-COUNT-REACHABILITY.md). */
 
 export const NA_CAUSE = {
   // ── Declines (data kind / structure wrong; not a sufficiency failure) ──
