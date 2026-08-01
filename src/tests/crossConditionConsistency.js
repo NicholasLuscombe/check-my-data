@@ -619,6 +619,21 @@ export function testCrossConditionConsistency(matrix, condCtx, rng, opts = {}) {
   const primaryP = effAdjPs.length ? Math.min(...effAdjPs) : 1;
   const flag     = flagFromP(primaryP);
 
+  // S342 (P50) — the same minimum with the EFFECT-SIZE gate removed and the
+  // forensic-direction filter left in place. Two mechanisms neutralise a unit
+  // here and they are separable: `gatePassed` is a magnitude filter, `forensic`
+  // is a one-sided test. P50 asks about magnitude filters, so only `gatePassed`
+  // is dropped.
+  //   No second BH pass is needed at this site. The three per-stage bhFDR calls
+  // above run over every running unit in their stage, before either mechanism is
+  // consulted; neutralisation happens here, downstream, by selecting which
+  // already-adjusted values may contribute. So the family and its ranks are
+  // identical either way and the counterfactual is a re-selection, not a
+  // recomputation. Report-only: nothing below reads these.
+  const effAdjPsUngated = running.map(u => u.forensic ? u.adjP : 1);
+  const primaryPUngated = effAdjPsUngated.length ? Math.min(...effAdjPsUngated) : 1;
+  const nGateSuppressed = running.filter(u => !u.gatePassed && u.forensic).length;
+
   // ── Pair-level / property-level flag counts ─────────────────────────
   // "N additional properties flagged across M pairs" counts only forensic-
   // direction units at the amber bar. Informational (wrong-direction) units
@@ -708,6 +723,8 @@ export function testCrossConditionConsistency(matrix, condCtx, rng, opts = {}) {
     category: CAT,
     flag,
     primaryP,
+    primaryPUngated,
+    nGateSuppressed,
     description:
       "Compares condition pairs on a registered set of distribution " +
       "properties — Stage 1 pool-level (trimmed span, MAD, CDF shape, " +

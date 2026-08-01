@@ -163,6 +163,15 @@ export function testSelectiveNoise(matrix, condCtx) {
     const slices = condCtx.slices();
     const condResults = [];
     const pValues = [];
+    // S342 (P50) — parallel family carrying each condition's REAL Bartlett p,
+    // never the 1.0 placeholder. `primaryP` below is a BH-adjusted minimum, and
+    // substituting a real p for a placeholder changes the ranks, so the
+    // no-gate counterfactual cannot be recovered by patching the adjusted
+    // values after the fact. It needs its own BH pass over the same family, at
+    // the same size, with no placeholders and no exclusions. Report-only:
+    // nothing below reads `primaryPUngated`.
+    const pValuesUngated = [];
+    let nGateSuppressed = 0;
 
     for (const slice of slices) {
       const b = _runBartlett(slice.matrix);
@@ -174,6 +183,8 @@ export function testSelectiveNoise(matrix, condCtx) {
       const esGate = b.N >= 500 && b.ratio < 3.0;
       const flag = esGate ? "LOW" : flagFromP(b.pBartlett);
       pValues.push(esGate ? 1.0 : b.pBartlett);
+      pValuesUngated.push(b.pBartlett);
+      if (esGate) nGateSuppressed++;
       condResults.push({
         condition: slice.name,
         nRows: slice.matrix.length,
@@ -195,6 +206,11 @@ export function testSelectiveNoise(matrix, condCtx) {
     const minAdjP = Math.min(...adjusted);
     const overallFlag = flagFromP(minAdjP);
 
+    // S342 (P50) — the same BH procedure over the ungated family. Same size,
+    // same order, no placeholders. This is what `primaryP` would be if the
+    // `esGate` expression above were deleted and nothing else changed.
+    const minAdjPUngated = Math.min(...bhFDR(pValuesUngated));
+
     // Also run pooled for reporting context
     const pooled = _runBartlett(matrix);
 
@@ -203,6 +219,7 @@ export function testSelectiveNoise(matrix, condCtx) {
 
     return {
       name: NAME, category: CAT, flag: overallFlag, primaryP: minAdjP,
+      primaryPUngated: minAdjPUngated, nGateSuppressed,
       description: DESC,
       nRows: matrix.length,
       maxMinVarianceRatio: pooled ? pooled.ratio.toFixed(3) : "—",
@@ -237,8 +254,14 @@ export function testSelectiveNoise(matrix, condCtx) {
   // Per-column one-vs-rest Levene results (display-only, does not affect flag)
   const perCol = _perColumnLevene(matrix);
 
+  // S342 (P50) — on this path `primaryP` is already the raw Bartlett p: the
+  // gate suppresses the FLAG but never touches the published p, and there is
+  // no BH family to re-run. So the counterfactual equals the shipped value.
+  // Published anyway, so the field is present on every result rather than
+  // only on the stratified path.
   return {
     name: NAME, category: CAT, flag, primaryP: b.pBartlett,
+    primaryPUngated: b.pBartlett, nGateSuppressed: esGate ? 1 : 0,
     description: DESC,
     nRows: matrix.length,
     maxMinVarianceRatio: b.ratio.toFixed(3),
