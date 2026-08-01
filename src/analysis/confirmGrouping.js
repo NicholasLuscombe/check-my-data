@@ -41,7 +41,7 @@
 
 import { extractAnalysisInputs } from './engine.js';
 import { aggregatePerGroup } from './aggregation.js';
-import { createPRNG } from '../stats/prng.js';
+import { createPRNGFactory } from '../stats/prng.js';
 import { DATATYPE_SKIP, DATATYPE_CAUSE, joinDeclineReason } from '../constants/assays.js';
 import { NA_CAUSE } from '../constants/naCause.js';
 import { noGroupMeetsMin } from './applicability.js';
@@ -82,7 +82,10 @@ export async function runConfirmedGroupedTests({ data, roles, condColSet, zeroAs
   const hasVST = vstMatrix !== null;
   const vstCondCtx = hasVST ? condCtx.withMatrix(vstMatrix) : null;
 
-  const rng = createPRNG(matrix);
+  // Per-test streams (S340), same scheme as engine.js. The identifiers are the
+  // engine's dispatch-map keys, so a test seeded here and the same test seeded
+  // by the engine agree whenever they see the same matrix.
+  const rngFor = createPRNGFactory(matrix);
   // Same three-field emit as engine.js's dtSkip, joined through the same
   // helper so the two can't drift. Presence is a key test — a tail of "" is a
   // real entry whose whole reason is the shared cause.
@@ -172,12 +175,12 @@ export async function runConfirmedGroupedTests({ data, roles, condColSet, zeroAs
   const entropy = await (async () => {
     const dt = dtSkip('Entropy / Zipf Analysis', 'noise'); if (dt) return dt;
     const rg = condCtx?.rowGroups();
-    if (rg) return await aggregatePerGroup(m => testEntropy(m, rng, dataType), rg);
+    if (rg) return await aggregatePerGroup(m => testEntropy(m, rngFor('Entropy / Zipf Analysis'), dataType), rg);
     if (groupingUnusable) {
       return refuse("Entropy / Zipf Analysis", "shapes",
         "No group is large enough to analyse — this test needs at least 20 values in a column within a group.", NA_CAUSE.TOO_FEW_OBSERVATIONS, 20);
     }
-    return testEntropy(matrix, rng, dataType);
+    return testEntropy(matrix, rngFor('Entropy / Zipf Analysis'), dataType);
   })();
 
   // ── Column Goodness-of-Fit (engine.js:526-538) ──
@@ -189,13 +192,13 @@ export async function runConfirmedGroupedTests({ data, roles, condColSet, zeroAs
         return { name: "Column Goodness-of-Fit", category: "shapes", flag: "N/A", naCause: NA_CAUSE.TOO_FEW_OBSERVATIONS, naObserved: Math.max(...rg.map(g => g.matrix.length)), naMinimum: GOF_MIN_OBS,
           description: `Not applicable — no condition group has the ${GOF_MIN_OBS} values this goodness-of-fit test needs to fit a distribution.` };
       }
-      return await aggregatePerGroup(m => testColumnGof(m, rng, dataType), rg);
+      return await aggregatePerGroup(m => testColumnGof(m, rngFor('Column Goodness-of-Fit'), dataType), rg);
     }
     if (groupingUnusable) {
       return refuse("Column Goodness-of-Fit", "shapes",
         `This test needs ${GOF_MIN_OBS} values in a group to fit a distribution.`, NA_CAUSE.TOO_FEW_OBSERVATIONS, GOF_MIN_OBS);
     }
-    return testColumnGof(matrix, rng, dataType);
+    return testColumnGof(matrix, rngFor('Column Goodness-of-Fit'), dataType);
   })();
 
   // ── Modality (engine.js:539-556) ──
@@ -207,13 +210,13 @@ export async function runConfirmedGroupedTests({ data, roles, condColSet, zeroAs
         return { name: "Modality Test", category: "shapes", flag: "N/A", naCause: NA_CAUSE.TOO_FEW_OBSERVATIONS, naObserved: Math.max(...rg.map(g => g.matrix.length)), naMinimum: MODALITY_MIN_N,
           description: `Not applicable — no condition group has the ${MODALITY_MIN_N} values this modality test needs.` };
       }
-      return await aggregatePerGroup(m => testModality(m, rng, dataType), rg);
+      return await aggregatePerGroup(m => testModality(m, rngFor('Modality Test'), dataType), rg);
     }
     if (groupingUnusable) {
       return refuse("Modality Test", "shapes",
         `This test needs ${MODALITY_MIN_N} values in a group.`, NA_CAUSE.TOO_FEW_OBSERVATIONS, MODALITY_MIN_N);
     }
-    return testModality(matrix, rng, dataType);
+    return testModality(matrix, rngFor('Modality Test'), dataType);
   })();
 
   return [mahal, entropy, colgof, modality];

@@ -235,10 +235,14 @@ export function testPearsonUniformity(matrix, pairGroups, rng, rowSemantics = 'o
 
   // Permutation null: shuffle row order per pair, recompute max excess.
   // Pre-allocate index array once at max size — reused across all perms/pairs.
-  let scanP=1;
+  // S340 — nPerm is published on the result. It stays null when the scan does
+  // not run, because a p with no permutation component should not report a
+  // count it never used.
+  let scanP=1, scanNPerm=null;
   if(obsScanStat>0&&scanPairs.length>0){
     const maxN=Math.max(...scanPairs.map(sp=>sp.n));
     const N_PERM=maxN<=100?999:maxN<=1000?499:199;
+    scanNPerm=N_PERM;
     const permIdx=Array.from({length:maxN},(_,i)=>i);
     let exceedCount=0;
     for(let perm=0;perm<N_PERM;perm++){
@@ -333,7 +337,7 @@ export function testPearsonUniformity(matrix, pairGroups, rng, rowSemantics = 'o
     nRows:matrix.length,
     iccPredicted:meanICC!==null?meanICC.toFixed(4):"n/a",
     highSNRWarning:allHighSNR, nSuspicious,
-    windowScanP:scanP, windowSigCount:nWinSig, nWindowsTested:allWinResults.length,
+    windowScanP:scanP, nPerm:scanNPerm, windowScanRan:scanNPerm!==null, windowSigCount:nWinSig, nWindowsTested:allWinResults.length,
     subunitsSuppressed: suppressWindowed ? ['windowed-scan'] : [],
     primaryP:bestP,
     interpretation, flag,
