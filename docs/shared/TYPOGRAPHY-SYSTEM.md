@@ -429,7 +429,7 @@ fixture set.
   (not flanking centred section titles) — e.g. `SECTION_DIVIDER`
   (slate-500, 3 px, used at the §2 sticky-surface bottom edge per A1.D3 /
   S163) — live in `tokens.js` next to `C.*` and are inventoried in
-  TYPOGRAPHY-INVENTORY.md §1.12b.
+  docs/shared/archive/TYPOGRAPHY-INVENTORY.md §1.12b.
 
 ## Maintenance discipline
 
