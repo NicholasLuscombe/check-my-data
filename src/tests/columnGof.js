@@ -261,6 +261,7 @@ export function testColumnGof(matrix, rng, dataType) {
 
   return {
     name: NAME, category: CAT, flag, primaryP,
+    nPerm: B,   // S340 — bootstrap draws, published so a calibration read never has to source-dive for it
     description: "Anderson–Darling goodness-of-fit per column against a moment-matched {Normal, Poisson, NB} family. " +
       `Parametric bootstrap null with refit (B=${B}) calibrates the per-column AD² distribution; two-sided test flags ` +
       "both shape mismatch (AD too large) and too-tight fits (AD too small, suggesting RNG padding).",

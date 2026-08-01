@@ -19,10 +19,14 @@ import { registerHooks } from "node:module";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
+// S340 per-test streams moved the seam. Every instance — whether from
+// createPRNG or from createPRNGFactory's per-test derivation — now passes
+// through createPRNGFromSeed, so offsetting there offsets the whole battery
+// uniformly, which is what sweeping "the seed" means under per-test streams.
 const TARGET = "src/stats/prng.js";
-const FROM = "  let _state = hashMatrix(matrix);";
+const FROM = "  let _state = seed | 0;";
 const TO =
-  "  let _state = (hashMatrix(matrix) ^ Math.imul((globalThis.__S340_SEED | 0), 0x9E3779B1)) | 0;";
+  "  let _state = (seed ^ Math.imul((globalThis.__S340_SEED | 0), 0x9E3779B1)) | 0;";
 
 let registered = false;
 let fired = false;

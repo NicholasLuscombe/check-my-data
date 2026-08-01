@@ -2,7 +2,7 @@
 // Orchestrates the full 25-test forensic analysis pipeline.
 // Extracted from App.jsx. Phase 8 additions: validateMatrix, per-test error boundaries.
 
-import { createPRNG } from '../stats/prng.js';
+import { createPRNGFactory } from '../stats/prng.js';
 import { flagRankOf } from '../constants/thresholds.js';
 import { DATATYPE_SKIP, DATATYPE_CAUSE, TOO_FEW_REPLICATE_COLS_CAUSE, joinDeclineReason } from '../constants/assays.js';
 import { NA_CAUSE } from '../constants/naCause.js';
@@ -194,8 +194,11 @@ export async function runFullAnalysis(matrix, rawMatrix, condCtx, assay, onProgr
   // Re-create condCtx if validation changed the matrix (e.g. sanitised NaN → null → all-null row removed)
   if (matrix !== validation.matrix) condCtx = condCtx.withMatrix(matrix);
 
-  // Create PRNG instance from data for deterministic results (Web Worker safe)
-  const rng = createPRNG(matrix);
+  // Per-test PRNG streams (S340). One instance per test, derived from the data
+  // hash and the test's DISPATCH-MAP KEY, so no test's draws depend on which
+  // tests ran before it. Renaming a key below reseeds that test — see the
+  // onboarding checklist in CLAUDE.md.
+  const rngFor = createPRNGFactory(matrix);
 
   const isConditionsMode = condCtx.type === 'column-grouped' && !condCtx.paired;
   const useAggregate = condCtx.type === 'column-grouped' && condCtx.count >= 2;
@@ -365,7 +368,7 @@ export async function runFullAnalysis(matrix, rawMatrix, condCtx, assay, onProgr
     ["Benford's Law",                () => {
       if (assay === "cell_count") return { name: "Benford's Law (First Digit)", category: "digit",
         flag: "N/A", naCause: NA_CAUSE.ASSAY_NOT_APPLICABLE, description: "Not applicable to cell-count data. When values come from a single counting process, their leading digits follow a pattern set by the average count, not Benford's law, which needs numbers drawn from many different processes across a wide range." };
-      return testBenford(matrix, rng);
+      return testBenford(matrix, rngFor("Benford's Law"));
     }],
     ["Benford's Law (2nd Digit)",    () => {
       if (assay === "cell_count") return { name: "Benford's Law (Second Digit)", category: "digit",
@@ -374,13 +377,13 @@ export async function runFullAnalysis(matrix, rawMatrix, condCtx, assay, onProgr
       const intFrac = allV.filter(v => Number.isInteger(v)).length / (allV.length || 1);
       if (intFrac > 0.9) return { name: "Benford's Law (Second Digit)", category: "digit",
         flag: "N/A", naCause: NA_CAUSE.DATA_TYPE_MISMATCH, description: "Not applicable to whole-number data. Round counts such as 10, 20, 100, or 200 pile their second digit on zero as a matter of course, so the test would flag an ordinary feature of integers rather than anything suspicious." };
-      return testBenford2(matrix, rng);
+      return testBenford2(matrix, rngFor("Benford's Law (2nd Digit)"));
     }],
     ["Terminal Digit Uniformity",    () => testTerminalDigits(matrix, assay)],
     ["Decimal Precision",            () => testDecimalPrecision(matrix, rawMatrix, assay)],
     ["Value-Frequency Spike",        () => testValueFrequencySpike(matrix, rawMatrix)],
     // --- Copy, Paste, Edit ---
-    ["Inter-Replicate Correlation",  () => condSkip("Inter-Replicate Correlation","distributional") || dtSkip("Inter-Replicate Correlation","distributional") || testPearsonUniformity(matrix, condCtx.slices(), rng, rowSemantics)],
+    ["Inter-Replicate Correlation",  () => condSkip("Inter-Replicate Correlation","distributional") || dtSkip("Inter-Replicate Correlation","distributional") || testPearsonUniformity(matrix, condCtx.slices(), rngFor("Inter-Replicate Correlation"), rowSemantics)],
     // S318 — under conditions-mode (non-replicates) each data column is its own
     // single-column group, so runPair's aggregate branch would slice DupDet
     // per-column. On a one-column slice the full-row key degenerates to a single
@@ -405,14 +408,14 @@ export async function runFullAnalysis(matrix, rawMatrix, condCtx, assay, onProgr
       // → LOW). Self-gating; see METHODOLOGY §1.2.
       const cs = condSkip("Constant-Offset Blocks","structural"); if (cs) return cs;
       const dt = dtSkip("Constant-Offset Blocks","structural"); if (dt) return dt;
-      return tagVST(testConstantOffset(hasVST ? vstMatrix : matrix, rng));
+      return tagVST(testConstantOffset(hasVST ? vstMatrix : matrix, rngFor("Constant-Offset Blocks")));
     }],
     ["Residual Spike Correlation",   () => {
       const csRS = condSkip("Residual Spike Correlation","structural"); if (csRS) return csRS;
       const dtRS = dtSkip("Residual Spike Correlation","structural"); if (dtRS) return dtRS;
       const m = hasVST ? vstMatrix : matrix;
       const ctx = hasVST ? vstCondCtx : condCtx;
-      const r = testResidualSpikeCorrelation(m, ctx, rng);
+      const r = testResidualSpikeCorrelation(m, ctx, rngFor("Residual Spike Correlation"));
       if (hasVST) r.vstTransform = vstType;
       return r;
     }],
@@ -432,7 +435,7 @@ export async function runFullAnalysis(matrix, rawMatrix, condCtx, assay, onProgr
         return { name: "Cross-Condition Consistency", category: "group",
           flag: "N/A", naCause: NA_CAUSE.TOO_FEW_CONDITIONS, naObserved: ctx?.count ?? 0, naMinimum: 2, description: "Need ≥2 experimental conditions." };
       }
-      const r = testCrossConditionConsistency(m, ctx, rng, { originalMatrix: matrix, hasVST });
+      const r = testCrossConditionConsistency(m, ctx, rngFor("Cross-Condition Consistency"), { originalMatrix: matrix, hasVST });
       if (hasVST) r.vstTransform = vstType;
       return r;
     }],
@@ -517,13 +520,13 @@ export async function runFullAnalysis(matrix, rawMatrix, condCtx, assay, onProgr
       const onPermProgress = onProgress
         ? (frac) => onProgress(`${bmIndex+1}/${tests.length} — Blocked Mahalanobis (perms ${Math.round(frac*100)}%)`)
         : null;
-      const r = await testBlockedMahalanobis(m, ctx, rng, dataType, onPermProgress);
+      const r = await testBlockedMahalanobis(m, ctx, rngFor("Blocked Mahalanobis"), dataType, onPermProgress);
       if (hasVST) r.vstTransform = vstType;
       return r;
     }],
     // --- Cross-Replicate Comparisons + Distribution Shapes ---
     ["Noise Scaling With Measurement Size",   () => condSkip("Noise Scaling With Measurement Size","instrument") || dtSkip("Noise Scaling With Measurement Size","instrument") || testMeanVariance(matrix, assay)],
-    ["Kurtosis",                     async () => devSkip("Kurtosis","distributional") || condSkip("Kurtosis","distributional") || dtSkip("Kurtosis","distributional") || tagVST(await runPairVST((m, childCtx) => testKurtosis(m, childCtx, rng), condCtx))],
+    ["Kurtosis",                     async () => devSkip("Kurtosis","distributional") || condSkip("Kurtosis","distributional") || dtSkip("Kurtosis","distributional") || tagVST(await runPairVST((m, childCtx) => testKurtosis(m, childCtx, rngFor("Kurtosis")), condCtx))],
     // S179 A1: distribution-shape trio per-condition routing. Mirrors the
     // Mahalanobis Row Outlier S127 Path 1 shape — when condCtx.rowGroups()
     // returns ≥2 row-groups each ≥3 rows, dispatch per-condition via
@@ -534,8 +537,8 @@ export async function runFullAnalysis(matrix, rawMatrix, condCtx, assay, onProgr
       const dt = dtSkip("Entropy / Zipf Analysis","noise"); if (dt) return dt;
       if (groupingPending) return pendingResult("Entropy / Zipf Analysis", "shapes");
       const rg = condCtx?.rowGroups();
-      if (rg) return await aggregatePerGroup(m => testEntropy(m, rng, dataType), rg);
-      return testEntropy(matrix, rng, dataType);
+      if (rg) return await aggregatePerGroup(m => testEntropy(m, rngFor("Entropy / Zipf Analysis"), dataType), rg);
+      return testEntropy(matrix, rngFor("Entropy / Zipf Analysis"), dataType);
     }],
     ["Column Goodness-of-Fit",       async () => {
       const dt = dtSkip("Column Goodness-of-Fit","shapes"); if (dt) return dt;
@@ -546,9 +549,9 @@ export async function runFullAnalysis(matrix, rawMatrix, condCtx, assay, onProgr
           return { name: "Column Goodness-of-Fit", category: "shapes", flag: "N/A", naCause: NA_CAUSE.TOO_FEW_OBSERVATIONS, naObserved: Math.max(...rg.map(g => g.matrix.length)), naMinimum: GOF_MIN_OBS,
             description: `Not applicable — no condition group has the ${GOF_MIN_OBS} values this goodness-of-fit test needs to fit a distribution.` };
         }
-        return await aggregatePerGroup(m => testColumnGof(m, rng, dataType), rg);
+        return await aggregatePerGroup(m => testColumnGof(m, rngFor("Column Goodness-of-Fit"), dataType), rg);
       }
-      return testColumnGof(matrix, rng, dataType);
+      return testColumnGof(matrix, rngFor("Column Goodness-of-Fit"), dataType);
     }],
     ["Modality Test",                async () => {
       const dt = dtSkip("Modality Test","shapes"); if (dt) return dt;
@@ -559,9 +562,9 @@ export async function runFullAnalysis(matrix, rawMatrix, condCtx, assay, onProgr
           return { name: "Modality Test", category: "shapes", flag: "N/A", naCause: NA_CAUSE.TOO_FEW_OBSERVATIONS, naObserved: Math.max(...rg.map(g => g.matrix.length)), naMinimum: MODALITY_MIN_N,
             description: `Not applicable — no condition group has the ${MODALITY_MIN_N} values this modality test needs.` };
         }
-        return await aggregatePerGroup(m => testModality(m, rng, dataType), rg);
+        return await aggregatePerGroup(m => testModality(m, rngFor("Modality Test"), dataType), rg);
       }
-      return testModality(matrix, rng, dataType);
+      return testModality(matrix, rngFor("Modality Test"), dataType);
     }],
     // S118 Track H: §2.1 NOT rsSkip-gated — Tier 2 effect-size floor
     // |mean r| ≥ 0.25 at N ≥ 500 renders arbitrary-order co-regulation
@@ -583,9 +586,9 @@ export async function runFullAnalysis(matrix, rawMatrix, condCtx, assay, onProgr
       const onWacPermProgress = onProgress
         ? (frac) => onProgress(`${wacIndex+1}/${tests.length} — Windowed Autocorrelation (perms ${Math.round(frac*100)}%)`)
         : null;
-      return tagVST(await runPairVST((m) => testWindowedAutocorrelation(m, rng, onWacPermProgress)));
+      return tagVST(await runPairVST((m) => testWindowedAutocorrelation(m, rngFor("Windowed Autocorrelation"), onWacPermProgress)));
     }],
-    ["Runs Test",                    async () => condSkip("Runs Test","distributional") || dtSkip("Runs Test","distributional") || rsSkip("Runs Test","distributional") || tagVST(await runPairVST((m, childCtx) => testRuns(m, childCtx, rng), condCtx))],
+    ["Runs Test",                    async () => condSkip("Runs Test","distributional") || dtSkip("Runs Test","distributional") || rsSkip("Runs Test","distributional") || tagVST(await runPairVST((m, childCtx) => testRuns(m, childCtx, rngFor("Runs Test")), condCtx))],
     ["Within-Row Variance",          () => {
       const csWR = condSkip("Within-Row Variance","noise"); if (csWR) return csWR;
       const dtWR = dtSkip("Within-Row Variance","noise"); if (dtWR) return dtWR;
@@ -595,7 +598,7 @@ export async function runFullAnalysis(matrix, rawMatrix, condCtx, assay, onProgr
       // alongside the S118 sub-unit suppression (windowed scan only) below.
       if (assay === "genomics") return { name: "Within-Row Variance", category: "noise",
         flag: "N/A", naCause: NA_CAUSE.ASSAY_NOT_APPLICABLE, description: "Not applicable to genomics data. The spread across repeated measurements of one gene is driven by real biological differences, not by the measurement noise this test is built to check." };
-      return testWithinRowVariance(matrix, rng, rowSemantics);
+      return testWithinRowVariance(matrix, rngFor("Within-Row Variance"), rowSemantics);
     }],
     // --- Cross-Replicate Comparisons (spatial / sectional) ---
     ["LOESS Residual Analysis",      async () => {
@@ -604,7 +607,7 @@ export async function runFullAnalysis(matrix, rawMatrix, condCtx, assay, onProgr
       const csLO = condSkip("LOESS Residual Analysis","distributional"); if (csLO) return csLO;
       const dtLO = dtSkip("LOESS Residual Analysis","distributional"); if (dtLO) return dtLO;
       const rsLO = rsSkip("LOESS Residual Analysis","distributional"); if (rsLO) return rsLO;
-      return tagVST(await runPairVST((m) => testLoessResidual(m, rng)));
+      return tagVST(await runPairVST((m) => testLoessResidual(m, rngFor("LOESS Residual Analysis"))));
     }],
     ["Row-Mean Runs",                async () => {
       const csRM = condSkip("Row-Mean Runs","distributional"); if (csRM) return csRM;
@@ -618,7 +621,7 @@ export async function runFullAnalysis(matrix, rawMatrix, condCtx, assay, onProgr
         return { name: "Row-Mean Runs", category: "replicate", flag: "N/A", naCause: NA_CAUSE.PREMISE_VOID,
           description: "Not applicable — the rows are not labelled by experimental condition, which this test requires. It looks for drift or sudden shifts in the row averages within one condition; without those labels, ordinary differences between samples would look like drift." };
       }
-      return tagVST(await runPairVST((m, childCtx) => testRowMeanRuns(m, childCtx, rng), condCtx));
+      return tagVST(await runPairVST((m, childCtx) => testRowMeanRuns(m, childCtx, rngFor("Row-Mean Runs")), condCtx));
     }],
     ["Selective Noise",              async () => condSkip("Selective Noise","structural") || dtSkip("Selective Noise","structural") || tagVST(await runPairVST((m, childCtx) => testSelectiveNoise(m, childCtx), condCtx))],
     ["Regional Noise Homogeneity",   async () => {
@@ -627,7 +630,7 @@ export async function runFullAnalysis(matrix, rawMatrix, condCtx, assay, onProgr
       const csRN = condSkip("Regional Noise Homogeneity","instrument"); if (csRN) return csRN;
       const dtRN = dtSkip("Regional Noise Homogeneity","instrument"); if (dtRN) return dtRN;
       const rsRN = rsSkip("Regional Noise Homogeneity","instrument"); if (rsRN) return rsRN;
-      return tagVST(await runPairVST((m) => testRegionalNoise(m, rng)));
+      return tagVST(await runPairVST((m) => testRegionalNoise(m, rngFor("Regional Noise Homogeneity"))));
     }],
     ["Missing Data Pattern",         () => testMissingDataPattern(matrix, condCtx, assay)],
   ];

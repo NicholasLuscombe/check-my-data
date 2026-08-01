@@ -215,10 +215,14 @@ export function testRuns(matrix, condCtx, rng) {
   const globalFlag=esGate?"LOW":flagFromP(minAdjP);
 
   // Permutation scan — skip entirely when esGate fires (large N, trivial deficit)
-  let scanP=1;
+  // S340 — nPerm is published on the result. It stays null when the scan does
+  // not run, because a p with no permutation component should not report a
+  // count it never used.
+  let scanP=1, scanNPerm=null;
   if(!esGate&&obsScanStat<Infinity&&scanSeqs.length>0){
     const maxN=Math.max(...scanSeqs.map(s=>s.diffs.length));
     const N_PERM=maxN<=100?999:maxN<=1000?499:199;
+    scanNPerm=N_PERM;
     // S159c — one Float64Array shuffle buffer per scanSeq, allocated once.
     // Replaces `seq.diffs.slice()` per perm and the destructuring swap temp.
     const shuffledBufs = scanSeqs.map(seq => new Float64Array(seq.diffs.length));
@@ -303,7 +307,7 @@ export function testRuns(matrix, condCtx, rng) {
     description:"In random data, which replicate is larger should switch back and forth unpredictably as you go down the rows. If one replicate stays consistently above another for long stretches, the row ordering is not random \u2014 suggesting the values were constructed sequentially rather than measured independently.",
     nRows: matrix.length,
     nSignificant:nSig, nPairs:res.length,
-    pooledMeanZ:pooledMeanZ.toFixed(3), pooledT:pooled.t.toFixed(3), pooledP:pooled.p.toFixed(4), primaryP:bestP, minAdjP,
+    pooledMeanZ:pooledMeanZ.toFixed(3), pooledT:pooled.t.toFixed(3), pooledP:pooled.p.toFixed(4), primaryP:bestP, minAdjP, nPerm:scanNPerm, windowScanRan:scanNPerm!==null,
     pooledZSD, pooledZSE, pooledZCI_flag,
     // Observed/expected runs ratio over all pairs. Drives the N>=500
     // effect-size gate (runsRatio > 0.70 → LOW even when p-value would

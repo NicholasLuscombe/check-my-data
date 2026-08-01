@@ -1,9 +1,9 @@
 /* S340 step 3 premise — is createPRNG's seed hash a sound basis to derive
    per-test streams from?
 
-   hashMatrix is FNV-1a over the first 500 non-null values, in row-major order,
-   folded to 32 bits. Per-test derivation inherits whatever this collides on, so
-   two properties matter:
+   Since S340 hashMatrix walks EVERY non-null value in two 32-bit lanes. It used
+   to stop at 500, which is what this probe was written to catch. Per-test
+   derivation inherits whatever the hash collides on, so two properties matter:
 
      1. Does it separate the fixtures we have?
      2. Does it separate files it OUGHT to separate — in particular a file and a
@@ -46,7 +46,7 @@ function matrixOf(file, assay) {
 }
 
 console.log('S340 — is the seed hash a sound basis for per-test derivation?');
-console.log('hashMatrix: FNV-1a over the first 500 non-null values, row-major, folded to 32 bits.\n');
+console.log('hashMatrix: FNV-1a over every non-null value, row-major, two lanes folded to 32 bits.\n');
 
 // ── 1. Do the 27 fixtures separate? ──
 const seeds = new Map();
@@ -64,8 +64,8 @@ for (const g of collided) console.log(`     COLLIDE: ${g.join('  ==  ')}`);
 // Take each fixture, append copies of its own rows, and check the seed. Any
 // fixture whose first 500 non-null values are already consumed before the end
 // of the file will hash identically however much is appended.
-console.log('\n2. A file against the same file with rows appended (the hash stops at 500 values):');
-console.log(`   ${'fixture'.padEnd(42)} ${'cells'.padStart(7)} ${'500 reached at row'.padStart(19)}  seed changes when rows are appended?`);
+console.log('\n2. A file against the same file with rows appended:');
+console.log(`   ${'fixture'.padEnd(42)} ${'cells'.padStart(7)} ${'500th value at row'.padStart(19)}  seed changes when rows are appended?`);
 let blindCount = 0;
 for (const [file, exp] of Object.entries(EXPECTED)) {
   const m = matrixOf(file, exp.assay);
@@ -87,7 +87,7 @@ for (const [file, exp] of Object.entries(EXPECTED)) {
 console.log(`\n   ${blindCount} of ${Object.keys(EXPECTED).length} fixtures hash identically to a version of themselves with every row duplicated.`);
 
 // ── 3. Does a change beyond the 500th value move the seed at all? ──
-console.log('\n3. Editing one cell, at the front versus past the 500-value cut:');
+console.log('\n3. Editing one cell, at the front versus in the last row:');
 for (const file of ['11-rnaseq-multicondition.csv', '09-proteomics-clean.csv', '08-elisa-fabricated.csv']) {
   const exp = EXPECTED[file];
   const m = matrixOf(file, exp.assay);

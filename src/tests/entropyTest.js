@@ -174,6 +174,7 @@ export function testEntropy(matrix, rng, dataType) {
 
   return {
     name: NAME, category: CAT, flag, primaryP,
+    nPerm: B,   // S340 — bootstrap draws, published so a calibration read never has to source-dive for it
     description: "Shannon entropy measures how spread-out the value distribution is. " +
       "Fabricated columns often have too few distinct values (low entropy — suggests values were drawn from a restricted set) " +
       "or artificially uniform distributions (high entropy — over-randomised). " +
