@@ -72,7 +72,11 @@ export function testBenford(matrix, rng) {
     simMad/=9;
     if(simMad>=mad) madExceedCount++;
   }
-  pMAD = madExceedCount / N_SIM_BENFORD;
+  // Continuity-corrected simulation p (Phipson & Smyth 2010). The bare
+  // madExceedCount / N_SIM_BENFORD emits exactly 0 at zero exceedances, which
+  // asserts impossibility on N_SIM_BENFORD draws rather than a bounded tail;
+  // (k+1)/(B+1) floors it at 1/5001 and keeps the p a valid p-value.
+  pMAD = (madExceedCount + 1) / (N_SIM_BENFORD + 1);
 
   // Flag: simulation p-value with Nigrini MAD Nonconformity gate .
   // At large N, the simulation correctly detects MAD values (e.g. 0.009) that would
