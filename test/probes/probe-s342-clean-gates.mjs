@@ -38,6 +38,7 @@ const { forwardFill, preprocessRaw, detectHeaderRows } = await import('../../src
 const { detectLongFormat } = await import('../../src/import/longFormat.js');
 const { suggestRowSemantics } = await import('../../src/import/rowSemantics.js');
 const { ALPHA } = await import('../../src/constants/thresholds.js');
+const { TEST_MECHANISM } = await import('../../src/constants/mechanisms.js');
 const { EXPECTED } = await import('../batch-fixtures.mjs');
 
 const FIXTURES = 'test/fixtures';
@@ -244,6 +245,7 @@ mkdirSync(OUT_DIR, { recursive: true });
 
 const rows = [];          // one per (fixture, gated test) cell that ran
 const notRecoverable = []; // cells whose pre-gate p cannot be read back
+const naCells = [];        // (fixture, gated test) cells that produced no readable p
 const dump = {};
 
 console.log(`Clean fixtures declared in test/batch-fixtures.mjs: ${cleanFiles.length}\n`);
@@ -253,10 +255,24 @@ for (const [file, expected] of cleanFiles) {
   dump[file] = { severity, nRows, nCols, results };
   if (severity !== 0) console.log(`!! ${file} ran at severity ${severity}, declared 0`);
 
+  // Cells where the gated test is not in the results array at all — it never
+  // dispatched on this fixture's shape.
+  const present = new Set(results.map(r => r.name));
+  for (const t of Object.keys(GATED)) {
+    if (!present.has(t)) naCells.push({ file, test: t, kind: 'absent', naCause: null, why: 'test not present in results — did not dispatch on this fixture shape' });
+  }
+
   for (const r of results) {
     const spec = GATED[r.name];
     if (!spec) continue;
-    if (r.flag === 'N/A') continue;   // did not run — no p, no gate decision
+    if (r.flag === 'N/A') {           // did not run — no p, no gate decision
+      naCells.push({
+        file, test: r.name, kind: 'N/A', naCause: r.naCause ?? null,
+        naObserved: r.naObserved, naMinimum: r.naMinimum,
+        why: (r.naCauseText || r.description || '').slice(0, 220),
+      });
+      continue;
+    }
 
     const ungated = spec.ungatedP(r);
     if (ungated == null || !Number.isFinite(ungated)) {
@@ -314,6 +330,192 @@ for (const t of Object.keys(GATED)) if (!seen.has(t)) console.log(`  ${t}`);
 
 console.log(`\nDump written: ${join(OUT_DIR, 'clean-corpus-dump.json')}`);
 console.log(`Gated tests in table: ${Object.keys(GATED).length}; ungated tests listed: ${UNGATED_TESTS.length}; total ${Object.keys(GATED).length + UNGATED_TESTS.length}`);
+
+// ════════════════════════════════════════════════════════════════════════
+// B. BAND COUNTERFACTUAL — does a gate ever save a file-level VERDICT?
+//
+// Takes each clean fixture's real result array, upgrades only the gate-saved
+// cells to the tier their p alone would give, and runs the SHIPPED
+// computeSeverity() over the modified array. Nothing is reimplemented: the
+// ladder at severity.js:17-23 decides both bands.
+// ════════════════════════════════════════════════════════════════════════
+const dimOf = r => TEST_MECHANISM[r.name] || r.category || '(none)';
+const flagSet = res => res.filter(r => r.flag === 'HIGH' || r.flag === 'MODERATE')
+  .map(r => `${r.name}:${r.flag}[${dimOf(r)}]`);
+
+console.log('\n\n' + '═'.repeat(76));
+console.log('B. BAND COUNTERFACTUAL — clean fixtures, actual vs gates-removed');
+console.log('═'.repeat(76));
+
+const bandRows = [];
+for (const [file, v] of Object.entries(dump)) {
+  const actual = computeSeverity(v.results);
+  const actualFlags = flagSet(v.results);
+
+  // Counterfactual: same array, saved cells raised to their p-alone tier.
+  const savedHere = saved.filter(s => s.file === file);
+  const cf = v.results.map(r => {
+    const s = savedHere.find(x => x.test === r.name);
+    return s ? { ...r, flag: s.pAloneTier } : r;
+  });
+  const counter = computeSeverity(cf);
+
+  bandRows.push({ file, actual, counter, actualFlags, cfFlags: flagSet(cf), savedHere });
+}
+
+console.log('\n── 1. Actual emitted flag set (every MOD/HIGH, default seed) ──');
+let anyActualFlag = false;
+for (const b of bandRows) {
+  console.log(`  ${b.file.padEnd(38)} ${b.actualFlags.length ? b.actualFlags.join(', ') : '(no MODERATE or HIGH — every test LOW or N/A)'}`);
+  if (b.actualFlags.length) anyActualFlag = true;
+}
+console.log(`\n  Any clean fixture emitting MODERATE or HIGH today? ${anyActualFlag ? 'YES' : 'NO'}`);
+
+console.log('\n── 2/3/4. Counterfactual flag set, band, and dimensions ──');
+console.log('fixture'.padEnd(38) + 'actual band'.padEnd(13) + 'cf band'.padEnd(11) + 'cf high/mod/dims'.padEnd(19) + 'moved');
+for (const b of bandRows) {
+  const moved = b.counter.severity !== b.actual.severity;
+  console.log(
+    b.file.padEnd(38) +
+    `${b.actual.severity} (h${b.actual.high}/m${b.actual.mod}/d${b.actual.nFlaggedDimensions})`.padEnd(13) +
+    `${b.counter.severity}`.padEnd(11) +
+    `${b.counter.high}/${b.counter.mod}/${b.counter.nFlaggedDimensions}`.padEnd(19) +
+    (moved ? `YES  ${b.actual.severity} -> ${b.counter.severity}` : 'no')
+  );
+  if (b.cfFlags.length) console.log(`${' '.repeat(38)}cf flags: ${b.cfFlags.join(', ')}`);
+}
+
+const movedBands = bandRows.filter(b => b.counter.severity !== b.actual.severity);
+console.log(`\n  Counterfactual band moves: ${movedBands.length} of ${bandRows.length} clean fixtures.`);
+for (const b of movedBands) {
+  console.log(`    ${b.file}: ${b.actual.severity} -> ${b.counter.severity}  (driven by ${b.savedHere.map(s => `${s.test}->${s.pAloneTier}`).join(', ')})`);
+}
+
+// Which ladder branch each counterfactual band came from — severity.js:17-23.
+console.log('\n── Which branch of severity.js:17-23 fires on each counterfactual ──');
+for (const b of movedBands) {
+  const { high, mod, nFlaggedDimensions: d } = b.counter;
+  const branch =
+    high >= 3 ? ':17  high>=3 -> 3' :
+    high >= 2 ? ':18  high>=2 -> 3' :
+    (high >= 1 && d >= 2) ? ':19  high>=1 && dims>=2 -> 3' :
+    high >= 1 ? ':20  high>=1 -> 2' :
+    (mod >= 2 && d >= 2) ? ':21  mod>=2 && dims>=2 -> 3' :
+    mod >= 3 ? ':22  mod>=3 -> 1' :
+    mod >= 1 ? ':23  mod>=1 -> 1' : ':23  else -> 0';
+  console.log(`  ${b.file.padEnd(38)} severity.js${branch}`);
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// C. THE CELLS THAT NEVER RAN
+// ════════════════════════════════════════════════════════════════════════
+console.log('\n\n' + '═'.repeat(76));
+console.log('C. GATED-TEST CELLS THAT PRODUCED NO READABLE p');
+console.log('═'.repeat(76));
+const possible = cleanFiles.length * Object.keys(GATED).length;
+console.log(`\n  ${cleanFiles.length} clean fixtures x ${Object.keys(GATED).length} gated tests = ${possible} possible cells`);
+console.log(`  readable: ${rows.length}   not-readable: ${naCells.length}   (sum ${rows.length + naCells.length})`);
+
+const byCause = {};
+for (const c of naCells) {
+  const key = c.kind === 'absent' ? 'ABSENT (never dispatched)' : (c.naCause || '(no naCause field)');
+  (byCause[key] ||= []).push(c);
+}
+console.log('\n── Breakdown by reason ──');
+for (const [cause, cs] of Object.entries(byCause).sort((a, b) => b[1].length - a[1].length)) {
+  console.log(`\n  ${cause}  —  ${cs.length} cell(s)`);
+  for (const c of cs) {
+    const minPart = (c.naObserved != null || c.naMinimum != null) ? `  [observed ${c.naObserved} vs minimum ${c.naMinimum}]` : '';
+    console.log(`     ${c.file.padEnd(36)} ${c.test}${minPart}`);
+    if (c.why) console.log(`         ${c.why}`);
+  }
+}
+console.log('\n── Breakdown by test ──');
+const byTest = {};
+for (const c of naCells) (byTest[c.test] ||= []).push(c);
+for (const [t, cs] of Object.entries(byTest).sort((a, b) => b[1].length - a[1].length)) {
+  console.log(`  ${String(cs.length).padStart(2)}  ${t.padEnd(34)} ${cs.map(c => c.file.replace(/\.csv$/, '')).join(', ')}`);
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// D. THE SPLIT TEST — the same gates on FABRICATED fixtures
+//
+// On clean data a gate-save is protective. On a fabricated fixture the same
+// event is a SUPPRESSED DETECTION. The vocabulary is deliberately different.
+// ════════════════════════════════════════════════════════════════════════
+console.log('\n\n' + '═'.repeat(76));
+console.log('D. FABRICATED FIXTURES — suppression, not saving');
+console.log('═'.repeat(76));
+
+const fabFiles = Object.entries(EXPECTED).filter(([, e]) => e.severity > 0);
+console.log(`\nFabricated fixtures declared in test/batch-fixtures.mjs (severity > 0): ${fabFiles.length}`);
+
+const UNIT_GATED = ['Selective Noise Partitioning', 'Cross-Condition Consistency', 'Value-Frequency Spike'];
+const N500_GATES = ['Constant-Offset Blocks', 'Cross-Condition Consistency', 'Autocorrelation',
+  'Runs Test', 'LOESS Residual Analysis', 'Selective Noise Partitioning', 'Regional Noise Homogeneity'];
+
+const fabDump = {};
+const unitRows = [], n500Rows = [];
+for (const [file, expected] of fabFiles) {
+  const { results, severity, nRows, nCols } = await runFixture(file, expected);
+  fabDump[file] = { severity, nRows, nCols, results };
+
+  for (const r of results) {
+    const spec = GATED[r.name];
+    if (!spec || r.flag === 'N/A') continue;
+    const ungated = spec.ungatedP(r);
+    const readable = ungated != null && Number.isFinite(ungated);
+    const rec = {
+      file, nRows, test: r.name, primaryP: r.primaryP,
+      ungated: readable ? ungated : null,
+      ungatedTier: readable ? tierFromP(ungated) : null,
+      emitted: r.flag,
+      nGateSuppressed: r.nGateSuppressed,
+      gateFired: spec.gateFired(r) === true,
+      suppressed: readable && tierFromP(ungated) !== 'LOW' && r.flag === 'LOW',
+    };
+    if (UNIT_GATED.includes(r.name)) unitRows.push(rec);
+    if (N500_GATES.includes(r.name)) n500Rows.push(rec);
+  }
+}
+writeFileSync(join(OUT_DIR, 'fabricated-dump.json'), JSON.stringify(fabDump, null, 2));
+
+console.log('\n── D1. The three unit-level gates on fabricated data ──');
+console.log('fixture'.padEnd(34) + 'rows'.padEnd(7) + 'test'.padEnd(31) + 'primaryP'.padEnd(11) + 'ungated'.padEnd(11) + 'ungTier'.padEnd(10) + 'emitted'.padEnd(10) + 'nSupp'.padEnd(7) + 'SUPPRESSED?');
+for (const r of unitRows.sort((a, b) => (a.ungated ?? 9) - (b.ungated ?? 9))) {
+  console.log(
+    r.file.replace(/\.csv$/, '').padEnd(34) + String(r.nRows).padEnd(7) + r.test.padEnd(31) +
+    fmtP(r.primaryP).padEnd(11) + (r.ungated == null ? '—' : fmtP(r.ungated)).padEnd(11) +
+    String(r.ungatedTier ?? '—').padEnd(10) + r.emitted.padEnd(10) +
+    String(r.nGateSuppressed ?? '—').padEnd(7) + (r.suppressed ? 'YES' : '')
+  );
+}
+const unitSupp = unitRows.filter(r => r.suppressed);
+const unitExtreme = unitRows.filter(r => r.ungatedTier && r.ungatedTier !== 'LOW');
+console.log(`\n  Unit-gated cells on fabricated data: ${unitRows.length}`);
+console.log(`  ...with a non-LOW ungated p (the test DID produce an extreme p): ${unitExtreme.length}`);
+console.log(`  ...SUPPRESSED DETECTIONS (non-LOW ungated p, LOW emitted): ${unitSupp.length}`);
+for (const r of unitSupp) console.log(`     ${r.file} / ${r.test}: ungated ${fmtP(r.ungated)} (${r.ungatedTier}) -> emitted ${r.emitted}, ${r.nGateSuppressed} unit(s) gated`);
+console.log(`  ...where the gate fired at all (nGateSuppressed > 0): ${unitRows.filter(r => r.gateFired).length}`);
+
+console.log('\n── D2. The seven N>=500 gates, on fabricated fixtures reaching 500 rows ──');
+const big = [...new Set(n500Rows.filter(r => r.nRows >= 500).map(r => r.file))];
+console.log(`  Fabricated fixtures with >= 500 rows: ${big.length ? big.join(', ') : 'NONE'}`);
+if (big.length) {
+  console.log('\nfixture'.padEnd(35) + 'rows'.padEnd(7) + 'test'.padEnd(31) + 'primaryP'.padEnd(11) + 'ungated'.padEnd(11) + 'ungTier'.padEnd(10) + 'emitted'.padEnd(10) + 'gate live+fired?');
+  for (const r of n500Rows.filter(x => x.nRows >= 500).sort((a, b) => a.file.localeCompare(b.file) || a.test.localeCompare(b.test))) {
+    console.log(
+      r.file.replace(/\.csv$/, '').padEnd(34) + String(r.nRows).padEnd(7) + r.test.padEnd(31) +
+      fmtP(r.primaryP).padEnd(11) + (r.ungated == null ? '—' : fmtP(r.ungated)).padEnd(11) +
+      String(r.ungatedTier ?? '—').padEnd(10) + r.emitted.padEnd(10) +
+      (r.gateFired ? 'FIRED' : 'live, did not fire') + (r.suppressed ? '   SUPPRESSED DETECTION' : '')
+    );
+  }
+}
+const n500Big = n500Rows.filter(r => r.nRows >= 500);
+console.log(`\n  N>=500-gate cells on large fabricated fixtures: ${n500Big.length}; fired: ${n500Big.filter(r => r.gateFired).length}; suppressed a detection: ${n500Big.filter(r => r.suppressed).length}`);
+
+console.log(`\nFabricated dump written: ${join(OUT_DIR, 'fabricated-dump.json')}`);
 
 function fmtP(p) {
   if (!Number.isFinite(p)) return String(p);

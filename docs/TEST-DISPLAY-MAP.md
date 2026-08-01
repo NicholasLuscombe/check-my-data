@@ -3,9 +3,9 @@
 **GENERATED — DO NOT HAND-EDIT** — regenerate via
 `node scripts/build-test-display-map.mjs`
 
-- Generated: 2026-07-30 14:36:04Z
-- Commit:    `4d03d59` (`4d03d591b492891175ea6a45e306503d516f0615`)
-- Branch:    `claude/sidak-worst-arm`
+- Generated: 2026-08-01 17:51:14Z
+- Commit:    `7d66488` (`7d66488d88fd8d1484479c3f1a56b17909908644`)
+- Branch:    `claude/band-counterfactual-s342`
 - Batch:     live `result.flag` via the validate-batch pipeline over the shared 22-fixture set (`test/batch-fixtures.mjs`)
 
 Answers one question for the visual walk: **which dataset do I load to see a
@@ -82,7 +82,7 @@ Sorted by cluster in fixed display order (copied → digits → shapes → repli
 | Noise Scaling With Measurement Size | Noise scaling | Cross-Replicate Comparisons | DS06 HIGH |
 | Excess Kurtosis | Noise shape | Cross-Replicate Comparisons | — latent |
 | Runs Test | Noise sign-pattern | Cross-Replicate Comparisons | DS23 MOD (ack) |
-| Regional Noise Homogeneity | Region-to-region noise | Cross-Replicate Comparisons | DS10 MOD/HIGH, DS21 MOD/HIGH |
+| Regional Noise Homogeneity | Region-to-region noise | Cross-Replicate Comparisons | DS08 MOD, DS10 MOD/HIGH, DS12b MOD (ack), DS21 MOD/HIGH |
 | Row-Mean Runs | Row-mean patterns | Cross-Replicate Comparisons | DS21 MOD/HIGH |
 | Blocked Mahalanobis | Shifted blocks | Cross-Replicate Comparisons | DS15 MOD/HIGH, DS21 MOD/HIGH, DS22 MOD/HIGH |
 | Mahalanobis Row Outlier | Unusual rows | Cross-Replicate Comparisons | DS06 HIGH (ack), DS08 MOD (ack) |
