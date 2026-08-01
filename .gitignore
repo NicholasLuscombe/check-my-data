@@ -60,3 +60,8 @@ test/perf-out/
 corpus-out/
 corpus-data/
 /REALWORLD-CORPUS-SPEC.md
+
+# Probe output dumps — regenerable from test/probes/probe-*.mjs, never tracked.
+# promote.sh runs `git add -A`, which stages untracked files, so these need an
+# explicit ignore rather than just being left untracked (S341).
+test/probes/out-*/
