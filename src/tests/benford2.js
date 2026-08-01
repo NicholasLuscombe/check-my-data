@@ -112,7 +112,9 @@ export function testBenford2(matrix, rng) {
     simMad /= 10;
     if (simMad >= mad) madExceedCount++;
   }
-  const pMAD = madExceedCount / N_SIM;
+  // Continuity-corrected simulation p (Phipson & Smyth 2010) — see benford.js.
+  // Zero exceedances would otherwise emit exactly 0; (k+1)/(B+1) floors at 1/5001.
+  const pMAD = (madExceedCount + 1) / (N_SIM + 1);
 
   // MAD conformity labels (Nigrini 2012: second-digit thresholds are less strict)
   let madLabel;

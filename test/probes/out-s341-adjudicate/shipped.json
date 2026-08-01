@@ -1,0 +1,1572 @@
+{
+ "arm": "shipped",
+ "seeds": 8,
+ "plant": {
+  "08-elisa-fabricated.csv": {
+   "assay": "elisa",
+   "components": [
+    {
+     "name": "AR(1) residuals phi=0.55 sigma=0.09",
+     "rows": [
+      1,
+      65
+     ],
+     "cols": "all 3 plates",
+     "src": "gen:262-264"
+    },
+    {
+     "name": "Benford push (leading<=3 x U(2,3))",
+     "rows": [
+      1,
+      24
+     ],
+     "cols": "all 3 plates",
+     "src": "gen:275-285"
+    },
+    {
+     "name": "Constant offset P2 = P1 x 1.047",
+     "rows": [
+      35,
+      48
+     ],
+     "cols": "Plate2",
+     "src": "gen:288-294"
+    },
+    {
+     "name": "Selective noise P3 = mean(P1,P2)x(1+0.01N)",
+     "rows": [
+      50,
+      64
+     ],
+     "cols": "Plate3",
+     "src": "gen:296-301"
+    }
+   ],
+   "focus": {
+    "name": "selective noise",
+    "rows": [
+     50,
+     64
+    ]
+   },
+   "slices": {
+    "inside": [
+     50,
+     64
+    ],
+    "outside": [
+     1,
+     49
+    ]
+   }
+  },
+  "12b-uniform-mixture-fabricated.csv": {
+   "assay": "general",
+   "components": [
+    {
+     "name": "Genuine: log-normal noise CV~18%",
+     "rows": [
+      1,
+      200
+     ],
+     "cols": "rep1-6",
+     "src": "gen:578-583"
+    },
+    {
+     "name": "Fabricated: uniform +/-40% of base",
+     "rows": [
+      201,
+      400
+     ],
+     "cols": "rep1-6",
+     "src": "gen:587-594"
+    }
+   ],
+   "focus": {
+    "name": "uniform-noise condition",
+    "rows": [
+     201,
+     400
+    ]
+   },
+   "slices": {
+    "inside": [
+     201,
+     400
+    ],
+    "outside": [
+     1,
+     200
+    ]
+   }
+  }
+ },
+ "whole": {
+  "08-elisa-fabricated.csv": {
+   "nRows": 65,
+   "nCols": 3,
+   "bySeed": [
+    {
+     "seed": 0,
+     "Regional Noise Homogeneity": {
+      "flag": "MODERATE",
+      "primaryP": 0.0066,
+      "scanP": 0.0066,
+      "nPerm": 4999,
+      "nRows": 65,
+      "nWindows": 11,
+      "bestWindowRows": "31–45",
+      "bestVarRatio": "9.80×",
+      "bestAnomCol": 2
+     },
+     "LOESS Residual Analysis": {
+      "flag": "HIGH",
+      "primaryP": 0.0002,
+      "scanP": 0.0034,
+      "cusumP": 0.0002,
+      "nPerm": 4999,
+      "nWindows": 8,
+      "bestWindowRows": "37–56",
+      "bestVarRatio": "7.17×",
+      "bestDirection": "smoother",
+      "changepointRow": 32,
+      "changepointDirection": "decreases"
+     },
+     "Autocorrelation": {
+      "flag": "LOW",
+      "primaryP": 0.047652901927705216
+     },
+     "Selective Noise Partitioning": {
+      "flag": "HIGH",
+      "primaryP": 0.0005877697805839466
+     }
+    },
+    {
+     "seed": 1,
+     "Regional Noise Homogeneity": {
+      "flag": "MODERATE",
+      "primaryP": 0.007,
+      "scanP": 0.007,
+      "nPerm": 4999,
+      "nRows": 65,
+      "nWindows": 11,
+      "bestWindowRows": "31–45",
+      "bestVarRatio": "9.80×",
+      "bestAnomCol": 2
+     },
+     "LOESS Residual Analysis": {
+      "flag": "HIGH",
+      "primaryP": 0.0002,
+      "scanP": 0.0044,
+      "cusumP": 0.0002,
+      "nPerm": 4999,
+      "nWindows": 8,
+      "bestWindowRows": "37–56",
+      "bestVarRatio": "7.17×",
+      "bestDirection": "smoother",
+      "changepointRow": 32,
+      "changepointDirection": "decreases"
+     },
+     "Autocorrelation": {
+      "flag": "LOW",
+      "primaryP": 0.047652901927705216
+     },
+     "Selective Noise Partitioning": {
+      "flag": "HIGH",
+      "primaryP": 0.0005877697805839466
+     }
+    },
+    {
+     "seed": 2,
+     "Regional Noise Homogeneity": {
+      "flag": "MODERATE",
+      "primaryP": 0.009,
+      "scanP": 0.009,
+      "nPerm": 4999,
+      "nRows": 65,
+      "nWindows": 11,
+      "bestWindowRows": "31–45",
+      "bestVarRatio": "9.80×",
+      "bestAnomCol": 2
+     },
+     "LOESS Residual Analysis": {
+      "flag": "HIGH",
+      "primaryP": 0.0002,
+      "scanP": 0.0024,
+      "cusumP": 0.0002,
+      "nPerm": 4999,
+      "nWindows": 8,
+      "bestWindowRows": "37–56",
+      "bestVarRatio": "7.17×",
+      "bestDirection": "smoother",
+      "changepointRow": 32,
+      "changepointDirection": "decreases"
+     },
+     "Autocorrelation": {
+      "flag": "LOW",
+      "primaryP": 0.047652901927705216
+     },
+     "Selective Noise Partitioning": {
+      "flag": "HIGH",
+      "primaryP": 0.0005877697805839466
+     }
+    },
+    {
+     "seed": 3,
+     "Regional Noise Homogeneity": {
+      "flag": "MODERATE",
+      "primaryP": 0.0056,
+      "scanP": 0.0056,
+      "nPerm": 4999,
+      "nRows": 65,
+      "nWindows": 11,
+      "bestWindowRows": "31–45",
+      "bestVarRatio": "9.80×",
+      "bestAnomCol": 2
+     },
+     "LOESS Residual Analysis": {
+      "flag": "HIGH",
+      "primaryP": 0.0002,
+      "scanP": 0.0036,
+      "cusumP": 0.0002,
+      "nPerm": 4999,
+      "nWindows": 8,
+      "bestWindowRows": "37–56",
+      "bestVarRatio": "7.17×",
+      "bestDirection": "smoother",
+      "changepointRow": 32,
+      "changepointDirection": "decreases"
+     },
+     "Autocorrelation": {
+      "flag": "LOW",
+      "primaryP": 0.047652901927705216
+     },
+     "Selective Noise Partitioning": {
+      "flag": "HIGH",
+      "primaryP": 0.0005877697805839466
+     }
+    },
+    {
+     "seed": 4,
+     "Regional Noise Homogeneity": {
+      "flag": "MODERATE",
+      "primaryP": 0.0082,
+      "scanP": 0.0082,
+      "nPerm": 4999,
+      "nRows": 65,
+      "nWindows": 11,
+      "bestWindowRows": "31–45",
+      "bestVarRatio": "9.80×",
+      "bestAnomCol": 2
+     },
+     "LOESS Residual Analysis": {
+      "flag": "HIGH",
+      "primaryP": 0.0002,
+      "scanP": 0.0028,
+      "cusumP": 0.0002,
+      "nPerm": 4999,
+      "nWindows": 8,
+      "bestWindowRows": "37–56",
+      "bestVarRatio": "7.17×",
+      "bestDirection": "smoother",
+      "changepointRow": 32,
+      "changepointDirection": "decreases"
+     },
+     "Autocorrelation": {
+      "flag": "LOW",
+      "primaryP": 0.047652901927705216
+     },
+     "Selective Noise Partitioning": {
+      "flag": "HIGH",
+      "primaryP": 0.0005877697805839466
+     }
+    },
+    {
+     "seed": 5,
+     "Regional Noise Homogeneity": {
+      "flag": "MODERATE",
+      "primaryP": 0.007,
+      "scanP": 0.007,
+      "nPerm": 4999,
+      "nRows": 65,
+      "nWindows": 11,
+      "bestWindowRows": "31–45",
+      "bestVarRatio": "9.80×",
+      "bestAnomCol": 2
+     },
+     "LOESS Residual Analysis": {
+      "flag": "HIGH",
+      "primaryP": 0.0002,
+      "scanP": 0.0028,
+      "cusumP": 0.0002,
+      "nPerm": 4999,
+      "nWindows": 8,
+      "bestWindowRows": "37–56",
+      "bestVarRatio": "7.17×",
+      "bestDirection": "smoother",
+      "changepointRow": 32,
+      "changepointDirection": "decreases"
+     },
+     "Autocorrelation": {
+      "flag": "LOW",
+      "primaryP": 0.047652901927705216
+     },
+     "Selective Noise Partitioning": {
+      "flag": "HIGH",
+      "primaryP": 0.0005877697805839466
+     }
+    },
+    {
+     "seed": 6,
+     "Regional Noise Homogeneity": {
+      "flag": "MODERATE",
+      "primaryP": 0.0078,
+      "scanP": 0.0078,
+      "nPerm": 4999,
+      "nRows": 65,
+      "nWindows": 11,
+      "bestWindowRows": "31–45",
+      "bestVarRatio": "9.80×",
+      "bestAnomCol": 2
+     },
+     "LOESS Residual Analysis": {
+      "flag": "HIGH",
+      "primaryP": 0.0002,
+      "scanP": 0.003,
+      "cusumP": 0.0002,
+      "nPerm": 4999,
+      "nWindows": 8,
+      "bestWindowRows": "37–56",
+      "bestVarRatio": "7.17×",
+      "bestDirection": "smoother",
+      "changepointRow": 32,
+      "changepointDirection": "decreases"
+     },
+     "Autocorrelation": {
+      "flag": "LOW",
+      "primaryP": 0.047652901927705216
+     },
+     "Selective Noise Partitioning": {
+      "flag": "HIGH",
+      "primaryP": 0.0005877697805839466
+     }
+    },
+    {
+     "seed": 7,
+     "Regional Noise Homogeneity": {
+      "flag": "MODERATE",
+      "primaryP": 0.0066,
+      "scanP": 0.0066,
+      "nPerm": 4999,
+      "nRows": 65,
+      "nWindows": 11,
+      "bestWindowRows": "31–45",
+      "bestVarRatio": "9.80×",
+      "bestAnomCol": 2
+     },
+     "LOESS Residual Analysis": {
+      "flag": "HIGH",
+      "primaryP": 0.0002,
+      "scanP": 0.0028,
+      "cusumP": 0.0002,
+      "nPerm": 4999,
+      "nWindows": 8,
+      "bestWindowRows": "37–56",
+      "bestVarRatio": "7.17×",
+      "bestDirection": "smoother",
+      "changepointRow": 32,
+      "changepointDirection": "decreases"
+     },
+     "Autocorrelation": {
+      "flag": "LOW",
+      "primaryP": 0.047652901927705216
+     },
+     "Selective Noise Partitioning": {
+      "flag": "HIGH",
+      "primaryP": 0.0005877697805839466
+     }
+    }
+   ]
+  },
+  "12b-uniform-mixture-fabricated.csv": {
+   "nRows": 400,
+   "nCols": 6,
+   "bySeed": [
+    {
+     "seed": 0,
+     "Regional Noise Homogeneity": {
+      "flag": "MODERATE",
+      "primaryP": 0.008,
+      "scanP": 0.008,
+      "nPerm": 499,
+      "nRows": 400,
+      "nWindows": 78,
+      "bestWindowRows": "51–65",
+      "bestVarRatio": "7.83×",
+      "bestAnomCol": 6
+     },
+     "LOESS Residual Analysis": {
+      "flag": "MODERATE",
+      "primaryP": 0.002,
+      "scanP": 0.576,
+      "cusumP": 0.002,
+      "nPerm": 499,
+      "nWindows": 64,
+      "bestWindowRows": "289–308",
+      "bestVarRatio": "2.13×",
+      "bestDirection": "smoother",
+      "changepointRow": 196,
+      "changepointDirection": "increases"
+     },
+     "Autocorrelation": {
+      "flag": "LOW",
+      "primaryP": 0.6728257599588263
+     },
+     "Selective Noise Partitioning": {
+      "flag": "LOW",
+      "primaryP": 1
+     }
+    },
+    {
+     "seed": 1,
+     "Regional Noise Homogeneity": {
+      "flag": "MODERATE",
+      "primaryP": 0.006,
+      "scanP": 0.006,
+      "nPerm": 499,
+      "nRows": 400,
+      "nWindows": 78,
+      "bestWindowRows": "51–65",
+      "bestVarRatio": "7.83×",
+      "bestAnomCol": 6
+     },
+     "LOESS Residual Analysis": {
+      "flag": "MODERATE",
+      "primaryP": 0.002,
+      "scanP": 0.572,
+      "cusumP": 0.002,
+      "nPerm": 499,
+      "nWindows": 64,
+      "bestWindowRows": "289–308",
+      "bestVarRatio": "2.13×",
+      "bestDirection": "smoother",
+      "changepointRow": 196,
+      "changepointDirection": "increases"
+     },
+     "Autocorrelation": {
+      "flag": "LOW",
+      "primaryP": 0.6728257599588263
+     },
+     "Selective Noise Partitioning": {
+      "flag": "LOW",
+      "primaryP": 1
+     }
+    },
+    {
+     "seed": 2,
+     "Regional Noise Homogeneity": {
+      "flag": "MODERATE",
+      "primaryP": 0.006,
+      "scanP": 0.006,
+      "nPerm": 499,
+      "nRows": 400,
+      "nWindows": 78,
+      "bestWindowRows": "51–65",
+      "bestVarRatio": "7.83×",
+      "bestAnomCol": 6
+     },
+     "LOESS Residual Analysis": {
+      "flag": "MODERATE",
+      "primaryP": 0.002,
+      "scanP": 0.574,
+      "cusumP": 0.002,
+      "nPerm": 499,
+      "nWindows": 64,
+      "bestWindowRows": "289–308",
+      "bestVarRatio": "2.13×",
+      "bestDirection": "smoother",
+      "changepointRow": 196,
+      "changepointDirection": "increases"
+     },
+     "Autocorrelation": {
+      "flag": "LOW",
+      "primaryP": 0.6728257599588263
+     },
+     "Selective Noise Partitioning": {
+      "flag": "LOW",
+      "primaryP": 1
+     }
+    },
+    {
+     "seed": 3,
+     "Regional Noise Homogeneity": {
+      "flag": "LOW",
+      "primaryP": 0.01,
+      "scanP": 0.01,
+      "nPerm": 499,
+      "nRows": 400,
+      "nWindows": 78,
+      "bestWindowRows": "51–65",
+      "bestVarRatio": "7.83×",
+      "bestAnomCol": 6
+     },
+     "LOESS Residual Analysis": {
+      "flag": "MODERATE",
+      "primaryP": 0.002,
+      "scanP": 0.64,
+      "cusumP": 0.002,
+      "nPerm": 499,
+      "nWindows": 64,
+      "bestWindowRows": "289–308",
+      "bestVarRatio": "2.13×",
+      "bestDirection": "smoother",
+      "changepointRow": 196,
+      "changepointDirection": "increases"
+     },
+     "Autocorrelation": {
+      "flag": "LOW",
+      "primaryP": 0.6728257599588263
+     },
+     "Selective Noise Partitioning": {
+      "flag": "LOW",
+      "primaryP": 1
+     }
+    },
+    {
+     "seed": 4,
+     "Regional Noise Homogeneity": {
+      "flag": "MODERATE",
+      "primaryP": 0.008,
+      "scanP": 0.008,
+      "nPerm": 499,
+      "nRows": 400,
+      "nWindows": 78,
+      "bestWindowRows": "51–65",
+      "bestVarRatio": "7.83×",
+      "bestAnomCol": 6
+     },
+     "LOESS Residual Analysis": {
+      "flag": "MODERATE",
+      "primaryP": 0.002,
+      "scanP": 0.624,
+      "cusumP": 0.002,
+      "nPerm": 499,
+      "nWindows": 64,
+      "bestWindowRows": "289–308",
+      "bestVarRatio": "2.13×",
+      "bestDirection": "smoother",
+      "changepointRow": 196,
+      "changepointDirection": "increases"
+     },
+     "Autocorrelation": {
+      "flag": "LOW",
+      "primaryP": 0.6728257599588263
+     },
+     "Selective Noise Partitioning": {
+      "flag": "LOW",
+      "primaryP": 1
+     }
+    },
+    {
+     "seed": 5,
+     "Regional Noise Homogeneity": {
+      "flag": "LOW",
+      "primaryP": 0.01,
+      "scanP": 0.01,
+      "nPerm": 499,
+      "nRows": 400,
+      "nWindows": 78,
+      "bestWindowRows": "51–65",
+      "bestVarRatio": "7.83×",
+      "bestAnomCol": 6
+     },
+     "LOESS Residual Analysis": {
+      "flag": "MODERATE",
+      "primaryP": 0.002,
+      "scanP": 0.58,
+      "cusumP": 0.002,
+      "nPerm": 499,
+      "nWindows": 64,
+      "bestWindowRows": "289–308",
+      "bestVarRatio": "2.13×",
+      "bestDirection": "smoother",
+      "changepointRow": 196,
+      "changepointDirection": "increases"
+     },
+     "Autocorrelation": {
+      "flag": "LOW",
+      "primaryP": 0.6728257599588263
+     },
+     "Selective Noise Partitioning": {
+      "flag": "LOW",
+      "primaryP": 1
+     }
+    },
+    {
+     "seed": 6,
+     "Regional Noise Homogeneity": {
+      "flag": "MODERATE",
+      "primaryP": 0.008,
+      "scanP": 0.008,
+      "nPerm": 499,
+      "nRows": 400,
+      "nWindows": 78,
+      "bestWindowRows": "51–65",
+      "bestVarRatio": "7.83×",
+      "bestAnomCol": 6
+     },
+     "LOESS Residual Analysis": {
+      "flag": "MODERATE",
+      "primaryP": 0.002,
+      "scanP": 0.548,
+      "cusumP": 0.002,
+      "nPerm": 499,
+      "nWindows": 64,
+      "bestWindowRows": "289–308",
+      "bestVarRatio": "2.13×",
+      "bestDirection": "smoother",
+      "changepointRow": 196,
+      "changepointDirection": "increases"
+     },
+     "Autocorrelation": {
+      "flag": "LOW",
+      "primaryP": 0.6728257599588263
+     },
+     "Selective Noise Partitioning": {
+      "flag": "LOW",
+      "primaryP": 1
+     }
+    },
+    {
+     "seed": 7,
+     "Regional Noise Homogeneity": {
+      "flag": "LOW",
+      "primaryP": 0.01,
+      "scanP": 0.01,
+      "nPerm": 499,
+      "nRows": 400,
+      "nWindows": 78,
+      "bestWindowRows": "51–65",
+      "bestVarRatio": "7.83×",
+      "bestAnomCol": 6
+     },
+     "LOESS Residual Analysis": {
+      "flag": "MODERATE",
+      "primaryP": 0.002,
+      "scanP": 0.58,
+      "cusumP": 0.002,
+      "nPerm": 499,
+      "nWindows": 64,
+      "bestWindowRows": "289–308",
+      "bestVarRatio": "2.13×",
+      "bestDirection": "smoother",
+      "changepointRow": 196,
+      "changepointDirection": "increases"
+     },
+     "Autocorrelation": {
+      "flag": "LOW",
+      "primaryP": 0.6728257599588263
+     },
+     "Selective Noise Partitioning": {
+      "flag": "LOW",
+      "primaryP": 1
+     }
+    }
+   ]
+  }
+ },
+ "slice": {
+  "08-elisa-fabricated.csv": {
+   "inside": [
+    {
+     "seed": 0,
+     "rows": [
+      50,
+      64
+     ],
+     "n": 15,
+     "Regional Noise Homogeneity": {
+      "flag": "N/A"
+     },
+     "LOESS Residual Analysis": {
+      "flag": "N/A"
+     }
+    },
+    {
+     "seed": 1,
+     "rows": [
+      50,
+      64
+     ],
+     "n": 15,
+     "Regional Noise Homogeneity": {
+      "flag": "N/A"
+     },
+     "LOESS Residual Analysis": {
+      "flag": "N/A"
+     }
+    },
+    {
+     "seed": 2,
+     "rows": [
+      50,
+      64
+     ],
+     "n": 15,
+     "Regional Noise Homogeneity": {
+      "flag": "N/A"
+     },
+     "LOESS Residual Analysis": {
+      "flag": "N/A"
+     }
+    },
+    {
+     "seed": 3,
+     "rows": [
+      50,
+      64
+     ],
+     "n": 15,
+     "Regional Noise Homogeneity": {
+      "flag": "N/A"
+     },
+     "LOESS Residual Analysis": {
+      "flag": "N/A"
+     }
+    },
+    {
+     "seed": 4,
+     "rows": [
+      50,
+      64
+     ],
+     "n": 15,
+     "Regional Noise Homogeneity": {
+      "flag": "N/A"
+     },
+     "LOESS Residual Analysis": {
+      "flag": "N/A"
+     }
+    },
+    {
+     "seed": 5,
+     "rows": [
+      50,
+      64
+     ],
+     "n": 15,
+     "Regional Noise Homogeneity": {
+      "flag": "N/A"
+     },
+     "LOESS Residual Analysis": {
+      "flag": "N/A"
+     }
+    },
+    {
+     "seed": 6,
+     "rows": [
+      50,
+      64
+     ],
+     "n": 15,
+     "Regional Noise Homogeneity": {
+      "flag": "N/A"
+     },
+     "LOESS Residual Analysis": {
+      "flag": "N/A"
+     }
+    },
+    {
+     "seed": 7,
+     "rows": [
+      50,
+      64
+     ],
+     "n": 15,
+     "Regional Noise Homogeneity": {
+      "flag": "N/A"
+     },
+     "LOESS Residual Analysis": {
+      "flag": "N/A"
+     }
+    }
+   ],
+   "outside": [
+    {
+     "seed": 0,
+     "rows": [
+      1,
+      49
+     ],
+     "n": 49,
+     "Regional Noise Homogeneity": {
+      "flag": "MODERATE",
+      "primaryP": 0.0014,
+      "scanP": 0.0014,
+      "nPerm": 4999,
+      "nRows": 49,
+      "nWindows": 7,
+      "bestWindowRows": "31–45",
+      "bestVarRatio": "8.88×",
+      "bestAnomCol": 2
+     },
+     "LOESS Residual Analysis": {
+      "flag": "LOW",
+      "primaryP": 0.018000000000000002,
+      "scanP": 0.0258,
+      "cusumP": 0.3996,
+      "nPerm": 4999,
+      "nWindows": 7,
+      "bestWindowRows": "31–46",
+      "bestVarRatio": "23.74×",
+      "bestDirection": "smoother",
+      "changepointRow": 17,
+      "changepointDirection": "decreases"
+     }
+    },
+    {
+     "seed": 1,
+     "rows": [
+      1,
+      49
+     ],
+     "n": 49,
+     "Regional Noise Homogeneity": {
+      "flag": "MODERATE",
+      "primaryP": 0.0016,
+      "scanP": 0.0016,
+      "nPerm": 4999,
+      "nRows": 49,
+      "nWindows": 7,
+      "bestWindowRows": "31–45",
+      "bestVarRatio": "8.88×",
+      "bestAnomCol": 2
+     },
+     "LOESS Residual Analysis": {
+      "flag": "LOW",
+      "primaryP": 0.021,
+      "scanP": 0.021,
+      "cusumP": 0.4032,
+      "nPerm": 4999,
+      "nWindows": 7,
+      "bestWindowRows": "31–46",
+      "bestVarRatio": "23.74×",
+      "bestDirection": "smoother",
+      "changepointRow": 17,
+      "changepointDirection": "decreases"
+     }
+    },
+    {
+     "seed": 2,
+     "rows": [
+      1,
+      49
+     ],
+     "n": 49,
+     "Regional Noise Homogeneity": {
+      "flag": "MODERATE",
+      "primaryP": 0.001,
+      "scanP": 0.001,
+      "nPerm": 4999,
+      "nRows": 49,
+      "nWindows": 7,
+      "bestWindowRows": "31–45",
+      "bestVarRatio": "8.88×",
+      "bestAnomCol": 2
+     },
+     "LOESS Residual Analysis": {
+      "flag": "LOW",
+      "primaryP": 0.018000000000000002,
+      "scanP": 0.0268,
+      "cusumP": 0.4128,
+      "nPerm": 4999,
+      "nWindows": 7,
+      "bestWindowRows": "31–46",
+      "bestVarRatio": "23.74×",
+      "bestDirection": "smoother",
+      "changepointRow": 17,
+      "changepointDirection": "decreases"
+     }
+    },
+    {
+     "seed": 3,
+     "rows": [
+      1,
+      49
+     ],
+     "n": 49,
+     "Regional Noise Homogeneity": {
+      "flag": "MODERATE",
+      "primaryP": 0.002,
+      "scanP": 0.002,
+      "nPerm": 4999,
+      "nRows": 49,
+      "nWindows": 7,
+      "bestWindowRows": "31–45",
+      "bestVarRatio": "8.88×",
+      "bestAnomCol": 2
+     },
+     "LOESS Residual Analysis": {
+      "flag": "LOW",
+      "primaryP": 0.012,
+      "scanP": 0.0234,
+      "cusumP": 0.4048,
+      "nPerm": 4999,
+      "nWindows": 7,
+      "bestWindowRows": "31–46",
+      "bestVarRatio": "23.74×",
+      "bestDirection": "smoother",
+      "changepointRow": 17,
+      "changepointDirection": "decreases"
+     }
+    },
+    {
+     "seed": 4,
+     "rows": [
+      1,
+      49
+     ],
+     "n": 49,
+     "Regional Noise Homogeneity": {
+      "flag": "MODERATE",
+      "primaryP": 0.0024,
+      "scanP": 0.0024,
+      "nPerm": 4999,
+      "nRows": 49,
+      "nWindows": 7,
+      "bestWindowRows": "31–45",
+      "bestVarRatio": "8.88×",
+      "bestAnomCol": 2
+     },
+     "LOESS Residual Analysis": {
+      "flag": "LOW",
+      "primaryP": 0.0228,
+      "scanP": 0.0228,
+      "cusumP": 0.3978,
+      "nPerm": 4999,
+      "nWindows": 7,
+      "bestWindowRows": "31–46",
+      "bestVarRatio": "23.74×",
+      "bestDirection": "smoother",
+      "changepointRow": 17,
+      "changepointDirection": "decreases"
+     }
+    },
+    {
+     "seed": 5,
+     "rows": [
+      1,
+      49
+     ],
+     "n": 49,
+     "Regional Noise Homogeneity": {
+      "flag": "MODERATE",
+      "primaryP": 0.0016,
+      "scanP": 0.0016,
+      "nPerm": 4999,
+      "nRows": 49,
+      "nWindows": 7,
+      "bestWindowRows": "31–45",
+      "bestVarRatio": "8.88×",
+      "bestAnomCol": 2
+     },
+     "LOESS Residual Analysis": {
+      "flag": "LOW",
+      "primaryP": 0.0214,
+      "scanP": 0.0214,
+      "cusumP": 0.4092,
+      "nPerm": 4999,
+      "nWindows": 7,
+      "bestWindowRows": "31–46",
+      "bestVarRatio": "23.74×",
+      "bestDirection": "smoother",
+      "changepointRow": 17,
+      "changepointDirection": "decreases"
+     }
+    },
+    {
+     "seed": 6,
+     "rows": [
+      1,
+      49
+     ],
+     "n": 49,
+     "Regional Noise Homogeneity": {
+      "flag": "MODERATE",
+      "primaryP": 0.0014,
+      "scanP": 0.0014,
+      "nPerm": 4999,
+      "nRows": 49,
+      "nWindows": 7,
+      "bestWindowRows": "31–45",
+      "bestVarRatio": "8.88×",
+      "bestAnomCol": 2
+     },
+     "LOESS Residual Analysis": {
+      "flag": "LOW",
+      "primaryP": 0.023,
+      "scanP": 0.023,
+      "cusumP": 0.4018,
+      "nPerm": 4999,
+      "nWindows": 7,
+      "bestWindowRows": "31–46",
+      "bestVarRatio": "23.74×",
+      "bestDirection": "smoother",
+      "changepointRow": 17,
+      "changepointDirection": "decreases"
+     }
+    },
+    {
+     "seed": 7,
+     "rows": [
+      1,
+      49
+     ],
+     "n": 49,
+     "Regional Noise Homogeneity": {
+      "flag": "MODERATE",
+      "primaryP": 0.0012,
+      "scanP": 0.0012,
+      "nPerm": 4999,
+      "nRows": 49,
+      "nWindows": 7,
+      "bestWindowRows": "31–45",
+      "bestVarRatio": "8.88×",
+      "bestAnomCol": 2
+     },
+     "LOESS Residual Analysis": {
+      "flag": "LOW",
+      "primaryP": 0.023,
+      "scanP": 0.023,
+      "cusumP": 0.4076,
+      "nPerm": 4999,
+      "nWindows": 7,
+      "bestWindowRows": "31–46",
+      "bestVarRatio": "23.74×",
+      "bestDirection": "smoother",
+      "changepointRow": 17,
+      "changepointDirection": "decreases"
+     }
+    }
+   ]
+  },
+  "12b-uniform-mixture-fabricated.csv": {
+   "inside": [
+    {
+     "seed": 0,
+     "rows": [
+      201,
+      400
+     ],
+     "n": 200,
+     "Regional Noise Homogeneity": {
+      "flag": "LOW",
+      "primaryP": 0.84,
+      "scanP": 0.84,
+      "nPerm": 499,
+      "nRows": 200,
+      "nWindows": 38,
+      "bestWindowRows": "46–60",
+      "bestVarRatio": "2.50×",
+      "bestAnomCol": 3
+     },
+     "LOESS Residual Analysis": {
+      "flag": "LOW",
+      "primaryP": 0.244,
+      "scanP": 0.244,
+      "cusumP": 0.542,
+      "nPerm": 499,
+      "nWindows": 31,
+      "bestWindowRows": "25–44",
+      "bestVarRatio": "6.03×",
+      "bestDirection": "rougher",
+      "changepointRow": 72,
+      "changepointDirection": "decreases"
+     }
+    },
+    {
+     "seed": 1,
+     "rows": [
+      201,
+      400
+     ],
+     "n": 200,
+     "Regional Noise Homogeneity": {
+      "flag": "LOW",
+      "primaryP": 0.808,
+      "scanP": 0.808,
+      "nPerm": 499,
+      "nRows": 200,
+      "nWindows": 38,
+      "bestWindowRows": "46–60",
+      "bestVarRatio": "2.50×",
+      "bestAnomCol": 3
+     },
+     "LOESS Residual Analysis": {
+      "flag": "LOW",
+      "primaryP": 0.246,
+      "scanP": 0.246,
+      "cusumP": 0.484,
+      "nPerm": 499,
+      "nWindows": 31,
+      "bestWindowRows": "25–44",
+      "bestVarRatio": "6.03×",
+      "bestDirection": "rougher",
+      "changepointRow": 72,
+      "changepointDirection": "decreases"
+     }
+    },
+    {
+     "seed": 2,
+     "rows": [
+      201,
+      400
+     ],
+     "n": 200,
+     "Regional Noise Homogeneity": {
+      "flag": "LOW",
+      "primaryP": 0.812,
+      "scanP": 0.812,
+      "nPerm": 499,
+      "nRows": 200,
+      "nWindows": 38,
+      "bestWindowRows": "46–60",
+      "bestVarRatio": "2.50×",
+      "bestAnomCol": 3
+     },
+     "LOESS Residual Analysis": {
+      "flag": "LOW",
+      "primaryP": 0.26,
+      "scanP": 0.26,
+      "cusumP": 0.478,
+      "nPerm": 499,
+      "nWindows": 31,
+      "bestWindowRows": "25–44",
+      "bestVarRatio": "6.03×",
+      "bestDirection": "rougher",
+      "changepointRow": 72,
+      "changepointDirection": "decreases"
+     }
+    },
+    {
+     "seed": 3,
+     "rows": [
+      201,
+      400
+     ],
+     "n": 200,
+     "Regional Noise Homogeneity": {
+      "flag": "LOW",
+      "primaryP": 0.81,
+      "scanP": 0.81,
+      "nPerm": 499,
+      "nRows": 200,
+      "nWindows": 38,
+      "bestWindowRows": "46–60",
+      "bestVarRatio": "2.50×",
+      "bestAnomCol": 3
+     },
+     "LOESS Residual Analysis": {
+      "flag": "LOW",
+      "primaryP": 0.27,
+      "scanP": 0.27,
+      "cusumP": 0.486,
+      "nPerm": 499,
+      "nWindows": 31,
+      "bestWindowRows": "25–44",
+      "bestVarRatio": "6.03×",
+      "bestDirection": "rougher",
+      "changepointRow": 72,
+      "changepointDirection": "decreases"
+     }
+    },
+    {
+     "seed": 4,
+     "rows": [
+      201,
+      400
+     ],
+     "n": 200,
+     "Regional Noise Homogeneity": {
+      "flag": "LOW",
+      "primaryP": 0.792,
+      "scanP": 0.792,
+      "nPerm": 499,
+      "nRows": 200,
+      "nWindows": 38,
+      "bestWindowRows": "46–60",
+      "bestVarRatio": "2.50×",
+      "bestAnomCol": 3
+     },
+     "LOESS Residual Analysis": {
+      "flag": "LOW",
+      "primaryP": 0.24,
+      "scanP": 0.24,
+      "cusumP": 0.496,
+      "nPerm": 499,
+      "nWindows": 31,
+      "bestWindowRows": "25–44",
+      "bestVarRatio": "6.03×",
+      "bestDirection": "rougher",
+      "changepointRow": 72,
+      "changepointDirection": "decreases"
+     }
+    },
+    {
+     "seed": 5,
+     "rows": [
+      201,
+      400
+     ],
+     "n": 200,
+     "Regional Noise Homogeneity": {
+      "flag": "LOW",
+      "primaryP": 0.816,
+      "scanP": 0.816,
+      "nPerm": 499,
+      "nRows": 200,
+      "nWindows": 38,
+      "bestWindowRows": "46–60",
+      "bestVarRatio": "2.50×",
+      "bestAnomCol": 3
+     },
+     "LOESS Residual Analysis": {
+      "flag": "LOW",
+      "primaryP": 0.264,
+      "scanP": 0.264,
+      "cusumP": 0.498,
+      "nPerm": 499,
+      "nWindows": 31,
+      "bestWindowRows": "25–44",
+      "bestVarRatio": "6.03×",
+      "bestDirection": "rougher",
+      "changepointRow": 72,
+      "changepointDirection": "decreases"
+     }
+    },
+    {
+     "seed": 6,
+     "rows": [
+      201,
+      400
+     ],
+     "n": 200,
+     "Regional Noise Homogeneity": {
+      "flag": "LOW",
+      "primaryP": 0.828,
+      "scanP": 0.828,
+      "nPerm": 499,
+      "nRows": 200,
+      "nWindows": 38,
+      "bestWindowRows": "46–60",
+      "bestVarRatio": "2.50×",
+      "bestAnomCol": 3
+     },
+     "LOESS Residual Analysis": {
+      "flag": "LOW",
+      "primaryP": 0.28,
+      "scanP": 0.28,
+      "cusumP": 0.51,
+      "nPerm": 499,
+      "nWindows": 31,
+      "bestWindowRows": "25–44",
+      "bestVarRatio": "6.03×",
+      "bestDirection": "rougher",
+      "changepointRow": 72,
+      "changepointDirection": "decreases"
+     }
+    },
+    {
+     "seed": 7,
+     "rows": [
+      201,
+      400
+     ],
+     "n": 200,
+     "Regional Noise Homogeneity": {
+      "flag": "LOW",
+      "primaryP": 0.83,
+      "scanP": 0.83,
+      "nPerm": 499,
+      "nRows": 200,
+      "nWindows": 38,
+      "bestWindowRows": "46–60",
+      "bestVarRatio": "2.50×",
+      "bestAnomCol": 3
+     },
+     "LOESS Residual Analysis": {
+      "flag": "LOW",
+      "primaryP": 0.26,
+      "scanP": 0.26,
+      "cusumP": 0.488,
+      "nPerm": 499,
+      "nWindows": 31,
+      "bestWindowRows": "25–44",
+      "bestVarRatio": "6.03×",
+      "bestDirection": "rougher",
+      "changepointRow": 72,
+      "changepointDirection": "decreases"
+     }
+    }
+   ],
+   "outside": [
+    {
+     "seed": 0,
+     "rows": [
+      1,
+      200
+     ],
+     "n": 200,
+     "Regional Noise Homogeneity": {
+      "flag": "LOW",
+      "primaryP": 0.288,
+      "scanP": 0.288,
+      "nPerm": 499,
+      "nRows": 200,
+      "nWindows": 38,
+      "bestWindowRows": "51–65",
+      "bestVarRatio": "4.30×",
+      "bestAnomCol": 6
+     },
+     "LOESS Residual Analysis": {
+      "flag": "LOW",
+      "primaryP": 0.375,
+      "scanP": 0.504,
+      "cusumP": 0.456,
+      "nPerm": 499,
+      "nWindows": 31,
+      "bestWindowRows": "25–44",
+      "bestVarRatio": "5.60×",
+      "bestDirection": "rougher",
+      "changepointRow": 94,
+      "changepointDirection": "decreases"
+     }
+    },
+    {
+     "seed": 1,
+     "rows": [
+      1,
+      200
+     ],
+     "n": 200,
+     "Regional Noise Homogeneity": {
+      "flag": "LOW",
+      "primaryP": 0.242,
+      "scanP": 0.242,
+      "nPerm": 499,
+      "nRows": 200,
+      "nWindows": 38,
+      "bestWindowRows": "51–65",
+      "bestVarRatio": "4.30×",
+      "bestAnomCol": 6
+     },
+     "LOESS Residual Analysis": {
+      "flag": "LOW",
+      "primaryP": 0.32999999999999996,
+      "scanP": 0.544,
+      "cusumP": 0.4,
+      "nPerm": 499,
+      "nWindows": 31,
+      "bestWindowRows": "25–44",
+      "bestVarRatio": "5.60×",
+      "bestDirection": "rougher",
+      "changepointRow": 94,
+      "changepointDirection": "decreases"
+     }
+    },
+    {
+     "seed": 2,
+     "rows": [
+      1,
+      200
+     ],
+     "n": 200,
+     "Regional Noise Homogeneity": {
+      "flag": "LOW",
+      "primaryP": 0.216,
+      "scanP": 0.216,
+      "nPerm": 499,
+      "nRows": 200,
+      "nWindows": 38,
+      "bestWindowRows": "51–65",
+      "bestVarRatio": "4.30×",
+      "bestAnomCol": 6
+     },
+     "LOESS Residual Analysis": {
+      "flag": "LOW",
+      "primaryP": 0.325,
+      "scanP": 0.53,
+      "cusumP": 0.418,
+      "nPerm": 499,
+      "nWindows": 31,
+      "bestWindowRows": "25–44",
+      "bestVarRatio": "5.60×",
+      "bestDirection": "rougher",
+      "changepointRow": 94,
+      "changepointDirection": "decreases"
+     }
+    },
+    {
+     "seed": 3,
+     "rows": [
+      1,
+      200
+     ],
+     "n": 200,
+     "Regional Noise Homogeneity": {
+      "flag": "LOW",
+      "primaryP": 0.238,
+      "scanP": 0.238,
+      "nPerm": 499,
+      "nRows": 200,
+      "nWindows": 38,
+      "bestWindowRows": "51–65",
+      "bestVarRatio": "4.30×",
+      "bestAnomCol": 6
+     },
+     "LOESS Residual Analysis": {
+      "flag": "LOW",
+      "primaryP": 0.355,
+      "scanP": 0.544,
+      "cusumP": 0.42,
+      "nPerm": 499,
+      "nWindows": 31,
+      "bestWindowRows": "25–44",
+      "bestVarRatio": "5.60×",
+      "bestDirection": "rougher",
+      "changepointRow": 94,
+      "changepointDirection": "decreases"
+     }
+    },
+    {
+     "seed": 4,
+     "rows": [
+      1,
+      200
+     ],
+     "n": 200,
+     "Regional Noise Homogeneity": {
+      "flag": "LOW",
+      "primaryP": 0.268,
+      "scanP": 0.268,
+      "nPerm": 499,
+      "nRows": 200,
+      "nWindows": 38,
+      "bestWindowRows": "51–65",
+      "bestVarRatio": "4.30×",
+      "bestAnomCol": 6
+     },
+     "LOESS Residual Analysis": {
+      "flag": "LOW",
+      "primaryP": 0.35000000000000003,
+      "scanP": 0.566,
+      "cusumP": 0.404,
+      "nPerm": 499,
+      "nWindows": 31,
+      "bestWindowRows": "25–44",
+      "bestVarRatio": "5.60×",
+      "bestDirection": "rougher",
+      "changepointRow": 94,
+      "changepointDirection": "decreases"
+     }
+    },
+    {
+     "seed": 5,
+     "rows": [
+      1,
+      200
+     ],
+     "n": 200,
+     "Regional Noise Homogeneity": {
+      "flag": "LOW",
+      "primaryP": 0.242,
+      "scanP": 0.242,
+      "nPerm": 499,
+      "nRows": 200,
+      "nWindows": 38,
+      "bestWindowRows": "51–65",
+      "bestVarRatio": "4.30×",
+      "bestAnomCol": 6
+     },
+     "LOESS Residual Analysis": {
+      "flag": "LOW",
+      "primaryP": 0.348,
+      "scanP": 0.564,
+      "cusumP": 0.418,
+      "nPerm": 499,
+      "nWindows": 31,
+      "bestWindowRows": "25–44",
+      "bestVarRatio": "5.60×",
+      "bestDirection": "rougher",
+      "changepointRow": 94,
+      "changepointDirection": "decreases"
+     }
+    },
+    {
+     "seed": 6,
+     "rows": [
+      1,
+      200
+     ],
+     "n": 200,
+     "Regional Noise Homogeneity": {
+      "flag": "LOW",
+      "primaryP": 0.278,
+      "scanP": 0.278,
+      "nPerm": 499,
+      "nRows": 200,
+      "nWindows": 38,
+      "bestWindowRows": "51–65",
+      "bestVarRatio": "4.30×",
+      "bestAnomCol": 6
+     },
+     "LOESS Residual Analysis": {
+      "flag": "LOW",
+      "primaryP": 0.372,
+      "scanP": 0.494,
+      "cusumP": 0.406,
+      "nPerm": 499,
+      "nWindows": 31,
+      "bestWindowRows": "25–44",
+      "bestVarRatio": "5.60×",
+      "bestDirection": "rougher",
+      "changepointRow": 94,
+      "changepointDirection": "decreases"
+     }
+    },
+    {
+     "seed": 7,
+     "rows": [
+      1,
+      200
+     ],
+     "n": 200,
+     "Regional Noise Homogeneity": {
+      "flag": "LOW",
+      "primaryP": 0.224,
+      "scanP": 0.224,
+      "nPerm": 499,
+      "nRows": 200,
+      "nWindows": 38,
+      "bestWindowRows": "51–65",
+      "bestVarRatio": "4.30×",
+      "bestAnomCol": 6
+     },
+     "LOESS Residual Analysis": {
+      "flag": "LOW",
+      "primaryP": 0.26999999999999996,
+      "scanP": 0.528,
+      "cusumP": 0.408,
+      "nPerm": 499,
+      "nWindows": 31,
+      "bestWindowRows": "25–44",
+      "bestVarRatio": "5.60×",
+      "bestDirection": "rougher",
+      "changepointRow": 94,
+      "changepointDirection": "decreases"
+     }
+    }
+   ]
+  }
+ }
+}
