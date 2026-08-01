@@ -7,7 +7,7 @@
 
      1. Does it separate the fixtures we have?
      2. Does it separate files it OUGHT to separate — in particular a file and a
-        longer file sharing its first 500 values, since the hash stops at 500?
+        longer file sharing its opening, which is what the 500-value cut missed.
 
    The second is the one to worry about. A dataset exported twice with extra
    rows appended, or a file next to its own truncation, are ordinary things.
@@ -61,9 +61,10 @@ console.log(`1. Across the 27 fixtures: ${seeds.size} distinct seeds, ${collided
 for (const g of collided) console.log(`     COLLIDE: ${g.join('  ==  ')}`);
 
 // ── 2. Does a file separate from a longer file sharing its prefix? ──
-// Take each fixture, append copies of its own rows, and check the seed. Any
-// fixture whose first 500 non-null values are already consumed before the end
-// of the file will hash identically however much is appended.
+// Take each fixture, append copies of its own rows, and check the seed. Under
+// the old 500-value cut, any fixture that reached 500 before its last row
+// hashed identically however much was appended. The '500th value at row' column
+// shows which fixtures those were.
 console.log('\n2. A file against the same file with rows appended:');
 console.log(`   ${'fixture'.padEnd(42)} ${'cells'.padStart(7)} ${'500th value at row'.padStart(19)}  seed changes when rows are appended?`);
 let blindCount = 0;
