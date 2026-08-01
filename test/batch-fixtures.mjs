@@ -190,7 +190,7 @@ export const EXPECTED = {
   // digit-and-distribution shadow, Selective Noise coupled to the Benford
   // span column) is declared in ACKNOWLEDGED, not suppressed — a
   // zero-collateral construction is impossible while the defects are present
-  // (SESSION297-FIXTURE-READ2.md). Held on the pending lane until the fired
+  // (docs/shared/archive/SESSION297-FIXTURE-READ2.md). Held on the pending lane until the fired
   // set is confirmed against live output, then flipped to gate.
   '23-recurrence-null-mixed.csv': { severity: 3, assay: 'general', flags: {
     "Benford's Law (First Digit)":   ['HIGH'],                // span-borrowing HIGH (recur leading-2 excess borrows wide's span)
@@ -234,7 +234,7 @@ export const ACKNOWLEDGED = {
     'Mahalanobis Row Outlier': "incidental 1-row outlier downstream of the localised noise suppression; primary channels SNP/LOESS/IRC/Const-Offset/Benford (S182 disposition, recorded S183 Phase 2)",
   },
   // §2.6 fix-verification fixtures — intrinsic collateral, declared not suppressed
-  // (SESSION297-FIXTURE-READ2.md Q3). Entropy/ColGoF are the recurrence's
+  // (docs/shared/archive/SESSION297-FIXTURE-READ2.md Q3). Entropy/ColGoF are the recurrence's
   // distribution shadow (vanish only if recur is removed); Selective Noise is
   // coupled to the Benford span column's variance outlier. VFS was promoted to a
   // declared HIGH near-dup detection in expected.flags (S308) — the five ×10
