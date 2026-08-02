@@ -176,10 +176,14 @@ export async function testWindowedAutocorrelation(matrix, rng, onPermProgress = 
   // replicate-relationship hypothesis; full pair × window grid is over-conservative
   // when fabrication is sparse across pairs, per METHODOLOGY §2.1b S108 finding).
   // DS01-19 per-pair dry-run (S109 Part 1) confirmed zero clean-fixture regressions.
-  // Arithmetic floor: with N_PERM=999 and nWindows≈18/pair, min reachable
-  // per-pair adj-p ≈ 1/1000 × nWindows ≈ 0.018 (MOD floor at ALPHA.NOTE=0.01).
-  // HIGH at <0.001 is unreachable without N_PERM ≥ 9999; deferred to a separate
-  // N_PERM / W calibration session.
+  // Arithmetic floor: at N_PERM=999 the min reachable per-pair adj-p is
+  // 1/(N_PERM+1) = 0.001, reached only when every window in the pair floors.
+  // With nWindows≈18/pair the typical H0 minimum is ≈ nWindows/(N_PERM+1) ≈
+  // 0.018, set by the step-up's rank-1 term (MOD floor at ALPHA.NOTE=0.01).
+  // HIGH needs primaryP < 0.001 strictly, so the 0.001 floor does not clear it
+  // and HIGH is unreachable at N_PERM=999. It becomes reachable at N_PERM ≥ 1000
+  // when the whole window family floors, and needs N_PERM+1 > 18,000 when only
+  // one window does; deferred to a separate N_PERM / W calibration session.
   const byPair = new Map();
   for (const u of windowUnits) {
     if (!byPair.has(u.pairIdx)) byPair.set(u.pairIdx, []);

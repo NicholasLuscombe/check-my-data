@@ -12,8 +12,15 @@ scope at every site, and `m` in the same scope as the p at 10 of the 11 BH-fed s
 shape the dispatch describes is reachable as written, with one carve-out named in §3 Q4.
 
 **Headline — the census contradicts METHODOLOGY and S343 in four places**, all with `file:line` in
-§1. The largest is that the Runs windowed BH family — the `m = 4208` METHODOLOGY cites as a reason
-no reachable `B` helps — is not a permutation family at all.
+§1. The largest is that the Runs windowed BH family — the `m = 4208` METHODOLOGY
+cited at the time of this census as a reason no reachable `B` helps — is not a permutation family
+at all.
+
+**Headline — one shipped test cannot flag at all on a shape the corpus never reaches.**
+Cross-Condition Consistency is doubled and scales `B = 999 / 499 / 199` on `max(N_c)`. At the third
+arm the raw floor is `2/200 = 0.010` against a strict `< 0.01`, so on any file whose largest
+condition exceeds 10,000 rows the framework is arithmetically locked to LOW at any effect size,
+with a perfect signal. Detail in §2.
 
 Reads: `CLAUDE.md`; `docs/shared/SESSION343-GATE-PROVENANCE-AUDIT.md` Part 2;
 `docs/shared/METHODOLOGY.md` §"Permutation-Test Arithmetic Constraints" (lines 45–137).
@@ -513,7 +520,7 @@ does not bound the test.
 | 2 | `B` in scope at most p sites | **Holds at 23 of 23.** One subtlety: at S16–S18 the in-scope literal (`N_SIM = 1999`) is not the denominator — `simKurts.length` is. An assertion reading `N_SIM` there would assert the comment. |
 | 3 | No shared p helper; most sites inline | **Holds outright.** No such function exists in `src/stats/` or anywhere else. 23 of 23 inline. P67 stays small. |
 | 4 | The 10/3 split holds over sites with different numbers | **Half wrong.** The "ten" is wrong even over tests — Benford first and second are two dispatch entries, so it is **11 one-sided / 3 doubled = 14 tests**. Over sites it is **20 / 3 = 23**. The 13 is a count of table rows, not of tests. |
-| 5 | `m` and the p site are not in the same scope | **Inverts.** Same function scope at **10 of 11** BH-fed sites (9 families — S10/S11 and S14/S15 each share a call), usually on adjacent lines; only S18 spans two scopes. The genuine obstacle is `j`, which `bhFDR` computes and discards (`primitives.js:246`) — coarseness needs a `src/` signature change, the floor does not. |
+| 5 | `m` and the p site are not in the same scope | **Inverts.** Same function scope at **10 of 11** BH-fed sites, usually on adjacent lines; only S18 spans two scopes. The genuine obstacle is `j`, which `bhFDR` computes and discards (`primitives.js:246`) — coarseness needs a `src/` signature change, the floor does not. |
 | 6 | Modality is not the only clamp | **Fails as stated, holds as intent.** Modality's `P_FLOOR` is the **only** hardcoded p-floor in the battery, and it sits on an analytic test with no count behind it. But the census found an adjacent class the expectation did not name: five hardcoded `p = 1` overrides, and one aggregation-layer Šidák transform (`aggregation.js:154`) that raises the *reported* floor to `1 − (1 − c/(B+1))^G` on every condition-grouped file. |
 
 ---

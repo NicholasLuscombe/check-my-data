@@ -175,12 +175,17 @@ async function aggregatePerGroup(testFn, groups, parentCondCtx) {
   // worstGroupFlag only (no Fisher promotion). Current members:
   //   • Excess Kurtosis (§2.2) — shared simKurt denominator across groups.
   //   • Windowed Autocorrelation (§2.1b, S109 Part 2) — min per-pair BH adj-p
-  //     is floor-truncated at ~1/(N_PERM+1) × nWindows ≈ 0.01 under H0.
-  //     Surfaced on DS16 (3 clean groups Fisher-promoted to MOD).
+  //     is floor-truncated at 1/(N_PERM+1) = 0.001; its typical H0 value is
+  //     ≈ nWindows/(N_PERM+1) ≈ 0.018, set by BH rank 1 when only one window
+  //     floors. Surfaced on DS16 (3 clean groups Fisher-promoted to MOD).
   //   • Blocked Mahalanobis (§2.6b, S110) — min BH adj-p across (pass ×
   //     condition) with m = 2·nCond. Under H0 the shared within-condition
   //     permutation null across column-grouped groups makes per-group
-  //     primaryP non-uniform and floor-truncated at ≈ m/(N_PERM+1).
+  //     primaryP non-uniform and floor-truncated at 1/(N_PERM+1) — the same
+  //     floor at every m (0.001 at N_PERM=999, 0.0002 at 4999). The exemption
+  //     turns on the non-uniformity, not the floor value: primaryP is
+  //     non-uniform on [0,1] at either count, so raising N_PERM does not
+  //     restore Fisher's assumption.
   //   • Mahalanobis Row Outlier (§2.6, S127c) — primaryP = binomP from the
   //     dataset-level binomial on rows exceeding χ²(p, 0.99). The χ² null
   //     assumes multivariate normality; under heavy-tailed raw data the
