@@ -401,7 +401,7 @@ Of its nine subsections, §6's index gives a STATUS source for three:
 
 **One of nine subsections has a resolvable STATUS pointer.**
 
-### 4.3 Which of STATUS's 39 P-numbers does §5 know about? None.
+### 4.3 Which of STATUS's 39 P-numbers does §5 know about? Two, and both sit outside the mirror.
 
 ```
 command grep -noE '\bP[0-9]{1,3}\b' docs/shared/V1X-FUTURE-WORK.md
@@ -538,10 +538,17 @@ Discharged means landed, part-landed or superseded: §2.3, §2.4, §2.6, §2.8, 
 §5.4's promotion to v1.0 blocker are **not** counted — the guard is a sub-item of a section whose
 core finding survives, and a promotion is a routing change with the work still open.
 
-| register | items | discharged | of which unmarked | **unmarked fraction** |
+| register | items (denominator rule) | discharged | of which unmarked | **unmarked fraction** |
 |---|---|---|---|---|
-| METHODOLOGY-MAP (part one §6.1) | 41 | 21 (51%) | 19 | **90%** |
-| V1X (this census) | 39 | 8 (21%) | 2 | **25%** |
+| METHODOLOGY-MAP (part one §6.1) | 41 — part one's §0.3 rule over its whole future-work surface | 21 (51%) | 19 | **90%** |
+| V1X (this census) | 39 — this census's 77 rows filtered to work subsections (V11 + V12) | 8 (21%) | 2 | **25%** |
+
+**The two denominators are built by different rules, so the discharge columns are not
+like-for-like.** 41 is part one's rule over METHODOLOGY-MAP's whole future-work surface; 39 is
+this census's 77 rows filtered to work subsections. Over all 77 rows V1X's discharge rate is
+**10%**, not 21%. **The like-for-like comparison is the last column** — the unmarked fraction,
+19 of 21 against 2 of 8. That is a ratio computed inside each register and it does not depend
+on either denominator. §9 leads with that column and is correct as it stands.
 
 **V1X is markedly better, and the mechanism is measurable.**
 
@@ -618,10 +625,12 @@ git show ad270a8:docs/shared/ROADMAP.md | wc -l     → 311
 **All 19 resolve. 18 resolve to a heading; the 19th, `:87` Track A, resolves to a checklist line
 that says the work is done** — the exact fact §2.3 is missing (§5.3).
 
-**Scheme D is a rename problem, not a dead-file problem.** The repair is mechanical: substitute
+**Scheme D is an archived-file problem, not a rename — nothing was renamed; the file was
+deleted and its citations were never rewritten.** The repair is mechanical: substitute
 `ad270a8:docs/shared/ROADMAP.md` for `ROADMAP.md`. V1X wrote that repair down at `:1206` and
-never applied it to its own 18 other citations. **P79's 119 citations lose 19 to a one-line
-fix.**
+never applied it to its own 18 other citations. **P79 does not shrink: all 19 pointers stay
+broken for a reader who does not hold the ref, and 18 of the 19 do not carry it. What changes
+is the remediation cost — mechanical substitution rather than reconstruction.**
 
 A qualification, stated: the blob is reachable from `main`'s history today. A history rewrite
 would break it, and a hash in prose has no more freshness gate than a count does. The repair
@@ -915,8 +924,11 @@ of the answer: it decays silently at the index, and both of V1X's two failures a
 that decay rather than of authoring carelessness.
 
 **3. The ROADMAP citations are unrepairable — INVERTED.** All 19 resolve. `ad270a8:docs/shared/
-ROADMAP.md` is a 311-line blob and V1X supplies that ref itself at `:1206`. **Scheme D is a
-rename problem. P79 loses 19 of its 119 citations to a one-line substitution.** Against that, a
+ROADMAP.md` is a 311-line blob and V1X supplies that ref itself at `:1206`. **Scheme D is an
+archived-file problem, not a rename — nothing was renamed; the file was deleted and its
+citations were never rewritten. P79 does not shrink: all 19 pointers stay broken for a reader
+who does not hold the ref, and 18 of the 19 do not carry it. What changes is the remediation
+cost — mechanical substitution rather than reconstruction.** Against that, a
 fifth pointer class the census never counted — 22 file pointers, of which 3 are dead and 6
 resolve only via gitignored files — is newly open.
 
@@ -979,7 +991,8 @@ part one's own quoted text are excluded and listed at the foot.
 | **+2 · +15** | **the S346 close's movement** | §7.1; 39−37 and 215−200 | ✓ |
 
 **One figure carried without re-measurement: 119** (part one's total scheme citations, §6.2).
-This document reports that scheme D's 19 of that 119 are repairable; it did not re-count the
+This document reports that scheme D's 19 of that 119 are cheaper to remediate; **it does not
+subtract them, and the 119 is unchanged by anything measured here.** It did not re-count the
 other 100. The 119 is part one's measurement, cited as part one's.
 
 **Excluded from the sweep**, as noted above: line references (`:44`, `:1206`, …), commit hashes,
@@ -1084,12 +1097,41 @@ The combined reconciliation: §7.1. **403 + 77 = 480 across five registers.**
 
 ---
 
+## §12 — Amendment record
+
+Four amendments applied at S347, after the document merged at `a252c43`. Each corrected a claim
+that contradicted this document's own body. The precedent is §10, which records the seven
+corrections the number sweep caught rather than applying them silently; the same rule applies to
+corrections found after publication.
+
+| # | site | said | says now | why |
+|---|---|---|---|---|
+| A1 | `§4.3` heading | *"Which of STATUS's 39 P-numbers does §5 know about? None."* | *"Two, and both sit outside the mirror."* | The body four lines down names P45 (`V1X:1148`) and P43 (`V1X:1166`) and places both in §5.9. §5.9 is part of §5. The body was right and the heading was false against it. |
+| A2 | `§6.1` conclusion and `§9` expectation 3 | *"Scheme D is a rename problem"* · *"P79 loses 19 of its 119 citations"* | *"an archived-file problem, not a rename"* · *"P79 does not shrink … what changes is the remediation cost"* | Two errors. Nothing was renamed — ROADMAP.md was deleted and its citations were never rewritten. And P79 does not shrink: all 19 pointers stay broken for any reader who does not hold the ref, and 18 of the 19 do not carry it. Only the remediation cost changes. |
+| A2b | `§10` carried-figure note | *"scheme D's 19 of that 119 are repairable"* | *"cheaper to remediate; it does not subtract them, and the 119 is unchanged"* | §10 flagged 119 as carried and not verified; §9 then spent 19 of it. Closing the loop at both ends. |
+| A3 | `§5.4` comparison table | header `items`; no rule against either denominator | header `items (denominator rule)`; each rule named inline; a paragraph added giving V1X's 10% over all 77 rows | 41 and 39 are built by different rules. Neither figure changed and no row was deleted — the labelling was added and the like-for-like column named. |
+| A4 | `## Provenance` | *"the three corrections it caught"* | *"the seven corrections it caught"* | Not in the amendment brief. §10 lists seven; the Provenance line said three. Same class as A1 — a summary line contradicting the body it summarises — found while checking A4's own precedent, and corrected rather than left standing in a document about counts with no freshness gate. |
+
+**A1 is §8.2 happening inside the document that reports §8.2.** §8.2 says a count belongs in §0
+and not in a heading, because a heading is the first thing a reader sees and the last thing an
+author re-reads. §4.3's heading was wrong in exactly that way — stale against a body four lines
+below it, in the section that names the failure mode. **A4 is the same shape a second time**, in
+the Provenance block. Recording both here rather than fixing them quietly is the point: this is
+the strongest instance the arc has produced, and a silent fix would have destroyed the evidence.
+
+**What was not changed.** No figure in §5.4 was altered and no row deleted. §10's sweep table
+still marks 119 as carried and not verified. `SESSION346-REGISTER-CENSUS.md`'s two stale headings
+are still not amended — they belong to part one and are reported at §8.2, not repaired.
+
+---
+
 ## Provenance
 
-Read-only census, S347, measured at `cb672a0`. No register was edited, including
+Read-only census, S347, measured at `cb672a0`. **Amended at S347 after publication — see
+§12.** No register was edited, including
 `SESSION346-REGISTER-CENSUS.md`'s two stale headings. No fix was applied. No item was merged,
 deduplicated or reprioritised. Every figure carries its rule and its command at §0; figures that
 are judgment rather than measurement are segregated at §0.6; the number sweep is at §10, and the
-three corrections it caught are recorded there rather than silently applied.
+seven corrections it caught are recorded there rather than silently applied.
 
 **Part three is not scoped here.** That design call is Chat's, and §8.4 and §9 are its inputs.
