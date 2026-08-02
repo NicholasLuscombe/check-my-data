@@ -97,10 +97,11 @@ three of the five inputs. Part-1 alone is **386** rows (N12) across four registe
 V1X's 135 top-level bullets still to come.
 
 **"Roughly 142 genuinely-open tasks"** is retired too, and it was this document's own. It
-subtracted a rounded "~40" from 184 when the measured figure was 42, and 42 is a
-**cross-kind** state count — seven of BANKED's landed rows are decision records, one is a
-void decision record, and two superseded rows are findings — taken out of a **single-kind**
-total. Corrected at §9: 179 task rows, 42 marked discharged, **137 not marked discharged**,
+subtracted a rounded "~40" from 184 when the all-kind discharged count was 54, so it crossed
+kinds — eight of BANKED's landed rows are decision records, one is a void decision record, and
+three superseded rows are findings. **The 42 at §9 is a different quantity that only looks
+like the same number**: it counts task rows alone (4 + 13 + 4 + 21), so `179 − 42` stays
+inside one kind. Corrected at §9: 179 task rows, 42 marked discharged, **137 not marked discharged**,
 and 137 is a ceiling rather than a count. The census cannot size the open queue without a
 second pass that settles BANKED's 88 unsettled task rows at source.
 
