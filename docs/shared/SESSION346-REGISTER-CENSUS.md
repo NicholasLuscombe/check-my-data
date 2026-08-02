@@ -739,7 +739,7 @@ Three judgments, stated so they can be disagreed with:
   quotation *of* the dead scheme inside the entry that reports it. Describing a dead pointer
   is not using one.
 - **CLAUDE.md contributes 0 to scheme C.** Of its seven bare `#N`, two are scheme B and five
-  are not pointers: `#4C1D95`, `#A3C1DA` and `#4682B4` are colour hexes, and `#4`/`#2` at `:91`/`:92`
+  are not pointers: `#4C1D95`, `#4A3D8F` and `#4682B4` are colour hexes, and `#4`/`#2` at `:91`/`:92`
   belong to the live locked-A2 fix list.
 - **METHODOLOGY-MAP's 29 sit in its append-only revision history** (`:583`–`:602`). Counted,
   because a reader can still follow them, but they are historical record rather than live
