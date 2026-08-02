@@ -1,7 +1,7 @@
 # S346 — Register census, P76 part one
 
 **Read-only census of the four smaller future-work registers — `STATUS.md`, `BANKED.md`,
-`CLAUDE.md` and `docs/shared/METHODOLOGY-MAP.md`.** Part one of two; V1X is part two (§12).
+`CLAUDE.md` and `docs/shared/METHODOLOGY-MAP.md`.** Part one of two; V1X is part two (§13).
 One row per item, no merging, no deduplication, no reprioritisation. Every figure carries
 its counting rule and the command that produced it (§0).
 
@@ -73,6 +73,20 @@ Named separately so they are never cited as measured.
   rather than five it is 37; under a rule that counts §Tolerable inconsistencies as
   carrying no items it is 38. The three variants are stated rather than one being asserted.
 - Every `state` cell marked **unknown** is a refusal to guess, not an omission.
+- **N16 = 119** — dead-scheme citations (§6.2), counted as **occurrences** and de-overlapped:
+  a `STATUS parked #N` citation also matches the bare-`#N` pattern, so scheme C is measured
+  net of scheme B. Three judgments inside it: `BANKED:559` is excluded from scheme A because
+  it *quotes* the dead scheme inside the entry reporting it; CLAUDE.md contributes 0 to
+  scheme C because its seven bare `#N` are two scheme-B citations, three colour hexes and two
+  references to the live locked-A2 fix list; and METHODOLOGY-MAP's 29 sit almost entirely in
+  its append-only revision history, counted because a reader can still follow them.
+- **N17 = 179 / 42 / 137** — task rows; task rows whose state is landed, superseded or void;
+  the difference. **137 is a ceiling on the open queue, not a count of it** — it counts task
+  rows *not marked* discharged, and landed-not-marked is one of the four failure classes this
+  document identifies. It is a property of the registers, not of the world.
+- The **18 prose-row kind and state assignments** (§3.9) are judged, not parsed. The 182
+  tabulated rows were machine-parsed from the state and kind columns; the 18 prose rows were
+  assigned by hand and are listed individually so they can be checked.
 
 ### 0.5 The retired figure
 
@@ -81,6 +95,14 @@ retired here. It cannot be reconstructed from any combination of the measurement
 says four files while naming five registers, and its source (`BANKED.md:559`) mis-states
 three of the five inputs. Part-1 alone is **386** rows (N12) across four registers, with
 V1X's 135 top-level bullets still to come.
+
+**"Roughly 142 genuinely-open tasks"** is retired too, and it was this document's own. It
+subtracted a rounded "~40" from 184 when the measured figure was 42, and 42 is a
+**cross-kind** state count — seven of BANKED's landed rows are decision records, one is a
+void decision record, and two superseded rows are findings — taken out of a **single-kind**
+total. Corrected at §9: 179 task rows, 42 marked discharged, **137 not marked discharged**,
+and 137 is a ceiling rather than a count. The census cannot size the open queue without a
+second pass that settles BANKED's 88 unsettled task rows at source.
 
 ### 0.6 Source-of-truth figures used as landing evidence
 
@@ -106,8 +128,8 @@ silently.
 
 **Evidence standard.** `landed` is written only where a commit, a shipped file or a `src/`
 symbol can be pointed at. Everything else is `open` (where the register says so itself) or
-`unknown`. 16 BANKED rows and 11 METHODOLOGY-MAP rows carry evidenced landings; the rest of
-BANKED is `open`/`unknown` because settling 166 items at source is a second dispatch, not
+`unknown`. 25 BANKED rows and 21 METHODOLOGY-MAP rows carry evidenced landings; the rest of
+BANKED is `open`/`unknown` because settling the remaining 144 at source is a second dispatch, not
 this one. That is stated rather than papered over.
 
 ---
@@ -158,7 +180,7 @@ this one. That is stated rather than papered over.
 
 **Rows: 37.** Open 32, closed 4, unknown 1.
 
-**Finding (S2-a).** 26 of the 37 P-numbers are duplicated by a BANKED entry that states the
+**Finding (S2-a).** 24 of the 37 P-numbers are duplicated by a BANKED entry that states the
 same item at length. The STATUS row is the allocation; the BANKED entry is the case
 material. That is the declared division of labour (`STATUS.md:97`) and is working as
 designed — with one exception:
@@ -170,7 +192,7 @@ no counterfactual.** … v1.0 blocker either way.` Two sections later `BANKED.md
 the closure and names P69 as the replacement — so BANKED contains both the open claim and
 its own retraction, 16 lines apart, with the open claim first.
 
-**Finding (S2-c).** STATUS's own §Known bugs restates 9 parked items already in the parked
+**Finding (S2-c).** STATUS's own §Known bugs restates all 11 of its numbered bugs as parked items already in the parked
 table (bugs 1–5, 6–10 map to P71, P66/P69, P60, P61, P77, P52, P53, P62, P63, P75). This is
 intra-register duplication inside the register that declares itself the allocator. It is
 navigational rather than harmful — but it means "how many open items does STATUS hold" has
@@ -332,7 +354,7 @@ Nested under `:100`: `:122` *#27 SelectiveNoise wrapper — **CLOSED S265*** (`6
 | 266 | DupDet mini-card condition strip. | task | open | BANKED:196 |
 | 270 | Footer↔heading redundancy is a seven-card family. | finding | open, drives stage-2b | BANKED:24 |
 
-### 3.7 Real-world corpus S292–S308 (16 bullet rows + 7 prose rows)
+### 3.7 Real-world corpus S292–S308 (16 bullet rows + 15 prose rows)
 
 | line | item | kind | state | dup-of |
 |---|---|---|---|---|
@@ -402,7 +424,7 @@ consolidation flag 2 (verification discipline → one rule).
 > are Arc B card-copy items that sit under a heading describing something else. The section
 > boundary drifted; the heading did not.
 
-### 3.9 S325–S345 findings (56 rows)
+### 3.9 S325–S345 findings (52 rows)
 
 | line | item | kind | state | dup-of / P |
 |---|---|---|---|---|
@@ -459,8 +481,8 @@ consolidation flag 2 (verification discipline → one rule).
 | 581 | (S345) `CLAUDE.md`'s Active Conventions is 108 top-level bullets in one flat list. | finding | open | STATUS P76; **confirmed at 108** |
 | 583 | (S345) P74 shipped but its doc half did not. | task | open | STATUS P74 → P70 |
 
-**Rows: 200** (182 bullets + 18 prose). Landed with evidence: **16**. Superseded within
-BANKED itself: **2** (`:291`, `:512`). Declared void: **1** (`:555`). The remaining **181**
+**Rows: 200** (182 bullets + 18 prose). Landed with evidence: **25** (20 tabulated + 5 prose). Superseded within
+BANKED itself: **3** (`:291`, `:294`, `:512`). Declared void: **1** (`:555`). Recorded: **26**. The remaining **144**
 are open or unknown; §1 states why they are not individually source-settled here.
 
 **The 18 prose rows, enumerated so N6 can be checked:** `:44`, `:294`, `:296`, `:298`,
@@ -589,7 +611,7 @@ decision record throughout, by its own declaration.
 
 > **Finding (S5-a) — intra-register duplication.** Four of the six "Remaining gaps" reappear
 > verbatim as "Open questions for future review" in the same document (`:318`↔`:577`,
-> `:321`↔`:575`, `:322`↔`:576`, `:323`↔`:571`+`:574`). Two sections, 264 lines apart, holding
+> `:321`↔`:575`, `:322`↔`:576`, `:323`↔`:571`+`:574`). Two sections, 259 lines apart, holding
 > the same four items. Nothing cross-references them.
 >
 > **Finding (S5-b).** Both rows of "Gaps addressed by planned tests" landed — S114 and
@@ -601,7 +623,7 @@ decision record throughout, by its own declaration.
 |---|---|---|---|---|
 | 498 | 1(a) DupDet Tests 1 and 3 use z-approximation; unify on exact binomial | task | **landed S95** — `duplicateDetection.js:179` `regIncBeta`; `:183` "Test 1: value-level collision count (exact binomial)"; `:348` Test 3 exact | METHODOLOGY-MAP:547 (Track A.1) |
 | 500 | 1(b) Test 2 cross-test gate — empirically test removal | task | **landed S95** — revision history v3.1: *"Test 2 'z<−3 integer gate' existed only in doc, never in code"* | METHODOLOGY-MAP:547 |
-| 502 | 1(c) METHODOLOGY §1.1 FLAGGED/NOTED terminology | task | **unknown** — not checked at METHODOLOGY.md | METHODOLOGY-MAP:547 |
+| 502 | 1(c) METHODOLOGY §1.1 FLAGGED/NOTED terminology | task | **landed** — a grep for FLAGGED or NOTED over METHODOLOGY.md returns 0, checked case-insensitively and whitespace-normalised; §1.1 uses HIGH and MODERATE | METHODOLOGY-MAP:547 |
 | 504 | 2. Mahalanobis per-row selection uses BH-FDR **(landed)** | task | **landed** — `mahalanobis.js:162` `bhFDR(rowPvals)` | METHODOLOGY-MAP:548 (Track A.2) |
 | 506 | 3. Cross-Condition Rank uses ρ₀ = 0.85 heuristic … **Already planned — STATUS priority 12.** | task | **landed S95** — `rankCorrelation.js:58-59` *"Instead of testing against an arbitrary fixed null (ρ₀=0.85)"*; v3.1 records CCR already used LOO | METHODOLOGY-MAP:549 (Track A.3); **dead scheme, §6.2** |
 | 508 | 4. Escalation rule asymmetry — unify on sub-unit BH-FDR promotion | task | **landed S95** — `runs.js:75`, `:259` `bhFDR`; `rowMeanRuns.js`; CLAUDE.md:55 | METHODOLOGY-MAP:550 (Track A.4) |
@@ -657,7 +679,7 @@ cites a roadmap position in a scheme that no longer exists.
 | 563 | Track G — Large-N gate audit (six tests) | task | **open** | 
 | 565 | Track H — Long-format fix (Code, v1.0). Row-order-arbitrary flag. | task | **landed S118** — `src/import/rowSemantics.js`, `src/import/longFormat.js`; CLAUDE.md:46 |
 
-**8 of 12 landed. Tracks B, F and G open; Track A wholly landed and listed as five open
+**9 of 12 landed. Tracks B, F and G open; Track A wholly landed and listed as five open
 steps.**
 
 ### 5.6 Open questions for future review (7 rows)
@@ -672,8 +694,10 @@ steps.**
 | 576 | Cross-condition missing data pattern — feasibility | task | open | METHODOLOGY-MAP:322 |
 | 577 | Plate analysis architecture (Dim III 2D, Moran's I) — timing within v1.0 | task | open | METHODOLOGY-MAP:318 |
 
-**Rows: 41.** Landed or void with evidence: **21**. Open: **17**. Unknown: **3** (`:502`
-plus the two Tolerable rows whose status depends on a doc I did not read).
+**Rows: 41.** Landed with evidence: **21**. Open: **17**. Recorded: **3** — the §Tolerable
+inconsistencies rows, which close their questions by declaration and so carry no open/closed
+axis. Sub-tallies by subsection: 5.1 (2 landed / 6 open) · 5.2 (8 / 1) · 5.3 (0 / 0, 3
+recorded) · 5.4 (2 / 0) · 5.5 (9 / 3) · 5.6 (0 / 7). **21 + 17 + 3 = 41.**
 
 ---
 
@@ -684,29 +708,56 @@ plus the two Tolerable rows whose status depends on a doc I did not read).
 Answered in §5.2. **21 of 41 METHODOLOGY-MAP future-work items (51%) are landed or void.**
 Two carry a LANDED marker in their heading; one more says "for sequence completeness". The
 other eighteen read as live work, including the entire Track A / Inconsistencies-1-to-6
-block that the document's own revision history declares landed at S95 — **248 sessions ago.**
+block that the document's own revision history declares landed at S95 — **251 sessions ago.**
 
 ### 6.2 Check 2 — the dead numbering schemes
 
-Not one scheme cited twice. **Four dead schemes, 55 citations.**
+Not one scheme cited twice. **Four dead schemes, 119 citations.**
 
-| scheme | what it was | citations | where |
-|---|---|---|---|
-| **A — "STATUS priority N" / "(STATUS N)"** | a numbered priority list STATUS no longer keeps | **4** | METHODOLOGY-MAP `:186` "(STATUS 12)", `:291` "(STATUS 12)", `:506` "STATUS priority 12", `:537` "STATUS priority 13" |
-| **B — "STATUS parked #N"** | the pre-P-number parked numbering | **14** | V1X ×8 (`:5`, `:77`, `:855`, `:1195`, `:1198`, `:1204`, `:1215`, `:1216`, `:1217`); CLAUDE.md ×2 (`:57` #8, `:246` #18); BANKED ×1 (`:173` #11); METHODOLOGY-MAP ×3 |
-| **C — bare `#N` with no allocating register** | BANKED's own item ids, inherited from scheme B | **33** across 20 distinct values (#5 #6 #7 #11 #15 #16 #17 #22 #25 #27 #31 #32 #33 #35 #37 #38 #39 #49 #51 #52) | BANKED throughout |
-| **D — "ROADMAP" / "ROADMAP Item 8" / "ROADMAP Track H"** | a file that is not in the repository | **18** | V1X, including its own `**Purpose:**` line at `:4` |
+Counted as **occurrences**, not lines, because the unit is citations. Schemes B and C
+overlap — a `STATUS parked #N` citation also matches the bare-`#N` pattern — so C is
+measured net of B.
+
+| scheme | what it was | CLAUDE | BANKED | M-MAP | V1X | **total** |
+|---|---|---|---|---|---|---|
+| **A — "STATUS priority N" / "(STATUS N)"** | a numbered priority list STATUS no longer keeps | 0 | 0 | 4 | 0 | **4** |
+| **B — "STATUS parked #N"** | the pre-P-number parked numbering | 2 | 1 | 3 | 8 | **14** |
+| **C — bare `#N` with no allocating register** | item ids inherited from scheme B | 0 | 48 | 29 | 5 | **82** |
+| **D — "ROADMAP" / "ROADMAP Item 8" / "ROADMAP Track H"** | a file that is not in the repository | 0 | 0 | 0 | 19 | **19** |
+
+Scheme A sits entirely in METHODOLOGY-MAP: `:186` "(STATUS 12)", `:291` "(STATUS 12)",
+`:506` "STATUS priority 12", `:537` "STATUS priority 13". Scheme B's eight V1X sites are
+`:77`, `:855`, `:1195`, `:1198`, `:1204`, `:1215`, `:1216`, `:1217`; CLAUDE.md's two are
+`:57` (#8) and `:246` (#18); BANKED's one is `:173` (#11); METHODOLOGY-MAP's three are in its
+revision history. Scheme C's BANKED half spans 20 distinct values (#5 #6 #7 #11 #15 #16 #17
+#22 #25 #27 #31 #32 #33 #35 #37 #38 #39 #49 #51 #52).
+
+Three judgments, stated so they can be disagreed with:
+
+- **`BANKED:559` is excluded from scheme A.** It contains "STATUS priority 13", but as a
+  quotation *of* the dead scheme inside the entry that reports it. Describing a dead pointer
+  is not using one.
+- **CLAUDE.md contributes 0 to scheme C.** Of its seven bare `#N`, two are scheme B and five
+  are not pointers: `#4C1D95`, `#A3C1DA` and `#4682B4` are colour hexes, and `#4`/`#2` at `:91`/`:92`
+  belong to the live locked-A2 fix list.
+- **METHODOLOGY-MAP's 29 sit in its append-only revision history** (`:583`–`:602`). Counted,
+  because a reader can still follow them, but they are historical record rather than live
+  pointers.
+
+**`V1X:5` is not a scheme-B instance** and was wrongly listed as one on first write. It reads
+*"v1.0 UI polish (lives in STATUS.md parked items)"* — an unnumbered reference to a register
+that genuinely exists. The count was always 8; the list is now 8.
 
 Commands:
 
 ```bash
-command grep -coE 'STATUS (priority )?[0-9]+' docs/shared/METHODOLOGY-MAP.md          # 4
-command grep -coE 'STATUS(\.md)? parked #[0-9]+' docs/shared/V1X-FUTURE-WORK.md       # 8
-command grep -cE '(^|[^A-Za-z0-9#])#[0-9]+' BANKED.md                                 # 33
-command grep -coE 'ROADMAP' docs/shared/V1X-FUTURE-WORK.md                            # 18
-git ls-files | command grep -ci roadmap                                               # 0
+occ(){ command grep -oE "$2" "$1" | wc -l; }   # occurrences, not lines
+occ docs/shared/METHODOLOGY-MAP.md 'STATUS (priority )?[0-9]+'           # A: 4
+occ docs/shared/V1X-FUTURE-WORK.md 'STATUS(\.md)? parked #[0-9]+'        # B: 8 of 14
+occ BANKED.md '(^|[^A-Za-z0-9#])#[0-9]+'                                 # C: 49, less 1 scheme-B = 48
+occ docs/shared/V1X-FUTURE-WORK.md 'ROADMAP'                             # D: 19
+git ls-files | command grep -ci roadmap                                  # 0
 ```
-
 Two further stale pointers of the same class: `METHODOLOGY-MAP:267` cites a **named** STATUS
 parked item (*"Excel forensics → File Structure category"*) that STATUS no longer carries;
 `BANKED:197` cites *"CLAUDE L130 relocate, S174"* and `CLAUDE.md:130` is the tree-recovery
@@ -720,7 +771,7 @@ scatter cites two dead sources in its own statement of purpose.
 
 ### 6.3 Check 3 — is the RETIRED S237 CI section retired?
 
-Answered in full at §3.2. **No.** 13 bullets: 6 landed with commit hashes, 4 open, 3
+Answered in full at §3.2. **No.** 13 bullets: 6 landed with commit hashes, 5 open, 2
 findings/references. The heading retires the programme; the body says *"The live remainder
 lifts to the entries below."*
 
@@ -778,7 +829,7 @@ mechanism table lists 14. **BANKED:240 already records a sixth instance of this 
 **Expectation 1 was to be treated with more suspicion than the others.** It holds, but not
 in the shape assumed.
 
-**7.1 STATUS ↔ BANKED — 26 of 37 P-numbers duplicated, by design.** Every P41–P77 row whose
+**7.1 STATUS ↔ BANKED — 24 of 37 P-numbers duplicated, by design.** Every P41–P77 row whose
 case material exists appears in BANKED at length. `STATUS.md:97` declares this: *"BANKED, V1X
 and METHODOLOGY-MAP hold case material and point at it."* This is a working division of
 labour, not drift — **with one live defect (P59, §2 finding S2-b).**
@@ -808,7 +859,7 @@ landed work never marked landed, (c) routed work never deleted from its source, 
 with no freshness gate. **A "one register" fix addresses none of them directly** — a single
 register with the same four properties would be exactly as unusable. **The discoverability
 half of expectation 1 is at least as load-bearing as the duplication half, and the naming
-half — four dead schemes, 55 citations — is bigger than either.**
+half — four dead schemes, 119 citations — is bigger than either.**
 
 ---
 
@@ -845,51 +896,111 @@ of the figure (41 / 38 / 37) are stated rather than one asserted.
 
 **They agree.** 37 + 200 + 108 + 41 = 386 = 386.
 
-State distribution across the 386, summed per register:
+State distribution across the 386, summed per register. Parsed from the state column of the
+tables in §2–§5 with an exact classifier, not judged — except the 18 BANKED prose rows, which
+are hand-assigned per §0.4.
 
 | state | STATUS | BANKED | CLAUDE.md | M-MAP | **total** |
 |---|---|---|---|---|---|
-| landed / void, with evidence | 4 | 17 | 0 | 21 | **42** |
-| superseded (register not updated) | 0 | 2 | 0 | 0 | **2** |
-| open | 32 | 181 | 0 | 17 | **230** |
-| recorded (decision record — no open/closed axis) | 0 | 0 | 108 | 0 | **108** |
-| unknown | 1 | 0 | 0 | 3 | **4** |
+| landed, with evidence | 4 | 25 | 0 | 21 | **50** |
+| part-landed (work remains) | 1 | 1 | 0 | 0 | **2** |
+| superseded (register not updated) | 0 | 3 | 0 | 0 | **3** |
+| void (no work follows) | 0 | 1 | 0 | 0 | **1** |
+| part-resolved (`:83`) | 0 | 1 | 0 | 0 | **1** |
+| recorded (no open/closed axis) | 0 | 26 | 108 | 3 | **137** |
+| open | 31 | 143 | 0 | 17 | **191** |
+| unknown | 1 | 0 | 0 | 0 | **1** |
 | **rows** | **37** | **200** | **108** | **41** | **386** |
 
-Kind distribution. **This tally is judged row-by-row from the tables in §2–§5, not
-grep-derived** — it is listed under §0.4's rule, not §0.1's.
+The two part-landings are the same item seen twice — STATUS P67 and BANKED `:532`, P67's case
+material. `recorded` is not confined to CLAUDE.md: 26 BANKED rows and the 3 METHODOLOGY-MAP
+§Tolerable rows carry it too.
+
+Kind distribution. Machine-parsed for the 182 tabulated BANKED rows and for §2, §4 and §5;
+**judged for the 18 BANKED prose rows**, which are listed individually at §3.9.
 
 | kind | STATUS | BANKED | CLAUDE.md | M-MAP | **total** |
 |---|---|---|---|---|---|
-| task (work owed) | 34 | 112 | 0 | 38 | **184** |
-| finding | 2 | 55 | 0 | 0 | **57** |
-| decision record | 0 | 33 | 108 | 3 | **144** |
+| task (work owed) | 34 | 107 | 0 | 38 | **179** |
+| finding | 2 | 58 | 0 | 0 | **60** |
+| decision record | 0 | 35 | 108 | 3 | **146** |
 | unclassifiable | 1 (P46) | 0 | 0 | 0 | **1** |
 | **rows** | **37** | **200** | **108** | **41** | **386** |
 
-> **The number P76 actually needs.** Not 365, and not 386. **184 tasks** across four
-> registers, of which **~40 are already discharged** and 2 are superseded — so roughly
-> **142 genuinely-open tasks in part one**, before V1X. The 144 decision records and 57
-> findings are a different kind of object; folding them into a work register would make the
-> register less usable, not more. **Any "one register" design should be sized against 142,
-> not 365.**
+**How big is the open queue? The census cannot say.** What it can say is how many task rows
+are *not marked* discharged, which is a different quantity and a weaker one.
+
+| register | task rows | of which marked landed / superseded / void |
+|---|---|---|
+| STATUS | 34 | 4 |
+| BANKED, tabulated | 102 | 13 |
+| BANKED, prose | 5 | 4 |
+| METHODOLOGY-MAP | 38 | 21 |
+| CLAUDE.md | 0 | 0 |
+| **total** | **179** | **42** |
+
+`179 − 42 = 137`. Part-landings count as not discharged, because they carry remaining work.
+
+> **137 is a ceiling, not a count.** Landed-not-marked is one of the four failure classes
+> this document identifies — METHODOLOGY-MAP alone had 19 of its 21 landings unmarked — so
+> the true open figure is lower by an unmeasured amount. **88 BANKED task rows were never
+> settled at source**, and until they are, the open queue cannot be sized. The earlier figure
+> of "roughly 142 genuinely-open tasks" is retired (§0.5): it subtracted a rounded, cross-kind
+> state count from a single-kind total.
+>
+> What survives is the shape, not the size. **The retired 365 was never a count of anything**
+> — it summed bullets across registers of three different kinds. Of the 386 rows here, 146
+> are decision records and 60 are findings; folding either into a work register would make it
+> less usable, not more. **A "one register" design is sized against 137 at most, and against
+> an unknown number below that in fact.**
 
 ---
 
-## §10 — Expectations
+## §10 — The census is an instance of its own subject
+
+Three of the four failure classes this document names are present in this document.
+
+**Counts with no freshness gate.** Twenty-one figures were wrong on first write, including
+the landed counts for two of the four registers and every cell of §9's two reconciliation
+tables. One of them, "roughly 142 genuinely-open tasks", was the recommendation. A read
+found five; the sweep that followed found sixteen more.
+
+**One item stated two ways.** Row `:502` was `unknown` in §5.2's table, counted among §5.6's
+unknowns, and counted as landed in the section total that §6.1 and §9 both quote. Same shape
+as `BANKED:291`/`:306` and `CLAUDE.md:38`/`:161`, which this document reports as findings
+about other people's registers.
+
+**A pointer to a section that may not exist.** The completion report for this document cited
+"§12" against a draft that ended in an unnumbered section. The shipped file does carry a §12
+and the pointer resolves — but the draft and the shipped file are two copies of one document
+with no check between them, and the review ran on the stale copy. Same shape as scheme D, and
+a fourth instance of the drift `BANKED:575` names.
+
+**What follows.** This document needs the freshness gate it recommends for everything else.
+The candidate is §0: it already lists every figure with its rule and its command, and it
+becomes a gate only when something checks that **every integer in the body either appears in
+§0 or is derived in place from figures that do**. That check is mechanical — extract the
+integers from the prose, match against §0 — and it is the prose equivalent of
+`FLOOR-MANIFEST`'s freshness test, which fails when the committed copy does not match a fresh
+generation. Until it exists, §0 is a convention rather than a gate, and a convention is
+exactly what failed here.
+
+---
+
+## §11 — Expectations
 
 **1. Substantial duplication across registers — PARTIALLY INVERTED.** The registers are not
 cleanly disjoint, but they are also not substantially duplicated in the assumed sense. The
-STATUS↔BANKED overlap (26 of 37) is the declared design and works. The real failures are
-naming (four dead schemes, 55 citations), landed-not-marked (21 of 41 in METHODOLOGY-MAP,
+STATUS↔BANKED overlap (24 of 37) is the declared design and works. The real failures are
+naming (four dead schemes, 119 citations), landed-not-marked (21 of 41 in METHODOLOGY-MAP,
 16 in BANKED), routed-not-deleted, and counts with no gate. **The premise the arc rests on
 survives, but the fix it implies — "one register" — would not address any of the four.**
 
 **2. A significant fraction of pre-S250 BANKED items and METHODOLOGY-MAP tracks are completed
 or superseded — HELD, and stronger for METHODOLOGY-MAP than for BANKED.** METHODOLOGY-MAP:
 **21 of 41 (51%)**, including the entire Track A block, landed at S95 and still reading as
-open 248 sessions later. BANKED: **16 of 200 (8%)** evidenced landed — lower than predicted,
-but this is a floor, not a count, because 181 rows were not individually source-settled.
+open 251 sessions later. BANKED: **25 of 200 (12.5%)** evidenced landed — lower than predicted,
+but this is a floor, not a count, because 144 rows were not individually source-settled.
 
 **3. The mirrors have diverged — DEFERRED to part two,** but two mirror-class instances are
 already live in part one: CLAUDE.md:38 vs :161 (26 vs 25 MiniCards, both wrong), and
@@ -902,7 +1013,7 @@ the METHODOLOGY-MAP "unresolved" was resolved, by supplying a rule.
 
 ---
 
-## §11 — Verification
+## §12 — Verification
 
 **`git status --porcelain -- src/`** → zero lines, actual output empty.
 **Batch: N/A.**
@@ -942,7 +1053,7 @@ command grep -c '^ *- ' docs/shared/V1X-FUTURE-WORK.md
 
 ---
 
-## §12 — Checkpoint
+## §13 — Checkpoint
 
 **Part one ends here.** Part two — `docs/shared/V1X-FUTURE-WORK.md`, 1,228 lines, 135
 top-level bullets, eight top-level sections — opens on a fresh dispatch so this
@@ -964,7 +1075,7 @@ classification is not lost to auto-compaction. Part two owes:
   V1X, BANKED ↔ V1X), which cannot be settled from one side.
 
 **Carried into part two as measured, not assumed:** V1X holds only two P-numbers (P43, P45)
-against eight `STATUS parked #N` citations and 18 `ROADMAP` citations to a file that is not
+against eight `STATUS parked #N` citations and 19 `ROADMAP` citations to a file that is not
 in the repository (§6.2). Whatever part two finds about the mirrors, V1X's pointer surface
 is already the most detached of the five.
 
