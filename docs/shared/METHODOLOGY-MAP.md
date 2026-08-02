@@ -1,8 +1,19 @@
 # Methodology Map
 
-**Status:** v4.8 (S180)
+**Status:** v4.9 (S347)
 **Owner:** Chat
 **Companion to:** `METHODOLOGY.md`
+
+2026-08-03 (S347 — **Future-work delete pass.** Removed 21 items that
+`docs/shared/SESSION346-REGISTER-CENSUS.md` §5 evidenced as landed, each against a commit,
+a shipped file or a `src/` symbol: both §Gap audit "Gaps addressed by planned tests" rows
+(S114, S102/S104); §Inconsistencies to fix items 1–6 (S95–S116); both §Planned tests entries
+(S110, S114); §Implementation sequencing Tracks A, C, E and H, and the landed half of Track D.
+Also removed four §Open questions rows that duplicated §Remaining gaps verbatim. Nothing open
+was deleted; Track D's deferred P7/P8 half and the Large-N gate audit's test lists were kept
+in place. No citation anywhere pointed into the deleted lines — checked before the pass. The
+"27 tests" claim above is NOT corrected here: it may count test cards rather than battery
+members, and that needs a source check rather than a census reading. 602 → 567 lines.)
 
 2026-05-26 (S179–S180 — Distribution-shape trio (Shannon Entropy §3.6, Column GoF §3.7, Modality §3.8) routing corrections. **A1 (S179):** trio routes per-condition via `aggregatePerGroup(condCtx.rowGroups())` with pooled fallback on multi-condition row-grouped data; DS19 trio-flag count corrected 3→1. **Finding 1 (S180, `d79cacc`):** trio added to `FISHER_EXEMPT` (exempt set 4→7) — per-group `primaryP` is floor-truncated by the B=999 bootstrap, non-uniform under H₀, so cross-group Fisher's was promoting floor-clamped MODERATE slices to spurious HIGH (DS11 χ²≈37.3; DS20 χ²=19.85); aggregator now falls back to worstGroup. **Finding 2 (S180, `16ace4e`):** trio routes to N/A on count data via `dtSkip` (`DATATYPE_SKIP.count`, joining ordinal) — a count column marginal is a mixture of per-unit NBs (RNA-seq = pooled per-gene NBs), not any single family, so the single-family-fit null is misspecified; count distribution-shape forensics is carried instead by §4.1 Mean-Variance (β≈2 genomics) and §2.2 Excess Kurtosis (replicate-difference shape, mixture-robust). DS20 GoF honest tier corrected HIGH→MODERATE per-condition (the post-A1 HIGH was the Finding-1 Fisher artifact, not un-masking). Batch 22/22, severity byte-identical throughout. See METHODOLOGY.md §3.6/§3.7/§3.8, STATUS.md, SESSION179/180-SUMMARY.)
 
@@ -304,18 +315,11 @@ No merges recommended.
 
 ## Gap audit
 
-### Gaps addressed by planned tests
-
-| Gap | Dim | Planned test |
-|---|---|---|
-| Overrepresented digit substrings | II | VFS digit-substring extension |
-| Cross-condition property comparison (residual-level, distributional) | IV | Consistency framework Stages 2–3 |
-
 ### Remaining gaps (future work)
 
 | Gap | Dim | Notes |
 |---|---|---|
-| 2D spatial plate variance (Moran's I) | III | Parked v1.0 |
+| 2D spatial plate variance (Moran's I) | III | Parked v1.0. Open question: timing within v1.0. |
 | Non-linear cross-replicate dependence | III | IRC is winsorized Pearson only. Low forensic justification. |
 | Distribution skewness | III | AD already captures via full CDF. Low priority. |
 | Row-matched near-duplicates across conditions | IV | Near-matches with small perturbations. Needs own null. |
@@ -491,32 +495,14 @@ Count: 13 TRANSFORMED + 14 RAW + 1 STRUCTURAL = 28 dispatch entries covering 27 
 
 ### Inconsistencies to fix
 
-Ordered by effort, smallest first:
+Items 1 through 6 landed at S95–S116 and were removed at S347. One remains.
 
-**1. DupDet internal cleanup.**
-
-(a) Tests 1 and 3 use z-approximation (normal to binomial/Poisson); Test 2 uses exact binomial. Unify on exact binomial for all three.
-
-(b) Test 2 has a cross-test gate (suppresses row-dup p when Test 1 z < −3 for integer data). Empirically test removal on DS05/DS06/DS07 to check whether HHI null already handles it. Remove if redundant.
-
-(c) METHODOLOGY.md §1.1 uses "FLAGGED/NOTED" terminology. Align to HIGH/MODERATE per unified α. Documentation fix only.
-
-**2. Mahalanobis per-row selection uses BH-FDR (landed).** Earlier map drafts listed this as a planned Bonferroni→BH-FDR change; the change is in source (`mahalanobis.js:152`, `bhFDR(rowPvals)` at α=0.001). No test gates on pure Bonferroni — it survives only nested inside DupDet block-copy and Missing-Data block-scan, both of which then feed a BH gate. The "everything is BH-FDR at the row/unit gate" statement now holds across the battery.
-
-**3. Cross-Condition Rank uses ρ₀ = 0.85 heuristic (Tier 2); everything else is Tier 1.** LOO alternative specified in METHODOLOGY.md §1.5. Already planned — STATUS priority 12.
-
-**4. Escalation rule asymmetry.**
-
-- "More severe of global and windowed" — Runs, Row-Mean Runs
-- "Sub-unit BH-FDR promotion (cap MODERATE)" — Autocorr, Kurtosis+AD, ConstOffset, IRC, LOESS, RegNoise, SelNoise
-
-**Decision: unify on sub-unit BH-FDR promotion.** A 15-row localised signal should contribute to severity via convergence across tests, not drive dataset-wide HIGH alone. Apply to Runs and Row-Mean Runs.
-
-**5. ConstOffset scope.** Currently runs on replicate pairs only. **Expand to all column pairs** — cross-condition offset copies are a real fabrication pattern with no current coverage. The permutation null (row-shuffle, consecutive equal-difference count) is valid for any column pair.
-
-**6. Cross-family convergence rule uses wrong grouping.** The Tier 3 rule "2+ MODs cross-family → SERIOUS" assumes inter-family independence. Currently "family" = four methodology families. **Change to cross-dimension** once this map is adopted.
-
-**7. Large-N gate audit.** Tests with Tier 2 effect-size gates for N ≥ 500: Autocorrelation, Kurtosis+AD, Selective Noise, IRC, Mahalanobis, LOESS, Regional Noise, Shannon Entropy, Duplicated and Offset, Second-Digit Frequencies. Tests without gates that may need them: **First-Digit Frequencies, Last-Digit Frequencies, Runs, Row-Mean Runs, Decimal Places, Mean-Variance**. Calibrate against validation suite.
+**Large-N effect-size gate audit.** Tests with Tier 2 effect-size gates for N ≥ 500:
+Autocorrelation, Kurtosis+AD, Selective Noise, IRC, Mahalanobis, LOESS, Regional Noise,
+Shannon Entropy, Duplicated and Offset, Second-Digit Frequencies. Tests without gates
+that may need them: **First-Digit Frequencies, Last-Digit Frequencies, Runs, Row-Mean
+Runs, Decimal Places, Mean-Variance**. Calibrate against validation suite. Carried as
+Track G in §Implementation sequencing, as V1X §5.4, and as a v1.0 blocker in STATUS.
 
 ### Tolerable inconsistencies (no change needed)
 
@@ -526,55 +512,34 @@ Ordered by effort, smallest first:
 
 ---
 
-## Planned tests
-
-### Blocked Mahalanobis (Dim III, sub-group C) — LANDED S110
-
-Sliding windows of size W = max(30, 3·nC) at stride W/3 over row-ordered groups (continuous, non-genomics, N ≥ 60). Two-sample Hotelling T² (μ-pass) + eigenvalue-ratio λ_max(Σ̂_B Σ̂_{\B}⁻¹) with Ledoit-Wolf shrinkage (Σ-pass). Row-permutation null on scan-max statistic. BH-FDR across (pass × condition). Fisher-combination exempt. See METHODOLOGY.md §2.6b.
-
-### VFS Digit-Substring Extension (Dim II)
-
-Already on roadmap (STATUS priority 13). Adds second detection pass for overrepresented consecutive digit substrings. Dual-pass architecture (whole-value spike + digit-substring) under one test card.
-
----
-
 ## Implementation sequencing
 
-Independent tracks, none blocking the others:
-
-**Track A — Coherence cleanup** (Code, small).
-
-1. DupDet: Tests 1+3 to exact binomial; empirically test Test 2 gate removal; FLAGGED/NOTED terminology fix.
-2. Mahalanobis Bonferroni → BH-FDR. LANDED (source `mahalanobis.js:152`); listed here for sequence completeness.
-3. CCR ρ₀ → LOO.
-4. Escalation rule: Runs + Row-Mean Runs → sub-unit BH-FDR.
-5. ConstOffset: expand to all column pairs.
+Independent tracks, none blocking the others. Tracks A, C, E and H landed and were
+removed at S347; Track D landed except for the deferred half recorded below.
 
 **Track B — Review paper** (Chat). Methods section drafted around 5-dimension structure.
 
-**Track C — UI restructure** (Code, medium). Category rename and reorganisation. CRC removal. Update INVESTIGATION-DISPLAY-SPEC.md.
-
-**Track D — Cross-condition consistency framework** (Chat spec → Code). Stage 1 landed S97; Stage 2 landed S102; Stage 3 P9 landed S104. P7 (first-digit) and P8 (entropy) deferred to v1.1+ pending purpose-built calibration fixtures.
-
-**Track E — New tests** (later, individual). VFS digit-substring. (Landings: S96 Higher-lag + Windowed Autocorrelation; S107 Column GoF + Modality; S110 Blocked Mahalanobis; S114 VFS digit-substring (c).)
+**Track D residual — Cross-condition consistency P7 and P8.** The framework landed
+(Stage 1 S97, Stage 2 S102, Stage 3 P9 S104). P7 (first-digit) and P8 (entropy) are
+deferred to v1.1+ pending purpose-built calibration fixtures.
 
 **Track F — Unified SD scan** (Code, large, deferred). Three-way Dim III sub-group B merge.
 
-**Track G — Large-N gate audit** (Chat analysis → Code calibration). Six tests.
-
-**Track H — Long-format fix** (Code, v1.0). Row-order-arbitrary flag. Multi-measure detection.
+**Track G — Large-N gate audit** (Chat analysis → Code calibration). Six tests. This is
+the same work as §Inconsistencies to fix > Large-N effect-size gate audit, which holds
+the test lists.
 
 ---
 
 ## Open questions for future review
 
-1. Per-condition pooled Dim V variants — sample size concerns at small per-condition N.
-2. Time-series / dose-response archetype — how to adjust sequential test nulls.
-3. Paired/matched design handling.
-4. Per-condition digit tests — useful extension or too small N?
-5. Row-matched near-duplicate test (Dim IV) — null model design.
-6. Cross-condition missing data pattern — feasibility.
-7. Plate analysis architecture (Dim III 2D, Moran's I) — timing within v1.0.
+1. Time-series / dose-response archetype — how to adjust sequential test nulls.
+2. Paired/matched design handling.
+3. Per-condition digit tests — useful extension or too small N?
+
+*Four further questions were removed at S347 as verbatim duplicates of rows in
+§Gap audit > Remaining gaps, which is the canonical home: per-condition pooled Dim V,
+row-matched near-duplicates, cross-condition missing data, and plate analysis.*
 
 ---
 
