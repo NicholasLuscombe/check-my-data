@@ -18,9 +18,9 @@ draw came back clean, and three of seven made-up ones did not".
 **The instability is one test, and it is one permutation.** Across 300 offsets, 51 came back non-clean
 — 17.0%, every single one driven by Cross-Condition Consistency at MODERATE and nothing else, and
 none ever reaching severity 2. CCC's adjusted p on this file can only take the values 0.006 or 0.012:
-a permutation null of 499 draws, BH-FDR at m = 3, so the grid is 3/500 apart. The
-MODERATE boundary is 0.01 — it falls in the gap. **The verdict turns on whether one permutation out
-of 499 exceeds the observed statistic.**
+a two-sided permutation p on a null of 499 draws floors at `2/500 = 0.004`, and BH-FDR's step-up
+multiplies that by 3 when one unit reaches the floor and by 3/2 when two do. The MODERATE boundary is
+0.01 — it falls in the gap. **The verdict turns on whether a second Stage-1 unit also bottoms out.**
 
 **And the file next door already fails.** Change one of the 2400 cells by one unit in its own last
 decimal place — 0.01 on a proteomics intensity — and re-run. **Six of sixty such neighbours come back
@@ -316,31 +316,41 @@ B = **499** permutations, Stage-1 BH denominator m = **3**. Its `primaryP` is th
 across the three per-stage BH families, and the minimum is Stage 1's leading unit — "CDF shape (KS)",
 direction *similar*.
 
-A permutation p is `(exceedances + 1) / (B + 1)`, so on the grid of 1/500. BH at rank 1 with m = 3
-multiplies by 3. The adjusted p of the leading unit can therefore only take the values:
+> **Corrected at S343 Part B.** The paragraph below originally derived the grid as `3 × (k+1)/500`,
+> from a one-sided raw p and a fixed rank-1 BH multiplier. Both halves were wrong. The p is two-sided
+> with the doubling (`crossConditionConsistency.js:526-528`) and BH is a step-up, so the multiplier is
+> `m/j` at whatever rank `j` supplies the family minimum. Every measured value below stands; only the
+> derivation changed. Full treatment in `docs/shared/SESSION343-GATE-PROVENANCE-AUDIT.md` §2.1.
 
-| exceedances in 499 permutations | adjusted p | tier |
-|---|---|---|
-| 0 | **0.006** | MODERATE |
-| 1 | **0.012** | LOW |
-| 2 | 0.018 | LOW |
+Each unit's raw p is two-sided: `min(1, 2 × min(p_upper, p_lower))`, with each tail on the grid of
+`1/500`. The smallest raw p is therefore `2/500 = 0.004`. BH-FDR is a step-up, so the family minimum
+is `min over j of (p_(j) × m/j)` — the multiplier is 3 when one unit sits at the floor, and 3/2 when
+two do. The reachable values around the boundary:
 
-`ALPHA.NOTE` is **0.01**. It falls in the gap between 0.006 and 0.012 — a value the grid cannot
-represent. There is no "close call" available: the verdict is decided by whether a single one of 499
-permutations exceeds the observed KS statistic.
+| units at the raw floor | rank supplying the minimum | adjusted p | tier |
+|---|---|---|---|
+| 2 | j = 2 → 0.004 × 3/2 | **0.006** | MODERATE |
+| 1 | j = 1 → 0.004 × 3 | **0.012** | LOW |
+
+`ALPHA.NOTE` is **0.01**. It falls between 0.006 and 0.012 — a value this grid cannot represent. There
+is no "close call" available: the verdict turns on whether a second Stage-1 unit also reaches the
+permutation floor.
 
 Measured across offsets 0–7, `primaryP` takes exactly two values and nothing else:
 
 ```
-offset 0  LOW       p=0.012      <- the derived stream, one exceedance
+offset 0  LOW       p=0.012      <- the derived stream; one unit at the floor
 offset 1  LOW       p=0.012
 offset 2  LOW       p=0.012
-offset 3  MODERATE  p=0.006      <- zero exceedances
+offset 3  MODERATE  p=0.006      <- two units at the floor
 offset 4  LOW       p=0.012
 offset 5  LOW       p=0.012
 offset 6  MODERATE  p=0.006
 offset 7  MODERATE  p=0.006
 ```
+
+At offset 0 only "CDF shape (KS)" is at 0.004; at offset 3 "Trimmed span (5–95%)" joins it. Per-unit
+adjusted p values for both offsets are in the Part B report.
 
 The gates are not involved. `primaryPUngated` equals `primaryP` at 0.012, so nothing is being held
 down here — this is the raw ladder.
@@ -451,10 +461,11 @@ Read-only session, so these are handed over rather than acted on.
 1. **A boundary that no reachable p-value can sit near is a calibration bug, not a close call.** On
    `09-proteomics-clean`, Cross-Condition Consistency's Stage-1 leading unit can report 0.006 or
    0.012 and nothing between, against a boundary of 0.010. Whether MODERATE fires is a single
-   Bernoulli trial. That property follows from `B` and the BH denominator, both of which are known at
-   run time — so it is checkable in general, not just here. The shape to look for: `m × 1/(B+1)` and
-   `m × 2/(B+1)` straddling `ALPHA.NOTE`, or the same pair straddling `ALPHA.FLAG`. Any test with a
-   small BH family on a permutation null can land in it.
+   Bernoulli trial. That property follows from `B`, the BH family size, and whether the p carries a
+   two-sided doubling — all known at run time, so it is checkable in general, not just here. The shape
+   to look for: consecutive values of `(m/j) × c/(B+1)` straddling `ALPHA.NOTE` or `ALPHA.FLAG`, where
+   `c` is 2 for a doubled p and 1 otherwise. S343 Part B measures this across all thirteen permutation
+   tests; see `docs/shared/SESSION343-GATE-PROVENANCE-AUDIT.md` §2.4.
 2. **`B` is chosen from row count, not from where the p lands.** `crossConditionConsistency.js:167`
    sets `B = 499` for this file because its largest condition holds 1200 cells. The METHODOLOGY note
    at `:551` already records that raising `B` was ruled out once on arithmetic grounds for a
