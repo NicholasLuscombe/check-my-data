@@ -4,6 +4,8 @@
 **Purpose:** Single source of truth for what's planned post-v1.0. Consolidates content currently scattered across METHODOLOGY-MAP's gap audit, ROADMAP Item 8, STATUS.md parked items, and chat-history-only specs.
 **Out of scope:** v1.0 work in progress (lives in STATUS.md), implementation-landed tests (live in METHODOLOGY.md), v1.0 UI polish (lives in STATUS.md parked items).
 
+**S347 — one section removed.** §2.3 (coherence-cleanup residue from Track A) deleted: all four of its cleanups landed at S95 and are evidenced at source (`mahalanobis.js:162`, `rankCorrelation.js:59`, `engine.js:411`, `runs.js:75`/`:259`). It was cited nowhere in this document by section number. **The other four landed sections were NOT deleted** — §2.4, §2.6, §2.8 and §2.9 are cited 17, 29, 7 and 7 times from open sections as antecedents and authorities, so removing them would dangle 60 live references. §2.6, §2.8 and §2.9 already have their content in `V1X-DECIDED.md`; §2.4 does not.
+
 This doc owns the v1.x view. The v1.0 surfaces stay authoritative for their domains; cross-references at the foot point to source-of-truth for each topic.
 
 ---
@@ -13,7 +15,7 @@ This doc owns the v1.x view. The v1.0 surfaces stay authoritative for their doma
 | Surface | Scope | Status |
 |---|---|---|
 | Methodology gaps (forensics framework) | 6 dimension-attributed coverage gaps | Mirrored from METHODOLOGY-MAP §Gap audit |
-| Test additions (post-v1.0 forensics) | Rectangular Blocked Mahalanobis; genuine-block detection; coherence-cleanup residue; column-localised sequential duplication detector; role/condition inference for real-world column shapes; **test-consistency audit beyond the closed item-28 audit (§2.6) — four demonstrated axes, axis 4 (input representation defeats Decimal Precision) added S330, FIXED S336**; arbitrary-offset block duplication detector (§2.7); **group-attribute column recognition — the largest demonstrated false-positive surface in the corpus (§2.8, BUILT S315)**; **scattered partial-row duplication — the coverage failure mode, exposed by §2.8's outcome (§2.9, BUILT S316)**; **row-grouping produces units the tests were not designed for — the tool's own applicability failure, half the row-grouping corpus (§2.10, trigger + confirm card BUILT S320–S321, stance cross-validated S322, twelve fixes unpromoted)**; **structural omission as a signal — the absence "not applicable" would neutralise (§2.12, open scope)**; **cost ceilings measure the wrong variable — row count does not predict scan cost, factor of 124 at identical shape (§2.13, S327)**; **the sequence-duplication null already prices categorical columns correctly — but those columns carry evidence, and the cardinality guard is KILLED (§2.14, S327, amended S328)**; **one question, two owners — applicability is decided twice and the answers diverge (§2.15, S332)** | New scope, this doc |
+| Test additions (post-v1.0 forensics) | Rectangular Blocked Mahalanobis; genuine-block detection; column-localised sequential duplication detector; role/condition inference for real-world column shapes; **test-consistency audit beyond the closed item-28 audit (§2.6) — four demonstrated axes, axis 4 (input representation defeats Decimal Precision) added S330, FIXED S336**; arbitrary-offset block duplication detector (§2.7); **group-attribute column recognition — the largest demonstrated false-positive surface in the corpus (§2.8, BUILT S315)**; **scattered partial-row duplication — the coverage failure mode, exposed by §2.8's outcome (§2.9, BUILT S316)**; **row-grouping produces units the tests were not designed for — the tool's own applicability failure, half the row-grouping corpus (§2.10, trigger + confirm card BUILT S320–S321, stance cross-validated S322, twelve fixes unpromoted)**; **structural omission as a signal — the absence "not applicable" would neutralise (§2.12, open scope)**; **cost ceilings measure the wrong variable — row count does not predict scan cost, factor of 124 at identical shape (§2.13, S327)**; **the sequence-duplication null already prices categorical columns correctly — but those columns carry evidence, and the cardinality guard is KILLED (§2.14, S327, amended S328)**; **one question, two owners — applicability is decided twice and the answers diverge (§2.15, S332)** | New scope, this doc |
 | Variance-estimator unification | Catalogue + scoped sub-refactors | Extends ROADMAP Track F; related to §2.6 (same forced-vs-artefact discipline) |
 | AI Screening mode | Five new tests + mode toggle + reweighting | Restored from S125 chat history |
 | Calibration audits banked | **Permutation grid resolution — seven tests cannot reach HIGH, and raising counts is the wrong fix (§5.9, S340)**; severity-formula diversity metric; Modality plot upgrade | §5.9 is primary scope; the rest mirrored from STATUS parked items |
@@ -75,16 +77,6 @@ New tests not in the methodology-framework gap list above. Surface as the batter
 **Relationship:** sits with §2.1 (rectangular Blocked Mahalanobis) — §2.1 generalises the *column* axis (subset of columns), this generalises the *row* axis (true extent vs fixed window). Both are Blocked-Mahalanobis extensions; decide at implementation whether they share a card.
 
 **Priority:** Bank for v1.x. (STATUS parked #50.)
-
-### 2.3 Coherence-cleanup residue from Track A
-
-Track A (METHODOLOGY-MAP §Inconsistencies to fix) listed coherence cleanups, some of which may not have landed in the v1.0 push. To audit against current source before v1.x scope:
-- Mahalanobis Bonferroni → BH-FDR (per-row p-value correction)
-- CCR ρ₀ heuristic → LOO alternative (per METHODOLOGY.md §1.5)
-- ConstOffset expansion to all column pairs (not just replicate pairs)
-- Runs + Row-Mean Runs escalation rule → unify on sub-unit BH-FDR promotion
-
-**Source-of-truth:** METHODOLOGY-MAP.md §Inconsistencies to fix + ROADMAP.md Track A. Verify-at-source before banking for v1.x.
 
 ### 2.4 Column-localised sequential duplication detector
 
