@@ -42,48 +42,98 @@ When a parametric test is known to be overpowered at large N (i.e. it tests an a
 
 ---
 
-## Permutation-Test Arithmetic Constraints (v0.8)
+## Permutation-Test Arithmetic Constraints (rewritten S343)
 
-Permutation tests combined with BH-FDR correction have a hard floor on achievable adjusted p-values that depends on the number of permutations `B` and the BH denominator `m` (the number of units sharing a correction). This constraint is shared by every permutation test in the battery — Constant-Offset Blocks, Regional Noise, Windowed Autocorrelation, Windowed ICC, LOESS Residual Analysis, Residual Spike Correlation, and the Cross-Condition Consistency framework.
+A permutation or simulation p-value lives on a grid set by the resample count. It cannot resolve a threshold finer than its own step. That is arithmetic and no property of the data enters it.
 
-**Two-sided permutation p-value floor.** With `B` permutations and a two-sided p-value computed as `p = min(1, 2 × min(p_upper, p_lower))`, the smallest achievable raw p is
+**This section was wrong from v0.8 to S343 and every figure in it has been recomputed.** The previous version applied the BH multiplier at rank 1 and assumed a universal two-sided doubling. Both are wrong, and together they overstated every floor in the battery — by a factor of 2 on ten of the thirteen resampling tests, and by a factor of `m` on all of them. Source: `docs/shared/SESSION343-GATE-PROVENANCE-AUDIT.md` Part 2, read at source with `file:line`, reproduced by running the engine at two PRNG offsets, and confirmed by a corpus-wide `bhFDR` harvest.
 
-    p_min = 2 / (B + 1)
+### The raw floor depends on the construction
 
-`p_upper` and `p_lower` each have the form `(1 + k) / (B + 1)` for a count k ≥ 0; the minimum tail count of zero gives `1 / (B + 1)`; the two-sided doubling gives `2 / (B + 1)`. The `×2` factor is a calibration correction that compensates for the Type I inflation of `min(p_upper, p_lower)`: under H₀ both tail probabilities are U(0,1) and their min is Beta(1,2), so doubling restores the nominal α.
+Two constructions are in use and they do not share a floor.
 
-**BH-FDR floor.** After BH-FDR correction at rank 1 across `m` units, the most significant unit's adjusted p is `p_min × m / 1`. Combined with the permutation floor,
+**One-sided.** `p = (k + 1) / (B + 1)` for an exceedance count `k ≥ 0`. Floor `1 / (B + 1)`. The `+1` on each side is the Phipson & Smyth (2010) continuity correction; without it a zero count emits `p = 0`, an assertion of impossibility on B draws.
 
-    adj-p_min = 2m / (B + 1)
+**Two-sided, doubled.** `p = min(1, 2 × min(p_upper, p_lower))`, each tail of the form `(1 + k) / (B + 1)`. Floor `2 / (B + 1)`. The doubling is a calibration correction: under H₀ both tail probabilities are U(0,1) and their minimum is Beta(1,2), so doubling restores the nominal α.
 
-No more significant adjusted p-value is achievable regardless of how strong the forensic signal is.
+Ten of the battery's thirteen resampling tests are one-sided. Three are two-sided and doubled: Cross-Condition Consistency, Entropy / Zipf Analysis, and Column Goodness-of-Fit. A statistic being a distance does not make its p one-sided — Cross-Condition Consistency's Stage-1 KS unit counts both tails of D's permutation distribution and doubles the smaller. Read the construction; do not infer it from the statistic.
 
-**Consequence for α bands.** Under the unified flag bands (`HIGH < 0.001`, `MOD < 0.01`, `LOW` otherwise), the minimum `B` needed to reach HIGH is
+Write `c` for the numerator: `c = 1` one-sided, `c = 2` doubled. The raw floor is `c / (B + 1)`.
 
-    B_min_for_HIGH = 2000 · m − 1
+### BH-FDR does not add a floor
 
-| B | m | adj-p floor | Reachable bands |
+`bhFDR` (`src/stats/primitives.js`) is a Benjamini–Hochberg step-up with monotonicity enforcement. It walks the family from the largest rank downward, keeping a running minimum. The smallest adjusted p-value the family can report is therefore
+
+    adj-p_min = min over j of ( p_(j) · m / j )
+
+taken over the ranked raw p-values `p_(1) ≤ … ≤ p_(m)`, **not** `p_(1) · m`.
+
+The consequence is the opposite of a floor that grows with `m`. When several units sit at the raw floor the rank-`j` term is smaller than the rank-1 term, and when the whole family sits there the `j = m` term returns the raw floor with no `m` factor left in it:
+
+    reachable floor = c / (B + 1)
+
+independent of `m`.
+
+**A stronger forensic signal lowers the achievable adjusted p**, because it puts more units at the floor. The previous version of this section asserted the reverse — "no more significant adjusted p-value is achievable regardless of how strong the forensic signal is" — which is anti-monotone in the quantity it claims to bound.
+
+Worked example, measured on `09-proteomics-clean`, Cross-Condition Consistency Stage 1, `B = 499`, `m = 3`, raw floor `2/500 = 0.004`:
+
+| units at the floor | rank supplying the minimum | adjusted p | tier |
 |---|---|---|---|
-| 999 | 1 | 0.002 | MOD (HIGH unreachable) |
-| 999 | 3 | 0.006 | MOD (HIGH unreachable) |
-| 999 | 9 | 0.018 | LOW only (MOD unreachable) |
-| 999 | 27 | 0.054 | LOW only |
-| 499 | 3 | 0.012 | LOW only (MOD unreachable) |
-| 199 | 3 | 0.030 | LOW only |
+| 1 | j = 1 → 3 × 0.004 | 0.012 | LOW |
+| 2 | j = 2 → 1.5 × 0.004 | 0.006 | MODERATE |
+| 3 | j = 3 → 1 × 0.004 | 0.004 | MODERATE |
 
-The B-scaling rule (`B = 999 / 499 / 199` at `max(N_c) ≤ 1000 / 10000 / >10000`) trades permutation precision for compute cost on large datasets, which further compresses the reachable band space at high N.
+Both of the first two are observed in the shipped engine at different PRNG draws.
 
-**Per-stage BH in framework tests.** Framework tests that split units into per-stage BH families (Cross-Condition Consistency, §1.9) compute `adj-p_min` per stage, with `m_stage = n_pairs × n_properties_in_stage` per BH call. A 3-property stage at `B = 999` hits m = 3 (MOD reachable) on single-pair groups and m = 9 (LOW ceiling) on 3-pair groups — each stage behaves as though it were a single-stage test, and the ceiling is determined by whichever stage carries the primary flag. The per-stage split preserves this ceiling shape as properties accumulate across stages, rather than compressing the framework to LOW-only.
+### Reachability
 
-**Design posture.** The bands themselves remain the correct α thresholds — HIGH is still "1 in 1000 under H₀" in a calibrated-p sense. What the ceiling says is that **permutation + BH at finite B cannot resolve significance below a floor**. A permutation test whose ceiling is MOD is not broken; it simply detects at MOD strength per group at that `B`. Raising `B` to reach HIGH is rejected for three reasons: (a) parity — all battery permutation tests share `B = 999`, and diverging one test breaks interpretability; (b) compute — the ceiling gets worse with more properties or more pairs, so raising `B` enough to reach HIGH at Stages 2/3 of a framework test would require `B > 50,000`; (c) necessity — the tool's overall severity posture already requires convergence across tests for severity 3, so single-channel HIGH was never the target.
+`flagFromP` compares against `ALPHA.FLAG = 0.001` and `ALPHA.NOTE = 0.01`, strictly less in each case. So HIGH needs `c / (B + 1) < 0.001`:
 
-**Consequences for severity interpretation.**
+| construction | minimum B for HIGH | minimum B for MODERATE |
+|---|---|---|
+| one-sided (`c = 1`) | 1000 | 100 |
+| doubled (`c = 2`) | 2000 | 200 |
 
-- A permutation framework test that flags MOD on a fabricated dataset where only that channel fires is **working correctly**, not under-detecting. Severity 3 on such a dataset requires convergence with another forensic channel — a different dimension, or (in the framework-test case) residual-structure properties added in later stages exercising different fabrication signals.
-- Users reading test results should not treat permutation-test MOD as "fails to prove HIGH." The test reports what the permutation budget can resolve; convergence and investigator judgement carry the interpretation beyond that.
-- The `adj-p_min` floor is deterministic given `B` and the test's BH denominator. Recording it per test in the engineering documentation (CLAUDE.md) would make ceiling-awareness routine rather than session-specific discovery.
+Two tests in the battery already choose `B` this way and are the only two that do. Excess Kurtosis sets `N_SIM = 1999` for a floor of `1/2000 = 0.0005`; Column Goodness-of-Fit sets `B = 2000` for `2/2001 = 0.00099950`. Both clear `ALPHA.FLAG` by construction and both state the reasoning in a comment beside the value.
 
-**Not affected by the ceiling.** Simulation-based tests (Kurtosis + Anderson-Darling, Benford's Law) and parametric tests (lag-1 Autocorrelation, Selective Noise, Mean-Variance slope, Terminal Digit, Decimal Precision, IRC Fisher-z) use null distributions whose p-values can drop arbitrarily close to zero — no permutation counter lives between the observation and the p. These tests can and do flag HIGH as single-channel evidence.
+Every other resampling count in the battery is set from a row-count rule or is a bare constant, and none cites a threshold.
+
+### What BH does cost: coarseness, not a floor
+
+The floor is the best case. The cost of multiplicity shows up in the **step size** — how much the reportable adjusted p moves when a single exceedance count changes:
+
+    step = ( m / j ) × c / ( B + 1 )
+
+Best case `j = m` gives `c/(B+1)`; worst case `j = 1` gives `m · c/(B+1)`.
+
+What matters for a verdict is that step relative to the threshold it must resolve. Below roughly 0.1 the discreteness is immaterial. At or above 1 the threshold sits in a gap the grid cannot represent, and the tier is decided by whether one resample out of `B` exceeds the observed statistic.
+
+**Coarseness is a property of a run, not of a test.** `j` depends on how many units happen to sit at the floor, which is a property of the data. The same test at the same `B` can be fine on one file and a coin flip on another. Measured across the corpus, only Excess Kurtosis and the two Benford passes stay under 0.1 at `ALPHA.NOTE` in every case; every other resampling test reaches a regime on some fixture where one exceedance decides the tier.
+
+The measured instance: Cross-Condition Consistency on `09-proteomics-clean` steps by 0.006 against a MODERATE threshold of 0.010 — ratio 0.6. About one in six PRNG draws, and about one in ten single-cell neighbours of that file, cross the boundary on nothing but the draw.
+
+### Raising B
+
+The v0.8 version rejected raising `B` on three grounds. All three have lapsed:
+
+- **Parity.** "All battery permutation tests share `B = 999`" was already untrue when written — the row-count scaling rule emits 4999, 2000, 1999, 999, 499 and 199 across the battery. And until S340 the counts were genuinely coupled, because `createPRNG` was one stream consumed in dispatch order, so any raise displaced every test after it. Per-test streams landed at S340. **Counts are now independently adjustable, and changing one changes nothing else.**
+- **Compute.** The `B > 50,000` figure came from the `m`-multiplied floor and does not survive its correction.
+- **Necessity.** That argument is about reaching HIGH on a single channel. It says nothing about whether MODERATE is decided by a single resample, which is the live problem.
+
+**But raising `B` is not a general fix, because coarseness is not a general property.** Resolving the worst case — `j = 1` — needs `m · c / (B+1)` well under α, and `m` in this battery reaches 298 for Windowed Autocorrelation and 4208 for the Runs windowed scan. For those, no reachable `B` helps. Where `m` is large the multiplicity structure has to change instead: fewer units, or a combination rule that is not a rank-1-dominated minimum. That is a methodology question, open, and it belongs with the calibration programme rather than with a constant.
+
+### Every resampling test has a counter
+
+The v0.8 version claimed that simulation-based tests — Kurtosis, Benford — have "no permutation counter between the observation and the p" and so can drop arbitrarily close to zero. **That is false.** Both count exceedances against simulated draws and both sit on a grid. Their p-values reach HIGH because their counts are large enough, not because no counter exists. Excess Kurtosis floors at `1/2000`; both Benford passes floor at `1/5001`.
+
+Genuinely off the grid are the analytic tests, whose p comes from a distribution function rather than a count: lag-1 Autocorrelation and Row-Mean Runs (`zToP`), Within-Row Variance (`normalCDF`), Inter-Replicate Correlation's per-pair Fisher-z arm, Selective Noise (Bartlett χ² with per-column Levene), Mean-Variance slope, Terminal Digit, and Decimal Precision. Two tests take a minimum over arms of which only one resamples — Inter-Replicate Correlation and Runs — so "the grid blocks HIGH" can be true of the permutation arm and false of the test.
+
+### Consequences for severity interpretation
+
+- A resampling test that flags MODERATE where a stronger claim was expected may be reporting what its budget can resolve, or may be one resample from the other side of the boundary. **The two look identical on a card.** Distinguish them by the step size, not by the p.
+- The reachable floor is deterministic given `B` and the construction. The step size is not — it needs `j`, which is per-run.
+- Both are computable at run time from values the tests already hold. Nothing currently computes either, and no test asserts its own floor. **A stated derivation with no test behind it is unverified**, which is how this section stayed wrong for the life of the project.
 
 ---
 

@@ -189,119 +189,17 @@ This is a designed gap, not a calibration miss — by the methodology as specifi
 
 All three are the same failure: a measurement-type label applied with false confidence to data outside its domain, driving a transform the data did not warrant. **Fix direction:** a confidence gate on the measurement-type assignment — below threshold, decline to classify and fall back to the untyped path rather than forcing a domain-specific transform. **Complementary to the §2.6 per-test applicability guards, and does not subsume them** — the §2.6 guards catch a mis-applied *test*; this catches a mis-applied *transform* upstream. Scope as its own confidence-gate item, homed here with the role/condition-inference fix. Firms to **three** instances (C25, C21, C12) — and two of the three are densitometry-on-ecology, so the misclassification is not random: the classifier has a densitometry attractor that ecological measurement data falls into. Watch the remaining ecology cluster for further recurrences under the skip rule.
 
-### 2.6 Suite-wide test-consistency audit — extension beyond the closed condition-pooling audit
+### 2.6 Suite-wide test-consistency audit — DESIGN PROGRAMME COMPLETE — moved to `V1X-DECIDED.md`
 
-**What:** A v1.x audit pass covering test-consistency failure modes that the suite's *closed* test-integrity audit (item 28, S176–S183) did not examine — surfaced by the S293 CORPUS-03 re-run. Three demonstrated axes, all real-world-validated on one dataset, plus a short seed list of candidate further axes. Produces a classification artifact before any fix, in the same catalogue-first shape the closed audit and §3 both used.
+Four demonstrated axes of test-consistency failure. Axis 4 closed S336 (`4a7cda2`); the
+continuous-recurrence defect was proven not separable from its column across all five routes
+(S298–S301) and is now the paper's §5 disclosed limitation. Full entry and rationale in
+`V1X-DECIDED.md`.
 
-**Relationship to the closed integrity audit (item 28) — this is NOT a resumption.** The S176–S183 test-integrity audit ran all four phases (Phase 0 gate-hardening S177; Phase 1 contamination sweep S178; A1 distribution-shape routing fix S179; Phase 2 per-cluster correctness S183) and **closed** — `TEST-INTEGRITY-AUDIT.md` is archived and untracked at `docs/shared/archive/`, closing line "STATUS item 28 closed." Its predicate was explicitly **cross-condition pooling only** (the S127 shape: moments/distributions/covariance/scale on raw values pooled across conditions without removing condition structure, or row-order assumptions). The CORPUS-03 axes below sit **outside** that predicate — they are cross-*column* and null/dispatch/display failure modes the condition-pooling sweep was never scoped to catch. So §2.6 is **new scope adjacent to a closed audit**, not a reopening of it. The audit's one live carry (item 32: Noise Scaling's column-grouped-multi-condition axis and Within-Row Variance, both fixture-gated, neither a CORPUS-03 axis) is noted here only so it isn't orphaned — it belongs to the same consistency neighbourhood but is a separate, pre-existing thread.
-
-**The demonstrated axes — three from CORPUS-03 (S293, source-traced), plus a fourth added S330.** Axes 1–3 below are the founding CORPUS-03 set. **Axis 4 (S330) is new and is not a variant of axis 1**: it is an *input-representation* failure that defeats a test's predicate before pooling is ever reached. Both axes land on the same test — Decimal Precision Consistency — by different routes, which is the reason to keep them separately named.
-
-1. **Cross-column pooling that manufactures a guard-passing property — Benford false positive.** Benford fired HIGH on the pooled two-column matrix `[SL, Total.distance]` (`matrix.flat()`), where the ≥1.5-OOM span that *lets Benford run at all* was supplied entirely by `Total.distance` (OOM 1.69); SL alone (OOM 0.095) is N/A by Benford's own span guard. A per-column digit test run on a cross-column pool, where the pool lends one column the precondition it individually fails → a false positive, propagated into the dataset verdict via convergence (one of the four HIGHs driving severity-3). The closed audit cleared Benford on the *condition* axis ("scale-invariant to condition shifts") and Phase 0's pooled-column pass only checked for contamination FPs on *clean* fixtures — the span-borrowing mechanism across columns was never enumerated. **New.**
-
-   **S329 confirmation — re-measured at source during the CORPUS-03 round-1 adjudication, and it holds exactly.** Per-column `robustLogSpan`: `SL` 0.0946 (fails the ≥1.5 gate — refused, N/A alone), `Total.distance` 1.6949 (passes), pooled 1.5722 (passes). Invoking the real test functions on single-column matrices confirms it: `SL` alone returns N/A on both Benford channels; `Total.distance` alone returns First Digit HIGH but Second Digit **LOW**. Pooled, both channels go HIGH — first-digit χ² 855.6 (SL alone 1745.2, all 373 values digit-2; `Total.distance` alone 30.5), second-digit driven by SL's non-conformity (χ² 241.6) against a conforming `Total.distance`. **The pooling is intrinsic to the test, not a runner artefact** — `benford.js:13` and `benford2.js:16` both open with `matrix.flat()`, so the UI path pools identically; the returned object carries no per-column decomposition (`nValues = 746` = 373 × 2). So axis-1 is realised twice now (CORPUS-02 decimal-precision, CORPUS-03 Benford) and the fix predicate is confirmed per-test, not shared: **gate per column, pool only gate-passing columns** — a broad-span column must not carry a narrow-span column past a gate it individually fails. This is the specific fix shape for the Benford limb of the axis-1 design pass.
-
-2. **Continuous-branch HHI null — a counterexample to a recorded "safe" claim.** Exact Duplicate Detection rated CORPUS-03's structured exact 4×-recurrence on SL as LOW (p=1.0): Test 1's collision null is the empirical HHI of the column's *own* value-frequency distribution, so a defect that inflates value frequencies inflates its own null baseline (expected collisions ≥ observed → p=1.0). Tests 2/3/4 are separately neutralised by the co-present, independently-real `Total.distance` column breaking the whole-row/whole-block identity they require. Scoped to SL alone, the engine's *own* block-copy sub-test rates the identical data HIGH (p≈3.6e-14) — the detection capability exists; the null and the multi-column dispatch suppress it. **The pointed part:** METHODOLOGY §1.1 already records the HHI circularity — *but for **integer** data only* — with the parametric collision-null fix wired for integer/N≤5000, and **continuous (dp>0) data documented as safe** (source comment `duplicateDetection.js:135`: "HHI circularity is not a concern for float data"). CORPUS-03's SL is continuous 2-decimal with structured recurrence — it sits squarely in the branch the existing caveat declares safe. So this is not a fresh speculative axis: it is a **real-world counterexample falsifying a safe-claim asserted in both METHODOLOGY §1.1 and source.** (Recorded as a BANKED correction in its own right.)
-
-3. **Display-only scored paths and evidence/verdict misattribution.** Exact Duplicate Detection emits the SL duplicate pairs as evidence via a display-only path (`crossRowSameColLocs`) that feeds no statistic — it *lists* the smoking gun and scores it through nothing. Separately, Terminal Digit and VFS fired HIGH on the recurrence's *digit shadow* (VFS's `pass:"digit"` is a frequency test on fractional substrings; 84 distinct 2-decimal values each stamped ~4× over-represents those substrings), not on independent fabrication signal — so the surfaced evidence ("digit" spikes) misattributes *why* the test fired relative to how a reader interprets it as duplication. The closed audit's premise was the inverse (undeclared *right-reason* channels); neither display-only scoring nor evidence/verdict misattribution was in its method. **New.**
-
-4. **Input representation defeats a test's own predicate before any pooling — Decimal Precision false positive on CORPUS-01 (S330 — FIXED S336, `4a7cda2`).** Decimal Precision Consistency fired **HIGH (primaryP 1.586e-6)** on CORPUS-01, a clean-on-this-axis file, because the decimal-place counter reads IEEE float noise as real recorded precision.
-
-   **The chain, source-traced.** `parseExcel` (`excel.js:82-88`) takes the `raw:true` underlying numeric primitive and stores `String(rawV)` — a deliberate S309 choice, and the right one: it stops a display format like `0.000` rounding real precision away before the engine sees it. `extractAnalysisInputs` (`engine.js:127-135`) threads those strings into `rawMatrix`. `decimalPrecision.js:37-38` then counts `String(v).split(".")[1].length`. **There is no tolerance step anywhere in that chain.** A stored computed average whose nearest double needs 16–17 significant digits — `3.5100000000000002`, which a human reads as `3.51` — is counted as **16 decimal places**.
-
-   **Refinement (S336, verified against the deposit).** The S309 import choice is not implicated. All eleven artefact cells carry `General` number format and none is a formula, so no display format is masking anything and `parseExcel` is passing the workbook's value faithfully. The workbook itself stores an off-grid double — the nearest double to 3.51 stringifies as `3.51`, so `3.5100000000000002` is a genuinely different value that arrived by arithmetic upstream. The defect is therefore not Excel-specific either: a CSV carrying full-precision computed values as text reproduces it exactly. **The fix belongs in the test, not the importer.**
-
-   **How that produces a HIGH.** Over CORPUS-01's 301 decimal cells the counted histogram is 1dp: 14, 2dp: 272, 3dp: 4, **15dp: 5, 16dp: 6**. Six artefact cells set `maxDecimalPlaces = 16`. The test's one-tailed binomial trailing-zero model takes 16 as the true instrument precision, expects ~27 values at 15dp, observes 5, and reads the deficit as precision inconsistent with any single fixed-precision source. Eleven cells out of 301 — 3.7% — carry the entire flag. Running the **real** `testDecimalPrecision` on a 6dp-rounded copy returns **LOW, p = 1.0, maxDp = 3**: *"consistent with 3dp instrument output with trailing zeros stripped."*
-
-   **Why this is not axis 1.** Axis 1 is cross-column pooling: a per-column test run on a pool, where the pool lends one column a precondition it individually fails. The S297 read established that Decimal Precision's axis-1 trip is exactly that — a high-precision column pooled with a large low-precision block inflating the shared total until the top level reads as a deficit. **Axis 4 needs no second column.** The predicate is already broken at a single cell, by how the value reached the counter. Pooling then propagates a corruption that was present before it. **Consequence: fixing the axis-1 pooling guard on Decimal Precision would not have caught CORPUS-01.** Two routes into one test; two guards needed.
-
-   **Scope — general, not a CORPUS-01 quirk.** Any column of computed values stored at full double precision exhibits this, which is most spreadsheets containing an average. Before the fix, every Decimal Precision result in the corpus and the road-test sweep was suspect.
-
-   **Fix — landed S336, `4a7cda2`.** Normalise before counting: round the value to fifteen significant digits, and use the rounded form **only if rounding actually moved it**. The guard is the whole fix. On the CSV path the string is the file's own text and trailing zeros are the test's subject, so an unconditional round-trip would turn `3.510` into `3.51` and destroy 3dp evidence across every fixture.
-
-   **The threshold is not a tuned tolerance, which is why the design question the earlier predicate anticipated did not arise.** A double carries at most fifteen decimal significant digits of guaranteed precision, so a value needing sixteen or more to round-trip is not a decimal anyone wrote. On CORPUS-01 the two populations separate completely — the eleven artefacts need 16 to 17 significant digits, all 354 genuine decimal values need 1 to 4, and every threshold from 8 to 15 gives an identical histogram. S309's guarantee is preserved untouched: the fix never consults display text.
-
-   **Result.** CORPUS-01 goes HIGH (1.586e-6) to LOW (p = 1), `maxDecimalPlaces` 16 to 3, `gapsDetected` 11 to 0, with `nDecimalValues` unchanged at 301 — nothing dropped, only recounted. The dataset verdict is unaffected at severity 3; Sequential Duplication and Missing Data Pattern still carry it. Across the batch the per-fixture description and histogram dumps are byte-identical before and after, and `23-recurrence-null-mixed` holds its Decimal Precision MODERATE with `primaryP` unchanged.
-
-   **The fixture gate did not happen, and that is a live gap.** The earlier predicate asked for a fixture carrying both a genuine precision cliff and a float-artefact column. No authored fixture can carry the artefact — it only arises from a real spreadsheet round-trip. The guard was proved on CORPUS-01 and by the byte-identical dump, not by a gate, so it has no regression coverage. The follow-on named below under batch-blindness is now cover for a shipped guard rather than a nice-to-have.
-
-   **Batch-blindness.** No fixture carries float representation artefacts — fixture values are authored, not computed and stored by a spreadsheet. The batch cannot see this axis at all. A fixture built from a real xlsx round-trip is the only thing that would catch a regression.
-
-**Candidate further axes (SEED ONLY — unverified, not demonstrated, do not treat as a taxonomy).** Beyond the three demonstrated axes, a structure-first pass over the per-test pipeline (input → unit → guard → null → statistic → correction → tier → convergence → evidence) and the inter-test properties suggests further places a correct statistic could still yield a wrong or non-comparable verdict: multiple-comparison correction-scope consistency (does each test correct over the right family); tier-mapping comparability across tests (the §5.4 large-N blocker is this axis); convergence laundering a mis-tiered flag into the dataset verdict (CORPUS-03's Benford FP is a live instance); inter-test redundancy double-counting one signal as two flags (Terminal Digit + VFS on the same recurrence shadow); shared-helper divergence (the §3 variance/SD-estimator catalogue is exactly this — "SD" meaning different things across cards); determinism/order dependence; boundary handling of missing/tie/zero/negative values. These are hypotheses to *check at source*, not findings — the demonstrated three lead; this list grew on every pass that produced it, which is the standing reason to treat it as a seed for a source-derivation read, not a settled list.
-
-**The adjudication discipline (the project's own, not new).** For each axis the per-test verdict is **forensically-forced vs calibration-artefact** — does the test genuinely need its divergent choice for its target, or is it incidental and reconcilable? This is the closed integrity audit's "S123 Edit D" rule (no fix without a demonstrated artifact: a fixture/shape that false-positives on clean or false-negatives on fabricated), and §3's forced-vs-artefact catalogue is the same discipline applied to the variance axis. The continuous-HHI finding (axis 2) is itself the demonstrated artifact that lifts that null from "recorded safe" to "needs adjudication," exactly as the discipline requires.
-
-**Operating model.** Catalogue-first, structure-first: a source-derivation read of the engine's per-test contracts confirms which axes are real before any classification table; the table precedes any fix; fixes prioritise the false-positive class (axis 1, pooling) ahead of the false-negative class (axis 2, suppressed duplication), since a fabrication-detection tool's costlier error is wrongly implicating a clean dataset. Read-heavy, larger than a session.
-
-**Batch-blindness and fixture follow-on.** All four axes are invisible to the batch by construction (clean, single-magnitude, single-shape fixtures, with authored rather than spreadsheet-computed values). Two follow-ons worth naming, neither scoped here: a standing **mixed-magnitude / multi-column-shape fixture** so the cross-column-pooling and dispatch-shape classes become catchable in regression rather than only at the next corpus run; and, for axis 4, a fixture built from a **real xlsx round-trip** so float representation artefacts are present at all — no authored fixture can carry them.
-
-**S295–S296 progress — source-derivation read done, fix-scoping advanced, fixture arc in flight.** The structure-first read the Operating model calls for ran across S295–S296. What it settled, and where the S296 fixture build revised it:
-
-- **Axis 1 (cross-column pooling) — fix shape decided: per-test applicability checks, NOT a shared input-assembly guard.** The three axis-1 tests do not share a poolability predicate. Benford needs generative scale-regime homogeneity (each column a positive-scale multiplicative process with intra-process span ≥1.5 OOM); empirical-HHI needs a non-circularity condition that is not a cross-column property at all (violated by a single column — CORPUS-03's SL alone — with no pooling); Decimal Precision needs one true recording precision across the flattened columns. A column set can satisfy one and violate another, so a shared guard would force a false unification. The read also found a **second axis-1 instance — Decimal Precision Consistency** (`decimalPrecision.js` flattens the matrix under a single-instrument-precision model), which gives CORPUS-02's Decimal-Precision false positive a mechanism. Fix is three separate per-test guards; each guard's rejection predicate and threshold is an open Chat design pass (the axis-1 design pass, not yet done). **S296 correction:** the Decimal-Precision test is a one-tailed **deficit** test — it flags *under-representation* of a precision level versus a trailing-zero-stripping model, not precision *heterogeneity*. So the axis-1 Decimal-Precision mechanism trips on a precision **cliff**, not on mixed precision across a pool; the exact trip threshold is a source question carried into the S297 second read. **(S297 superseded: the trip is a two-column pooling artifact, not a single-column cliff — a high-precision column pooled with a large low-precision block inflates the shared total until the top level reads as a deficit. See the S297 entry below.)**
-
-- **Axis 2 (continuous-branch null) — NOT a mirror of the integer null; model class decided.** The S295 build attempt confirmed at source that the integer-branch parametric null (`duplicateDetection.js:58-126`) is a **discrete count model** — Poisson/NB PMFs defined only on integers, values rounded via `Math.round` before the fit, collision probability summed over integer support at unit step — and does NOT extend to continuous 2-decimal data (applied bare it overestimates the collision rate ~100× and re-collapses p toward 1 by a different mechanism). So the continuous null is a **new model, not a branch-condition change.** The null-constraints read bounded the choice: downstream tolerates a granular simulated fraction (no closed-form requirement), the integer ceiling is accuracy-bound not compute-bound, and — decisively — the baseline must NOT be estimated from the observed value-repetition frequencies (that coupling is the circularity, in both the malicious and the benign-quantisation direction). That rules out the empirical HHI and rules out a bootstrap over the observed multiset. **Model-class decision: density-integration at recording precision** — collision probability as the integral of the squared value-density over the recording grid (`step = 10^-dominantDp`, already computed at `duplicateDetection.js:39`). A rescaled-discrete family was rejected (a tight rescaled continuous distribution is under-dispersed for Poisson/NB, needing a new discrete family with no offsetting benefit); a from-fitted-model simulation collapses into this same model by another route. **(S298 REOPENED — this model-class decision is no longer safe. Two builds against it failed the same way: the smooth-density object it rests on is blind to the coincidental exact-repeat rate that legitimate high-precision continuous data carries, so it over-fires on clean data. See the S298 entry below. The decided item is now the constraint the two failures pin, not this model class. S299 then tested one candidate satisfying that constraint (uniform birthday-collision over the recording grid) and retired it too — the whole single-column count-null route is now closed; the fix redirects to arrangement (§2.4). See the S299 entry.)**
-
-- **The density estimator — the framing that it is "not fixture-discriminable and deferrable" is FALSE (S298 overturned it at source).** S296 concluded the estimator was not fixture-discriminable — no column shape separates the candidate models on the *defect* direction — and inferred from that it could be deferred behind a provisional Silverman kernel while the fix shipped. S298 disproved the inference. The candidates are indistinguishable on the defect direction only; they separate sharply on the *benign* direction, and the current batch exercises the benign direction after all. Measured (S298 build stop): a Silverman-bandwidth kernel null moves **eight** fixtures to HIGH, including **09-proteomics-clean** — a clean fixture false positive — plus five fabricated fixtures where Duplicate Detection is not the intended carrier. The defect fixture (23) does flip correctly, but the estimator cannot be deferred: the batch discriminates candidates, so the estimator is on the fix's critical path, not a later pass. The S296 assumption that "current data can't exercise the benign direction" was wrong at source — 09-proteomics-clean exercises it. **Consequence: the estimator choice is the fix. It is not deferrable, not fixture-independent, and not a separate later pass.**
-
-- **Axis-2 dispatch (the `Total.distance` neutralisation of Tests 2/3/4) is an independent path** from the null (confirmed: null lives at `duplicateDetection.js:136`/`:173`, dispatch at `engine.js:323` `runPair`) — a separately-tracked item, not folded into the null fix.
-
-- **Fixture — split into two halves; the estimator-independent half is built and in flight.** S295 specified one four-column fixture (`recur`/`wide`/`precA`/`precB`, ≥100 rows, plus a `recur`-alone control). S296 split it: the **fix-verification half** (the LOW→HIGH flip plus the axis-1 guards) is estimator-independent and buildable now; the **benign-quantised guard column** ("must stay LOW under the fixed null") depends on the chosen estimator and is deferred to the estimator pass. The pre-build read selected **Shape B** for the axis-2 `recur` carrier — five distinct continuous 2-decimal values each repeated ten times against a distinct background — because it flips decisively (LOW p=1.0 under the current HHI null → HIGH under the correct null) and reads as a plausible block-copy defect. Shape A (ten values ×5) can't serve — it stays sub-MODERATE even under the correct null. Shape C (three values ×20) flips but is a less subtle defect. Collateral-firing policy locked **surgical**: the fixture asserts only its carrier verdicts, not the broad Dimension III collateral set the draft mixed file fired. **(S297 superseded: a zero-collateral fixture is impossible — see the S297 entry below. The correct policy is "surgical = asserted carrier verdicts + a named, reasoned `ACKNOWLEDGED` allow-set," not zero collateral.)**
-
-- **S296 build stopped and reported — two carriers reproduce, two structural blockers.** The build (worktree `s296-fixture`, commit `e1b09bd`, not promoted) reproduced two of three carriers: `recur` → Duplicate Detection LOW (the empirical HHI multiplies into all four DupDet sub-channels — `duplicateDetection.js:633,673` — so the recurrence inflates every channel's null, not just the collision channel), and `recur`+`wide` → Benford span-borrowing HIGH. Two blockers stopped the build (no engine touched, no fixture tuned, batch held 23/23): (1) the **Decimal-Precision carrier does not reproduce** — the deficit-test correction above means mixed precision produces a surplus the test ignores, so the carrier needs a precision cliff; (2) the **single-column control is impossible** — `preprocessRaw` sets `minCells = max(3, …)` (`parser.js:28`), collapsing a one-column CSV to zero rows, so the control needs a three-column construction with two fillers that leave the DupDet channels intact.
-
-- **Harness held-fixture mechanism (S296 pre-build read).** The fix-verification fixture asserts a verdict the *current* engine gets wrong (recurrence LOW where correct is HIGH), so it can't enter the 23/23 pass-gate until the fix lands. The batch runner has a dormant `pending: true` lane at `validate-batch.mjs:151-155` that reports a fixture's severity but routes it to a counter, never pass/fail — the held-fixture mechanism, unused today. The fixture lands held via this lane; the flip path once the fix lands is a single-site edit to the fixture's `EXPECTED` entry in `batch-fixtures.mjs` (drop `pending`, set `severity`, populate the `flags` allow-set). The lane's documented intent ("no applicable test yet") is a near-but-inexact fit — the §2.6 case is "test runs, wrong verdict by design" — so the `pendingNote` carries the distinction; a dedicated `held` flag was considered and deferred as an unnecessary runner edit.
-
-- **S297 — second read done, fixture built and landed (batch 25/25).** The second read-only pass settled both S296 blockers at source and returned one policy finding.
-    - **Decimal-Precision carrier is a two-column pooling artifact, not a single-column cliff.** Measured on CORPUS-03 directly: `SL` alone LOW, `Total.distance` alone LOW, pooled MODERATE (p ≈ 0.0017, the deficit landing at the maxDp−1 level). The firing exists only because `testDecimalPrecision` flattens the columns into one histogram and the low-precision column inflates the shared total, turning a high-level surplus into a deficit. This confirms CORPUS-03's Decimal-Precision MODERATE **is** the false unification the axis-1 guard targets — the carrier tests the right thing. Built as a separate high-precision `hiprec` column pooling against `recur`'s 2-decimal block: `hiprec` reads LOW alone (its top-level count is a surplus against its own N), MODERATE only when pooled, p = 0.0030 (mid-band, clear of both boundaries). The "precision cliff" framing the S296 correction introduced is superseded — the faithful reproduction is two-column pooling.
-    - **Control is `recur` plus two distinct-value, same-band fillers.** A filler leaves all four Duplicate Detection channels inert if its values are distinct within-column and sit in a band disjoint from the carrier; the fillers must be distribution-matched and shuffled (a raw uniform draw raised a stray Runs/Kurtosis firing that a matched filler quiets). Built; DupDet LOW, no filler-induced strays.
-    - **Collateral is declared, not suppressed — this supersedes the S296 "surgical" lock.** A zero-collateral fixture is impossible while the carriers are present. VFS HIGH, Entropy MODERATE, and Column-Goodness-of-Fit MODERATE are `recur`'s intrinsic digit-and-distribution shadow — they appear in every configuration containing `recur` and vanish only when the defect is deleted. Selective Noise HIGH is welded to the Benford span column: the ≥1.5-order span that fires Benford is the same variance outlier that trips Selective Noise's Bartlett. Decision (locked): **accept declared collateral via the `ACKNOWLEDGED` allow-set.** The collateral is the engine correctly seeing the defect's shadow, not noise; suppressing it would deform the defect; and the intrinsic set is close to what CORPUS-03 itself fires, so a fixture firing less would be the less faithful one. Splitting carriers across fixtures was rejected — it cannot make any `recur`-containing fixture collateral-free. **The correct definition of "surgical" is: asserted carrier verdicts plus a named, reasoned collateral allow-set — not zero collateral.**
-    - **Landed.** Two fixtures (`23-recurrence-null-mixed`, `24-recurrence-null-control`) merged to main at `8cebafe` via the held `pending` lane (confirmed 23/23 + 2 pending against live output), then flipped to gate (25/25). No engine logic changed. Ground truth: Benford First HIGH, Benford Second HIGH, Decimal-Precision MODERATE, DupDet **LOW** (the pre-fix verdict — fixture `23` pins the bug so the eventual continuous-null fix flips it LOW→HIGH visibly). `ACKNOWLEDGED` set on the mixed file: VFS HIGH, Entropy MODERATE, ColGoF MODERATE, Selective Noise HIGH; on the control: VFS HIGH, Entropy MODERATE, ColGoF MODERATE. Noise Scaling stayed quiet (mixed file held to two scale tiers) and needs no declaration.
-    - **Promote note.** `promote.sh` fataled twice on mechanical snags neither the fixture's fault — the script assumes branch `claude/<worktree>` but Code names branches `worktree-<worktree>`, and an untracked read2 copy in main's working tree blocked the merge. Completed by manual `--no-ff` merge. The branch-name mismatch is a Code-owned carry.
-
-- **S298 — the fix track opened, two builds, two clean failures at the gate; the null-model class is reopened.** The session read the null path, scoped the fix, attempted it twice, and stopped both times at a source-confirmation gate before any source edit. No source, fixtures, or batch changed all session. Two reads landed (`docs/shared/archive/SESSION298-NULL-PATH-READ.md`, `docs/shared/archive/SESSION298-ESTIMATOR-READ.md`). What it established:
-    - **The null path is small and code-isolated.** The continuous collision null is the empirical Herfindahl index at `duplicateDetection.js:55`, assigned to `p1` at `:147`, tested against the observed same-value-pair count at `:179-184`; consumed nowhere else. The integer/continuous branch splits on `isInteger = dominantDp===0` (`:54`); the integer moderate-N parametric arm is `:58-126`. One call site (`engine.js:323`). The recording grid (`step`, `:39`, from `dominantDp`, `:38`) is already local where the null is built. **Correction to the S296/S297 record:** the empirical index does NOT multiply into all four DupDet sub-channels — the `:55` global index feeds only Test 1 (collision); Tests 2/4 recompute their own *per-column* indices (`:642`, `:219`), and the comment at `:140-146` overstates the coupling. The prior "multiplies into all four channels" claim was true of the method, not the variable.
-    - **The per-column stratified combine is clean and survives — reusable.** Splitting the collision test per column (within-column observed pairs against each column's own null, aggregated as a single stratified binomial) reproduces the current verdict on **all 25 fixtures** when the baseline is the per-column empirical index. So the combine rule is sound; only the baseline is in question. Per-column dp is derivable at the build point (`String(v)` precision per column, `:37`) with no threading — the pooled `step`/`dp` at `:38-39` become per-column locals.
-    - **Per-column vs pooled grid step was decided per-column** (Chat lock): the pooled step borrows one column's recording precision for another, reintroducing the cross-column false-unification family this fix exists to remove. Each column integrates at its own step. This decision stands regardless of the estimator outcome.
-    - **The estimator is the blocker, and it retired a whole family of candidates.** Build 1 (Silverman smooth-integral): eight fixtures move to HIGH including clean 09-proteomics — a smooth density sends the exact-collision probability toward zero as precision rises, so legitimate coincidental exact repeats over-fire. Build 2 (cell-discretized density — a Herfindahl over recording cells, meant to assign coincidental same-cell matches realistic mass): **numerically identical to the smooth integral** (0.03% apart on fixture 23's recurrence column), because summing squared cell masses is a Riemann sum that converges to `step × ∫f²` whenever cells are narrow relative to the kernel bandwidth — and every continuous column in the batch sits deep in that regime (2–6dp precision against bandwidths ≥0.6). Same seven benign movers, same p-values. **The structural finding that retires the family:** comparing exact-repeat counts against *any* smooth-density collision rate cannot separate genuine recurrence from the coincidental exact repeats legitimate high-precision data carries — integral or cell-sum alike. The next baseline's expected-collision rate must be neither the observed repeats (circular — the original bug) nor a smooth continuous density (quantization-blind — both S298 failures).
-    - **The constraint now pinned (this is the decided item, replacing the reopened model class).** The collision null's expected-collision rate must model the coincidental exact-repeat rate of quantized-but-continuous data *directly* — derived from the recording precision and the value spread (e.g. a birthday-collision rate over occupied grid cells given the column's effective support, or a discrete model whose cell-occupancy expectation is derived rather than kernel-smoothed), without fitting the observed repeats and without assuming a smooth continuum. Naming a candidate that satisfies this is a Chat statistical-design pass, then a read to test it against all 25 — the S299 lead.
-- **S299 — the first constrained candidate tested and retired; the marginal-null route is now doubly discredited, and the fix redirects to arrangement (§2.4), not a better count-null.** The S299 lead was the collision-null expected-rate design pass. Chat named one candidate satisfying the pinned constraint — a **birthday-collision expectation over the recording grid**, `E[pairs] = C(n,2)/K` per column, `K = trimmed_range/10^-dp + 1`, cell probabilities **uniform over support** (max-entropy: derived from precision and spread only, never from observed repeats). A read (`SESSION299-COLLISION-NULL-READ.md`, committed to main docs-only at S299 close) tested it against all 25 fixtures through the locked per-column stratified combine. Source isolation re-confirmed exactly, harness self-validated (empirical index reproduces the live flag on all fixtures, so every movement is the baseline swap alone). Result:
-    - **Target flips, benign direction fails.** Fixture 23 flips LOW→HIGH decisively (collision p≈1.7e-201; recur column 225 exact pairs vs 11.3 expected). But three benign fixtures fire to HIGH — **09-proteomics-clean, 11-rnaseq-multicondition, 24-recurrence-null-control** — plus two more move (12a clean, 12b). Uniform cell probability under-predicts the coincidental exact-repeat rate of any *clustered* distribution recorded at one or two decimals over a bounded range, so ordinary clean repeats read as impossible and over-fire. This is the same structural failure as the S298 smooth-density family, one precision-regime over: S298 over-fired on high-precision clean data (smooth density, floor→0); S299 over-fires on coarse-precision clustered clean data (uniform, floor too low). Both are the marginal being unable to separate clustered-clean from copied.
-    - **K_eff does not rescue.** The banked S299 fallback (participation-ratio effective support, plain 1/Σq² and diagonal-excluded leave-one-out) was tested for the failed movers: both forms hold them LOW but by collapsing back to the empirical null (plain form restores the current baseline; leave-one-out sets expectation = observation) — both circular, and both un-flip the target. K_eff is the empirical bug under a different name.
-    - **Trim is not load-bearing** — no verdict flips between trimmed (P99−P1) and untrimmed (min−max) K on any fixture.
-    - **Fixture 24 is mis-designed (Chat item, not a baseline flaw).** 24's recurrence column is byte-identical to 23's (same 120 values, 75 distinct, 225 pairs). A control byte-identical to the defect fixture cannot stay LOW under any baseline that flips 23 — it is a duplicate, not a control. The valid benign-mover roster is therefore 09, 11, 12a, 12b (plus 19–22, which this candidate actually *repaired* from the S298 smooth-density breakage). See the §Carry-in fixture-integrity item.
-    - **The structural conclusion (the S299 finding that redirects the fix).** The single-column exact-collision null is **under-determined**: a single value's marginal carries no joint support, so its coincidental exact-repeat floor is substantial and shape-dependent, and no precision-and-spread-derived rate can separate genuine recurrence from the coincidental repeats a clustered clean column carries — uniform, smooth, or otherwise. This is confirmed from two independent directions: (a) the engine's *own* block-copy sub-test already rates SL-alone HIGH (p≈3.6e-14) by reading *arrangement* where the collision null reads the *marginal*; (b) the most comparable external tool (Englund's `copy-paste-detective`) detects duplication on **sequences and rows** (`repeatedColumnSequences`, `duplicateRows`) and never poses the single-column-marginal collision question. Both say the same thing: **structured recurrence is an arrangement signal (order/position), and recovering it from a value-frequency marginal is the wrong instrument.** The §2.6 fix therefore redirects — **it is not "find a better continuous collision null." It is "route structured continuous recurrence to the arrangement test, which already exists as the §2.4 entry (column-localised sequential duplication detector), and keep the exact-collision null integer-only."** The S298→S299 arc's value was proving the count-null route closed from both regimes so the redirect is defensible, not premature. **(S300 falsified this redirect — the arrangement route does not detect CORPUS-03 either. See the S300 entry below. The two independent directions cited above were both misread: (a) the "SL-alone HIGH by reading arrangement" figure came from the block-copy hash reading *recurring row-sequences*, not single-column runs, and it fires on periodic-clean data too — a false positive, not a detection; (b) Englund's sequence/row strategies target *contiguous* runs, but CORPUS-03's defect is scattered, so they would miss it as well. The count-null route stays closed; the arrangement route is now closed alongside it.)**
-
-- **S300 — the arrangement redirect (route to §2.4) is falsified; the fix redirects again, to a multiplicity-distribution statistic (a lead, not yet a locked design).** S299 sent the fix to §2.4 (arrangement detection). S300 tested that at source and closed it. A read established the engine's block-copy Pass 1 reads recurring *row-sequences*, not single-column *runs*; a tracked measurement (`archive/SESSION300-BLOCKCOPY-MEASURE.md`) then showed Pass 1 fires identically on contiguous and periodic arrangements at identical marginals (block p 6.25e-4 both, height h=10), silent only on aperiodic scatter — so its null cannot separate a copy-paste from legitimate periodic structure, and is not re-scopable for §2.4. Decisively, CORPUS-03's real SL defect is **scattered, not contiguous** (`REALWORLD-CORPUS-SPEC.md` CORPUS-03 documented-defect line — each value recurs four times, scrambled across a fish's four rows by an ID-misalignment join, not laid down in a block), which no run/arrangement statistic detects. So the arrangement axis fails CORPUS-03 exactly as the count-null did, for the mirror reason: the count-null read the marginal (no positional signal); the run test reads position (but the defect has none).
-    - **The through-line across all three closed routes.** CORPUS-03's defect is structured value recurrence with *no positional signature and no marginal excess separable from clustering* — the one thing distinguishing it from clustered-clean data is that every distinct value recurs the **same** number of times (exactly 4). The signal is the **degeneracy of the per-value multiplicity distribution**, not arrangement and not collision magnitude. Count-null (Test 1 HHI) reads the value marginal → can't see it (closed S299). Block-copy Pass 1 reads row-sequence recurrence → fires on periodic-clean, false positive (closed S300). Longest-run reads contiguity → the defect isn't contiguous, scores LOW (closed S300).
-    - **New lead (S300) — multiplicity-distribution statistic.** A statistic on the distribution of per-value repeat counts: a defect that replicates each value k times spikes the multiplicity histogram at k, enormously improbable under the dispersed multiplicity distribution of coincidental repeats at the column's precision and spread. It is position-blind (correct for a scattered join-error) and shape-based not magnitude-based (dodges the marginal under-determination that closed the count-null). Candidate statistic: the fraction of distinct values sharing the modal multiplicity, or a chi-square of the observed multiplicity histogram against the coincidental-repeat expectation.
-    - **This lead was measured (S300) and does not cleanly survive — the route is closed, making four.** The measurement (`archive/SESSION300-MULTIPLICITY-MEASURE.md`) computed the per-value multiplicity distribution across four arms: pure defect (`fix-A`, five values ×24), realistic in-tree defect (fixture 23's `recur`, five values ×10 in a singleton background), dispersed clean (09-proteomics), and clustered clean (11-rnaseq, 12a — the count-null breakers). Two named quantities were tested and both fail. `concentrationAboveOne` (fraction of distinct values with multiplicity ≥2) **anti-separates**: the realistic defect sits at 0.067, *below* clustered-clean 11-rnaseq at 0.154 — diluted to realistic proportions the defect injects *less* repeat-mass than a genuinely clustered clean column carries by chance. `modalFrac≥2` (tightness of the ≥2 concentration) separates the defect from 11-rnaseq (1.0 vs 0.60) but **ties** clean 12a (both 1.0, because 12a's coincidental repeats are all pairs at multiplicity 2). The only real separator is the multiplicity *value* where the mass concentrates (defect 10/24, clean 2) — which neither named quantity encodes — and even that overlaps in the hard case: 11-rnaseq carries a coincidental clean repeat at multiplicity 10, exactly the in-tree defect's k. A viable statistic would need three conditions at once (tight concentration, at a high multiplicity above the coincidental floor, shared by several values) and even then clears clustered-clean only when k is large; `fix-A` at k=24 separates from everything, the realistic k=10 defect does not.
-    - **The root cause, and why all four routes close together.** These are not four independent dead ends — they are one fact seen four ways. **At realistic dilution the single-column defect is marginally quieter than clustered clean on every axis.** Count, arrangement, run-length, multiplicity are all functions of one column's value-multiset-and-order, and fixture 23's defect has a *weaker* signal on each than a clustered clean RNA-seq column. No single-column statistic can rank the defect above the clean column when the defect's marginal signal is strictly smaller. (Note: the S299/S300 intermediate claim that "uniformity of the repeat count across distinct values" is the defect signature is **retired by this measurement** — clean 12a reaches `modalFrac≥2`=1.0 too, so multiplicity-uniformity is not defect-specific.)
-    - **The reframe (S300 — the new open question, NOT closed, NOT yet designed).** All four closed routes read the **SL column alone**. CORPUS-03's defect is a *join error* — `Fish.ID` misaligned, scattering a per-fish measurement across that fish's four observation rows. The missing signal is not in SL's marginal; it is in the **relationship between SL and Fish.ID**: the defect makes SL show the wrong within-group invariance structure (constant where it should vary across a fish's observations, or vice versa). That is a **grouped cross-column conditional-duplication** signature, invisible to any single-column statistic *by construction* — which is exactly why all four failed. This reframes §2.6: the single-column framing is proven closed (four ways); the defect is only detectable as invariance conditioned on the identifier column. CORPUS-03's provenance names the mechanism — `Fish.ID` is its single load-bearing declared role, and the defect is *defined* by its relation to that column. This is a distinct test and likely a distinct V1X entry (adjacent to §2.7's cross-column territory but keyed on a grouping column, not an offset), and it **might** be tractable where the single-column version is proven not to be. It is a lead only — untested. The unverified question before any design: does SL actually go invariant-within-`Fish.ID` in the raw data, or does the join scatter it in a way that *also* washes out at group level? CORPUS-03 is gitignored; this needs a structure-first measurement on the real column or a tracked grouped fixture built to the join-error shape, per S237 — no design until it is looked at. **(S301 supersedes: the structure-first read ran and the reframe failed the gate — within-fish invariance is a minority feature, the recurrence washes out at group level, §2.6 is fully closed. See the two S301 entries directly below.)**
-    - **The reframe FAILED the structure-first gate (S301 — grouped cross-column is closed too, making the closure complete).** S300 left the grouped reframe as an untested lead, gated on one structural question: does SL go invariant-within-`Fish.ID` in the raw data, or does the join scatter it so it also washes out at group level? S301 answered it at source — a read-only pass over the real CORPUS-03 column (`corpus-data/CORPUS-03.csv`, gitignored; 373 rows, 94 fish, Obs 1–4). The answer is the washing-out branch. The within-fish invariance the reframe needed is a **minority feature**: 78 of 94 fish show *positive* within-fish SL variance, only 16 are constant. Of the 72 SL values recurring exactly 4×, only 15 (≈21%) are pure within-fish (span one `Fish.ID`); 34 (≈47%) are fully scattered across four *different* fish; 23 span two or three. It is a scatter-dominated continuum, not the clean span-1/span-4 stamp the join-error gloss implied — so a grouped-variance statistic keyed on `Fish.ID` keys on the minority signal, and the recurrence washes out at group level exactly as the killing branch predicted. Two further facts from the same read seal it: there are **zero singletons** (all 84 distinct SL values recur), and SL is stored to two decimals over a ≈15–25 range, so a share of the recurrence — the low-span collisions especially — is plausibly *coincidental quantization collision* rather than the join error, and the two are inseparable from the column values alone. That is the same under-determination that closed the count-null (S299), now visible in the raw structure. **The group-level signature of the defect dilutes below the coincidental-collision floor of the column's own precision.** So the grouped route closes for the same root reason as the other three, not a new one — the defect's separating signal is quieter than the column's own coincidental floor, on the marginal, on arrangement, and now on group-conditioned invariance.
-    - **Resolution for §2.6 (fully closed, S301).** The continuous-recurrence defect is **not separable from the column — not marginally, not by arrangement, and not by group-invariance conditioned on the identifier.** Five statistics across S299–S301 (count-null from two precision regimes, block-copy arrangement, longest-contiguous-run, multiplicity-distribution, grouped within-`Fish.ID` variance) all fail for one root reason: at realistic recording precision the defect's separating signal is quieter than the coincidental-repeat floor the column itself carries. This is the disclosed limitation for the paper's §5 — a stronger result than a fragile fix: the tool detects the pattern (Exact Duplicate Detection lists the recurring rows as evidence) and correctly declines to over-grade it. There is no open successor question and no next single-column-or-grouped move; §2.6's design programme is complete. What remains under §2.6 is documentation and the axis-1 guard work, not a detector for this defect. The corpus's genuinely resolvable rows are handled elsewhere: CORPUS-01's contiguous single-column runs by §2.4 (a real, buildable detector for a *different* defect shape), and CORPUS-02/CORPUS-03's role-inference pooling artefacts by §2.5.
-
-**Remaining §2.6 gates:**
-- **The continuous-recurrence fix — CLOSED, no move remaining (S301).** There is no detector for this defect and no next design pass to unblock. The count-null route closed from both precision regimes (S298 high-precision over-fire, S299 coarse-precision over-fire — the marginal is under-determined); the arrangement/run route closed (S300 — the defect is scattered, not contiguous, so the block-copy null reads recurring row-sequences and fires on periodic-clean data, and no run statistic reaches a scattered defect); the multiplicity route closed (S300 — anti-separates, the realistic-dilution defect injects less repeat-mass than a clustered clean column); and the grouped within-`Fish.ID` route closed (S301 structure-first read — the within-fish invariance is a minority feature, the recurrence washes out at group level, and a share is coincidental quantization collision inseparable from the column). One root reason across all five: at realistic recording precision the defect's separating signal is below the column's own coincidental-repeat floor. Fixture `23`'s DupDet verdict stays LOW, correctly — the defect is not single-column-or-grouped-separable, so no fix flips it, and the earlier "LOW→HIGH when the fix lands" expectation is retired. The historical count-null path detail (S298: `duplicateDetection.js:55/:147/:179-184`, one call site; the clean per-column stratified combine; per-column grid step) is retained only as the record of what was ruled out — it is not a live fix site. **This closure is the paper's §5 disclosed limitation; METHODOLOGY §1.1 was corrected to match (S301, main `0d01e41`).**
-- **Axis-1 rejection predicates** — the per-test guard thresholds for Benford / empirical-HHI / Decimal-Precision; a Chat design pass with no read pending, bankable anytime. Independent of the axis-2 estimator work.
-- **Axis-4 — CLOSED S336 (`4a7cda2`).** The normalisation landed; no successor question on this axis. Two things it did **not** close, both still open, both reaching the same test by other routes: the **axis-1 Decimal-Precision pooling guard** above, and **`maxDp` as the null's only parameter** (STATUS parked 4) — an unguarded maximum, where one genuinely deep legitimate value sets the assumed instrument precision for the whole file with no float noise involved. Per-column gating does not cure the second: on CORPUS-01 the artefacts sat inside columns that were otherwise 2dp, so each affected column carried its own outlier. Three routes into one test — do not let the axis-1 fix inherit either of the others by resemblance.
-- **The source-comment correction** (`duplicateDetection.js:135`) — **LANDED S301 (`a0e54f7`), verified at source S302.** The comment now carries the full "closed, not pending — proven not separable" framing (not separable across marginal, arrangement, multiplicity, and grouped within-identifier invariance; do not port the integer parametric null across; cross-refs to METHODOLOGY §1.1 and this entry), matching the correction METHODOLOGY §1.1 received the same session (`0d01e41`). The `:140-146` coupling overstatement was fixed in the same commit — the note at `:150-153` now states the `:55` empirical index feeds only Test 1; Tests 2/4 recompute their own per-column indices. Source, methodology, and paper agree. No engine logic changed — comment-only. (The S302 opener and an earlier draft of this line both carried "STILL OWED"; that was record drift — the S301 close-out captured the `0d01e41` methodology commit but not the `a0e54f7` comment landing that followed it. Reconciled at source S302: `git merge-base --is-ancestor b53bc07 origin/main` = ON-MAIN, and `a0e54f7` is present in `git log origin/main -- src/tests/duplicateDetection.js`.)
-
-**Ground-truth note (corrected S296, confirmed S297).** CORPUS-03's actual tiers are Benford First **HIGH**, Benford Second **HIGH**, Decimal-Precision **MODERATE** — not HIGH as the estimator read's paraphrase and the two S296 fixture prompts stated. The wrong tier propagated from a prior read's paraphrase into two prompts without a source check against the engine's CORPUS-03 output. The S297 read confirmed the Decimal-Precision MODERATE is a pooling artifact (neither column fires alone). Fixture `23` (landed S297) inherits these tiers.
-
-**Priority:** Real-world-validated and credibility-bearing for the review paper's methods section (an honest disclosed-limitations pass strengthens the validity claim). **Axis 4 is closed (S336, `4a7cda2`)** — it was the most actionable single item and it landed in one session off one read. The continuous-HHI counterexample (axis 2) is the most defensible single item — a documented safe-claim falsified by external data. The fix-verification fixture is built and landed (S297, batch 25/25 — all three carriers reproduce, collateral declared via `ACKNOWLEDGED`). **There is no remaining null-path fix — the continuous-recurrence defect is proven not separable from the column across all five routes (S298–S301; see the "continuous-recurrence fix — CLOSED" gate above), so §2.6's design programme is complete.** This is now the paper's §5 disclosed limitation, not open work: the tool detects the pattern and correctly declines to over-grade it, a stronger result than a fragile fix. What remains under §2.6 is documentation and the axis-1 guard predicates, not a detector for this defect. The corpus's genuinely resolvable rows route elsewhere: CORPUS-01's contiguous single-column runs to §2.4 (a real, buildable detector for a different defect shape), CORPUS-02/CORPUS-03's role-inference pooling artefacts to §2.5.
-
-**Source:** S293 conversation (CORPUS-03 adjudication) + the S293 Code read of the closed item-28 audit (`docs/shared/archive/TEST-INTEGRITY-AUDIT.md`, METHODOLOGY §1.1, `duplicateDetection.js:135`); the S295 reads (`docs/shared/archive/SESSION295-AUDIT-SUMMARY.md`, `docs/shared/archive/SESSION295-IMPL-SUMMARY.md`, `docs/shared/archive/SESSION295-AXIS2-NULL-CONSTRAINTS.md`); the S296 reads (`docs/shared/archive/SESSION296-AXIS2-ESTIMATOR-READ.md`, `docs/shared/archive/SESSION296-FIXTURE-PREBUILD-READ.md`, and the worktree's `docs/shared/archive/SESSION296-FIXTURE-BUILD-FINDINGS.md`); the S297 second read (`docs/shared/archive/SESSION297-FIXTURE-READ2.md`); the S298 reads (`docs/shared/archive/SESSION298-NULL-PATH-READ.md`, `docs/shared/archive/SESSION298-ESTIMATOR-READ.md`). The candidate-further-axes list is a seed pending its own source-derivation read, not a settled taxonomy. **Paths corrected S340:** these nine reads live in `docs/shared/archive/`, which is gitignored — the citations pointed at bare filenames that resolve for nobody cloning the repo. The two S300 measurements in §2.4 already carried the prefix; this is the same disposition finished. A citation into `archive/` is a record of where a read went, not a promise the reader can open it.
-
-
-**Axis-1 (cross-column pooling) — three real-world span-borrowing instances beyond CORPUS-03 (road-test C25, C11, C21, S305–S306).** Beyond the founding CORPUS-03 case, the road-test sweep has produced three further axis-1 Benford false positives, all the same shape: a per-column digit test run on a cross-column pool where the pool lends one column the ≥1.5-OOM span it individually fails.
-
-- **C11 — the clean proof.** The instance where the span-borrowing mechanism is isolated most cleanly; the reference case for the per-column-validity predicate. **[OWED — full C11 adjudication is in the S305 source, not this surface; fill before placing.]**
-- **C25 — proteomics context.** **[OWED — full C25 adjudication is in the S305 source; fill before placing.]**
-- **C21 (Inner Mongolia grassland, *Sci Adv* 2022).** ANPP (OOM 0.75) and perennials (OOM 0.67) individually below the 1.5 gate; annuals (OOM 4.05) lends the pool its span. **Bounded ecological measurement is the driver** — this predicts recurrence across the whole ecology cluster (C07, C09, C15, C16, C20, C22): bounded ANPP/biomass columns plus one wide sub-measure is the recurring shape.
-
-The methodology case is now overwhelming: **3 confirmed real-world instances + ~6 predicted** across the ecology cluster. The fix predicate is unchanged from the CORPUS-03 finding — **per-column applicability guards, NOT a raised OOM threshold.** Raising the threshold would suppress the annuals column's genuine span; the defect is that a per-column test ran on a pool, and the guard belongs at input-applicability, per-test (see the axis-1 fix-shape decision above: three separate per-test guards, no shared poolability predicate). The ecology cluster is the scale test of the guard.
-
-**Known-defect skip rule (adopted S307).** The ecology cluster will re-demonstrate this axis-1 Benford family case after case. Under the skip rule, each cluster recurrence is confirmed at source (its digit panel read and matched to this family) and recorded in a one-line note rather than re-adjudicated in full; full write-up is reserved for a new Class A, a new B1, or an unbanked class. The mechanism confirmation per case is retained — only the write-up collapses — so the S237 "prediction is not a licence to skip the read" discipline holds.
+**One live residue stays here:** the axis-1 per-test Decimal-Precision pooling guard. Per-column
+gating does not cure it — on CORPUS-01 the artefacts sat inside columns that were otherwise 2dp, so
+each affected column carried its own outlier. Three routes reach this one test; do not let a fix on
+one inherit the others by resemblance.
 
 ### 2.7 Arbitrary-offset block duplication detector
 
@@ -326,137 +224,11 @@ The methodology case is now overwhelming: **3 confirmed real-world instances + ~
 
 ---
 
-### 2.8 Group-attribute column recognition — BUILT S315 (`531e180`)
+### 2.8 Group-attribute column recognition — BUILT S315 (`531e180`) — moved to `V1X-DECIDED.md`
 
-**What:** Teach the engine that some numeric columns are attributes of a *grouping key*, not measurements of the *row*. A site's latitude, a subject's age, a batch's date: these repeat across every row of that group **by construction**, and every test that treats repetition as signal will fire on them.
-
-Not a new test. A per-column applicability predicate, upstream of the battery, in the same layer as §2.5's role inference.
-
-**Why — C12, and it is not close (S314).**
-
-C12 (*J Ecology* 2025, plant invasions) is a long-format field survey: 2,412 plant records, ~50 sites. Onto each record the authors merged the site's **latitude, longitude, and the 19 WorldClim bioclimatic variables** — annual mean temperature, precipitation seasonality, and so on. That is standard practice and entirely honest.
-
-The tool analysed 36 numeric columns. **Twenty-one of them are those site attributes.** Each value repeats about fifty times because the table is long.
-
-*(Counts corrected at S315 against the file. Earlier drafts said 24 columns and 22 WorldClim variables; both came from a session summary rather than the sheet. WorldClim defines 19 bioclimatic variables, and C12 carries exactly those plus latitude and longitude.)*
-
-The engine has no notion of this, and reads the join as duplication. What fired:
-
-| Test | Verdict | What it actually found |
-|---|---|---|
-| **Duplicated Data** | High, p < 0.0001, 20 blocks | Blocks whose columns are `[0, 1, 17, 18, …]` — column 0 is Latitude, column 1 is Longitude. `dupRows = 0`: not one full row is duplicated. |
-| **Constant-Offset Blocks** | 56,978 blocks, z = 5,886 | Offsets of `-91.93`, `-89.09`, `-88.79` — these are **longitude differences between Chinese cities**. |
-| **Over-used numbers** | High, 217 spikes | `.054` observed 167×, `.1675` observed 163× — climate-column fractional tails, one occurrence per row per site. |
-| **Inter-Replicate Correlation** | High, 10,078 suspicious | Correlating temperature against precipitation against latitude. |
-| **Column-to-column noise** | High, ratio 215.7 | Variance compared across centimetres, millimetres, °C and millimetres of rain. |
-| **Second-digit / last-digit / decimal precision** | High | Digit pools ~60% composed of repeated climate constants. |
-
-**Seven HIGH flags, seven MODERATE. One cause.** (Verified at S315 on the §2.8-off arm.)
-
-**And the cost is not only false positives. The genuine defect was missed.** C12 contains real copied data — whole root-measurement vectors transplanted across plant species, exact to the last bit of the double (rows 5↔848, 722↔1182, and ~30 more). Duplicated Data fired High and showed the *climate join* as its evidence. Sequential Duplication cleared. A reader following the card lands on a merged temperature table and never sees the copied roots.
-
-**The paper was retracted over those roots.** *J Ecology* withdrew it in May 2026. The authors admitted an assembly error merging per-plant WinRHIZO scanner outputs into the consolidated sheet; the original outputs were lost to a hard-drive failure, so the data could not be corrected, and the journal retracted. **Had Check My Data been run on this deposit, it would have raised a High and pointed the reader at honest climate data.** The retraction-grade defect would have gone unexamined.
-
-> **A verdict that is right by accident is not a detection.** That is the strongest argument in this document for building §2.8 — stronger than the six false positives above it, because it shows the same defect *suppressing* signal, not only manufacturing it.
-
-> **The false positive displaced the true positive.** That is the sharpest form this failure takes, and C12 is the exhibit.
-
-**Root cause.** Every test in the battery assumes a numeric column is a measurement made on that row. The engine's role inference (§2.5, `src/import/roles.js`) sorts columns into `ignore` / `condition` / `label` / `data` on cardinality and header keywords. A climate column is high-cardinality across the dataset (~50 distinct values), numeric, and header-keyword-free — so it resolves to `data`, and enters the matrix as though someone measured the annual mean temperature of each individual plant.
-
----
-
-#### The discriminator
-
-**A group attribute is constant within every level of some grouping column.**
-
-Latitude is constant within Site. Root length is not. This is a structural fact about the table, not a threshold, and it does not depend on how often a value repeats.
-
-**It is not** low cardinality, and it is not high repetition rate. Both are the shortcut, and both break the Likert counterexample below.
-
----
-
-#### The missing primitive — group-key inference
-
-**This is the build. The exclusion is the easy half.** The S315 source read established that **no per-row group identity exists anywhere in the pipeline today**. In C12 nothing is tagged `condition`: site, latitude and root length are all `data`. So the grouping column must be *inferred* before constancy can be tested against it.
-
-**Infer structurally, not semantically.** Do not keyword-match on `site` / `plot` / `subject` / `batch` headers. That is the shortcut that produced §2.5's misclassifications, and it fails on any dataset not written in English or not using the expected noun.
-
-**The structural rule.** A column is a **candidate grouping column** when:
-
-- it partitions the rows into levels, each holding two or more rows; **and**
-- the number of levels is materially smaller than the row count; **and**
-- at least one other numeric column is constant within every one of its levels.
-
-The third clause is load-bearing. It is self-validating: a grouping column is only a grouping column *if something is constant within it*. A column that partitions nothing, or that partitions rows but has nothing constant inside its levels, is not a grouping column and produces no exclusions.
-
-**Why this is safe by construction.** If no column satisfies the rule, no exclusion happens and the tool behaves exactly as it does today. The failure mode is falling back to current behaviour, not silently dropping a real measurement. That property is what makes the rule fit to run in batch, where there is no human in the loop.
-
-**Regression tripwire, tested against the rule.** `14-crctest-survey.csv`'s Likert columns repeat heavily and have low cardinality. But no *other* numeric column is constant within their levels — a respondent's answer to question 3 does not hold still inside the levels of question 7. Clause three fails, no grouping column is found, nothing is excluded. **The tripwire is honoured by the rule's structure, not by a special case.**
-
----
-
-#### Shape of the work
-
-1. **Detect.** Find candidate grouping columns by the structural rule above. For each, collect the numeric columns constant within all of its levels. Those are the group attributes.
-2. **Route.** Give them a new role — `attribute` — joining `ignore` / `condition` / `label` / `data` in the `roles.js` vocabulary. An attribute is not an identifier (it carries real information) and it is not a measurement of the row.
-3. **Exclude — at one line.** `attribute` columns do not enter the analysis matrix. The S315 read found the choke point: `engine.js:109` builds `dataCols` from `role === "data"`, and **that single line is the sole entry to the entire battery.** No test screens columns afterwards; no per-test patching is needed. Duplicated Data, Constant-Offset Blocks, Value-Frequency Spike, Inter-Replicate Correlation, Selective Noise Partitioning and the digit tests are all excluded at once.
-4. **Surface, don't hide.** Report what was excluded and why. "21 of 36 columns are attributes of Site and were excluded" is *itself a useful finding* about the data's shape — and it is the honest disclosure that the analysed matrix is not the deposited one. `dataColHeaders` (`App.jsx:36–38`) already assembles the names of the columns that entered the matrix; that is the handle. `ImportView` needs an `attribute` slot in its per-column role vocabulary with manual override, on the same path the other four roles already have.
-
-**State plainly that the exclusion is blunt.** Because `dataCols` is a one-way gate, excluding a column removes it from *every* test, not only the ones it was corrupting. That is what we want — a site attribute is not a measurement of the plant under any test — but it must be said, because **a wrong exclusion is a false negative across the whole battery.** That is the same defect this section exists to fix, pointed the other way.
-
-**Batch has no human in the loop.** `BatchView` takes `inferRoles` output verbatim, with no override. Any §2.8 rule is therefore fully automatic there, which is the second reason the discriminator must be structural and self-validating rather than a keyword heuristic.
-
----
-
-#### What this cannot lean on
-
-**`detectLongFormat` does not fire on C12.** Its already-wide gate (`longFormat.js`, ~line 53) returns `null` when two or more genuine numeric measure columns exist, and C12 has two dozen. No pivot is offered and no long-format routing runs; the table is analysed as-is. **§2.8 stands alone.** Any build assuming the long-format guard will catch these files first is wrong.
-
----
-
----
-
-#### Outcome — built and run against C12 (S315)
-
-Shipped at `531e180`. The rule works, and it did **not** do what this section predicted.
-
-**It fires correctly.** On C12 it holds out exactly 21 columns — latitude, longitude and the 19 WorldClim variables — each constant within every level of **Region** (17 levels) and **Site** (51 levels). The 15 columns left in the matrix are all genuine per-plant measurements: soil pH, root length, biomass, AMF colonisation. **No measurement was wrongly excluded, and no climate column was left in.** The matrix goes 36 → 15.
-
-**It removes the false positive.** With §2.8 off, Exact Duplicate Detection fires HIGH on the climate join. With it on, HIGH → **LOW, p = 1**. Constant-Offset Blocks collapses from 56,978 blocks to LOW. Sequential Duplication clears.
-
-**It does not recover the true positive.** Both duplication tests read **p = 1** on the 15 real measurement columns. The copied root vectors — ~30 exact byte-identical row pairs — remain invisible.
-
-> **The displacement hypothesis is dead.** This section argued that the false positive *displaced* the true positive, and that removing the join would let the copies surface. It does not. **The false positive and the false negative are independent failures that happened to co-occur.**
-
-That is the sharper claim, not the weaker one. Fixing the applicability defect does not fix the detection gap; they are two problems and the corpus now shows both, separately, on the same file. The block detector returning p = 1 on a 2,412-row table containing ~30 exact duplicate row-pairs is **its own defect** — and §2.8 is what exposed it. **It was closed at S316 (`e751523`); see §2.9.**
-
-**Verified across the transform.** Run four ways (§2.8 on/off × vst raw/log), the duplication verdict is driven entirely by §2.8 and not by the variance-stabilising transform. Severity is 3 in all four arms.
-
-**Left unadjudicated.** Eight HIGH flags survive on the 15 real measurement columns — Benford (first digit), Value-Frequency Spike, Inter-Replicate Correlation. Benford *flips* from second-digit to first-digit when the climate constants leave the pool, which is a live diagnostic and not yet understood. Whether these are further applicability artefacts or genuine signal is the next investigation. **(Duplicated Data is no longer among them: §2.9 landed at S316 and it now fires on the copied roots, correctly.)**
-
----
-
-**Relationship to §2.5, §2.6 and §2.10.** §2.5 fixes columns misclassified into the wrong *role*. §2.6 fixes tests applied on the wrong *pool*. **§2.10 fixes tests applied to the wrong *unit* — and it is the same family again, one level up: the grouper merges every condition-role column combinatorially, so the exchangeability assumption the permutation null rests on is false about the groups it produces.** §2.8 is a member of the same family and shares its one-line diagnosis:
-
-> **The statistic is right. The baseline assumes something about the column that is false.**
-
-Benford's order-of-magnitude gate, VFS's precision-blind expected count, within-row trivial-pair counting, and now the whole battery's row-measurement assumption. Four named causes, one frame. **This is the applicability family, and §2.8 is its largest instance.**
-
-**The frame is not the whole of the §5 disclosure — that was corrected at S316.** §2.8's own outcome disproved it. Removing the false positive did not recover the true positive, so the applicability family cannot be the sole account of the tool's failures. **There are three failure modes, not one**, and they are separable because C12 and C08 demonstrate them independently:
-
-| Mode | The statistic | The failure | Exhibit |
-|---|---|---|---|
-| **Applicability** | Right, on the wrong column | The baseline assumes something false about the column | C12's climate join (§2.8); Benford's OOM gate; VFS's precision-blind baseline |
-| **Coverage** | Never runs on the finding | The duplicate's *shape* is not enumerated by any sub-test | C12's copied roots (§2.9) |
-| **Circular null** | Runs, counts correctly, and is absorbed | The expected value is estimated from the contaminated data | C08's Exact Duplicate (25.5% duplicates, p = 1) |
-
-The three are not degrees of one problem. **Applicability produces a verdict on the wrong data. Coverage produces no verdict at all. A circular null produces the wrong verdict on the right data.** They need different fixes, and two of them are now demonstrated on the same file — which is what makes the separation credible rather than asserted. **This — not the four-cause frame alone — is the §5 disclosure.**
-
-**Priority — DONE (S315).** The argument that follows is preserved as the rationale.
-
-**Why it was high:** Long-format tables with joined site, subject or batch attributes are the standard shape of ecological, epidemiological and repeated-measures data. This is not an edge case; it is a *class* of dataset, and the tool currently mis-analyses all of it. The remaining ecology cluster (C07, C09, C15, C16, C20, C22) is held behind this fix and is expected to reproduce the artefact.
-
-**Source:** `REALWORLD-CORPUS-SPEC.md` §0.4 C12 entry (S314), adjudicated at source against `C12.xlsx` sheet `Field survey-data`. Pipeline facts (`engine.js:109` choke point, absent group key, `detectLongFormat` non-firing, batch override absence) from the S315 Code read-only.
+The per-column applicability predicate for numeric columns that are attributes of a grouping key
+rather than measurements of the row. Built and promoted at `531e180`. Full entry and rationale in
+`V1X-DECIDED.md` — including the outcome that disproved its own displacement thesis and opened §2.9.
 
 ---
 
@@ -485,87 +257,10 @@ C16 (N+P grassland, *J Ecology* 2025) is the corpus's clearest single case of th
 
 ---
 
-### 2.9 Scattered partial-row duplication — BUILT S316 (`e751523`)
+### 2.9 Scattered partial-row duplication — BUILT S316 (`e751523`) — moved to `V1X-DECIDED.md`
 
-**What:** A fifth sub-test inside Exact Duplicate Detection. It finds a **set of columns copied from one row onto another row somewhere else in the file** — however far apart the rows sit, and whatever columns were copied.
-
-**Why — and this entry exists because §2.8 disproved its own thesis.**
-
-§2.8 argued that C12's false positive *displaced* its true positive: strip the climate join, and the copied roots would surface. It shipped, it stripped the join correctly, and **the copies stayed invisible.** Both duplication tests read p = 1 on the fifteen genuine measurement columns, with the right data, no transform in the way, and nothing left to displace.
-
-> **That is not an applicability failure.** The statistic is applied correctly to the right columns and returns the wrong answer. The four-cause frame does not reach it.
-
-**The read (S316, `src/tests/duplicates.js`, read-only).** The copies are never *found*. Not found-and-dismissed — the count is **zero at every sub-test**, so every p-value is 1 by construction and no null is ever exercised. `nRowDups === 0 ? 1 : rowDupPValue` short-circuits before the row-vector null is reached.
-
-**Why zero.** The copy has three properties, and each rules out a different detector:
-
-| Property of C12's copy | Rules out |
-|---|---|
-| **Scattered** (426, 460, 843 rows apart) | Block paths — the offset cap is 200 on files over 500 rows |
-| **Single row** | Block paths again — the height floor requires ≥2 consecutive rows |
-| **Partial width** (root-scan columns only) | Row-key and hash paths — both require full-row identity |
-
-Test 2 catches scattered **full-width** single rows. Test 4 catches contiguous **partial-width** blocks. **A scattered, single, partial-width row copy sits in the one cell neither covers.**
-
-**And that is precisely the shape an honest merge error makes.** A WinRHIZO root-scan block dropped onto the wrong plant carries the scanned columns and leaves the plant's own biomass behind — so the derived tissue density (mass ÷ root volume) differs, and the row is no longer identical across all fifteen columns. **The detector was blind because the defect was real.** A fabricator copying a whole row would have been caught.
-
----
-
-#### The algorithm
-
-For a pair of rows, find the set of columns on which they agree exactly. Score a match when that set is large enough. Three deliberate properties, each the inverse of a rule the existing detectors get wrong: **no offset cap, no block-height floor, no assumption about which columns travel together.**
-
-Naive all-pairs is quadratic. A **prefilter** groups rows by exact value per column; a pair sharing a value earns one agreement; only pairs reaching k agreements go to the exact sub-vector comparison.
-
-**The cardinality guard is load-bearing, and the measurement is why.** A column with five distinct values across nine thousand rows says nothing when two rows match — one row in five agrees by construction. On C14 (9,398 × 14), `CROWNCLASS` (five distinct values, largest group 4,804 rows) generates **16.9 million agreement pairs by itself**; total accumulation reaches 36 million, 0.82× the naive all-pairs count, and overflows the map. It does not build.
-
-So a column enters the prefilter **only** if its largest value-group covers less than a threshold fraction of the rows. Excluded columns still count in the agreeing set and the null — they simply generate no candidates.
-
-Chat's prior was that unrelated rows rarely agree on four continuous measurements by chance. **True, and irrelevant** — C14's blowup is a *categorical code stored as a number*, not a continuous measurement. The prefilter was specified against the wrong mental model of the data, and only the measurement caught it.
-
-#### Constants, chosen on the sweep
-
-- **Cardinality threshold = 2% of rows.** C14 builds in ~20 ms at 2%; 254 ms at 5%; 955 ms at 10%, with no benefit. Every C12 copy survives at every threshold — the copied root columns are high-cardinality and never held out. This is a **performance-chosen constant** and should be recorded as one: no statistical argument selects 2% over 3%.
-- **k = 4 agreeing columns.** C12 yields 34 survivors against ~30 real copies (k=3 admits coincidental agreements; k=6 undercounts). **k does not change the verdict** — the flag is driven by the single strongest pair — so it controls evidence-list length and prefilter cost, not severity.
-
-#### The null
-
-For a pair agreeing on set S, `pMatch = Π wrColHHI[c]` over S, Bonferroni-corrected by the all-pairs search volume. Consistent with the row-vector null already in the file.
-
-**It is estimated from the data, and therefore carries the same circularity as the other four.** That is the third failure mode (see §2.8's table) and it is *not* fixed here. It did not bite on C12 — the raw p is 1.03e-22, nowhere near absorption — but the exposure is real and C08 is where it does bite. Do not read C12's success as evidence the null is sound.
-
----
-
-#### Outcome — C12 (S316)
-
-**Exact Duplicate: CLEAR → FLAGGED.** 34 copied pairs, sub-test raw p = 1.03e-22, `combinedP` = 5.14e-22 after BH-FDR. The other four sub-tests read ~1: **the new detector drives the verdict alone.**
-
-**All four documented copies recovered, by row distance:** rows 5↔848 (843 apart), 65↔491 (426), 173↔220 (47), 722↔1182 (460) — plus a nine-column pair at 90↔1010.
-
-**The copied column set is the same eight in every pair: T, U, V, W, Y, Z, AA, AB** — root length, surface area, average diameter, volume, fine and coarse root length, fine and coarse surface area. **X is conspicuously absent from the middle of the run.** X is *Root tissue density*, the derived quotient. It did not come across because it is computed from a biomass that stayed behind. **The evidence names the mechanism.**
-
-**Hand-verified against the spreadsheet.** Row 5 and Row 848 of `C12.xlsx` sheet `Field survey-data` are byte-identical on T (997.3962999999999), U (170.5759), V (0.53325), W (2.455), Y (922.6777999999999), Z (74.3288), AA (134.3313), AB (35.416399999999996), and differ on X (0.291… vs 0.358…). The card's coordinates land on the right cells.
-
-**Quiet where it should be.** C08: zero survivors, no false positive (its duplicates run *down columns*; no partial-row copy exists to find). C11 (16,657 rows, the largest file): zero survivors, 114 ms.
-
-**C14 fires — and it is a true positive Chat did not anticipate.** The pair is at **sheet rows 262↔263** (earlier text said 260↔261; those were matrix rows labelled as sheet rows). They are byte-identical across all fourteen matrix columns and carry **different `STAND_ID`s**. **Adjudication closed S328 — defect**, settled by reading the deposit: the file holds 253 duplicate measurement blocks, 190 of them spanning different `STAND_ID`s, and only 8 adjacent. Duplicate Detection flags this pair; Sequential Duplication cannot see it at all, since two rows is a run of one against a height floor of three. The detector's behaviour is correct either way — the rows *are* identical.
-
----
-
-#### What it produces for the reader
-
-The evidence surface renders the pair stacked: Row 5 above Row 848, the eight agreeing columns highlighted, the column that differs left plain. **A reader who knows nothing about Herfindahl nulls can look at it and see what happened** — someone pasted a root scan onto the wrong plant, and the one number that was *computed* rather than *copied* gave it away.
-
-That is the thing statcheck and GRIM structurally cannot do. They operate on summary statistics; there is nothing to point at. **This points at cells** — two rows, eight columns, at coordinates the reader can verify by hand in their own spreadsheet, as we did. It belongs in the paper's argument for raw-data forensics, not only in its results.
-
----
-
-#### Carried, not fixed
-
-- **The §4 handoff composer still says "4 sub-tests."** `findingComposers.js` is a DS14-locked zero-diff anchor and Code correctly refused to break the lock to satisfy the dispatch. The count is now wrong. Needs its own dispatch with the lock **re-baselined deliberately**, not broken.
-- **The circular null.** Untouched here, and it is C08's defect. See §2.8's three-mode table and the C08 entry in `REALWORLD-CORPUS-SPEC.md` §0.4.
-
-**Source:** S316 — read-only on `src/tests/duplicates.js` and the C08 shape read; build, surfacing, coordinate fix and count fix promoted at `e751523` (three commits: `ae06ba8`, `0dd4df7`, `bb76b6b`). Hand cross-check against `C12.xlsx` recorded above.
+The fifth sub-test inside Exact Duplicate Detection. Built and promoted at `e751523`. Full entry and
+rationale in `V1X-DECIDED.md`, including why §2.8's outcome opened this one.
 
 ---
 
@@ -776,51 +471,11 @@ The contract was authored into `METHODOLOGY.md` (§Condition Grouping Contract) 
 
 Not test additions. Engine-layer defects and design questions surfaced while investigating §2.10. Homed here so they are not orphaned.
 
-#### Shared choke points guard better than call sites — LANDED S317
+#### Landed and closed items — moved S343
 
-Two defects of the same shape, both fixed at the function rather than at the call sites, both byte-identical on the 28-fixture batch.
-
-**`flagFromP` was one unguarded function under 22 call sites** (`src/constants/thresholds.js`). Fed a non-numeric p it returned a confident verdict **in both directions**:
-
-| Input | Returned (before) | Returns (after) |
-|---|---|---|
-| `undefined` | `LOW` — a silent clear | `"N/A"` |
-| `NaN` | `LOW` | `"N/A"` |
-| `Infinity` | `LOW` | `"N/A"` |
-| `null` | **`HIGH`** — a spurious flag | `"N/A"` |
-| `-Infinity` | **`HIGH`** | `"N/A"` |
-
-No test module guarded its own p-value. The exposure was **latent** — no test actually emitted a non-finite p, and the batch stayed byte-identical — but the guard belongs at the function. `"N/A"` was already a first-class flag value: `FLAG_STYLES`, `PLOT_FC`, `FLAG_RANK["N/A"] = 0`, and **29 test modules already emit it**.
-
-**`evidenceOf` was one reader under 14 tests** (`scripts/corpus-run.mjs`). It read `r.details` and never `subDetails`. On any grouped file `aggregatePerGroup` rebuilds top-level `details` as the **per-group summary** (`{group, rows, nRowsTested, flag}`, `aggregation.js:152-161`) and moves the per-unit records to `subDetails` (`:166-167`). So the corpus diagnostic showed C12's Entropy as **132 rows of `{group, rows, flag}` with no entropy value anywhere** — the real per-column records were there the whole time.
-
-Exposed tests: row-grouped dispatch (Entropy, Column GoF, Modality, Mahalanobis Row Outlier) and column-grouped dispatch (Kurtosis, Autocorrelation, Windowed Autocorrelation, Runs, LOESS Residual, Row-Mean Runs, Selective Noise, Regional Noise, Mahalanobis Row Outlier, Duplicate Detection). **Grouping-conditional — which is why the flat batch fixtures never caught it.** This is the S184 rule (bind to `subDetails`, not `details`) unlearned in a second place.
-
-**Still open — `entropy:142`.** `filter(c => c.flag !== "LOW")` would count an `"N/A"` column as flagged. Gated behind `nFlagged > 0` and unreachable on current fixtures. **Same shape: a call site assuming a closed value set.**
-
-> **Fix the choke point, not the instances.**
-
-#### Windowed Autocorrelation — stack overflow and yield, LANDED S317
-
-**Line 158 spread the whole unit array into `Math.min(...)`.** On the 15-column arm that is ~50,400 arguments and returns. On the **36-column arm it is ~302,400**, exceeds V8's spread limit, throws `RangeError: Maximum call stack size exceeded`, and the engine catches it to `{flag: "ERROR", primaryP: null}`. **The test did not run at all on wide files.**
-
-Fixed with the existing shared `arrayMin` helper (`primitives.js:43`), whose doc comment reads *"Stack-safe minimum for large arrays (avoids `Math.min(...arr)` RangeError)."* **Someone hit this before, wrote the fix, and Windowed never picked it up.**
-
-**C12's 36-column arm now completes for the first time:** `LOW`, `primaryP = 0.068`, **270,453 window units across 630 pairs, 0 significant.** The most extreme windows show local `r ≈ ±0.73` but do not survive per-pair BH-FDR.
-
-> **Provisional.** The probe ran on raw values; the engine feeds VST-log-transformed input, which could shift the p-value. Completion, unit count and runtime are robust. **Do not quote 0.068 in the paper** until it has run through the real pipeline.
-
-**And it was synchronous — 7.4 frozen seconds.** Now `async`, yielding at the **pair** boundary every `PERM_CHUNK = 2000` permutations; `aggregatePerGroup` awaits `testFn` (required — Windowed dispatches through `runPairVST`, which Blocked Mahalanobis never does).
-
-> **Copy the pattern, measure the placement.** The dispatch said "copy Blocked Mahalanobis verbatim." A literal copy put the `await` inside the hot `for b` loop and cost **60%** — an `await` in an inner loop deopts V8's optimisation of the whole thing, taxing **every** file, not just wide ones. Moving the yield outward keeps the inner loops synchronous: overhead drops to about **7% in a browser**, 126 yields on the 36-column arm. **The precedent's structure is portable; its placement is specific to the loop shape.** (Blocked Mahalanobis is flat; Windowed is nested.) `PERM_CHUNK = 2000`, not Blocked Mahalanobis's 50, because Windowed's counter is global across pairs.
-
-#### Sharing a permutation draw across tests — CLOSED, NO
-
-Windowed Autocorrelation and the Runs Test **do** shuffle the same object (the within-pair difference series), differing only in the per-window statistic. Sharing the draw is nonetheless not available.
-
-**The suite runs off one shared PRNG whose draw order is load-bearing for bit-exact batch parity** — the very property that governed the yield fix. Folding two tests into one shuffle pass changes the draw sequence for everything downstream. Small saving, blast radius of the whole batch.
-
-> **Same-object does not mean same-null.**
+Three subsections moved to `V1X-DECIDED.md` §From §2.11: the shared-choke-point guards (`flagFromP`
+and its sibling, LANDED S317), the Windowed Autocorrelation stack-overflow and yield fix (LANDED
+S317), and the sharing-a-permutation-draw question (CLOSED, NO). The open items below are unchanged.
 
 #### Shared yield helper — SCOPED, NOT BUILT, DEFERRED
 
@@ -1203,9 +858,13 @@ STATUS parked #7. Current Modality plot is the Hartigan dip number; replacement 
 
 **Status: v1.0 blocker, tracked in STATUS.md §v1.0 blockers.** Retained here for the methodology detail; STATUS holds the current-state line. Promoted S187 on the trust argument — the tier vocabulary ("High") is a cross-test evidence-strength claim, and if it doesn't trigger at matched reliability across tests, the abstraction misleads exactly where reviewers rely on it.
 
-**Framing.** The tiers are already *defined* as false-positive rates (HIGH p < 0.001 = <1/1000 clean datasets; MODERATE p < 0.01 = <1/100), unified across the battery by design. FISHER_EXEMPT membership and the Tier-2 effect-size gates are the machinery that *enforces* that definition where a raw p-value would be non-uniform under H₀ — not evidence of miscalibration. **S341 — this reading is contested and the honest position is neither.** A gate does not make the p uniform under H₀; it censors results, which under a true null is pure conservatism and pushes the realised rate *below* nominal by an unmeasured, per-test amount. So the gated tests do not report a 0.001 false-positive rate; they report "extreme *and* materially large", which is a different claim. Against that: `09-proteomics-clean` was emitting `p = 0` from Benford and was stopped only by the MAD gate firing ahead of the p, which is direct evidence the gates do real protective work. Both are true. The gates trade an anti-conservative model-misspecification error for an unmeasured conservative censoring, and **neither side has been measured** — which is gap 2 below, and why gap 2 is the load-bearing half of this blocker rather than gap 1. The convergence-escalation rule (2× MODERATE → HIGH) already depends on tiers being FP rates, so FP-equivalence is foundational, not optional. Two gaps stand between "defined-as" and "demonstrated-as":
+**Framing.** The tiers are already *defined* as false-positive rates (HIGH p < 0.001 = <1/1000 clean datasets; MODERATE p < 0.01 = <1/100), unified across the battery by design. FISHER_EXEMPT membership and the Tier-2 effect-size gates are the machinery that *enforces* that definition where a raw p-value would be non-uniform under H₀ — not evidence of miscalibration. **S341 — this reading is contested and the honest position is neither.** A gate does not make the p uniform under H₀; it censors results, which under a true null is pure conservatism and pushes the realised rate *below* nominal by an unmeasured, per-test amount. So the gated tests do not report a 0.001 false-positive rate; they report "extreme *and* materially large", which is a different claim. Against that, and **measured at S342**: with every effect-size gate removed, **five of eight clean fixtures return a non-clean verdict** and three reach severity 2. At the default seed no clean fixture emits a single MODERATE or HIGH today. So the gates are not protecting card expressiveness — they are protecting **verdicts**, and the underlying tests are not fit for this domain without them. The honest statement of what the tool does: the p correctly answers "does this differ from an idealised null"; real clean measurement data *does* differ; and the gate answers the question the tool actually asks — is the deviation large enough to be a fabrication signal. **The gates carry the entire specificity burden.** See `docs/shared/SESSION342-CLEAN-CORPUS-GATE-CLASSIFICATION.md` and `SESSION342-BAND-COUNTERFACTUAL.md`. Both are true. The gates trade an anti-conservative model-misspecification error for an unmeasured conservative censoring, and **neither side has been measured** — which is gap 2 below, and why gap 2 is the load-bearing half of this blocker rather than gap 1. The convergence-escalation rule (2× MODERATE → HIGH) already depends on tiers being FP rates, so FP-equivalence is foundational, not optional. **S342 scope qualification, and it is load-bearing:** that measurement covers only the regime the clean corpus reaches. No clean fixture exceeds 400 rows, and every save came from a gate with **no N precondition**. So the result establishes that the gates are load-bearing in general, and says nothing about the large-N gap this section exists to close. Two gaps stand between "defined-as" and "demonstrated-as":
 
-1. **Six tests lack calibrated effect-size gates at N ≥ 500** — First-Digit Frequencies, Last-Digit Frequencies, Runs, Row-Mean Runs, Decimal Places, Mean-Variance. **S341: this list is wrong on at least two of six and the gap is smaller than stated.** First-Digit Frequencies gates at `mad < 0.015` (`benford.js:89`, Nigrini nonconformity, ahead of the p) and Runs gates at `nR >= 500 && runsRatio > 0.70` — exactly the gate shape and exactly the N ≥ 500 regime this item scopes. `METHODOLOGY.md` documents effect-size gates at nine separate sites. Re-derive the list at source before scoping any fix; a v1.0 blocker should not rest on a census a third wrong. At large N the p-value floor crashes toward zero on forensically-trivial deviations, so these over-trigger on clean data — a real FP-equivalence violation localised to these tests and the large-N regime. Fix: a per-test effect-size threshold below which p alone does not promote severity — same shape as the existing Tier-2 gates on Bartlett (variance ratio), Mahalanobis (distance), Carlisle (KS distance). Note (S240): for **Runs** the gate is necessary but not sufficient — see the i.i.d.-pairs sub-note below; Runs additionally needs a dependence-aware null, not only a large-N gate.
+1. **The gate census is wrong in both directions, and was re-derived at source at S342.** The battery has **18 tests carrying an effect-size gate and 11 carrying none**, plus exactly **one unconditional tier cap** (`rankCorrelation.js:102-103`, confirmed by a grep across all 30 files in `src/tests/`). This item's original list of six ungated tests — First-Digit Frequencies, Last-Digit Frequencies, Runs, Row-Mean Runs, Decimal Places, Mean-Variance — is **wrong on exactly two**: First-Digit gates at `mad < 0.015` (`benford.js:93`, Nigrini nonconformity, ahead of the p) and Runs gates at `nR >= 500 && runsRatio > 0.70` (`runs.js:206`). The other four are correct. **The larger error is omission.** Seven ungated tests are missing entirely — Exact Duplicate Detection, Sequential Duplication, Residual Spike Correlation, Windowed Autocorrelation, Blocked Mahalanobis, Missing Data Pattern, Cross-Condition Rank Correlation. Two postdate this section's authorship and Rank Correlation is arguably out of scope because its cap already prevents HIGH, but the census is **two-thirds omission by count**, not a third wrong, and must be re-derived rather than trusted.
+
+   **The N ≥ 500 grouping is also wrong, and it matters more.** Seven tests carry a gate conditioned on N ≥ 500, but **only five are row-gated.** Selective Noise counts Bartlett observations (`selectiveNoise.js:183`) and Cross-Condition Consistency counts **pooled cells** (`crossConditionConsistency.js:602`, `nMin` at `:377`) — CCC's gate has fired on every clean fixture it ran on, including one at **35 rows**. Of the five genuinely row-gated, two were observed live and declined to fire, and **three — Runs, LOESS, Regional Noise — have never been observed firing on any fixture at any size.** That is the entire empirical basis under this gap, and it is empty. **A large clean fixture is therefore a prerequisite for measuring gap 1, not a consequence of measuring it** — the clean corpus tops out at 400 rows and no fabricated fixture exercises these three above 500 either.
+
+   The original substance stands where it is untouched: at large N the p-value floor crashes toward zero on forensically-trivial deviations, so an ungated test over-triggers on clean data — a real FP-equivalence violation localised to the large-N regime. Fix shape: a per-test effect-size threshold below which p alone does not promote severity, matching the existing gates on Bartlett (variance ratio), Mahalanobis (distance), Carlisle (KS distance). Note (S240): for **Runs** the gate is necessary but not sufficient — see the i.i.d.-pairs sub-note below; Runs additionally needs a dependence-aware null, not only a large-N gate.
 2. **The tiers have never been empirically measured against a null set.** The design defines them as FP rates and the enforcement machinery exists, but no null-simulation has confirmed each test's HIGH/MODERATE actually fires at ≤0.1% / ≤1% under H₀.
 
 **Scope (both halves required for the blocker to close):**
@@ -1213,6 +872,13 @@ STATUS parked #7. Current Modality plot is the Hartigan dip number; replacement 
 - Build a **null-set FP-verification harness**: run each test against many clean/null datasets, measure HIGH and MODERATE trigger rates, confirm they hit the stated FP targets, fix any test that misses. This is new infrastructure, but it's the evidence base the review paper needs regardless of the gate work, so it's not gold-plating.
 
 **First step (read-only, sizes the job before any fix) — DONE at S341, see `docs/shared/SESSION341-HIGH-REACHABILITY-CLASSIFICATION.md`:** enumerate, per test, the exact tier-promotion rule and whether it has an effect-size gate / is FISHER_EXEMPT / neither. That inventory shows how many tests sit in the "naked p-value at large N" bucket vs already-gated. Open hypothesis the harness tests first: the uniform-null + standard-adj-p tests may already be roughly FP-matched, with only the FISHER_EXEMPT set diverging — in which case the job narrows to bringing the exempt set onto the same FP footing.
+
+**S342 extends this, and inverts its open hypothesis.** The inventory is now built from source at
+`docs/shared/SESSION342-CLEAN-CORPUS-GATE-CLASSIFICATION.md`, which carries the 18/11 gated split, the gate
+statistic and threshold per test with `file:line`, where each gate sits relative to the p, and whether the
+pre-gate p is recoverable. The hypothesis named above — that the ungated tests may already be roughly
+FP-matched, leaving the job to the exempt set — is **not** what the measurement found. The false positives
+came from **gated** tests, and the gate is what stopped them.
 
 **Cross-ref:** verdict-legibility synthesis thread (TESTCARD-FINDINGS) — the same read-only inventory feeds the per-card "expose the promotion basis" display work; interim display wording must NOT assert cross-test FP-equivalence until this blocker closes.
 
@@ -1289,6 +955,12 @@ five tests hand-roll the ladder with an effect-size pre-gate ahead of the p, and
 unconditional cap. 0.05 appears in several tests as a sub-unit marker and in display prose, but never in a
 flag assignment.
 
+**What the ladder actually gates, corrected at S342.** Nothing guards the exit from severity 0.
+`severity.js:20` returns 2 from a single HIGH and `:23` returns 1 from a single MODERATE, neither carrying a
+dimension requirement. Two flags across dimensions is the route to severity **3** — branch 5 — not to a
+non-clean verdict. This changes how the reachability finding should be read: see "Why this matters less than
+it looked" below, which is now scoped rather than general.
+
 **On per-condition routing the flag is not decided on the reported p.** `src/analysis/aggregation.js`
 corrects the worst-group arm with Šidák — `flagFromP(sidakAdjust(groupMinP, G))` — while `primaryP` stays
 uncorrected. So the raw grid must resolve a *tighter* threshold than the one written down. At G = 3 it must
@@ -1301,10 +973,10 @@ expectation, by Jensen. Šidák corrects selection over G nulls; it does not cor
 draws. So the false-HIGH rate on those six tests sits *above* nominal, and raising B would lower the HIGH
 rate systematically rather than sharpening it symmetrically. Unmeasured.
 
-## The five mechanisms
+#### The five mechanisms
 
 1. **Grid floor.** The construction cannot emit a value below the threshold at the count it runs.
-2. **Effect-size pre-gate.** A condition forces LOW before the p is consulted. `benford.js:89` gates at
+2. **Effect-size pre-gate.** A condition forces LOW before the p is consulted. `benford.js:93` gates at
    MAD < 0.015; `benford2.js:125` at 0.008; Runs at `nR >= 500 && runsRatio > 0.70`. **METHODOLOGY.md
    documents effect-size gates at nine separate sites** (lines 634, 758, 983, 1124, 1177, 1235, 1376, 1415,
    1446, 1519), so this is a substantial fraction of the battery, not a handful of exceptions.
@@ -1312,22 +984,31 @@ rate systematically rather than sharpening it symmetrically. Unmeasured.
    at `rankCorrelation.js:101-103`. It can never emit HIGH at any p, any effect size, any B, and it does not
    resample. Deliberate and documented — genuine biological similarity also produces high correlation. **No
    audit of estimators could have found this**, which is why the S340 census missed it.
-4. **Post-hoc multiplicity.** A BH or Šidák adjustment applied after the p tightens the raw value required.
-   Windowed Autocorrelation's raw floor clears the threshold; its blocker is a BH multiplier over roughly
-   18 windows.
+   **Confirmed at S342:** a grep for cap-shaped constructs across all 30 files in `src/tests/` returns this
+   site and nothing else — the other hits are array-size caps in `kurtosis.js` and `duplicateDetection.js`.
+   It is the only unconditional tier cap in the battery. Current line reference is
+   `rankCorrelation.js:102-103`.
+4. **Post-hoc multiplicity — but only on a non-flat family.** A BH adjustment tightens the raw value
+   required *when the family is uneven*. `bhFDR` is a step-up: the family minimum is
+   `min over j of (p_(j) · m/j)`, so when every unit sits at the raw floor the `j = m` term returns
+   that floor with no `m` factor. The earlier statement of this mechanism used the rank-1 value
+   `p_(1) · m`, which is the worst case rather than the bound. **Corrected S343** — see
+   `docs/shared/SESSION343-GATE-PROVENANCE-AUDIT.md` Part 2 and the rewritten METHODOLOGY
+   §Permutation-Test Arithmetic Constraints. What multiplicity actually costs is step size,
+   `(m/j) × c/(B+1)`, which is a property of a run rather than of a test.
 5. **Invalid estimator.** `k/B` with no continuity correction, which emits `p = 0`. Fixed at S341 — see
    below.
 
-## The corrected census
+#### The corrected census
 
 | test | mechanism | fixable by raising the count? |
 |---|---|---|
 | Cross-Condition Rank Correlation | unconditional `HIGH → MODERATE` cap | no — it is a product decision, not an estimator limit |
 | Modality | hardcoded `P_FLOOR = 0.001` **and** a `DIP_GATE = 0.04` effect-size gate, on a test whose bootstrap was retired at S159b | no — the clamp preserves the calibration of a resampling step that no longer exists |
-| Entropy / Zipf | floor `2/(1+B)` from doubling a one-sided p whose count starts at 1 | only at B ≥ 19999 |
+| Entropy / Zipf | doubled floor `2/(1+B)`; at `B = 999` that is 0.002, above `ALPHA.FLAG` | yes — **B ≥ 2000**, not 19999. The earlier figure multiplied the floor by `m`; under the step-up the flat-family minimum carries no `m`. This is exactly the count Column Goodness-of-Fit already uses for the same reason. Corrected S343. |
 | Residual Spike Correlation | floor `1/(B+1)` = 0.001 at fixed B = 999, and `flagFromP` needs strictly less | yes, any raise |
 | Constant-Offset Blocks | **observed** minimum p of exactly 1.000e-3 at its highest declared count — measured under forced-high, not derived | no at any count it can take |
-| Windowed Autocorrelation | raw floor clears; blocked by BH over ~18 windows | partially |
+| Windowed Autocorrelation | raw floor clears; BH over the window family blocks it **only when the family is uneven** — a flat family at the floor reaches HIGH, same shape as Column GoF below. `m` reaches 298 on the corpus, so the worst case is severe. Corrected S343. | partially |
 | Cross-Condition Consistency | doubled floor, distinct from Constant-Offset's bare floor | partially |
 
 **Column Goodness-of-Fit is reachable and the S340 entry was wrong.** `bhFDR` is a step-up with monotonicity
@@ -1343,7 +1024,7 @@ respectively. Uniform phrasing across three rows was where the audit flattened t
 **Only one test is blocked by both a floor and a gate: Modality.** So "which tests would gain nothing from
 any count change" is a one-test question, and the argument that raising counts is inert does not hold.
 
-## The census is size-dependent, and the fixtures are the friendly end
+#### The census is size-dependent, and the fixtures are the friendly end
 
 **Eight tests take a smaller resample count on larger inputs.** Regional Noise and LOESS take 4999 at ≤ 100
 rows and 499 above; Constant-Offset and Windowed Autocorrelation trip above 1000 and 500 rows. Every branch
@@ -1359,7 +1040,7 @@ the suite.
 which no fixture has ever run. Real deposited files are larger than the fixtures, and larger means coarser,
 so every reachability number here is an upper bound on what real files get.
 
-## The invalid estimator, fixed at S341
+#### The invalid estimator, fixed at S341
 
 Both Benford tests computed `k / N_SIM` at `N_SIM = 5000` with no continuity correction, so zero exceedances
 emitted exactly `p = 0` — an assertion of impossibility on 5000 draws. **The S340 version of this section
@@ -1387,28 +1068,40 @@ Corrected at S341 to `(k+1)/(N_SIM+1)`. Measured consequences, all counter to pr
   reported inconsistently at first because no statement of it carried a counting rule — there is no
   correct bare number, only a number plus a rule.
 
-## Two tests reach HIGH off the grid entirely
+#### Two tests reach HIGH off the grid entirely
 
 Inter-Replicate Correlation and Runs Test take a minimum over arms of which only one resamples.
 Inter-Replicate Correlation reaches HIGH on DS08 at p = 0.00062984, a value no permutation grid in the
 battery contains — and S341 confirmed it is bit-identical at 4999, 999 and 199. For those two, "HIGH
 unreachable" is true of the permutation arm and false of the test.
 
-## Why this matters less than it looked
+#### Why this matters less than it looked — and where it does not
 
-**HIGH is not what drives the verdict.** `severity.js:19-26` branch 5 — `(mod>=2 && nFlaggedDimensions>=2)`
-— returns the same top band as `high>=2`. Dimensions are the five `TEST_MECHANISM` keys, and the blocked set
-spans four of them. Every test that cannot produce HIGH still reaches the top band through the MODERATE
-path.
+**S342 correction. Read this section's scope before its conclusion.** The claim below is true of branch 5
+and was widened, in conversation, into a claim about the whole ladder. It is not one. **Nothing guards the
+exit from severity 0:** `severity.js:20` returns 2 from a *single* HIGH and `:23` returns 1 from a *single*
+MODERATE, neither carrying a dimension requirement. Two flags across dimensions is the route to severity
+**3**, not the route out of clean.
+
+**Where the conclusion holds.** `severity.js:19-26` branch 5 — `(mod>=2 && nFlaggedDimensions>=2)` — returns
+the same top band as `high>=2`. Dimensions are the five `TEST_MECHANISM` keys, and the blocked set spans
+four of them. On a file carrying several signals, every test that cannot produce HIGH still reaches the top
+band through the MODERATE path.
 
 Under 29 independent tests at nominal rates, roughly 0.04% of clean files show two HIGHs and roughly 3.4%
 show two MODERATEs. Most top-band verdicts on clean files arrive through MODERATE, and **MODERATE is
-comfortably resolvable at current counts** — ten grid positions of headroom at B = 999. So the tier ceiling
-costs card expressiveness, not detection reach.
+comfortably resolvable at current counts** — ten grid positions of headroom at B = 999.
 
-**That is a better reason to reject option 1 than the cost argument this section used to carry.**
+**Where it does not hold.** For a narrowly-planted fabrication that only one test can see, a blocked HIGH
+costs a band outright: one HIGH would give severity 2 and the MODERATE it is capped to gives 1. There is no
+second flag to promote through. So the ceiling costs card expressiveness on multi-signal files **and
+detection reach on single-signal ones** — and a narrowly-planted fabrication is precisely the case a
+forensic tool exists to catch.
 
-## The derived rule, and why it is necessary but not sufficient
+**That is still a better reason to reject option 1 than the cost argument this section used to carry, but it
+is a narrower one than S341 recorded.**
+
+#### The derived rule, and why it is necessary but not sufficient
 
 A threshold decided by one or two grid positions is a resolution defect. Requiring several positions below
 the threshold gives `step < T/5`, so at T = 0.001 the `(k+1)/(B+1)` family needs B ≥ 4999 and the
@@ -1430,7 +1123,7 @@ The "quarter of all resampling cells sit within two standard errors of a thresho
 weaker than it reads: at B = 999 the bands cover roughly everything that is not LOW, and the corpus is
 19/27 fabricated by design. It needs recomputing over clean fixtures, per threshold.
 
-## Options
+#### Options
 
 **Option 3 is dead.** Declaring HIGH analytic-only awards the top tier to the estimators whose far-tail
 calibration is least defensible. Selective Noise fails at 56% on DS06 and 79.9% on DS11 because Bartlett's
