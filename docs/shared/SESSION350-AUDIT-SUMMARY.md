@@ -1,12 +1,20 @@
-# S350 Part 1 — the read that sizes the P82 fix
+# S350 — the read that sizes the P82 fix
 
-Read-only. Nothing under `src/` was edited. One file was added under `test/probes/`,
-named and justified in Part 3. No batch was run, because no `src/` file was touched
-and `validate-batch.mjs` scores engine output only.
+Read-only throughout. Nothing under `src/` was edited in any part. Four files were added
+under `test/probes/` and `docs/shared/`, each named and justified where it is used. No
+batch was run, because no `src/` file was touched and `validate-batch.mjs` scores engine
+output only.
 
 The question this read answers: Cross-Condition Consistency and Residual Spike
-Correlation both build a permutation null that treats paired subjects as
-independent. What does a correct null cost, and which units does it silence?
+Correlation both build a permutation null that treats paired subjects as independent.
+What does a correct null cost, and which units does it silence?
+
+Written across two dispatches. Parts 1 to 3 were the first, off `626a8f7`, and settled
+what the corrected null does to each test's units. Parts 4 and 5 were the second, off
+`3127e43`, and measure the two things a design decision needs: whether DS11's lost
+Residual Spike Correlation channel was firing inside the fixture's planted mechanism,
+and whether any paired fabricated fixture has a Cross-Condition Consistency flag to lose.
+Each part's verification sits in the matching section at the end.
 
 ---
 
@@ -380,9 +388,257 @@ and because Part 1 of this same dispatch flagged an uncommitted S349 matcher scr
 gap. It touches nothing under `src/`, changes no engine behaviour, and is committed so the
 numbers above are re-runnable.
 
+# Part 4 — DS11 adjudicated inside its planted region
+
+DS11's Residual Spike Correlation finding is an engine record made under a null we now
+believe is mis-specified. Losing it is not evidence of harm on its own. The fixture's
+construction is the anchor; the engine's channel attribution is not.
+
+## Step 1 — DS11 is regenerable
+
+`gen_rnaseq_multicondition` is defined **exactly once**, at
+`generate-test-datasets.py:447`. The writer list at `:1268` names
+`11-rnaseq-multicondition.csv`, which is the file on disk. Neither half of the P85 shape
+is present here.
+
+`OUT` is `/tmp/dforensix-s108-fixtures` (`:7`), so running the generator cannot touch
+`test/fixtures/`. Run and diffed: the regenerated DS11 is **byte-identical** to the
+shipped fixture, md5 `e431e36e7b632ae08c1750efb3b90cf6` on both. The construction anchor
+holds and the rest of this part is answerable.
+
+**Noted in passing, out of scope.** The same writer list names
+`16-carlisle-overbalanced.csv` and `17-carlisle-clean.csv`, while the fixtures on disk
+are `16-densitometry-carlisle-overbalanced.csv` and `17-densitometry-carlisle-clean.csv`.
+`gen_carlisle_overbalanced` and `gen_carlisle_clean` are also the only two functions in
+the file defined twice. That is the P85 shape, on DS16 and DS17.
+
+## Step 2 — the planted mechanism, from the generator
+
+Written down before any engine output was consulted. Two flaws, both localised to named
+genes, so the halt condition does not fire.
+
+**Flaw 1 — correlated residual spikes. This is RSC's target.** Twenty genes. Per gene the
+generator draws one replicate position and one magnitude
+(`random.uniform(2.0, 4.0) * random.choice([-1, 1])`), then multiplies that replicate by
+`1 + magnitude * 0.3` in **all three conditions** — same position, same magnitude every
+time (`generate-test-datasets.py:474-506`).
+
+Planted set, 0-indexed as the generator prints it:
+
+```
+7, 54, 61, 73, 83, 101, 105, 118, 177, 211, 239, 241, 342, 353, 393, 416, 423, 427, 458, 491
+```
+
+**Flaw 2 — inflated fold-change, a control.** Thirty other genes, disjoint from flaw 1,
+get `fc = fc * random.uniform(2.5, 4.0)` in CondB only (`:487-489`). That scales the
+condition mean, so under the log VST it is a shift and the row-centred residuals are
+unchanged. Predicted invisible to RSC.
+
+**The list was cross-checked against the fixture rather than trusted.** A flaw-1 gene
+shares one replicate's spike across all three conditions, so its per-replicate residual
+vectors should correlate across conditions. Measured: mean cross-condition residual
+correlation **0.741** on the twenty planted genes against **−0.026** on the 450 unplanted
+ones; 80% of planted genes clear 0.5 against 9% of unplanted. An argmax-agreement check
+is weaker and is reported as context only — 14/20 planted against 24/450 unplanted,
+chance 6.3% — because the spike is not always the largest residual: a 1.6× to 2.2×
+multiplier is 0.47 to 0.79 on the log scale against a noise sd of 0.25.
+
+## Step 3 — the RSC evidence mapped onto the planted set
+
+Over all 500 genes, from `test/probes/probe-s350-ds11-adjudication.mjs`. K = 50.
+
+|  | in the planted set | not in the planted set |
+|---|---|---|
+| in the top-K of all three conditions | **9** | **0** |
+| in the top-K of a proper subset of conditions | 8 | 106 |
+| in no top-K | 3 | 374 |
+| total | 20 | 480 |
+
+**Do the nine subjects extreme in all three conditions lie inside the planted region?
+Yes — all nine.** Genes 54, 61, 73, 83, 101, 177, 241, 353, 427, every one on the flaw-1
+list. The all-three cell has zero unplanted occupants, against a chance expectation of
+about 0.5 genes at K/N = 0.1 over three conditions.
+
+**And the four? No — none of them.** The statistic's best pair is CondA vs CondC with
+overlap 13, decomposing as 9 genes extreme in all three conditions plus 4 extreme in that
+pair only. The four are genes 38, 141, 351, 357, and **0 of 4** are planted.
+
+Flaw 2 behaved as predicted: 0 of its 30 genes reach the all-three cell.
+
+**The expectation is confirmed, and more sharply than "a real detection."** The nine are
+not merely inside the planted region — they are the only things in that cell, and the
+four the corrected null leaves standing are the ones that are not planted. The corrected
+null does not trim noise off a real finding. It removes the finding and keeps the noise.
+
+The reason is structural. The generator plants *the same residual pattern across all
+conditions*, and a within-subject relabel of the condition labels preserves, by
+definition, any pattern that is the same across conditions. **DS11's planted mechanism is
+invariant under the corrected null by construction.** On this fixture the fabricator's
+edit and a genuinely noisy gene are not merely hard to tell apart — they are the same
+object.
+
+## Step 4 — the assertion structure, reported not simulated
+
+DS11's declared channels, `test/batch-fixtures.mjs:90-94`:
+
+```js
+'11-rnaseq-multicondition.csv': { severity: 3, assay: 'genomics', flags: {
+  'Autocorrelation':              ['HIGH'],
+  'Residual Spike Correlation':   ['MODERATE', 'HIGH'],
+  "Benford's Law (Second Digit)": ['HIGH'],
+} },
+```
+
+Assertion (b) is **per-channel, not a count over channels**. `test/validate-batch.mjs:138-148`:
+
+```js
+const cellMisses = [];
+if (expected.flags) {
+  const resultsByName = new Map(results.map(r => [r.name, r]));
+  for (const [name, allow] of Object.entries(expected.flags)) {
+    const r = resultsByName.get(name);
+    if (!r) {
+      cellMisses.push(`${name}: result not present (unresolved name binding?)`);
+    } else if (!allow.includes(r.flag)) {
+      cellMisses.push(`${name}: got ${r.flag}, expected ∈ [${allow.join(', ')}]`);
+    }
+  }
+}
+```
+
+Every declared cell is asserted independently against its own allow-set. There is no
+threshold on how many channels hold. Severity is a separate assertion at `:128`, and the
+completeness gate a third at `:158-176`.
+
 ---
 
-# Verification
+# Part 5 — Class B, bounded
+
+## Membership, derived
+
+**The committed census cannot answer this as written.**
+`test/probes/probe-s349-pairing-census.mjs` applies the right pairing rule, but over a
+hardcoded list of eight **clean** fixtures (`:28-37`). Its intersection with "fabricated"
+is empty for scope reasons, not corpus reasons. The rule at `:54-105` was ported into
+`test/probes/probe-s350-classb-bound.mjs` and applied across every fixture in
+`test/batch-fixtures.mjs`. "Fabricated" is read as `EXPECTED[file].severity >= 1`.
+
+**The measured list is five, and it is S349's five.**
+
+| fixture | sev | structure | pairing key | subjects | alignment |
+|---|---|---|---|---|---|
+| `02-densitometry-fabricated` | 3 | column-grouped ×3 | row index (structural) | 35 | ok |
+| `04-qpcr-fabricated` | 3 | row-grouped ×2 | `Target` | 25 | ok |
+| `10-proteomics-fabricated` | 3 | row-grouped ×2 | `ProteinID` | 200 | ok |
+| `11-rnaseq-multicondition` | 3 | row-grouped ×3 | `GeneID` | 500 | ok |
+| `16-densitometry-carlisle-overbalanced` | 2 | column-grouped ×3 | row index (structural) | 60 | ok |
+
+Nine fixtures are paired in total — four column-grouped (DS01, DS02, DS16, DS17) and five
+by identifier (DS03, DS04, DS09, DS10, DS11) — which reproduces S349's count exactly. The
+four paired clean fixtures are DS01, DS03, DS09 and DS17.
+
+"Alignment ok" is a second check the paired null needs and cannot make from inside the
+test: no slice row is dropped by the tuple builder's all-null skip, all slices have the
+same row count, and on row-grouped fixtures the slices list subjects in the same order.
+All five members pass, so all five are sweepable. A member failing either check would
+have been reported and not swept.
+
+## How the corrected null was installed
+
+`test/probes/s350-paired-null-hook.mjs`, an ESM load-time source hook on
+`src/tests/crossConditionConsistency.js` — the route `s349-ccc-hook.mjs` established.
+Three edits: an optional `B` override, the per-unit capture at the `primaryP` site
+(anchors verbatim from the S349 hook), and the null itself. When `__S350_PAIRED` is set,
+the global Fisher–Yates over all row-tuples (`:456-461`) is replaced by an independent
+relabel of each subject's own condition assignment, with row positions held fixed. Every
+anchor must match exactly once or the hook throws, so a silent no-op run is impossible.
+
+CCC is called directly rather than through `runFullAnalysis`, because the other 28 tests
+cost far more than the one under study. Since S340 each test draws from its own stream
+keyed on the data hash plus its dispatch name, so the direct call sees the stream the
+engine would hand it. Verified rather than assumed: on `02-densitometry-fabricated` at
+seed 0 the direct call returns `primaryP 0.0945 flag LOW B 999` and `runFullAnalysis`
+returns the same three values.
+
+Seeds are the S348 Part 5 rule — one-unit neighbours of `09-proteomics-clean.csv` at
+stride 7, hashed and substituted, with the perturbed matrix discarded and never scored.
+
+## The primary result — Class B is empty and bounded
+
+Twenty seeds, two nulls, five fixtures: 200 runs, and **nothing flags in any of them.**
+
+| fixture | free null, `primaryP` min–max | flags | corrected null, `primaryP` min–max | flags |
+|---|---|---|---|---|
+| `02-densitometry-fabricated` | 0.0923 – 0.133 | 0/20 | 0.0923 – 0.122 | 0/20 |
+| `04-qpcr-fabricated` | 0.0540 – 0.120 | 0/20 | 0.120 – 0.198 | 0/20 |
+| `10-proteomics-fabricated` | 0.100 – 0.224 | 0/20 | 0.144 – 0.210 | 0/20 |
+| `11-rnaseq-multicondition` | 0.0360 – 0.108 | 0/20 | 0.494 – 0.602 | 0/20 |
+| `16-densitometry-carlisle-overbalanced` | 0.0180 – 0.0540 | 0/20 | 0.162 – 0.468 | 0/20 |
+
+Split by direction: **zero of 94 `similar`-direction (fixture × unit × arm) records and
+zero of 44 `different`-direction records flag on any seed.** Per-unit tables for every
+fixture, both arms, are in `docs/shared/S350-CLASSB-SWEEP-DATA.md`.
+
+The closest approach under the free null is DS16 at adjusted p 0.0180, 1.8× the
+threshold; under the corrected null that unit moves to 0.162. DS11 and DS16 were re-run
+at `B = 9999` to rule out the shipped lattice hiding movement near the threshold, and the
+picture holds — DS11's free-null minimum is 0.0198 and DS16's 0.0216, both still LOW.
+
+**S349's claim survives the widening.** No paired fabricated fixture has a
+Cross-Condition Consistency flag to lose, now at twenty seeds per fixture and two
+permutation counts rather than one draw.
+
+## The inversion, and it is the larger finding
+
+The prediction was that a `different`-direction unit could become **more** sensitive when
+the null tightens. That is exactly what happens, and it is not marginal.
+
+DS11, median adjusted p across twenty seeds at `B = 9999`:
+
+| DS11 Stage-1 unit | free null | corrected null | direction | contributes to the flag? |
+|---|---|---|---|---|
+| P3 CDF shape (KS), **CondB vs CondC** | 0.717 | **0.0018** | `different` 20/20 | **no — filtered** |
+| P3 CDF shape (KS), **CondA vs CondB** | 0.717 | **0.0090** | `different` 20/20 | **no — filtered** |
+| P2 Dispersion (MAD), **CondA vs CondB** | 0.911 | 0.0153 | `different` 20/20 | no — filtered |
+| P3 CDF shape (KS), CondA vs CondC | 0.0306 | 0.990 | `different` 20/20 | no — filtered |
+| P2 Dispersion (MAD), CondA vs CondC | 0.717 | 0.744 | `different` 20/20 | no — filtered |
+
+The two units that cross `ALPHA.NOTE` are the two pairs **involving CondB**. CondA vs
+CondC moves the other way, to 0.99. DS11's flaw 2, read from the generator in Part 4, is
+thirty genes with an inflated fold-change **in CondB only**.
+
+**The corrected null surfaces DS11's second planted mechanism at adjusted p = 0.0018 on
+all twenty seeds, and the forensic-direction filter discards it.** Stage-1 properties
+declare `forensicDirections: ["similar"]` (`crossConditionProperties.js:278`, `:295`,
+`:317`), so a `different`-direction Stage-1 unit contributes nothing at any p — the
+neutralisation is at `crossConditionConsistency.js:610` and `:618`. Under the free null
+the same signal reads 0.717, so the mis-specified null is not only inflating the
+`similar` tail on clean paired data; it is **masking a true condition difference on
+fabricated paired data**.
+
+Stated precisely, because the two halves pull opposite ways:
+
+1. **As shipped, the corrected null gains nothing and costs nothing on these five.** The
+   probe's explicit gain check — does any unit flag on more seeds under the corrected
+   null? — returns none. This is a measurement of the shipped machinery, filter included.
+2. **The gain exists in the statistics and is barred by a filter, not by the data.** It is
+   0.0018, MODERATE by `flagFromP` with room to spare, and it points at a genuinely
+   planted mechanism. That is a counterfactual about a filter change nobody has made, and
+   it is reported as one.
+
+The secondary line S349 recorded — that on paired files a correction can only push
+`similar`-direction units away from flagging — is now measured on all five rather than
+inferred. Across the shipped-B run, 29 of 40 `similar`-direction units move away from the
+threshold and 11 move toward it, with the closest "toward" unit landing at 0.108, 10.8×
+the threshold. S349's other secondary line, that `different`-direction gates are absolute
+floors that no null change moves, holds as an account of the **gate** but is not the
+binding constraint on DS11: there the units are barred by the direction **filter**, which
+runs regardless of the gate, and their adjusted p moves by nearly three orders of
+magnitude.
+
+---
+
+# Verification — Parts 1 to 3
 
 ## Commands run
 
@@ -498,4 +754,135 @@ For reference the command would be:
 
 ```bash
 ./scripts/dev.sh s350-part-1-dispatch-986a68
+```
+
+---
+
+# Verification — Parts 4 and 5
+
+Run from the worktree `.claude/worktrees/s350-part-2-dispatch`, branch
+`claude/s350-part-2-dispatch`, off `3127e43`.
+
+## Commands run
+
+```bash
+git worktree add .claude/worktrees/s350-part-2-dispatch -b claude/s350-part-2-dispatch main
+./scripts/init-worktree-symlinks.sh .claude/worktrees/s350-part-2-dispatch
+git worktree list
+
+# Part 4 — is DS11 regenerable?
+git ls-files | grep -i '\.py$'
+grep -n "^def " generate-test-datasets.py | awk '{print $2}' | sed 's/(.*//' | sort | uniq -c | sort -rn
+grep -n -i "rnaseq|11-|multicondition|GeneID" generate-test-datasets.py
+grep -n "random.seed|OUT =" generate-test-datasets.py
+python3 generate-test-datasets.py                       # writes only to /tmp/dforensix-s108-fixtures
+diff -q /tmp/dforensix-s108-fixtures/11-rnaseq-multicondition.csv test/fixtures/11-rnaseq-multicondition.csv
+md5 -q /tmp/dforensix-s108-fixtures/11-rnaseq-multicondition.csv test/fixtures/11-rnaseq-multicondition.csv
+
+# Part 4 — the adjudication
+node test/probes/probe-s350-ds11-adjudication.mjs
+
+# Part 4 — assertion structure
+grep -n "expected.flags|ACKNOWLEDGED|allow-set" test/validate-batch.mjs
+grep -n "11-rnaseq" -A 5 test/batch-fixtures.mjs
+
+# Part 5 — membership
+sed -n '27,38p' test/probes/probe-s349-pairing-census.mjs      # the committed FILES list
+MEMBERSHIP=1 node --import ./test/probes/s348-hash-hook.mjs \
+  --import ./test/probes/s350-paired-null-hook.mjs \
+  test/probes/probe-s350-classb-bound.mjs
+
+# Part 5 — cost and parity, then the sweep
+COST=1 PARITY=1 node --import ./test/probes/s348-hash-hook.mjs \
+  --import ./test/probes/s350-paired-null-hook.mjs \
+  test/probes/probe-s350-classb-bound.mjs
+PARITY=1 node --import ./test/probes/s348-hash-hook.mjs \
+  --import ./test/probes/s350-paired-null-hook.mjs \
+  test/probes/probe-s350-classb-bound.mjs
+S350_B=9999 FILES=11-rnaseq-multicondition.csv,16-densitometry-carlisle-overbalanced.csv \
+  node --import ./test/probes/s348-hash-hook.mjs \
+       --import ./test/probes/s350-paired-null-hook.mjs \
+       test/probes/probe-s350-classb-bound.mjs
+
+# vitest collection check
+cat vite.config.js ; grep -n '"test"' package.json
+npx vitest list
+```
+
+## Files and lines read
+
+**Generator**
+
+- `generate-test-datasets.py` — `:1-20` (imports, `random.seed(7741)`, `OUT`, `randn`),
+  `:444-509` (`gen_rnaseq_multicondition`; flaw-1 target draw `:458-459`, the printed
+  target lists `:462-463`, gene bases `:465-469`, the shared spike pattern `:474-478`,
+  flaw-2 CondB inflation `:487-489`, the spike application `:500-506`), `:1256-1276`
+  (the writer list; DS11 at `:1268`), `:1290-1300` (the ground-truth print block).
+- The duplicate-definition census over the whole file: `gen_carlisle_clean` and
+  `gen_carlisle_overbalanced` occur twice, every other generator once.
+
+**Source under `src/`** (read only; nothing edited)
+
+- `src/analysis/engine.js` — `:185-201` (validate, then `createPRNGFactory` on the
+  sanitised raw matrix), `:276-290` (VST matrix and `vstCondCtx`), `:413-421` (RSC
+  dispatch), `:425-441` (CCC dispatch).
+- `src/tests/crossConditionConsistency.js` — `:456-461` (the Fisher–Yates block replaced
+  by the hook), `:610` and `:618` (the forensic-direction neutralisation), plus the
+  anchors the hook matches.
+- `src/tests/crossConditionProperties.js` — `:278`, `:295`, `:317` (Stage-1
+  `forensicDirections: ["similar"]`), `:222-231` (`makeGate`).
+- `src/tests/residualSpikeCorrelation.js` — `:47-65` (the profile, reproduced in the
+  adjudication probe), `:80-91` (top-K), `:93-108` (pairwise overlap).
+- `src/analysis/conditionContext.js` — `:99-138` (`slices()`), `:140-160` (`rowGroups()`).
+- `src/stats/vst.js` — `:70` (`detectVST`).
+
+**Tests and probes**
+
+- `test/validate-batch.mjs` — `:130-149` (assertion (b), the per-channel allow-set loop),
+  `:151-177` (the completeness gate), `:128` (severity).
+- `test/batch-fixtures.mjs` — `:90-94` (DS11's declared channels), and `EXPECTED` in full
+  for the membership pass.
+- `test/probes/probe-s349-pairing-census.mjs` — `:27-37` (the hardcoded clean-only FILES
+  list), `:54-105` (the pairing rule, ported).
+- `test/probes/probe-s349-ccc-limit.mjs` — `:58-72` (`prepFromText`), `:75-107`
+  (`neighbourPlan`), `:109-123` (`deriveNeighbourSeeds`), `:135-147` (the seed set-up and
+  its guards). All reused.
+- `test/probes/s349-ccc-hook.mjs` — whole file; its two anchors are reused verbatim.
+- `test/probes/s348-hash-hook.mjs` — whole file.
+- `vite.config.js` `:14-19` and `package.json` `:10` — no `test.include` override, so
+  vitest's default `**/*.{test,spec}.?(c|m)[jt]s?(x)` applies.
+
+**Fixtures**
+
+- `test/fixtures/11-rnaseq-multicondition.csv` — regenerated and diffed in full.
+- All 27 fixtures in `test/batch-fixtures.mjs` — parsed through the engine import chain
+  for the membership pass.
+
+## Files added
+
+Three probes and one data file. None is under `src/`.
+
+- `test/probes/s350-paired-null-hook.mjs` — the load-time hook that swaps CCC's null.
+- `test/probes/probe-s350-ds11-adjudication.mjs` — Part 4.
+- `test/probes/probe-s350-classb-bound.mjs` — Part 5.
+- `docs/shared/S350-CLASSB-SWEEP-DATA.md` — the raw per-unit sweep tables.
+
+**None is collected by `npm test`.** `vitest run` uses the default include pattern —
+`vite.config.js` sets no `test.include` — which matches only `*.test.*` and `*.spec.*`.
+All three probes are plain `.mjs` with neither infix. Confirmed by running `npx vitest
+list`: the collected set is unchanged and contains no `probe-s350-*` entry.
+
+## Batch
+
+Not run, and deliberately. No file under `src/` was touched. `validate-batch.mjs` scores
+engine output and would assert nothing about this read. The corrected null exists only
+inside a load-time hook that no engine code path imports.
+
+## Dev server
+
+Not started. Nothing under `src/` was edited, so there is no rendering surface. For
+reference:
+
+```bash
+./scripts/dev.sh s350-part-2-dispatch
 ```
