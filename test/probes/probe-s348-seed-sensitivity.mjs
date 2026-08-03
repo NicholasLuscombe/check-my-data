@@ -118,6 +118,18 @@ function firingLabel(f) {
 
 const ALPHA_NOTE = 0.010;
 
+// ── The seed-rule gate, fixed BEFORE any run ─────────────────────────────────
+// Chosen in advance and printed in the output header, because deciding a halt
+// threshold after seeing the number is exactly what a halt condition exists to
+// prevent.
+//
+// HALT at chi-square p < 0.01. SOFT FLAG between 0.01 and 0.05, which reports
+// but stops nothing. The gate is protecting against a seed rule that is
+// materially wrong, not against ordinary sampling noise at n = 60 — a 0.05 stop
+// on a 60-row sample would halt in one agreeing world in twenty.
+const GATE_HALT = 0.01;
+const GATE_SOFT = 0.05;
+
 /** 95% Wilson score interval for k successes in n trials. */
 function wilson(k, n) {
   if (!n) return [0, 0];
@@ -214,10 +226,29 @@ function compareGrids(labA, gA, nA, labB, gB, nB) {
   const p = chiSquaredP(chi2, df);
   console.log(`   chi-square of homogeneity: X2 = ${chi2.toFixed(3)}, df = ${df}, p = ${p.toFixed(4)}` +
     `  (${keep.length} columns after pooling)`);
-  console.log(`   ${p < 0.05
-    ? 'DISAGREEMENT — a finding about the seed rule, NOT a better estimate. Halt and report; do not treat the constructed-seed figure as superseding the real-hash one.'
-    : 'Consistent — the constructed seeds reproduce the real-hash distribution on this file, so the well-mixed-pair assumption holds empirically here.'}`);
-  return p >= 0.05;
+  if (p < GATE_HALT) {
+    console.log(`   HALT (p < ${GATE_HALT}) — a finding about the seed rule, NOT a better estimate.`);
+    console.log(`   Do not treat the constructed-seed figure as superseding the real-hash one.`);
+  } else if (p < GATE_SOFT) {
+    console.log(`   SOFT FLAG (${GATE_HALT} <= p < ${GATE_SOFT}) — reported, stops nothing.`);
+  } else {
+    console.log(`   No gross disagreement detected (p >= ${GATE_SOFT}).`);
+  }
+
+  // What this test could actually have caught. A non-significant chi-square at
+  // n = 60 is NOT equivalence — the smaller sample has little power against a
+  // small shift, so the honest reading is a bound, not a match. Reported on the
+  // cell that matters: the flagging proportion below ALPHA.NOTE.
+  const sumBelow = g => keys.filter(k => Number(k) < ALPHA_NOTE).reduce((s, k) => s + (g[k] || 0), 0);
+  const belowA = sumBelow(gA), belowB = sumBelow(gB);
+  const pbar = (belowA + belowB) / (nA + nB);
+  const se = Math.sqrt(pbar * (1 - pbar) * (1 / nA + 1 / nB));
+  const mdd = (2.575829304 + 0.8416212336) * se;   // two-sided 0.01, 80% power
+  console.log(`   POWER — on the flag cell (p < ${ALPHA_NOTE}): A ${belowA}/${nA} = ${(100 * belowA / nA).toFixed(1)}%, B ${belowB}/${nB} = ${(100 * belowB / nB).toFixed(1)}%.`);
+  console.log(`   At n = ${nA} vs ${nB} and the ${GATE_HALT} threshold, the smallest shift detectable at 80% power`);
+  console.log(`   is about ${(100 * mdd).toFixed(1)} percentage points. Agreement means NO GROSS DISAGREEMENT, not equivalence.`);
+
+  return p >= GATE_HALT;
 }
 
 // Murmur3 finaliser, reimplemented here as a SEED GENERATOR for MODE=sweep. It
@@ -517,6 +548,19 @@ if (MODE === 'paired') {
   const uniq = new Set(sweep.map(s => `${s.h1}:${s.h2}`));
   if (uniq.size !== NS) throw new Error(`probe-s348: seed rule gave ${uniq.size} distinct pairs, expected ${NS}.`);
   console.log(`${uniq.size} distinct {h1, h2} pairs confirmed.\n`);
+
+  if (REF) {
+    console.log(`── seed-rule gate, declared before any result ──`);
+    console.log(`Reference set: ${REF.passB ? `${REF.passB.n} real neighbour-derived hashes` : '(none)'} from ${REF.file}.`);
+    console.log(`Statistic: chi-square of homogeneity over the 2 x k p-grid table, columns with expected < 5 pooled.`);
+    console.log(`  p <  ${GATE_HALT}          HALT. The seed rule is materially wrong; the constructed-seed`);
+    console.log(`                      figure does NOT supersede the real-hash one.`);
+    console.log(`  ${GATE_HALT} <= p < ${GATE_SOFT}   SOFT FLAG. Reported, stops nothing.`);
+    console.log(`  p >= ${GATE_SOFT}         No gross disagreement detected. This is a bound, not equivalence —`);
+    console.log(`                      the minimum detectable shift is printed with the result.`);
+    console.log(`If too few columns survive pooling, the comparison DECLINES TO ADJUDICATE rather than`);
+    console.log(`reporting an agreement it has not established.\n`);
+  }
 
   for (const file of files) {
     if (!EXPECTED[file]) throw new Error(`probe-s348: ${file} is not in EXPECTED.`);
