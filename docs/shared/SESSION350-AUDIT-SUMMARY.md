@@ -19,7 +19,9 @@ clean paired data, whether DS16's construction anchor survives, and whether the
 forensic-direction filter has been suppressing live results all along. Each part's
 verification sits in the matching section at the end. Parts 9 to 11 were the fourth, off
 `85d7d26`: how wide a paired-disable rule would reach, and a reusable copy-fidelity
-generator swept against both tests under both nulls.
+generator swept against both tests under both nulls. Parts 12 and 13 were the fifth, off
+`a1a89ba`: which independence mode produced the Residual Spike Correlation curve, and
+whether its power survives per-subject noise-scale heterogeneity.
 
 ---
 
@@ -1196,6 +1198,208 @@ about effects that vary across subjects, or about any fabrication that leaves se
 structure in the rows. The generator has none of those, by construction and on purpose, and
 the assumptions table above is the list of what a different generator could change.
 
+# Part 12 — which independence mode produced the Residual Spike Correlation curve
+
+Answered as a fact about the code before anything is drawn from it.
+
+## What ran
+
+`probe-s350-copy-fidelity-sweep.mjs:73` reads
+`MODE = process.env.MODE === 'shared-subjects' ? 'shared-subjects' : 'full'`, so the
+default run is **full mode**, the fully-independent end. Both modes were run and both are
+committed in `docs/shared/S350-COPY-FIDELITY-SWEEP.md`, so the side-by-side is a read-out
+and no re-run was needed.
+
+## The two curves are identical
+
+Residual Spike Correlation, free null, detection rate at each `k`:
+
+| k | 0 | 0.1 | 0.2 | 0.3 | 0.4 | 0.5 | 0.65 | 0.8 | 0.9 | 1.0 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| mode `full` | 100% | 100% | 100% | 100% | 100% | 95% | 55% | 5% | 10% | 0% |
+| mode `shared-subjects` | 100% | 100% | 100% | 100% | 100% | 95% | 55% | 5% | 10% | 0% |
+
+Only the median `p` wobbles by permutation noise — 0.005 against 0.006 at `k = 0.65`.
+
+## Why they are identical, at source
+
+`sharedSubjects` reaches exactly one place: `gen-copy-fidelity.mjs:251-252`, where `rhoS`
+enters `subjB` — the subject **level**. Residual Spike Correlation row-centres before it
+computes anything (`residualSpikeCorrelation.js:53-57`), so the subject level never reaches
+its statistic. **The mode is invisible to this test by construction.**
+
+## What that does to the counter-argument
+
+The counter was that subject heterogeneity is held fixed at 4.6× replicate noise across the
+whole axis while detection falls from 100% to zero, so detection must be tracking copy
+fidelity rather than subject structure.
+
+The 4.6 is `tau / sigma` = 1.15 / 0.25. **That is subject *level* heterogeneity, and it is
+exactly the quantity the test removes by row-centring.** It is not a quantity the test can
+see, in either mode, at any `k`.
+
+The quantity the artefact claim is about is per-subject **noise-scale** heterogeneity — a
+subject whose replicates scatter more than its neighbours', which makes it extreme in every
+condition with no fabrication at all. In the instrument as it shipped that was
+`p.sigma` at `gen-copy-fidelity.mjs:254-255`: **one global constant applied identically to
+every subject, in both modes, at every `k`.** Per-subject noise-scale dispersion was
+exactly zero everywhere on the first sweep.
+
+So before Part 13, neither side had been tested. The counter rested on a quantity the test
+cannot see. The artefact claim was equally untested, because the instrument contained no
+noise-scale heterogeneity for the test to be fooled by.
+
+One thing does survive from the counter, and it is not nothing: detection falls from 100%
+to zero along `k` while every subject-*level* property is held constant, which rules out a
+confound with level structure. It says nothing about scale structure.
+
+---
+
+# Part 13 — the falsification grid
+
+`sigmaS` was added to the generator: a per-subject log-normal multiplier on the replicate
+noise, dispersion `s` on the log scale, **the same in both conditions** because a scale
+redrawn per condition would not be persistent subject structure. The multiplier is centred
+so the pooled replicate noise does not change with `s` — raising `s` redistributes noise
+between subjects without changing how much there is, which is what lets the two effects be
+told apart.
+
+Grid: 10 fidelity points × 6 heterogeneity points × 20 independent datasets, free null,
+plus a corrected-null control at `k = 1` for each `s`. 30 seconds.
+
+**Cuts, and why.** Residual Spike Correlation only, because the question is about its
+curve. Free null only with a control row, because Part 11 measured the corrected null flat
+at zero across the whole fidelity axis. One layout, because Part 11 measured every number
+identical column-grouped and row-grouped.
+
+**Consistency check.** The `s = 0` row reproduces the committed Part 11 curve exactly —
+100, 100, 100, 100, 100, 95, 55, 5, 10, 0. Adding the axis left the original instrument
+undisturbed.
+
+## The estimator, validated before it was used
+
+Reading the `s` axis needs an estimator that recovers a known `s`, so
+`residualScaleDispersion` was checked against the generator rather than assumed. With six
+replicates the per-subject scale is estimated noisily enough that perfectly homoscedastic
+data shows a raw dispersion of about 0.23; `Var(log sd_hat) ≈ 1/(2·df)` is subtracted
+before the square root.
+
+| true `sigmaS` | 0 | 0.15 | 0.3 | 0.5 | 0.75 | 1.0 |
+|---|---|---|---|---|---|---|
+| raw dispersion | 0.231 | 0.271 | 0.369 | 0.536 | 0.764 | 1.000 |
+| **corrected** | **0.055** | **0.150** | **0.293** | **0.487** | **0.730** | **0.975** |
+| pooled replicate noise | 0.250 | 0.250 | 0.248 | 0.244 | 0.239 | 0.230 |
+
+Recovery is good from `s = 0.15` up. The residual 0.055 at `s = 0` is the correction's own
+floor and is the resolution limit of the anchor below.
+
+## Q1 — does detection still track copy fidelity at every heterogeneity level?
+
+Detection rate, free null, twenty datasets per cell.
+
+| `s` \ `k` | 0 | 0.1 | 0.2 | 0.3 | 0.4 | 0.5 | 0.65 | 0.8 | 0.9 | 1.0 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| **0** | 100% | 100% | 100% | 100% | 100% | 95% | 55% | 5% | 10% | **0%** |
+| **0.15** | 100% | 100% | 100% | 100% | 95% | 95% | 55% | 15% | 5% | **0%** |
+| **0.3** | 100% | 100% | 100% | 100% | 100% | 100% | 80% | 60% | 30% | **25%** |
+| **0.5** | 100% | 100% | 100% | 100% | 100% | 100% | 100% | 90% | 80% | **85%** |
+| **0.75** | 100% | 100% | 100% | 100% | 100% | 100% | 100% | 100% | 100% | **100%** |
+| **1.0** | 100% | 100% | 100% | 100% | 100% | 100% | 100% | 100% | 100% | **100%** |
+
+**Detection does not track `k` at every `s`.** It tracks cleanly at `s = 0` and `s = 0.15`,
+degrades to a partial slope at 0.3 and 0.5, and is **completely flat at 100% from `s = 0.75`
+upward** — including at `k = 1`, where no copying has occurred at all.
+
+The stated expectation was that detection would track `k` at every `s`. It does not. Above
+about `s = 0.5` the curve carries no information about copy fidelity whatsoever.
+
+What survives is narrower and worth stating precisely: **within the range the corpus
+occupies, detection does track `k`.** That is not the general claim the counter made.
+
+## Q2 — the false-positive rate on honest data
+
+`k = 1`, no copy at all, same threshold as Q1.
+
+| `s` | measured dispersion | free null FPR | median `p` | corrected null FPR |
+|---|---|---|---|---|
+| 0 | 0.055 | **0%** (0/20) | 0.540 | 0% |
+| 0.15 | 0.150 | **0%** (0/20) | 0.350 | 0% |
+| 0.3 | 0.293 | **25%** (5/20) | 0.026 | 0% |
+| 0.5 | 0.487 | **85%** (17/20) | 0.0020 | 0% |
+| 0.75 | 0.730 | **100%** (20/20) | 0.0010 | 0% |
+| 1.0 | 0.975 | **100%** (20/20) | 0.0010 | 5% |
+
+**The prediction is confirmed, and not marginally.** At a nominal 1%, the free null's
+false-positive rate on honest data with no fabrication reaches 25% by `s = 0.3` and 100% by
+`s = 0.75`.
+
+**And the corrected null is immune to it.** 0% at every heterogeneity level except a single
+dataset at `s = 1`. That is new: until now the corrected null's only measured property was
+that it has no power. It also has no false-positive exposure to the failure mode that
+destroys the free null.
+
+The mechanism, made visible. Mean subjects in the top-12 of **both** conditions at `k = 1`,
+where nothing has been copied, against an independence expectation of 1.2:
+
+| `s` | 0 | 0.15 | 0.3 | 0.5 | 0.75 | 1.0 |
+|---|---|---|---|---|---|---|
+| subjects in both | 1.50 | 2.05 | 3.50 | 5.65 | 7.00 | 8.10 |
+
+Heteroscedasticity manufactures exactly the co-occurrence the statistic counts. The test is
+not being fooled by something incidental; it is measuring persistent subject structure, and
+copying is only one of the things that produces it.
+
+## The anchor — where our corpus sits
+
+Same estimator, run over the four clean paired fixtures.
+
+| fixture | conditions | subjects | reps | df | raw | **corrected** |
+|---|---|---|---|---|---|---|
+| `17-densitometry-carlisle-clean` | 3 | 60 | 6 | 15 | 0.187 | **0.041** |
+| `01-densitometry-clean` | 3 | 35 | 4 | 9 | 0.242 | **0.055** |
+| `03-qpcr-clean` | 2 | 25 | 3 | 4 | 0.389 | **0.162** |
+| `09-proteomics-clean` | 2 | 200 | 6 | 10 | 0.299 | **0.199** |
+
+**These are our own generated fixtures. The anchor says where our corpus sits. It does not
+say where real deposits sit, and that question belongs to P65.**
+
+Reading them against the ladder: DS17 and DS01 sit at or below the estimator's floor, so
+they are homoscedastic as far as this can resolve. DS03 sits near `s = 0.15`. DS09 sits
+near `s = 0.20`, and it is the most trustworthy of the four — 200 subjects against 25 to 60,
+so its estimate has by far the least sampling error. DS01 and DS03 have few subjects and
+low degrees of freedom and should be read as indicative only.
+
+**The corpus occupies `s` ≤ 0.2, and the false-positive rate turns on between `s = 0.2` and
+`s = 0.3`.** The four clean fixtures sit just below the knee.
+
+## What this settles
+
+**The artefact reading is correct as a mechanism.** Persistent subject noise-scale structure
+produces the same signature as copying, the free null cannot separate them, and above
+`s ≈ 0.5` the test's output is a measurement of heterogeneity with no fidelity information
+left in it.
+
+**The counter is dead as a general claim** and survives only as a statement about the
+low-heterogeneity regime. It rested on level heterogeneity, which the test cannot see.
+
+**The clean record is a property of the corpus, not of the test.** The four clean paired
+fixtures sit at `s ≤ 0.2`; the false-positive rate at `s ≤ 0.15` is 0 of 20 and at `s = 0.3`
+is 5 of 20. Zero flags in the corpus is what this test does at this heterogeneity, not what
+it does in general.
+
+**The question has a number attached now.** "Is Residual Spike Correlation's power real?"
+becomes "is real deposited data's per-subject noise-scale dispersion below about 0.25?" —
+measurable, with a threshold, and answerable only by measuring real deposits.
+
+## What this does not settle
+
+Two conditions only, so nothing here speaks to the max-over-pairs behaviour at three or
+more. Log-normal, homoscedastic-in-the-log noise, no batch or serial structure, a fixed
+effect on a fixed fraction of subjects: the Part 10 assumptions table applies unchanged. And
+the anchor measures our generated fixtures, which were built by generators that had no
+reason to include noise-scale heterogeneity in the first place — so finding them
+homoscedastic is close to circular and should not be read as evidence about real data.
+
 ---
 
 # Verification — Parts 1 to 3
@@ -1700,4 +1904,109 @@ reference:
 
 ```bash
 ./scripts/dev.sh s350-part-4-copyfidelity
+```
+
+---
+
+# Verification — Parts 12 and 13
+
+Run from the worktree `.claude/worktrees/s350-part-5-heterogeneity`, branch
+`claude/s350-part-5-heterogeneity`, off `a1a89ba`.
+
+## Commands run
+
+```bash
+git worktree remove .claude/worktrees/s350-part-4-copyfidelity
+git branch -d claude/s350-part-4-copyfidelity
+git worktree add .claude/worktrees/s350-part-5-heterogeneity -b claude/s350-part-5-heterogeneity main
+./scripts/init-worktree-symlinks.sh .claude/worktrees/s350-part-5-heterogeneity
+
+# Part 12 — which mode ran, as a fact about the code
+grep -n "MODE|sharedSubjects" test/probes/probe-s350-copy-fidelity-sweep.mjs
+grep -n "sharedSubjects|rhoS|const rho =|p.sigma" test/gen-copy-fidelity.mjs
+awk '/^## Run 1/,/^## Run 2/' docs/shared/S350-COPY-FIDELITY-SWEEP.md   # RSC free-null block
+awk '/^## Run 2/,/^## Generator/' docs/shared/S350-COPY-FIDELITY-SWEEP.md
+
+# Part 13 — estimator recovery before use
+node --input-type=module -e "<inline: generate at each SLADDER point, 20 seeds, compare
+                             trueScaleDispersion / raw / corrected / pooled noise>"
+
+# Part 13 — the grid
+COST=1 node --import ./test/probes/s348-hash-hook.mjs \
+  --import ./test/probes/s350-rsc-null-hook.mjs \
+  test/probes/probe-s350-heterogeneity-grid.mjs
+node --import ./test/probes/s348-hash-hook.mjs \
+  --import ./test/probes/s350-rsc-null-hook.mjs \
+  test/probes/probe-s350-heterogeneity-grid.mjs
+
+# vitest collection check
+npx vitest list --filesOnly
+```
+
+The one inline script is a diagnostic, not a deliverable: it calls the committed generator
+and reports summary statistics. The numbers it produced are the estimator-recovery table in
+Part 13.
+
+## Files and lines read
+
+**Source under `src/`** (read only; nothing edited)
+
+- `src/tests/residualSpikeCorrelation.js` — `:47-65`, the profile construction. `:53-57` is
+  the row-centring that makes subject level invisible to the test and is the whole of Part
+  12's answer. Also `:80-91` (top-K), `:93-108` (overlap), `:113` (`N_PERM`), `:171`
+  (`permP`), `:223-242` (the returned shape, which supplies `allProfiles` and `topK` for
+  the membership diagnostic).
+- `src/analysis/engine.js` — `:185-201`, `:280-290`, `:413-421`. The grid's `enginePair`
+  mirrors these.
+- `src/analysis/conditionContext.js` — `:99-138`, `slices()`.
+- `src/constants/thresholds.js` — `ALPHA.NOTE`, read at runtime.
+- `src/stats/vst.js` — `detectVST`.
+
+**Test-side**
+
+- `test/gen-copy-fidelity.mjs` — read in full before editing; `:251-252` (the one place
+  `sharedSubjects` reaches) and `:254-255` (the single global `sigma`) are the two lines
+  Part 12 turns on.
+- `test/probes/probe-s350-copy-fidelity-sweep.mjs` — `:73`, `:126`, the mode switch and
+  where it is passed.
+- `test/probes/s348-hash-hook.mjs`, `s350-rsc-null-hook.mjs` — reused unchanged.
+- `test/batch-fixtures.mjs` — `EXPECTED`, for the four clean paired fixtures' assay.
+- `docs/shared/S350-COPY-FIDELITY-SWEEP.md` — both runs' RSC free-null blocks, compared
+  line by line.
+
+**Fixtures** — the four clean paired fixtures parsed through the engine import chain for
+the anchor: `01-densitometry-clean.csv`, `03-qpcr-clean.csv`, `09-proteomics-clean.csv`,
+`17-densitometry-carlisle-clean.csv`.
+
+## Files changed and added
+
+- `test/gen-copy-fidelity.mjs` — **modified.** Adds `sigmaS` (per-subject noise-scale
+  dispersion), the `SLADDER` export, the exported `residualScaleDispersion` estimator, and
+  three diagnostics. The `s = 0` behaviour is unchanged: the grid's `s = 0` row reproduces
+  the committed Part 11 curve exactly.
+- `test/probes/probe-s350-heterogeneity-grid.mjs` — new, Part 13.
+- `docs/shared/S350-HETEROGENEITY-GRID.md` — the grid tables.
+- `docs/shared/S350-HETEROGENEITY-UNITS.csv` — the per-unit record, 1320 rows, carrying
+  `p`, the BH fields (empty for this test, which has one statistic and no family), the
+  membership counts and the measured dispersion per dataset.
+
+**The generated datasets are not committed.** They regenerate from `(k, s, seed)`.
+
+**Nothing here is collected by `npm test`.** `vite.config.js` sets no `test.include`, so
+vitest's default applies and both files are plain `.mjs` with neither `.test.` nor
+`.spec.`. Confirmed with `npx vitest list --filesOnly`: four files collected, none of them
+`s350` or `gen-copy-fidelity`.
+
+## Batch
+
+Not run. No file under `src/` was touched. The corrected null exists only inside a
+load-time hook that no engine code path imports, and the generator writes outside the
+fixture directory.
+
+## Dev server
+
+Not started. Nothing under `src/` was edited, so there is no rendering surface.
+
+```bash
+./scripts/dev.sh s350-part-5-heterogeneity
 ```
