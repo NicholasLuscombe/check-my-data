@@ -41,7 +41,8 @@ const FILE = process.env.FILE || '09-proteomics-clean.csv';
 globalThis.requestAnimationFrame = (cb) => setTimeout(cb, 0);
 
 const Papa = await import('papaparse');
-const { extractAnalysisInputs, runFullAnalysis } = await import('../../src/analysis/engine.js');
+const { extractAnalysisInputs, runFullAnalysis, validateMatrix } = await import('../../src/analysis/engine.js');
+const { createPRNGFactory } = await import('../../src/stats/prng.js');
 const { computeSeverity } = await import('../../src/analysis/severity.js');
 const { VERDICT_TEXT } = await import('../../src/analysis/narrative.js');
 const { detectVST } = await import('../../src/stats/vst.js');
@@ -282,7 +283,11 @@ function nudge(s, up) {
   return (Number(s) + (up ? step : -step)).toFixed(dp);
 }
 
-function neighbourPlan(lines, basePrep) {
+// count defaults to the module-level N and stride to the S343 formula, so a
+// paired run reproduces P69 exactly. MODE=sweep passes both explicitly: the
+// S343 stride collides at 500 (it lands on 5, and gcd(5, 2400) = 5, so it
+// repeats after 480), and a stride coprime to the cell count does not.
+function neighbourPlan(lines, basePrep, count = N, strideOverride = null) {
   const dataColIdx = basePrep.roles.map((r, i) => r === 'data' ? i : -1).filter(i => i >= 0);
   const firstDataLine = basePrep.headerRows;
   const cells = [];
@@ -292,13 +297,38 @@ function neighbourPlan(lines, basePrep) {
       if (f[c] != null && f[c].trim() !== '' && Number.isFinite(Number(f[c]))) cells.push([L, c, f[c].trim()]);
     }
   }
-  const stride = Math.max(1, Math.floor(cells.length / N)) + 1;
+  const stride = strideOverride ?? (Math.max(1, Math.floor(cells.length / count)) + 1);
   const plan = [];
-  for (let k = 0; k < N; k++) {
+  for (let k = 0; k < count; k++) {
     const [L, c, val] = cells[(k * stride) % cells.length];
     plan.push({ k, line: L, col: c, from: val, to: nudge(val, k % 2 === 0) });
   }
   return { plan, nCells: cells.length, stride, nDataCols: dataColIdx.length };
+}
+
+/** Greatest common divisor, for the stride-collision assertion. */
+const gcd = (a, b) => b ? gcd(b, a % b) : a;
+
+// Derive the seed each one-cell neighbour would produce, WITHOUT running any
+// analysis on perturbed data. The matrices are built, hashed, and discarded;
+// only the {h1, h2} pairs survive into the run. validateMatrix is applied first
+// because that is what the engine hashes — createPRNGFactory is called after it
+// in runFullAnalysis, so hashing the raw prep matrix could differ on a file
+// where sanitisation bites.
+function deriveNeighbourSeeds(lines, basePrep, assay, plan) {
+  const seeds = [];
+  for (const s of plan) {
+    const f = lines[s.line].split(',');
+    f[s.col] = s.to;
+    const mutated = lines.slice(); mutated[s.line] = f.join(',');
+    const p = prepFromText(mutated.join('\n') + '\n', assay);
+    const v = validateMatrix(p.matrix);
+    globalThis.__S348_LAST = null;
+    createPRNGFactory(v.valid ? v.matrix : p.matrix);
+    if (!globalThis.__S348_LAST) throw new Error('probe-s348: no hash recorded while deriving a neighbour seed.');
+    seeds.push({ k: s.k, line: s.line, col: s.col, from: s.from, to: s.to, ...globalThis.__S348_LAST });
+  }
+  return seeds;
 }
 
 const t0 = Date.now();
@@ -530,28 +560,65 @@ if (MODE === 'paired') {
   const files = (process.env.FILES || '09-proteomics-clean.csv,01-densitometry-clean.csv')
     .split(',').map(s => s.trim()).filter(Boolean);
   const NS = Math.max(1, Number(process.env.SWEEP) || 500);
-  // Optional real-hash reference set, written by a MODE=paired run with
-  // SEEDS_OUT. Present => the well-mixed-pair assumption gets tested.
+  const SOURCE = process.env.SEED_SOURCE || 'constructed';
+  const NEI_STRIDE = Math.max(1, Number(process.env.NEI_STRIDE) || 7);
+  // Comparison reference. SEEDS_IN takes a MODE=paired seeds file (pass B's
+  // 60-run grid); GRID_IN takes a grid written by an earlier sweep via GRID_OUT,
+  // which is how a 500-vs-500 comparison is assembled without re-running either.
   const REF = process.env.SEEDS_IN ? JSON.parse(readFileSync(process.env.SEEDS_IN, 'utf-8')) : null;
+  const GRID_REF = process.env.GRID_IN ? JSON.parse(readFileSync(process.env.GRID_IN, 'utf-8')) : null;
+  const gridOut = {};
 
-  console.log(`S348 part 4 — ${NS} seeds per fixture, unperturbed matrices only (pass-B shape)\n`);
-  console.log(`Seed rule: for i = 0..${NS - 1},  h1 = mix32(i ^ 0x9E3779B9),  h2 = mix32(~i ^ 0x85EBCA6B),`);
-  console.log(`where mix32 is the Murmur3 finaliser — a bijection on 32 bits, so the pairs are distinct`);
-  console.log(`by construction rather than by check. The neighbour-stride rule is deliberately NOT`);
-  console.log(`extended to this size: gcd(5, 2400) = 5, so it repeats after 480 and the last twenty`);
-  console.log(`samples would duplicate earlier ones.`);
-  console.log(`\nThis rests on the assumption already underwriting the three offset hooks — that a`);
-  console.log(`well-mixed pair is as good as a real file's. These are NOT seeds any file is known to`);
-  console.log(`derive, and the result is a property of the seed distribution, not of a corpus of files.\n`);
+  console.log(`S348 — ${NS} seeds per fixture, unperturbed matrices only (pass-B shape)\n`);
 
-  const sweep = Array.from({ length: NS }, (_, i) => sweepSeed(i));
+  // ── where the seeds come from ────────────────────────────────────────────
+  // SEED_SOURCE=neighbours replaces the well-mixed-pair assumption with a
+  // measurement. The assumption was avoidable rather than merely testable: the
+  // stride collision came from the stride, not from any shortage of real seeds.
+  // 2,400 cells x 2 nudge directions = 4,800 distinct one-unit neighbours exist,
+  // so 500 real hashes are free. Only the 500 runs cost anything.
+  let sweep, sourceLabel;
+  if (SOURCE === 'neighbours') {
+    const src = process.env.SEED_FILE || files[0];
+    const assay = EXPECTED[src].assay;
+    const lines = readFileSync(join(FIXTURES, src), 'utf-8').replace(/\n+$/, '').split('\n');
+    const basePrep = prepFromText(lines.join('\n') + '\n', assay);
+    const { plan, nCells, stride } = neighbourPlan(lines, basePrep, NS, NEI_STRIDE);
+    if (gcd(NEI_STRIDE, nCells) !== 1) {
+      throw new Error(`probe-s348: stride ${NEI_STRIDE} is not coprime to ${nCells} cells — the sample would repeat after ${nCells / gcd(NEI_STRIDE, nCells)}.`);
+    }
+    const cellKeys = new Set(plan.map(s => `${s.line}:${s.col}`));
+    if (cellKeys.size !== NS) throw new Error(`probe-s348: ${cellKeys.size} distinct cells, expected ${NS}.`);
+    console.log(`Seed source: REAL one-unit neighbours of ${src}.`);
+    console.log(`  cells[(k * ${stride}) % ${nCells}] for k = 0..${NS - 1}, row-major over data-role cells as`);
+    console.log(`  probe-s343-neighbours.mjs builds them. gcd(${stride}, ${nCells}) = 1, so the ${NS} cells are distinct.`);
+    console.log(`  Nudge direction: UP on even k, DOWN on odd k — the S343 convention, stated because tying`);
+    console.log(`  direction to the sample index is what produced the Rep6 confound in part 2.`);
+    console.log(`  Each neighbour matrix is built, hashed through validateMatrix + createPRNGFactory, and`);
+    console.log(`  DISCARDED. Nothing perturbed enters the analysis — the runs are pass-B shape throughout.`);
+    console.log(`  These rest on no equivalence assumption: they are seeds real files actually derive.\n`);
+    sweep = deriveNeighbourSeeds(lines, basePrep, assay, plan);
+    sourceLabel = `${NS} real neighbour-derived hashes`;
+  } else {
+    console.log(`Seed source: CONSTRUCTED. For i = 0..${NS - 1},  h1 = mix32(i ^ 0x9E3779B9),  h2 = mix32(~i ^ 0x85EBCA6B),`);
+    console.log(`where mix32 is the Murmur3 finaliser — a bijection on 32 bits, so the pairs are distinct`);
+    console.log(`by construction rather than by check. The neighbour-stride rule is deliberately NOT`);
+    console.log(`extended to this size at its S343 value: gcd(5, 2400) = 5, so it repeats after 480.`);
+    console.log(`\nThis rests on the assumption already underwriting the three offset hooks — that a`);
+    console.log(`well-mixed pair is as good as a real file's. These are NOT seeds any file is known to`);
+    console.log(`derive. SEED_SOURCE=neighbours removes the assumption entirely.\n`);
+    sweep = Array.from({ length: NS }, (_, i) => sweepSeed(i));
+    sourceLabel = `${NS} constructed seeds`;
+  }
+
   const uniq = new Set(sweep.map(s => `${s.h1}:${s.h2}`));
-  if (uniq.size !== NS) throw new Error(`probe-s348: seed rule gave ${uniq.size} distinct pairs, expected ${NS}.`);
+  if (uniq.size !== NS) throw new Error(`probe-s348: seed source gave ${uniq.size} distinct {h1,h2} pairs, expected ${NS}.`);
   console.log(`${uniq.size} distinct {h1, h2} pairs confirmed.\n`);
 
-  if (REF) {
+  if (REF || GRID_REF) {
     console.log(`── seed-rule gate, declared before any result ──`);
-    console.log(`Reference set: ${REF.passB ? `${REF.passB.n} real neighbour-derived hashes` : '(none)'} from ${REF.file}.`);
+    console.log(`Reference set: ${GRID_REF ? `${GRID_REF.label} (n = ${GRID_REF.n})` :
+      REF.passB ? `${REF.passB.n} real neighbour-derived hashes` : '(none)'} from ${GRID_REF ? GRID_REF.file : REF.file}.`);
     console.log(`Statistic: chi-square of homogeneity over the 2 x k p-grid table, columns with expected < 5 pooled.`);
     console.log(`  p <  ${GATE_HALT}          HALT. The seed rule is materially wrong; the constructed-seed`);
     console.log(`                      figure does NOT supersede the real-hash one.`);
@@ -592,10 +659,13 @@ if (MODE === 'paired') {
 
     // The well-mixed-pair assumption, tested rather than asserted. Only possible
     // on the file the real-hash sample was drawn from.
-    if (REF && REF.file === file && REF.passB) {
-      compareGrids('constructed seeds', grid, rows.length, 'pass B, real neighbour hashes', REF.passB.grid, REF.passB.n);
-    } else if (REF) {
-      console.log(`\n   no real-hash comparison for ${file} — the reference set was drawn from ${REF.file}.`);
+    gridOut[file] = { label: sourceLabel, file, n: rows.length, grid };
+    if (GRID_REF && GRID_REF.file === file) {
+      compareGrids(sourceLabel, grid, rows.length, GRID_REF.label, GRID_REF.grid, GRID_REF.n);
+    } else if (REF && REF.file === file && REF.passB) {
+      compareGrids(sourceLabel, grid, rows.length, `pass B, ${REF.passB.n} real neighbour hashes`, REF.passB.grid, REF.passB.n);
+    } else if (REF || GRID_REF) {
+      console.log(`\n   no comparison for ${file} — the reference set was drawn from ${GRID_REF ? GRID_REF.file : REF.file}.`);
     }
 
     const other = new Set();
@@ -608,6 +678,12 @@ if (MODE === 'paired') {
         `CCC p=${String(rows[i].cccP).padEnd(P_W)} ${String(rows[i].cccFlag).padEnd(8)}  ${firingLabel(rows[i].firing)}`);
     }
     console.log('');
+  }
+  if (process.env.GRID_OUT) {
+    const { writeFileSync } = await import('fs');
+    const target = process.env.GRID_FILE || files[0];
+    writeFileSync(process.env.GRID_OUT, JSON.stringify(gridOut[target], null, 2));
+    console.log(`grid for ${target} written to ${process.env.GRID_OUT}`);
   }
   console.log(`wall time total ${((Date.now() - t0) / 1000).toFixed(1)}s`);
 
