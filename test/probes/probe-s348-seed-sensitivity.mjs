@@ -115,6 +115,55 @@ function firingLabel(f) {
   return f.length === 0 ? '—' : f.map(r => `${r.name}(${r.flag}, p=${r.p})`).join(' + ');
 }
 
+const ALPHA_NOTE = 0.010;
+
+/** 95% Wilson score interval for k successes in n trials. */
+function wilson(k, n) {
+  if (!n) return [0, 0];
+  const z = 1.959963985, p = k / n, z2 = z * z;
+  const d = 1 + z2 / n;
+  const c = p + z2 / (2 * n);
+  const h = z * Math.sqrt(p * (1 - p) / n + z2 / (4 * n * n));
+  return [Math.max(0, (c - h) / d), Math.min(1, (c + h) / d)];
+}
+
+// One band table for ONE experiment. Never pool two experiments into one table:
+// 60 near-identical files each at its own seed, and one file across 60 seeds,
+// are different things and a rate over their union estimates neither. Whatever
+// passes are run, the effective sample is the number of DISTINCT SEEDS.
+//
+// The flag test is `p < ALPHA`, so for ALPHA in (g_i, g_i+1] exactly the draws
+// at or below g_i flag. Each band is one reachable behaviour; alpha chooses a
+// band, not a rate.
+function bandTable(label, ps) {
+  const grid = [...new Set(ps)].sort((a, b) => a - b);
+  console.log(`\n${label}  (n = ${ps.length})`);
+  let cum = 0;
+  for (let i = 0; i <= grid.length; i++) {
+    const lo = i === 0 ? null : grid[i - 1];
+    const hi = i < grid.length ? grid[i] : null;
+    const band = lo == null ? `alpha <= ${hi}` : hi == null ? `alpha > ${lo}` : `${lo} < alpha <= ${hi}`;
+    const holdsNote = (lo == null || ALPHA_NOTE > lo) && (hi == null || ALPHA_NOTE <= hi);
+    const [wl, wh] = wilson(cum, ps.length);
+    console.log(`  ${band.padEnd(42)} ${String(cum).padStart(4)}/${ps.length} = ${(100 * cum / ps.length).toFixed(1).padStart(5)}%` +
+      `  [95% Wilson ${(100 * wl).toFixed(1)}-${(100 * wh).toFixed(1)}%]` +
+      (holdsNote ? '   <-- ALPHA.NOTE = 0.010 is here' : ''));
+    if (hi != null) cum += ps.filter(p => p === hi).length;
+  }
+}
+
+// Murmur3 finaliser, reimplemented here as a SEED GENERATOR for MODE=sweep. It
+// never touches a matrix and re-derives nothing in src/. It is a bijection on 32
+// bits, so distinct i give distinct h1 and therefore distinct pairs.
+function mix32(h) {
+  h |= 0;
+  h ^= h >>> 16; h = Math.imul(h, 0x85ebca6b);
+  h ^= h >>> 13; h = Math.imul(h, 0xc2b2ae35);
+  h ^= h >>> 16;
+  return h | 0;
+}
+const sweepSeed = i => ({ h1: mix32(i ^ 0x9E3779B9), h2: mix32(~i ^ 0x85EBCA6B) });
+
 // Column width for a printed p. Wide enough for the longest float JS prints for
 // these values (0.018000000000000002 — 20 chars) plus separation. Anything
 // narrower silently overflows and the printed table stops being machine-
@@ -281,30 +330,17 @@ if (MODE === 'paired') {
   }
 
   // ── the threshold arithmetic ──────────────────────────────────────────────
-  // The p grid is coarse, so alpha does not select a rate — it selects one of a
-  // handful of reachable behaviours, with nothing in between.
-  //
-  // Denominator is pass A + pass B. Both are scientifically clean data, and
-  // together they are the 60 seeds run against two data variants — 2N runs over
-  // N distinct seeds, NOT 2N independent draws. Pass C is excluded because its
-  // runs all sit on one seed and would weight that single draw N times.
-  const pool = [...A, ...B].map(r => Number(r.cccP)).filter(Number.isFinite).sort((x, y) => x - y);
-  console.log(`\nThreshold arithmetic — what each choice of alpha buys, over ${pool.length} clean runs (passes A and B: ${N} seeds x 2 data variants):`);
-  // The flag test is `p < ALPHA`, so for ALPHA in (g_i, g_i+1] exactly the draws
-  // at or below g_i flag. Each band is one reachable behaviour; alpha chooses a
-  // band, not a rate.
-  const NOTE = 0.010;
-  let cum = 0;
-  for (let i = 0; i <= nums.length; i++) {
-    const lo = i === 0 ? null : nums[i - 1];
-    const hi = i < nums.length ? nums[i] : null;
-    const band = lo == null ? `alpha <= ${hi}` : hi == null ? `alpha > ${lo}` : `${lo} < alpha <= ${hi}`;
-    const holdsNote = (lo == null || NOTE > lo) && (hi == null || NOTE <= hi);
-    console.log(`  ${band.padEnd(40)} ${String(cum).padStart(3)}/${pool.length} flag = ` +
-      `${(100 * cum / pool.length).toFixed(1)}%${holdsNote ? '   <-- ALPHA.NOTE = 0.010 is here' : ''}`);
-    if (hi != null) cum += pool.filter(p => p === hi).length;
-  }
-  console.log(`  Nothing between the grid points is reachable, so no alpha lands between two bands.`);
+  // Threshold arithmetic, ONE TABLE PER EXPERIMENT. Passes A and B are not
+  // pooled: A is N near-identical files each at its own natural seed, B is one
+  // file across N seeds. A rate over their union estimates neither. Pass C gets
+  // no table — all its runs sit on one seed, so it is not an independent set.
+  console.log(`\nThreshold arithmetic — what each choice of alpha buys. The effective sample is ${N} distinct seeds,`);
+  console.log(`however many passes are run over them; the two passes are separate experiments and are not pooled.`);
+  bandTable('pass B — one clean file, N seeds. The seed-sensitivity result.',
+    B.map(r => Number(r.cccP)).filter(Number.isFinite));
+  bandTable('pass A — N near-identical clean files, each at its own seed. The closer thing to a false-positive rate over files.',
+    A.map(r => Number(r.cccP)).filter(Number.isFinite));
+  console.log(`\n  Nothing between the grid points is reachable, so no alpha lands between two bands.`);
 
   console.log(`\nwall time: pass A ${(msA / 1000).toFixed(1)}s, pass B ${(msB / 1000).toFixed(1)}s, pass C ${(msC / 1000).toFixed(1)}s, total ${((Date.now() - t0) / 1000).toFixed(1)}s`);
 
@@ -384,6 +420,71 @@ if (MODE === 'paired') {
   }
   console.log(`wall time total ${((Date.now() - t0) / 1000).toFixed(1)}s`);
 
+// ═══════════════════════════════════════════════════════════════════════════
+} else if (MODE === 'sweep') {
+// ═══════════════════════════════════════════════════════════════════════════
+  // Part 4. Pass-B shape at higher resolution: unperturbed matrices only, many
+  // seeds, so the interval on the flip rate tightens.
+  const files = (process.env.FILES || '09-proteomics-clean.csv,01-densitometry-clean.csv')
+    .split(',').map(s => s.trim()).filter(Boolean);
+  const NS = Math.max(1, Number(process.env.SWEEP) || 500);
+
+  console.log(`S348 part 4 — ${NS} seeds per fixture, unperturbed matrices only (pass-B shape)\n`);
+  console.log(`Seed rule: for i = 0..${NS - 1},  h1 = mix32(i ^ 0x9E3779B9),  h2 = mix32(~i ^ 0x85EBCA6B),`);
+  console.log(`where mix32 is the Murmur3 finaliser — a bijection on 32 bits, so the pairs are distinct`);
+  console.log(`by construction rather than by check. The neighbour-stride rule is deliberately NOT`);
+  console.log(`extended to this size: gcd(5, 2400) = 5, so it repeats after 480 and the last twenty`);
+  console.log(`samples would duplicate earlier ones.`);
+  console.log(`\nThis rests on the assumption already underwriting the three offset hooks — that a`);
+  console.log(`well-mixed pair is as good as a real file's. These are NOT seeds any file is known to`);
+  console.log(`derive, and the result is a property of the seed distribution, not of a corpus of files.\n`);
+
+  const sweep = Array.from({ length: NS }, (_, i) => sweepSeed(i));
+  const uniq = new Set(sweep.map(s => `${s.h1}:${s.h2}`));
+  if (uniq.size !== NS) throw new Error(`probe-s348: seed rule gave ${uniq.size} distinct pairs, expected ${NS}.`);
+  console.log(`${uniq.size} distinct {h1, h2} pairs confirmed.\n`);
+
+  for (const file of files) {
+    if (!EXPECTED[file]) throw new Error(`probe-s348: ${file} is not in EXPECTED.`);
+    const assay = EXPECTED[file].assay;
+    const prep = prepFromText(readFileSync(join(FIXTURES, file), 'utf-8'), assay);
+    const tF = Date.now();
+    const own = await run(prep);
+    const rows = [];
+    for (const s of sweep) rows.push(await withSeed(s, () => run(prep)));
+    const ms = Date.now() - tF;
+
+    const flips = rows.filter(r => r.severity > 0).length;
+    const ps = rows.map(r => Number(r.cccP)).filter(Number.isFinite);
+    const below = ps.filter(p => p < ALPHA_NOTE).length;
+    const [fl, fh] = wilson(flips, rows.length);
+    const [bl, bh] = wilson(below, rows.length);
+
+    console.log(`── ${file}  (${prep.matrix.length} x ${prep.matrix[0].length}, ${assay}) ──`);
+    console.log(`   own (shipped) seed ${hashLabel(own.derivedHash)}: severity ${own.severity} "${own.verdict}"  CCC p=${own.cccP} [${own.cccFlag}]`);
+    console.log(`   non-clean:              ${String(flips).padStart(4)}/${rows.length} = ${(100 * flips / rows.length).toFixed(2)}%  [95% Wilson ${(100 * fl).toFixed(2)}-${(100 * fh).toFixed(2)}%]`);
+    console.log(`   CCC p < ALPHA.NOTE:     ${String(below).padStart(4)}/${rows.length} = ${(100 * below / rows.length).toFixed(2)}%  [95% Wilson ${(100 * bl).toFixed(2)}-${(100 * bh).toFixed(2)}%]`);
+    console.log(`   wall time ${(ms / 1000).toFixed(1)}s`);
+
+    const grid = {};
+    for (const r of rows) grid[r.cccP] = (grid[r.cccP] || 0) + 1;
+    const gp = Object.entries(grid).sort((a, b) => Number(a[0]) - Number(b[0]));
+    console.log(`   CCC primaryP grid: ${gp.length} distinct — ${gp.map(([p, n]) => `${p}x${n}`).join('  ')}`);
+    if (ps.length) bandTable(`   threshold arithmetic, ${file}`, ps);
+
+    const other = new Set();
+    for (const r of rows) for (const f of r.firing) if (f.name !== CCC) other.add(`${f.name} [${f.flag}]`);
+    console.log(`\n   tests other than Cross-Condition Consistency reaching MOD/HIGH: ${other.size ? [...other].join(', ') : 'none'}`);
+
+    console.log(`   raw rows:`);
+    for (let i = 0; i < rows.length; i++) {
+      console.log(`     i=${String(i).padStart(3)}  seed ${hashLabel(sweep[i])}  sev ${rows[i].severity}  ` +
+        `CCC p=${String(rows[i].cccP).padEnd(P_W)} ${String(rows[i].cccFlag).padEnd(8)}  ${firingLabel(rows[i].firing)}`);
+    }
+    console.log('');
+  }
+  console.log(`wall time total ${((Date.now() - t0) / 1000).toFixed(1)}s`);
+
 } else {
-  throw new Error(`unknown MODE "${MODE}" — use paired or fixtures.`);
+  throw new Error(`unknown MODE "${MODE}" — use paired, fixtures or sweep.`);
 }
