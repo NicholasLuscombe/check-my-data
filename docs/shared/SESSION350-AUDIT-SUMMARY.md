@@ -17,7 +17,9 @@ Cross-Condition Consistency flag to lose. Parts 6 to 8 were the third, off `1766
 close the Residual Spike Correlation question on measurement: whether it ever fires on
 clean paired data, whether DS16's construction anchor survives, and whether the
 forensic-direction filter has been suppressing live results all along. Each part's
-verification sits in the matching section at the end.
+verification sits in the matching section at the end. Parts 9 to 11 were the fourth, off
+`85d7d26`: how wide a paired-disable rule would reach, and a reusable copy-fidelity
+generator swept against both tests under both nulls.
 
 ---
 
@@ -868,6 +870,332 @@ move p-values along a fixed direction assignment. It re-resolves which tail each
 in. Any design that keeps a direction filter has to say what that filter means when the
 direction itself depends on which null is believed.
 
+# Part 9 — how much of the corpus would a paired-disable rule silence?
+
+Column-grouped data is paired by construction: every condition is a column subset of the
+same rows, so row *r* is the same subject in every condition and no identifier is needed.
+A rule that skips a test whenever pairing is structural or evidenced therefore reaches
+every column-grouped fixture automatically. Nobody had counted how wide that is.
+
+The pairing rule is the one `probe-s349-pairing-census.mjs` established and
+`probe-s350-classb-bound.mjs` ported. Whether a test actually runs came from one full
+`runFullAnalysis` per fixture rather than from re-deriving the dispatch gates, because the
+two tests carry different ones — Residual Spike Correlation has a conditions-mode skip and
+a data-type skip, Cross-Condition Consistency has neither.
+
+## Routing over all 27 fixtures
+
+| | count |
+|---|---|
+| column-grouped | **4** — all four paired by construction |
+| row-grouped | **12** — of which **5** are fully paired by the census rule |
+| no conditions at all | 11 |
+| **paired in total** | **9** |
+
+## What each test would lose
+
+Both tests run on the same 16 of 27 fixtures, and a paired-disable rule silences the same
+9 of those 16 — DS01, DS02, DS03, DS04, DS09, DS10, DS11, DS16, DS17. That is 56% of where
+either test runs. Seven fixtures survive for both: DS12a, DS12b, DS15, DS19, DS20, DS21,
+DS22.
+
+The consequence is completely asymmetric between them.
+
+| | Cross-Condition Consistency | Residual Spike Correlation |
+|---|---|---|
+| runs on | 16 of 27 | 16 of 27 |
+| silenced by the rule | 9 | 9 |
+| declared channels in `batch-fixtures.mjs` | 2 — DS15, DS19 | 2 — DS02, DS11 |
+| of those, silenced | **0** | **2** |
+| batch assertions broken | **0** | **2**, both currently MODERATE |
+
+**Cross-Condition Consistency's two declared channels sit on DS15 and DS19, and both are
+unpaired.** DS15 has no identifier column at all; DS19 has 1200 distinct IDs each appearing
+once. Free permutation is already the correct exchangeability on both. So disabling CCC on
+paired data costs nine fixtures of coverage and breaks nothing the batch asserts.
+
+**Residual Spike Correlation's two declared channels are DS02 and DS11, and both are
+paired.** Disabling RSC on paired data removes its entire ground-truth footprint. It would
+be left running on seven fixtures with no asserted positive anywhere in the corpus.
+
+The two tests should not be decided together. The reviewers' bottom line lands cheaply on
+one and expensively on the other.
+
+---
+
+# Part 10 — the copy-fidelity generator
+
+`test/gen-copy-fidelity.mjs`. Standalone, seeded, parameterised, and deliberately not part
+of `generate-test-datasets.py` — that file writes the fixed corpus and carries the P85
+duplicate-definition defect, while sweep data is ephemeral and regenerated from a seed.
+Keeping them apart means a change here can never move a fixture.
+
+## The model
+
+Everything is built on the log scale and exponentiated, which is how the corpus generators
+model assay data and what the pipeline's own transform expects.
+
+```
+subject level   L_s   ~ Normal(log baseMedian, tau^2)
+replicate noise e_sr  ~ Normal(0, sigma^2)
+condition A     log A_sr = L_s + e_sr
+```
+
+Condition B is a variance-preserving interpolation between a perfect copy of A and a fresh
+independent honest replicate of the same design:
+
+```
+log B_sr = mu + rho*(L_s - mu) + sqrt(1-rho^2)*(L'_s - mu)     subject part
+              + rho*e_sr       + sqrt(1-rho^2)*f_sr            residual part
+              + log(effect_s)
+```
+
+Two properties make this the right shape for an effect-size axis, and both were checked
+from the emitted values rather than asserted. The marginal law of `log B` equals that of
+`log A` at every `rho`, so moving along the axis smuggles in no spread difference a
+distribution-shape test could read as signal. And `rho` is exactly the matched-cell
+correlation, so `rho = 1` is a perfect copy and `rho = 0` an independent condition.
+
+## The axis
+
+The swept parameter is `k`, the copy noise as a multiple of the file's own within-condition
+replicate noise: `k = sqrt(1 - rho^2)`, so `k` runs from 0 to 1. `k = 0` is a perfect copy.
+`k = 1` is exact independence, and that end is where the false-positive rate comes from.
+Ten points, denser where a copy is still good: 0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.65, 0.8, 0.9,
+1.0.
+
+A fabricator wants a difference to report, so a copy with no effect is not a plausible
+attack: 20% of subjects get a 1.5× fold change in condition B only.
+
+## Confirming the far end, and a false alarm on the way
+
+At five seeds condition B's spread appeared to dip at mid-`k` and recover — the signature
+of a systematic spread difference between conditions, which is exactly what would
+contaminate a distribution-shape test. At forty seeds it is flat.
+
+| k | rho | measured cell correlation | spread B − A |
+|---|---|---|---|
+| 0 | 1.0000 | 0.9908 ± 0.0002 | +0.0137 ± 0.0022 |
+| 0.3 | 0.9539 | 0.9442 ± 0.0015 | +0.0121 ± 0.0055 |
+| 0.65 | 0.7599 | 0.7502 ± 0.0056 | +0.0108 ± 0.0115 |
+| 1.0 | 0.0000 | **−0.0051 ± 0.0130** | +0.0143 ± 0.0169 |
+
+The B − A spread difference is constant at about +0.012 across the whole axis; that is the
+fake effect adding a little variance, not a fidelity artefact. The five-seed dip was
+sampling noise. **Independence at the far end is confirmed** — matched-cell correlation
+−0.0051 ± 0.0130, indistinguishable from zero.
+
+Cell correlation at `k = 0` is 0.9908 rather than 1 because the fake effect adds a
+per-subject offset to a fifth of subjects. The "perfect copy" end of this axis is a perfect
+copy *plus the attack*.
+
+## Two modes, and why the second one had to be added
+
+The default mode degrades both the subject level and the residual with the same `k`, so
+`k = 1` is an independent honest condition with independent subjects: *two unrelated
+experiments*. That is not an honest **paired** experiment. In a real paired design the same
+subject appears in both conditions, so the subject level is shared and only the measurement
+noise is independent — and that is the whole of P82, because the free permutation null is
+mis-specified precisely when subjects are matched. A false-positive rate measured on data
+with independent subject levels answers a different question.
+
+So the generator carries a second mode. `sharedSubjects: true` holds the subject level
+identical in both conditions at every `k`; only the residual interpolates. `k = 1` is then
+an honest paired experiment with a real condition effect, and `k = 0` is the residual-copy
+attack. Condition A is byte-identical between the modes at the same `(k, seed)`.
+
+## Assumptions
+
+A generator that inherits the tool's own assumptions flatters the tool for exactly the
+reason the fixed corpus does. The curve is only readable next to these, so they are part of
+the deliverable. All are defaults and all are overridable.
+
+| | value | what it costs |
+|---|---|---|
+| distributional family | log-normal | real assay data is heavier-tailed; every distribution-shape test finds this data tidier than reality |
+| noise model | multiplicative, homoscedastic on the log scale | the mean-variance slope is 2 by construction and identical in both conditions, which is exactly what Stage 3 P9 tests — P9 has nothing to find here either way |
+| independence | replicate noise independent across replicates and subjects | no batch structure, no plate effects, no drift, **no serial correlation down the rows**, so every row-order test is blind here by construction |
+| effect size | fixed 1.5× on a fixed 20% of subjects, identical across replicates | real effects vary in size across subjects; this one does not |
+| heterogeneity | subject levels span about two orders of magnitude, `tau = 1.15` | the ratio of subject heterogeneity to replicate noise is 4.6, which is what makes a copy hard to degrade — noise the size of the assay's own repeatability moves `rho` only from 1.000 to 0.995 |
+| replicates | 6 per subject per condition, equal | no missing values, no ragged rows |
+| subjects | 120, matched, exactly once per condition | no unpaired subjects, no dropouts |
+| conditions | exactly 2 | **the max-over-pairs structure that gives Residual Spike Correlation its power at three conditions is absent by construction** |
+| rounding | two decimals | as the corpus fixtures use |
+
+The last two are the ones that bite. Any result here about Residual Spike Correlation is a
+result about the two-condition case only.
+
+## Layouts
+
+Each dataset is emitted in both, because the branches differ in how pairing is reachable
+inside a test. Column-grouped uses a two-row header with one column block per condition, so
+matrix row *r* is subject *r* in both and the pairing is structural; cell [0][0] carries a
+label because `preprocessRaw` drops a header row with fewer than three non-empty cells and
+a two-condition span row has only two. Row-grouped uses `SubjectID` + `Condition` +
+replicate columns with subjects interleaved, so each slice lists them in the same order.
+
+Both were verified through the engine import chain: column-grouped routes 120 × 12,
+`paired true`, slices CondA(120 × 6) and CondB(120 × 6); row-grouped routes 240 × 6 with
+the same slices. The transform is log on both. Neither test is data-type skipped.
+
+---
+
+# Part 11 — the sweep
+
+Grid: 10 fidelity points × 20 independent datasets × 2 layouts × 2 nulls × 2 tests, run
+twice over the two generator modes. Nothing was cut; the full grid takes 104 seconds.
+
+A "seed" is an independent dataset, not a permutation-seed offset. A detection rate needs
+data replication; seed offsets would measure the null's own noise. This is a deliberate
+departure from how "twenty seeds" was read in Parts 5 and 6.
+
+The per-unit record was built in from the first run rather than back-filled, so no number
+here was computed before the record existed. Full-mode grid run twice; the second run
+reproduced the first exactly.
+
+Raw tables in `docs/shared/S350-COPY-FIDELITY-SWEEP.md`. Per-unit records, 6400 rows each,
+in `docs/shared/S350-COPY-FIDELITY-UNITS.csv` and `-UNITS-SHARED.csv`.
+
+## Layout makes no difference to either test
+
+Every number is identical between the column-grouped and row-grouped runs, for both tests,
+under both nulls, at every `k`. That is not a null result to explain away: both tests
+consume `condCtx.slices()`, and the two layouts produce the same slices from the same
+values. **Layout decides whether the pairing key is reachable, not what the test computes.**
+The tables below therefore report one layout; the other is identical and is in the raw file.
+
+## Cross-Condition Consistency
+
+Detection rate at `ALPHA.NOTE`, twenty datasets per point. "Shipped" is the engine's own
+`primaryP`; "lifted" drops the `similar`-only direction filter and keeps the effect-size
+gate.
+
+| k | free, shipped | free, lifted | corrected, shipped | corrected, lifted |
+|---|---|---|---|---|
+| 0 (perfect copy) | **100%** | **100%** | **0%** | **0%** |
+| 0.1 | 10% | 10% | 0% | 0% |
+| 0.2 | 0% | 0% | 0% | 0% |
+| 0.3 | 0% | 0% | 0% | 0% |
+| 0.4 | 0% | 0% | 0% | 0% |
+| 0.5 | 0% | 0% | 0% | 0% |
+| 0.65 | 0% | 0% | 0% | 0% |
+| 0.8 | 5% | 5% | 0% | 5% |
+| 0.9 | 0% | 0% | 0% | 0% |
+| 1.0 (independent) | 0% | 0% | 0% | 0% |
+
+Median `p` at `k = 0` under the free null is 0.002000 on every dataset — the arithmetic
+floor, `2/1000 × 3/3` with all three Stage-1 units tied at the raw permutation floor. The
+test is saturated there.
+
+**The reviewers' central claim is confirmed.** Under the corrected null Cross-Condition
+Consistency has no power against this attack at any fidelity, including a perfect copy. The
+curve is not merely weaker; it is flat at zero.
+
+Under the free null the curve runs the normal way — detection rises as the copy improves —
+but it is a cliff, not a slope: 100% at a perfect copy, 10% one step along, nothing after.
+The test detects a copy only when the copy is nearly exact.
+
+**False-positive rate at the clean end, at the same threshold**, and this is where the two
+generator modes separate:
+
+| clean case | free null | corrected null |
+|---|---|---|
+| two unrelated experiments (`k = 1`, full mode) | 0% (0/20) | 0% (0/20) |
+| **an honest paired experiment** (`k = 1`, shared-subjects mode) | **5% (1/20)** | 0% (0/20) |
+
+One flag in twenty at a nominal 1% is a point estimate with a wide interval — consistent
+with anything from nominal to badly inflated — so it is evidence of the direction of the
+free null's defect, not a measurement of its size. It does confirm that the defect needs
+shared subject levels to appear at all: with independent subjects the free null is
+correctly calibrated here.
+
+## Residual Spike Correlation
+
+| k | free null | corrected null |
+|---|---|---|
+| 0 (perfect copy) | **100%** | **0%** |
+| 0.1 | 100% | 0% |
+| 0.2 | 100% | 0% |
+| 0.3 | 100% | 0% |
+| 0.4 | 100% | 0% |
+| 0.5 | 95% | 0% |
+| 0.65 | 55% | 0% |
+| 0.8 | 5% | 0% |
+| 0.9 | 10% | 0% |
+| 1.0 (independent) | **0%** | 0% |
+
+False-positive rate at `k = 1`: **0% under the free null in both modes**, 0% under the
+corrected null.
+
+**This is the only configuration in the whole grid with a usable power curve.** Under the
+free null, Residual Spike Correlation holds 100% detection out to `k = 0.4`, degrades
+through 95% and 55%, and reaches zero exactly where the copy does — with no false positives
+at either clean end, including the honest paired one.
+
+Under the corrected null it has no power anywhere. Median `p` at a perfect copy is 1.000 on
+every dataset: the observed overlap is matched or exceeded by every one of 999 draws. That
+is Part 3's structural finding measured on a full axis — a subject extreme in every
+condition keeps its contribution under any within-subject relabel, and with two conditions
+every overlapping subject is such a subject.
+
+Both statements are about the two-condition case. The generator emits two conditions, so
+the max-over-pairs mechanism that gave RSC surviving power on DS02 at three conditions is
+absent here by construction.
+
+## Direction, and the amendment's second question
+
+Resolved direction of the Stage-1 units, counted over unit × dataset, three units per
+dataset:
+
+| k | free: similar/different | corrected: similar/different | units flipping |
+|---|---|---|---|
+| 0 | 59 / 1 | 23 / 37 | **36 of 60** |
+| 0.1 | 59 / 1 | 23 / 37 | 36 of 60 |
+| 0.2 | 57 / 3 | 16 / 44 | 41 of 60 |
+| 0.3 | 54 / 6 | 18 / 42 | 36 of 60 |
+| 0.4 | 45 / 15 | 20 / 40 | 25 of 60 |
+| 0.5 | 41 / 19 | 24 / 36 | 17 of 60 |
+| 0.65 | 35 / 25 | 25 / 35 | 10 of 60 |
+| 0.8 | 30 / 30 | 26 / 34 | 6 of 60 |
+| 0.9 | 28 / 32 | 26 / 34 | 2 of 60 |
+| 1.0 | 24 / 36 | 24 / 36 | **2 of 60** |
+
+**Direction disagreement between the two nulls is maximal exactly where the attack is
+strongest and vanishes where the data is clean.** At a perfect copy the free null calls 59
+of 60 units `similar` and the corrected null calls 37 of 60 `different`; more than half the
+units change tail. At independence the two nulls agree completely.
+
+That settles the amendment's premise on this data: direction is a property of the null, not
+of the unit, and it is most a property of the null precisely at the attack.
+
+## What the filter-lifted arm says
+
+Almost nothing, on this data. The lifted and shipped columns are identical at every `k` in
+three of the four Cross-Condition Consistency arms, and differ by one dataset in the
+fourth. **On the copy attack the direction filter is not the binding constraint — the null
+is.**
+
+That does not contradict Part 8, where the filter *was* binding on
+`02-densitometry-fabricated`: there, five `different`-direction Stage-1 units sat censored
+at the permutation floor while contributing nothing. The two findings describe different
+regimes. Where a fabrication makes conditions anomalously *similar*, the units land in the
+`similar` tail and the filter passes them; where it makes them anomalously *different*, the
+filter discards them at any `p`. This generator plants the first kind, DS02 carries the
+second.
+
+## What this does and does not establish
+
+It establishes that on two-condition paired data with these assumptions, Cross-Condition
+Consistency has no power against a copy attack under the corrected null at any fidelity,
+and a cliff-shaped power curve under the free null; and that Residual Spike Correlation has
+a genuine power curve with no false positives under the free null and none at all under the
+corrected one.
+
+It does not establish anything about three or more conditions, about heavier-tailed data,
+about effects that vary across subjects, or about any fabrication that leaves serial
+structure in the rows. The generator has none of those, by construction and on purpose, and
+the assumptions table above is the list of what a different generator could change.
+
 ---
 
 # Verification — Parts 1 to 3
@@ -1250,4 +1578,126 @@ reference:
 
 ```bash
 ./scripts/dev.sh s350-part-3-dispatch
+```
+
+---
+
+# Verification — Parts 9, 10 and 11
+
+Run from the worktree `.claude/worktrees/s350-part-4-copyfidelity`, branch
+`claude/s350-part-4-copyfidelity`, off `85d7d26`.
+
+**A note on the state this dispatch assumed.** It was written against main at `1766618`
+and said Parts 6, 7 and 8 had not run. They had — they merged as `85d7d26` before this
+dispatch began. The dispatch said the numbering gap was deliberate and either order works,
+so this ran off current main. One consequence is load-bearing and good: the RSC null hook
+Part 6 built was already available, so Part 11 did not have to rebuild it.
+
+## Commands run
+
+```bash
+git worktree remove .claude/worktrees/s350-part-3-dispatch
+git branch -d claude/s350-part-3-dispatch
+git worktree add .claude/worktrees/s350-part-4-copyfidelity -b claude/s350-part-4-copyfidelity main
+./scripts/init-worktree-symlinks.sh .claude/worktrees/s350-part-4-copyfidelity
+
+# Part 9 — scope of a paired-disable rule
+node test/probes/probe-s350-disable-scope.mjs
+
+# Part 10 — the generator, and its diagnostics
+node test/gen-copy-fidelity.mjs --out /tmp/copy-fidelity --reps 5
+# forty-seed check on the apparent spread dip, and on independence at the far end
+node --input-type=module -e "<inline: 40 seeds per k, mean and se of spreadA, spreadB, cellCorr>"
+# both layouts through the engine import chain
+node --input-type=module -e "<inline: prep + roles + condCtx + slices + detectVST on cg_ and rg_>"
+node --input-type=module -e "<inline: DATATYPE_SKIP.continuous membership for both tests>"
+
+# Part 11 — the sweep
+COST=1 node --import ./test/probes/s348-hash-hook.mjs \
+  --import ./test/probes/s350-paired-null-hook.mjs \
+  --import ./test/probes/s350-rsc-null-hook.mjs \
+  test/probes/probe-s350-copy-fidelity-sweep.mjs
+node --import ./test/probes/s348-hash-hook.mjs \
+  --import ./test/probes/s350-paired-null-hook.mjs \
+  --import ./test/probes/s350-rsc-null-hook.mjs \
+  test/probes/probe-s350-copy-fidelity-sweep.mjs            # run 1, mode full
+node --import ... test/probes/probe-s350-copy-fidelity-sweep.mjs   # run 1 again, reproducibility
+MODE=shared-subjects node --import ... test/probes/probe-s350-copy-fidelity-sweep.mjs
+
+# vitest collection check
+npx vitest list --filesOnly
+```
+
+The three inline `node --input-type=module` scripts are diagnostics, not deliverables:
+they call the committed generator and the committed import chain and compute summary
+statistics. Nothing they do is relied on beyond the numbers quoted in Part 10.
+
+## Files and lines read
+
+**Source under `src/`** (read only; nothing edited)
+
+- `src/analysis/engine.js` — `:185-201` (validate, then `createPRNGFactory` on the
+  sanitised raw matrix), `:280-290` (VST matrix and context), `:312-317` (`dtSkip`),
+  `:319-325` (`condSkip`), `:413-421` (RSC dispatch), `:425-441` (CCC dispatch). The
+  sweep's `enginePair` mirrors these.
+- `src/tests/crossConditionConsistency.js` — `:456-461` (the block the CCC hook replaces),
+  `:517-535` (direction assignment), `:563-577` (the three per-stage BH calls, which is
+  where `bhMStage1/2/3` come from), `:610`, `:618` (the forensic filter and `primaryP`).
+- `src/tests/residualSpikeCorrelation.js` — `:43` (the position-matching truncation),
+  `:47-65` (the profile), `:80-91` (K), `:93-108` (overlap), `:113` (`N_PERM = 999`),
+  `:137-154` (the block the RSC hook replaces), `:171` (`permP`).
+- `src/analysis/conditionContext.js` — `:44-72` (routing and `paired`), `:99-138`
+  (`slices()`), `:140-160` (`rowGroups()`).
+- `src/constants/assays.js` — `ASSAY_DATATYPE_MAP`, `DATATYPE_SKIP`; `general` maps to
+  `continuous`, whose skip map is empty, so neither test is data-type skipped.
+- `src/constants/thresholds.js` — `ALPHA.NOTE`, `ALPHA.FLAG`, read at runtime.
+- `src/stats/vst.js` — `detectVST`, which returns `log` on the generated data.
+
+**Tests, probes and data**
+
+- `test/batch-fixtures.mjs` — `EXPECTED` in full for the Part 9 pass; the declared-channel
+  maps for both tests.
+- `test/probes/s348-hash-hook.mjs`, `s350-paired-null-hook.mjs`, `s350-rsc-null-hook.mjs` —
+  all three reused unchanged. Both null hooks target different files and compose.
+- `test/probes/probe-s350-classb-bound.mjs` — `:129-193`, the pairing and alignment rule,
+  ported into the Part 9 probe.
+- `.gitignore` — `:67`, `test/probes/out-*/`, which is why the Part 9 engine cache is not
+  committed.
+
+**Fixtures** — all 27 parsed through the engine import chain and run through
+`runFullAnalysis` once each for the Part 9 pass. The results are cached to
+`test/probes/out-s350-scope/engine-cache.json`, which is gitignored.
+
+## Files added
+
+Two probes, one generator, three data files. Nothing under `src/`.
+
+- `test/gen-copy-fidelity.mjs` — the generator. Durable tooling, not a probe.
+- `test/probes/probe-s350-disable-scope.mjs` — Part 9.
+- `test/probes/probe-s350-copy-fidelity-sweep.mjs` — Part 11.
+- `docs/shared/S350-COPY-FIDELITY-SWEEP.md` — the summary tables for both modes.
+- `docs/shared/S350-COPY-FIDELITY-UNITS.csv` and `-UNITS-SHARED.csv` — the per-unit record
+  the amendment asked for, 6400 rows each.
+
+**The generated datasets are not committed.** They are ephemeral and regenerate from
+`(k, seed)`; the script writes them to a temp directory.
+
+**Nothing here is collected by `npm test`.** `vite.config.js` sets no `test.include`, so
+vitest's default `**/*.{test,spec}.?(c|m)[jt]s?(x)` applies, and both probes and the
+generator are plain `.mjs` with neither infix. Confirmed with `npx vitest list --filesOnly`:
+four files collected, none of them `s350` or `gen-copy-fidelity`.
+
+## Batch
+
+Not run. No file under `src/` was touched. Both corrected nulls exist only inside load-time
+hooks that no engine code path imports, and the generator writes outside the fixture
+directory.
+
+## Dev server
+
+Not started. Nothing under `src/` was edited, so there is no rendering surface. For
+reference:
+
+```bash
+./scripts/dev.sh s350-part-4-copyfidelity
 ```
