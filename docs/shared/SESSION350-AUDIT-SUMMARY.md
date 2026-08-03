@@ -9,12 +9,15 @@ The question this read answers: Cross-Condition Consistency and Residual Spike
 Correlation both build a permutation null that treats paired subjects as independent.
 What does a correct null cost, and which units does it silence?
 
-Written across two dispatches. Parts 1 to 3 were the first, off `626a8f7`, and settled
+Written across three dispatches. Parts 1 to 3 were the first, off `626a8f7`, and settled
 what the corrected null does to each test's units. Parts 4 and 5 were the second, off
-`3127e43`, and measure the two things a design decision needs: whether DS11's lost
-Residual Spike Correlation channel was firing inside the fixture's planted mechanism,
-and whether any paired fabricated fixture has a Cross-Condition Consistency flag to lose.
-Each part's verification sits in the matching section at the end.
+`3127e43`: whether DS11's lost Residual Spike Correlation channel was firing inside the
+fixture's planted mechanism, and whether any paired fabricated fixture has a
+Cross-Condition Consistency flag to lose. Parts 6 to 8 were the third, off `1766618`, and
+close the Residual Spike Correlation question on measurement: whether it ever fires on
+clean paired data, whether DS16's construction anchor survives, and whether the
+forensic-direction filter has been suppressing live results all along. Each part's
+verification sits in the matching section at the end.
 
 ---
 
@@ -636,6 +639,235 @@ binding constraint on DS11: there the units are barred by the direction **filter
 runs regardless of the gate, and their adjusted p moves by nearly three orders of
 magnitude.
 
+# Part 6 — does Residual Spike Correlation fire on clean paired data?
+
+The decision this part serves: whether to touch RSC's null at all. Its measured cost is
+one true detection, DS11's, established in Part 4. Its measured benefit is whatever false
+positives it removes. If RSC never fires on clean paired data, there are none, and the
+case closes on measurement.
+
+## Membership, derived
+
+Part 5's rule, applied across all 27 fixtures, then filtered to paired AND clean
+(`EXPECTED[file].severity === 0`). Nine fixtures are paired; five are fabricated;
+**the complement is four.**
+
+| fixture | assay | structure | pairing key | subjects | alignment |
+|---|---|---|---|---|---|
+| `01-densitometry-clean` | densitometry | column-grouped ×3 | row index (structural) | 35 | ok |
+| `03-qpcr-clean` | qpcr | row-grouped ×2 | `Target` | 25 | ok |
+| `09-proteomics-clean` | proteomics | row-grouped ×2 | `ProteinID` | 200 | ok |
+| `17-densitometry-carlisle-clean` | densitometry | column-grouped ×3 | row index (structural) | 60 | ok |
+
+## Does RSC reach them?
+
+Asked of the engine rather than re-derived from the dispatch gates: one full
+`runFullAnalysis` per fixture, and RSC's own result read out of it.
+
+| fixture | RSC result at the shipped seed |
+|---|---|
+| `01-densitometry-clean` | RUNS — LOW, `permP` 1.0000, overlap 0 of K=5 |
+| `03-qpcr-clean` | RUNS — LOW, `permP` 0.0240, overlap 3 of K=5 |
+| `09-proteomics-clean` | RUNS — LOW, `permP` 0.0340, overlap 5 of K=20 |
+| `17-densitometry-carlisle-clean` | RUNS — LOW, `permP` 0.8820, overlap 1 of K=6 |
+
+**RSC runs on all four.** No gate fires, no `N/A`. So there is no fixture here that the
+test never reaches and that would otherwise pad the clean count without carrying any
+exposure.
+
+## The sweep — twenty seeds, both nulls
+
+160 runs. Nothing flags in any of them.
+
+| fixture | free null p: min / median / max | flags | corrected null p: min / median / max | flags |
+|---|---|---|---|---|
+| `01-densitometry-clean` | 1.000 / 1.000 / 1.000 | 0/20 | 1.000 / 1.000 / 1.000 | 0/20 |
+| `03-qpcr-clean` | 0.0270 / 0.0365 / 0.0520 | 0/20 | 0.849 / 0.873 / 0.888 | 0/20 |
+| `09-proteomics-clean` | 0.0240 / 0.0335 / 0.0480 | 0/20 | 0.850 / 0.868 / 0.887 | 0/20 |
+| `17-densitometry-carlisle-clean` | 0.842 / 0.874 / 0.894 | 0/20 | 0.869 / 0.886 / 0.911 | 0/20 |
+
+`09-proteomics-clean`'s full spread under the shipped null is **0.0240 to 0.0480**, median
+0.0335. The single draw of 0.0348 reported in Part 3 sits in the middle of it. The closest
+any fixture comes to `ALPHA.NOTE` is 0.0240 — **2.4 times the threshold**, on the one seed
+of twenty where it runs lowest.
+
+## The membership diagnostic explains the two shapes
+
+| fixture | conditions | in top-K of every condition | in a proper subset | observed overlap vs expected |
+|---|---|---|---|---|
+| `01-densitometry-clean` | 3 | **0** | 15 | 0 of K=5, expected 0.7 |
+| `17-densitometry-carlisle-clean` | 3 | **0** | 17 | 1 of K=6, expected 0.6 |
+| `03-qpcr-clean` | 2 | 3 | 4 | 3 of K=5, expected 1.0 |
+| `09-proteomics-clean` | 2 | 5 | 30 | 5 of K=20, expected 2.0 |
+
+On the two three-condition fixtures no subject is extreme everywhere, so the corrected
+null keeps its power — and finds nothing, because the observed overlap is at or below the
+independence expectation.
+
+On the two two-condition fixtures the diagnostic is degenerate by construction: with one
+pair, every overlapping subject is by definition in "every" condition. The corrected null
+therefore has essentially no power against the overlap statistic there. **Their p moving
+from about 0.03 to about 0.87 is not a false positive being removed — it is the test
+becoming uninformative.** That is Part 3's finding seen from the clean side.
+
+## What this settles, and what it does not
+
+**Settles.** RSC's measured cost from correcting its null is one true detection, firing
+inside DS11's planted region. Its measured benefit across every clean paired fixture in
+the corpus, at twenty seeds and both nulls, is **zero flags removed, because there were
+none to remove.**
+
+**Does not settle.** This bounds RSC's false-positive exposure on the fixtures we have. It
+does not measure incidence. The four clean paired fixtures carry 25 to 200 subjects, three
+of the four have K ≤ 6 so the overlap statistic takes only a handful of distinct values,
+and every fixture is generated at a single planted strength with no strength sweep behind
+it. A corpus this narrow sizes exposure in both directions: it can no more show the rate
+is low on real data than it could have shown it was high.
+
+---
+
+# Part 7 — is DS16 regenerable?
+
+DS16 is a Class B member. If its construction anchor is gone, one of the five fixtures
+Part 5 bounded cannot be adjudicated against its own construction the way Part 4
+adjudicated DS11.
+
+## The check
+
+`generate-test-datasets.py` defines `gen_carlisle_overbalanced` twice — at `:676` (dead)
+and `:877` (live, the one Python keeps). `OUT` is `/tmp/dforensix-s108-fixtures` (`:7`),
+confirmed before running anything, so the generator cannot write into `test/fixtures/`.
+
+Two builds were produced: the script as-is, and a scratch copy with the second definitions
+renamed so the first ones survive. Both wrote to temp directories.
+
+| build | shape | cell [0][0] | md5 |
+|---|---|---|---|
+| **shipped** `16-densitometry-carlisle-overbalanced.csv` | 60 features × 3 conditions × 6 reps | empty | `c983bc5736dd6ec03bc9fe9b9188cf40` |
+| live second definition (`:877`) | 60 features × **2 conditions × 4 reps** | empty | `4ef56de078c0f781e2196adabf91a20a` |
+| dead first definition (`:676`) | 60 features × 3 conditions × 6 reps | `Condition` | `68905046c87c29b20d9e03cca5c11370` |
+
+**Neither reproduces it.** The live definition builds a different dataset entirely —
+`Control / Treatment`, four replicates. The dead first definition builds the right shape,
+the right condition names (`Control / Treatment_A / Treatment_B`), the right feature
+labels, and different values: shipped `F1` runs 114.71 to 233.93, the rebuild 231.97 to
+487.62.
+
+**Which definition does the shipped fixture match?** Its design matches the **dead first**
+one and not the live one. But not its bytes, and not its header either: the current first
+definition writes `Condition` into cell [0][0] and explains in its own docstring why that
+cell has to be non-empty, while the shipped file leaves it blank. So the generator was
+edited after the fixture was written. Git gives no separation — fixture and generator both
+arrived in the initial commit. `generate-ui-datasets.py` writes to `test-data/` and
+produces neither.
+
+DS17 fails identically: same design match, same `Condition` cell divergence, different
+values.
+
+## The anchor is not entirely gone
+
+Byte-exact replay is lost. The described mechanism is still testable from the shipped
+bytes. The dead definition's accept-reject loop (`:779-805`) targets `n_target_high = 48`
+of 60 features accepted at a one-way ANOVA p above 0.95 across the three conditions, and
+DS17 is its comparator built the same way without the cherry-picking. Measured with the
+app's own ANOVA (`carlisleBalance.js:236-271`):
+
+| fixture | above 0.50 | 0.80 | 0.90 | **0.95** | 0.99 | median p |
+|---|---|---|---|---|---|---|
+| DS16 | 56 | 51 | 48 | **48** | 7 | 0.9614 |
+| DS17 | 18 | 6 | 4 | **3** | 0 | 0.2778 |
+
+**DS16 carries exactly 48 features above 0.95 — the dead definition's target number,
+exactly.** Chance under a uniform null is 3.0, which is exactly what DS17 gives. The
+identical counts at 0.90 and 0.95 are the accept-reject loop's own fingerprint: it breaks
+the moment p clears 0.95, so accepted rows pile up just above it.
+
+So DS16 is not byte-regenerable and its Part 5 measurement stands regardless, because that
+measured the shipped file. What was at risk — adjudicating a DS16 finding against its
+intended construction — is recoverable at the mechanism level. DS16's one declared channel
+is `'Baseline Balance': ['MODERATE', 'HIGH']` (`test/batch-fixtures.mjs:118-120`), and
+Baseline Balance is the ANOVA-p test this check runs.
+
+---
+
+# Part 8 — testing the claim that the direction filter has never been load-bearing
+
+The claim under test: the `similar`-only restriction on Stage-1 properties has never been
+load-bearing, because it suppressed an arm with no power under the free null, and
+correcting the null makes it load-bearing for the first time.
+
+This is a read-out of `docs/shared/S350-CLASSB-SWEEP-DATA.md`, which Part 5 committed. No
+new measurement.
+
+## A parse gap, reported because it changed the answer
+
+The first pass matched unit rows with `\s{2,}` before the `dir` field. The producer pads
+the pair column to 26 characters, so a pair whose name is exactly 26 —
+`Inhibitor_A vs Inhibitor_B`, `Treatment_A vs Treatment_B` — is followed by one space, not
+two, and was dropped silently. That cost 36 of 216 records and understated the answer.
+
+The probe now parses the `per running unit (N)` count each block declares and halts if the
+parse does not reproduce it. **Fourteen declared blocks, all fourteen matched.** Everything
+below is the complete read.
+
+## The distribution, shipped B ladder, five fixtures
+
+66 Stage-1 unit records — 27 majority-`different`, 39 majority-`similar`, 3 splitting their
+seeds across both directions. A unit is bucketed by the direction the majority of its
+twenty seeds resolved to; the mixed ones are counted but not silently folded in.
+
+| | free null | corrected null |
+|---|---|---|
+| majority-`different` Stage-1 units | 8 | 19 |
+| adjusted p — min / median / max | 0.0036 / 0.0036 / 0.928 | 0.0036 / 0.108 / 0.984 |
+| **below `ALPHA.NOTE`** | **5 of 8** | 5 of 19 |
+
+## The claim does not survive
+
+**Five `different`-direction Stage-1 units already sit below the threshold under the free
+null.** All on `02-densitometry-fabricated`, all at adjusted p **0.0036 on every one of
+twenty seeds**, all `forensic 0/20` and therefore contributing nothing:
+
+- P1 Trimmed span, Control vs Inhibitor_B
+- P1 Trimmed span, Inhibitor_A vs Inhibitor_B
+- P3 CDF shape, Control vs Inhibitor_A
+- P3 CDF shape, Control vs Inhibitor_B
+- P3 CDF shape, Inhibitor_A vs Inhibitor_B
+
+0.0036 is not near the threshold, it is at the arithmetic floor. DS02 runs at `B = 999`, so
+the raw two-sided floor is 2/1000, and the Stage-1 family is m = 9; five units tied at that
+floor give exactly `0.002 × 9/5 = 0.0036`. **All five are censored at the permutation
+floor** — the observed distance beats all 999 draws. They are as significant as the
+machinery can report, and the filter discards every one.
+
+So the restriction has been load-bearing under the shipped null all along, on a fabricated
+fixture, at the floor. Correcting the null does not make it load-bearing for the first
+time. It makes it load-bearing on a second fixture.
+
+## The crossing count is zero, and that number is a lattice artefact
+
+| shipped B ladder, on the 8 units present in both arms | count |
+|---|---|
+| above → below when the null is corrected | **0** |
+| below → above | 0 |
+| below under both nulls | 5 |
+
+Taken alone that reads as "correcting the null creates no new sub-threshold `different`
+units". The `B = 9999` run in the same file says otherwise. There, DS11's P3 CDF shape on
+CondB vs CondC lands at adjusted p **0.0018** and on CondA vs CondB at **0.0090**, against
+0.911-and-above under the free null. At `B = 499` those units were pinned at the raw
+permutation floor with a BH image of 0.012 and 0.018 — just above `ALPHA.NOTE = 0.01`. The
+crossing exists; the shipped permutation count cannot resolve it. Same reachability class
+METHODOLOGY records under permutation-test arithmetic constraints.
+
+## One thing the read-out surfaces that was not asked for
+
+Eleven Stage-1 units flip majority direction between the arms, and every one flips the same
+way, `similar` to `different` — nine of them on DS11. Correcting the null does not merely
+move p-values along a fixed direction assignment. It re-resolves which tail each unit is
+in. Any design that keeps a direction filter has to say what that filter means when the
+direction itself depends on which null is believed.
+
 ---
 
 # Verification — Parts 1 to 3
@@ -885,4 +1117,137 @@ reference:
 
 ```bash
 ./scripts/dev.sh s350-part-2-dispatch
+```
+
+---
+
+# Verification — Parts 6, 7 and 8
+
+Run from the worktree `.claude/worktrees/s350-part-3-dispatch`, branch
+`claude/s350-part-3-dispatch`, off `1766618`.
+
+## Commands run
+
+```bash
+git worktree add .claude/worktrees/s350-part-3-dispatch -b claude/s350-part-3-dispatch main
+./scripts/init-worktree-symlinks.sh .claude/worktrees/s350-part-3-dispatch
+git worktree remove .claude/worktrees/s350-part-2-dispatch
+git branch -d claude/s350-part-2-dispatch
+git worktree list
+
+# Part 6 — membership, RSC reach, then the sweep
+MEMBERSHIP=1 node --import ./test/probes/s348-hash-hook.mjs \
+  --import ./test/probes/s350-rsc-null-hook.mjs \
+  test/probes/probe-s350-rsc-clean.mjs
+node --import ./test/probes/s348-hash-hook.mjs \
+  --import ./test/probes/s350-rsc-null-hook.mjs \
+  test/probes/probe-s350-rsc-clean.mjs
+
+# Part 7 — is DS16 regenerable?
+grep -n "^def gen_carlisle_overbalanced|^def gen_carlisle_clean" generate-test-datasets.py
+grep -n "^OUT" generate-test-datasets.py            # /tmp/dforensix-s108-fixtures, outside test/fixtures/
+grep -n "carlisle" generate-test-datasets.py         # the writer list entries
+python3 generate-test-datasets.py                    # as-is: the live second definitions run
+md5 -q /tmp/dforensix-s108-fixtures/16-carlisle-overbalanced.csv test/fixtures/16-densitometry-carlisle-overbalanced.csv
+md5 -q /tmp/dforensix-s108-fixtures/17-carlisle-clean.csv        test/fixtures/17-densitometry-carlisle-clean.csv
+# scratch variant: second definitions renamed so the first ones survive, OUT redirected
+python3 <scratch>/gen-firstdef.py
+md5 -q /tmp/dforensix-s350-firstdef/16-carlisle-overbalanced.csv test/fixtures/16-densitometry-carlisle-overbalanced.csv
+md5 -q /tmp/dforensix-s350-firstdef/17-carlisle-clean.csv        test/fixtures/17-densitometry-carlisle-clean.csv
+diff /tmp/dforensix-s350-firstdef/16-carlisle-overbalanced.csv test/fixtures/16-densitometry-carlisle-overbalanced.csv
+git log --format='%h %ad %s' --date=short -- test/fixtures/16-densitometry-carlisle-overbalanced.csv
+git log --format='%h %ad %s' --date=short -- generate-test-datasets.py
+grep -n -i "carlisle|^OUT|def gen_" generate-ui-datasets.py
+node test/probes/probe-s350-ds16-provenance.mjs
+
+# Part 8 — read-out of the committed sweep data
+node test/probes/probe-s350-direction-readout.mjs
+
+# vitest collection check
+npx vitest list
+```
+
+The scratch variant of the generator lives in the session scratchpad, not in the repo. It
+is one mechanical edit — the two second definitions renamed to `*_SECOND_UNUSED` and `OUT`
+pointed at `/tmp/dforensix-s350-firstdef` — applied by a script that first asserts lines
+877 and 924 hold the expected `def` statements and refuses to write otherwise.
+
+## Files and lines read
+
+**Generator**
+
+- `generate-test-datasets.py` — `:7` (`OUT`), `:676-815` (the dead first
+  `gen_carlisle_overbalanced`: docstring `:677-701`, `rng = random.Random(333)` `:703`,
+  parameters `:704-708`, `_randn` / `_anova_p` / `_reg_inc_beta` `:710-767`, the two-row
+  header with the `Condition` cell `:769-776`, the accept-reject loop `:779-805`),
+  `:816-876` (the dead first `gen_carlisle_clean`, `random.Random(77)` at `:828`),
+  `:877-923` and `:924-...` (the live second definitions), `:1271-1273` (the writer list
+  entries for DS15 / DS16 / DS17), `:1306` and `:1311` (the DS16 / DS17 ground-truth print
+  headings).
+- `generate-ui-datasets.py` — `:3`, `:8` (writes to `test-data/`), `:56`, `:135` (the two
+  generators it defines; neither is DS16 or DS17).
+
+**Source under `src/`** (read only; nothing edited)
+
+- `src/tests/residualSpikeCorrelation.js` — `:12-19` (method summary), `:33-45` (slices,
+  the position-matching truncation at `:43`, the `nFeatures < 10` gate), `:47-65` (the
+  profile), `:80-91` (K and the top-K sets), `:93-108` (pairwise overlap), `:113`
+  (`N_PERM = 999`), `:134-171` (the permutation loop; `:137-154` is the block the hook
+  replaces), `:171` (`permP`), `:207` (the flag), `:223-242` (the returned shape, which is
+  where `allProfiles`, `topK`, `nOverlap` and `expectedOverlap` come from).
+- `src/analysis/engine.js` — `:185-201` (validate, then the PRNG factory on the sanitised
+  raw matrix), `:276-290` (VST matrix and context), `:312-317` (`dtSkip`), `:319-325`
+  (`condSkip`), `:327-336` (`rsSkip`), `:413-421` (the RSC dispatch and its two guards).
+- `src/tests/carlisleBalance.js` — `:1` (imports), `:13` (the per-feature ANOVA step),
+  `:236-271` (the one-way ANOVA the Part 7 probe reproduces).
+- `src/stats/primitives.js` — `:225` (`regIncBeta`).
+- `src/constants/thresholds.js` — `ALPHA.NOTE` and `ALPHA.FLAG`, read at runtime by both
+  new probes.
+
+**Tests, probes and data**
+
+- `test/batch-fixtures.mjs` — `:39-40` (the DS16 / DS17 rows), `:118-121` (DS16's declared
+  channel and DS17's clean entry), and `EXPECTED` in full for the membership pass.
+- `test/probes/s348-hash-hook.mjs` — whole file, reused unchanged.
+- `test/probes/probe-s350-classb-bound.mjs` — `:129-193` (the pairing and alignment rule,
+  ported again for Part 6), `:75-127` (the prep chain and neighbour-seed derivation).
+- `docs/shared/S350-CLASSB-SWEEP-DATA.md` — parsed in full for Part 8: 216 unit records
+  across 14 `(run, fixture, arm)` blocks, every block's declared count matched.
+
+**Fixtures**
+
+- `test/fixtures/16-densitometry-carlisle-overbalanced.csv` and
+  `17-densitometry-carlisle-clean.csv` — both compared line by line against two rebuilds,
+  and both parsed for the ANOVA-p distribution.
+- The four clean paired fixtures — parsed through the engine import chain and run through
+  RSC 40 times each.
+- All 27 fixtures — parsed through the engine import chain for the membership pass.
+
+## Files added
+
+Four probes. None is under `src/`.
+
+- `test/probes/s350-rsc-null-hook.mjs` — the load-time hook that swaps RSC's null.
+- `test/probes/probe-s350-rsc-clean.mjs` — Part 6.
+- `test/probes/probe-s350-ds16-provenance.mjs` — Part 7's mechanism check.
+- `test/probes/probe-s350-direction-readout.mjs` — Part 8.
+
+**None is collected by `npm test`.** `vite.config.js` sets no `test.include`, so vitest's
+default `**/*.{test,spec}.?(c|m)[jt]s?(x)` applies, and all four are plain `.mjs` with
+neither infix. Confirmed again with `npx vitest list`: the collected set holds no
+`probe-s350-*` entry.
+
+## Batch
+
+Not run. No file under `src/` was touched. `validate-batch.mjs` scores engine output and
+would assert nothing about this read. Both corrected nulls exist only inside load-time
+hooks that no engine code path imports.
+
+## Dev server
+
+Not started. Nothing under `src/` was edited, so there is no rendering surface. For
+reference:
+
+```bash
+./scripts/dev.sh s350-part-3-dispatch
 ```
