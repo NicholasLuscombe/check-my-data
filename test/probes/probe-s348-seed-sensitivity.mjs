@@ -51,6 +51,7 @@ const { forwardFill, preprocessRaw, detectHeaderRows } = await import('../../src
 const { detectLongFormat } = await import('../../src/import/longFormat.js');
 const { suggestRowSemantics } = await import('../../src/import/rowSemantics.js');
 const { EXPECTED } = await import('../batch-fixtures.mjs');
+const { chiSquaredP } = await import('../../src/stats/primitives.js');
 
 if (!globalThis.__S348_HOOK) {
   throw new Error('probe-s348: the hash hook is not registered. Run with --import ./test/probes/s348-hash-hook.mjs');
@@ -150,6 +151,73 @@ function bandTable(label, ps) {
       (holdsNote ? '   <-- ALPHA.NOTE = 0.010 is here' : ''));
     if (hi != null) cum += ps.filter(p => p === hi).length;
   }
+}
+
+// Are two seed sets drawing from the same p distribution on the same file?
+//
+// MODE=sweep's seeds are constructed by mixing a counter, and the claim that
+// they stand in for real file hashes is an assumption, not a measurement. It is
+// testable: pass B's seeds came from real one-cell-neighbour matrices, so if the
+// constructed seeds reproduce pass B's distribution over the p grid on the same
+// file, the assumption holds empirically for that file.
+//
+// Reported as proportions per grid point, with the Wilson interval placed on
+// the SMALLER sample — that is the noisy one, and the question is whether it is
+// consistent with the precise estimate, not the reverse. Per-point containment
+// is descriptive only: at k grid points and 95% each, some will fall outside by
+// chance, so the verdict rests on a chi-square of homogeneity over the 2 x k
+// table. Columns whose expected count falls below 5 in either row are pooled,
+// because the approximation is not trustworthy on sparse cells; if too few
+// columns survive, the comparison declines to adjudicate rather than guessing.
+function compareGrids(labA, gA, nA, labB, gB, nB) {
+  const keys = [...new Set([...Object.keys(gA), ...Object.keys(gB)])].sort((x, y) => Number(x) - Number(y));
+  // Interval on whichever sample is smaller.
+  const bOnB = nB <= nA;
+  console.log(`\n   ${labA} (n = ${nA})  vs  ${labB} (n = ${nB})`);
+  console.log(`   ${'p'.padEnd(P_W)}${'A prop'.padEnd(10)}${'B prop'.padEnd(10)}` +
+    `${`95% Wilson on ${bOnB ? 'B' : 'A'} (n=${bOnB ? nB : nA})`.padEnd(28)}${bOnB ? 'A' : 'B'} inside?`);
+  let outside = 0;
+  for (const k of keys) {
+    const a = gA[k] || 0, b = gB[k] || 0;
+    const pa = a / nA, pb = b / nB;
+    const [lo, hi] = bOnB ? wilson(b, nB) : wilson(a, nA);
+    const other = bOnB ? pa : pb;
+    const inside = other >= lo && other <= hi;
+    if (!inside) outside++;
+    console.log(`   ${k.padEnd(P_W)}${pa.toFixed(4).padEnd(10)}${pb.toFixed(4).padEnd(10)}` +
+      `${(lo.toFixed(4) + '-' + hi.toFixed(4)).padEnd(28)}${inside ? 'yes' : 'NO'}`);
+  }
+  console.log(`   ${keys.length - outside} of ${keys.length} grid points contain the other sample's proportion (descriptive only).`);
+
+  // Pool sparse columns, then chi-square of homogeneity.
+  const cols = keys.map(k => [gA[k] || 0, gB[k] || 0]);
+  const total = nA + nB;
+  const keep = [], pooled = [0, 0];
+  cols.forEach(c => {
+    const cs = c[0] + c[1];
+    if ((cs * nA) / total >= 5 && (cs * nB) / total >= 5) keep.push(c);
+    else { pooled[0] += c[0]; pooled[1] += c[1]; }
+  });
+  if (pooled[0] + pooled[1] > 0) keep.push(pooled);
+  if (keep.length < 2) {
+    console.log(`   too few columns survive pooling for a chi-square — DECLINED TO ADJUDICATE.`);
+    console.log(`   Read the proportions directly; do not treat this as agreement.`);
+    return null;
+  }
+  let chi2 = 0;
+  for (const c of keep) {
+    const cs = c[0] + c[1];
+    const eA = (cs * nA) / total, eB = (cs * nB) / total;
+    chi2 += (c[0] - eA) ** 2 / eA + (c[1] - eB) ** 2 / eB;
+  }
+  const df = keep.length - 1;
+  const p = chiSquaredP(chi2, df);
+  console.log(`   chi-square of homogeneity: X2 = ${chi2.toFixed(3)}, df = ${df}, p = ${p.toFixed(4)}` +
+    `  (${keep.length} columns after pooling)`);
+  console.log(`   ${p < 0.05
+    ? 'DISAGREEMENT — a finding about the seed rule, NOT a better estimate. Halt and report; do not treat the constructed-seed figure as superseding the real-hash one.'
+    : 'Consistent — the constructed seeds reproduce the real-hash distribution on this file, so the well-mixed-pair assumption holds empirically here.'}`);
+  return p >= 0.05;
 }
 
 // Murmur3 finaliser, reimplemented here as a SEED GENERATOR for MODE=sweep. It
@@ -351,6 +419,9 @@ if (MODE === 'paired') {
     writeFileSync(outPath, JSON.stringify({
       file: FILE, n: N, stride,
       baseHash,
+      // Pass B's p distribution travels with the seeds so MODE=sweep can test
+      // its constructed seeds against a real-hash sample on the same file.
+      passB: { n: B.length, grid: gridB },
       seeds: A.map(a => ({ k: a.k, line: a.line, col: a.col, from: a.from, to: a.to, h1: a.derivedHash.h1, h2: a.derivedHash.h2 })),
     }, null, 2));
     console.log(`seeds written to ${outPath}`);
@@ -428,6 +499,9 @@ if (MODE === 'paired') {
   const files = (process.env.FILES || '09-proteomics-clean.csv,01-densitometry-clean.csv')
     .split(',').map(s => s.trim()).filter(Boolean);
   const NS = Math.max(1, Number(process.env.SWEEP) || 500);
+  // Optional real-hash reference set, written by a MODE=paired run with
+  // SEEDS_OUT. Present => the well-mixed-pair assumption gets tested.
+  const REF = process.env.SEEDS_IN ? JSON.parse(readFileSync(process.env.SEEDS_IN, 'utf-8')) : null;
 
   console.log(`S348 part 4 — ${NS} seeds per fixture, unperturbed matrices only (pass-B shape)\n`);
   console.log(`Seed rule: for i = 0..${NS - 1},  h1 = mix32(i ^ 0x9E3779B9),  h2 = mix32(~i ^ 0x85EBCA6B),`);
@@ -471,6 +545,14 @@ if (MODE === 'paired') {
     const gp = Object.entries(grid).sort((a, b) => Number(a[0]) - Number(b[0]));
     console.log(`   CCC primaryP grid: ${gp.length} distinct — ${gp.map(([p, n]) => `${p}x${n}`).join('  ')}`);
     if (ps.length) bandTable(`   threshold arithmetic, ${file}`, ps);
+
+    // The well-mixed-pair assumption, tested rather than asserted. Only possible
+    // on the file the real-hash sample was drawn from.
+    if (REF && REF.file === file && REF.passB) {
+      compareGrids('constructed seeds', grid, rows.length, 'pass B, real neighbour hashes', REF.passB.grid, REF.passB.n);
+    } else if (REF) {
+      console.log(`\n   no real-hash comparison for ${file} — the reference set was drawn from ${REF.file}.`);
+    }
 
     const other = new Set();
     for (const r of rows) for (const f of r.firing) if (f.name !== CCC) other.add(`${f.name} [${f.flag}]`);
