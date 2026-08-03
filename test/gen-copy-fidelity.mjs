@@ -145,7 +145,34 @@ export const DEFAULTS = {
   decimals: 2,
   condNames: ['CondA', 'CondB'],
   sharedSubjects: false, // see MODES below
+  sigmaS: 0,             // per-subject noise-scale dispersion; see HETEROGENEITY below
 };
+
+// ── HETEROGENEITY, the second axis ──────────────────────────────────────
+//
+// `sigmaS` is the dispersion of the per-subject replicate-noise scale, on the
+// log scale. At 0 every subject has the same noise scale, which is what the
+// instrument shipped with and what the whole first sweep ran on.
+//
+// It matters because Residual Spike Correlation row-centres before it computes
+// anything, so subject LEVEL is invisible to it. What it can see is a subject
+// whose replicates scatter more than its neighbours' — and such a subject is
+// extreme in every condition without any fabrication having occurred. That is
+// the artefact the test's critics name, and `sigmaS` is the only knob here that
+// can produce it.
+//
+// The multiplier is centred so the pooled replicate noise stays at `sigma`
+// however large `sigmaS` gets. Raising `sigmaS` therefore redistributes noise
+// between subjects without changing how much there is, which is what lets the
+// two effects be told apart.
+//
+// The scale is a property of the SUBJECT, identical in both conditions. A scale
+// that were redrawn per condition would not be persistent subject structure and
+// would not produce the failure mode.
+
+// Ten fidelity points, denser where a copy is still good, ending at exact
+// independence. Six heterogeneity points, from homoscedastic upward.
+export const SLADDER = [0, 0.15, 0.3, 0.5, 0.75, 1.0];
 
 // ── MODES, and why there are two ────────────────────────────────────────
 //
@@ -214,6 +241,54 @@ function pearson(x, y) {
 }
 
 /**
+ * Per-subject residual noise-scale dispersion, bias-corrected.
+ *
+ * Takes one array per condition, each `nSubjects x nReps` of RAW values. Row
+ * means are removed per subject per condition, the residuals are pooled across
+ * conditions for that subject, and the dispersion reported is the spread of
+ * log(per-subject residual sd) across subjects.
+ *
+ * The correction matters and is the whole reason this is a shared function
+ * rather than three inline copies. With only a handful of replicates, the
+ * per-subject sd is estimated noisily, so even perfectly homoscedastic data
+ * shows a raw dispersion of about `1/sqrt(2*df)` — at 6 replicates and 2
+ * conditions that is 0.32, which would swamp the quantity being measured.
+ * Var(log sd_hat) is approximately 1/(2*df), so it is subtracted before the
+ * square root. The estimator's recovery against known `sigmaS` is checked in
+ * the script block below rather than assumed.
+ *
+ * Values are logged first, matching how the generator builds the data and how
+ * the pipeline's own transform reads it.
+ *
+ * @param {number[][][]} conditions - one nSubjects x nReps matrix per condition
+ * @returns {{ raw:number, corrected:number, df:number, perSubject:number[] }}
+ */
+export function residualScaleDispersion(conditions) {
+  const S = Math.min(...conditions.map(c => c.length));
+  const logSd = [];
+  let dfTotal = 0;
+  for (let s = 0; s < S; s++) {
+    const res = [];
+    let df = 0;
+    for (const C of conditions) {
+      const vals = C[s].filter(v => v != null && isFinite(v) && v > 0).map(Math.log);
+      if (vals.length < 2) continue;
+      const m = mean(vals);
+      for (const v of vals) res.push(v - m);
+      df += vals.length - 1;
+    }
+    if (df < 1 || !res.length) continue;
+    const ss = res.reduce((a, v) => a + v * v, 0);
+    const sdHat = Math.sqrt(ss / df);
+    if (sdHat > 0) { logSd.push(Math.log(sdHat)); dfTotal += df; }
+  }
+  const dfMean = logSd.length ? dfTotal / logSd.length : 0;
+  const raw = sd(logSd);
+  const bias = dfMean > 0 ? 1 / (2 * dfMean) : 0;
+  return { raw, corrected: Math.sqrt(Math.max(0, raw * raw - bias)), df: dfMean, perSubject: logSd };
+}
+
+/**
  * One swept dataset.
  * @param {{k:number, seed:number}} opts plus any DEFAULTS override.
  * @returns {{ k, rho, params, A, B, columnGroupedCsv, rowGroupedCsv, diagnostics }}
@@ -241,9 +316,28 @@ export function generate(opts = {}) {
   const effectSet = new Set(order.slice(0, nEffect));
 
   const logA = [], logB = [];
+  const subjScale = [];
   for (let s = 0; s < S; s++) {
     const L = mu + p.tau * randn();          // subject level, condition A
     const Lp = mu + p.tau * randn();         // fresh independent subject level
+    // Per-subject noise SCALE, the axis the artefact question turns on.
+    // sigmaS = 0 gives one global sigma for every subject, which is what the
+    // instrument shipped with. Above zero each subject's replicate noise is
+    // multiplied by a log-normal draw, so some subjects scatter more than their
+    // neighbours — and a subject that scatters more is extreme in EVERY
+    // condition, which is exactly the failure mode the reviewers named.
+    //
+    // The multiplier is centred so E[scale^2] = 1: the POOLED replicate noise
+    // stays at p.sigma however large sigmaS gets. Without that, raising sigmaS
+    // would also raise the overall noise level and the two effects could not be
+    // told apart. The subject's noise scale is the SAME in both conditions,
+    // because that is what makes it a persistent property of the subject rather
+    // than of the measurement.
+    const scale = p.sigmaS > 0
+      ? Math.exp(p.sigmaS * randn() - p.sigmaS * p.sigmaS)
+      : 1;
+    subjScale.push(scale);
+    const sig = p.sigma * scale;
     const rowA = [], rowB = [];
     const logEffect = effectSet.has(s) ? Math.log(p.effectFold) : 0;
     // In shared-subjects mode the subject level is carried over untouched; the
@@ -251,8 +345,8 @@ export function generate(opts = {}) {
     const rhoS = p.sharedSubjects ? 1 : rho;
     const subjB = mu + rhoS * (L - mu) + Math.sqrt(1 - rhoS * rhoS) * (Lp - mu) + logEffect;
     for (let r = 0; r < R; r++) {
-      const e = p.sigma * randn();           // replicate noise, condition A
-      const f = p.sigma * randn();           // fresh independent replicate noise
+      const e = sig * randn();               // replicate noise, condition A
+      const f = sig * randn();               // fresh independent replicate noise
       rowA.push(L + e);
       rowB.push(subjB + rho * e + Math.sqrt(1 - rho * rho) * f);
     }
@@ -276,6 +370,7 @@ export function generate(opts = {}) {
     const ss = res.reduce((s, v) => s + v * v, 0);
     return Math.sqrt(ss / (M.length * (M[0].length - 1)));
   };
+  const disp = residualScaleDispersion([A, B]);
   const diagnostics = {
     cellCorr: pearson(flatA, flatB),          // matched-cell correlation, should track rho
     subjectCorr: pearson(meanA, meanB),       // subject-wise correlation, the independence check
@@ -283,6 +378,11 @@ export function generate(opts = {}) {
     replicateNoiseB: residSd(B),
     spreadA: sd(flatA), spreadB: sd(flatB),   // marginal spread, should match at every k
     nEffectSubjects: nEffect,
+    // Measured per-subject noise-scale dispersion, bias-corrected. Should
+    // recover p.sigmaS; that recovery is what makes the fixture anchor readable.
+    noiseScaleDispersionRaw: disp.raw,
+    noiseScaleDispersion: disp.corrected,
+    trueScaleDispersion: sd(subjScale.map(Math.log)),
   };
 
   // ── layouts ───────────────────────────────────────────────────────────
