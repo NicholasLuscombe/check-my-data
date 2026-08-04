@@ -696,3 +696,285 @@ reached for DS11, now on evidence for DS02 too.
 described in `CLAUDE.md` as live and exported from `tokens.js`. It was retired at S156 —
 `tokens.js:282` carries only the retirement comment, and `grep` returns no other hit in `src/`. The
 dataset-level vocabulary is `ACTION_LABEL` / `OUTCOME_LABEL`.
+
+---
+---
+
+# Part 4 — does copy fidelity inflate *s*?
+
+**Scope.** Measurement only. Nothing under `src/` changed. This decides nothing about P86, whose
+suspension rests on unbounded field risk that no measurement here touches. It decides whether the
+reinstatement route is buildable.
+
+**Why it was asked.** Part 3 measured DS02 at *s* = 0.319 with its rescaled copy and 0.173 without. A
+copy makes two conditions share one noise realisation, so a subject carries fewer independent degrees of
+freedom than the bias correction assumes and the estimator reads the shortfall as dispersion. If that
+generalises, the gate and the detector read the same signal in opposite directions.
+
+**Instruments**, both committed here:
+
+```bash
+python3 test/probes/gen-s351-ds11-ablation.py /tmp/s351-ds11
+```
+
+```bash
+SEEDS=20 DS11DIR=/tmp/s351-ds11 node test/probes/probe-s351-s-gate.mjs
+```
+
+**Answer, stated first.** It is a curve, not a fixture artefact. **The *s*-gate is not buildable as
+specified.** Measured *s* rises monotonically with copy fidelity on data planted at zero dispersion; at a
+perfect copy it sits above the threshold on the majority of files; the honest and fabricated populations
+overlap with no separating threshold; and **both of the test's adjudicated true detections sit above the
+knee because of their own fabrication.**
+
+---
+
+## 17. The instrument
+
+`test/gen-copy-fidelity.mjs`, unchanged since S350 — `git log --follow` returns exactly two commits,
+`f343cdd` (S350 Parts 9–11) and `3321e70` (S350 Parts 12–13), and nothing after.
+
+| | |
+|---|---|
+| Copy fidelity | `k` in [0, 1]. Units: copy noise as a multiple of the file's own within-condition replicate noise. `k = 0` perfect copy, `k = 1` exact independence, `rho = sqrt(1-k²)`. Ladder `[0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.65, 0.8, 0.9, 1.0]` |
+| Planted dispersion | **`sigmaS`, settable, default 0.** Ladder `[0, 0.15, 0.3, 0.5, 0.75, 1.0]` |
+
+**Planted *s* = 0 is settable and is the default**, so the control the whole sweep rests on exists: any
+*s* the estimator reads on such a file is estimator noise or copy-induced and nothing else. The halt
+condition is cleared.
+
+Assumptions, from the file's own header, all defaults and all overridable: log-normal on the log scale;
+multiplicative homoscedastic noise; independent replicates with no batch, plate, drift or serial
+structure; a fixed 1.5× effect on a fixed 20% of subjects; `tau` 1.15 against `sigma` 0.25, so subject
+levels span about two orders of magnitude; 6 replicates; 120 matched subjects; **exactly two
+conditions**; two decimals. The two-condition limit matters — the max-over-pairs structure that gives
+the test its power at three conditions is absent by construction.
+
+Two checks before using it, both passed:
+
+- The estimator fed the generator's own arrays and fed the matrix parsed back out of its CSV return
+  **identical** values, so the sweep's numbers and DS02's are on the same footing.
+- `sharedSubjects` pins the subject level, and the estimator centres within condition. Measured
+  **identical** with the mode on and off, confirming subject level is invisible to it. The sweep runs in
+  the default mode.
+
+The estimator is imported, not re-derived — the same function that produced 0.041, 0.055, 0.162 and
+0.199 on the clean paired fixtures and 0.319 on DS02.
+
+---
+
+## 18. The sweep
+
+Twenty independently generated datasets per cell. "RSC fires" counts MODERATE or HIGH under the shipped
+free null.
+
+**Planted *s* = 0 — the control**
+
+| `k` | measured *s*, median [min..max] | RSC fires | median *p* |
+|---|---|---|---|
+| 0 (perfect copy) | **0.261** [0.215..0.312] | 20/20 | 0.0010 |
+| 0.1 | 0.255 [0.214..0.317] | 20/20 | 0.0010 |
+| 0.2 | 0.247 [0.209..0.315] | 20/20 | 0.0010 |
+| 0.3 | 0.244 [0.203..0.304] | 20/20 | 0.0010 |
+| 0.4 | 0.232 [0.182..0.285] | 20/20 | 0.0010 |
+| 0.5 | 0.215 [0.158..0.264] | 19/20 | 0.0010 |
+| 0.65 | 0.180 [0.117..0.230] | 11/20 | 0.0055 |
+| 0.8 | 0.143 [0.053..0.202] | 1/20 | 0.0825 |
+| 0.9 | 0.107 [0.000..0.177] | 2/20 | 0.3425 |
+| 1 (independence) | **0.050** [0.000..0.138] | 0/20 | 0.5425 |
+
+**The other three rows of the grid**, medians only:
+
+| planted *s* | `k`=0 | 0.2 | 0.4 | 0.65 | 0.8 | 1 |
+|---|---|---|---|---|---|---|
+| 0 | 0.261 | 0.247 | 0.232 | 0.180 | 0.143 | 0.050 |
+| 0.15 | 0.289 | 0.283 | 0.267 | 0.232 | 0.204 | 0.150 |
+| 0.3 | 0.386 | 0.380 | 0.370 | 0.341 | 0.325 | 0.289 |
+| 0.5 | 0.544 | 0.540 | 0.536 | 0.518 | 0.502 | 0.480 |
+
+The diagonal check holds: at `k` = 1 the estimator recovers 0.050, 0.150, 0.289 and 0.480 against
+planted 0, 0.15, 0.3 and 0.5. It is measuring what it claims to when nothing is copied.
+
+### Q1 — is it a curve?
+
+**Yes, and strictly monotone.** On data planted at zero dispersion, measured *s* falls from 0.261 at a
+perfect copy to 0.050 at independence, decreasing at every one of the ten rungs. The DS02 result was not
+fixture-specific. Copy fidelity alone moves the estimate by 0.21 with no dispersion planted at any point.
+
+The inflation is largest exactly where the copy is best — the same place the detector works.
+
+### Q2 — does a perfect copy cross the knee?
+
+**Yes, on the majority of files.** At `k` = 0 with zero planted dispersion, the median is **0.261** and
+**13 of 20** datasets read at or above 0.25. Every one of those 20 files fires the test at *p* = 0.001.
+
+So the gate would skip the test on most instances of the cleanest detection case it has.
+
+### Q3 — can one threshold separate the two populations?
+
+**No.**
+
+| Population | n | median | range |
+|---|---|---|---|
+| Honest-heteroscedastic — `k`=1, planted *s* in {0.3, 0.5}, where the test false-positives | 40 | 0.384 | [0.245..0.553] |
+| Copy-fabricated — planted *s* = 0, `k` in {0, 0.1, 0.2, 0.3, 0.4}, where the test works | 100 | 0.253 | [0.182..0.317] |
+
+The ranges **overlap on [0.245, 0.317]**. Fourteen of the forty honest files and fifty-three of the
+hundred fabricated ones fall inside that band. No single threshold separates them, and the overlap is
+not a tail effect — it contains over half the fabricated population.
+
+---
+
+## 19. Resolution — subject count or estimator?
+
+Measured at `k` = 1 so no copy contamination enters, replicates held at 6 and conditions at 2 so df per
+subject is 10 in both arms.
+
+| Subjects | planted *s* | measured *s*, median [min..max] | spread |
+|---|---|---|---|
+| 120 | 0 | 0.072 [0.000..0.140] | 0.140 |
+| 35 | 0 | 0.076 [0.000..0.156] | 0.156 |
+| 120 | 0.3 | 0.304 [0.265..0.380] | 0.115 |
+| 35 | 0.3 | 0.282 [0.174..0.357] | 0.183 |
+
+**Expectation 4 inverts.** Tripling the subject count buys almost nothing — the spread at zero planted
+dispersion falls from 0.156 to 0.140, about a tenth, where pure sampling on a standard deviation would
+predict a factor of `sqrt(120/35)` ≈ 1.85. **Resolution is not a subject-count problem.**
+
+Replicates are the binding constraint, and they fix it. At 120 subjects:
+
+| Replicates | df/subject | planted *s* | measured *s*, median [min..max] | spread |
+|---|---|---|---|---|
+| 6 | 10 | 0 | 0.076 [0.000..0.141] | 0.141 |
+| 12 | 22 | 0 | 0.000 [0.000..0.084] | 0.084 |
+| 24 | 46 | 0 | 0.000 [0.000..0.052] | 0.052 |
+| 6 | 10 | 0.3 | 0.313 [0.244..0.358] | 0.115 |
+| 12 | 22 | 0.3 | 0.303 [0.252..0.337] | 0.084 |
+| 24 | 46 | 0.3 | 0.295 [0.254..0.344] | 0.090 |
+
+The median at planted 0.3 stays near 0.30 throughout, so the estimator is unbiased at every replicate
+count. Only its noise floor moves. **The remedy is replicates per subject, not subjects** — and
+replicate count is a property of the deposited experiment, not something a corpus or a gate can choose.
+
+This corrects a figure in the disposition. `S350-PAIRED-DESIGN-DISPOSITION.md:116` reads "the estimator's
+resolution floor is about 0.055". The floor is not a point: on honest, zero-dispersion data at 120
+subjects and 6 replicates, individual files read anywhere from 0.000 to 0.140.
+
+---
+
+## 20. The obvious remedy, measured
+
+Estimate the scale from **one condition only**, so a copy cannot contaminate it. That halves the df each
+subject contributes, trading contamination for resolution. Run at `k` = 0, a perfect copy, where a
+two-condition estimator is maximally contaminated — so anything above zero here is resolution.
+
+| Replicates | df/subject | planted *s* | measured *s*, median [min..max] | spread |
+|---|---|---|---|---|
+| 6 | 5 | 0 | **0.151** [0.000..0.214] | 0.214 |
+| 12 | 11 | 0 | 0.079 [0.000..0.115] | 0.115 |
+| 6 | 5 | 0.3 | 0.344 [0.244..0.416] | 0.172 |
+| 12 | 11 | 0.3 | 0.307 [0.233..0.407] | 0.174 |
+
+At six replicates the copy-immune estimator reads up to **0.214 on data with zero dispersion** — inside
+the 0.2–0.3 knee. It cannot resolve the threshold it would be gating on. At twelve it can.
+
+So the two routes are blocked by one budget. The two-condition estimator has the df but is contaminated
+by the thing it is meant to be independent of; the single-condition estimator is clean but needs about
+twelve replicates per subject to resolve the knee. The corpus's paired fixtures carry four (DS02, DS11)
+or six (DS09).
+
+---
+
+## 21. DS11 — the second real data point
+
+**Provenance first.** DS11 reproduces **byte-identically** from `generate-test-datasets.py`. It is the
+eleventh generator and all of them draw from one Mersenne Twister seeded at 7741, so the ablation runs
+the real file with a single in-memory source substitution rather than re-implementing eleven generators.
+The substitution disables only the line that *writes* the spike; both draws that decide one —
+`spike_rep` and `spike_magnitude` — happen outside the replicate loop and are left in place, and the
+multiplication consumes no randomness. The ablated run therefore draws exactly what the shipped run
+draws. It changes 60 of 1501 lines: 20 genes × 3 conditions, which is the plant exactly.
+
+| | *s* | raw | RSC | *p* | overlap | K |
+|---|---|---|---|---|---|---|
+| shipped | **0.2716** | 0.3596 | MODERATE | 0.003 | 13 | 50 |
+| spikes ablated | **0.0000** | 0.2237 | LOW | 0.139 | 9 | 50 |
+
+**Expectation 5 confirmed, and more sharply than DS02.** DS11's entire measured dispersion is the plant.
+Twenty genes out of 500 — four per cent of subjects — carrying a shared residual spike take the file from
+0.000 to 0.272. Ablated, the raw value of 0.2237 falls below the bias floor `sqrt(1/(2·9))` = 0.2357 and
+the corrected value clamps to exactly zero.
+
+The mechanism differs from DS02's. DS02 rescales a whole condition; DS11 spikes one replicate position
+in every condition on selected genes. **Both inflate the estimate, so the contamination is a property of
+planted cross-condition structure rather than of rescaling specifically.** That is the companion the
+dispatch asked for.
+
+### Both adjudicated detections sit above the knee, and their own fabrication puts them there
+
+| Fixture | *s* as shipped | *s* with the plant removed | RSC as shipped |
+|---|---|---|---|
+| DS02 | 0.319 | 0.173 | MODERATE, *p* 0.001 |
+| DS11 | 0.272 | 0.000 | MODERATE, *p* 0.003 |
+
+Against a knee at 0.2–0.3 and a working threshold of about 0.25, both are above. DS02 sits above the
+whole band. A gate built as specified would skip Residual Spike Correlation on **both** files it is known
+to be right about.
+
+---
+
+## 22. Expectations
+
+| # | Expectation | Result |
+|---|---|---|
+| 1 | Measured *s* rises monotonically with copy fidelity on data planted at *s* = 0 | **Confirmed.** 0.050 → 0.261, monotone at all ten rungs |
+| 2 | At a perfect copy it crosses the knee, so the gate excludes its own best case | **Confirmed.** Median 0.261, 13/20 at or above 0.25, all 20 firing at *p* 0.001 |
+| 3 | The two populations overlap and no single threshold separates them | **Confirmed.** Overlap on [0.245, 0.317], containing 53 of 100 fabricated files |
+| 4 | The spread is much tighter at 120 subjects than at 35, so resolution is a subject-count problem | **Wrong.** 0.140 against 0.156 — a tenth. Replicates are the constraint, not subjects |
+| 5 | DS11's *s* drops on ablation, as DS02's did | **Confirmed**, to exactly zero |
+
+Expectations 1–3 stood or fell together and all three stood, so the DS02 finding is general.
+
+---
+
+## 23. Is the gate buildable?
+
+**Not as specified.** Four measured reasons, any one of which is sufficient:
+
+1. The contamination is a curve. Copy fidelity alone moves measured *s* by 0.21 on data with no
+   dispersion planted at any point.
+2. At the cleanest detection case the estimate crosses the threshold on 13 of 20 files, so the gate would
+   skip the test on the majority of its best cases.
+3. The honest and fabricated populations overlap on [0.245, 0.317], and no threshold separates them.
+4. Both of the test's adjudicated true detections read above the threshold, and removing their plants
+   drops them to 0.173 and 0.000.
+
+**What would have to change.** A gate needs an estimator that cannot be moved by the thing it is gating
+on. Estimating the scale from a single condition achieves that, and it is measured: clean, but needing
+about twelve replicates per subject to resolve a 0.25 threshold, against the four or six the paired
+fixtures carry. So the honest statement is that the gate needs both a different estimator and more
+replicates than the corpus has — not a better-fitted threshold.
+
+**This also answers the question the dispatch raised about P65.** A field measurement of *s* on real
+deposits needs a contamination control before it is worth running. Measured with the shipped estimator on
+deposits of unknown status, a fabricated file reads high for the same reason a heteroscedastic honest one
+does, and the two cannot be told apart in the overlap band. Running P65 without that control would
+produce a number that means neither thing.
+
+---
+
+## 24. What this does not settle
+
+- **P86's disposition.** The suspension rests on unbounded false-positive risk in the field above the
+  knee. Nothing here touches that. This says the reinstatement route as written does not work, not that
+  the suspension should lift or stand.
+- **The field value of *s*.** Every number here comes from one generator carrying its own assumptions —
+  log-normal, homoscedastic, no serial structure, a fixed effect on a fixed fraction, exactly two
+  conditions. It locates the instrument, not real deposits.
+- **Whether some other gating quantity exists.** Only *s* was measured. Nothing here rules out a
+  different statistic separating the two populations.
+- **Three-or-more-condition behaviour.** The generator emits exactly two conditions, so the max-over-pairs
+  structure the test relies on at three is absent throughout. DS11 is the only three-condition datum here
+  and it is a single file.
+- **Whether the single-condition estimator behaves at three conditions**, where a per-condition estimate
+  could be pooled across conditions with the copy structure still excluded. Not measured.
