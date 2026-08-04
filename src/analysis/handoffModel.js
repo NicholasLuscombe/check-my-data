@@ -32,7 +32,7 @@ import {
 } from "../constants/mechanisms.js";
 import { VST_LABEL } from "../stats/vst.js";
 import { computeSeverity } from "./severity.js";
-import { classifyCoverage, isWithheld, summarizeCoverage } from "./coverage.js";
+import { classifyCoverage, clusterCoverageState, isWithheld, summarizeCoverage } from "./coverage.js";
 import { fmtP } from "../constants/thresholds.js";
 import { composeFinding } from "./findingComposers.js";
 
@@ -72,6 +72,18 @@ const OUTCOME_HEADLINE = [
  */
 
 /**
+ * @typedef {Object} PartlyAssessedCluster
+ * @property {string} clusterLabel        Pre-formatted title-case form: "Copy-paste/edit cluster"
+ * @property {number} clearedCount        Tests that ran and cleared
+ * @property {number} couldRun            Tests that were on the table — cleared plus withheld.
+ *                                        Read from clusterCoverageState so the fraction is the
+ *                                        same number the §3 cluster header renders, not a
+ *                                        second derivation of it.
+ * @property {string[]} testNames         Canonical names of the cleared tests, engine order
+ * @property {string[]} withheldTestNames Canonical names of the withheld tests, engine order
+ */
+
+/**
  * @typedef {Object} SkippedTest
  * @property {string} testName
  * @property {string} reason          Engine-emitted r.description, verbatim
@@ -81,7 +93,7 @@ const OUTCOME_HEADLINE = [
  * @typedef {Object} HandoffModel
  * @property {{filename:string,rows:number,cols:number,assay:string,assayProvenance:string,dataType:string,conditions:string[]|null,vstLabel:string,vstProvenance:string}} dataset
  * @property {{tier:0|1|2|3,label:string,headline:string,applicableTests:number,flaggedCount:number,notedCount:number}} outcome
- * @property {{high:Finding[],moderate:Finding[],clearedInFlaggedClusters:FlaggedClusterClearedGroup[],otherClustersAllClear:ClusterSummary[],notRun:SkippedTest[],notRunFootnote:string}} findings
+ * @property {{high:Finding[],moderate:Finding[],clearedInFlaggedClusters:FlaggedClusterClearedGroup[],otherClustersAllClear:ClusterSummary[],otherClustersPartlyAssessed:PartlyAssessedCluster[],notRun:SkippedTest[],notRunFootnote:string}} findings
  */
 
 function capFirst(s) {
@@ -249,33 +261,60 @@ function buildFindings(results, dataset) {
       .map(r => r.name),
   }));
 
-  // Non-flagged clusters where every applicable test cleared. These DO
-  // follow canonical MECHANISM_ORDER — they didn't appear in the flagged
-  // sections above, so the reader sees them for the first time here.
+  // Non-flagged clusters where everything that ran cleared, split two ways.
+  // These DO follow canonical MECHANISM_ORDER — they didn't appear in the
+  // flagged sections above, so the reader sees them for the first time here.
   //
-  // A cluster holding a withheld test is not one of them, and the renderer's
-  // section header is why: "all applicable tests cleared" is a completeness
-  // claim, and a withheld test is applicable and did not clear. Left in, the
-  // same document asserted the cluster complete and named the missing member
-  // under "Tests not run" a few lines later. The withheld test still appears
-  // there, with its reason verbatim.
+  // A cluster holding a withheld test goes to the second list, and the
+  // renderer's section headers are why: "all applicable tests cleared" is a
+  // completeness claim, and a withheld test is applicable and did not clear.
+  // Under that header the same document asserted the cluster complete and named
+  // the missing member under "Tests not run" a few lines later. Under its own
+  // header the cluster reports the gap and keeps its cleared tests, which are
+  // evidence a reader would otherwise never see — the whole document goes to a
+  // third party, and an omission there cannot be corrected downstream.
+  //
+  // Both loops run only over non-flagged clusters, so `allClear` is true by
+  // construction here; it is kept as the explicit statement of what these
+  // sections claim rather than relied on as an accident of the filter above.
+  //
+  // A cluster where nothing ran is in NEITHER list. "Partly assessed" needs a
+  // part, and with no cleared tests the entry would carry an empty name list
+  // and a "0 of 1" fraction. That cluster's withheld member is in "Tests not
+  // run", which is the honest home for it — and it is the same cut the §3
+  // cluster header makes, where the word goes to "Not evaluated" rather than
+  // "Partly assessed" at zero.
   const otherClustersAllClear = [];
+  const otherClustersPartlyAssessed = [];
   const flaggedKeySet = new Set(flaggedClusterKeys);
   for (const mechKey of MECHANISM_ORDER) {
     if (flaggedKeySet.has(mechKey)) continue;
     const clusterResults = results.filter(
       r => (TEST_MECHANISM[r.name] || "") === mechKey
     );
-    if (clusterResults.some(isWithheld)) continue;
     const ran = clusterResults.filter(r => classifyCoverage(r) === "ran");
     if (ran.length === 0) continue;
     const allClear = ran.every(r => r.flag === "LOW");
     if (!allClear) continue;
-    otherClustersAllClear.push({
-      clusterLabel: `${capFirst(MECHANISMS[mechKey]?.clusterLabel || mechKey)} cluster`,
-      testCount: ran.length,
-      testNames: ran.map(r => r.name),
-    });
+    const clusterLabel = `${capFirst(MECHANISMS[mechKey]?.clusterLabel || mechKey)} cluster`;
+    const withheld = clusterResults.filter(isWithheld);
+    if (withheld.length > 0) {
+      otherClustersPartlyAssessed.push({
+        clusterLabel,
+        clearedCount: ran.length,
+        // Straight off clusterCoverageState, so this fraction and the §3 cluster
+        // header's "3 of 4" are one number computed once.
+        couldRun: clusterCoverageState(summarizeCoverage(clusterResults)).couldRun,
+        testNames: ran.map(r => r.name),
+        withheldTestNames: withheld.map(r => r.name),
+      });
+    } else {
+      otherClustersAllClear.push({
+        clusterLabel,
+        testCount: ran.length,
+        testNames: ran.map(r => r.name),
+      });
+    }
   }
 
   // Tests not run — flag === "N/A" carries r.description as engine reason.
@@ -309,6 +348,7 @@ function buildFindings(results, dataset) {
     moderate,
     clearedInFlaggedClusters,
     otherClustersAllClear,
+    otherClustersPartlyAssessed,
     notRun,
     notRunFootnote,
   };

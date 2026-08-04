@@ -220,7 +220,6 @@ export function ReportView({ results: baseResults, importConfig, matrix, rowMap,
   const [copied,setCopied]=useState(false);
   const [exporting,setExporting]=useState(false);
   const [mode,setMode]=useState("qc");
-  const nApplicable = results.filter(r => r.flag !== "N/A").length;
   const handleExcelDownload = async () => {
     setExporting(true);
     try { await lazyExportToExcel({results,importConfig,matrix,rowMap,mode}); }
@@ -1266,7 +1265,6 @@ export function ReportView({ results: baseResults, importConfig, matrix, rowMap,
         };
 
         // Category summaries (sorted by flag count, for evidence section)
-        const nAppD = results.filter(r=>r.flag!=="N/A").length;
         const mgFull = buildMechanismGroups(results);
         const catSummaries = MECHANISM_ORDER.map(mk => {
           const group = mgFull[mk];
