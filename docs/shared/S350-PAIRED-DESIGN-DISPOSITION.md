@@ -8,9 +8,15 @@
 
 ## 1. What was measured
 
-Two tests build a permutation null that shuffles rows freely across conditions. On matched-pairs data
-that destroys the pairing the design imposes, so permuted pseudo-conditions differ more than the real
-matched pair does.
+Two tests build a permutation null that destroys the correspondence the design imposes between row r in
+one condition and row r in another. They do it by opposite operations. Cross-Condition Consistency
+shuffles row tuples across conditions, so the condition tags move under fixed rows, and all seven of its
+arms share that one shuffle. Residual Spike Correlation shuffles each condition's residual vector within
+itself, so the rows move under fixed tags. Either way the matched pair is broken, and permuted
+pseudo-conditions differ more than the real matched pair does. The scope rule is the destroyed
+correspondence, not the direction of the shuffle — a rule phrased as "shuffles rows across conditions"
+reaches all of Cross-Condition Consistency and none of Residual Spike Correlation. (Corrected S351 from
+the arm-level read of both tests' nulls.)
 
 **Cross-Condition Consistency.** On `09-proteomics-clean` — 200 pairs matched by `ProteinID`, which is
 a **row-grouped** fixture, so the pairing key is a label column rather than the row index — the

@@ -46,6 +46,7 @@ export const NA_CAUSE = {
   ROW_ORDER_ARBITRARY: 'rowOrderArbitrary',     // row order carries no meaning (long-format, gene lists)
   ASSAY_NOT_APPLICABLE: 'assayNotApplicable',   // assay biology makes the test meaningless (genomics, cell count)
   PREMISE_VOID: 'premiseVoid',                  // the test's premise is void (conditions genuinely differ, no grouping, too-high missingness)
+  SUBJECTS_SHARED_ACROSS_CONDITIONS: 'subjectsSharedAcrossConditions', // conditions hold the same subjects, so a null that breaks the row-to-row correspondence describes different data (P82)
 
   // ── Shortfalls (could run, not enough of something) ──
   TOO_FEW_COLUMNS: 'tooFewColumns',             // fewer replicate / feature columns than the minimum

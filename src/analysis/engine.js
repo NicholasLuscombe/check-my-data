@@ -10,6 +10,7 @@ import { ROW_SEMANTICS_FULL_SKIP, ROW_SEMANTICS_SKIP_REASON } from '../import/ro
 import { aggregatePerGroup, buildGroups } from './aggregation.js';
 import { createConditionContext } from './conditionContext.js';
 import { computeTrigger } from './groupingTrigger.js';
+import { computeSubjectPairing, PAIRED_CAUSE, PAIRED_SKIP } from './subjectPairing.js';
 import { noGroupMeetsMin } from './applicability.js';
 
 // ── validateMatrix ────────────────────────────────────────────────
@@ -173,6 +174,18 @@ export function extractAnalysisInputs({ data, roles, condPerCol, zeroAsMissing, 
     filteredIndices,
   });
 
+  // P82 (S351) — subject pairing. Computed HERE for the same reason
+  // groupingTrigger is: this is the only scope holding data, roles and
+  // filteredIndices together, and the identifier column is dropped from the
+  // matrix two statements above. runFullAnalysis receives only matrix +
+  // condCtx, so the verdict is stamped onto condCtx for the dispatch to read.
+  // Its own field, deliberately not condCtx.paired — see subjectPairing.js.
+  // `headers` is not passed: extractAnalysisInputs receives dataColHeaders,
+  // which indexes DATA columns, while the identifier index lives in raw-row
+  // space alongside `roles`. Mixing the two would name the wrong column. The
+  // verdict carries idColIndex; a caller holding raw headers can resolve it.
+  condCtx.subjectPairing = computeSubjectPairing({ condCtx, data, roles, filteredIndices });
+
   return { matrix, rawMatrix, filteredIndices, condCtx };
 }
 
@@ -335,6 +348,35 @@ export async function runFullAnalysis(matrix, rawMatrix, condCtx, assay, onProgr
     return { name: testName, category, flag: "N/A", naCause: NA_CAUSE.ROW_ORDER_ARBITRARY, description: ROW_SEMANTICS_SKIP_REASON };
   }
 
+  // Paired-design gate (P82, S351). A test whose null destroys the
+  // correspondence between row r in one condition and row r in another cannot
+  // run on a file whose conditions hold the same subjects — the reference
+  // distribution it compares against describes data this file is not. The
+  // verdict is computed in extractAnalysisInputs, the only scope that still has
+  // the identifier column, and stamped onto condCtx.
+  //
+  // Cross-Condition Consistency is the sole member today. All seven of its arms
+  // are withheld together: they share one Fisher-Yates over permRow, so there is
+  // no subset to spare. Residual Spike Correlation breaks the same
+  // correspondence by the opposite operation and is NOT in this map — P86 is a
+  // separate decision and is not implemented here.
+  //
+  // Routes through the shared decline machinery: joinDeclineReason for
+  // `description`, plus naCauseText / naTailText so groupNotApplicableByReason
+  // states the shared cause once and indents the per-test line under it. The
+  // result carries no p, no statistic and no numbers — a figure beside a skip
+  // reads as evidence whatever label sits next to it.
+  const isPairedDesign = !!condCtx?.subjectPairing?.paired;
+  function pairedSkip(testName, category) {
+    if (!isPairedDesign) return null;
+    if (!(testName in PAIRED_SKIP)) return null;
+    const tail = PAIRED_SKIP[testName];
+    return { name: testName, category, flag: "N/A",
+      naCause: NA_CAUSE.SUBJECTS_SHARED_ACROSS_CONDITIONS,
+      description: joinDeclineReason(PAIRED_CAUSE, tail),
+      naCauseText: PAIRED_CAUSE, naTailText: tail };
+  }
+
   // Dev-only perf skip (S251): the two long-pole tests (Blocked Mahalanobis
   // ~38% of wall-clock, Excess Kurtosis ~21%) short-circuit to a cheap
   // N/A-shaped result when skipHeavy is set, so the local visual-check loop
@@ -429,6 +471,10 @@ export async function runFullAnalysis(matrix, rawMatrix, condCtx, assay, onProgr
       // because VST is designed to flatten mean-variance slope (spec §1.9
       // Stage 3 "Not VST-aware"); the driver dispatches per-property based
       // on the registry's useOriginalValues flag.
+      // P82: withheld before anything is computed when the conditions hold the
+      // same subjects. Placed ahead of the condition-count guard so a paired
+      // file reports why it was withheld rather than a count it does meet.
+      const psCC = pairedSkip("Cross-Condition Consistency", "group"); if (psCC) return psCC;
       const m = hasVST ? vstMatrix : matrix;
       const ctx = hasVST ? vstCondCtx : condCtx;
       if (!ctx || !ctx.has || ctx.count < 2) {
