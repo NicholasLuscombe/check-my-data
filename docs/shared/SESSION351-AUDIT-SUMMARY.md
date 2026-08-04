@@ -397,3 +397,302 @@ This file follows the precedent of `SESSION343-AUDIT-SUMMARY.md`, `SESSION349-AU
 `SESSION350-AUDIT-SUMMARY.md` — Code-authored audit summaries, tracked, committed on the Code branch,
 and cited from `CLAUDE.md`. It creates a new file rather than editing any Chat-owned document. If Chat
 would rather these lived elsewhere, say so and the next one moves.
+
+---
+---
+
+# Part 3 — is Residual Spike Correlation's DS02 firing a true detection?
+
+**Scope.** Measurement only. Nothing under `src/` changed. P86's disposition is Chat's and this settles
+nothing about it.
+
+**Why it was asked.** The disposition adjudicated the test's DS11 firing against construction and found
+it real. It never adjudicated DS02. Part 1 then measured that suspending the test drops DS02 from
+severity 3 to 1, so what the suspension costs turns on this answer.
+
+**Instruments**, both committed here:
+
+```bash
+python3 test/probes/gen-s351-ds02-ablations.py /tmp/s351-ablations
+```
+
+```bash
+ABLATIONS=/tmp/s351-ablations node test/probes/probe-s351-ds02-rsc.mjs
+```
+
+**Answer, stated first.** The firing is a **true detection**. It reads the rescaled copy, and it
+collapses when and only when that copy is removed. Suspending the test on paired data gives up two real
+catches, not one, and drops a rescaled-copy fabrication from *Investigate closely* to *Review*.
+
+---
+
+## 9. What DS02 actually contains
+
+**Provenance, checked before anything was built on it.** The shipped
+`02-densitometry-fabricated.csv` is **byte-identical** to what `generate-test-datasets.py` produces.
+So is `01-densitometry-clean.csv`, which has to be regenerated first because both draw from one
+Mersenne Twister seeded at 7741 and DS02 runs second. This is not the DS16/DS17 situation — here the
+generator is a valid anchor. `gen-s351-ds02-ablations.py` re-implements both functions and refuses to
+emit an ablation unless both files reproduce exactly, so a mis-copied constant cannot reach a
+measurement.
+
+DS02 is column-grouped: 35 rows, 3 conditions, 4 replicates each. Matrix row *r* is the same subject in
+every condition, so the "subjects" the test ranks are rows. Data columns 0–3 are Control, 4–7
+Inhibitor_A, 8–11 Inhibitor_B.
+
+| # | Mechanism | Generator lines | What it writes | Rows (1-indexed) | Matrix columns |
+|---|---|---|---|---|---|
+| M1 | rescaled copy | 80–83 | `Inhibitor_A[rep] = Control[rep] × 0.58 + 0.008·N(0,1)` | all 35 | 4–7 |
+| M2 | scattered row copy | 94–101 | `Inhibitor_B[rep] = Control[rep] × 0.35 + 0.002·N(0,1)` | 1, 16, 28, 31, 34 | 8–11 |
+| M3 | replicate lock | 105–108 | `Inhibitor_A Rep2 = Rep1 × 1.003 + 0.0015` | 19–28 | 5 |
+
+M2's five rows come from `random.sample(range(35), 5)`. They were recovered two independent ways and
+the two agree: by capturing the generator's own call in memory, and by reading the data back out (a
+copied row has all four Inhibitor_B / Control ratios sitting on 0.35 within 0.02, an honest row's
+scatter).
+
+### Where the ground-truth row and the generator part company
+
+The row reads, in full: "Rescaled-copy fabrication (Inhibitor_A = Control × 0.58); localised block
+copy; localised near-linear replicate dependence."
+
+- **"Localised block copy" is neither localised nor a block.** M2 writes five rows drawn uniformly at
+  random — 1, 16, 28, 31, 34. Nothing is contiguous. This matters for more than accuracy: it is the
+  reason the test cannot see M2 at all, below.
+- The row does not say M2 copies **Control into Inhibitor_B**, nor at scale 0.35, nor that its noise
+  term is 0.002 — near-noiseless.
+- The row does not say M3 lands on **Inhibitor_A Rep2 over rows 19–28**.
+- "Inhibitor_A = Control × 0.58" omits the `+ 0.008·N(0,1)` term.
+- **M3 is nested inside M1**, which the row does not say. It overwrites ten cells M1 wrote, and it
+  reads M1's output as its source. So the two are not independent plants.
+
+Nothing is planted that the row omits entirely. The count of three is right; three of the three
+descriptions are imprecise about where.
+
+---
+
+## 10. What the test selects, and where it lands
+
+K = `max(5, floor(35 × 0.10))` = **5**. Chance pairwise overlap is `K²/nR` = **0.714 rows**.
+
+| Condition | Top-5 rows, 1-indexed |
+|---|---|
+| Control | 5, 13, 15, 18, 24 |
+| Inhibitor_A | 5, 13, 15, 18, 24 |
+| Inhibitor_B | 1, 2, 12, 22, 25 |
+
+| Pair | Overlap | Rows |
+|---|---|---|
+| Control vs Inhibitor_A | **5 of 5** | 5, 13, 15, 18, 24 |
+| Control vs Inhibitor_B | 0 | — |
+| Inhibitor_A vs Inhibitor_B | 0 | — |
+
+Control and Inhibitor_A select the **same five rows**, differing only in rank order. That is the whole
+flag: `p = 0.001`, max overlap 5, best pair Control vs Inhibitor_A.
+
+**Against the planted regions.** For the one non-empty overlap, n = 5:
+
+| Region | Observed | Expected under chance |
+|---|---|---|
+| M2's five copied rows | **0** | 0.71 |
+| M3's rows 19–28 | 1 (row 24) | 1.43 |
+| M1 | all 5 — but M1 covers every row, so the count carries no information |
+
+**Sole occupancy: no.** None of the five selected rows is an M2 row, and none of the five M2 rows is
+selected. The DS11 shape — flagged units that are all planted and are the sole occupants of their cell
+— does not repeat here, because M1's region is the entire condition and a positional test against it is
+vacuous. The ablation is what carries this adjudication instead.
+
+---
+
+## 11. Ablation
+
+Each variant consumes the same random draws in the same order as the full construction, so a difference
+between two rows is the mechanism and not a reseeded stream.
+
+Two replacements for M1 were run. The first generates Inhibitor_A the way DS01's clean sibling does.
+That arm confounds "not a copy" with "different row-to-row amplitude", so a second draws Inhibitor_A
+independently from **Control's own law scaled by 0.58** — identical marginal distribution to what M1
+produces, with only the shared noise realisation removed. The two agree throughout, which is what makes
+the conclusion safe.
+
+| Variant | RSC | RSC *p* | Max overlap | IRC | IRC *p* | Severity | *s* |
+|---|---|---|---|---|---|---|---|
+| all three (= shipped) | MODERATE | 0.001 | 5 | MODERATE | 0.0040 | 3 | 0.319 |
+| M1 off, DS01-style | LOW | 0.938 | 1 | LOW | 0.150 | 1 | 0.173 |
+| **M1 off, variance-matched** | **LOW** | **0.914** | **1** | LOW | 0.131 | 1 | 0.173 |
+| M2 off | MODERATE | 0.001 | 5 | MODERATE | 0.0070 | 3 | 0.271 |
+| M3 off | MODERATE | 0.001 | 5 | LOW | 0.315 | 1 | 0.311 |
+| all off, DS01-style | LOW | 0.925 | 1 | LOW | 0.168 | 1 | 0.176 |
+| **all off, variance-matched** | LOW | 0.930 | 1 | LOW | 0.174 | **0** | 0.176 |
+
+Read the RSC column:
+
+- **Remove M1 and the detection is gone.** *p* goes from 0.001 to 0.914, the overlap from 5 to 1 — one
+  row, against a chance expectation of 0.71. The variance-matched arm gives the same answer as the
+  DS01-style one, so this is the copy's removal and not the replacement's shape.
+- **Remove M2 and nothing moves.** Same flag, same *p*, the same five rows.
+- **Remove M3 and nothing moves.** Same flag, same *p*, the same five rows.
+
+That is the textbook result: the detection collapses when its own mechanism goes and survives the other
+two.
+
+**The negative control is clean.** With all three mechanisms removed and Inhibitor_A variance-matched,
+the entire battery goes silent — severity 0, no flag above LOW anywhere. So every flag DS02 carries is
+mechanism-driven, not a property of the shape.
+
+**DS01, the clean counterpart.** Same assay, same 35 × 3 × 4 shape, same generator family. RSC returns
+LOW at *p* = 1.000, max overlap 0, and **all three pairs overlap zero rows**. The three top-5 sets are
+disjoint.
+
+### M2 is invisible to the whole battery
+
+Removing M2 changes no flag, no *p* worth reporting, and no severity. The only thing that moves is the
+dispersion estimate. DS02's second planted mechanism is detected by nothing the tool runs.
+
+The reason generalises and is worth recording. The test ranks rows by residual magnitude and cuts at the
+top 10%. A copied row inherits its source row's residual magnitude, so it enters the target condition's
+top-K only if the source row was already in the source's top-K. M2's rows were drawn uniformly at random
+with respect to noise, so the expected intersection is exactly `K²/nR` = 0.71 rows — the test has
+essentially no power against it. **A partial row copy is detectable this way only when the copied rows
+are among the noisiest.** DS11's detection worked because there the planted spikes *are* the noisy rows
+by construction. DS02's are not.
+
+---
+
+## 12. The heteroscedasticity number
+
+The estimator is the one that produced 0.041, 0.055, 0.162 and 0.199 on the four clean paired fixtures.
+**DS01 reads 0.0549 here against S350's recorded 0.055**, so it is being used the same way.
+
+| File | raw | corrected *s* | df/subject | subjects |
+|---|---|---|---|---|
+| DS02 | 0.3970 | **0.3194** | 9 | 35 |
+| DS01 | 0.2420 | 0.0549 | 9 | 35 |
+
+The bias term is `sqrt(1/(2·9))` = 0.2357; a raw value below that returns a corrected 0.
+
+**Taken alone, DS02 sits above the 0.2–0.3 knee.** Three further measurements say not to read it that
+way.
+
+**First, the resolution.** Twelve independently seeded honest files of DS02's exact shape read:
+
+```
+0.000  0.000  0.000  0.049  0.075  0.117  0.120  0.130  0.136  0.158  0.194  0.199
+min 0.000   median 0.120   max 0.199   mean 0.098
+```
+
+Honest, homoscedastic data on 35 subjects at 9 df lands anywhere in [0, 0.20]. DS02's 0.319 is above all
+twelve — so the value is not *un*resolvable, but nothing finer than that band is.
+
+**Second, the copy produces the elevation.** Remove M1 and *s* falls from 0.319 to 0.173, inside the
+honest band, on both replacement arms. Remove M2 and it falls to 0.271; remove M3 and it barely moves.
+The estimator pools each subject's residuals across conditions, and M1 makes Control and Inhibitor_A
+share one noise realisation, so a subject has roughly six independent df where the correction assumes
+nine. The estimator is reading the fabrication.
+
+**Third, DS02 has no heteroscedasticity to find.** Its generator gives every row the same 0.12
+proportional coefficient of variation. There is no per-subject noise-scale term in the construction at
+all.
+
+So the failure mode the knee encodes — the test firing on honest data because intrinsically noisy
+subjects reach the top-K of every condition — **cannot be what is happening on DS02**. The knee was
+calibrated on data where *s* is a property of the generating process. Here it is a symptom of the
+attack, measured on the same axis the test reads.
+
+---
+
+## 13. What carries DS02's verdict
+
+As shipped: severity 3, zero HIGH, two MODERATE, two dimensions.
+
+| Flag | Dimension | *p* |
+|---|---|---|
+| Inter-Replicate Correlation | replicate | 0.0040 |
+| Residual Spike Correlation | copied | 0.0010 |
+
+Severity 3 comes from the two-moderates-across-two-dimensions clause. Dropping either one gives severity
+1 — symmetric under the formula.
+
+**But the two flags are not independent, and that answers the question the dispatch asked.** Inter-
+Replicate Correlation needs M1 present as well: with the copy removed its *p* goes from 0.0040 to 0.131,
+and with M3 removed it goes to 0.315. It fires only on the **conjunction** of the copy and the replicate
+lock. Residual Spike Correlation needs only the copy, and survives M3's removal unchanged.
+
+So it is not that the severity formula happens to need a second dimension. Both of DS02's moderates
+trace to the rescaled copy, and Residual Spike Correlation is the only test that reads it directly.
+Suspending it removes the sole direct reading of DS02's primary mechanism, and the surviving flag is one
+that would itself go quiet if the copy were the only thing removed.
+
+**I did not determine why Inter-Replicate Correlation requires the copy.** The obvious explanation —
+that M1 compresses Inhibitor_A's row-to-row amplitude and makes the locked window stand out — is ruled
+out, because the variance-matched arm preserves that amplitude and the flag still goes. Named as
+undetermined rather than guessed at.
+
+---
+
+## 14. Expectations
+
+| # | Expectation | Result |
+|---|---|---|
+| 1 | The top-K rows intersect the planted block-copy region well above chance | **Wrong.** 0 observed against 0.71 expected. Zero intersection, and the region is undetected by anything |
+| 2 | DS02's *s* sits below the knee, like the four clean paired fixtures | **Wrong.** 0.319, above the knee and above all twelve honest replicates — but the copy causes it |
+| 3 | The rescaled copy, not the block copy, is what the test reads | **Confirmed**, decisively, with a variance-matched control |
+| 4 | Ablating the block copy alone does not remove the firing | **Confirmed.** Identical flag, *p* and rows |
+
+The dispatch set 1 against 3 and 4 deliberately. 3 and 4 won.
+
+---
+
+## 15. The adjudication
+
+**Residual Spike Correlation's DS02 firing is a true detection of the rescaled copy.** The evidence:
+
+1. It collapses when and only when M1 is removed — *p* 0.001 → 0.914 against a variance-matched control
+   that changes nothing else about Inhibitor_A's distribution.
+2. Removing either other mechanism leaves the flag, the *p* and the five selected rows untouched.
+3. The clean sibling of the same assay, shape and generator family returns *p* = 1.000 with zero overlap
+   on all three pairs.
+4. With all three mechanisms removed the battery is completely silent — severity 0.
+5. The heteroscedasticity failure mode cannot explain it: the construction is homoscedastic, and the
+   elevated *s* is itself produced by the copy.
+
+The detection mechanism is exactly the one the test is built on. A linear rescale preserves the residual
+rank order, so the noisiest rows of Control are the noisiest rows of Inhibitor_A — and a top-K
+intersection of 5 out of 5 against a chance expectation of 0.71 is what that looks like.
+
+**Two qualifications, neither of which changes the verdict.**
+
+- It detects the **whole-condition rescale**, not the row-level partial copy the ground-truth row leads
+  with. The positional adjudication that settled DS11 is vacuous here, because M1's region is every row.
+  The ablation is what carries it.
+- Suspension therefore costs **two** true detections rather than one, and on DS02 it moves the file from
+  *Investigate closely* to *Review* (`OUTCOME_LABEL[severity]`, `handoffModel.js:183`). It also removes
+  the only direct reading of the fixture's primary mechanism, leaving a flag that depends on that same
+  mechanism indirectly.
+
+**What this does not settle.** Whether the test earns its place is P86's question and rests on the
+unbounded false-positive risk above the knee in the field, which no measurement here touches. This
+establishes only that DS02's firing is not an instance of that failure mode, and that the declaration
+should be recorded as suspended rather than deleted — the same conclusion the disposition already
+reached for DS11, now on evidence for DS02 too.
+
+---
+
+## 16. What I could not determine
+
+- **Why Inter-Replicate Correlation needs the copy** as well as the replicate lock. Measured, not
+  explained; the amplitude explanation is ruled out.
+- **Whether M2's invisibility is worth fixing.** A partial row copy chosen independently of noise is
+  outside what a top-K rank intersection can reach. Whether any test in the battery should cover it is a
+  coverage question, not this dispatch's.
+- **Anything about real deposits.** The twelve honest replicates come from DS02's own generator and
+  bound the estimator's resolution on that shape only.
+- **Whether the five selected rows are the noisiest rows for a reason.** They are Control's five highest
+  mean-absolute-residual rows; no check was made that this is ordinary sampling rather than something
+  the generator induces.
+
+**Incidental, outside scope and not acted on beyond a `CLAUDE.md` correction.** `SEVERITY_WORD` is
+described in `CLAUDE.md` as live and exported from `tokens.js`. It was retired at S156 —
+`tokens.js:282` carries only the retirement comment, and `grep` returns no other hit in `src/`. The
+dataset-level vocabulary is `ACTION_LABEL` / `OUTCOME_LABEL`.
