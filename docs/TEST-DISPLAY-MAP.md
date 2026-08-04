@@ -3,9 +3,9 @@
 **GENERATED — DO NOT HAND-EDIT** — regenerate via
 `node scripts/build-test-display-map.mjs`
 
-- Generated: 2026-08-01 17:51:14Z
-- Commit:    `7d66488` (`7d66488d88fd8d1484479c3f1a56b17909908644`)
-- Branch:    `claude/band-counterfactual-s342`
+- Generated: 2026-08-04 03:26:49Z
+- Commit:    `0feb530` (`0feb530e54b8efbe788ad3baee78e4b53d810e96`)
+- Branch:    `main`
 - Batch:     live `result.flag` via the validate-batch pipeline over the shared 22-fixture set (`test/batch-fixtures.mjs`)
 
 Answers one question for the visual walk: **which dataset do I load to see a
@@ -49,7 +49,7 @@ Sorted by cluster in fixed display order (copied → digits → shapes → repli
 | Exact Duplicate Detection | Duplicated Data | Copy, Paste, Edit | DS04 HIGH, DS06 HIGH, DS10 HIGH, DS14 HIGH |
 | Constant-Offset Blocks | Offset copies | Copy, Paste, Edit | DS08 MOD/HIGH |
 | Sequential Duplication | Recurring value sequences | Copy, Paste, Edit | — latent |
-| Residual Spike Correlation | Shared noisy rows | Copy, Paste, Edit | DS02 MOD/HIGH, DS11 MOD/HIGH |
+| Residual Spike Correlation | Shared noisy rows | Copy, Paste, Edit | — latent |
 
 ### Unusual Digits
 
