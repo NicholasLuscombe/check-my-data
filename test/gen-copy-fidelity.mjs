@@ -221,12 +221,11 @@ function makeNormal(rand) {
   };
 }
 
-const mean = (a) => a.reduce((x, y) => x + y, 0) / a.length;
-function sd(a) {
-  if (a.length < 2) return 0;
-  const m = mean(a);
-  return Math.sqrt(a.reduce((s, v) => s + (v - m) ** 2, 0) / (a.length - 1));
-}
+// S352: mean, sd and residualScaleDispersion moved to test/s-dispersion.mjs so
+// the `s` estimator can be used without importing a data generator. Arithmetic
+// unchanged; re-exported here so every existing caller keeps working.
+import { mean, sd, residualScaleDispersion } from './s-dispersion.mjs';
+export { residualScaleDispersion };
 function pearson(x, y) {
   const n = Math.min(x.length, y.length);
   if (n < 3) return NaN;
@@ -240,53 +239,8 @@ function pearson(x, y) {
   return d > 1e-20 ? sxy / d : NaN;
 }
 
-/**
- * Per-subject residual noise-scale dispersion, bias-corrected.
- *
- * Takes one array per condition, each `nSubjects x nReps` of RAW values. Row
- * means are removed per subject per condition, the residuals are pooled across
- * conditions for that subject, and the dispersion reported is the spread of
- * log(per-subject residual sd) across subjects.
- *
- * The correction matters and is the whole reason this is a shared function
- * rather than three inline copies. With only a handful of replicates, the
- * per-subject sd is estimated noisily, so even perfectly homoscedastic data
- * shows a raw dispersion of about `1/sqrt(2*df)` — at 6 replicates and 2
- * conditions that is 0.32, which would swamp the quantity being measured.
- * Var(log sd_hat) is approximately 1/(2*df), so it is subtracted before the
- * square root. The estimator's recovery against known `sigmaS` is checked in
- * the script block below rather than assumed.
- *
- * Values are logged first, matching how the generator builds the data and how
- * the pipeline's own transform reads it.
- *
- * @param {number[][][]} conditions - one nSubjects x nReps matrix per condition
- * @returns {{ raw:number, corrected:number, df:number, perSubject:number[] }}
- */
-export function residualScaleDispersion(conditions) {
-  const S = Math.min(...conditions.map(c => c.length));
-  const logSd = [];
-  let dfTotal = 0;
-  for (let s = 0; s < S; s++) {
-    const res = [];
-    let df = 0;
-    for (const C of conditions) {
-      const vals = C[s].filter(v => v != null && isFinite(v) && v > 0).map(Math.log);
-      if (vals.length < 2) continue;
-      const m = mean(vals);
-      for (const v of vals) res.push(v - m);
-      df += vals.length - 1;
-    }
-    if (df < 1 || !res.length) continue;
-    const ss = res.reduce((a, v) => a + v * v, 0);
-    const sdHat = Math.sqrt(ss / df);
-    if (sdHat > 0) { logSd.push(Math.log(sdHat)); dfTotal += df; }
-  }
-  const dfMean = logSd.length ? dfTotal / logSd.length : 0;
-  const raw = sd(logSd);
-  const bias = dfMean > 0 ? 1 / (2 * dfMean) : 0;
-  return { raw, corrected: Math.sqrt(Math.max(0, raw * raw - bias)), df: dfMean, perSubject: logSd };
-}
+// residualScaleDispersion now lives in test/s-dispersion.mjs (S352) and is
+// re-exported above. Its contract and assumptions are documented there.
 
 /**
  * One swept dataset.
