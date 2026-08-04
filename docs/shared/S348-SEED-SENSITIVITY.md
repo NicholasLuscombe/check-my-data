@@ -1,15 +1,37 @@
 # Seed Sensitivity on Clean Fixtures — S348
 
-**Status:** S348. **Owner:** Chat. **Tracked** — lives in `docs/shared/` and rides git.
+**Status:** S348, **corrected at S349**. **Owner:** Chat. **Tracked** — lives in `docs/shared/` and
+rides git.
 
 **Purpose:** the durable record of the S348 measurements. `docs/sessions/` is gitignored, so the
 session summary produces no git object and the run outputs live in a temporary scratchpad. This file
 and the committed probe are the only lasting record. It carries the raw grids and counts, not only
 the conclusions, so a reader can recount rather than re-run.
 
-**Companion artifacts**, all on `claude/seed-sensitivity-fixtures-64e304`:
+**Companion artifacts**, merged to main at `3f7bf9d`:
 `test/probes/probe-s348-seed-sensitivity.mjs`, `test/probes/s348-hash-hook.mjs`, and
 `docs/shared/S348-SEED-SENSITIVITY-DATA.md` — 674 lines of per-seed rows, committed at `14ce58b`.
+
+---
+
+## 0. What S349 changed in this document
+
+**Every measurement here stands. Two readings of them do not.** Corrections are marked in place in
+§2, §6, §8 and §10 rather than silently applied, so a reader can see what was believed and why it
+was wrong.
+
+- **The 18.6% is real and it is not instability.** At `B = 9999` the same file flags **20 of 20** at
+  adjusted p 0.0036. The coarse lattice was **concealing a certain result four runs in five**, not
+  producing an uncertain one. So "the fix is resolution or a different statistic" is **retired** —
+  more permutations makes the flag certain.
+- **`01-densitometry-clean` cannot serve as a Stage-1 negative control**, so the coarseness contrast
+  built on it in §6 compared a Stage-2 grid against a Stage-1 one. All nine of `01`'s Stage-1 units
+  are `different`-direction and structurally barred from flagging; its Cross-Condition Consistency p
+  comes from Stage 2. **"Coarseness alone is not the defect" is withdrawn as stated** — its evidence
+  does not support it.
+- **The cause is a null that shuffles paired rows as though they were independent.** `09` is 200
+  matched pairs. See `docs/shared/S349-CCC-LIMIT-DATA.md`, `SESSION349-AUDIT-SUMMARY.md` and
+  `S349-NULL-CENSUS.md`. (P82)
 
 ---
 
@@ -38,6 +60,10 @@ that seed and the base data flipped.
 the file. Any specificity measurement has to say which seed it used, and a single run per file is
 not a measurement.
 
+**S349 note.** The seed dependence measured here is real, and it is the *symptom* rather than the
+defect. What varies with the seed is whether the lattice happens to place the run on the flagging
+side of a threshold the file crosses in the limit anyway.
+
 ---
 
 ## 2. The reported rate, and why no threshold fixes it
@@ -60,12 +86,28 @@ Cross-Condition Consistency's `primaryP` on this file sits on a coarse grid with
 
 **Three reachable behaviours and nothing between them.** Nothing flags, or about one clean run in
 five, or about nine in ten. `ALPHA.NOTE = 0.010` is already the best available choice and still
-flags roughly one clean run in five. **This is not a calibration that can be tuned. Only more
-resolution or a different statistic changes it.** That is P66's evidence, now measured rather than
-argued.
+flags roughly one clean run in five. **This is not a calibration that can be tuned.**
 
-The structure survives resolution unchanged: the same three bands appear at n = 60 and at n = 500,
-with only the middle rate moving.
+**Corrected at S349 — the next sentence in the original was wrong, and it was wrong in the direction
+that made the problem smaller.** It read: *"Only more resolution or a different statistic changes
+it."* More resolution does change it, and it changes it the other way. At `B = 9999` the file flags
+**20 of 20 runs** at adjusted p 0.0036, median grid spacing 0.0006 to 0.0012. **The coarse lattice
+was hiding a false positive that fires every time, not manufacturing an unstable verdict.** Raising
+the count removes the concealment and leaves the flag.
+
+The reconciliation, derived from the `B = 9999` per-unit measurements: the driving unit's true tail
+probability is about 0.0006, so it returns zero exceedances in 499 draws about three times in four;
+a supporting unit's is about 0.0031, so it floors about one time in five. Both flooring together is
+the only route under α at `B = 499`, because the driver alone gives `3 × 0.004 = 0.012` and misses.
+That is the 18.6%.
+
+**A coarse grid can hide a certain result as easily as it can manufacture an uncertain one, and the
+two are indistinguishable from the p alone.** Measure where a statistic converges before treating
+its run-to-run variance as the defect.
+
+The band structure survives **seed** resolution unchanged: the same three bands appear at n = 60 and
+at n = 500, with only the middle rate moving. That is a statement about the number of seeds, not
+about `B`, and the two are different quantities.
 
 ---
 
@@ -96,14 +138,19 @@ consistent — 7/60 carries a Wilson interval of 5.8–22.1% — and the 500-see
 
 ## 4. All estimates in hand
 
-| fixture | seeds | non-clean | 95% Wilson |
-|---|---|---|---|
-| `09-proteomics-clean` | **500 real neighbour-derived** | **93/500 = 18.60%** | **15.43–22.25%** |
-| `09-proteomics-clean` | 500 constructed | 81/500 = 16.20% | 13.23–19.69% |
-| `09-proteomics-clean` | 60 real (pass B) | 7/60 = 11.67% | 5.77–22.18% |
-| `01-densitometry-clean` | 500 constructed | 0/500 | upper bound 0.76% |
+| fixture | seeds | `B` | non-clean | 95% Wilson |
+|---|---|---|---|---|
+| `09-proteomics-clean` | **500 real neighbour-derived** | 499 shipped | **93/500 = 18.60%** | **15.43–22.25%** |
+| `09-proteomics-clean` | 500 constructed | 499 shipped | 81/500 = 16.20% | 13.23–19.69% |
+| `09-proteomics-clean` | 60 real (pass B) | 499 shipped | 7/60 = 11.67% | 5.77–22.18% |
+| `09-proteomics-clean` | 20, S349 | **9999** | **20/20 = 100%** | 83.89–100% |
+| `01-densitometry-clean` | 500 constructed | 499 shipped | 0/500 | upper bound 0.76% |
+| `01-densitometry-clean` | 20, S349 | **9999** | 0/20 | upper bound 16.11% |
 
 `09`'s grid at 500 constructed seeds: 81 / 363 / 31 / 24 / 1.
+
+**The `B` column was added at S349 and it is the column that matters.** Every S348 figure is at the
+shipped count. The two `B = 9999` rows come from `test/probes/probe-s349-ccc-limit.mjs`.
 
 ---
 
@@ -140,24 +187,47 @@ Fixtures: `01-densitometry-clean`, `03-qpcr-clean`, `05-cellcount-clean`, `07-el
 `09-proteomics-clean`, `12a-uniform-mixture-clean`, `17-densitometry-carlisle-clean`,
 `vfs-a-pigeonhole-clear`.
 
-**Coarseness alone is not the defect.** `01-densitometry-clean` has the coarsest grid of any fixture
-that runs the test — spacing 0.009, measured at 500 seeds, against `09`'s 0.006 — and never flags,
-because its whole distribution sits above the threshold. It is also the nearest of the seven, its
-lowest p at 0.018.
-**`09` is unstable because its distribution straddles the threshold while the grid is too coarse to
-resolve which side it is on.** Position and resolution together, not either alone.
+### Corrected at S349 — the coarseness contrast compared two different things
 
-**The seven are not observed to flag; they are not established as clean.** Zero of 60 bounds a rate
-at about 5%, and a fixture whose true rate is 2% returns zero flips at n = 60 about a third of the
-time. `01` at 0/500 tightens its own bound to under 0.76%, and its grid resolves from 7 values to 11
-with its lowest p unchanged at 0.018 — more resolution, no new mass below the threshold. So the
-straddle explanation survives resolution on the nearest case rather than being an artifact of small
-n. The other six remain bounded at about 5%.
+The original text read: *"Coarseness alone is not the defect. `01-densitometry-clean` has the
+coarsest grid of any fixture that runs the test — spacing 0.009, measured at 500 seeds, against
+`09`'s 0.006 — and never flags, because its whole distribution sits above the threshold."* And then:
+*"`09` is unstable because its distribution straddles the threshold while the grid is too coarse to
+resolve which side it is on."*
 
-The 500-seed run also corrects `01`'s spacing: uniform 0.009 from 0.036 upward, with a single 0.018
-gap at the bottom where 0.027 is unobserved. The n = 60 reading of "about 0.018" averaged over two
-0.009 steps already present in that sample. The contrast with `09` is 1.5× rather than 3×, and the
-conclusion holds at the smaller margin.
+**Both are withdrawn.**
+
+S349 Part 3a measured that **all nine of `01`'s Stage-1 units come out `different`-direction on every
+seed**. Stage 1 declares `forensicDirections: ["similar"]`, so none of them can contribute to a flag
+on any seed — its conditions genuinely differ, with KS distances 0.75, 0.96 and 0.53 against a null
+median of 0.14. **Its reported Cross-Condition Consistency p comes from Stage 2, not Stage 1.**
+
+So the grid compared here is a Stage-2 grid set against `09`'s Stage-1 one, and `01` never enters the
+arm where `09` fails. **`01-densitometry-clean` is not a Stage-1 negative control and cannot be used
+as one.** The straddle account of `09` is superseded too: at `B = 9999` it flags 20 of 20, so it does
+not straddle anything in the limit.
+
+`01`'s own numbers stand as file-level facts: 0/500 at the shipped `B`, bound under 0.76%; grid
+uniform 0.009 from 0.036 upward with a single 0.018 gap at the bottom where 0.027 is unobserved; the
+n = 60 reading of "about 0.018" averaged over two 0.009 steps already present in that sample.
+
+### The seven are not observed to flag; they are not established as clean
+
+Zero of 60 bounds a rate at about 5%, and a fixture whose true rate is 2% returns zero flips at
+n = 60 about a third of the time. `01` at 0/500 tightens its own bound to under 0.76%. The other six
+remain bounded at about 5%. (P81)
+
+### S349 addition — what a seed sweep can and cannot see
+
+**This instrument detects tests whose verdict moves between draws.** A test carrying the same
+mis-specification with a stronger signal sits still across 500 seeds and reads as a stable clean
+result. So "only Cross-Condition Consistency reached MODERATE or HIGH in 480 runs" bounds how many
+tests are **unstable**. It says nothing about how many share the **assumption**. Those are different
+quantities and only the first is measured here.
+
+S349's read-only census answers the second by reading rather than running, and returns **two**
+tests — Cross-Condition Consistency and Residual Spike Correlation — with that count stated as a
+floor. See `docs/shared/S349-NULL-CENSUS.md`.
 
 ---
 
@@ -216,6 +286,13 @@ design.
   in the tool was chosen while watching them. P65 still needs its own instrument.
 - **Not an equivalence result anywhere a null appears.** Every zero here is a bound with a sample
   size attached.
+- **Not a statement about any test's Stage-1 behaviour except `09`'s** *(added S349)*. Seven of the
+  eight clean fixtures were read at the file level only. Whether a fixture's Stage-1 units can flag
+  **at all** — the forensic-direction filter — was not checked here, and it turned out to decide the
+  `01` comparison in §6.
+- **Not a measurement at any resample count but the shipped one** *(added S349)*. Every figure
+  outside the `B = 9999` rows in §4 is at `B = 499`, and the S349 measurement shows that count is
+  the difference between an 18.6% rate and a 100% one.
 - **Not a characterisation of any grid.** An observed spacing is an upper bound on the true spacing:
   a sample can miss reachable values but never invent them. `01`'s read as 0.018 at n = 60 and is
   0.009 at n = 500, and the error ran in the direction that flattered the argument it supported.
@@ -246,24 +323,47 @@ design.
   reproduces identically in both.
 - **Nothing under `src/` moved.** `git status --porcelain -- src/` returned zero lines at every
   checkpoint, across six commits on the branch, `ade4fd4` through `14ce58b`.
+- **Independent confirmation at S349** *(added)*. The S349 probe reproduced this file's 20-seed slice
+  at the shipped `B = 499` **seed for seed**, including the singleton grid points, before any count
+  was raised. The measurements in this document are reproducible from a second implementation.
 
 ---
 
 ## 10. Consequences
 
-**P66 is measured.** The CCC coarseness case now has evidence: no threshold setting avoids roughly
-one clean run in five on this file, and the fix is resolution or a different statistic.
+**Corrected at S349 — P66's CCC arm closed, and the fix is neither of the two named in the original.**
+The original read: *"P66 is measured. The CCC coarseness case now has evidence: no threshold setting
+avoids roughly one clean run in five on this file, and the fix is resolution or a different
+statistic."* The first half stands. The second does not: at `B = 9999` the file flags 20 of 20, so
+raising resolution makes the false positive certain rather than removing it. **The coarseness was
+concealment, not cause.** The defect is a null that treats 200 matched pairs as 400 independent rows,
+and it is carried by **P82**. P66's large-`m` arm remains open on Windowed Autocorrelation.
 
 **P69 is answered.** The neighbour rate is a seed-sensitivity result. The data contributes nothing to
 the flips.
 
 **P65 is reordered behind the blockers.** A specificity measurement cannot be anchored to a quantity
 this unstable, and raising the resolution moves the number rather than measuring it better. The
-generator-versus-deposits decision now sits after P66, not before it.
+generator-versus-deposits decision now sits after the blockers, not before them.
 
 **A doc residue for P70.** `vfs-a-pigeonhole-clear` is not carried in `TEST-GROUND-TRUTH` as a GT 0
 row; the header at `:15` records it as owed.
 
-**Per-run costs, for scoping future sweeps.** `09-proteomics-clean` 2.85–2.87 s per analysis; 500
-runs about 23 minutes. `01-densitometry-clean` 500 runs in 261 s. Part 3's 480 runs across eight
-fixtures took roughly 10 minutes.
+**Per-run costs, for scoping future sweeps.** `09-proteomics-clean` 2.85–2.87 s per analysis at the
+shipped `B`; 500 runs about 23 minutes. `01-densitometry-clean` 500 runs in 261 s. Part 3's 480 runs
+across eight fixtures took roughly 10 minutes. At `B = 9999`, `09` costs 4.8 s per run and `01` 1.0 s
+*(measured S349)*.
+
+---
+
+## 11. Where this leads
+
+S349 diagnosed the cause and sized how far it reaches. That work has its own records and this
+document does not duplicate them:
+
+- `docs/shared/S349-CCC-LIMIT-DATA.md` — the `B = 9999` limit measurement, the paired-null probe, and
+  the pairing census across the eight clean fixtures.
+- `docs/shared/SESSION349-AUDIT-SUMMARY.md` — the two condition-formation branches, whether pairing
+  is visible to the engine, and the 27-fixture A/B/C classification.
+- `docs/shared/S349-NULL-CENSUS.md` — the twenty condition-partitioned dispatch entries and the
+  Class 1 / 2 / 3 classification, with Class 1 = 2 stated as a floor.
