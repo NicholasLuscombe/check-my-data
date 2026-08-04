@@ -355,11 +355,13 @@ export async function runFullAnalysis(matrix, rawMatrix, condCtx, assay, onProgr
   // verdict is computed in extractAnalysisInputs, the only scope that still has
   // the identifier column, and stamped onto condCtx.
   //
-  // Cross-Condition Consistency is the sole member today. All seven of its arms
-  // are withheld together: they share one Fisher-Yates over permRow, so there is
-  // no subset to spare. Residual Spike Correlation breaks the same
-  // correspondence by the opposite operation and is NOT in this map — P86 is a
-  // separate decision and is not implemented here.
+  // Two members. Cross-Condition Consistency (P82) has all seven of its arms
+  // withheld together: they share one Fisher-Yates over permRow, so there is no
+  // subset to spare. Residual Spike Correlation (P86) breaks the same
+  // correspondence by the opposite operation — it shuffles each condition's
+  // residual vector within itself rather than moving tags across conditions —
+  // and is withheld for its own reason, an unbounded false-positive rate on
+  // honest data. Per-test reasons live beside the wording in subjectPairing.js.
   //
   // Routes through the shared decline machinery: joinDeclineReason for
   // `description`, plus naCauseText / naTailText so groupNotApplicableByReason
@@ -453,6 +455,10 @@ export async function runFullAnalysis(matrix, rawMatrix, condCtx, assay, onProgr
       return tagVST(testConstantOffset(hasVST ? vstMatrix : matrix, rngFor("Constant-Offset Blocks")));
     }],
     ["Residual Spike Correlation",   () => {
+      // P86: withheld when the conditions hold the same subjects. Placed with the
+      // other dispatch-level skips so nothing is computed on a file this test
+      // cannot read honestly.
+      const psRS = pairedSkip("Residual Spike Correlation","structural"); if (psRS) return psRS;
       const csRS = condSkip("Residual Spike Correlation","structural"); if (csRS) return csRS;
       const dtRS = dtSkip("Residual Spike Correlation","structural"); if (dtRS) return dtRS;
       const m = hasVST ? vstMatrix : matrix;

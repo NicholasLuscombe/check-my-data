@@ -50,7 +50,7 @@ const { suggestRowSemantics } = await import('../src/import/rowSemantics.js');
 // EXPECTED allow-sets + ACKNOWLEDGED incidental-fire map: shared with the
 // lookup-table generator (scripts/build-test-display-map.mjs) so the fixture
 // set and routing can't drift between the two. See test/batch-fixtures.mjs.
-const { EXPECTED, ACKNOWLEDGED } = await import('./batch-fixtures.mjs');
+const { EXPECTED, ACKNOWLEDGED, SUSPENDED } = await import('./batch-fixtures.mjs');
 
 const FIXTURES = 'test/fixtures';
 
@@ -227,6 +227,13 @@ if (MULTI) setSeed(SEED);
       }
       if (!completenessOk) {
         for (const m of completenessMisses) console.log(`    ↳ completeness gate — ${m}`);
+      }
+      // A withdrawn true detection stays visible in the run. A suspension the
+      // batch never mentions is a record nobody reads, and a green line beside a
+      // fixture whose channel was removed by decision would read as though
+      // nothing had been given up.
+      for (const [name, s] of Object.entries(SUSPENDED[file] || {})) {
+        console.log(`    ↳ suspended — ${name}: was [${s.was.join(', ')}], withdrawn by ${s.decision}`);
       }
       if (ok) passed++; else failed++;
     }
