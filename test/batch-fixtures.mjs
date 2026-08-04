@@ -52,9 +52,14 @@ export const FIXTURES = [
 // derived (TEST-GROUND-TRUTH.md), not snapshotted from output.
 export const EXPECTED = {
   '01-densitometry-clean.csv':    { severity: 0, assay: 'densitometry' },  // clean-fixture severity 0 post-S109 directional suppression; S82 Kurtosis borderline flip reverted
-  '02-densitometry-fabricated.csv': { severity: 3, assay: 'densitometry', flags: {
+  // S352 P86 — severity 3 → 1. DS02 is paired, so Residual Spike Correlation is
+  // now withheld, and its severity 3 rested on two MODERATEs across two
+  // dimensions with that test supplying one of them. The fabrication is
+  // unchanged; what changed is what the tool is willing to say about it. The
+  // withdrawn channel is recorded in SUSPENDED below, not deleted.
+  '02-densitometry-fabricated.csv': { severity: 1, assay: 'densitometry', flags: {
     'Inter-Replicate Correlation': ['MODERATE', 'HIGH'],   // rescaled-copy near-linear replicate dep.
-    'Residual Spike Correlation':  ['MODERATE', 'HIGH'],   // FISHER_EXEMPT, shared row-noise across cond
+    'Residual Spike Correlation':  ['N/A'],                // SUSPENDED (P86) — asserts the skip fires; the withdrawn detection is in SUSPENDED
     'Autocorrelation':             ['LOW'],                 // S339: pooled route retired; per-pair family clears (0 of 6 pairs). Fixture carried by IRC + Residual Spike.
     'Runs Test':                   ['LOW'],                 // S339: same — 0 of 6 pairs, empirical p 0.049 against the row-shuffle null.
   } },
@@ -89,7 +94,7 @@ export const EXPECTED = {
   } },
   '11-rnaseq-multicondition.csv': { severity: 3, assay: 'genomics', flags: {
     'Autocorrelation':              ['HIGH'],                    // p≈0 self-gating canonical positive
-    'Residual Spike Correlation':   ['MODERATE', 'HIGH'],        // RSC MOD on shared row-noise across cond
+    'Residual Spike Correlation':   ['N/A'],                     // SUSPENDED (P86) — asserts the skip fires; the withdrawn detection is in SUSPENDED. Severity holds at 3 on Benford 2nd + Autocorrelation, both HIGH
     "Benford's Law (Second Digit)": ['HIGH'],                    // p≈0; GT-named severity-load-bearing HIGH (METHODOLOGY §1103) (S183 Phase 2)
   } },
   '12a-uniform-mixture-clean.csv':      { severity: 0, assay: 'general' },
@@ -218,6 +223,41 @@ export const EXPECTED = {
   'vfs-c-deeptail-high.csv': { severity: 2, assay: 'general', flags: {
     'Value-Frequency Spike':         ['HIGH'],                // 6dp deep tail .385732 shared across 7 DISTINCT integers → depth keep (10^6 keyspace, shared tail improbable); the C23 copy-paste shape
   } },
+};
+
+// ── Suspended channels (S352) ────────────────────────────────────────────────
+//
+// A channel that was a TRUE DETECTION and has been withdrawn by a decision, not
+// by a change in the data or a correction to the test. The distinction matters
+// and the precedent runs the other way: at S339 a channel came out because it
+// fired outside its planted window — that one was wrong. These were right.
+//
+// The declaration does not vanish. Its cell stays in `expected.flags` asserting
+// `['N/A']`, so the batch now checks that the skip FIRES rather than checking a
+// tier — a regression that quietly restored the test would fail. What the cell
+// can no longer carry is the tier that was withdrawn, so it is carried here.
+//
+// `was` is the allow-set the cell asserted before suspension. `reason` is why the
+// channel was withdrawn, and it is the operating-characteristic argument: the
+// false-positive rate on honest data is unbounded. It is NOT an argument that the
+// null is mis-specified — that is a separate and much wider question.
+export const SUSPENDED = {
+  '02-densitometry-fabricated.csv': {
+    'Residual Spike Correlation': {
+      was: ['MODERATE', 'HIGH'],
+      decision: 'P86 (S350 decided, S352 implemented)',
+      reason: "Withheld on paired data because its false-positive rate on honest data is unbounded — 0%, 0%, 25%, 85%, 100%, 100% as per-subject noise-scale dispersion rises through 0, 0.15, 0.3, 0.5, 0.75, 1.0, against a nominal 1%. The firing here was adjudicated against construction at S351 and found real: it reads the rescaled copy, collapsing to p 0.914 when and only when that copy is removed, against a variance-matched control.",
+      severityCost: 'DS02 falls 3 → 1. This test was the sole direct reading of the fixture\'s primary mechanism.',
+    },
+  },
+  '11-rnaseq-multicondition.csv': {
+    'Residual Spike Correlation': {
+      was: ['MODERATE', 'HIGH'],
+      decision: 'P86 (S350 decided, S352 implemented)',
+      reason: "Same suspension. The firing was adjudicated at S350: the nine flagged genes are all planted correlated-spike genes and the sole occupants of the all-conditions cell, against a chance expectation of about half a gene.",
+      severityCost: 'None. DS11 holds at 3 on Benford Second Digit and Autocorrelation, both HIGH.',
+    },
+  },
 };
 
 // S183 Phase 2 — adjudicated incidental firings. A MOD/HIGH result that is

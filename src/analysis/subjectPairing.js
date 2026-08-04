@@ -175,10 +175,26 @@ export const PAIRED_CAUSE =
 
 /** Per-test tail. Keyed on the engine's dispatch-map key. */
 export const PAIRED_SKIP = {
+  // P82.
   "Cross-Condition Consistency":
-    "This check compares each pair of conditions against a reference it builds by " +
-    "reshuffling subjects between them, which only describes a study where the " +
-    "conditions hold different subjects. Here they hold the same ones, so the " +
-    "comparison is withheld rather than reported: a result from it would not mean " +
-    "what it appears to mean.",
+    "This check works by reshuffling subjects between conditions to build its " +
+    "comparison. That only makes sense when the conditions hold different subjects. " +
+    "Here they hold the same ones, so the check is withheld — a result would read as " +
+    "evidence when it is not.",
+
+  // P86. Withheld because its false-positive rate on honest data is unbounded:
+  // measured at 0%, 0%, 25%, 85%, 100%, 100% as per-subject noise-scale dispersion
+  // rises through 0, 0.15, 0.3, 0.5, 0.75, 1.0, against a nominal 1%. Subjects that
+  // are extreme in every condition survive any within-subject relabel, so
+  // heteroscedasticity manufactures exactly the co-occurrence the statistic counts.
+  // That dispersion cannot be bounded in the field, so the risk has no ceiling.
+  //
+  // The withheld detections were real. Both declaring fixtures were adjudicated
+  // against construction and found genuine, and the batch records them as suspended
+  // rather than deleted. See docs/shared/S350-PAIRED-DESIGN-DISPOSITION.md §3.
+  "Residual Spike Correlation":
+    "This check looks for subjects that are unusually noisy in several conditions at " +
+    "once. When the conditions hold the same subjects, a subject that is simply noisy " +
+    "appears in all of them. The check cannot tell that apart from a copy, so the " +
+    "result is withheld.",
 };
