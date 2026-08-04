@@ -3,9 +3,9 @@
 **GENERATED — DO NOT HAND-EDIT** — regenerate via
 `node scripts/build-test-display-map.mjs`
 
-- Generated: 2026-08-04 03:26:49Z
-- Commit:    `0feb530` (`0feb530e54b8efbe788ad3baee78e4b53d810e96`)
-- Branch:    `main`
+- Generated: 2026-08-04 04:25:57Z
+- Commit:    `0b8d0e7` (`0b8d0e754c49e3ea3eb7661006c9b59b87bde25b`)
+- Branch:    `claude/s354-withheld-state-fc1e4d`
 - Batch:     live `result.flag` via the validate-batch pipeline over the shared 22-fixture set (`test/batch-fixtures.mjs`)
 
 Answers one question for the visual walk: **which dataset do I load to see a
@@ -34,8 +34,14 @@ this file:
 **Tier rendering.** Credited fires take the declared allow-set: a singleton
 `['HIGH']` renders `HIGH`, and a two-value `['MODERATE','HIGH']` renders
 `MOD/HIGH` (the fixture permits either tier). Acknowledged fires take the live
-tier — `HIGH` or `MOD` — followed by `(ack)`. A test with no fire on any
-fixture is `— latent`.
+tier — `HIGH` or `MOD` — followed by `(ack)`.
+
+**No fire — two states, not one.** A test with no fire anywhere and no
+withheld result is `— latent`: it has never had a detection to show. A test
+with no fire that the battery withheld by decision on one or more fixtures is
+`— withheld on N fixtures`: it had a detection and the battery stopped
+reporting it. Both carry `flag: "N/A"`, so the state is read from the result
+(`isWithheld` in `src/analysis/coverage.js`), never from the flag.
 
 Sorted by cluster in fixed display order (copied → digits → shapes → replicate
 → group); tests alphabetical by UI name within each cluster.
@@ -49,7 +55,7 @@ Sorted by cluster in fixed display order (copied → digits → shapes → repli
 | Exact Duplicate Detection | Duplicated Data | Copy, Paste, Edit | DS04 HIGH, DS06 HIGH, DS10 HIGH, DS14 HIGH |
 | Constant-Offset Blocks | Offset copies | Copy, Paste, Edit | DS08 MOD/HIGH |
 | Sequential Duplication | Recurring value sequences | Copy, Paste, Edit | — latent |
-| Residual Spike Correlation | Shared noisy rows | Copy, Paste, Edit | — latent |
+| Residual Spike Correlation | Shared noisy rows | Copy, Paste, Edit | — withheld on 9 fixtures |
 
 ### Unusual Digits
 

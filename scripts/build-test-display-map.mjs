@@ -42,6 +42,7 @@ const { forwardFill, preprocessRaw, detectHeaderRows } = await import('../src/im
 const { detectLongFormat } = await import('../src/import/longFormat.js');
 const { suggestRowSemantics } = await import('../src/import/rowSemantics.js');
 const { DISPLAY_NAMES, TEST_MECHANISM, MECHANISM_ORDER } = await import('../src/constants/mechanisms.js');
+const { isWithheld } = await import('../src/analysis/coverage.js');
 const { EXPECTED, FIXTURES, ASSAY_DATATYPE_MAP } = await import('../test/batch-fixtures.mjs');
 
 // Title-case cluster display names — the §3 on-screen headings. Distinct from
@@ -58,6 +59,11 @@ const SHORT = { HIGH: 'HIGH', MODERATE: 'MOD' };
 
 // ── Run the live batch; collect r.flag per test per fixture ──
 const liveFlags = Object.fromEntries(Object.keys(TEST_MECHANISM).map(t => [t, {}]));
+// Withheld-by-decision, per test per fixture. Read through the shared predicate
+// rather than off the flag: a withheld test's flag is "N/A", identical to a
+// genuine not-applicable, which is exactly why the fires-on column could not
+// tell a withdrawn detection from a test that never had one.
+const liveWithheld = Object.fromEntries(Object.keys(TEST_MECHANISM).map(t => [t, {}]));
 for (const [file, key, assay] of FIXTURES) {
   if (!CHECK) process.stderr.write(`  ${key}…`);
   const csv = readFileSync(join(FIXTURES_DIR, file), 'utf-8');
@@ -81,6 +87,7 @@ for (const [file, key, assay] of FIXTURES) {
   );
   for (const r of results) {
     if (r.name in liveFlags) liveFlags[r.name][file] = r.flag;
+    if (r.name in liveWithheld) liveWithheld[r.name][file] = isWithheld(r);
   }
   if (!CHECK) process.stderr.write(' ok\n');
 }
@@ -89,10 +96,20 @@ for (const [file, key, assay] of FIXTURES) {
 // A fire (live HIGH/MOD) that is in the fixture's EXPECTED.flags is credited —
 // its tier label is the declared allow-set (singleton → HIGH/MOD; two-value →
 // MOD/HIGH). A fire NOT in EXPECTED.flags is an acknowledged on-screen fire —
-// its tier is the live flag, marked ` (ack)`. No fire anywhere → `— latent`.
+// its tier is the live flag, marked ` (ack)`.
+//
+// Three states, not two, when there is no fire. `— latent` says the test has
+// never had a detection to show. `— withheld on N` says it had one and the
+// battery stopped reporting it — Residual Spike Correlation fired on DS02 and
+// DS11 and was withdrawn by decision at P86, and calling that latent tells a
+// reader looking for a fixture to load the opposite of what happened. The two
+// are indistinguishable from the flag alone, which is why the withheld state is
+// read from the result and not from `r.flag`.
 function firesCell(name) {
   const parts = [];
+  let withheldOn = 0;
   for (const [file, key] of FIXTURES) {
+    if (liveWithheld[name][file]) withheldOn += 1;
     const live = liveFlags[name][file];
     if (live !== 'HIGH' && live !== 'MODERATE') continue;
     const allow = EXPECTED[file]?.flags?.[name];
@@ -102,7 +119,9 @@ function firesCell(name) {
       parts.push(`${key} ${SHORT[live]} (ack)`);
     }
   }
-  return parts.length ? parts.join(', ') : '— latent';
+  if (parts.length) return parts.join(', ');
+  if (withheldOn > 0) return `— withheld on ${withheldOn} fixture${withheldOn === 1 ? '' : 's'}`;
+  return '— latent';
 }
 
 // ── Assemble the document ──
@@ -154,8 +173,14 @@ lines.push('');
 lines.push('**Tier rendering.** Credited fires take the declared allow-set: a singleton');
 lines.push('`[\'HIGH\']` renders `HIGH`, and a two-value `[\'MODERATE\',\'HIGH\']` renders');
 lines.push('`MOD/HIGH` (the fixture permits either tier). Acknowledged fires take the live');
-lines.push('tier — `HIGH` or `MOD` — followed by `(ack)`. A test with no fire on any');
-lines.push('fixture is `— latent`.');
+lines.push('tier — `HIGH` or `MOD` — followed by `(ack)`.');
+lines.push('');
+lines.push('**No fire — two states, not one.** A test with no fire anywhere and no');
+lines.push('withheld result is `— latent`: it has never had a detection to show. A test');
+lines.push('with no fire that the battery withheld by decision on one or more fixtures is');
+lines.push('`— withheld on N fixtures`: it had a detection and the battery stopped');
+lines.push('reporting it. Both carry `flag: "N/A"`, so the state is read from the result');
+lines.push('(`isWithheld` in `src/analysis/coverage.js`), never from the flag.');
 lines.push('');
 lines.push('Sorted by cluster in fixed display order (copied → digits → shapes → replicate');
 lines.push('→ group); tests alphabetical by UI name within each cluster.');

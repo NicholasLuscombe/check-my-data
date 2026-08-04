@@ -32,6 +32,7 @@ import {
 } from "../constants/mechanisms.js";
 import { VST_LABEL } from "../stats/vst.js";
 import { computeSeverity } from "./severity.js";
+import { classifyCoverage, isWithheld, summarizeCoverage } from "./coverage.js";
 import { fmtP } from "../constants/thresholds.js";
 import { composeFinding } from "./findingComposers.js";
 
@@ -178,11 +179,19 @@ function buildDataset(importConfig, nRows, nCols) {
 }
 
 function buildOutcome(severity, results) {
+  // applicableTests is the multiple-comparison denominator the outcome-1
+  // prologue quotes ("With N applicable tests at α=0.01…"). It counts the tests
+  // that applied to this data: the ones that ran, plus the ones that were
+  // withheld by decision. A withheld test was on the table — the battery took
+  // that chance whether or not the result is reported — so excluding it
+  // understates the denominator. The old `flag !== "N/A"` form could not see the
+  // difference, because a withheld test's flag is "N/A" like any decline.
+  const cov = summarizeCoverage(results);
   return {
     tier: severity,
     label: OUTCOME_LABEL[severity] || "Unknown",
     headline: OUTCOME_HEADLINE[severity] || "",
-    applicableTests: results.filter(r => r.flag !== "N/A").length,
+    applicableTests: cov.ran + cov.withheld,
     flaggedCount: results.filter(r => r.flag === "HIGH" || r.flag === "MODERATE")
       .length,
     notedCount: results.filter(r => r.flag === "MODERATE").length,
@@ -243,6 +252,13 @@ function buildFindings(results, dataset) {
   // Non-flagged clusters where every applicable test cleared. These DO
   // follow canonical MECHANISM_ORDER — they didn't appear in the flagged
   // sections above, so the reader sees them for the first time here.
+  //
+  // A cluster holding a withheld test is not one of them, and the renderer's
+  // section header is why: "all applicable tests cleared" is a completeness
+  // claim, and a withheld test is applicable and did not clear. Left in, the
+  // same document asserted the cluster complete and named the missing member
+  // under "Tests not run" a few lines later. The withheld test still appears
+  // there, with its reason verbatim.
   const otherClustersAllClear = [];
   const flaggedKeySet = new Set(flaggedClusterKeys);
   for (const mechKey of MECHANISM_ORDER) {
@@ -250,7 +266,8 @@ function buildFindings(results, dataset) {
     const clusterResults = results.filter(
       r => (TEST_MECHANISM[r.name] || "") === mechKey
     );
-    const ran = clusterResults.filter(r => r.flag !== "N/A");
+    if (clusterResults.some(isWithheld)) continue;
+    const ran = clusterResults.filter(r => classifyCoverage(r) === "ran");
     if (ran.length === 0) continue;
     const allClear = ran.every(r => r.flag === "LOW");
     if (!allClear) continue;

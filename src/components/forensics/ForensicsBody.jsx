@@ -368,6 +368,9 @@ export function ForensicsBody({
   // Clean-state line for the findings panel. The count is dropped here — §1 sits
   // directly above carrying the same number — so this just states the finding.
   // Nothing-completed still says the report says nothing.
+  // Reads `ran` alone, so the withheld bucket does not move it: a withheld test
+  // did not complete either, and `ran === 0` stays the honest test for "nothing
+  // ran on this data".
   const coverage = summarizeCoverage(results);
   const cleanStateLead = coverage.ran === 0
     ? "No tests could run on this data. This report says nothing about it."

@@ -10,6 +10,7 @@ import { detectAssay, ASSAY_DATATYPE_MAP } from "../../constants/assays.js";
 import { computeSeverity } from "../../analysis/severity.js";
 import { extractAnalysisInputs, runFullAnalysis } from "../../analysis/engine.js";
 import { buildMechanismGroups } from "../../analysis/localization.js";
+import { summarizeCoverage } from "../../analysis/coverage.js";
 import { ReportView } from "./ReportView.jsx";
 import { C, FF, FW, FS, CR, CC, M, UI, SIGNAL, ACCENT, SEV_VERDICT } from "../../constants/tokens.js";
 import { fmtPBadge } from "../../constants/thresholds.js";
@@ -200,7 +201,12 @@ export function BatchView({ onBack }) {
 
         // Compute severity
         const sev=computeSeverity(testResults);
-        const applicable=testResults.filter(r=>r.flag!=="N/A").length;
+        // Tests that applied to this file: the ones that ran, plus the ones
+        // withheld by decision. A withheld test carries flag "N/A" like any
+        // decline, so the old `flag !== "N/A"` count dropped it and the batch
+        // table under-reported the battery's reach on every paired file.
+        const cov=summarizeCoverage(testResults);
+        const applicable=cov.ran+cov.withheld;
 
         batchResults.push({
           fileName:file.name,

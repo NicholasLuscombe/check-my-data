@@ -68,7 +68,6 @@ export function VerdictBanner({ severity, results, importConfig, nRows, nCols, m
   const modeText = (mode && mode !== "full" && SEVERITY_TEXT[mode]) ? SEVERITY_TEXT[mode][severity] : null;
   const v = modeText ? { ...vFull, headline: modeText.headline } : vFull;
   const groups = buildMechanismGroups(results);
-  const nApplicable = results.filter(r => r.flag !== "N/A").length;
 
   // Severity-0 verdict: a three-word finding statement in the headline slot,
   // with coverage carried by a neutral sub-line beneath (the slot the retired
@@ -76,6 +75,14 @@ export function VerdictBanner({ severity, results, importConfig, nRows, nCols, m
   // the count no longer leads. N = 0 is the exception — nothing ran, so there is
   // no finding: the headline says so and there is no sub-line.
   const cov = summarizeCoverage(results);
+  // The multiple-comparison denominator on the false-positive line below. It
+  // counts every test that APPLIED to this data, which is the tests that ran plus
+  // the tests that were withheld by decision — a withheld test was on the table
+  // and its exclusion would understate the number of chances the battery took.
+  // The sub-line beside it counts what COMPLETED (cov.ran) and is a different
+  // figure on purpose. The old `flag !== "N/A"` form could not tell the two
+  // apart, because a withheld test's flag is "N/A".
+  const nApplicable = cov.ran + cov.withheld;
   let cleanHeadline, cleanSubline = null;
   if (cov.ran === 0) {
     cleanHeadline = "No tests could run on this data. This report says nothing about it.";

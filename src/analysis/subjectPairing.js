@@ -61,6 +61,8 @@
  * @property {number} nConditions   Conditions the verdict was taken over.
  */
 
+import { WITHHELD_LABEL } from "./coverage.js";
+
 /** Unpaired, with nothing found. */
 const UNPAIRED = (nConditions = 0) => ({
   paired: false, basis: 'none', idColumn: null, idColIndex: null, nConditions,
@@ -169,9 +171,12 @@ export function computeSubjectPairing({ condCtx, data, roles, filteredIndices, h
 //   - It explains itself in plain words. The term "paired" never appears; it
 //     names what is actually true of the file instead.
 
-/** Shared opener for every test withheld because the conditions share subjects. */
+/** Shared opener for every test withheld because the conditions share subjects.
+ *  Composed from WITHHELD_LABEL so the two words a reader sees on the §5 panel,
+ *  the Excel legend and the Excel per-test row are one string, not three copies
+ *  that can drift apart. */
 export const PAIRED_CAUSE =
-  "Not evaluated — the same subjects appear in every condition.";
+  `${WITHHELD_LABEL} — the same subjects appear in every condition.`;
 
 /** Per-test tail. Keyed on the engine's dispatch-map key. */
 export const PAIRED_SKIP = {
