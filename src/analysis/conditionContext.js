@@ -274,7 +274,7 @@ export function createConditionContext({
       })).filter(g => g.matrix.length >= 4 && g.matrix[0].length >= 2);
     }
 
-    return createConditionContext({
+    const child = createConditionContext({
       groups: newGroups,
       rowConditions,
       rowConditionsCols,
@@ -282,9 +282,19 @@ export function createConditionContext({
       colRelationship,
       dataColHeaders,
     });
+
+    // P82 (S351) — carry the subject-pairing verdict onto the transformed child.
+    // Pairing is a property of WHICH subjects sit in which condition, not of the
+    // values, so a VST transform cannot change it; and the identifier the
+    // verdict was derived from is not reachable from here, so a child could not
+    // re-derive it. Without this, any consumer reading the verdict off a
+    // transformed context would silently see `undefined` and treat a paired file
+    // as unpaired — the direction that runs a test it should not.
+    if (api.subjectPairing) child.subjectPairing = api.subjectPairing;
+    return child;
   }
 
-  return {
+  const api = {
     type,
     names,
     count,
@@ -298,4 +308,5 @@ export function createConditionContext({
     rowConditions: hasRowConds ? rowConditions : null,
     rowConditionsCols: rowConditionsCols || null,
   };
+  return api;
 }

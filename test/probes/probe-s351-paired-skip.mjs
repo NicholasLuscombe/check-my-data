@@ -42,22 +42,22 @@ const SEEDS = Math.max(1, Number(process.env.SEEDS) || 1);
 const MULTI = SEEDS > 1;
 let setSeed = () => {};
 if (MULTI) {
-  const seedInject = await import('./seed-inject.mjs');
+  const seedInject = await import('../seed-inject.mjs');
   seedInject.registerSeedHook();
   setSeed = seedInject.setSeed;
 }
 
 const Papa = await import('papaparse');
-const { extractAnalysisInputs, runFullAnalysis } = await import('../src/analysis/engine.js');
-const { computeSeverity } = await import('../src/analysis/severity.js');
-const { detectVST } = await import('../src/stats/vst.js');
-const { inferRoles } = await import('../src/import/roles.js');
-const { ASSAY_DATATYPE_MAP } = await import('../src/constants/assays.js');
-const { forwardFill, preprocessRaw, detectHeaderRows } = await import('../src/import/parser.js');
-const { detectLongFormat } = await import('../src/import/longFormat.js');
-const { suggestRowSemantics } = await import('../src/import/rowSemantics.js');
-const { TEST_MECHANISM } = await import('../src/constants/mechanisms.js');
-const { EXPECTED } = await import('./batch-fixtures.mjs');
+const { extractAnalysisInputs, runFullAnalysis } = await import('../../src/analysis/engine.js');
+const { computeSeverity } = await import('../../src/analysis/severity.js');
+const { detectVST } = await import('../../src/stats/vst.js');
+const { inferRoles } = await import('../../src/import/roles.js');
+const { ASSAY_DATATYPE_MAP } = await import('../../src/constants/assays.js');
+const { forwardFill, preprocessRaw, detectHeaderRows } = await import('../../src/import/parser.js');
+const { detectLongFormat } = await import('../../src/import/longFormat.js');
+const { suggestRowSemantics } = await import('../../src/import/rowSemantics.js');
+const { TEST_MECHANISM } = await import('../../src/constants/mechanisms.js');
+const { EXPECTED } = await import('../batch-fixtures.mjs');
 
 const FIXTURE_DIR = 'test/fixtures';
 const CCC = 'Cross-Condition Consistency';
@@ -222,7 +222,7 @@ async function measure(file) {
 const files = Object.keys(EXPECTED);
 const dsKey = {};
 {
-  const { FIXTURES } = await import('./batch-fixtures.mjs');
+  const { FIXTURES } = await import('../batch-fixtures.mjs');
   for (const [f, ds] of FIXTURES) dsKey[f] = ds;
 }
 const keyOf = f => dsKey[f] || f.replace(/\.csv$/, '');

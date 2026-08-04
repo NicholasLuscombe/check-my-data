@@ -3,16 +3,16 @@
 **Scope.** Measurement only. Nothing under `src/` changed. Neither the skip of Cross-Condition
 Consistency nor the suspension of Residual Spike Correlation is implemented here.
 
-**Instrument.** `test/probe-s351-paired-skip.mjs`, committed with this summary. It loads all 27
+**Instrument.** `test/probes/probe-s351-paired-skip.mjs`, committed with this summary. It loads all 27
 fixtures exactly the way `test/validate-batch.mjs` loads them, derives pairing from the data,
 reconciles every baseline severity against `EXPECTED`, and measures severity four ways.
 
 ```bash
-node test/probe-s351-paired-skip.mjs
+node test/probes/probe-s351-paired-skip.mjs
 ```
 
 ```bash
-SEEDS=8 node test/probe-s351-paired-skip.mjs
+SEEDS=8 node test/probes/probe-s351-paired-skip.mjs
 ```
 
 `SEEDS=N` sweeps PRNG offsets, and offset 0 is the shipped derived stream. So eight offsets is one
@@ -349,13 +349,25 @@ Measured. Nothing exits severity 0 on the paired set. The only fixture that reac
 unpaired and therefore out of the skip's reach. `computeSeverity` is monotone under result removal, so
 no fixture can move upward either.
 
-**A claim in the S351 dispatch that the repository contradicts.**
+**Two S349 instruments, and only one of them exists. Corrected at S351 Part 2.**
 
-The dispatch states that the S349 census matcher "was not [committed], and its result is now
-unreproducible." `test/probes/probe-s349-pairing-census.mjs` is tracked and was committed at `1f2724f`
-("S349: CCC Stage-1 limit measurement, paired-null probe, pairing census"). It still runs, and on the
-fixtures it covers it agrees with this session's census — DS09 fully paired on `ProteinID`, DS12a not
-paired on `sample_id`, DS17 structurally paired.
+The S351 Part 1 dispatch said the S349 census matcher "was not [committed], and its result is now
+unreproducible," and this section originally answered that by pointing at
+`test/probes/probe-s349-pairing-census.mjs`, which is tracked and was committed at `1f2724f`. That
+answer was about the wrong instrument.
+
+`STATUS.md:81` Known bug 9 reads: "**The S349 census matcher was never committed and was not kept.**
+Six S349 probes are tracked; the script that carved the `tests` array and applied the four-marker rule
+exists nowhere. The census's twenty members rest on a prose description no one can re-run." That is the
+**condition-partitioned dispatch-entry census** — the twenty-member one. **It is still missing and
+Known bug 9 still stands.** Nothing in this summary retires it.
+
+The instrument that does exist is a different one: a **pairing** census over fixtures. Its agreement
+with Part 1's census is real but narrow. It walks eight fixtures, all clean — DS01, DS03, DS05, DS07,
+DS09, DS12a, DS17 and vfs-a — of which **four sit in the paired nine** (DS01, DS03, DS09, DS17). It
+could not structurally have reached DS02, DS04, DS10, DS11 or DS16, since none of them is in its list.
+So it corroborates four of nine members and is silent on the other five. It is not a cross-check of the
+census.
 
 ---
 
@@ -978,3 +990,214 @@ produce a number that means neither thing.
   and it is a single file.
 - **Whether the single-condition estimator behaves at three conditions**, where a per-condition estimate
   could be pooled across conditions with the copy structure still excluded. Not measured.
+
+---
+---
+
+# Part 2 (P82) — Cross-Condition Consistency is skipped on paired data
+
+**This part changes `src/`.** It is the first `src/` change since S345; the four earlier S351 commits
+were measurement only.
+
+**What decided it.** Part 1 measured that suppressing this test moves no severity on any of the nine
+paired fixtures — DS01, DS03, DS09 and DS17 stay 0, DS02, DS04, DS10 and DS11 stay 3, DS16 stays 2 —
+and that neither fixture declaring a channel for it (DS15, DS19) is paired. The cost is zero and it was
+measured before it was implemented.
+
+**P86 is untouched.** Residual Spike Correlation ships exactly as before. It is not in the skip map.
+
+---
+
+## 25. The scope rule, corrected
+
+A test is skipped on paired data when **its null destroys the correspondence between row *r* in one
+condition and row *r* in another**. Direction-agnostic.
+
+The earlier wording — "shuffles rows across conditions" — reaches all seven Cross-Condition Consistency
+arms and zero Residual Spike Correlation arms, which is not what the disposition decided. The two tests
+break the same correspondence by opposite operations: one moves the condition tags under fixed rows, the
+other moves the rows under fixed tags. The corrected rule is the one written into the code, the comments
+and the disposition.
+
+All seven arms are withheld together. They share one Fisher–Yates over `permRow`, so there is no subset
+to spare.
+
+---
+
+## 26. Where the verdict lives
+
+| | |
+|---|---|
+| **Computed** | `extractAnalysisInputs` (`engine.js`), by `computeSubjectPairing` in the new `src/analysis/subjectPairing.js` |
+| **Stored** | `condCtx.subjectPairing` — `{ paired, basis, idColumn, idColIndex, nConditions }` |
+| **Read by** | one consumer: the `pairedSkip` closure in `runFullAnalysis`, which the Cross-Condition Consistency dispatch calls before anything else |
+
+It is computed in `extractAnalysisInputs` for the same reason `groupingTrigger` is: that is the only
+scope holding `data`, `roles` and `filteredIndices` together, and **the identifier column is dropped
+from the matrix two statements earlier**. `runFullAnalysis` receives only the matrix and the context, so
+the verdict is stamped onto the context, exactly as the S320 trigger is.
+
+**Not wired to `condCtx.paired`.** That field has one reader in all of `src/`, it is `false` on the
+row-grouped branch, and `forSubMatrix` rebuilds children with `groups: null` so every child reads
+`false`. The verdict carries its own name.
+
+**One hole closed rather than relied on.** `withMatrix` builds a transformed child for the VST path, and
+a plain rebuild would drop the stamp. `runFullAnalysis:208` already calls it on a branch that is
+currently unreachable — but a consumer reading the verdict off a transformed context would silently see
+`undefined` and treat a paired file as unpaired, which is the direction that runs a test it should not.
+`withMatrix` now carries the verdict onto the child, because pairing is a property of which subjects sit
+in which condition and a transform cannot change it. `forSubMatrix` deliberately does not: this test is
+never dispatched through `aggregatePerGroup`, and a column-group child is a different pairing question.
+
+The rule itself is Part 1's census, unchanged: column-grouped is paired structurally; row-grouped needs
+an identifier column where every subject appears exactly once in every condition with identical sets
+across them; everything else is unpaired. **Every non-data column is tested, not the first label
+column** — DS03 and DS04 are paired on their second one, and a first-column reading returns seven where
+the corpus has nine, silently.
+
+---
+
+## 27. The decline census
+
+Prior counts of these wordings went 11 → 16 → 17. Both figures below differ from all three, so neither
+was carried forward from a doc.
+
+| Census | Count | What it counts |
+|---|---|---|
+| **Empirical** | **84** distinct wordings | Every decline that actually reaches a card across the 27 fixtures, including the per-test strings returned from inside test modules |
+| **Static** | **22** distinct wordings | What the constants define — the two shared-cause families plus the two whole-description constants — whether or not the corpus exercises them |
+
+Neither substitutes for the other. The static census cannot see a reason no constant holds; the
+empirical one cannot see a wording no fixture fires.
+
+The register's grammar, read off the census rather than assumed: `"Not applicable — <reason>."` for the
+whole-description constants, `"Not applicable to <kind> data. <per-test tail>"` for the shared-cause
+family, `"Not applicable because <reason>."` for the two engine-level constants, and a handful of terse
+forms like `"Need ≥2 experimental conditions."`
+
+### The string
+
+Two constants mirroring the `DATATYPE_*` pair, joined by the existing `joinDeclineReason`:
+
+- `PAIRED_CAUSE` — `Not evaluated — the same subjects appear in every condition.`
+- `PAIRED_SKIP["Cross-Condition Consistency"]` — the per-test tail.
+
+The card reads:
+
+> Not evaluated — the same subjects appear in every condition. This check compares each pair of
+> conditions against a reference it builds by reshuffling subjects between them, which only describes a
+> study where the conditions hold different subjects. Here they hold the same ones, so the comparison is
+> withheld rather than reported: a result from it would not mean what it appears to mean.
+
+It keeps the register's em-dash-then-explanation shape but opens **"Not evaluated"** rather than "Not
+applicable", because the three constraints were not negotiable and the first of them requires it. All
+three hold: it says not evaluated and never reads as a pass; it carries **no p, no distance and no
+percentile** — the skip returns before anything is computed, so there is no number to suppress; and it
+explains itself without the word "paired" doing the work.
+
+**Routed through the existing machinery, not a second path.** The result carries `description` (the
+joined pair), `naCauseText` and `naTailText`, which is the whole contract
+`groupNotApplicableByReason` reads — it keys on the cause when present and indents the per-test tail
+under it. No registry entry was needed anywhere. `getApplicabilityTests` needs no change either: this
+test already sits in `RUN_ONLY_TESTS`, which is exactly right for a decline only knowable by running.
+
+A new decline code, `NA_CAUSE.SUBJECTS_SHARED_ACROSS_CONDITIONS`, joins the decline family — the data's
+structure is wrong for the test and more data would not help.
+
+---
+
+## 28. Verification
+
+**1. Severity — byte-identical.** All 27 fixtures return the severity they returned before, and each
+matches `EXPECTED`. Nothing moved.
+
+**2. String dump — the diff is exactly the predicted one.** Every result's name, flag, `primaryP` and
+`description` was dumped across all 27 fixtures before and after: 783 rows each time.
+
+| | |
+|---|---|
+| Rows differing | **18** — nine rows, before and after |
+| Fixtures affected | **DS01, DS02, DS03, DS04, DS09, DS10, DS11, DS16, DS17** — exactly the paired nine |
+| Tests affected | **one**, Cross-Condition Consistency |
+| Transition | LOW → N/A on all nine |
+
+Not byte-identical, so the skip fired. Not wider than one test, so it stayed in scope.
+
+**3. PRNG — measured, not argued.** The description dump cannot answer this, because most tests never
+put a number in their description. So `primaryP` was carried in the dump at 18 significant digits, the
+`src/` changes were stashed to reproduce the pre-change tree, and the two runs were compared on the
+p-column alone with Cross-Condition Consistency excluded: **515 p-values across every other test and
+every fixture, identical.** That is the empirical confirmation. The architectural reason is S340's
+per-test streams — each instance derives from the data hash plus its own dispatch-map key and is
+memoised per identifier, so never calling `rngFor("Cross-Condition Consistency")` cannot displace an
+instance no other test shares.
+
+**4. Full batch — 27/28, DS12b the sole failure.** Unchanged from before this dispatch. DS12b fails the
+completeness gate on an undeclared Regional Noise Homogeneity firing; it is unpaired, its row in the
+dump did not move, and nothing here touches it.
+
+**5. Build and serve.** `npm run build` succeeds in 1.35 s. `npm run dev` serves: index 200, entry
+module 200, and the new `src/analysis/subjectPairing.js` compiles and serves at 200. No visual
+verification was attempted — that is Nick's.
+
+---
+
+## 29. The disposition edit
+
+`docs/shared/S350-PAIRED-DESIGN-DISPOSITION.md` §1's opening two sentences were replaced with the
+corrected scope rule, verbatim as specified. The uniqueness check on the anchor returned **exactly one
+line** before the edit. Afterwards `git diff` shows one hunk, 9 insertions and 3 deletions, and deleting
+the replaced lines from both versions leaves the two files byte-identical — so nothing outside the
+anchor moved.
+
+No other change was made to that file. Its §3, §5 and §6 need corrections from the s-gate sweep and
+those are Chat's, landing separately.
+
+---
+
+## 30. Where METHODOLOGY states the general case — read only, no edit
+
+The general rule lives in **`## Condition Grouping Contract (v1.x, S318)`**, and its `**Motivation.**`
+paragraph is the statement the new rule generalises:
+
+> **Motivation.** The permutation nulls in the row-grouped tests all rest on one assumption:
+> **conditions are exchangeable at the row level.** Rows within a condition are interchangeable draws
+> from the same distribution, so shuffling condition labels across rows generates a valid null.
+
+That section already names one way the assumption fails — the factor-versus-stratum mismatch, framed as
+observational unit against experimental unit. **A paired design is a second, independent way it fails,
+and the section does not mention it.** The paragraph immediately after the one quoted above is where the
+observational/experimental-unit distinction is developed, so a paired-design clause sits naturally
+either directly after the Motivation paragraph or as a sibling of the `**Factor versus stratum.**`
+subsection that follows.
+
+Two further places already carry the specific case and would only need a pointer, not a restatement: the
+`### 1.9 Cross-Condition Consistency Framework` heading block, whose opening line already announces the
+S350 decision and names the disposition as authoritative, and the same section's paired-designs bullet,
+which already reads "the framework is skipped on paired data" and gives the 9-of-27 reach. Residual Spike
+Correlation's §1.7 note carries its own suspension paragraph.
+
+Candidate insertion points reported; the general-case edit is Chat's to author.
+
+---
+
+## 31. Corrections to this dispatch's premises
+
+- **The S349-census claim was not in `CLAUDE.md`.** It was in §5 of this summary. `CLAUDE.md` never
+  carried it. Corrected in place, and §5 now records that Known bug 9 concerns a different, still-missing
+  instrument and still stands.
+- **`groupNotApplicableByReason` is not in `src/constants/assays.js`.** It lives in
+  `src/analysis/noVerdictReasons.js`. The rest of the decline machinery is where the dispatch said.
+- **`PAIRED_CAUSE` and `PAIRED_SKIP` were not put in `assays.js`.** They key on neither assay nor data
+  type, so they live beside the detection in `subjectPairing.js` — the same reasoning that puts
+  `ROW_SEMANTICS_SKIP_REASON` in the row-semantics module. The machinery they route through is the
+  shared one either way.
+
+## 32. Expectations
+
+| # | Expectation | Result |
+|---|---|---|
+| 1 | Every severity byte-identical across all 27 fixtures | **Confirmed** |
+| 2 | The dump changes this test's description on exactly nine fixtures and nothing else anywhere | **Confirmed** — 18 diff lines, nine fixtures, one test |
+| 3 | The decline census returns a different count from any figure in the docs | **Confirmed** — 84 empirical and 22 static, against 11/16/17 |
+| 4 | The pairing verdict needs a new field; nothing existing carries it correctly | **Confirmed** — `condCtx.paired` is false on the row-grouped branch and on every `forSubMatrix` child |
