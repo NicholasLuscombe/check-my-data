@@ -20,6 +20,7 @@ import { buildConvergence } from "../analysis/convergence.js";
 import { computeSeverity } from "../analysis/severity.js";
 import { ACTION_LABEL } from "../analysis/narrative.js";
 import { buildHandoffModel } from "../analysis/handoffModel.js";
+import { summarizeCoverage, isWithheld, WITHHELD_LABEL } from "../analysis/coverage.js";
 import { fmtP, FLAG_STYLES } from "../constants/thresholds.js";
 import { MODES, SEVERITY_TEXT, CATEGORY_GUIDANCE, HOTSPOT_PATTERNS, QC_NO_HOTSPOT } from "../constants/guidance.js";
 import { originalFileRow } from "../components/shared/coordinates.js";
@@ -153,19 +154,21 @@ function getActiveCategories(convergence) {
 
 // ── Narrative generation ────────────────────────────────────────────
 
-function generateNarrative(severity, pattern, activeCategories, nApplicable, mode) {
+function generateNarrative(severity, pattern, activeCategories, nCompleted, mode) {
   const modeKey = mode === "full" ? "review" : mode;
   const sevText = SEVERITY_TEXT[modeKey]?.[severity];
 
   if (severity === 0) {
     // Coverage-first clean narrative. Replaces the prior "consistent with genuine
     // instrument-recorded measurements" claim, which the tool has no standing to
-    // make. nApplicable is the completed count; the errored/not-applicable gap is
-    // carried by the coverage line elsewhere in the report. Says "report", not
-    // "screen" — an exported file has no screens.
-    return nApplicable === 0
+    // make. The figure is the COMPLETED count and nothing else — it is not
+    // outcome.applicableTests, which counts the withheld tests too and would make
+    // "completed" false. The withheld / errored / not-applicable gap is carried by
+    // the coverage line elsewhere in the report. Says "report", not "screen" — an
+    // exported file has no screens.
+    return nCompleted === 0
       ? "No tests could run on this data. This report says nothing about it."
-      : `${nApplicable} of 29 tests completed — no signal above threshold. This report does not establish that the data is genuine.`;
+      : `${nCompleted} of 29 tests completed — no signal above threshold. This report does not establish that the data is genuine.`;
   }
 
   const catNames = activeCategories.map(c => MECHANISMS[c]?.label || c);
@@ -180,7 +183,7 @@ function generateNarrative(severity, pattern, activeCategories, nApplicable, mod
   if (patternDesc) {
     narrative += ` Pattern: ${patternDesc}`;
   }
-  narrative += ` ${nApplicable} independent statistical tests were run.`;
+  narrative += ` ${nCompleted} independent statistical tests were run.`;
   return narrative;
 }
 
@@ -357,7 +360,17 @@ export async function exportToExcel({ results, importConfig, matrix, rowMap, mod
   const handoffModel = buildHandoffModel(results, importConfig, nRows, nCols);
   const fileName = handoffModel.dataset.filename;
   const assayLabel = handoffModel.dataset.assay;
-  const nApplicable = handoffModel.outcome.applicableTests;
+  // Two counts, not one. `nCompleted` is what produced a verdict; every sentence
+  // in this file that says "completed" or "were run" takes it. The model's
+  // `outcome.applicableTests` is a different figure — it counts the withheld
+  // tests as well, because they applied — and no sentence here claims that, so
+  // it is deliberately not read. The withheld tests surface on the Legend sheet
+  // and in the Test Details flag column instead.
+  const coverage = summarizeCoverage(results);
+  const nCompleted = coverage.ran;
+  // The withheld tests themselves, for the conditional legend row below. Their
+  // reason text comes off the result rather than out of a literal here.
+  const withheldTests = results.filter(isWithheld);
 
   const visColIndices = hdrs.map((_, ci) => ci).filter(ci => roles[ci] !== "ignore");
   const dColMap = roles.map((rl, ci) => rl === "data" ? ci : -1).filter(ci => ci >= 0);
@@ -488,7 +501,7 @@ export async function exportToExcel({ results, importConfig, matrix, rowMap, mod
 
   // Section 2: Overall Assessment
   rptAoa.push(["OVERALL ASSESSMENT"]);
-  const narrative = generateNarrative(severity, convergence.pattern, activeCategories, nApplicable, mode);
+  const narrative = generateNarrative(severity, convergence.pattern, activeCategories, nCompleted, mode);
   rptAoa.push([narrative]);
   rptAoa.push([]);
   rptAoa.push([]);
@@ -622,7 +635,13 @@ export async function exportToExcel({ results, importConfig, matrix, rowMap, mod
       const desc = (r.description || "").slice(0, 100);
       // S156 D1: emit FLAG_STYLES.label sentence-case rather than the raw
       // HIGH/MODERATE/LOW identifier (audit C3).
-      const flagLabel = (r.flag && FLAG_STYLES[r.flag]?.label) || r.flag || "—";
+      // A withheld test carries flag "N/A" like any other decline, so the flag
+      // alone cannot label it — the predicate has to be asked. Without this the
+      // row reads "N/A" and keys to the not-applicable legend line, which says
+      // something false about the data.
+      const flagLabel = isWithheld(r)
+        ? WITHHELD_LABEL
+        : ((r.flag && FLAG_STYLES[r.flag]?.label) || r.flag || "—");
       detailAoa.push([displayName, r._category, flagLabel, pVal, loc, desc]);
     }
     ws3 = XLSX.utils.aoa_to_sheet(detailAoa);
@@ -674,6 +693,18 @@ export async function exportToExcel({ results, importConfig, matrix, rowMap, mod
   legendAoa.push(["Moderate", "Borderline evidence warranting attention (p < 0.01 after correction)"]);
   legendAoa.push(["Clear",    "No evidence of anomaly at this threshold"]);
   legendAoa.push(["N/A",      "Test not applicable to this dataset (insufficient data, wrong data type, etc.)"]);
+  // The withheld row, and only when the dataset has one. The N/A line above is
+  // the legend the whole export keys to, and it is flatly false for a test that
+  // applied and was deliberately not reported — so that test takes its own key
+  // and its own row rather than borrowing this one. The meaning is the result's
+  // own naCauseText, verbatim: the reason a reader sees here is the reason §5
+  // shows on screen, not a second wording of it. A file with no withheld test
+  // gets no row, so the legend never explains a state the workbook does not
+  // contain.
+  const withheldReasons = [...new Set(withheldTests.map(r => r.naCauseText).filter(Boolean))];
+  for (const reason of withheldReasons) {
+    legendAoa.push([WITHHELD_LABEL, reason]);
+  }
   legendAoa.push([]);
 
   // Outcome ladder — S156 D5 canon: dataset-level outcome rendered as
@@ -690,7 +721,7 @@ export async function exportToExcel({ results, importConfig, matrix, rowMap, mod
 
   // Methodology note
   legendAoa.push(["METHODOLOGY"]);
-  legendAoa.push([`Check My Data runs a battery of 29 independent statistical tests on raw experimental data; ${nApplicable} completed on this dataset. Tests are grouped into 5 observation categories: ${MECHANISM_ORDER.map(k => MECHANISMS[k]?.label || k).join(", ")}. The convergence heatmap on the Annotated Data sheet highlights regions where multiple independent tests flag the same cells. Darker shading indicates more tests converging on that region.`]);
+  legendAoa.push([`Check My Data runs a battery of 29 independent statistical tests on raw experimental data; ${nCompleted} completed on this dataset. Tests are grouped into 5 observation categories: ${MECHANISM_ORDER.map(k => MECHANISMS[k]?.label || k).join(", ")}. The convergence heatmap on the Annotated Data sheet highlights regions where multiple independent tests flag the same cells. Darker shading indicates more tests converging on that region.`]);
   legendAoa.push([]);
   legendAoa.push(["This report is a screening aid, not a determination of misconduct."]);
 

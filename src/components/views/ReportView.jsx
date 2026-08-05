@@ -220,7 +220,6 @@ export function ReportView({ results: baseResults, importConfig, matrix, rowMap,
   const [copied,setCopied]=useState(false);
   const [exporting,setExporting]=useState(false);
   const [mode,setMode]=useState("qc");
-  const nApplicable = results.filter(r => r.flag !== "N/A").length;
   const handleExcelDownload = async () => {
     setExporting(true);
     try { await lazyExportToExcel({results,importConfig,matrix,rowMap,mode}); }
@@ -240,7 +239,9 @@ export function ReportView({ results: baseResults, importConfig, matrix, rowMap,
     // Clean-case coverage verdict (severity 0). A dataset-level statement that
     // replaces the per-cluster "(X/Y applicable — clear)" form as the clean
     // signal — it references the full battery, so it is one line, not per
-    // cluster. Says nothing when nothing completed.
+    // cluster. Says nothing when nothing completed. Reads `ran` alone, which the
+    // withheld bucket does not move — a withheld test did not complete, so both
+    // the count and the "no tests could run" branch stay honest without it.
     if (severity === 0) {
       lines.push(cov.ran === 0
         ? `No tests could run on this data. This report says nothing about it.`
@@ -1264,7 +1265,6 @@ export function ReportView({ results: baseResults, importConfig, matrix, rowMap,
         };
 
         // Category summaries (sorted by flag count, for evidence section)
-        const nAppD = results.filter(r=>r.flag!=="N/A").length;
         const mgFull = buildMechanismGroups(results);
         const catSummaries = MECHANISM_ORDER.map(mk => {
           const group = mgFull[mk];
@@ -1498,13 +1498,13 @@ export function ReportView({ results: baseResults, importConfig, matrix, rowMap,
               {(() => {
                 const cov = summarizeCoverage(results);
                 // One "not run" figure across the page, pointing at §5 by title so
-                // the pointer survives renumbering. Not-applicable and errored both
-                // mean the test did not run; Test coverage carries the per-test
-                // reason. classifyCoverage assigns each result exactly one bucket,
-                // so notApplicable and errored never overlap and the sum is clean.
+                // the pointer survives renumbering. Not-applicable, withheld and
+                // errored all mean the test did not run; Test coverage carries the
+                // per-test reason. classifyCoverage assigns each result exactly one
+                // bucket, so the three never overlap and the sum is clean.
                 // Shared by both §4 variants: the no-signal sentence and the
                 // flagged pointer name the same section in the same words.
-                const notRun = cov.notApplicable + cov.errored;
+                const notRun = cov.notApplicable + cov.withheld + cov.errored;
                 const notRunClause = notRun === 1
                   ? `1 test was not run — see Test coverage below for why.`
                   : `${notRun} tests were not run — see Test coverage below for why.`;
@@ -1585,10 +1585,13 @@ export function ReportView({ results: baseResults, importConfig, matrix, rowMap,
               // non-N/A-over-total form that undercounted and over-reported at
               // once. "completed" replaces "applied": an errored test applied and
               // then failed, so "applied" was wrong for a figure that excludes it.
-              // A single "not run" clause carries the applicability, errored and
-              // pending counts together — the same non-ran tests the panel below
-              // lists, grouped by reason. Pending folds in here rather than
-              // vanishing: the panel renders it, so the sentence must count it.
+              // A single "not run" clause carries the applicability, withheld,
+              // errored and pending counts together — the same non-ran tests the
+              // panel below lists, grouped by reason. Pending folds in here rather
+              // than vanishing: the panel renders it, so the sentence must count
+              // it. Withheld folds in for the same reason — the panel gives it its
+              // own reason heading, so a sentence that omitted it would disagree
+              // with the list directly beneath.
               // The span counts the categories the COMPLETED tests reach, not
               // the five the battery has. The clause sits inside a sentence
               // about the tests that ran, so a fixed 5 claimed a reach those
@@ -1599,7 +1602,7 @@ export function ReportView({ results: baseResults, importConfig, matrix, rowMap,
               const cov = summarizeCoverage(results);
               const spanned = s5ClusterGroups(results)
                 .filter(g => g.tests.some(r => classifyCoverage(r) === "ran")).length;
-              const notRun = cov.notApplicable + cov.errored + cov.pending;
+              const notRun = cov.notApplicable + cov.withheld + cov.errored + cov.pending;
               const coverageExtra = [];
               if (notRun > 0) coverageExtra.push(notRun === 1 ? `1 not run` : `${notRun} not run`);
               return (

@@ -16,6 +16,8 @@
  * the design archive.
  */
 
+import { WITHHELD_LABEL } from "./coverage.js";
+
 // ── Calibration prologues (S160 lock) ──────────────────────────────────
 // Selected by handoffModel.outcome.tier. The {N} slot in the outcome-1
 // variant resolves to handoffModel.outcome.applicableTests.
@@ -78,6 +80,34 @@ function formatClearedInFlagged(groups) {
 function formatOtherClustersAllClear(clusters) {
   return clusters
     .map(c => `- ${c.clusterLabel} (${c.testCount} tests): ${c.testNames.join(", ")}`)
+    .join("\n");
+}
+
+/** "A", "A and B", "A, B and C". */
+function joinNames(names) {
+  if (names.length <= 1) return names[0] || "";
+  return `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
+}
+
+// A cluster whose members did not all report. It keeps its cleared tests —
+// those are evidence, and this document leaves the building — while the closing
+// clause names what is missing and points at the section that explains it.
+//
+// The reason is NOT repeated here. It sits verbatim under "Tests not run" a few
+// lines down, and a forensics document that states a decline twice invites a
+// reader to compare two wordings of it. Said once, pointed at once.
+//
+// The state's name comes from WITHHELD_LABEL, lower-cased for the sentence —
+// the same string the §5 panel heading, the Excel legend key and the Excel flag
+// column carry, so there is no second place to reword it.
+function formatOtherClustersPartlyAssessed(clusters) {
+  return clusters
+    .map(c => {
+      const cleared = `- ${c.clusterLabel} (${c.clearedCount} of ${c.couldRun} tests cleared): ${c.testNames.join(", ")}.`;
+      const verb = c.withheldTestNames.length === 1 ? "was" : "were";
+      const missing = `${joinNames(c.withheldTestNames)} ${verb} ${WITHHELD_LABEL.toLowerCase()} — see "Tests not run" below.`;
+      return `${cleared} ${missing}`;
+    })
     .join("\n");
 }
 
@@ -166,6 +196,18 @@ Cleared tests are evidence too — a test that was run and didn't fire narrows t
 `### Other clusters — all applicable tests cleared
 
 ${formatOtherClustersAllClear(f.otherClustersAllClear)}`
+    );
+  }
+
+  // Its own section rather than a qualifier on the one above: that header is a
+  // completeness claim, and these clusters did not achieve it. Rendered only
+  // when there is something to put under it — an empty header would tell a
+  // reader a state exists on this dataset when it does not.
+  if ((f.otherClustersPartlyAssessed || []).length > 0) {
+    sections.push(
+`### Other clusters — partly assessed
+
+${formatOtherClustersPartlyAssessed(f.otherClustersPartlyAssessed)}`
     );
   }
 
