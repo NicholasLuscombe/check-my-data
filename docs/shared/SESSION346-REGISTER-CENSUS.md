@@ -142,7 +142,7 @@ this one. That is stated rather than papered over.
 | P | item (verbatim cell) | kind | state, evidenced | duplicate-of |
 |---|---|---|---|---|
 | P41 | Fisher combination | task | open | — |
-| P42 | LOESS | task | open | BANKED:91 (LOESS detail admission, same card) |
+| P42 | LOESS | task | open | S355: subject match only — `BANKED:91` is the display-detail admission, not P42's calibration item. P42's record is `SESSION339-CHAT-SUMMARY.md:131`. |
 | P43 | detection margin | task | open | V1X (P43 cited) |
 | P44 | order-invariant nulls | task | open | — |
 | P45 | gate fallback | task | open | V1X (P45 cited) |
@@ -269,7 +269,7 @@ Plus 8 nested bullets (`:69`–`:73`, `:84`–`:86`), not counted as rows.
 
 | line | item | kind | state | dup-of |
 |---|---|---|---|---|
-| 91 | LOESS region-comparison detail admitted at `cusumP < 0.05`. | task | open | STATUS P42; BANKED:246 |
+| 91 | LOESS region-comparison detail admitted at `cusumP < 0.05`. | task | open | BANKED:246. S355: the STATUS P42 cross-reference is withdrawn — subject match, not item match. |
 | 97 | Verdict-line register pass (R1) — **DONE S279**. | task | **landed** `f2f9ee8`/`3d2913b` | — |
 | 98 | Disclosure-copy pass (R3) — CI-independent. | task | open | BANKED:367 |
 | 99 | Legend standardisation + plot-colour consistency (R4 + R5). | task | open | BANKED:156, :157, :177 |

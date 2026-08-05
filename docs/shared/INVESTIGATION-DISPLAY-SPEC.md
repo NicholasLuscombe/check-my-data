@@ -1559,20 +1559,23 @@ and the build disagree, read the build and amend this.
 METHODOLOGY § Applicability and Coverage Reporting governs what the tool may claim. This section
 governs how the claim renders.
 
-### The five coverage states
+### The six coverage states
 
 | State | Meaning | Counts toward |
 |---|---|---|
 | **Completed** | The test ran and returned a verdict | numerator and denominator |
 | **Not applicable** | The data shape does not support this test | see below — depends on the surface |
+| **Withheld** | The test applied and ran; the result is withdrawn by decision | denominator only, reported separately |
 | **Unassessed** | The user declined to confirm grouping, so the test did not run | denominator only, reported separately |
 | **Errored** | The test began and could not complete | denominator only, reported separately |
 | **Pending** | Grouping confirmation is outstanding; the test may yet run | denominator only, transient |
 
-**These are four distinct reasons a test produced no verdict.**
+**These are five distinct reasons a test produced no verdict.**
 
 - *Not applicable* is the tool being unable to look — the shape was wrong going in, and nothing
   was attempted.
+- *Withheld* is the tool choosing not to report — the test applied, the data supported it, and we
+  withdrew the result by decision. Nothing the user does reaches it.
 - *Unassessed* is the tool being told not to look — the user made a choice, and a user action
   reverses it.
 - *Errored* is the tool trying to look and failing — insufficient rows per group discovered
@@ -1580,6 +1583,8 @@ governs how the claim renders.
 
 Folding an error into "not applicable" makes a bug sound like an expected property of the data.
 Folding it into "unassessed" tells the user they made a choice they did not make.
+Folding a withheld test into "not applicable" tells the user their data was unsuitable when it was
+not, and it removes the test from the accounting that would have shown it missing.
 
 **Implementation.** `src/analysis/coverage.js` is the single source of truth.
 `classifyCoverage(result)` returns the state; `summarizeCoverage(tests)` sums them and guards
@@ -1680,9 +1685,16 @@ some rows and not others draws attention to itself, and the errored clause names
 | Something unassessed or pending | Clear so far | neutral |
 | Anything errored | Incomplete | neutral |
 | Nothing could run | Not assessed | neutral |
+| Something withheld, something else ran | Partly assessed | neutral |
+| Something withheld, nothing ran | Not evaluated | neutral |
 
 `Clear so far` survives only for genuinely outstanding work, which a user action resolves.
 Errored takes its own word because "so far" implies a state that resolves by waiting.
+`Partly assessed` and `Not evaluated` take neither. A withheld test is not outstanding — no user
+action reaches it, because the decision was ours and not the data's. This table names conditions;
+where two could apply, `clusterCoverageState` is the authority on which word wins, and a flag word
+beats both. Both new words are longer than `Clear`, so they spend the subtitle width the
+clause-length constraint below is about.
 
 Clause length is a live constraint: the coverage span is right-pinned and the cluster subtitle
 takes the remaining width. An earlier build carried four clauses and truncated the subtitle to an
@@ -1984,8 +1996,24 @@ user declined to confirm grouping, and a user action reverses it. On DS14 three 
 "Not assessed" when nothing had been declined — a reader taking it at face value concludes the tool
 was switched off rather than that the data was ordinal.
 
+A cluster holding a withheld test reads one of two words, and both carry a fraction, because a
+withheld test stays in `couldRun`. **"Partly assessed"** when something else in the cluster ran —
+DS02's copy-paste cluster is `Partly assessed · 3 of 4`. **"Not evaluated"** when nothing ran,
+because "partly" needs a part: DS02's cross-condition cluster is one withheld test and two
+not-applicable ones, so `Partly assessed · 0 of 1` would assert a part that does not exist. Both
+take the neutral tone. Green stays reserved for a determination the cluster actually made.
+
+**A flagged cluster keeps its flag word.** DS04 reads `High · 3 of 4` with a withheld member. The
+flag is the actionable fact; the fraction carries the incompleteness.
+
+**Known imprecision, recorded rather than fixed.** A single word cannot describe a mixed cluster.
+DS02's cross-condition cluster is one withheld and two not-applicable; "Not evaluated" is imprecise
+about the two, as "Not applicable" was false about the one. The fraction and §5's grouped panel
+carry the real breakdown. The S354 fix moved the imprecision rather than removing it.
+
 The states cannot coexist, and the proof is worth keeping. `couldRun = total − notApplicable`, and
-by the coverage invariant `couldRun = ran + errored + unassessed + pending`. So `couldRun === 0`
+by the coverage invariant `couldRun = ran + withheld + errored + unassessed + pending`. So
+`couldRun === 0`
 forces unassessed and pending to zero: a cluster that is entirely not-applicable has, by
 definition, no unassessed and no pending tests. A genuinely unassessed cluster has `couldRun > 0`
 and falls through to its own branch. No ordering ambiguity.
