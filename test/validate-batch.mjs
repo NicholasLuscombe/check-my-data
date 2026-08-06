@@ -289,9 +289,13 @@ if (MULTI) setSeed(SEED);
       // seeds, and that is not a pass.
       rec.firing.push(results.filter(r => r.flag === 'HIGH' || r.flag === 'MODERATE').map(r => r.name).sort());
       for (const r of results) {
-        if (!rec.tests[r.name]) rec.tests[r.name] = { flags: [], ps: [], B: null, Bfield: null };
+        if (!rec.tests[r.name]) rec.tests[r.name] = { flags: [], ps: [], cells: [], B: null, Bfield: null };
         const t = rec.tests[r.name];
         t.flags.push(r.flag);
+        // The matrix cell value, which is the flag plus the N/A cause. Kept
+        // beside the flag rather than derived from it: a cell can move between
+        // two N/A causes without the flag string changing.
+        t.cells.push(cellValue(r));
         t.ps.push((typeof r.primaryP === 'number' && isFinite(r.primaryP)) ? r.primaryP : null);
         // Resample count as the result publishes it, so anything reading this
         // sidecar sizes a Monte Carlo interval from a measured count, not an
@@ -567,6 +571,31 @@ if (MULTI) {
     console.log(`  ${f} / ${name}${declared ? '   [declared channel]' : ''}`);
     console.log(`    flag  ${t.flags.join(' ')}`);
     console.log(`    p     ${t.ps.map(fmtP).join(' ')}`);
+  }
+
+  // ── S358 P101 — flag-matrix divergence across offsets. ─────────────────
+  // The matrix pins each cell at offset 0. This reports every cell that took a
+  // different value at any offset, and prints the observed set an exception
+  // must be derived from. Reported on the CELL value, not the flag, so a move
+  // between two N/A causes shows up here even though the flag never changed.
+  // A cell listed with NO EXCEPTION will fail the matrix at the offsets where
+  // it moves; that is the list Part 3 encodes from.
+  const matrixMoved = [];
+  for (const f of files) {
+    for (const [name, t] of Object.entries(seedRuns[f].tests)) {
+      const base = t.cells[0];
+      if (t.cells.every(c => c === base)) continue;
+      matrixMoved.push({ f, name, t, base });
+    }
+  }
+  console.log(`\nFlag-matrix divergence — ${matrixMoved.length} of ${totalCells} cells differ from their offset-0 value at some offset:`);
+  if (!matrixMoved.length) console.log('  (every cell holds its offset-0 value at every offset)');
+  for (const { f, name, t, base } of matrixMoved) {
+    const exc = (MATRIX_EXCEPTIONS[f] || {})[name];
+    console.log(`  ${f} / ${name}   ${exc ? `[exception ${exc.parked}]` : '[NO EXCEPTION]'}`);
+    console.log(`    matrix (offset 0)  ${base}`);
+    t.cells.forEach((c, s) => { if (c !== base) console.log(`    offset ${s}           ${c}`); });
+    console.log(`    observed set       ${JSON.stringify([...new Set(t.cells)])}`);
   }
 
   // Optional sidecar so a calibration read sizes intervals from measured
