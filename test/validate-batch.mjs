@@ -50,9 +50,91 @@ const { suggestRowSemantics } = await import('../src/import/rowSemantics.js');
 // EXPECTED allow-sets + ACKNOWLEDGED incidental-fire map: shared with the
 // lookup-table generator (scripts/build-test-display-map.mjs) so the fixture
 // set and routing can't drift between the two. See test/batch-fixtures.mjs.
-const { EXPECTED, ACKNOWLEDGED, SUSPENDED } = await import('./batch-fixtures.mjs');
+const { EXPECTED, ACKNOWLEDGED, SUSPENDED, MATRIX_EXCEPTIONS } = await import('./batch-fixtures.mjs');
 
 const FIXTURES = 'test/fixtures';
+
+// ── S358 P101 — the flag matrix ─────────────────────────────────────
+// Every (fixture, test) cell's flag, pinned at seed offset 0 and compared on
+// every run in BOTH directions. The three declaration lanes above name 62 of
+// the 783 cells, and only the 53 declared ones can fail by going quiet — so a
+// detection that disappears anywhere else costs nothing. S357 measured this
+// tool's instability running toward false negatives, which is exactly the
+// direction those lanes are weakest in. The matrix closes the other 730.
+//
+// It is emitted by the fixture loop below, from the same `results` array the
+// gate has just compared — never by a separate script that rebuilds its own
+// inputs, which would verify the engine and never the path that feeds it.
+//
+// Regenerate with `WRITE_MATRIX=1 node test/validate-batch.mjs`. Generated
+// file: never hand-edit it. Hand-authored allowances live in
+// MATRIX_EXCEPTIONS in test/batch-fixtures.mjs, where a regeneration cannot
+// reach them.
+const WRITE_MATRIX = process.env.WRITE_MATRIX === '1';
+const MATRIX_PATH = 'test/flag-matrix.json';
+
+// Refused rather than guarded. Under SEEDS>1 the loop visits eight offsets and
+// a write would silently record whichever one ran last; making the caller pick
+// is clearer than picking for them.
+if (WRITE_MATRIX && MULTI) {
+  console.error('WRITE_MATRIX=1 and SEEDS>1 are mutually exclusive — the matrix records offset 0 only.');
+  console.error('Run `WRITE_MATRIX=1 node test/validate-batch.mjs` to regenerate, then `SEEDS=8 …` to sweep.');
+  process.exit(2);
+}
+
+let MATRIX = null;
+if (!WRITE_MATRIX) {
+  try {
+    MATRIX = JSON.parse(readFileSync(MATRIX_PATH, 'utf-8')).cells;
+  } catch (err) {
+    console.error(`flag matrix unreadable at ${MATRIX_PATH}: ${err.message}`);
+    console.error('Regenerate with `WRITE_MATRIX=1 node test/validate-batch.mjs`.');
+    process.exit(2);
+  }
+}
+const matrixOut = WRITE_MATRIX ? {} : null;
+
+// One string per cell, keyed by fixture filename and test name — never by
+// index, so reordering engine.js's `tests` array produces no diff. ERROR is
+// recorded as ERROR: a test that starts throwing where it used to return LOW
+// is exactly the change this is for. `N/A` carries its structured cause when
+// the result has one, so a withholding rule that widens by accident fails here
+// even though the flag string never moves (P94 gave the withheld state its own
+// cause code, and a withheld and a not-applicable test both render `N/A`).
+function cellValue(r) {
+  if (r.flag !== 'N/A') return r.flag;
+  return r.naCause ? `N/A:${r.naCause}` : 'N/A';
+}
+
+// Cell-by-cell comparison, failing in both directions. A shape change — a test
+// added to or removed from the battery — is reported by name and does not
+// crash, and an unmatched cell is never skipped in silence.
+function compareMatrix(file, live) {
+  const misses = [];
+  const pinned = MATRIX[file];
+  if (!pinned) {
+    misses.push(`${file}: fixture is not in the flag matrix — regenerate with WRITE_MATRIX=1`);
+    return misses;
+  }
+  const exceptions = MATRIX_EXCEPTIONS[file] || {};
+  for (const name of Object.keys(pinned)) {
+    if (!(name in live)) {
+      misses.push(`${file} / ${name}: in the matrix, absent from this run — test removed from the battery? regenerate with WRITE_MATRIX=1`);
+    }
+  }
+  for (const [name, got] of Object.entries(live)) {
+    if (!(name in pinned)) {
+      misses.push(`${file} / ${name}: ran but is absent from the matrix — test added to the battery? regenerate with WRITE_MATRIX=1`);
+      continue;
+    }
+    const want = pinned[name];
+    if (got === want) continue;
+    const exc = exceptions[name];
+    if (exc && exc.observed.includes(got)) continue;
+    misses.push(`${file} / ${name}: matrix ${want}, live ${got}`);
+  }
+  return misses;
+}
 
 const PERF = process.env.PERF === '1';
 const PERF_LABEL = process.env.PERF_LABEL || null;
@@ -176,7 +258,21 @@ if (MULTI) setSeed(SEED);
     }
     const completenessOk = completenessMisses.length === 0;
 
-    const ok = severity === expected.severity && cellsOk && completenessOk;
+    // S358 P101 — flag matrix. Built from the `results` array the three lanes
+    // above just read, so the values compared are the values that ran. The
+    // comparison runs at EVERY offset: under SEEDS>1 the sweep is where the
+    // exceptions earn their keep.
+    const liveCells = {};
+    for (const r of results) liveCells[r.name] = cellValue(r);
+    if (WRITE_MATRIX) matrixOut[file] = liveCells;
+    const matrixMisses = WRITE_MATRIX ? [] : compareMatrix(file, liveCells);
+    const matrixOk = matrixMisses.length === 0;
+
+    // The severity assertion stays. Severity reaches the verdict through an
+    // aggregation, so pinning every flag does not pin it — the matrix is
+    // strictly stronger per cell and subsumes neither the severity check nor
+    // the three lanes' reasons for a cell being what it is.
+    const ok = severity === expected.severity && cellsOk && completenessOk && matrixOk;
     const flags = results.filter(r => r.flag === 'HIGH' || r.flag === 'MODERATE').map(r => `${r.name}:${r.flag}`).join(', ');
 
     if (MULTI) {
@@ -187,15 +283,19 @@ if (MULTI) setSeed(SEED);
       const rec = seedRuns[file];
       rec.severities.push(severity);
       rec.ok.push(!!ok);
-      rec.misses.push([...cellMisses, ...completenessMisses]);
+      rec.misses.push([...cellMisses, ...completenessMisses, ...matrixMisses]);
       // Channel composition: which tests carry the fixture at this seed. A fixture
       // can reach its declared severity through different channels at different
       // seeds, and that is not a pass.
       rec.firing.push(results.filter(r => r.flag === 'HIGH' || r.flag === 'MODERATE').map(r => r.name).sort());
       for (const r of results) {
-        if (!rec.tests[r.name]) rec.tests[r.name] = { flags: [], ps: [], B: null, Bfield: null };
+        if (!rec.tests[r.name]) rec.tests[r.name] = { flags: [], ps: [], cells: [], B: null, Bfield: null };
         const t = rec.tests[r.name];
         t.flags.push(r.flag);
+        // The matrix cell value, which is the flag plus the N/A cause. Kept
+        // beside the flag rather than derived from it: a cell can move between
+        // two N/A causes without the flag string changing.
+        t.cells.push(cellValue(r));
         t.ps.push((typeof r.primaryP === 'number' && isFinite(r.primaryP)) ? r.primaryP : null);
         // Resample count as the result publishes it, so anything reading this
         // sidecar sizes a Monte Carlo interval from a measured count, not an
@@ -227,6 +327,9 @@ if (MULTI) setSeed(SEED);
       }
       if (!completenessOk) {
         for (const m of completenessMisses) console.log(`    ↳ completeness gate — ${m}`);
+      }
+      if (!matrixOk) {
+        for (const m of matrixMisses) console.log(`    ↳ flag matrix — ${m}`);
       }
       // A withdrawn true detection stays visible in the run. A suspension the
       // batch never mentions is a record nobody reads, and a green line beside a
@@ -260,6 +363,31 @@ if (MULTI) setSeed(SEED);
       };
     }
   }
+}
+
+// ── S358 P101 — emit the flag matrix ────────────────────────────────
+// Keys sorted at both levels so a regeneration produces a minimal, readable
+// git diff and never a reordering one. The counts are written beside the cells
+// so a reader can see the matrix's shape without parsing it.
+if (WRITE_MATRIX) {
+  const sortedFiles = Object.keys(matrixOut).sort();
+  const cells = {};
+  let nCells = 0;
+  for (const f of sortedFiles) {
+    const names = Object.keys(matrixOut[f]).sort();
+    cells[f] = Object.fromEntries(names.map(n => [n, matrixOut[f][n]]));
+    nCells += names.length;
+  }
+  writeFileSync(MATRIX_PATH, JSON.stringify({
+    _generated: 'GENERATED by `WRITE_MATRIX=1 node test/validate-batch.mjs` — do not hand-edit.',
+    _what: 'Flag of every (fixture, test) cell at seed offset 0. Compared in both directions on every run: a cell that stops firing fails as loudly as one that starts.',
+    _exceptions: 'Hand-authored allowances for measured-unstable cells live in MATRIX_EXCEPTIONS in test/batch-fixtures.mjs, out of reach of a regeneration.',
+    seedOffset: 0,
+    nFixtures: sortedFiles.length,
+    nCells,
+    cells,
+  }, null, 2) + '\n');
+  console.log(`\nFlag matrix written: ${MATRIX_PATH} — ${nCells} cells across ${sortedFiles.length} fixtures at seed offset 0.`);
 }
 
 // Back to the shipped stream. The cross-shape check below is a structural
@@ -443,6 +571,31 @@ if (MULTI) {
     console.log(`  ${f} / ${name}${declared ? '   [declared channel]' : ''}`);
     console.log(`    flag  ${t.flags.join(' ')}`);
     console.log(`    p     ${t.ps.map(fmtP).join(' ')}`);
+  }
+
+  // ── S358 P101 — flag-matrix divergence across offsets. ─────────────────
+  // The matrix pins each cell at offset 0. This reports every cell that took a
+  // different value at any offset, and prints the observed set an exception
+  // must be derived from. Reported on the CELL value, not the flag, so a move
+  // between two N/A causes shows up here even though the flag never changed.
+  // A cell listed with NO EXCEPTION will fail the matrix at the offsets where
+  // it moves; that is the list Part 3 encodes from.
+  const matrixMoved = [];
+  for (const f of files) {
+    for (const [name, t] of Object.entries(seedRuns[f].tests)) {
+      const base = t.cells[0];
+      if (t.cells.every(c => c === base)) continue;
+      matrixMoved.push({ f, name, t, base });
+    }
+  }
+  console.log(`\nFlag-matrix divergence — ${matrixMoved.length} of ${totalCells} cells differ from their offset-0 value at some offset:`);
+  if (!matrixMoved.length) console.log('  (every cell holds its offset-0 value at every offset)');
+  for (const { f, name, t, base } of matrixMoved) {
+    const exc = (MATRIX_EXCEPTIONS[f] || {})[name];
+    console.log(`  ${f} / ${name}   ${exc ? `[exception ${exc.parked}]` : '[NO EXCEPTION]'}`);
+    console.log(`    matrix (offset 0)  ${base}`);
+    t.cells.forEach((c, s) => { if (c !== base) console.log(`    offset ${s}           ${c}`); });
+    console.log(`    observed set       ${JSON.stringify([...new Set(t.cells)])}`);
   }
 
   // Optional sidecar so a calibration read sizes intervals from measured

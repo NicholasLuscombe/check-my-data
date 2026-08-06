@@ -291,3 +291,59 @@ export const ACKNOWLEDGED = {
     'Column Goodness-of-Fit': "recur's normal-fit shape mismatch from the 5×10 recurrence; intrinsic to the recurrence carrier (S297)",
   },
 };
+
+// ── S358 P101 — flag-matrix exceptions ───────────────────────────────────────
+//
+// The flag matrix (test/flag-matrix.json) pins every (fixture, test) cell at
+// seed offset 0 and fails on any difference in either direction. A handful of
+// cells sit close enough to a threshold that the PRNG draw decides their tier,
+// so a strict matrix would fail on them at some offsets. Those cells are named
+// here instead of being left as silent gaps.
+//
+// They live in this file rather than in the matrix because the matrix is
+// GENERATED and a regeneration overwrites it whole — a prose reason and a
+// P-number put there would be destroyed the first time anyone re-ran the
+// emitter.
+//
+// `observed` is the set of cell values the sweep actually recorded across
+// offsets 0–7. It is MEASURED ACROSS EIGHT OFFSETS, not proven to be the
+// cell's full range: eight offsets is what we have, and a ninth could widen
+// any of these. Derive an entry from a sweep, never from a document.
+//
+// Derived at S358 from `SEEDS=8 node test/validate-batch.mjs` against the strict
+// matrix. That sweep moved exactly three cells of 783, and these are they. Its
+// `Flag-matrix divergence` section prints the observed set for any cell that
+// moves and marks the ones that have no entry here yet.
+//
+// Two of these three are asserted by nothing else at the offsets where they
+// move — DS12b's Regional Noise is in no lane at all, and DS23's Column GoF is
+// name-checked but never tier-checked. Those two are named holes now rather
+// than silent ones, which is better and is not the same as closed. DS15's cell
+// is declared in `expected.flags`, so the declared lane still fails it at
+// offset 2 and this entry only stops the matrix reporting it twice.
+export const MATRIX_EXCEPTIONS = {
+  '12b-uniform-mixture-fabricated.csv': {
+    'Regional Noise Homogeneity': {
+      observed: ['MODERATE', 'LOW'],
+      parked: 'P101',
+      measured: 'Observed across seed offsets 0-7 at S358: MODERATE at 0,1,2,4,6 (p 0.006-0.008), LOW at 3,5,7 (p 0.010). A MEASURED RANGE, NOT A PROVEN BOUND — eight offsets is what we have and a ninth could widen it.',
+      reason: "The threshold sits ON the permutation lattice, so no resample count fixes this. Regional Noise reads flagFromP on a raw one-sided p with no BH step between the statistic and the tier, so its reachable grid is (k+1)/(B+1). At B = 499, 0.01 x 500 is an integer, so p lands exactly on ALPHA.NOTE and the strict `<` sends it to LOW. Raising B relocates the failure rather than removing it.",
+    },
+  },
+  '15-missing-carlisle.csv': {
+    'Cross-Condition Consistency': {
+      observed: ['MODERATE', 'LOW'],
+      parked: 'P101',
+      measured: 'Observed across seed offsets 0-7 at S358: MODERATE at every offset except 2 (p 0.006-0.009), LOW at offset 2 (p 0.012). A MEASURED RANGE, NOT A PROVEN BOUND.',
+      reason: "A sampling straddle, not a lattice point — the true value sits about one standard deviation from the threshold, so the Monte Carlo draw decides the tier. Still asserted: this cell is declared ['MODERATE','HIGH'] in expected.flags, so the declared lane fails it at offset 2 and the fixture's severity moves 3 -> 2 there as well. This entry keeps the matrix from reporting a failure the gate already reports.",
+    },
+  },
+  '23-recurrence-null-mixed.csv': {
+    'Column Goodness-of-Fit': {
+      observed: ['HIGH', 'MODERATE'],
+      parked: 'P101',
+      measured: 'Observed across seed offsets 0-7 at S358: HIGH at every offset except 2 and 7 (p 0.000999), MODERATE at 2 and 7 (p 0.001999). A MEASURED RANGE, NOT A PROVEN BOUND.',
+      reason: "Structural. At B = 2000 with a single-column BH family (nTested = 1), HIGH is reachable ONLY at the exact floor 2/2001, which clears ALPHA.FLAG by five parts in ten thousand. So zero-versus-one exceedance out of 2000 draws decides the tier. The cell is in ACKNOWLEDGED, which is name-checked and never tier-checked, so nothing else asserts it at either value.",
+    },
+  },
+};
