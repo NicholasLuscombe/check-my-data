@@ -149,6 +149,16 @@ The v0.8 version rejected raising `B` on three grounds. **Two have lapsed. The t
 
 Measured at S356: `B = 5999` leaves the multi-seed flip rate exactly where `B = 999` had it, and stability needs about `B = 39999`. **Raising `B` is therefore not the route to verdict stability**, and this section should not be read as pricing that question. It prices reachability — which tiers a test can express — and that remains a real and separate constraint. Full record: `docs/shared/PERMUTATION-COUNT-FEASIBILITY.md`.
 
+**A second reason, independent of the one above: some thresholds sit on the lattice itself.** A resampled p can only land on the points its count allows. For a one-sided p at `B` draws those points are `(k+1)/(B+1)`, halved again where the p is doubled. So a threshold α is *attainable exactly* whenever `α · (B+1) / c` is an integer, with `c = 1` one-sided and `c = 2` doubled. When that holds, some runs put the p precisely on the threshold, and the verdict is then decided by whether the comparison is written `<` or `<=`. That is a convention, not evidence.
+
+**Every shipped count of the form `10k − 1` satisfies the condition.** 199, 499, 999, 1999 and 4999 all keep a one-sided point exactly on `ALPHA.NOTE`. Of the counts in the battery only `B = 2000` and `B = 5000` miss both thresholds under both constructions, and both were chosen for unrelated reasons. So the property is the rule here rather than the exception.
+
+**Measured instance.** Regional Noise Homogeneity on `12b-uniform-mixture-fabricated` reads `flagFromP` on a raw one-sided p with no BH step in between, so its grid is `(k+1)/500`. Four exceedances out of 499 *is* `ALPHA.NOTE`, tested by identity on the double rather than by comparing rounded output, and the strict `<` at `thresholds.js:40` sends it to LOW. It lands there on three of eight seed offsets.
+
+**What follows for raising `B`.** Moving to another count of the same family relocates this failure rather than removing it. That is a second and independent reason not to spend on `B`, and it does not rest on the Monte-Carlo argument above. **What it does not buy is stability.** The same cell is also a sampling straddle, a little over one standard deviation from its threshold, so an off-lattice count would remove the case where a convention decides the verdict and would leave the flip in place. Worth doing for the first reason. Not for the second.
+
+Full record: `docs/shared/SEEDS8-STRADDLE.md`.
+
 *Corrected at S344.* This paragraph previously cited a second and larger case, `m = 4208` for the Runs windowed scan. **That family is analytic, not permutation.** `runs.js:258` builds it from `zToP(w.rawZ)`, so it has no `B` and no grid, and the claim that no reachable `B` helps it was true of something that never had one. S343's own harvest recorded a smallest raw p of 0.0005 at that site, which is not on the permutation grid at any `N_PERM` the test uses — the measurement already contradicted the label. Runs has exactly one permutation site, `runs.js:247`, and it sits in no BH family at all. The conclusion above stands on Windowed Autocorrelation alone.
 
 ### Every resampling test has a counter
