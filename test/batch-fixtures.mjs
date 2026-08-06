@@ -291,3 +291,25 @@ export const ACKNOWLEDGED = {
     'Column Goodness-of-Fit': "recur's normal-fit shape mismatch from the 5×10 recurrence; intrinsic to the recurrence carrier (S297)",
   },
 };
+
+// ── S358 P101 — flag-matrix exceptions ───────────────────────────────────────
+//
+// The flag matrix (test/flag-matrix.json) pins every (fixture, test) cell at
+// seed offset 0 and fails on any difference in either direction. A handful of
+// cells sit close enough to a threshold that the PRNG draw decides their tier,
+// so a strict matrix would fail on them at some offsets. Those cells are named
+// here instead of being left as silent gaps.
+//
+// They live in this file rather than in the matrix because the matrix is
+// GENERATED and a regeneration overwrites it whole — a prose reason and a
+// P-number put there would be destroyed the first time anyone re-ran the
+// emitter.
+//
+// `observed` is the set of cell values the sweep actually recorded across
+// offsets 0–7. It is MEASURED ACROSS EIGHT OFFSETS, not proven to be the
+// cell's full range: eight offsets is what we have, and a ninth could widen
+// any of these. Derive an entry from a sweep, never from a document.
+//
+// Populated in Part 3 of S358 from a SEEDS=8 run against the strict matrix.
+export const MATRIX_EXCEPTIONS = {
+};
