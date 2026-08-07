@@ -1,6 +1,8 @@
 # False-positive tolerance
 
-**Status:** proposed at S356, not decided. The numbers are arguable; the rule and the structure are the
+**Status:** proposed at S356, not decided. **Amended at S358** — §2 gains the distinction between a
+false positive that comes from the data and one that comes from our own null, with the first measured
+instance; §6 gains the nulls as a property the number will carry. The tolerance itself is untouched.
 part to attack first.
 
 **Why it is committed before the rate is measured.** The rule below is that the tolerance is fixed in
@@ -39,6 +41,19 @@ protect the second user than any threshold does.
 have plenty of it — shared normalisation, batch effects, instrument drift, replicate design. Some of
 what we currently count as a false positive is the tool correctly finding a real feature that the owner
 can name. That does not make the flag free: it costs attention, and attention is the budget.
+
+**And some of it is neither.** A false positive can come from the tool's own null rather than from
+anything in the data. **DS12b's Regional Noise MODERATE is the first one adjudicated from a fixture's
+construction.** The file is 200 honest rows of log-normal noise followed by 200 fabricated rows of
+uniform noise on the same base means. Neither half flags alone — 4.89× at p = 0.092 and 2.64× at
+p = 0.778 — and pooling one permutation null across the two noise regimes gives 7.83× at p = 0.010 and
+a flag. The firing localises to rows 51–65, inside the honest half, at every seed offset. Nobody owns
+an explanation for that one, because there is nothing in the data to explain.
+
+**The two kinds have to be separated before any rate is reported.** A flag on a real feature the owner
+can name is the tool working, and the cost is an hour. A flag manufactured by the tool's own null is
+the tool broken, and no amount of user expertise retires it. Reporting one number over both would let
+the second hide inside the first.
 
 **"Fabrication signatures" is the wrong vocabulary for the primary user**, and it is on every surface.
 Worth a pass, separately from this document.
@@ -85,6 +100,10 @@ State this beside the figure when it is published, or the figure misleads.
 - **One run.** A false-positive rate is a property of a run, not of a file. **This is why verdict
   stability comes first: a rate cannot be bounded while the answer changes on a seed.** It also matters
   more under the primary framing, not less — the author who is unsure will run it twice.
+- **The nulls, and specifically the places where they assume an independence the data does not have.**
+  Pooled dependence has five recorded instances (METHODOLOGY §Pooled Dependence) and one of them
+  manufactures a flag rather than losing one. A rate measured before those are settled prices the
+  nulls we happen to ship today.
 
 ## 7. Open, and not settled here
 

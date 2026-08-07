@@ -4,6 +4,16 @@
 severity. This read classifies each, because the three classes need different answers and one of them
 cannot be bought with precision at any price.
 
+**Amended at S358, and two of the corrections change what this document concludes.** First, **DS12b's
+observed statistic does not move.** `bestVarRatio` reads 7.83× on all eight offsets — one value — so
+the 1.05 standard deviations reported below is the spread of eight *estimated p-values*. That is
+Monte-Carlo error of the estimate, not a spread of the statistic, and the two readings support
+opposite fixes. Second, **DS12b's Regional Noise MODERATE is a false positive**, adjudicated at S358
+from the fixture's construction: the firing localises to rows 51–65, wholly inside the file's honest
+half, at every offset. That cell has left the verdict-stability question (P69) for the false-positive
+question. Every measurement in Parts 1 and 2 stands unchanged. Part 3 and the closing sections are
+corrected in place, and the corrections are marked *(S358)*.
+
 **Baseline:** `780e9da`, Node v25.8.1, darwin arm64. Nothing under `src/` changed —
 `git diff --stat -- src/` is empty against both the working tree and the merge base — so no batch was
 run. The probe reads fixtures through the standard import pipeline and never writes to them, so the
@@ -58,6 +68,11 @@ shipped state is quoted as a fixed number:
 "27/28 with DS12b the sole failure" is the seed-0 reading. On three of eight seeds DS12b's Regional
 Noise goes LOW, the undeclared MODERATE disappears, and the completeness gate has nothing to report.
 
+*(S358.)* The denominator in the table above is fixtures. The runner's own denominator is **28** — the
+27 fixtures plus the DS01 cross-shape invariance check appended after the loop — and that check passes
+on every offset, so the two readings reconcile exactly: 26/27 is 27/28, 27/27 is 28/28, and 25/27 is
+26/28. STATUS quotes the runner's figure. Both describe the same run, and neither is a rate.
+
 ---
 
 ## Part 2 — per-cell instrumentation
@@ -102,6 +117,14 @@ No BH stands between the scan p and the flag — `flagFromP(scanP)` reads the ra
 | 7 | **LOW** | **0.010000000000000000** | 4 | 5 | scan p |
 
 mean 0.008250, sd 0.001669, three distinct values. `|mean − ALPHA.NOTE| / sd = 1.049`.
+
+**(S358) Name what that standard deviation is of.** It is the spread of eight *estimated* p-values,
+not of the statistic. The statistic is stationary: `bestVarRatio` reads 7.83× on all eight offsets —
+one distinct value, against three distinct exceedance counts and three distinct p-values. The data
+gives one answer here and the null is what moves under it. So "1.05 standard deviations from the
+threshold" describes how precisely 499 permutations estimate a tail probability that happens to sit
+next to 0.01. It does not describe a statistic sitting next to a boundary. More draws shrink the
+estimation error; they cannot move a value off a lattice point the threshold occupies.
 
 **`p === ALPHA.NOTE` is true on three of eight seeds**, tested by identity rather than by rounding.
 `5/500` and the literal `0.01` are the same double.
@@ -165,15 +188,23 @@ One driver on every seed: column 1, Normal family, shape-mismatch direction. The
 
 | cell | lattice-exact | sampling straddle | rank churn |
 |---|---|---|---|
-| DS12b / Regional Noise | **yes** — `p === ALPHA.NOTE` on 3 of 8 seeds | **yes** — threshold at 1.05 sd from the mean | no |
+| DS12b / Regional Noise | **yes** — `p === ALPHA.NOTE` on 3 of 8 seeds | **of the estimate only (S358)** — the statistic is one value, 7.83×, on every seed | no |
 | DS15 / Cross-Condition Consistency | no | **yes** — threshold at 0.95 sd | no, but see below |
 | DS23 / Column Goodness-of-Fit | no | **yes** — threshold at 0.54 sd | no |
 
 **DS12b is lattice-exact, and that is the load-bearing finding.** The scan p lives on `(k+1)/500`, the
 threshold is `0.01`, and `0.01 × 500 = 5` is an integer — so the lattice contains the threshold point
 exactly, and the strict `<` sends it to LOW. Four exceedances out of 499 is not a near miss; it is the
-threshold. It is *also* a sampling straddle, because the p moves across three lattice points and the
-threshold is one of them. Both labels apply.
+threshold.
+
+**(S358) The second label needed qualifying, and this document gave it without one.** The cell was
+also called a sampling straddle, on the ground that the p moves across three lattice points and the
+threshold is one of them. That is true of the *estimate* and false of the statistic: `bestVarRatio` is
+7.83× on all eight offsets. Nothing in the data straddles anything. What straddles is a Monte-Carlo
+estimate of a fixed tail probability that sits beside a threshold the lattice contains. **The
+distinction decides the remedy.** A sampling straddle argues for more draws. This argues for an
+off-lattice count or a non-strict comparison, because more draws concentrate the estimate on a value
+the lattice was built to include.
 
 **DS15 is a sampling straddle and nothing else.** Its lattice can reach 0.010 — at `m = 3`, three units
 tied at the floor gives `1 × 0.002 × 5 = 0.010` — but that configuration never occurred; the observed
@@ -253,12 +284,28 @@ completeness gate has been failing on it since before this read, so "MODERATE on
 evidence that MODERATE is the right answer. And nothing here measures how often a real deposit lands in
 one of these bands; the corpus is 27 files we wrote.
 
+**(S358) One of those questions has since been answered.** DS12b's Regional Noise firing was
+adjudicated from the fixture's construction rather than from tool output. The file is 200 honest rows
+of log-normal noise at σ = 0.18, then 200 fabricated rows of uniform ±40% noise on the same base means
+— a variance change, which is what the test measures. Neither half flags alone: Genuine alone 4.89× at
+p = 0.092, Fabricated alone 2.64× at p = 0.778, **pooled 7.83× at p = 0.010**. The firing localises to
+rows 51–65, inside the honest half, at every offset, with no overlap with the plant. It is a false
+positive produced by pooling one permutation null across two noise regimes. **MODERATE was not the
+right answer on any seed**, and the cell belongs to the false-positive question rather than the
+stability one.
+
 **On P51.** The dispatch asked that it not be the opening frame, and it is not. P51 concerns the
 analytic standard error of a multiplicity-adjusted minimum. Two of the three cells are multiplicity-
 adjusted minima whose instability is sampling error — DS15 at `m = 3`, DS23 at `m = 1` — so the
 classification is consistent with P51 being their home. DS12b is not: its flag reads a raw scan p with
 no BH between the statistic and the threshold, and its failure is lattice geometry rather than standard
 error. **P51 as written cannot cover all three.**
+
+**(S358) That objection has lapsed, because the set changed rather than P51.** DS12b has left the
+stability question altogether — its cell is a false positive, not an unstable verdict — so what P51
+has to house is DS15 and DS23. Both are multiplicity-adjusted minima and both are sampling straddles,
+which is exactly P51's subject. The paragraph above stands as a description of DS12b and no longer
+stands as an objection to P51.
 
 ---
 
