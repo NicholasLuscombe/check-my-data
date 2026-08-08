@@ -129,7 +129,21 @@ Engine canon stays integer 0–3 internally. Display layer maps score → label 
 
 ### Severity-1 false-positive context
 
-For Outcome 1 (Review band): "With N applicable tests at α=0.01, expect ~X false positives by chance." Hidden in QC mode; visible in Peer Review and Forensics modes. Pre-S156 implementation rendered as a separate row; A1.D2 redesign will re-shape into a calibration prologue at §4 emit body.
+For Outcome 1 (Review band): "With N applicable tests at α=0.01, expect ~X false positives by chance." Hidden in QC mode; visible in Peer Review and Forensics modes. Pre-S156 implementation rendered as a separate row; A1.D2 redesign will re-shape into a calibration prologue at §4 emit body. **Flagged S359 — this figure is derived from independence across tests, and `docs/shared/FALSE-POSITIVE-TOLERANCE.md` §4 states that the file-level rate cannot be derived from a per-test rate because the tests are not independent. Two Chat-owned documents contradict each other on a rendered string. Unresolved; not a within-test pooled-dependence instance (that is a different dependence claim).**
+
+### Verdict stability context (S359)
+
+**Copy, locked.** Renders alongside the Severity-1 context above, on the same mode gate, and also on Outcome 2 and 3 — a borderline finding at any tier carries the same caveat.
+
+> **Borderline findings are approximate.** Parts of this analysis use random resampling. Where a finding sits close to a threshold, a different random draw could have placed it one level lower. The randomness is seeded from your data, so the same file always gives the same result and re-running will not resolve a close call. Treat a borderline finding as a question to answer from your records, not as a measurement.
+
+**Why it says what it says.**
+
+- **Never invite a re-run.** `seedRNG(matrix)` hashes the first ≤500 data values with FNV-1a and Mulberry32 replaces `Math.random()` throughout the analysis path, so the seed is a function of the data and the verdict is deterministic per file (METHODOLOGY §Seeded Pseudorandom Number Generator). The instability is real and wholly counterfactual — no user can observe it. Copy that suggests running the file again would be instructing the user to do something that cannot work.
+- **Never a per-file number.** No confidence interval on a verdict, no stated probability that a given flag reproduces. A verdict reached through a multiplicity-adjusted minimum has no analytic standard error, so the estimate such a number would need does not exist (METHODOLOGY §Verdict stability).
+- **One level lower, never one level higher.** The measured direction is toward false negatives: every unstable cell sits on a fabricated fixture and all eight severity-0 fixtures were constant across all eight seed offsets.
+- **The direction claim itself stays out of the copy.** "In our testing this only ever went one way" is true of three cells over eight offsets on 27 fixtures we wrote. Shipping it would invite the reader to take *this tool does not false-alarm* as a property of the tool, which is what the false-positive-rate programme exists to measure and has not measured. The asymmetry is recorded in METHODOLOGY beside its evidence base and does not ship until there is a measured rate behind it.
+- **"A question to answer from your records" is the tolerance document's frame** — a flag is a question, not a finding — and it is performable, which the card-copy authoring rules require of any directing sentence.
 
 ---
 
