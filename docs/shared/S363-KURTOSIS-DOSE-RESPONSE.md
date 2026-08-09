@@ -47,7 +47,7 @@ const effectSizeSuppress  = Math.abs(kurtDeviation) < adaptiveThreshold;
 ```
 
 **It is the directional suppression** — the arm named in METHODOLOGY's Pooled Dependence section as
-instance 4, and in §2.2 as "leptokurtic is informational only". Not the pilot gate at `:314`, not the
+instance 4, and in METHODOLOGY-TESTS.md §2.2 as "leptokurtic is informational only". Not the pilot gate at `:314`, not the
 early exit at `:240`; both of those are live on this data and neither touches a floored p (§1.3).
 
 Counted over all 240 draws, evaluating both arms independently of `esGateMode` — which reports only
@@ -226,7 +226,7 @@ arithmetic — mixing conditions at different residual scales adds kurtosis — 
 opposite one. **The prediction named the right mechanism and the wrong direction.**
 
 **And the gate is not saving the tool by accident.** `κDev ≥ 0` fires because the pooled distribution
-is genuinely leptokurtic, which is precisely the case §2.2 designed the arm for ("too noisy is
+is genuinely leptokurtic, which is precisely the case METHODOLOGY-TESTS.md §2.2 designed the arm for ("too noisy is
 biological heavy-tailedness, informational only"). It fires for its stated reason, on a signal that is
 simultaneously a true property of the pooled residual set and a pure consequence of pooling two honest
 conditions. **What is new is that the arm is load-bearing on honest data.** 101 of the 240 draws carry
@@ -298,12 +298,12 @@ Three things this grid settles that were not asked for. None is scoped and none 
 
 ## What this changes and what it does not
 
-- **P106's disposition reopens, narrowly.** §12 records that the instrument "cannot read a ladder while
+- **P106's disposition reopens, narrowly.** `P106-HETEROSCEDASTIC-FIXTURE-SPEC.md` §12 records that the instrument "cannot read a ladder while
   the floor fires". That is true of Inter-Replicate Correlation, Noise Scaling and Selective Noise, and
   it is **false of Excess Kurtosis**, whose floor does not fire — 0% at 27 of 28 cells — which is
   exactly why its median-p column is readable end to end. The instrument did reach a target; it reached
   it through the one test whose flag rate gave no reason to look.
-- **§8's "to confirm, not assume" line is now confirmed with its sign corrected.** Pooling across
+- **That spec's §8 "to confirm, not assume" line is now confirmed with its sign corrected.** Pooling across
   conditions of unequal variance does move Excess Kurtosis's statistic on this axis, by three orders of
   magnitude in p. It does not invert a sign here, because there is no sign to invert.
 - **This is not a false negative.** A false negative needs something true to miss. Both conditions are
