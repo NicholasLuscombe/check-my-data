@@ -1,16 +1,42 @@
 # P106 — honest heteroscedasticity: instrument spec
 
-**Owner:** Chat. **Destination:** `docs/shared/`, tracked, lands as a docs-only commit to main.
-**Written S361, amended S361 after Step 0 returned.** Route (a): build the instrument, measure the rate,
-let the number narrow what the tool claims. Route (b) — a fixture whose honest variance change carries a
-feature a better detector could use — was refused, because it presupposes a discriminator nobody has
-specified and would tune the instrument on the answer.
+**Amended S361, after the first version was committed at `feb7f1c`.** Two corrections, both to this
+document rather than to anything measured.
 
-**On the citations below.** Line numbers into `METHODOLOGY.md` are a convenience and they go stale — the
-file is 1,919 lines and Chat-owned, so any edit moves them. **The quoted text is the anchor.** Re-locate
-by the quote or the section name; do not trust a number from this document once METHODOLOGY has changed.
+- **§5's centring was wrong.** It specified `sigma/√r` and `sigma·√r`, which holds the geometric mean of
+  the two condition sigmas fixed but lets the file's total replicate noise grow as `(r + 1/r)/2`. A test
+  could then fire at a high ratio because the file got noisier, not because the conditions differ — the
+  confound the ladder exists to avoid. The correct form is in §5 and it matches the centring `sigmaS`
+  already uses. **The error was reaching for the tidier-looking formula while the correct pattern sat
+  quoted one section above.**
+- **Every line number cited into `METHODOLOGY.md` was wrong**, because they were read from a snapshot
+  sixteen lines behind the live file. The quotes were all accurate. Re-anchored in §0.
 
 ---
+
+## 0. How this document cites METHODOLOGY
+
+**Section names are the anchor. Line numbers are a convenience and they have already broken once.**
+
+Every number below is against a **1,935-line `METHODOLOGY.md`**. If the file is a different length, treat
+the numbers as stale and locate by the quoted text instead. That stamp is the whole freshness gate: a
+citation that cannot say what it was measured against cannot be checked.
+
+| Quote | Section | Line |
+|---|---|---|
+| "Replicate noise structure is an assay property…" | §1.9 Stage 2 — Residual-structure properties | 814 |
+| "…rarely exceeds ±20–30% post-VST" | §1.9 Stage 2, the P4 paragraph | 832 |
+| "…condition effects dominate total row variance…" | Variance-Stabilizing Transform preprocessing | 231 |
+| "Why pool-level properties are one-sided" | §1.9 Stage 1 — Pool-level properties | 810 |
+| "Residual-structure properties on non-VST'd heteroscedastic data" | §1.9 framework limitations | 793 |
+| "dispersion of a per-subject log-normal multiplier" | §1.7 Cross-group Residual Spike Correlation | 720 |
+
+---
+
+**Owner:** Chat. **Destination:** `docs/shared/`, tracked. Route (a): build the instrument, measure the
+rate, let the number narrow what the tool claims. Route (b) — a fixture whose honest variance change
+carries a feature a better detector could use — was refused, because it presupposes a discriminator
+nobody has specified and would tune the instrument on the answer.
 
 ## 1. What this decides
 
@@ -23,14 +49,14 @@ fixed, report what the battery does. **It is not a fixture and not a regression 
 curve.
 
 **The sharpest single target is one number.** Cross-Condition Consistency P4's different-direction gate
-sits at 0.5 in log ratio, about 1.65×, and `METHODOLOGY.md:813` anchors it against cross-condition noise
-variation "which rarely exceeds ±20–30% post-VST". That anchor is a belief about honest data with
-nothing measured behind it, and it decides where a flag falls. This instrument either validates it or
-refutes it.
+sits at 0.5 in log ratio, about 1.65×, and the P4 paragraph anchors it against cross-condition noise
+variation that "rarely exceeds ±20–30% post-VST". That anchor is a belief about honest data with nothing
+measured behind it, and it decides where a flag falls. This instrument either validates it or refutes
+it.
 
 ## 2. The assumption under test, quoted where it lives
 
-`METHODOLOGY.md:798`, the load-bearing claim for the two-sided design of Stage 2:
+§1.9's Stage 2 introduction, the load-bearing claim for that stage's two-sided design:
 
 > Replicate noise structure is an assay property, not a condition property — in honest data it is
 > preserved across conditions regardless of treatment.
@@ -40,19 +66,20 @@ project: **a stated derivation with no test behind it.**
 
 Stage 1 faced the same problem and solved it correctly. P1, P2 and P3 fold location and scale together,
 so they are one-sided on "similar" only, and a genuine dispersion difference goes to the informational
-section rather than to a flag (`:794`). **Stage 2 declined that route, and the sentence above is the
-reason it gave.**
+section rather than to a flag. **Stage 2 declined that route, and the sentence above is the reason it
+gave.**
 
-A second and distinct claim sits at `:777`: on data the variance transform does not reach, P4 can flag
-legitimate mean-dependent scale variation, and the transform is named as the control. That one is
-already documented as a conditional limitation. It is a different measurement, and §3 keeps them apart.
+A second and distinct claim sits in the framework's limitations: on data the variance transform does not
+reach, P4 can flag legitimate mean-dependent scale variation, and the transform is named as the control.
+That one is already documented as a conditional limitation. It is a different measurement, and §3 keeps
+them apart.
 
 ## 3. Two kinds of heteroscedasticity, and they are not interchangeable
 
 | | Mechanism | Survives the log transform? | Which claim it probes |
 |---|---|---|---|
-| **Removable** | proportional noise, conditions at different means; per-condition gain | **No** — removed exactly | `:777`, a documented limitation with a named control |
-| **Irreducible** | conditions with different replicate noise scale at the same mean | **Yes** | `:798`, the unmeasured assumption, and P4's ±20–30% anchor |
+| **Removable** | proportional noise, conditions at different means; per-condition gain | **No** — removed exactly | the framework limitation, which has a named control |
+| **Irreducible** | conditions with different replicate noise scale at the same mean | **Yes** | Stage 2's assumption, and P4's ±20–30% anchor |
 
 Step 0 established that the existing generator draws replicate noise on the log scale at constant
 `sigma`. Under that model a condition mean shift changes no log-scale variance at all — and the
@@ -63,7 +90,7 @@ two conditions' marginal spreads match.
 transform was built for. Measuring with it and finding nothing would say the transform works, not that
 the assumption holds.
 
-**Corrected lean: irreducible first.** It is what `:798` claims cannot happen and what P4's anchor
+**Corrected lean: irreducible first.** It is what Stage 2 claims cannot happen and what P4's anchor
 prices. Removable is the second arm, in §7.
 
 Honest mechanisms producing the irreducible kind, either of which a reviewer would accept:
@@ -82,20 +109,21 @@ Two axes, independent, and the register row names only one.
 
 | Axis | What varies | What it unblocks |
 |---|---|---|
-| **Condition-level** | noise scale differs between conditions | specificity for the variance-change family; `:798`; P4's anchor |
+| **Condition-level** | noise scale differs between conditions | specificity for the variance-change family; Stage 2's assumption; P4's anchor |
 | **Subject-level (`s`)** | noise scale differs between subjects within a condition | P96 and P97's acceptance fixture |
 
-`s` is defined at `METHODOLOGY.md:704`. The suspended test's false-positive rate on honest data runs
-0, 0, 25, 85, 100, 100 percent at `s` = 0, 0.15, 0.3, 0.5, 0.75, 1.0 against a nominal 1 percent. The
-four clean paired fixtures read 0.041, 0.055, 0.162 and 0.199.
+`s` is defined in §1.7 as the dispersion of a per-subject log-normal multiplier on replicate noise,
+after row-centring removes differences in level. The suspended test's false-positive rate on honest data
+runs 0, 0, 25, 85, 100, 100 percent at `s` = 0, 0.15, 0.3, 0.5, 0.75, 1.0 against a nominal 1 percent.
+The four clean paired fixtures read 0.041, 0.055, 0.162 and 0.199.
 
 **The subject axis needs no build.** Step 0 found it whole:
 
-- **`test/gen-copy-fidelity.mjs`** — the generator, tracked and committed. `sigmaS` at `:148`, default
-  0. `SLADDER = [0, 0.15, 0.3, 0.5, 0.75, 1.0]` at `:175`. Multiplier `exp(sigmaS·Z − sigmaS²)` at
-  `:290`, centred so pooled replicate noise stays at `sigma` and only its distribution between subjects
-  moves. Layout `SubjectID, Condition, Rep1..RepR` at `:358` — the DS11 shape, 120 subjects per
-  condition, exactly two conditions by design at `:101`.
+- **`test/gen-copy-fidelity.mjs`** — the generator, tracked and committed. `sigmaS`, default 0.
+  `SLADDER = [0, 0.15, 0.3, 0.5, 0.75, 1.0]`. Multiplier `exp(sigmaS·Z − sigmaS²)`, centred so the mean
+  squared multiplier is 1 and pooled replicate noise stays at `sigma` however large `sigmaS` gets.
+  Layout `SubjectID, Condition, Rep1..RepR` — the DS11 shape, 120 subjects per condition, exactly two
+  conditions by design.
 - **`test/s-dispersion.mjs`** — the estimator, tracked.
 - **`probe-s351-s-gate.mjs`** and **`probe-s350-heterogeneity-grid.mjs`** — the drivers.
 
@@ -109,23 +137,39 @@ dataset was. That convention holds here.
 
 One new parameter beside `sigmaS`, defaulting off.
 
-**`sigmaC`** — a per-condition multiplier on replicate noise scale, applied on the log scale so it
-survives the transform. Centred the way `sigmaS` is: for a ratio `r` across the two conditions, set the
-condition sigmas to `sigma/√r` and `sigma·√r`, so their geometric mean stays at `sigma` and the ratio is
-the only thing that moves. **At `r = 1` the generator must reproduce its current output exactly.** That
+**`condNoiseRatio`** — the ratio `r` of replicate noise scale between the two conditions, applied on the
+log scale so it survives the transform. Named as a ratio rather than `sigmaC` because it is a fixed
+ratio between two conditions, not a dispersion across many subjects, and it should not borrow a name
+that implies a symmetry it does not have.
+
+```
+sigmaA = sigma · √(2 / (1 + r²))
+sigmaB = r · sigmaA
+```
+
+**The centring is the load-bearing part.** `sigmaA² + sigmaB² = 2·sigma²` at every `r`, so the file's
+total replicate noise is fixed and only its split between the conditions moves. That matches what
+`sigmaS` already does and it is what makes the ladder a clean instrument: the ratio is the only thing
+varying, so a firing at a high rung cannot be a response to the file simply being noisier.
+
+**The rejected form, recorded so it is not reintroduced:** `sigmaA = sigma/√r`, `sigmaB = sigma·√r`.
+It holds the geometric mean of the sigmas fixed and lets pooled noise grow as `(r + 1/r)/2` — 1.25× at
+`r = 2`, 1.45× at `r = 2.5`. Every rung would then differ from the control in two ways at once.
+
+**At `r = 1` the generator must reproduce its current output exactly.** Same seed, same everything. That
 is the negative control and it is cheap.
 
 **This reverses a documented design decision and must be written as an amendment, not a silent
-parameter.** `gen-copy-fidelity.mjs:180` excludes a per-condition scale on the grounds that it would not
-be persistent subject structure and would not produce the failure mode. That is correct and it is
-specific to P86. It does not bind P106, whose failure mode is the other one. Amend the comment to say
-both things.
+parameter.** The generator excludes a per-condition scale on the grounds that it would not be persistent
+subject structure and would not produce the failure mode. That is correct and it is specific to P86. It
+does not bind P106, whose failure mode is the other one. Amend the comment to say both things.
 
 **Instrument negative control, and it is a stop condition.** Run `s-dispersion.mjs` at `sigmaS = 0`
-across the `sigmaC` ladder. **If the measured `s` moves with `sigmaC`, the two axes are separable in the
-generator and not in the readout**, and no joint measurement is trustworthy until that is understood.
-The precedent is exact: S351 found copy fidelity alone driving this same estimator across its knee. An
-estimator can be contaminated by the thing it would gate, and this one already has been once.
+across the `condNoiseRatio` ladder. **If the measured `s` moves with `r`, the two axes are separable in
+the generator and not in the readout**, and no joint measurement is trustworthy until that is
+understood. The precedent is exact: S351 found copy fidelity alone driving this same estimator across
+its knee. An estimator can be contaminated by the thing it would gate, and this one already has been
+once.
 
 ## 6. The instrument is a ladder
 
@@ -137,7 +181,7 @@ lucky one. Sweep and report a curve.
 - **Subject `s`:** the existing six rungs, unchanged, so the numbers compose with the S350 table rather
   than starting a second one.
 - **Replicates:** 4 and 6, matching deposited practice. 12 and 24 only if resolution is questioned —
-  `S350-PAIRED-DESIGN-DISPOSITION.md:190` shows replicates buy resolution and subjects do not.
+  `S350-PAIRED-DESIGN-DISPOSITION.md` shows replicates buy resolution and subjects do not.
 - **Draws per rung:** 20, matching S351, so the spread is reported and not a point.
 
 Output is one table: flag rate and median p per test per rung. **The headline number is the lowest
@@ -145,9 +189,9 @@ honest ratio at which any test in the family leaves LOW.**
 
 ## 7. The removable arm, and why it is in scope
 
-`METHODOLOGY.md:777` names the variance transform as what controls P4's exposure to mean-dependent
-scale variation. Whether it is active is decided by `detectVST`, and `:215` records that its slope test
-cannot do that job here:
+The framework's limitations name the variance transform as what controls P4's exposure to mean-dependent
+scale variation. Whether it is active is decided by `detectVST`, and the transform section records that
+its slope test cannot do that job here:
 
 > in multi-condition datasets, condition effects dominate total row variance, pushing the slope toward
 > 0 regardless of the true within-replicate noise structure
@@ -204,20 +248,23 @@ severity.
 - **A rate from a generator is conditional on the generator's assumptions.** This bounds the
   false-positive rate under a stated noise model. It is not the field rate.
 - **The corpus cannot measure the calibration of a tool shaped around it**
-  (`TEST-GROUND-TRUTH.md:147`). A file we also wrote narrows that problem and does not remove it.
+  (`TEST-GROUND-TRUTH.md` §Conventions). A file we also wrote narrows that problem and does not remove
+  it.
 - **The measurement is one-sided.** A firing on honest data convicts — the detector's claim must narrow.
   Silence at every rung exonerates only within the model. That direction is stated before the run, not
   after.
 
-## 11. Decisions needed from Nick
+## 11. Decisions
 
-1. **Mechanism.** Lean corrected to irreducible, via a treatment that changes variability. The earlier
-   lean on proportional noise is withdrawn — it tests `:777`, not `:798`.
-2. **One generator.** Default resolved by Step 0: amend `gen-copy-fidelity.mjs` with `sigmaC` beside
-   `sigmaS`, and amend the comment at `:180` rather than overwrite it.
-3. **The two-assay-label arm is in scope from the start.** No longer a cost question — with constant-CV
-   noise it decides whether the removable arm has anything to measure.
-4. **What the result is allowed to change.** Untouched by Step 0 and still worth settling before a
-   number exists. If a test fires at an honest ratio of 1.5, route (a) says the outcome is an edit to
-   what METHODOLOGY claims that test means. It is not a threshold change, and P4's ±20–30% anchor is the
-   sentence most likely to move.
+1. **Mechanism — leaned, not yet exercised.** Irreducible, via a treatment that changes variability. The
+   earlier lean on proportional noise is withdrawn: it probes the framework limitation, not Stage 2's
+   assumption. Nothing built so far depends on it.
+2. **One generator — settled.** `condNoiseRatio` beside `sigmaS` in `gen-copy-fidelity.mjs`, with the
+   existing comment amended rather than overwritten. Dispatched at S361.
+3. **The two-assay-label arm — still open.** Structural rather than optional per §7, but not in the S361
+   dispatch, which builds the parameter and runs the contamination check only.
+4. **What the result is allowed to change — settled at S361.** The number narrows what METHODOLOGY
+   claims those tests mean. **No threshold moves on the strength of it.** Retiring P4's
+   different-direction arm remains available as a design change, on the Stage 1 precedent, if that arm
+   turns out to have no defensible null on honest data. The ±20–30% anchor is the sentence most likely
+   to move.
