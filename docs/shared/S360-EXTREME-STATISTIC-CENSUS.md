@@ -281,7 +281,7 @@ search volume rather than a Šidák over arms.
 
 ### What the arithmetic alone cannot settle
 
-Twenty-two cells across fifteen fixtures currently sit at MODERATE or HIGH on a Class A test. The
+Twenty-three cells across fifteen fixtures currently sit at MODERATE or HIGH on a Class A test. The
 list below is read from the tracked `test/flag-matrix.json` at seed offset 0 — not from a run. That
 file records flags and not-applicable causes, not p-values, so for most of these cells which side of
 the corrected threshold they land on cannot be decided without measuring. They are named as unsettled
