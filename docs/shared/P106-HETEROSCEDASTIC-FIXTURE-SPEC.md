@@ -1,7 +1,21 @@
 # P106 — honest heteroscedasticity: instrument spec
 
-**Amended S361, after the first version was committed at `feb7f1c`.** Two corrections, both to this
-document rather than to anything measured.
+**Amended twice at S361. The second amendment follows the ladder and is the substantive one.**
+
+**After the ladder ran (`7f35e75`).** The instrument was built, the negative control fired, the ladder
+ran on 560 files, and the result partitioned the question rather than answering it. Three defects in
+this document, all of them scope rather than arithmetic:
+
+- **The layout it specifies cannot reach the target it names.** §1 makes P4 the primary target and §8
+  lists P4 and P9 among the tests exercised. Both live in Cross-Condition Consistency, which the
+  paired-design skip withholds whenever subjects are shared across conditions — which is exactly the
+  layout §4 and §5 specify. **The two axes need opposite layouts and no single file carries both.**
+- **Two more tests in §8's list are unreachable for their own reasons**, one structural and one
+  unexplained. Recorded in §8.
+- **§7 was filed as the second arm and is where every result landed.** Recorded in §7.
+
+**Before the first version was committed at `feb7f1c`.** Two corrections, both to this document rather
+than to anything measured.
 
 - **§5's centring was wrong.** It specified `sigma/√r` and `sigma·√r`, which holds the geometric mean of
   the two condition sigmas fixed but lets the file's total replicate noise grow as `(r + 1/r)/2`. A test
@@ -130,6 +144,13 @@ The four clean paired fixtures read 0.041, 0.055, 0.162 and 0.199.
 Nothing was landed-not-marked. What was missing is a `docs/shared/` pointer, and its absence cost a
 round trip. **This section is that pointer.**
 
+**The two axes need opposite layouts, and this was not seen until the ladder ran.** The subject axis
+measures dispersion between subjects and requires the same subjects in every condition. The condition
+axis requires them disjoint: a shared subject identifier makes the file paired, and the paired-design
+skip then withholds Cross-Condition Consistency, which carries both P4 and P9. **A condition-axis
+instrument therefore needs a disjoint-subject emitter — the DS19 shape** — reported as a one-line
+change to the generator's row-grouped emitter. One generator, two emitters, not one file.
+
 The `s` axis writes no datasets; both probes call `generate()` in memory. Result tables were kept, no
 dataset was. That convention holds here.
 
@@ -164,12 +185,19 @@ parameter.** The generator excludes a per-condition scale on the grounds that it
 subject structure and would not produce the failure mode. That is correct and it is specific to P86. It
 does not bind P106, whose failure mode is the other one. Amend the comment to say both things.
 
-**Instrument negative control, and it is a stop condition.** Run `s-dispersion.mjs` at `sigmaS = 0`
-across the `condNoiseRatio` ladder. **If the measured `s` moves with `r`, the two axes are separable in
-the generator and not in the readout**, and no joint measurement is trustworthy until that is
-understood. The precedent is exact: S351 found copy fidelity alone driving this same estimator across
-its knee. An estimator can be contaminated by the thing it would gate, and this one already has been
-once.
+**Instrument negative control — run at S361, and it fired.** At `sigmaS = 0` with nothing planted,
+median `s` rises with `r`: 0.1444 → 0.2635 at 4 replicates, 0.0863 → 0.1799 at 6, over `r` = 1.0 → 2.5.
+The top of the ladder sits inside the 0.245–0.317 band the gate was meant to discriminate on.
+
+**The contamination is entirely the cross-condition pooling.** The same estimator reading one condition
+is flat to four decimal places across the whole ladder. Two conditions of unequal variance make a
+subject's residuals a two-component mixture, and the single-scale bias correction under-subtracts.
+
+**So the pooled `s` readout is unusable on any file carrying a condition ratio.** The single-condition
+readout is immune and has no resolution at deposited replicate counts — floor 0.229 at 4, 0.159 at 6.
+That is S350's degrees-of-freedom conclusion reached from the variance side rather than the copy side,
+and it hardens an existing finding rather than opening one. An estimator can be contaminated by the
+thing it would gate, and this one now has two independent contaminants.
 
 ## 6. The instrument is a ladder
 
@@ -186,6 +214,21 @@ lucky one. Sweep and report a curve.
 
 Output is one table: flag rate and median p per test per rung. **The headline number is the lowest
 honest ratio at which any test in the family leaves LOW.**
+
+**Run at S361 over 560 files, and the headline number is degenerate.** It reads 1.0, and below 1.3, but
+only because the floor fires — not because anything responds to the ratio. **Every rate is flat from
+1.0 to 2.5**, on both assay labels and both replicate counts. Inter-Replicate Correlation reads 15% at
+all seven rungs, Selective Noise 75% at all seven, Noise Scaling 85–95%.
+
+**Rung 1.0 is not quiet, and that is the result.** On honest, homoscedastic, unfabricated data: under
+the log transform, Inter-Replicate Correlation 15% and both Benfords 5%; on the raw arm, Noise Scaling
+90%, Selective Noise 75%, LOESS 10%, Inter-Replicate Correlation 15%.
+
+Full table at `docs/shared/S361-CONDITION-NOISE-LADDER.md`, `7f35e75`, regenerable from
+`test/probes/probe-s361-ladder.mjs`.
+
+**A ladder cannot be read on a floor like this whatever the layout.** Fixing the emitter and re-running
+would produce a second degenerate table. The floor is now the more valuable object.
 
 ## 7. The removable arm, and why it is in scope
 
@@ -204,10 +247,20 @@ Make it a measurement rather than an argument: **emit each rung twice, under two
 defaults the transform on and one that defaults it off.** The gap between the two curves is the
 control's actual effect.
 
-**Step 0 changes this from optional to structural.** Because the generator's noise is constant-CV, the
-removable mechanism is close to a no-op with the transform on and is the entire signal with it off.
-There is no version of this measurement where the transform's state is a nuisance parameter. It is the
-axis.
+**Step 0 changed this from optional to structural. The measurement went further: it is where every
+result landed.**
+
+Run at S361 with `general` giving the log transform and `plate_reader` giving raw, both continuous, so
+only the transform differs. **Bartlett and the mean-variance slope both read honest log-normal data on
+the raw scale as grossly anomalous — 75% and 90% — and both go silent once it is logged.**
+
+Neither test is malfunctioning. Raw log-normal data genuinely has mean-variance coupling and genuinely
+has unequal column variances. **The defect is that a true property of honest data is surfaced as a
+fabrication signal**, and decision 4 already governs what follows: the number narrows what those tests
+claim, and no threshold moves.
+
+**On this generator the transform's state decides whether the battery is usable at all.** That is not a
+side-control, and §7's original framing as "the second arm" was wrong about which arm mattered.
 
 ## 8. Which tests this exercises
 
@@ -226,11 +279,30 @@ Named from source, and **this list is a floor.**
 invert the sign of its own statistic (P53), and Blocked Mahalanobis, which is covariance-based but
 dispatches per condition and may be immune.
 
-**One thing to check before the run, not after.** The generator emits 120 subjects × 2 conditions = 240
-rows. Selective Noise Partitioning's effect-size gate engages at N ≥ 500, and P99 has that gate as a
-conjunction whose halves move apart with N. **Report which side of it the instrument sits on**, because
-a measurement taken below the gate describes a different regime from the deposits it is meant to speak
-about.
+### What the ladder found about this list
+
+**Five of 29 tests return not-applicable on the shared-subject layout**, and two of them are on the list
+above:
+
+| Test | Cause |
+|---|---|
+| **Cross-Condition Consistency** — carries P4 and P9 | `subjectsSharedAcrossConditions` |
+| **Residual Spike Correlation** | `subjectsSharedAcrossConditions` |
+| Column Goodness-of-Fit | `shapeNotCovered` |
+| Cross-Condition Rank Correlation | `premiseVoid` |
+| Missing Data Pattern | `missingnessOutOfBand` |
+
+**Selective Noise Partitioning is structurally blind to this axis**, gate or no gate. Bartlett compares
+columns *within* a condition while `condNoiseRatio` varies noise *between* conditions, so the measured
+ratio of 1.195 is sampling noise across six columns. On the gate question: **`N` is the residual count,
+not rows** (`selectiveNoise.js:82`) — 720 per condition at 6 replicates, above the 500 threshold and
+suppressed; 480 at 4 replicates, below it and active. Both counts are worth measuring for P99's sake,
+but neither makes the test see this axis.
+
+**Regional Noise Homogeneity reads zero at every rung and nothing yet explains it.** One cheap read
+would settle it: whether the generator emits condition rows blocked or interleaved. If interleaved,
+every sliding window holds both conditions in equal measure and the test cannot see a between-condition
+difference by construction. **That is a hypothesis, not a finding.**
 
 ## 9. Where the output lands
 
@@ -256,15 +328,31 @@ severity.
 
 ## 11. Decisions
 
-1. **Mechanism — leaned, not yet exercised.** Irreducible, via a treatment that changes variability. The
-   earlier lean on proportional noise is withdrawn: it probes the framework limitation, not Stage 2's
-   assumption. Nothing built so far depends on it.
-2. **One generator — settled.** `condNoiseRatio` beside `sigmaS` in `gen-copy-fidelity.mjs`, with the
-   existing comment amended rather than overwritten. Dispatched at S361.
-3. **The two-assay-label arm — still open.** Structural rather than optional per §7, but not in the S361
-   dispatch, which builds the parameter and runs the contamination check only.
-4. **What the result is allowed to change — settled at S361.** The number narrows what METHODOLOGY
-   claims those tests mean. **No threshold moves on the strength of it.** Retiring P4's
-   different-direction arm remains available as a design change, on the Stage 1 precedent, if that arm
-   turns out to have no defensible null on honest data. The ±20–30% anchor is the sentence most likely
-   to move.
+1. **Mechanism — settled and superseded by the result.** `condNoiseRatio` is the irreducible mechanism
+   and it is built. Nothing responds to it on the layout tested, so the mechanism is not what is in
+   question.
+2. **One generator — settled, with a correction.** One generator, **two emitters**: shared subjects for
+   the `s` axis, disjoint subjects for the condition axis. The single-file version was never possible.
+3. **The two-assay-label arm — settled by running it.** It was not the second arm. It is where the
+   result is.
+4. **What the result is allowed to change — settled at S361, before the numbers existed.** The
+   measurement narrows what METHODOLOGY claims those tests mean. **No threshold moves on the strength of
+   it.** That ruling now has something to govern: Noise Scaling at 90% and Selective Noise at 75% on
+   honest raw log-normal data are documentation changes, not threshold changes.
+
+## 12. What this instrument cannot do, learned by running it
+
+- **It cannot reach P4 or P9**, which §1 named as the primary target. That needs the disjoint-subject
+  emitter.
+- **It cannot read a ladder while the floor fires.** Whatever the layout, a rate that is already 75% at
+  rung 1.0 has no room to report a response to the ratio.
+- **It cannot say whether any of this happens in the field.** §10 said so before the numbers existed,
+  which is the only reason it can be said now without sounding like a hedge. These rates bound the
+  false-positive rate under a log-normal noise model from a generator we wrote.
+
+**The one number that survives all three caveats is Inter-Replicate Correlation at 15%.** It fires on
+honest data with no copy, no dispersion and no ratio, at the same rate under both assay labels — so the
+log-normal story does not explain it, and there is no transform state to blame and no true property
+being mislabelled. The costing run caught one at p = 0.00033, HIGH, severity 2. **A test that calls HIGH
+on roughly one honest file in seven is a different class of problem from the raw-arm two**, and it is
+the open question this instrument produced.
