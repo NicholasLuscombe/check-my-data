@@ -146,6 +146,7 @@ export const DEFAULTS = {
   condNames: ['CondA', 'CondB'],
   sharedSubjects: false, // see MODES below
   sigmaS: 0,             // per-subject noise-scale dispersion; see HETEROGENEITY below
+  condNoiseRatio: 1,     // ratio of replicate noise scale between conditions; see below
 };
 
 // ── HETEROGENEITY, the second axis ──────────────────────────────────────
@@ -169,6 +170,51 @@ export const DEFAULTS = {
 // The scale is a property of the SUBJECT, identical in both conditions. A scale
 // that were redrawn per condition would not be persistent subject structure and
 // would not produce the failure mode.
+
+// ── CONDITION NOISE, the third axis, and why the exclusion above stopped
+//    binding ─────────────────────────────────────────────────────────────
+//
+// The paragraph above is still right about the failure mode it was written for.
+// A subject-level scale has to be the same in both conditions, or it is not a
+// property of the subject, and only a persistent subject property makes a
+// subject extreme in every condition without any fabrication. Nothing here
+// changes that.
+//
+// It excluded a per-condition scale because such a scale cannot produce THAT
+// failure mode. That is true, and it is not a reason to exclude it from the
+// generator, because there is a second question this instrument is now asked.
+//
+// The second question is whether replicate noise structure is preserved across
+// conditions in honest data. Several tests in the battery respond to a change in
+// noise scale, and every fixture in the corpus that carries such a change also
+// carries a fabrication — so for that whole family a variance change and a
+// fabrication are the same object, and specificity is unmeasured rather than
+// measured and good. Answering it needs honest data whose noise scale differs
+// BETWEEN conditions, which is exactly the thing the paragraph above declined to
+// build.
+//
+// So both axes exist and they answer different questions:
+//
+//   sigmaS           noise scale differs between SUBJECTS, same in both
+//                    conditions. Persistent subject structure.
+//   condNoiseRatio   noise scale differs between CONDITIONS, same for every
+//                    subject. No persistent subject structure at all.
+//
+// They are independently settable and neither touches the other's code path.
+// One multiplies the subject's scale, the other sets the two conditions' scales,
+// and they combine by multiplication at the point of use.
+//
+// The two condition scales are centred the same way the subject multiplier is:
+//
+//   sigmaA = sigma * sqrt(2 / (1 + r^2))        sigmaB = r * sigmaA
+//
+// so sigmaA^2 + sigmaB^2 = 2*sigma^2 at every r. The file's total replicate
+// noise is fixed and only its split between the two conditions moves. The
+// obvious alternative — sigma/sqrt(r) and sigma*sqrt(r) — lets pooled noise grow
+// with r, and then a test could fire because the file got noisier rather than
+// because the conditions differ, which is the one thing this axis must not
+// confound. At r = 1 both scales are exactly sigma and the generator reproduces
+// its previous output bit for bit.
 
 // Ten fidelity points, denser where a copy is still good, ending at exact
 // independence. Six heterogeneity points, from homoscedastic upward.
@@ -252,7 +298,14 @@ export function generate(opts = {}) {
   const p = { ...DEFAULTS, ...opts };
   const k = opts.k ?? 0;
   if (!(k >= 0 && k <= 1)) throw new Error(`gen-copy-fidelity: k must be in [0, 1], got ${k}`);
+  if (!(p.condNoiseRatio > 0)) throw new Error(`gen-copy-fidelity: condNoiseRatio must be > 0, got ${p.condNoiseRatio}`);
   const rho = Math.sqrt(Math.max(0, 1 - k * k));
+
+  // Condition noise scales, centred so sigmaA^2 + sigmaB^2 = 2*sigma^2 at every
+  // ratio. At condNoiseRatio = 1 the first factor is sqrt(2/2) = 1 exactly and
+  // the second is a multiplication by 1, so both land on p.sigma bit for bit.
+  const sigmaA = p.sigma * Math.sqrt(2 / (1 + p.condNoiseRatio * p.condNoiseRatio));
+  const sigmaB = p.condNoiseRatio * sigmaA;
   const rand = mulberry32((opts.seed ?? 0) * 2654435761 + 12345);
   const randn = makeNormal(rand);
 
@@ -291,7 +344,12 @@ export function generate(opts = {}) {
       ? Math.exp(p.sigmaS * randn() - p.sigmaS * p.sigmaS)
       : 1;
     subjScale.push(scale);
-    const sig = p.sigma * scale;
+    // The subject's multiplier applies to both conditions equally, so it stays a
+    // property of the subject; the condition ratio applies to every subject
+    // equally, so it stays a property of the condition. The two axes meet only
+    // here, as a product.
+    const sigA = sigmaA * scale;
+    const sigB = sigmaB * scale;
     const rowA = [], rowB = [];
     const logEffect = effectSet.has(s) ? Math.log(p.effectFold) : 0;
     // In shared-subjects mode the subject level is carried over untouched; the
@@ -299,10 +357,19 @@ export function generate(opts = {}) {
     const rhoS = p.sharedSubjects ? 1 : rho;
     const subjB = mu + rhoS * (L - mu) + Math.sqrt(1 - rhoS * rhoS) * (Lp - mu) + logEffect;
     for (let r = 0; r < R; r++) {
-      const e = sig * randn();               // replicate noise, condition A
-      const f = sig * randn();               // fresh independent replicate noise
+      // Two standardised draws per replicate, in the same order as before, so
+      // the PRNG stream is untouched. Condition A takes them at its own scale;
+      // condition B takes the SAME first draw at its scale, which is what keeps
+      // the copy correlation at rho while the two conditions carry different
+      // noise. At condNoiseRatio = 1 sigB === sigA and every expression below
+      // reduces to the one it replaced, operation for operation.
+      const zA = randn();                    // replicate noise, condition A
+      const zF = randn();                    // fresh independent replicate noise
+      const e = sigA * zA;
+      const eB = sigB * zA;                  // the shared draw, at B's scale
+      const fB = sigB * zF;                  // the independent draw, at B's scale
       rowA.push(L + e);
-      rowB.push(subjB + rho * e + Math.sqrt(1 - rho * rho) * f);
+      rowB.push(subjB + rho * eB + Math.sqrt(1 - rho * rho) * fB);
     }
     logA.push(rowA); logB.push(rowB);
   }
@@ -330,6 +397,9 @@ export function generate(opts = {}) {
     subjectCorr: pearson(meanA, meanB),       // subject-wise correlation, the independence check
     replicateNoiseA: residSd(A),              // the file's own within-condition noise
     replicateNoiseB: residSd(B),
+    // Realised condition noise ratio, measured from the emitted values. Should
+    // recover p.condNoiseRatio; that recovery is what makes the axis readable.
+    condNoiseRatioRealised: residSd(A) > 0 ? residSd(B) / residSd(A) : NaN,
     spreadA: sd(flatA), spreadB: sd(flatB),   // marginal spread, should match at every k
     nEffectSubjects: nEffect,
     // Measured per-subject noise-scale dispersion, bias-corrected. Should
