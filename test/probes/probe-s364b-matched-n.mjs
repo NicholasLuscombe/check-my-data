@@ -245,6 +245,12 @@ function simulateNulls({ rng, rowIdxs, nC, simPairs, sigma, useRobust, B, pilot 
   const sortBuf = new Float64Array(batchCap);
   const simRowBuf = new Float64Array(nC);
   const simKurts = [];
+  // S364 part C — the closed form predicts the UNTRIMMED kurtosis, while the
+  // shipped statistic is trimmed at 2% per tail whenever nR >= 200. Both are
+  // captured off the SAME batches so the trim's effect is a difference of two
+  // measurements rather than a modelled correction. Additive: `simKurts` is
+  // untouched and every S364 part B number is unchanged.
+  const simKurtsUntrimmed = [];
   let earlyExit = false;
   const N_PILOT = 50, PILOT_GATE_FACTOR = 0.5;
   const burnRandnPerIter = rowIdxs.length * nC;
@@ -266,6 +272,7 @@ function simulateNulls({ rng, rowIdxs, nC, simPairs, sigma, useRobust, B, pilot 
       for (let i = 0; i < batchLen; i++) sortBuf[i] = batchBuf[i];
       sortBuf.subarray(0, batchLen).sort();
       simKurts.push(useRobust ? trimKurtSorted(sortBuf, batchLen) : kurtRange(sortBuf, 0, batchLen));
+      simKurtsUntrimmed.push(kurtRange(sortBuf, 0, batchLen));
     }
     if (pilot && !earlyExit && b + 1 === N_PILOT && nC >= 4 && simKurts.length >= 20 && !isNaN(pilot.pooledKurtosis)) {
       const sp = simKurts.slice().sort((x, y) => x - y);
@@ -275,7 +282,7 @@ function simulateNulls({ rng, rowIdxs, nC, simPairs, sigma, useRobust, B, pilot 
       if (mad > 0 && Math.abs(pilot.pooledKurtosis - med) < mad * PILOT_GATE_FACTOR) earlyExit = true;
     }
   }
-  return { simKurts, earlyExit };
+  return { simKurts, simKurtsUntrimmed, earlyExit };
 }
 
 // kurtosis.js:30-56, verbatim in arithmetic.
@@ -668,7 +675,7 @@ async function step2b() {
     const rngM = createPRNGFactory(matrix)('Kurtosis');
     const nCondRows = median(condNames.map(c => ci[c].length));
     const matchedRowIdxs = condNames.length ? ci[condNames[0]] : validRowIdxs;
-    const { simKurts: simM } = simulateNulls({
+    const { simKurts: simM, simKurtsUntrimmed: simMU } = simulateNulls({
       rng: rngM, rowIdxs: matchedRowIdxs, nC, simPairs, sigma, useRobust, B: 1999, pilot: null,
     });
     const simMeanM = simM.length ? simM.reduce((a, b) => a + b, 0) / simM.length : NaN;
@@ -679,6 +686,9 @@ async function step2b() {
     const simSortedM = simM.slice().sort((a, b) => a - b);
     const simMedM = simSortedM[Math.floor(simSortedM.length / 2)];
     const simSdM = stddev(simM);
+    const simSortedMU = simMU.slice().sort((a, b) => a - b);
+    const simMedMU = simSortedMU[Math.floor(simSortedMU.length / 2)];
+    const simSdMU = stddev(simMU);
     for (const cond of condNames) {
       if (ci[cond].length !== matchedRowIdxs.length) nullRowMismatch++;
       const dd = condDiffsFor(testMatrix, sigma, ci[cond]);
@@ -691,6 +701,7 @@ async function step2b() {
         kurtosis: cK.toFixed(4), kurtDeviation: (cK - simMeanM).toFixed(4),
         rawP: condPFrom(simM, cK), B: simM.length,
         simMedian: simMedM, simSD: simSdM, zVsNull: (cK - simMedM) / simSdM,
+        simMedianUntrimmed: simMedMU, simSDUntrimmed: simSdMU,
         shippedRawP: shipped?.rawP ?? null, shippedB: shipped ? rec.kurt.nSimulations : null,
         shippedKurtDeviation: shipped?.kurtDeviation ?? null,
       });
