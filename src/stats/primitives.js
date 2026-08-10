@@ -62,7 +62,7 @@ export function robustLogSpan(vals) {
 }
 
 /** Predicted σ from log-log mean-variance fit.
- *  Shared by Kurtosis, Regional Noise, RSC. Fits log(variance) ~ slope × log(mean)
+ *  Shared by Kurtosis, LOESS Residual, Regional Noise. Fits log(variance) ~ slope × log(mean)
  *  across rows, returns per-row predicted σ.
  *  @param {Array<Array<?number>>} matrix - Numeric matrix (null = missing)
  *  @returns {{sigma: Array<?number>, used: boolean, rowMeans: Array<?number>}}
