@@ -2,7 +2,9 @@
 
 **Status:** proposed at S356, not decided. **Amended at S358** — §2 gains the distinction between a
 false positive that comes from the data and one that comes from our own null, with the first measured
-instance; §6 gains the nulls as a property the number will carry. The tolerance itself is untouched.
+instance; §6 gains the nulls as a property the number will carry. **Amended at S365** — §6's
+pooled-dependence bullet reframed: the count of instances is open, and two of them manufacture a signal
+rather than losing one. The tolerance itself is untouched by both.
 part to attack first.
 
 **Why it is committed before the rate is measured.** The rule below is that the tolerance is fixed in
@@ -101,9 +103,13 @@ State this beside the figure when it is published, or the figure misleads.
   stability comes first: a rate cannot be bounded while the answer changes on a seed.** It also matters
   more under the primary framing, not less — the author who is unsure will run it twice.
 - **The nulls, and specifically the places where they assume an independence the data does not have.**
-  Pooled dependence has five recorded instances (METHODOLOGY §Pooled Dependence) and one of them
-  manufactures a flag rather than losing one. A rate measured before those are settled prices the
-  nulls we happen to ship today.
+  Pooled dependence has five examined instances (METHODOLOGY §Pooled Dependence) **and the count is
+  open** — `METHODOLOGY-TESTS.md:549` documents a sixth occurrence of the same pattern that has never
+  been assessed against it (P125). **Two of the five manufacture a signal rather than losing one, and
+  only one of those two reaches a flag.** Instance 5 fires. Instance 4's manufacturing half is held
+  back by a single directional comparison, and **a suppressed false-positive mechanism is still a
+  false-positive mechanism** — this one is one line from firing. A rate measured before those are
+  settled prices the nulls we happen to ship today.
 
 ## 7. Open, and not settled here
 
