@@ -23,29 +23,38 @@ than to anything measured.
   confound the ladder exists to avoid. The correct form is in §5 and it matches the centring `sigmaS`
   already uses. **The error was reaching for the tidier-looking formula while the correct pattern sat
   quoted one section above.**
-- **Every line number cited into `METHODOLOGY.md` was wrong**, because they were read from a snapshot
-  sixteen lines behind the live file. The quotes were all accurate. Re-anchored in §0.
+- **Every citation into the methodology docs was wrong**, in two rounds. First the line numbers, read
+  from a stale snapshot. Then the filename: the document was split, and five of six quotes had moved to
+  `METHODOLOGY-TESTS.md` while this spec still named `METHODOLOGY.md` and stamped itself against a
+  1,935-line file that no longer exists. Re-anchored in §0.
 
 ---
 
-## 0. How this document cites METHODOLOGY
+## 0. How this document cites the methodology docs
 
-**Section names are the anchor. Line numbers are a convenience and they have already broken once.**
+**Section names and quoted text are the anchor. Filenames and line numbers have both broken once.**
 
-Every number below is against a **1,935-line `METHODOLOGY.md`**. If the file is a different length, treat
-the numbers as stale and locate by the quoted text instead. That stamp is the whole freshness gate: a
-citation that cannot say what it was measured against cannot be checked.
+`METHODOLOGY.md` was split. The framework file is **741 lines** and holds preprocessing and the
+cross-cutting properties; the test battery lives in **`METHODOLOGY-TESTS.md`**. **Always qualify a
+section reference with a filename** — both files number sections in the same style, so `§2.7` alone is
+ambiguous.
 
-| Quote | Section | Line |
-|---|---|---|
-| "Replicate noise structure is an assay property…" | §1.9 Stage 2 — Residual-structure properties | 814 |
-| "…rarely exceeds ±20–30% post-VST" | §1.9 Stage 2, the P4 paragraph | 832 |
-| "…condition effects dominate total row variance…" | Variance-Stabilizing Transform preprocessing | 231 |
-| "Why pool-level properties are one-sided" | §1.9 Stage 1 — Pool-level properties | 810 |
-| "Residual-structure properties on non-VST'd heteroscedastic data" | §1.9 framework limitations | 793 |
-| "dispersion of a per-subject log-normal multiplier" | §1.7 Cross-group Residual Spike Correlation | 720 |
+| Quote | File | Section | Line |
+|---|---|---|---|
+| "Replicate noise structure is an assay property…" | `METHODOLOGY-TESTS.md` | §1.9 Stage 2 — Residual-structure properties | 340 |
+| "…rarely exceeds ±20–30% post-VST" | `METHODOLOGY-TESTS.md` | §1.9 Stage 2, the P4 paragraph | 358 |
+| "Why pool-level properties are one-sided" | `METHODOLOGY-TESTS.md` | §1.9 Stage 1 — Pool-level properties | 336 |
+| "Residual-structure properties on non-VST'd heteroscedastic data" | `METHODOLOGY-TESTS.md` | §1.9 framework limitations | 319 |
+| "dispersion of a per-subject log-normal multiplier" | `METHODOLOGY-TESTS.md` | §1.7 Cross-group Residual Spike Correlation | 246 |
+| "…condition effects dominate total row variance…" | `METHODOLOGY.md` | Variance-Stabilizing Transform preprocessing | 256 |
 
----
+**Stamped against `METHODOLOGY-TESTS.md` at 1,269 lines and `METHODOLOGY.md` at 741.** If either file is
+a different length, treat its numbers as stale and locate by the quoted text.
+
+All six quotes were read at source and are verbatim. **Every section named here was correct before the
+line numbers were available**, which is the argument for anchoring on sections and quotes rather than
+numbers: the sections survived a file split that invalidated every number and one of the two
+filenames.
 
 **Owner:** Chat. **Destination:** `docs/shared/`, tracked. Route (a): build the instrument, measure the
 rate, let the number narrow what the tool claims. Route (b) — a fixture whose honest variance change
@@ -336,7 +345,7 @@ severity.
 3. **The two-assay-label arm — settled by running it.** It was not the second arm. It is where the
    result is.
 4. **What the result is allowed to change — settled at S361, before the numbers existed.** The
-   measurement narrows what METHODOLOGY claims those tests mean. **No threshold moves on the strength of
+   measurement narrows what `METHODOLOGY-TESTS.md` claims those tests mean. **No threshold moves on the strength of
    it.** That ruling now has something to govern: Noise Scaling at 90% and Selective Noise at 75% on
    honest raw log-normal data are documentation changes, not threshold changes.
 
