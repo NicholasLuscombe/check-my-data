@@ -841,3 +841,125 @@ regression fitted; the columns are reported and read.
 **Flagged for Chat, operational:** `docs/shared/METHODOLOGY-TESTS.md` is modified and uncommitted in
 main. Per `CLAUDE.md`'s close-promote rule a dirty main aborts the promote after the merge and push
 have already landed, so that edit needs committing before this branch is promoted.
+
+---
+
+# Dispatch 5 — the A-D floor cross-tab
+
+Read-only. Base: branch at `ee42b09`; **main `95d47c1`, clean**. **Merge check against `95d47c1`:**
+exit 0, tree `f148ebe`, file sets disjoint. Hook inertness asserted as before — flag and `primaryP`
+identical to Dispatch 2's unperturbed arm on all 27 fixtures.
+
+**Transcription correction accepted:** Dispatch 4's trigamma pairs are theory/measured, not
+measured/theory — 4.9348, 1.6449, 0.9348, 0.4904, 0.3949, 0.3304 are `ψ'(df/2)`. The "five of six above
+theory" reading and the substance are unaffected.
+
+## The anchor question, answered: NO
+
+**Neither ground-truth-clean fixture on the `nC ≤ 3` branch floors on `adP`.**
+
+| fixture | nC | ground truth | `adP` | on floor? |
+|---|---|---|---|---|
+| 03-qpcr-clean | 3 | **clean** (sev 0) | 0.2100 | **no — 420× the floor** |
+| 07-elisa-clean | 3 | **clean** (sev 0) | 0.0230 | **no — 46× the floor** |
+| 04-qpcr-fabricated | 3 | fabricated (sev 3) | 0.0005 | YES |
+| 08-elisa-fabricated | 3 | fabricated (sev 3) | 0.0005 | YES |
+| vfs-a-pigeonhole-clear | 2 | **NO GT ROW** (batch EXPECTED 0) | 0.0005 | YES |
+| vfs-b-recurrence-high | 2 | **NO GT ROW** (EXPECTED 2) | 0.0005 | YES |
+| vfs-c-deeptail-high | 2 | **NO GT ROW** (EXPECTED 2) | 0.0005 | YES |
+| 23-recurrence-null-mixed | 3 | **NO GT ROW** (EXPECTED 3) | 0.0005 | YES |
+| 24-recurrence-null-control | 3 | **NO GT ROW** (EXPECTED 3) | 0.0040 | no |
+
+Nine fixtures on the branch: **2 labelled clean, 2 labelled fabricated, 5 with no ground-truth row.**
+`TEST-GROUND-TRUTH.md:15-17` states that `vfs-a-pigeonhole-clear`, DS23 and DS24 rows "are owed and are
+**not** invented here", so no label is assigned to them. Batch `EXPECTED` severity is shown where a row
+is missing and is **not** a ground-truth label.
+
+**Prediction 1 is refuted, in the exonerating direction the dispatch named.** The factor is not
+sufficient to drive `adP` on its own. **P126 stays a register item and does not become a
+false-positive finding.**
+
+### Why it does not floor — visible in the null's own quantiles
+
+| fixture | ground truth | `s/√2` | observed A² | null A² median | null A² p95 |
+|---|---|---|---|---|---|
+| 03-qpcr-clean | clean | 1.2797 | **172.1** | 148.0 | **197.8** |
+| 07-elisa-clean | clean | 1.2316 | **187.7** | 133.2 | **178.5** |
+| 04-qpcr-fabricated | fabricated | 1.2173 | **248.6** | 148.9 | 197.9 |
+| 08-elisa-fabricated | fabricated | 1.9114 | **325.0** | 152.6 | 203.9 |
+
+The null's A² is itself enormous — median 133 to 360 against a textbook critical value near 2.5 —
+because the simulated batch pools pairwise differences that share draws within a row, so A-D is applied
+to strongly dependent data on **both** sides. The observed statistic shares that inflation, so it
+cancels. What does not cancel is the scale error, and **at `s/√2` ≈ 1.23–1.28 it is not large enough to
+push the observed past the null's 95th percentile.** At 1.91 it is.
+
+**So the scale error is real, data-independent, and sub-threshold on clean data at nC = 3.** That is a
+sharper statement than "latent": the factor is present and measured, and the A-D arm absorbs it.
+
+## Prediction 2 — data-independence, confirmed where it can be tested
+
+At nC = 3, against an exact prediction of 1.3346:
+
+| fixture | ground truth | `s/√2` |
+|---|---|---|
+| 03-qpcr-clean | clean | 1.2797 |
+| 07-elisa-clean | clean | 1.2316 |
+| 04-qpcr-fabricated | fabricated | 1.2173 |
+| 08-elisa-fabricated | fabricated | 1.9114 |
+
+**Three of the four cluster within 9% of the prediction regardless of label**, clean and fabricated
+interleaved — content does no work on the factor. `08-elisa-fabricated` sits well above, which is
+content adding on top of the floor rather than the floor moving.
+
+**At nC = 2 the prediction cannot be tested at all**: all three fixtures lack a ground-truth row. Their
+`s/√2` reads 2.0394, 1.9142 and 2.9004 against a predicted 1.8874 — two close, one far — but with no
+labels the clean-versus-fabricated comparison is unavailable.
+
+## Prediction 3 — confirmed. A gate, not the statistic
+
+**All six floored fixtures on the branch would be HIGH on `pooledP` alone. All six read LOW. `esGate`
+is true on every one.**
+
+| fixture | `adP` | flag from `pooledP` | actual | directional `κDev ≥ 0` | effect-size `\|κDev\| < thr` | `κDev` | threshold |
+|---|---|---|---|---|---|---|---|
+| vfs-a-pigeonhole-clear | 0.0005 | HIGH | LOW | **true** | **true** | +0.4185 | 0.7157 |
+| vfs-b-recurrence-high | 0.0005 | HIGH | LOW | **true** | **true** | +0.3362 | 0.8765 |
+| vfs-c-deeptail-high | 0.0005 | HIGH | LOW | false | **true** | −0.1558 | 0.7157 |
+| 04-qpcr-fabricated | 0.0005 | HIGH | LOW | false | **true** | −0.2588 | 0.7840 |
+| 08-elisa-fabricated | 0.0005 | HIGH | LOW | **true** | false | +5.5426 | 0.7763 |
+| 23-recurrence-null-mixed | 0.0005 | HIGH | LOW | false | **true** | −0.2280 | 0.5061 |
+
+The gate is `kurtosis.js:379-383`: `directionalSuppress = kurtDeviation >= 0`,
+`effectSizeSuppress = |kurtDeviation| < adaptiveThreshold`, `esGate = either`, and
+`flag = esGate ? "LOW" : flagFromP(pooledP)`.
+
+**Structural observation, recorded and not fixed.** On the `nC ≤ 3` branch `pooledP` is `adP` — the A-D
+arm — while the gate that can suppress it reads `kurtDeviation`, the **kurtosis** arm's effect size.
+`METHODOLOGY-TESTS.md` item 6 says of exactly this branch that "at n_rep ≤ 3, kurtosis is blind due to
+studentization bounds → A-D drives the flag (kurtP ignored)". `kurtP` is ignored; `κDev` is not, and it
+is the sole thing standing between a floored `adP` and a HIGH. With adaptive thresholds of 0.51–0.88 on
+these fixtures, an arm the documentation calls blind has to clear a large effect size to let the flag
+through. That is consistent with the 0-of-27 finding from Dispatch 2 — no flag moved under any σ̂
+perturbation — and it is the same gate doing it.
+
+## What this leaves
+
+- **P126 stays a register item.** The clean fixtures that can answer the question do not floor.
+- **The nC = 2 branch cannot be sized by this fixture set.** It carries the largest factor (1.887) and
+  the branch where A-D is unconditionally in charge, and **all three of its fixtures lack a
+  ground-truth row**. `vfs-a-pigeonhole-clear` floors and carries batch `EXPECTED` severity 0, which is
+  suggestive and is not a label. A corpus read, or the owed ground-truth rows, is what would size it.
+- **The suppression is a gate rather than a calibration.** Six fixtures sit one gate away from HIGH on
+  a p-value that a data-independent factor helped produce.
+
+## Verification (Dispatch 5)
+
+- **`git diff --stat -- src/` returns empty.** Read-only throughout; nothing repaired, no gate touched,
+  no Chat-owned doc edited.
+- **Batch: N/A** — no `src/` change to regress.
+- **Merge check against `95d47c1`:** exit 0, tree `f148ebe`, file sets disjoint.
+- **Hook inertness:** flag and `primaryP` identical to the unperturbed arm on all 27 fixtures.
+- Ground-truth labels quoted from `docs/shared/TEST-GROUND-TRUTH.md` §Validation suite, severity column;
+  the five fixtures without rows are reported as unlabelled rather than inferred from their filenames.
+- No preview step. `promote.sh` not run, nothing pushed.
