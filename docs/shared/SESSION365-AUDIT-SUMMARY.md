@@ -344,3 +344,185 @@ Ownership of all three is Chat's; none was edited.
   for the recorded result.
 - No preview step. A docstring has no rendering surface, so `dev.sh` would verify nothing.
 - `promote.sh` not run; the worktree lock belongs to this session.
+
+---
+
+# Dispatch 2 — the P118 / P124 structural falsifier (Part A)
+
+Base for this part: branch `claude/s365-p124-census` at `9c4f563`, cut from `9429c55`; main had
+moved to `e8553b5` with three Chat-owned docs, disjoint from anything here.
+
+**Line numbers re-located by symbol before use, all still where Dispatch 1 reported them:**
+`fitPredictedSigma` at `primitives.js:71` (docstring `:64-70`, `:65` carrying Dispatch 1's edit),
+`kurtosis.js:99` the call, `:102` the branch select. Nothing moved.
+
+## The design, and one confound added to it
+
+Five arms, all at seed offset 0, each a full engine run over all 27 fixtures, σ̂ perturbed by a
+load-time source hook on `primitives.js` with zero `src/` diff:
+
+| arm | σ̂ factor | uniform? | power of two? |
+|---|---|---|---|
+| `none` | 1 | — | — |
+| `global2` | × 2 | yes | **yes** |
+| `global4` | × 4 | yes | **yes** |
+| `global3` | × 3 | yes | **no** |
+| `slope05` | × m_r^0.25 | **no** | no |
+
+`global3` and `global4` are mine, not the dispatch's. The dispatch's two arms confound two
+properties: `global2` is uniform **and** a power of two, `slope05` is row-differential **and** not a
+power of two. Without an arm that is uniform-but-not-a-power-of-two, a divergence under `slope05`
+cannot be attributed to row-differentiality. That turned out to decide the result.
+
+`slope05` is exact rather than approximate: σ̂_r = exp((a + b·log m_r)/2), so b → b + 0.5 multiplies
+σ̂_r by m_r^0.25. No refit. Applied only where `sigma[r]` is non-null, which by `primitives.js:90` is
+exactly where `rowMeans[r] > 0`, and the hook throws if any perturbed value leaves the
+positive-finite domain. It never did.
+
+## Shape controls — the comparison is like for like
+
+Measured on all 33 Kurtosis calls (28 fit-branch, 5 per-row-SD), across all five arms:
+
+- **retained-row count differs on 0 units.** Invariant by construction — `kurtosis.js:178` filters on
+  `sigma[r] && sigma[r] > 0`, which no positive rescale can change — and confirmed rather than assumed.
+- **simulation count differs on 0 units.** Values seen: 1999, and 50 on the one unit where the
+  `:314` pilot gate fires (`16-densitometry-carlisle-overbalanced#3`). The gate fired identically in
+  every arm.
+
+This control was load-bearing: the pilot gate reads `pooledKurtosis`, so a moving observed statistic
+could have truncated one arm's null and not another's. It didn't.
+
+## Result — the falsifier fired, and then a control arm changed what it means
+
+Against the dispatch's stated predictions:
+
+| | predicted `simKurts` | measured | predicted observed κ | measured |
+|---|---|---|---|---|
+| `global2` | byte-identical | **byte-identical, 28/28** ✓ | unchanged | **unchanged, 28/28** ✓ |
+| `slope05` | byte-identical | **DIFFERS, 28/28** ✗ | moves | **moves, 28/28** ✓ |
+
+The control arms locate the failure:
+
+| arm | `simKurts` identical | observed κ unchanged | max abs Δ in `simKurts` |
+|---|---|---|---|
+| `global2` (×2) | **28/28** | 28/28 | 0 |
+| `global4` (×4) | **28/28** | 28/28 | 0 |
+| `global3` (×3) | **0/28** | 1/28 | 7.105e-15 |
+| `slope05` | **0/28** | 0/28 | 7.105e-15 |
+
+**A uniform ×3 breaks byte-identity exactly as thoroughly as the row-differential arm, and by the
+same absolute magnitude.** So the discriminator is not uniformity — it is whether the scale factor is
+representable as a power of two.
+
+**Reading.** The algebraic cancellation at `kurtosis.js:269 → :272` is exact:
+`(σ·z₁ − σ·z₂)/σ = z₁ − z₂` in real arithmetic. In IEEE-754 it is exact **only when σ is a power of
+two**, because then the multiply and the divide shift the exponent and leave the mantissa alone. For
+any other factor each operation rounds, and the residue is a handful of ulps — max |Δ| 7.105e-15 on
+values of order 0.5 to 5, across every differing arm and unit. The largest *relative* figures
+(3.3e-10) sit on units whose `simKurts` are near zero, where a fixed absolute residue divides small.
+
+**So σ̂ does not leak into the null in any statistically meaningful sense, and the strict prediction
+of byte-identity is still false.** Byte-identity is a property of the scale factor's binary
+representation, not of the estimator. Part B's framing survives on substance; the sentence "`simKurts`
+is invariant to any positive rescaling of σ̂" needs "up to floating-point rounding" and cannot be
+demonstrated by a ×2 arm alone, because ×2 is the one case where the rounding vanishes.
+
+One curiosity, not a finding: `11-rnaseq-multicondition` is the single fit unit whose observed κ came
+out bit-for-bit unchanged under `global3` — 1500 rows × 4 columns, and the trimmed kurtosis happened
+to land on the same double.
+
+## The larger result — the Anderson–Darling arm has the same mismatch, and it is not scale-invariant
+
+Chasing an anomaly in the control: **`primaryP` moved on 9 of the 25 fixtures where Kurtosis runs
+under `global2` and `global4`** — arms where both `simKurts` and observed κ are byte-identical. That
+cannot come from the kurtosis arm.
+
+It is the A-D arm. `kurtosis.js:367` reads `pooledP = nC <= 3 ? adP : kurtP`, and:
+
+- the observed A² at `:160` tests `histDiffs` against a **fixed** N(0, √2) (`:63`, `:151`,
+  `Math.SQRT2`), so it is **not scale-invariant** — rescaling every normalised difference by a
+  constant moves it;
+- the null `simADs` at `:306` is computed from `batchBuf`, which on the fit branch is the
+  σ̂-invariant `z₁ − z₂`.
+
+So the A-D arm carries a **stronger** form of the P124 mismatch than the kurtosis arm: the null cannot
+see σ̂ at all, while the observed statistic is calibrated against an absolute scale that σ̂ sets.
+
+Prediction stated and tested: *a uniform rescale moves `primaryP` iff `nC ≤ 3`*. **9 of 9 `nC ≤ 3`
+fixtures moved; 0 of 16 `nC > 3` fixtures moved.** The movements are not marginal:
+
+| fixture | nC | p unperturbed | p at σ̂ × 2 | p at σ̂ × 4 |
+|---|---|---|---|---|
+| 04-qpcr-fabricated | 3 | 0.0005 | 0.859 | 0.9955 |
+| 08-elisa-fabricated | 3 | 0.0005 | 0.7525 | 0.999 |
+| 23-recurrence-null-mixed | 3 | 0.0005 | 0.4635 | 0.999 |
+| 24-recurrence-null-control | 3 | 0.004 | 0.9995 | 1 |
+| vfs-a-pigeonhole-clear | 2 | 0.0005 | 0.485 | 0.999 |
+| vfs-b-recurrence-high | 2 | 0.0005 | 0.4595 | 0.9935 |
+| vfs-c-deeptail-high | 2 | 0.0005 | 0.0015 | 0.99 |
+| 03-qpcr-clean | 3 | 0.21 | 0.998 | 1 |
+| 07-elisa-clean | 3 | 0.023 | 0.9635 | 1 |
+
+**No flag moved under any arm — 0 of 27, on all five.** This is a p-level effect on this corpus, not a
+verdict-level one, and the reason is the directional and effect-size suppression downstream. That
+bounds the consequence; it does not soften the mismatch.
+
+## Falsifier verdict
+
+The dispatch asked: if `simKurts` moves, find the line. It moves, and the line is
+**`kurtosis.js:272`** — but what it demonstrates is a floating-point rounding residue of ~1 ulp, not a
+path by which σ̂ carries information into the null. Read strictly the prediction is falsified; read as
+a claim about the null's information content it is confirmed, with the power-of-two caveat now
+measured rather than assumed. **The genuinely new result is the A-D arm at `:367` / `:160`, where a
+uniform rescale of σ̂ takes a p from 0.0005 to 0.9955 on a fixture the battery is supposed to catch.**
+
+## Appendix
+
+### 1. `docs/paper/` — the STATUS pending item is REAL, not phantom
+
+**The file exists.** `docs/paper/PAPER-REALWORLD-RESULTS-DRAFT.md`, 84 lines, 16,992 bytes, tracked,
+clean against the index in the main checkout and present in both worktrees.
+
+- Added at **`682512c`** ("docs: S294 corpus results, provenance, paper outline + results draft;
+  METHODOLOGY §1.1 correction"), modified at **`39ff312`**.
+- `git log --all --diff-filter=A -- 'docs/paper/*'` returns that one commit; no other path ever
+  carried it.
+- `docs/paper/` also holds `PAPER-STRUCTURE-OUTLINE.md`.
+
+The "path reports as empty" observation does not reproduce — I hit the same wrong answer once by
+truncating `ls -la` with `head -3`, which shows only `.` and `..`, and the `total 64` line is the tell
+that files follow.
+
+The item's content checks out too. The draft carries the citations at its own line 62 —
+`METHODOLOGY §1.1 lines 283–285` and `line 343` — and STATUS's diagnosis is accurate: §1.1 is now
+`METHODOLOGY-TESTS.md:60`, and `:283-285` there is a permutation p-value formula, not branch routing.
+The three-citation pending item stands as written.
+
+### 2. `CLAUDE.md:92` reworded
+
+Direction point kept — same arithmetic, opposite consequence, and the standing instruction to say
+which way it ran. Instance numbers dropped. The line now points at `METHODOLOGY.md` §Pooled Dependence
+as the authority for numbering and records that an earlier version of the note assigned one and was
+wrong. Gitignored, main-resident, not committed.
+
+### 3. `code-version-check-98b673` — contains nothing
+
+Read before any disposition, per the rule against inferring "scratch" from a filename.
+
+- Branch `claude/code-version-check-98b673` at `9429c55`, an ancestor of main.
+- `git log main..HEAD` is **empty** — zero commits of its own.
+- `git status --short` is **empty** — no modifications, no untracked files.
+- `git status --ignored` lists six entries: `CLAUDE.md`, `STATUS.md`, `BANKED.md`,
+  `project-instructions.md`, `docs/sessions` — **all five are symlinks into the main checkout**, created
+  by the SessionStart hook — plus `.claude/settings.local.json`, which is byte-identical to main's.
+
+It is a bare checkout with nothing unique in it. **Not removed**, per the dispatch.
+
+## Verification (Dispatch 2)
+
+- **`git diff --stat -- src/` returns empty.** Nothing entered `src/` in this part; the perturbations
+  are a load-time source hook in the session scratchpad.
+- **Batch: N/A**, correctly — no `src/` change to regress.
+- Probe, hook and comparison scripts live in the session scratchpad, not `test/probes/`.
+- No preview step — no rendering surface.
+- `promote.sh` not run, nothing pushed.
