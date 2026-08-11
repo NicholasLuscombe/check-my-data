@@ -695,3 +695,149 @@ not edited.
 - Hook inertness asserted against Dispatch 2's unperturbed arm: flag and `primaryP` identical on all 27
   fixtures.
 - No preview step. `promote.sh` not run, nothing pushed.
+
+---
+
+# Dispatch 4 — the retransformation prediction
+
+Base: branch at `7460c15`; main at `a22fa6b`. **Main's tip has NOT moved** — the expected third doc
+commit has not landed. `docs/shared/METHODOLOGY-TESTS.md` is **modified and uncommitted** in main's
+working tree. **Merge check against the current tip:** exit 0, tree `2c5577a`, file sets disjoint. That
+covers committed trees only; the uncommitted edit is a separate hazard, flagged below.
+
+Line numbers re-located by symbol: `kurtosis.js:99`, `:367`; `primitives.js:75-87` for the fit, and
+`variance` at `:17` uses an `n − 1` denominator, reproduced exactly.
+
+Hook inertness asserted as before — flag and `primaryP` identical to Dispatch 2's unperturbed arm on
+all 27 fixtures.
+
+## Part A — the stated formula is falsified; the mechanism is confirmed
+
+### The falsifier fires
+
+`s/√2 = exp(σ²_ε/4)`, with `σ²_ε` the residual variance of the shipped log-log fit (taken against the
+recovered `(α̂, β̂)`, so they are the shipped fit's own residuals, on an `n − 2` denominator):
+
+**obs/pred median 0.9675, range 0.0189 to 1.5434. 16 of 28 units within ±5%, so 12 are outside.**
+**The falsifier is TRIGGERED.**
+
+Both spot checks the dispatch named also fail:
+
+| | implied `σ²_ε` | measured `σ²_ε` |
+|---|---|---|
+| median obs 1.1772 | 0.6526 | **0.8315** |
+| max obs 2.9004 (vfs-c) | 4.2593 | **20.1413** |
+
+The pre-registered direction does hold — predicted runs above observed on **26 of 28** units.
+
+### But the miss is structured by nC, and that identifies the fault
+
+obs/pred by replicate count: **0.019–0.571 at nC = 2**, 0.84–0.92 at nC = 3, 0.94–0.99 at nC = 4
+(one outlier), **0.965–1.008 at nC = 6, 7, 8**. The formula is excellent where there are many
+replicates and collapses where there are few.
+
+That is the signature of the **normal-ε approximation**, not of the mechanism. `ε` is the log of a
+sample variance's ratio to its truth, so `exp ε ~ χ²_df / df` with `df = nC − 1`. `E[exp ε] =
+exp(σ²_ε/2)` requires ε normal; `ln(χ²_df/df)` is strongly left-skewed at small df and only approaches
+normality as df grows.
+
+### The exact form, parameter-free from df alone
+
+`E[ln v_r] = ln σ²_r + ψ(df/2) − ln(df/2)`, which the fit estimates, so
+`σ̂_r = σ_r · exp((ψ(df/2) − ln(df/2))/2)` and therefore
+
+> **`s/√2 = exp((ln(df/2) − ψ(df/2)) / 2)`, with `df = nC − 1` and nothing fitted.**
+
+`σ²_ε` drops out entirely. Measured against it:
+
+| nC | df | units | median obs `s/√2` | exact prediction | obs/exact | dispatch's form |
+|---|---|---|---|---|---|---|
+| 2 | 1 | 3 | 2.0394 | 1.8874 | **1.0805** | 0.5709–0.0189 |
+| 3 | 2 | 6 | 1.2797 | 1.3346 | **0.9589** | 0.8415–0.9189 |
+| 4 | 3 | 6 | 1.2181 | 1.2026 | **1.0129** | 0.9370–1.5434 |
+| 6 | 5 | 11 | 1.1211 | 1.1125 | **1.0078** | 0.9649–1.0080 |
+| 7 | 6 | 1 | 1.0996 | 1.0919 | **1.0071** | 0.9839 |
+| 8 | 7 | 1 | 1.0612 | 1.0777 | **0.9847** | 0.9969 |
+
+**Every nC cell median lands within 8%, and four of the six within 1.5%.** Per unit the exact form is
+within ±5% on the same 16 of 28, but its range is 0.85–1.74 against the dispatch form's 0.019–1.54 —
+the remaining misses are three identifiable outliers (`vfs-c-deeptail-high` 1.54, `08-elisa-fabricated`
+1.43, `11-rnaseq-multicondition` 1.74) rather than a systematic collapse.
+
+**A second, independent corroboration.** If the mechanism is right, `σ²_ε` should be mostly the
+sampling noise of a log sample variance, whose theoretical value is `ψ'(df/2)`. Measured against
+trigamma: **4.93 / 5.74, 1.64 / 1.68, 0.935 / 0.961, 0.490 / 0.559, 0.395 / 0.445, 0.330 / 0.250**.
+Measured sits just above theory at five of six cells — the excess being genuine departure from the
+mean-variance law — so `σ²_ε` is very largely estimator noise, exactly as the mechanism requires.
+
+**Verdict, plainly. The dispatch's closed form is falsified and the retransformation mechanism is
+confirmed.** The formula failed because it approximates `E[exp ε]` for normal ε; the quantity it
+approximates is a retransformation bias, and the exact version of that bias predicts the data with no
+fitted parameter at all.
+
+**The nC gradient question is answered, and the answer is df rather than `σ²_ε`.** The exact prediction
+reproduces the gradient — 1.887, 1.335, 1.203, 1.113, 1.092, 1.078 against measured 2.039, 1.280,
+1.218, 1.121, 1.100, 1.061 — from replicate count alone, with no reference to which fixtures occupy
+which cell. **So the nC / fixture-identity confound flagged in Dispatch 3 stops mattering.**
+
+**B3 holds as the control.** The fallback path builds its denominator from a per-row SD, so there is no
+log-log fit, no `σ²_ε` and no retransformation — and it measured `s/√2` 0.9803 to 1.0021. A mechanism
+predicting bias only where the fit exists, on a branch where the bias is absent. n = 3 fixtures.
+
+**Two guards on the arithmetic, and one is weaker than the other.** The digamma implementation
+reproduces ψ(1), ψ(0.5), ψ(2), ψ(3) to 1e-10. The identity `E[ln(χ²_df/df)] = ψ(df/2) − ln(df/2)` was
+also checked by direct draw, and confirmed only to about 0.03 in log units — my scratch LCG carries a
+consistent positive offset at every df, so that guard bounds the identity loosely rather than tightly.
+The identity is textbook; the digamma check is the load-bearing one.
+
+## Part B — the two reads that repair the instrument
+
+### 1. Six of the nine sit exactly on the floor
+
+`adP`'s floor is `1/(nSimAD + 1) = 0.0005` on every one of the nine. **Six are exactly on it** —
+`04-qpcr-fabricated`, `08-elisa-fabricated`, `23-recurrence-null-mixed`, `vfs-a`, `vfs-b`, `vfs-c` —
+leaving **three distinct non-floored values** (0.2100, 0.0230, 0.0040).
+
+**So my Dispatch 3 verdict was wrong and I withdraw it.** I recorded prediction 3 as "refuted"; with
+six of nine tied at a censoring floor, a rank correlation over those nine points could not have
+detected monotonicity whether or not it was there. The correct verdict is **untestable as posed**, and
+the +0.133 Spearman carries no information about the underlying relationship.
+
+### 2. A², `s/√2` and n as three columns
+
+| fixture | nC | n | `s/√2` | A² | adP |
+|---|---|---|---|---|---|
+| vfs-b-recurrence-high | 2 | 120 | 1.9142 | 309.20 | 0.0005 |
+| 07-elisa-clean | 3 | 135 | 1.2316 | 187.75 | 0.0230 |
+| 04-qpcr-fabricated | 3 | 150 | 1.2173 | 248.64 | 0.0005 |
+| 03-qpcr-clean | 3 | 150 | 1.2797 | 172.10 | 0.2100 |
+| 08-elisa-fabricated | 3 | 153 | 1.9114 | 325.00 | 0.0005 |
+| vfs-a-pigeonhole-clear | 2 | 180 | 2.0394 | 491.10 | 0.0005 |
+| vfs-c-deeptail-high | 2 | 180 | 2.9004 | 824.18 | 0.0005 |
+| 23-recurrence-null-mixed | 3 | 360 | 1.1349 | 775.57 | 0.0005 |
+| 24-recurrence-null-control | 3 | 360 | 1.3467 | 488.02 | 0.0040 |
+
+**Within comparable n, A² is not monotone in `s/√2` — two of the three available pairs invert.**
+
+- n = 150: `s/√2` 1.217 → A² 248.6, and 1.280 → A² 172.1. **Inverts.**
+- n = 180: 2.039 → 491.1, and 2.900 → 824.2. Monotone.
+- n = 360: 1.135 → 775.6, and 1.347 → 488.0. **Inverts.**
+
+n also dominates: the n = 360 pair carries A² of 488–776 on the *smallest* scale errors in the table,
+against 172–249 at n = 150. **So A² is not a function of the scale error alone even before the floor
+censors the p-values**, which is the substantive form of what prediction 3 was reaching for. No
+regression fitted; the columns are reported and read.
+
+## Verification (Dispatch 4)
+
+- **`git diff --stat -- src/` returns empty.** No `src/` change; the measurement is a load-time hook and
+  probes in the session scratchpad.
+- **Batch: N/A** — no `src/` change to regress.
+- **Merge check against main's current tip `a22fa6b`:** exit 0, tree `2c5577a`, file sets disjoint.
+- **Hook inertness:** flag and `primaryP` identical to the unperturbed arm on all 27 fixtures.
+- No smearing correction implemented; no false-positive rate measured.
+- No preview step. `promote.sh` not run, nothing pushed.
+
+**Flagged for Chat, operational:** `docs/shared/METHODOLOGY-TESTS.md` is modified and uncommitted in
+main. Per `CLAUDE.md`'s close-promote rule a dirty main aborts the promote after the merge and push
+have already landed, so that edit needs committing before this branch is promoted.
