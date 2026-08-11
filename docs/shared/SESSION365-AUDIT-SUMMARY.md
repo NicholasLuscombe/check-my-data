@@ -526,3 +526,172 @@ It is a bare checkout with nothing unique in it. **Not removed**, per the dispat
 - Probe, hook and comparison scripts live in the session scratchpad, not `test/probes/`.
 - No preview step — no rendering surface.
 - `promote.sh` not run, nothing pushed.
+
+---
+
+# Dispatch 3 — Part B: decomposing σ̂'s error
+
+Base: branch at `d89b9ed`, main at `a22fa6b`. **Merge check re-run against `a22fa6b`:**
+`git merge-tree --write-tree` exits 0, returns tree `f29b208`, no conflict output; file sets still
+disjoint (main has the three `docs/shared/` docs, the branch has `primitives.js` and this summary).
+
+Line numbers re-located by symbol: `kurtosis.js:99` the call, `:367` `const pooledP = nC <= 3 ? adP : kurtP;`.
+
+**Instrument.** Two additive patches to `kurtosis.js` by load-time hook — `:99` keeps the `rowMeans`
+the module currently discards, and a block after `:367` computes the leave-out normalised differences
+alongside the shipped ones. No `rng` call, no reassignment of any shipped variable. **Inertness is
+asserted, not assumed:** flag and `primaryP` are compared against Dispatch 2's unperturbed arm on every
+fixture and are identical on all 27. The fitted `(a, b)` are recovered algebraically from the returned
+`sigma` and `rowMeans` rather than refitted, and reproduce the shipped σ̂ to a **max relative residual
+of 7.09e-15**. `histDiffs` is uncapped on every fixture, so `sd(histDiffs)` is the full set.
+
+## B1 — the global scale error
+
+`s = sd(d / σ̂)`, which should be √2 if σ̂ is correctly scaled. 28 fit-branch units.
+
+**Shipped `s/√2`: median 1.1772, range 1.0612 to 2.9004. Zero of 28 units sit within 5% of 1.**
+
+| nC | units | median `s/√2` | min | max |
+|---|---|---|---|---|
+| 2 | 3 | 2.0394 | 1.9142 | 2.9004 |
+| 3 | 6 | 1.2797 | 1.1349 | 1.9114 |
+| 4 | 6 | 1.2181 | 1.1388 | 2.0929 |
+| 6 | 11 | 1.1211 | 1.0970 | 1.1772 |
+| 7 | 1 | 1.0996 | — | — |
+| 8 | 1 | 1.0612 | — | — |
+
+**Prediction 1 — confirmed.** Shipped `s/√2` departs from 1 on every fit unit, and the departure is
+larger at low replicate count. **Stated as an association, not an isolated effect:** on this corpus nC
+is confounded with fixture identity — the nC = 2 cell is the three `vfs-*` fixtures and the nC = 6 cell
+is densitometry and proteomics — so the trend cannot be attributed to replicate count alone from these
+data.
+
+**Prediction 2 — refuted.** The leave-out denominator moves `s/√2` **closer to 1 on 7 units and farther
+on 23**. On the fit branch specifically the shift is **median +0.0019, range −0.0026 to +0.1061**, and
+it moves *up* on 18 of 25. It never rescues the scale error; it slightly worsens it, which is the
+expected sign — the coupling compresses, so removing it un-compresses.
+
+**The number that matters: the leave-out shift has median magnitude 0.0024 against a residual excess of
+0.1772. The coupling accounts for about 1.4% of the scale error A-D sees.** The global scale error is
+therefore **not** the coupling. It is a separate defect of the same denominator.
+
+**Candidate cause, supported but not measured: retransformation bias.** `fitPredictedSigma` regresses
+`log(variance)` on `log(mean)` and exponentiates, so it predicts the *geometric* mean of variance,
+which sits below the arithmetic mean — σ̂ comes out systematically small and `s/√2` systematically
+above 1. Consistent with the sign on 28 of 28 fit units, and with B3's control below, where a
+denominator that never passes through a log retransform reads 0.98–1.00. Not demonstrated here.
+
+**Rows removed by the leave-out denominator**, per fixture, where any:
+
+| unit | nC | dropped |
+|---|---|---|
+| vfs-a / vfs-b / vfs-c | 2 | **180/180, 120/120, 180/180 — 100%** |
+| 21-localised-ar | 8 | 1127/5964 (18.9%) |
+| 22-covariance-block | 7 | 761/4410 (17.3%) |
+| 01-densitometry-clean#1 | 4 | 20/132 (15.2%) |
+| 02-densitometry-fabricated#1 | 4 | 14/138 (10.1%) |
+| 07-elisa-clean | 3 | 1/135 (0.7%) |
+| 11-rnaseq-multicondition | 4 | 12/9000 (0.1%) |
+
+**At two usable columns the leave-out denominator is undefined for every unit** — removing both
+differenced columns leaves nothing to build a mean from — so the three nC = 2 fixtures have no
+leave-out figure at all. The losses at nC = 7 and 8 are a different cause: the leave-out estimator
+inherits `primitives.js:79`'s `m > 0` requirement, and a subset mean can be non-positive where the full
+row mean was positive.
+
+**Prediction 3 — refuted.** On the 9 A-D-driven fixtures, `pooledP` is **not** monotone in the scale
+error: **Spearman(|s/√2 − 1|, pooledP) = +0.133**, near zero and the opposite sign to the prediction.
+(Both Spearman figures are identical because `s/√2 > 1` on all nine, so the absolute deviation is a
+monotone transform of the raw ratio.)
+
+| fixture | nC | `s/√2` | pooledP |
+|---|---|---|---|
+| 23-recurrence-null-mixed | 3 | 1.1349 | 0.0005 |
+| 04-qpcr-fabricated | 3 | 1.2173 | 0.0005 |
+| 07-elisa-clean | 3 | 1.2316 | 0.0230 |
+| 03-qpcr-clean | 3 | 1.2797 | **0.2100** |
+| 24-recurrence-null-control | 3 | 1.3467 | 0.0040 |
+| 08-elisa-fabricated | 3 | 1.9114 | 0.0005 |
+| vfs-c-deeptail-high | 2 | 2.9004 | 0.0005 |
+
+The smallest scale error and the largest both return the permutation floor, and an intermediate one
+returns 0.21.
+
+**The verdict the dispatch asked for, plainly: P126 is LIVE, not latent.** The scale error A-D is
+sensitive to is present on every fit unit and is large — median 18% and up to 190%. But **the repair is
+not a rescale**, because p does not track the scale error. A² responds to the whole distributional
+shape, and scale is one input among several.
+
+## B2 — attribution
+
+- **κ's damage is entirely row-differential.** Part A measured a uniform ×2 and ×4 leaving observed κ
+  unchanged on 28 of 28 units, so no global component can reach it. S364's 0.27 → 1.20 under a
+  leave-out denominator is therefore all row-differential.
+- **A²'s damage is almost entirely global.** B1 sizes the global half at a median `s/√2` of 1.1772, and
+  the row-differential contribution to it at median 0.0024 — about 1.4%.
+
+**So the dispatch's stated consequence holds, and more sharply than it was put.** The two components
+are not merely separable; on this corpus they are close to orthogonal in effect, each arm damaged by
+one and essentially not at all by the other:
+
+- A repair that only re-scales σ̂ globally fixes A-D's calibration and does **nothing** for kurtosis —
+  measured at 28 of 28 units, not argued.
+- A repair that only decorrelates the denominator row by row fixes kurtosis and moves A-D's scale error
+  by about a fiftieth of its size.
+
+**One correction to the framing.** The dispatch has A² damaged by the row-differential component "and"
+the global one. Measured, the row-differential part contributes essentially nothing to what A² sees.
+And the global part is not a component of the coupling at all — removing the coupling leaves 98.6% of
+it standing — so it needs its own cause, its own measurement and its own repair.
+
+## B3 — the fallback branch, 3 fixtures / 5 units, NOT pooled into B1
+
+| unit | nC | shipped `s/√2` | leave-out `s/√2` | LO kept |
+|---|---|---|---|---|
+| 01-densitometry-clean#2 | 4 | 1.0021 | 9.1306 | 210/210 |
+| 01-densitometry-clean#3 | 4 | 0.9858 | 14.1900 | 210/210 |
+| 02-densitometry-fabricated#2 | 4 | 1.0001 | 18.4656 | 210/210 |
+| 02-densitometry-fabricated#3 | 4 | 1.0019 | 6.9846 | 210/210 |
+| 20-bimodal-fab | 8 | 0.9803 | 1.2304 | 8400/8400 |
+
+**Shipped `s/√2` runs 0.9803 to 1.0021 — essentially exactly 1, against 1.06 to 2.90 on the fit
+branch.** The branch whose null reproduces the coupling is also the branch whose global scale is
+correct; the fit branch is wrong on both axes. **n = 3 fixtures. This cannot carry weight** and it is
+not evidence that a per-row SD denominator is preferable — the fallback fires precisely when the fit is
+unusable, so the two are not independently sampled. It is included because it is the only contrast
+available, and it points the same way as the retransformation-bias candidate.
+
+The leave-out figures here are degenerate by construction and are reported only to show they are: at
+nC = 4 the leave-out SD is taken over two values, which is near zero often enough to blow the ratio up
+to 9–18×.
+
+## Appendix — `METHODOLOGY-TESTS.md:532` against the source
+
+**The documentation is wrong; the minimum and the doubling happen nowhere.**
+
+`kurtosis.js:367` reads, in full:
+
+```js
+const pooledP = nC <= 3 ? adP : kurtP;
+```
+
+`kurtP` is assigned at only two sites — `:342` (override to 1.0 when the pilot gate fired) and `:347`
+(the permutation p) — and `adP` at only `:356` and `:359`. **Neither reads the other**, and there is no
+`× 2` on either path. The code's own comment at `:353-355` states it: *"adP is unused downstream on the
+gate-firing path (kurtP branch is active iff nC ≥ 4; pooledP = kurtP)."*
+
+The doc also contradicts itself. Item 6 at `:531` — "At n_rep ≤ 3 … A-D drives the flag (kurtP
+ignored). At n_rep ≥ 4 … kurtosis drives the flag (A-D reported as supplementary)" — describes `:367`
+exactly. Item 7 at `:532` then asserts a Bonferroni combination of the two. **Only item 7 is wrong**,
+and it is wrong against the item directly above it as well as against the source. Chat owns the file;
+not edited.
+
+## Verification (Dispatch 3)
+
+- **`git diff --stat -- src/` returns empty.** Nothing entered `src/`; the whole measurement is a
+  load-time hook plus probe in the session scratchpad.
+- **Batch: N/A**, correctly — no `src/` change to regress.
+- **Merge check re-run against `a22fa6b`:** clean, tree `f29b208`, file sets disjoint.
+- Hook inertness asserted against Dispatch 2's unperturbed arm: flag and `primaryP` identical on all 27
+  fixtures.
+- No preview step. `promote.sh` not run, nothing pushed.
