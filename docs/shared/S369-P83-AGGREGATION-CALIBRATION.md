@@ -261,14 +261,23 @@ dependence model, and in which direction each one fails.
 
 It does not say what ρ real deposits carry, and it does not say what the fix should be.
 
-It is also not a statement about any caller's shipped false-positive rate. Part 0 measured that five
-of the six tests whose group p-values reach the Fisher arm — Exact Duplicate Detection,
-Autocorrelation, Runs Test, LOESS Residual Analysis and Regional Noise Homogeneity — publish a
-`primaryP` that is a minimum over an internal family or a floored permutation p rather than a p that
-is uniform under its own null. Only Selective Noise Partitioning's raw Bartlett p arrives as a
-continuous analytic p. So these numbers describe **the layer**, measured on inputs that are uniform
-by construction, and a caller's own rate would additionally carry whatever its `primaryP` brings with
-it before correlation is considered.
+It is also not a statement about any caller's shipped false-positive rate. Six tests feed the Fisher
+arm, and Part 0 read what each of them publishes as `primaryP`:
+
+| test | `primaryP` | site |
+|---|---|---|
+| Selective Noise Partitioning | raw Bartlett χ² p, analytic, upper tail | `selectiveNoise.js:263` |
+| Regional Noise Homogeneity | one-sided permutation scan p, `(exceed+1)/(B+1)` | `regionalNoise.js:242`, `:173` |
+| Autocorrelation | minimum of a BH-FDR-adjusted per-pair family, per-pair p two-sided | `autocorrelation.js:200`, `:98`, `:49` |
+| Runs Test | minimum of a BH family minimum, a permutation scan p and a windowed BH minimum | `runs.js:277` |
+| LOESS Residual Analysis | minimum over two permutation arms and a pair-promotion arm | `loessResidual.js:451`, `:213-214` |
+| Exact Duplicate Detection | minimum of a four-member BH family over exact count nulls | `duplicateDetection.js:809` |
+
+Only one of the six is a continuous analytic p read against its own null. The rest are minima over
+families or permutation p-values on a `k/(B+1)` lattice, and what each of those distributions does
+under its own null was not measured here. So these numbers describe **the layer**, measured on inputs
+that are uniform by construction, and a caller's own rate would additionally carry whatever its
+`primaryP` brings with it before correlation is considered.
 
 ## 12. Reproducing
 
