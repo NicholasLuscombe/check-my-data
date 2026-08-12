@@ -1,4 +1,4 @@
-import { mean, variance, cusumStat, loessSmooth, bhFDR, fitPredictedSigma } from "../stats/primitives.js";
+import { mean, variance, cusumStat, loessSmooth, bhFDR, fitPredictedSigma, sidakAdjust } from "../stats/primitives.js";
 import { flagFromP, ALPHA, flagRankOf } from "../constants/thresholds.js";
 import { NA_CAUSE } from "../constants/naCause.js";
 import { TOO_FEW_REPLICATE_COLS_CAUSE, joinDeclineReason } from "../constants/assays.js";
@@ -218,12 +218,22 @@ export function testLoessResidual(matrix, rng) {
   const bestRatio = bestWin ? bestWin.ratio : 1;
   const esGate = nR >= 500 && bestRatio < 2.0;
 
-  // Primary p-value: min of scan and CUSUM (each tested independently via flagFromP)
-  // Consistent with max-flag "can only promote" pattern used across all tests.
-  const scanFlag = flagFromP(scanP);
-  const cusumFlag = cusumP < 1 ? flagFromP(cusumP) : "LOW";
-  const combinedP = Math.min(scanP, cusumP);
-  const combinedFlag = flagRankOf(scanFlag) >= flagRankOf(cusumFlag) ? scanFlag : cusumFlag;
+  // Primary p-value: the better of two arms, priced for having taken the better
+  // of two. scanP and cusumP are computed on the same rows inside the same
+  // permutation loop, and S369 measured them independent in the tail — 1.210%
+  // and 1.056% against a joint 2.246% over 48,000 draws — so Sidak at k = 2 is
+  // exact here rather than conservative. This is the one site in the battery
+  // where that assumption holds and was not applied (P135).
+  //
+  // The flag and primaryP both read this one corrected quantity. Deriving them
+  // separately is how a tier and the p-value displayed beside it drift apart:
+  // the badge at TestCardLayout.jsx:132 prints primaryP next to the word this
+  // flag produces, and they have to be the same number.
+  //
+  // k = 2 covers scanP and cusumP only. pairBestAdjP is deliberately outside it
+  // — it reaches the flag as a boolean at :448 and never joins this minimum.
+  const combinedP = sidakAdjust(Math.min(scanP, cusumP), 2);
+  const combinedFlag = flagFromP(combinedP);
   const flag = esGate ? "LOW" : combinedFlag;
 
   // Step 7: interpretation — combine region (scan) and boundary (CUSUM)
