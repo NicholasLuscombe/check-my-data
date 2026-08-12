@@ -29,6 +29,11 @@ Observed session values:
 - marginal at ALPHA.NOTE 2.28%, k_eff 2.30 — INSIDE the band
   (three independent arms predict 2.97%)
 
+Provenance caveat: at time of writing it was not established that these
+two figures share a pooling. The median is a range across fixtures; the
+marginal may be pooled. Dispatch B reports both per-fixture and pooled
+separately so the comparison can be redone cleanly.
+
 The tail is unremarkable. The median is the anomaly. This points at
 arm-level calibration of the permutation null, not multiplicity.
 
@@ -47,7 +52,9 @@ P2. `scanP` and `cusumP` each have their own median below 0.5, by
 P3. `pairBestAdjP`'s own median is >= 0.5 and its marginal at
     ALPHA.NOTE is below 1%.
 
-P4. `pairResults.length` is typically small — modal value 1 or 2.
+P4. Modal `pairResults.length` is 1 or 2. If the mode is >= 3, the
+    third arm is livelier than this basis treats it and P3's
+    conservatism has a different magnitude than assumed.
 
 ## Falsifier
 
