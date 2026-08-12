@@ -84,10 +84,22 @@ adjusted value at 1 (`primitives.js:244`) and rank 1 multiplies by `m = 5`, so w
 members at 1 the reported p is exactly `min(5·p, 1)` — **any single sub-test result at or above 0.2 is
 reported as exactly 1.000.**
 
-Two of the five members can also be the initialised constant rather than a computed p: `bestBlockP`
-(`:668`) and `partialRowP` (`:734`) are `let … = 1` written only inside conditional scan blocks, so a
-member whose block never ran is indistinguishable from one that ran and found nothing. That is a
-literal inside the family rather than at the reported p. Recorded, not acted on.
+**All five members can reach 1 without their own computation producing it, by three different
+syntaxes.** This corrects the figure of two first recorded here; the source of truth is the `rawPs`
+family at `:807-809` and the five member definitions it draws on.
+
+| member | line | route |
+|---|---|---|
+| `withinRowP` | `:243` | surviving initialiser — every assignment sits inside `if (!isGenomics)`, closed at `:359` |
+| `partialRowP` | `:734` | surviving initialiser — only written at `:785`, behind `wrR >= 2 && wrC >= PARTIAL_ROW_MIN_COLS`, then `cand.length`, plus a `partialRowSkipped` bail |
+| `bestBlockP` | `:668` | loop that never writes — only written at `:700` inside `for (const blk of sparseFilteredBlocks)`, so an empty set leaves the literal |
+| `collisionP` | `:192` | conditional expression — `collisionNPairs > 0 ? binomialSurvival(…) : 1` |
+| `rowDupPValueAdj` | `:657` | conditional expression — `nRowDups === 0 ? 1 : rowDupPValue`, discarding the p computed at `:656` |
+
+**Grepping for one idiom returns the old answer**: `let … = 1` alone finds three of the five, and the
+two conditional expressions are invisible to it. So a member that never ran is indistinguishable from
+one that ran and found nothing, on every member of the family. That is a literal inside the family
+rather than at the reported p. Recorded, not acted on.
 
 A related correction: the family is **five** p-values, not the four `CLAUDE.md` recorded. The fifth is
 scattered partial-row duplication, listed as Test 5 at `:804`.
