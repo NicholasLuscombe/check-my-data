@@ -456,9 +456,25 @@ export function testLoessResidual(matrix, rng) {
       finalInterpretation += ` Pair-level: cols ${bp.pair} show significant noise inconsistency (BH-adj p=${bp.adjP < 0.0001 ? "<0.0001" : bp.adjP.toFixed(4)}) — promoted to MODERATE.`;
     }
 
-    // Primary p: min of pooled and best per-pair adjP
+    // Primary p: the quantity THIS FLAG WAS DECIDED ON, not a minimum across
+    // both arms. When the promotion moved the flag the verdict rests on
+    // pairBestAdjP; otherwise it rests on the corrected combinedP. Taking the
+    // minimum regardless printed a number the verdict had not used — measured at
+    // S370 on 17 of 24 corpus results, including DS12b, where a tier decided on
+    // 0.003996 displayed as 0.0030 (P135).
+    //
+    // The predicate is `finalFlag !== flag`, NOT `pairPromoted`. They are not the
+    // same test. `pairPromoted` is true whenever any pair clears ALPHA.FLAG, but
+    // the promotion only MOVES the flag when the pooled flag was below MODERATE
+    // (:452). With pairPromoted true and a pooled MODERATE or HIGH the promotion
+    // is a no-op, the verdict still rests on combinedP, and displaying
+    // pairBestAdjP there would reintroduce the same defect from the other side.
+    // This is the test the interpretation string already uses at :454.
+    //
+    // Nothing here can move a flag: pairBestAdjP reaches the flag only through
+    // the boolean at :448, and this line reads flags rather than writing one.
     const pairBestAdjP = pairResults.length > 0 ? Math.min(...pairResults.map(pr => pr.adjP != null ? pr.adjP : 1)) : 1;
-    const finalPrimaryP = Math.min(combinedP, pairBestAdjP);
+    const finalPrimaryP = finalFlag !== flag ? pairBestAdjP : combinedP;
 
     return {
     name: NAME, category: CAT,

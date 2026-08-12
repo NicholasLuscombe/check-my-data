@@ -3,6 +3,11 @@
    Tests the predictions in docs/shared/S369-prereg-loess-per-arm.md, committed
    at b503c28 / e1c1d41 before any per-arm draw was read.
 
+   P1 WAS RE-REGISTERED AT S370 because the shipped definition it pinned changed
+   on purpose (P135). The original text is kept verbatim beside the new assertion
+   in the --capture block; read the two together before trusting either. P2-P4
+   are untouched.
+
    SAME DRAWS AS THE SESSION'S MEDIAN AND MARGINAL FIGURES. Those came from
    `probe-s369-null-correlation.mjs --measure` at DRAWS=4000. Its per-fixture
    draw sequence is:
@@ -52,7 +57,8 @@ const { detectVST } = await import(B + 'src/stats/vst.js');
 const { inferRoles } = await import(B + 'src/import/roles.js');
 const { forwardFill, preprocessRaw, detectHeaderRows } = await import(B + 'src/import/parser.js');
 const { createPRNGFactory } = await import(B + 'src/stats/prng.js');
-const { ALPHA } = await import(B + 'src/constants/thresholds.js');
+const { ALPHA, flagFromP } = await import(B + 'src/constants/thresholds.js');
+const { sidakAdjust } = await import(B + 'src/stats/primitives.js');
 const { EXPECTED } = await import(B + 'test/batch-fixtures.mjs');
 const { testAutocorrelation } = await import(B + 'src/tests/autocorrelation.js');
 const { testLoessResidual } = await import(B + 'src/tests/loessResidual.js');
@@ -165,12 +171,42 @@ if (arg('--capture')) {
         const h = r.__s369loess || {};
         const scanP = r.scanP, cusumP = r.cusumP, pb = h.pairBestAdjP, fp = r.primaryP;
         // STEP 2 — P1, on every group x fixture x draw.
+        //
+        // RE-REGISTERED AT S370. The ORIGINAL assertion, pre-registered before any
+        // per-arm draw was read and held on 48,000 of 48,000 draws at the time:
+        //
+        //     const mn = Math.min(scanP, cusumP, pb);
+        //     if (mn !== fp) { ...fail... }          // min(scanP, cusumP, pairBestAdjP) === finalPrimaryP
+        //
+        // S370 changed the shipped definition on purpose (P135), in two steps:
+        // the pooled arms are now priced with Sidak at k = 2, and `finalPrimaryP`
+        // is no longer a minimum across both arms — it is whichever quantity the
+        // flag was actually decided on. So the original form now fails by
+        // construction, on 22,968 of 48,000 draws with every delta negative.
+        // It is re-registered here because the CHANGE was deliberate, never to
+        // silence a failure, and the old text stays above so the two can be read
+        // side by side. Same discipline as WRITE_MATRIX: a pinned check may be
+        // redefined when the definition moves, and never to make red go green.
+        //
+        // The new assertion mirrors loessResidual.js:459-478 exactly.
+        const corrComb = sidakAdjust(Math.min(scanP, cusumP), 2);
+        // The promotion MOVED the flag only when it fired and the pooled flag was
+        // below MODERATE — `pairPromoted` alone is not that test (loessResidual.js:452).
+        // esGate cannot participate: it needs 500+ valid rows and every
+        // column-grouped fixture here is well under that, asserted below.
+        const pooledFlagWasLow = flagFromP(corrComb) === 'LOW';
+        const promotionMovedFlag = pb < ALPHA.FLAG && pooledFlagWasLow;
+        const expectFp = promotionMovedFlag ? pb : corrComb;
         if ([scanP, cusumP, pb, fp].every(v => typeof v === 'number' && isFinite(v))) {
-          const mn = Math.min(scanP, cusumP, pb);
-          if (mn !== fp) {
+          if (r.nValidRows >= 500) {
             p1Fail++;
             if (p1Examples.length < 12) p1Examples.push({ fixture: fx.file, group: gi + 1, draw: d,
-              scanP, cusumP, pairBestAdjP: pb, finalPrimaryP: fp, min: mn, delta: mn - fp });
+              note: 'nValidRows >= 500 — esGate reachable, P1 reconstruction not valid here', nValidRows: r.nValidRows });
+          } else if (expectFp !== fp) {
+            p1Fail++;
+            if (p1Examples.length < 12) p1Examples.push({ fixture: fx.file, group: gi + 1, draw: d,
+              scanP, cusumP, pairBestAdjP: pb, corrComb, promotionMovedFlag, expected: expectFp,
+              finalPrimaryP: fp, delta: expectFp - fp });
           }
         } else { p1Fail++; if (p1Examples.length < 12) p1Examples.push({ fixture: fx.file, group: gi + 1, draw: d, nonFinite: { scanP, cusumP, pairBestAdjP: pb, finalPrimaryP: fp }, flag: r.flag }); }
         lBuf.push([shortName(fx.file), gi + 1, L.groups[gi].name, d, r.nValidRows, r.nPerm,
@@ -197,7 +233,9 @@ if (arg('--capture')) {
     console.log(`  ${fx.file}: ${N} draws, ${((Date.now() - t0) / 1000).toFixed(0)}s cumulative`);
   }
 
-  console.log(`\n### STEP 2 — P1: min(scanP, cusumP, pairBestAdjP) === finalPrimaryP`);
+  console.log(`\n### STEP 2 — P1 (re-registered S370): finalPrimaryP === the quantity the flag was decided on`);
+  console.log(`    promotion moved the flag -> pairBestAdjP; otherwise -> sidakAdjust(min(scanP, cusumP), 2)`);
+  console.log(`    ORIGINAL form, pre-registered and held 48000/48000 before S370: min(scanP, cusumP, pairBestAdjP) === finalPrimaryP`);
   if (p1Fail === 0) {
     console.log(`  HOLDS on every group x fixture x draw. 0 failures.`);
   } else {
