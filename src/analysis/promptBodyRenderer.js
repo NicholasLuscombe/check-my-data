@@ -17,25 +17,43 @@
  */
 
 import { WITHHELD_LABEL } from "./coverage.js";
+import { ACTION_LABEL } from "./narrative.js";
 
 // ── Calibration prologues (S160 lock) ──────────────────────────────────
 // Selected by handoffModel.outcome.tier. The {N} slot in the outcome-1
 // variant resolves to handoffModel.outcome.applicableTests.
+//
+// S372: the "Outcome N of 4 — Label." sentence is no longer written into these
+// strings. It was numbered here by SEVERITY, while ACTION_LABEL numbers by
+// LADDER POSITION (`score: index + 1`) — which is what the Excel Investigation
+// Report and the standalone HTML report render, and what the Excel Legend
+// defines (position 1 Proceed, position 2 Review). So the prompt paired the
+// Review label with the Proceed position and all three variants read one low.
+// `renderPromptBody` takes no mode, so two artifacts exported from one session
+// could disagree. The prefix now comes from ACTION_LABEL, the same source the
+// other two surfaces read. The labels were already correct and do not move.
 
 const PROLOGUE_TIER_1 = (N) =>
-`Outcome 1 of 4 — Review. Some findings warrant a closer look, but the overall pattern is within the expected false-positive range. With ${N} applicable tests at α=0.01 (BH-FDR adjusted across families), occasional flags from statistical noise are anticipated. Treat individual findings as soft signal — a starting point for inspection rather than evidence of a problem. Convergence (multiple tests firing on the same column or region, or a finding aligned with a known data-handling step) would change that assessment; isolated findings often have routine explanations.`;
+`Some findings warrant a closer look, but the overall pattern is within the expected false-positive range. With ${N} applicable tests at α=0.01 (BH-FDR adjusted across families), occasional flags from statistical noise are anticipated. Treat individual findings as soft signal — a starting point for inspection rather than evidence of a problem. Convergence (multiple tests firing on the same column or region, or a finding aligned with a known data-handling step) would change that assessment; isolated findings often have routine explanations.`;
 
 const PROLOGUE_TIER_2 =
-`Outcome 2 of 4 — Investigate. The findings indicate anomalies worth investigating. Treat as a moderate screening signal — neither a single false positive nor a strong convergent pattern. Where multiple findings are present, look for whether they converge on the same column, region, or mechanism. Assess whether innocent explanations (processing steps, instrument artifacts, legitimate domain reasons) fit the specific patterns.`;
+`The findings indicate anomalies worth investigating. Treat as a moderate screening signal — neither a single false positive nor a strong convergent pattern. Where multiple findings are present, look for whether they converge on the same column, region, or mechanism. Assess whether innocent explanations (processing steps, instrument artifacts, legitimate domain reasons) fit the specific patterns.`;
 
 const PROLOGUE_TIER_3 =
-`Outcome 3 of 4 — Investigate closely. Significant anomalies detected. The combination of findings is unlikely to arise from chance alone. Treat as a strong screening signal warranting close investigation. Innocent explanations remain possible — the burden is on identifying a specific one that fits the patterns.`;
+`Significant anomalies detected. The combination of findings is unlikely to arise from chance alone. Treat as a strong screening signal warranting close investigation. Innocent explanations remain possible — the burden is on identifying a specific one that fits the patterns.`;
+
+/** "Outcome N of 4 — Label. " off the shared ladder. Empty when the tier has no entry. */
+function outcomePrefix(tier) {
+  const a = ACTION_LABEL[tier];
+  return a ? `Outcome ${a.score} of ${ACTION_LABEL.length} — ${a.label}. ` : "";
+}
 
 function prologueFor(model) {
-  switch (model.outcome.tier) {
-    case 1: return PROLOGUE_TIER_1(model.outcome.applicableTests);
-    case 2: return PROLOGUE_TIER_2;
-    case 3: return PROLOGUE_TIER_3;
+  const tier = model.outcome.tier;
+  switch (tier) {
+    case 1: return outcomePrefix(tier) + PROLOGUE_TIER_1(model.outcome.applicableTests);
+    case 2: return outcomePrefix(tier) + PROLOGUE_TIER_2;
+    case 3: return outcomePrefix(tier) + PROLOGUE_TIER_3;
     default: return ""; // outcome 0 short-circuits at the caller
   }
 }
