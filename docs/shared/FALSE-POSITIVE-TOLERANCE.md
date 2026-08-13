@@ -8,10 +8,12 @@ count of instances is open, and two of them manufacture a signal rather than los
 S374** — §0 records what was settled, §5 states the two bounds as decisions rather than proposals, and
 §7 is new.
 
-**Corrected at S374.** The first S374 commit, `28c5f40`, was written against a copy of this file that
-predated the S365 amendment and silently dropped it, restating the count as five and the manufacturing
-instances as one. Both are restored below from `METHODOLOGY.md` §Pooled Dependence. The correction is
-a separate commit, not an amend.
+**Corrected twice at S374.** `28c5f40` was written against a copy of this file that predated the S365
+amendment and silently dropped it, restating the count as five and the manufacturing instances as one.
+`fcb042a` restored the amendment from `METHODOLOGY.md` rather than from this file, and lost the
+consequence clause — that instance 4's manufacturing half is one line from firing, which is what ties
+this section to P119. The third commit restores §6's nulls bullet verbatim. Each correction is its own
+commit, never an amend.
 
 **Why this commits before the rate is measured.** The rule in §3 is that the tolerance is fixed in
 advance and never moved. A document that lives in a chat window cannot evidence that. It has no date,
@@ -146,12 +148,13 @@ State these beside the figure when it is published, or the figure misleads.
   stability comes first: a rate cannot be bounded while the answer changes on a seed.** It also matters
   more under the primary framing, not less — the author who is unsure will run it twice.
 - **The nulls, and specifically the places where they assume an independence the data does not have.**
-  **Pooled dependence has been examined five times and the count is open** (METHODOLOGY §Pooled
-  Dependence); P125 is a candidate sixth occurrence that has never been assessed against the pattern.
-  **Two of the five manufacture a signal rather than losing one** — Excess Kurtosis on honest data,
-  where the pooling arithmetic makes a positive deviation that directional suppression then hides, and
-  Regional Noise on DS12b, where it fires. A rate measured before those are settled prices the nulls we
-  happen to ship today.
+  Pooled dependence has five examined instances (METHODOLOGY §Pooled Dependence) **and the count is
+  open** — `METHODOLOGY-TESTS.md:549` documents a sixth occurrence of the same pattern that has never
+  been assessed against it (P125). **Two of the five manufacture a signal rather than losing one, and
+  only one of those two reaches a flag.** Instance 5 fires. Instance 4's manufacturing half is held
+  back by a single directional comparison, and **a suppressed false-positive mechanism is still a
+  false-positive mechanism** — this one is one line from firing. A rate measured before those are
+  settled prices the nulls we happen to ship today.
 - **The split.** §2's two kinds, counted separately under the combined bound.
 
 ## 7. What this corpus can demonstrate — recorded S374, before the run
