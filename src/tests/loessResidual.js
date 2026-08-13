@@ -1,4 +1,4 @@
-import { mean, variance, cusumStat, loessSmooth, bhFDR, fitPredictedSigma } from "../stats/primitives.js";
+import { mean, variance, cusumStat, loessSmooth, bhFDR, fitPredictedSigma, sidakAdjust } from "../stats/primitives.js";
 import { flagFromP, ALPHA, flagRankOf } from "../constants/thresholds.js";
 import { NA_CAUSE } from "../constants/naCause.js";
 import { TOO_FEW_REPLICATE_COLS_CAUSE, joinDeclineReason } from "../constants/assays.js";
@@ -218,12 +218,22 @@ export function testLoessResidual(matrix, rng) {
   const bestRatio = bestWin ? bestWin.ratio : 1;
   const esGate = nR >= 500 && bestRatio < 2.0;
 
-  // Primary p-value: min of scan and CUSUM (each tested independently via flagFromP)
-  // Consistent with max-flag "can only promote" pattern used across all tests.
-  const scanFlag = flagFromP(scanP);
-  const cusumFlag = cusumP < 1 ? flagFromP(cusumP) : "LOW";
-  const combinedP = Math.min(scanP, cusumP);
-  const combinedFlag = flagRankOf(scanFlag) >= flagRankOf(cusumFlag) ? scanFlag : cusumFlag;
+  // Primary p-value: the better of two arms, priced for having taken the better
+  // of two. scanP and cusumP are computed on the same rows inside the same
+  // permutation loop, and S369 measured them independent in the tail — 1.210%
+  // and 1.056% against a joint 2.246% over 48,000 draws — so Sidak at k = 2 is
+  // exact here rather than conservative. This is the one site in the battery
+  // where that assumption holds and was not applied (P135).
+  //
+  // The flag and primaryP both read this one corrected quantity. Deriving them
+  // separately is how a tier and the p-value displayed beside it drift apart:
+  // the badge at TestCardLayout.jsx:132 prints primaryP next to the word this
+  // flag produces, and they have to be the same number.
+  //
+  // k = 2 covers scanP and cusumP only. pairBestAdjP is deliberately outside it
+  // — it reaches the flag as a boolean at :448 and never joins this minimum.
+  const combinedP = sidakAdjust(Math.min(scanP, cusumP), 2);
+  const combinedFlag = flagFromP(combinedP);
   const flag = esGate ? "LOW" : combinedFlag;
 
   // Step 7: interpretation — combine region (scan) and boundary (CUSUM)
@@ -446,9 +456,25 @@ export function testLoessResidual(matrix, rng) {
       finalInterpretation += ` Pair-level: cols ${bp.pair} show significant noise inconsistency (BH-adj p=${bp.adjP < 0.0001 ? "<0.0001" : bp.adjP.toFixed(4)}) — promoted to MODERATE.`;
     }
 
-    // Primary p: min of pooled and best per-pair adjP
+    // Primary p: the quantity THIS FLAG WAS DECIDED ON, not a minimum across
+    // both arms. When the promotion moved the flag the verdict rests on
+    // pairBestAdjP; otherwise it rests on the corrected combinedP. Taking the
+    // minimum regardless printed a number the verdict had not used — measured at
+    // S370 on 17 of 24 corpus results, including DS12b, where a tier decided on
+    // 0.003996 displayed as 0.0030 (P135).
+    //
+    // The predicate is `finalFlag !== flag`, NOT `pairPromoted`. They are not the
+    // same test. `pairPromoted` is true whenever any pair clears ALPHA.FLAG, but
+    // the promotion only MOVES the flag when the pooled flag was below MODERATE
+    // (:452). With pairPromoted true and a pooled MODERATE or HIGH the promotion
+    // is a no-op, the verdict still rests on combinedP, and displaying
+    // pairBestAdjP there would reintroduce the same defect from the other side.
+    // This is the test the interpretation string already uses at :454.
+    //
+    // Nothing here can move a flag: pairBestAdjP reaches the flag only through
+    // the boolean at :448, and this line reads flags rather than writing one.
     const pairBestAdjP = pairResults.length > 0 ? Math.min(...pairResults.map(pr => pr.adjP != null ? pr.adjP : 1)) : 1;
-    const finalPrimaryP = Math.min(combinedP, pairBestAdjP);
+    const finalPrimaryP = finalFlag !== flag ? pairBestAdjP : combinedP;
 
     return {
     name: NAME, category: CAT,
