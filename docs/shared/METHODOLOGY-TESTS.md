@@ -804,9 +804,10 @@ After pooled analysis, run independent LOESS + windowed scan + CUSUM for each re
 
 **Reported p-value.** The reported p is the quantity the flag was decided on. Where the per-pair
 promotion did not move the flag, that is the corrected combinedP; where it did, the verdict rests on
-the promotion arm and its p is reported instead. **It is not a minimum across arms.** Before S370 it
-was `min(combinedP, pairBestAdjP)`, so on 14 of 24 results the displayed number was one the verdict
-had not used. Corrected at `c6b2a62`.
+the promotion arm and its p is reported instead. **It is not a minimum across arms.** At `1bbd91e`,
+with Šidák at k = 2 applied, `pairBestAdjP` won the minimum on 17 of 24 results, so the displayed p
+was not the quantity the flag was decided on. Corrected at `c6b2a62`. On the pre-S370 baseline the
+same minimum went to `pairBestAdjP` on 14 of 24.
 
 The predicate is `finalFlag !== flag`, not `pairPromoted`. `pairPromoted` is true whenever any pair
 clears ALPHA.FLAG, but the promotion only *moves* the flag when the pooled flag was below MODERATE —
