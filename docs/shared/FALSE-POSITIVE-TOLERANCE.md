@@ -1,10 +1,17 @@
 # False-positive tolerance
 
 **Status: DECIDED at S374, 14 August 2026. Fixed in advance of the measurement and not to be moved.**
-Proposed S356. Amended S358 — §2 gained the distinction between a false positive that comes from the
-data and one that comes from our own null, with the first measured instance; §6 gained the nulls as a
-property the number will carry. Decided S374 — §0 records what was settled, §5 states the two bounds as
-decisions rather than proposals, and §6 is new.
+Proposed S356. **Amended at S358** — §2 gains the distinction between a false positive that comes from
+the data and one that comes from our own null, with the first measured instance; §6 gains the nulls as
+a property the number will carry. **Amended at S365** — §6's pooled-dependence bullet reframed: the
+count of instances is open, and two of them manufacture a signal rather than losing one. **Decided at
+S374** — §0 records what was settled, §5 states the two bounds as decisions rather than proposals, and
+§7 is new.
+
+**Corrected at S374.** The first S374 commit, `28c5f40`, was written against a copy of this file that
+predated the S365 amendment and silently dropped it, restating the count as five and the manufacturing
+instances as one. Both are restored below from `METHODOLOGY.md` §Pooled Dependence. The correction is
+a separate commit, not an amend.
 
 **Why this commits before the rate is measured.** The rule in §3 is that the tolerance is fixed in
 advance and never moved. A document that lives in a chat window cannot evidence that. It has no date,
@@ -27,7 +34,7 @@ Five decisions, all Nick's, all taken before any rate was measured.
   bound over either would let the tool pass on the half it chose.
 
 **And one thing recorded at the same time, so that it cannot be discovered later and argued with.**
-§6 states what a corpus of this size can demonstrate. At the counts we hold, neither bound is
+§7 states what a corpus of this size can demonstrate. At the counts we hold, neither bound is
 demonstrable by observation. That does not move either bound. It fixes in advance which of §3's three
 answers v1.0 is heading for: **ship with the gap stated.**
 
@@ -126,7 +133,28 @@ harm imports the accusation frame where it does not belong.
 not fabrication is still a firing the report cannot label, so the tool gets no credit for the
 distinction. This is a judgement about what the tool claims, not about statistics.
 
-## 6. What this corpus can demonstrate — recorded S374, before the run
+## 6. What the number will be a property of
+
+State these beside the figure when it is published, or the figure misleads.
+
+- **The corpus it was measured on, and its size.** A real deposit is only *not known to be fabricated*.
+- **The resolution.** §7's limit, quoted with the denominator.
+- **The gates, not the statistics.** With every effect-size gate removed, five of eight clean fixtures
+  return non-clean. The gates carry the specificity.
+- **Five of seventy constants have a basis that survives inspection.**
+- **One run.** A false-positive rate is a property of a run, not of a file. **This is why verdict
+  stability comes first: a rate cannot be bounded while the answer changes on a seed.** It also matters
+  more under the primary framing, not less — the author who is unsure will run it twice.
+- **The nulls, and specifically the places where they assume an independence the data does not have.**
+  **Pooled dependence has been examined five times and the count is open** (METHODOLOGY §Pooled
+  Dependence); P125 is a candidate sixth occurrence that has never been assessed against the pattern.
+  **Two of the five manufacture a signal rather than losing one** — Excess Kurtosis on honest data,
+  where the pooling arithmetic makes a positive deviation that directional suppression then hides, and
+  Regional Noise on DS12b, where it fires. A rate measured before those are settled prices the nulls we
+  happen to ship today.
+- **The split.** §2's two kinds, counted separately under the combined bound.
+
+## 7. What this corpus can demonstrate — recorded S374, before the run
 
 **Neither bound is demonstrable by observation at the counts we hold.** This is arithmetic about the
 denominator and it is fixed the moment the corpus size is fixed. It is recorded here so that it cannot
@@ -165,24 +193,6 @@ enough exists.
 
 **Growing the corpus is the only thing that changes this**, and it is not on the road to v1.0. Recorded
 here so that the arithmetic is on the file rather than in somebody's head.
-
-## 7. What the number will be a property of
-
-State these beside the figure when it is published, or the figure misleads.
-
-- **The corpus it was measured on, and its size.** A real deposit is only *not known to be fabricated*.
-- **The resolution.** §6's limit, quoted with the denominator.
-- **The gates, not the statistics.** With every effect-size gate removed, five of eight clean fixtures
-  return non-clean. The gates carry the specificity.
-- **Five of seventy constants have a basis that survives inspection.**
-- **One run.** A false-positive rate is a property of a run, not of a file. **This is why verdict
-  stability comes first: a rate cannot be bounded while the answer changes on a seed.** It also matters
-  more under the primary framing, not less — the author who is unsure will run it twice.
-- **The nulls, and specifically the places where they assume an independence the data does not have.**
-  Pooled dependence has five recorded instances (METHODOLOGY §Pooled Dependence) and one of them
-  manufactures a flag rather than losing one. A rate measured before those are settled prices the
-  nulls we happen to ship today.
-- **The split.** §2's two kinds, counted separately under the combined bound.
 
 ## 8. Still open, and not settled here
 
