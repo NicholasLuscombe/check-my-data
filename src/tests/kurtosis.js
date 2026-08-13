@@ -499,6 +499,25 @@ export function testKurtosis(matrix, condCtx, rng) {
         bestResults.forEach((c, i) => {
           c.pAdjFull = fullSetAdjPs[i];
           c.p = fullSetAdjPs[i].toFixed(4);
+          // S374 (P122) — the tier now reads the same p the row prints. It was
+          // taken from the unadjusted permutation p above, while this block
+          // replaces the displayed p with the across-condition adjusted one, so
+          // a row could carry a tier and a number that are different
+          // quantities. Re-derive the tier, the verdict word and the
+          // leptokurtic marker here, through the same flagFromP the raw pass
+          // used — no cutoff is restated. The marker keeps its own effect-size
+          // conjunct from above and only re-applies the tier half; a BH
+          // adjusted p is never below its raw p, so re-testing the effect size
+          // would return the same answer and would have to read a toFixed(4)
+          // deviation to do it.
+          // Verdict-inert by construction: finalFlag reads
+          // condKurtosis.promoted, decided above from the platykurtic family's
+          // own BH pass, and primaryP reads rawP — neither is touched here,
+          // and nothing in src/ reads a condition row's flag.
+          const adjFlag = flagFromP(fullSetAdjPs[i]);
+          c.flag = adjFlag;
+          c.verdict = adjFlag === "HIGH" ? "flagged" : adjFlag === "MODERATE" ? "noted" : "clear";
+          c.isLeptokurtic = c.isLeptokurtic && adjFlag !== "LOW";
         });
       }
     }
