@@ -37,17 +37,42 @@ export function MiniCard_RegionalNoise({ result, importConfig, rowMap }) {
   }
 
   const bestRows = result.bestWindowRows || "—";
-  const bestVarRatio = result.bestVarRatio || "—";
 
   const bestRowsParts = String(bestRows).match(/(\d+)\D+(\d+)/);
   const bestRowsDisplay = bestRowsParts
     ? `${toFileRow(parseInt(bestRowsParts[1]))}–${toFileRow(parseInt(bestRowsParts[2]))}`
     : bestRows;
 
+  // S372: the headline direction reads the producer's SIGNED `direction`, not
+  // the magnitude. `bestVarRatio` is Math.max(a/b, b/a) in regionalNoise.js, so
+  // it is >= 1 by construction and the old `parseFloat(bestVarRatio) > 1 ?
+  // "noisier" : "quieter"` could not reach "quieter" outside an exact tie — it
+  // read "noisier" on 4 of 4 flagged fixtures where the signed field says
+  // "reduced" on all four. The evidence table below was always right because it
+  // reads `direction` directly.
+  //
+  // Source differs by path. Pooled: `details` is sorted by maxRatio descending
+  // and the best window always clears the `>= obsScanStat * 0.5` filter, so
+  // details[0] is the window `bestWindowRows` names — verified on all four
+  // flagged fixtures. Aggregated: the aggregator rebuilds `details` as a
+  // per-group summary carrying no `direction`, so the windows live in
+  // `subDetails`; the top-level bestVarRatio / bestWindowRows come from the
+  // worst group via the aggregator's worst-group spread, so take that group's
+  // first entry. No fixture currently reaches the aggregated branch with a
+  // flag above LOW, so this arm is a guard rather than a measured path.
+  const bestDirEntry = isAgg
+    ? (sub.find(d => d.group === result.worstGroup) || sub[0])
+    : details[0];
+  const bestDirWord = bestDirEntry?.direction === "reduced" ? "quieter"
+    : bestDirEntry?.direction === "elevated" ? "noisier"
+    : null;
+
   return (
     <MiniCardLayout result={result}
       footer={result.flag !== "LOW" && result.flag !== "N/A"
-        ? `One region ${parseFloat(bestVarRatio) > 1 ? "noisier" : "quieter"} than the rest — rows ${bestRowsDisplay}`
+        ? (bestDirWord
+            ? `One region ${bestDirWord} than the rest — rows ${bestRowsDisplay}`
+            : `One region's noise differs from the rest — rows ${bestRowsDisplay}`)
         : "Noise even across regions"}
       lookFor="Note which column and which stretch of rows are identified, and whether the stretch is quieter or noisier than the column overall. Check whether it lines up with a batch, plate segment, or run break. Inspect those rows in the raw data files and compare their spread against the rest of the column."
       implications="A stretch of rows that is noisier or quieter than the rest of its column can arise from a real change partway through: e.g., a reagent batch, recalibration, run break. It can also indicate localised fabrication: e.g., one column smoothed or padded for a block of rows while the rest was left as measured.">
