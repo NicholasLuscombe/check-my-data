@@ -776,12 +776,46 @@ Evidence table reports the active threshold value and which gate is operative (`
 *Shared permutation null:*
 Both statistics use a single row-shuffle permutation. Each permutation generates a shuffled scan statistic AND a shuffled CUSUM statistic simultaneously — no additional computational cost. P-values: scanP from scan stat rank, cusumP from CUSUM stat rank.
 
-*Combined flag:* primaryP = min(scanP, cusumP) × 2 (Bonferroni for 2 statistics).
+*Combined flag:* combinedP = Šidák correction at k = 2 on min(scanP, cusumP), that is
+1 − (1 − min(scanP, cusumP))². The flag is read from that corrected value.
+
+Šidák rather than Bonferroni, and the reason is measured rather than assumed (S369, S370). The two
+arms are computed inside one shared permutation loop, which does not make them dependent. Measured
+under the null they run at 1.210% and 1.056% against a 1% nominal, and their joint minimum runs at
+2.246% — their sum to within measurement error. They are independent in the tail, so Šidák at k = 2
+is exact here rather than conservative. **This is the only place in the battery where that
+assumption has been measured and holds.**
+
+The correction takes the flag's null rate from 2.246% to 1.213%. No fixture cell moves: all three
+LOESS cells at MODERATE or HIGH survive it — 0.0002 → 0.000400 HIGH, and 0.002 → 0.003996 MODERATE
+twice. **So the corpus cannot demonstrate this change**, and the per-arm probe is the only instrument
+that can see it.
+
+**This section previously asserted a Bonferroni doubling that no code ever applied.** `Math.min` with
+no multiplier shipped for the life of the project, and the flag was a maximum over two separately
+derived flags rather than a function of this quantity at all — so the stated derivation was wrong in
+both its correction and its role. Corrected in code at `1bbd91e`.
 
 *Per-pair BH-FDR sub-unit promotion (fix 241):*
 After pooled analysis, run independent LOESS + windowed scan + CUSUM for each replicate pair (capped at 30 pairs). Each pair gets its own permutation null (499 perms). Combined p per pair = min(scanP, cusumP). BH-FDR across per-pair combined p-values; promote to MODERATE if any survives ALPHA.FLAG. Can only promote, never demote. Consistent with Autocorr, Runs, Kurtosis, ConstOffset, RegNoise, IRC (all 9 Category A tests now have sub-unit BH-FDR).
 
-**Flag:** Combined p < 0.001 → HIGH, p < 0.01 → MODERATE. Per-pair promotion can elevate LOW → MODERATE.
+**Flag:** corrected combinedP < 0.001 → HIGH, < 0.01 → MODERATE. Per-pair promotion can elevate LOW
+→ MODERATE.
+
+**Reported p-value.** The reported p is the quantity the flag was decided on. Where the per-pair
+promotion did not move the flag, that is the corrected combinedP; where it did, the verdict rests on
+the promotion arm and its p is reported instead. **It is not a minimum across arms.** Before S370 it
+was `min(combinedP, pairBestAdjP)`, so on 14 of 24 results the displayed number was one the verdict
+had not used. Corrected at `c6b2a62`.
+
+The predicate is `finalFlag !== flag`, not `pairPromoted`. `pairPromoted` is true whenever any pair
+clears ALPHA.FLAG, but the promotion only *moves* the flag when the pooled flag was below MODERATE —
+so on a pooled MODERATE or HIGH the promotion is a no-op and the verdict still rests on combinedP.
+
+**Two cases this rule does not reach, neither observed on the corpus.** Under the effect-size gate the
+flag rests on the gate rather than on any p, so no quantity the verdict used exists to report.
+And a promoted cell shows a p below ALPHA.FLAG beside the word MODERATE, because the promotion caps
+at MODERATE by design — correct, and it will read wrong.
 
 **Effect-size gate (N ≥ 500):** Require variance ratio ≥ 2.0.
 
