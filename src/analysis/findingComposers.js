@@ -166,9 +166,39 @@ function formatRowIndexList(indices, totalRows) {
   return `Rows ${first}, … (${indices.length} of ${totalRows} total)`;
 }
 
+/**
+ * S374 (P155) — the row mapper, defaulting to identity.
+ *
+ * `ctx.toFileRow` comes from `makeRowMapper` in handoffModel, so a composer
+ * applies the same conversion the cards apply and the two surfaces agree. The
+ * identity default keeps a composer callable with no mapper — which is what
+ * `diag-s162b-anchor-lock.mjs` does, building its own context — so an absent
+ * mapper degrades to today's matrix rows rather than throwing.
+ */
+const rowMapperOf = ctx => (typeof ctx?.toFileRow === "function" ? ctx.toFileRow : (x => x));
+
+/**
+ * Map a producer row range onto file rows.
+ *
+ * Producers emit ranges as an "a–b" string and both ends are 1-indexed matrix
+ * rows, so both are mapped. The original separator character is preserved, and
+ * anything that does not parse as a plain range is returned untouched rather
+ * than guessed at.
+ *
+ * Applied per interpolation, never over a whole sentence: the same findings
+ * also print row COUNTS ("3 of 65 rows", "12×3", "192 consecutive pairs"),
+ * which are invariant under a constant shift and must not move.
+ */
+function mapRowRange(s, toFileRow) {
+  const m = String(s ?? "").match(/^\s*(\d+)\s*([–—-])\s*(\d+)\s*$/);
+  if (!m) return s;
+  return `${toFileRow(parseInt(m[1], 10))}${m[2]}${toFileRow(parseInt(m[3], 10))}`;
+}
+
 // ── Anchor 1: LOESS Residual Analysis (DS08 lock) ──────────────────────
 
-function loessResidualAnalysis(r /*, ctx */) {
+function loessResidualAnalysis(r, ctx) {
+  const f = rowMapperOf(ctx);
   const cp = r.changepointRow;
   const cpDir = r.changepointDirection || "shifts";
   const cusumP = r.cusumP;
@@ -192,14 +222,14 @@ function loessResidualAnalysis(r /*, ctx */) {
       }
     }
     if (Number.isFinite(minR) && Number.isFinite(maxR)) {
-      winRowSpan = `${minR}–${maxR}`;
+      winRowSpan = `${f(minR)}–${f(maxR)}`;
     }
     direction = windows[0]?.direction || "anomalous";
   }
 
   // Location: changepoint anchor + window anchor (each present-conditional).
   const locParts = [];
-  if (Number.isFinite(cp)) locParts.push(`Changepoint at row ${cp}`);
+  if (Number.isFinite(cp)) locParts.push(`Changepoint at row ${f(cp)}`);
   if (nWindows > 0 && winRowSpan) {
     locParts.push(`${nWindows} ${direction} ${pl(nWindows, "window")} in rows ${winRowSpan}`);
   }
@@ -209,13 +239,13 @@ function loessResidualAnalysis(r /*, ctx */) {
   const evidenceLines = [];
   const topWindows = windows.slice(0, 3);
   const winFragments = topWindows.map((w, i) => {
-    if (i === 0) return `rows ${w.rows} (${w.ratio} variance ratio)`;
-    return `${w.rows} (${w.ratio})`;
+    if (i === 0) return `rows ${mapRowRange(w.rows, f)} (${w.ratio} variance ratio)`;
+    return `${mapRowRange(w.rows, f)} (${w.ratio})`;
   });
   const line1Parts = [];
   if (Number.isFinite(cp)) {
     const dirWord = cpDir.startsWith("noise ") ? cpDir : `noise ${cpDir}`;
-    line1Parts.push(`Changepoint at row ${cp} (${dirWord} after this point)`);
+    line1Parts.push(`Changepoint at row ${f(cp)} (${dirWord} after this point)`);
   }
   if (winFragments.length > 0) {
     line1Parts.push(`${direction} windows at ${winFragments.join(", ")}`);
@@ -232,7 +262,7 @@ function loessResidualAnalysis(r /*, ctx */) {
   if (regions.length === 2) {
     const parts = regions.map((reg, i) => {
       const label = i === 0 ? "Pre-changepoint" : "post-changepoint";
-      const rows = reg.rows;
+      const rows = mapRowRange(reg.rows, f);
       const ratio = reg.ratio;
       const finding = (reg.finding || "").toLowerCase();
       if (finding === "as expected") {
@@ -428,8 +458,9 @@ function selectiveNoisePartitioning(r /*, ctx */) {
 
 // ── Anchor 5: Mahalanobis Row Outlier (DS08 lock) ──────────────────────
 
-function mahalanobisRowOutlier(r /*, ctx */) {
-  const indices = Array.isArray(r.flaggedRowIndices) ? r.flaggedRowIndices : [];
+function mahalanobisRowOutlier(r, ctx) {
+  const f = rowMapperOf(ctx);
+  const indices = (Array.isArray(r.flaggedRowIndices) ? r.flaggedRowIndices : []).map(f);
   const nRows = r.nRows;
   const details = Array.isArray(r.details) ? r.details : [];
   const plotThreshold = parseNum(r.plotThreshold);
@@ -449,7 +480,7 @@ function mahalanobisRowOutlier(r /*, ctx */) {
     const pStr = top["p-value"] || top.pValue;
     const thresholdStr = Number.isFinite(plotThreshold) ? plotThreshold.toFixed(2) : String(r.plotThreshold);
     evidenceLines.push(
-      `Row ${top.Row} sits at Mahalanobis distance ${distStr} (per-row p = ${formatPSci(pStr)}), ` +
+      `Row ${f(top.Row)} sits at Mahalanobis distance ${distStr} (per-row p = ${formatPSci(pStr)}), ` +
       `far above the outlier threshold at distance ${thresholdStr}.`
     );
   }
@@ -824,7 +855,8 @@ function valueFrequencySpike(r /*, ctx */) {
 }
 
 // Constant-Offset Blocks — block-anchored.
-function constantOffsetBlocks(r /*, ctx */) {
+function constantOffsetBlocks(r, ctx) {
+  const f = rowMapperOf(ctx);
   const blocks = r.consecutiveEqualDiffs || 0;
   const expectedByChance = r.expectedByChance;
   const totalPairs = r.totalConsecutivePairs;
@@ -839,7 +871,7 @@ function constantOffsetBlocks(r /*, ctx */) {
     `(${expectedByChance} expected by chance across ${totalPairs} consecutive pairs); ${formatPClause("permutation p", p)}.`
   );
   if (details.length > 0) {
-    const top = details.slice(0, 3).map(d => `pair ${d.pair} at ${d.positions} (offset ${d.diff})`);
+    const top = details.slice(0, 3).map(d => `pair ${d.pair} at ${mapRowRange(d.positions, f)} (offset ${d.diff})`);
     evidenceLines.push(`Top ${pl(top.length, "block")}: ${top.join("; ")}.`);
   }
 
@@ -942,7 +974,8 @@ function autocorrelation(r /*, ctx */) {
 }
 
 // Windowed Autocorrelation — per-pair windowed scan.
-function windowedAutocorrelation(r /*, ctx */) {
+function windowedAutocorrelation(r, ctx) {
+  const f = rowMapperOf(ctx);
   const nSig05 = r.nSig05;
   const nSig01 = r.nSig01;
   const nWin = r.nWindowsTotal;
@@ -957,7 +990,7 @@ function windowedAutocorrelation(r /*, ctx */) {
   );
   if (details.length > 0) {
     const top = details.slice(0, 3).map(d =>
-      `pair ${d.pair} rows ${d.startRow}–${d.endRow} (r = ${parseNum(d.r).toFixed(3)}, ${formatPClause("adj-p", d.adjP)})`
+      `pair ${d.pair} rows ${f(d.startRow)}–${f(d.endRow)} (r = ${parseNum(d.r).toFixed(3)}, ${formatPClause("adj-p", d.adjP)})`
     );
     evidenceLines.push(`Top windows — ${top.join("; ")}.`);
   }
@@ -967,7 +1000,7 @@ function windowedAutocorrelation(r /*, ctx */) {
   if (details.length > 0) {
     const sigDetails = details.filter(d => parseNum(d.adjP) < 0.05);
     if (sigDetails.length > 0 && sigDetails.length <= 3) {
-      location = sigDetails.map(d => `pair ${d.pair} rows ${d.startRow}–${d.endRow}`).join("; ");
+      location = sigDetails.map(d => `pair ${d.pair} rows ${f(d.startRow)}–${f(d.endRow)}`).join("; ");
     } else if (sigDetails.length > 3) {
       location = `${sigDetails.length} flagged (pair × window) units across ${nPairs} ${pl(nPairs, "pair")}`;
     }
@@ -1028,8 +1061,9 @@ function noiseScaling(r /*, ctx */) {
 }
 
 // Within-Row Variance — per-row anchoring (Mahalanobis-shaped).
-function withinRowVariance(r /*, ctx */) {
-  const indices = Array.isArray(r.flaggedRowIndices) ? r.flaggedRowIndices : [];
+function withinRowVariance(r, ctx) {
+  const f = rowMapperOf(ctx);
+  const indices = (Array.isArray(r.flaggedRowIndices) ? r.flaggedRowIndices : []).map(f);
   const nOutliers = r.nOutliers;
   const nValid = r.nValid;
   const outlierFrac = r.outlierFrac;
@@ -1056,8 +1090,9 @@ function withinRowVariance(r /*, ctx */) {
 }
 
 // Regional Noise Homogeneity — window-anchored.
-function regionalNoiseHomogeneity(r /*, ctx */) {
-  const bestWin = r.bestWindowRows;
+function regionalNoiseHomogeneity(r, ctx) {
+  const f = rowMapperOf(ctx);
+  const bestWin = mapRowRange(r.bestWindowRows, f);
   const bestRatio = r.bestVarRatio;
   const bestCol = r.bestAnomCol;
   const scanP = parseNum(r.scanP) || r.primaryP;
@@ -1071,7 +1106,7 @@ function regionalNoiseHomogeneity(r /*, ctx */) {
     `${formatPClause("scan p", scanP)}.`
   );
   if (details.length > 1) {
-    const tops = details.slice(0, 3).map(d => `rows ${d.rows} (${d.ratio} ${d.direction === "reduced" ? "quieter" : d.direction === "elevated" ? "noisier" : "deviation"})`);
+    const tops = details.slice(0, 3).map(d => `rows ${mapRowRange(d.rows, f)} (${d.ratio} ${d.direction === "reduced" ? "quieter" : d.direction === "elevated" ? "noisier" : "deviation"})`);
     evidenceLines.push(`Top ${tops.length} windows — ${tops.join("; ")}.`);
   }
 
@@ -1102,7 +1137,8 @@ function rowMeanRuns(r /*, ctx */) {
 }
 
 // Missing Data Pattern — DupDet-shaped structural detail.
-function missingDataPattern(r /*, ctx */) {
+function missingDataPattern(r, ctx) {
+  const f = rowMapperOf(ctx);
   const nMissing = r.nMissing;
   const missRate = r.missRate;
   const nPair = r.nPairwiseHits || 0;
@@ -1122,7 +1158,7 @@ function missingDataPattern(r /*, ctx */) {
     `${formatPClause("best adj-p", p)}.`
   );
   if (blockHits.length > 0) {
-    const top = blockHits.slice(0, 3).map(b => `rows ${b.startRow}–${b.endRow} × cols ${b.cols.join(",")} (${b.height}×${b.width})`);
+    const top = blockHits.slice(0, 3).map(b => `rows ${f(b.startRow)}–${f(b.endRow)} × cols ${b.cols.join(",")} (${b.height}×${b.width})`);
     evidenceLines.push(`Top missing ${pl(top.length, "block")}: ${top.join("; ")}.`);
   }
   const location = nBlock > 0
@@ -1250,7 +1286,8 @@ function entropyZipf(r /*, ctx */) {
 }
 
 // Blocked Mahalanobis — block-anchored sliding-window scan.
-function blockedMahalanobis(r /*, ctx */) {
+function blockedMahalanobis(r, ctx) {
+  const f = rowMapperOf(ctx);
   const details = Array.isArray(r.details) ? r.details : [];
   const sig = details.filter(d => d?.significant);
   const conditions = Array.isArray(r.conditionNames) ? r.conditionNames : [];
@@ -1266,13 +1303,13 @@ function blockedMahalanobis(r /*, ctx */) {
   if (sig.length > 0) {
     const top = sig.slice(0, 3).map(d => {
       const dirWord = d.passKey === "mu" ? "block-mean separation" : "covariance inflation";
-      return `${d.condition} rows ${d.startRow}–${d.endRow} (${dirWord}, ${d.statType} = ${d.stat})`;
+      return `${d.condition} rows ${f(d.startRow)}–${f(d.endRow)} (${dirWord}, ${d.statType} = ${d.stat})`;
     });
     evidenceLines.push(`Top flagged blocks — ${top.join("; ")}.`);
   }
   let location = "Global";
   if (sig.length === 1) {
-    location = `${sig[0].condition} rows ${sig[0].startRow}–${sig[0].endRow}`;
+    location = `${sig[0].condition} rows ${f(sig[0].startRow)}–${f(sig[0].endRow)}`;
   } else if (sig.length > 1) {
     location = `${sig.length} block-windows across ${conditions.length} ${pl(conditions.length, "condition")}`;
   }
