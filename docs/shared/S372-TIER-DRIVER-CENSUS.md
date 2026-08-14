@@ -170,8 +170,17 @@ and the *displayed* value is overwritten — `c.pAdjFull = fullSetAdjPs[i]; c.p 
 
 The comment at that block states the author's intent plainly: it "leaves … `finalFlag` /
 `primaryP` untouched, so the verdict cannot move." **The verdict was guarded and the per-condition
-tier was not.** The tier renders through `ConditionTable`, which styles on `row.flag === "HIGH"`
-and `=== "MODERATE"`, so the mismatch is visible.
+tier was not.**
+
+**Corrected at S374.** This section said the tier renders through `ConditionTable`, so the mismatch
+is visible. That is wrong twice. `ConditionTable` has two consumers and neither is Kurtosis — they
+are Runs and Regional Noise. The Kurtosis card builds its condition table with `EvidenceTable`, and
+`condKurtosis[].flag` has no reader anywhere in `src/`. The defect is real and reaches display
+through `verdict` and `isLeptokurtic`, both pure functions of the same `condFlag`, which is why all
+three had to move together in the fix. On the 27 fixtures exactly one row carries it —
+`20-bimodal-fab.csv` / Treatment — and it renders nothing differently, because a κ-deviation of
++0.1205 sits below the effect-size band, so the Finding column reads "Normal" and the tier word is
+never printed. Fixed in the same block that overwrites the displayed p.
 
 **2. Selective Noise, per-condition tier — latent.**
 `selectiveNoise.js` sets each condition's `flag` from `flagFromP(b.pBartlett)` — the raw Bartlett
