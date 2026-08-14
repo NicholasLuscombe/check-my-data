@@ -61,8 +61,9 @@ const { EXPECTED } = await import('../batch-fixtures.mjs');
 
 const ARGS = process.argv.slice(2);
 const ALL = !ARGS.some(a => a.startsWith('--'));
-const WANT_SHEETS = ALL || ARGS.includes('--sheets') || ARGS.includes('--tabulate');
-const WANT_FIX = ALL || ARGS.includes('--fixtures') || ARGS.includes('--tabulate');
+const WANT_PASS2 = ALL || ARGS.includes('--pass2');
+const WANT_SHEETS = ALL || ARGS.includes('--sheets') || ARGS.includes('--tabulate') || WANT_PASS2;
+const WANT_FIX = ALL || ARGS.includes('--fixtures') || ARGS.includes('--tabulate') || WANT_PASS2;
 const WANT_TAB = ALL || ARGS.includes('--tabulate');
 
 // ── Corpus directory ────────────────────────────────────────────────────────
@@ -143,6 +144,22 @@ const nameOf = (hdrs, c) => (hdrs[c] != null && String(hdrs[c]).trim()) ? String
 //     sd(diffs) / |mean(diffs)|, sample sd (n-1). Undefined and reported null
 //     when there are fewer than two differences or the mean difference is 0.
 //   * distinct counts exact float values.
+// Ten values from the head, ten from the tail and ten from the middle of the
+// NON-NULL series, in row order. Enough to adjudicate a column by eye without
+// printing a spectrum. The middle block is centred on the series midpoint.
+function sampleValues(values, n = 10) {
+  const v = values.filter(x => x !== null && x !== undefined && Number.isFinite(x));
+  if (!v.length) return { first: [], mid: [], last: [], n: 0, midFrom: null };
+  const midStart = Math.max(0, Math.floor(v.length / 2) - Math.floor(n / 2));
+  return {
+    n: v.length,
+    first: v.slice(0, n),
+    mid: v.slice(midStart, midStart + n),
+    midFrom: midStart,
+    last: v.slice(Math.max(0, v.length - n)),
+  };
+}
+
 function measureColumn(values) {
   const vals = [];
   let nNull = 0;
@@ -319,6 +336,7 @@ async function censusSheet(path, sheetName) {
       // Post-parse, pre-completeness-filter measurement.
       const parsedVals = data.map(r => { const v = r[rc]; if (v == null || v === '') return null; const n = Number(v); return Number.isNaN(n) ? null : n; });
       rec.parsed = measureColumn(parsedVals);
+      if (inMatrix) rec.sample = sampleValues(matrix.map(r => r[mc]));
       // Pre-trim measurement — the sheet as deposited. A column whose span
       // shrinks between here and the matrix was TRUNCATED by the parse trim.
       if (rawDataRows) {
@@ -819,6 +837,161 @@ if (WANT_TAB && sheets && fixtures) {
       for (const [f, hs] of Object.entries(byFile)) console.log(`    ${f.padEnd(36)} ${hs.length}: ${hs.slice(0, 8).join(', ')}${hs.length > 8 ? ' …' : ''}`);
     }
   }
+  console.log('');
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// SECOND PASS — the near neighbour
+//
+// The first pass tabulated five candidates against two populations: the sixty
+// axis columns and the 160 fixture data columns. Both are FAR neighbours. A
+// spectrum's own intensity column is the NEAR neighbour, and the first pass
+// does not say whether any candidate separates an axis from the signal sitting
+// beside it in the same group. Everything below comes out of data the probe
+// already holds; nothing new is opened.
+// ══════════════════════════════════════════════════════════════════════════
+
+// Percentiles by linear interpolation between closest ranks — the definition R
+// and numpy use by default, named here because a nearest-rank reading of the
+// same data gives different numbers on populations this small.
+function pct(sorted, p) {
+  if (!sorted.length) return null;
+  if (sorted.length === 1) return sorted[0];
+  const h = (sorted.length - 1) * p;
+  const lo = Math.floor(h), hi = Math.ceil(h);
+  return sorted[lo] + (h - lo) * (sorted[hi] - sorted[lo]);
+}
+const quantiles = arr => {
+  const s = [...arr].sort((a, b) => a - b);
+  return { n: s.length, min: s[0], p05: pct(s, 0.05), p25: pct(s, 0.25), p50: pct(s, 0.50), p75: pct(s, 0.75), p95: pct(s, 0.95), max: s[s.length - 1] };
+};
+const qrow = (label, q) => `  ${label.padEnd(26)} ${String(q.n).padStart(4)}  ` +
+  [q.min, q.p05, q.p25, q.p50, q.p75, q.p95, q.max].map(v => fmt(v, 4).padStart(11)).join(' ');
+
+if (WANT_PASS2 && sheets && fixtures) {
+  const cg2 = sheets.filter(s => s.columnGrouped);
+  const sheetCols2 = cg2.flatMap(s => s.columns.map(c => ({ ...c, _sheet: s.file.replace('.xlsx', '') + '/' + s.sheet, _file: s.file })));
+  const axis2 = sheetCols2.filter(c => AXIS_HEADERS.has(c.header));
+  const nonAxis2 = sheetCols2.filter(c => !AXIS_HEADERS.has(c.header));
+  const fixCols2 = fixtures.filter(f => !f.error).flatMap(f => f.columns.map(c => ({ ...c, _fix: f.file })));
+  const isMono = c => c.monotone === 'increasing' || c.monotone === 'decreasing';
+
+  // ── Pass 2, Part 1 — the eight ────────────────────────────────────────────
+  console.log('\n\n══ Pass 2, Part 1 — the non-axis sheet columns candidate 1 selects ══\n');
+  const eight = nonAxis2.filter(isMono);
+  console.log(`  candidate 1 (strictly monotone) selects ${eight.length} non-axis sheet columns.`);
+  const byFile2 = {};
+  eight.forEach(c => { (byFile2[c._file] ||= []).push(c); });
+  console.log(`  by file: ${Object.entries(byFile2).map(([f, cs]) => `${f.replace('.xlsx', '')} ${cs.length}`).join(', ')}`);
+  console.log(`  E9 stated: the eight sit MOSTLY IN C15.`);
+  console.log(`     measured: C15 ${(byFile2['C15.xlsx'] || []).length}, C25 ${(byFile2['C25.xlsx'] || []).length}  ` +
+    `${(byFile2['C15.xlsx'] || []).length > eight.length / 2 ? 'HELD' : 'INVERTED'}\n`);
+
+  for (const c of eight) {
+    console.log(`── ${c._sheet}  group "${c.group}"  position ${c.positionInGroup}  header ${JSON.stringify(c.header)}`);
+    console.log(`   direction ${c.monotone}   range ${fmt(c.min, 6)} → ${fmt(c.max, 6)}   distinct ${c.nDistinct} of ${c.nValues}   nulls ${c.nNull}   first-difference CV ${fmt(c.diffCV, 4)}`);
+    const s = c.sample || { first: [], mid: [], last: [], midFrom: null, n: 0 };
+    const show = a => a.map(v => fmt(v, 6)).join(', ');
+    console.log(`   first 10 : ${show(s.first)}`);
+    if (s.n > 20) console.log(`   mid 10   : ${show(s.mid)}   (from index ${s.midFrom} of ${s.n})`);
+    if (s.n > 10) console.log(`   last 10  : ${show(s.last)}`);
+    if (s.n <= 10) console.log(`   (the column holds only ${s.n} values, all shown above)`);
+    console.log('');
+  }
+
+  // ── E10 — the column decomposition, read off the probe ────────────────────
+  console.log('══ Pass 2 — E10, the column decomposition ══\n');
+  const c25cols = sheetCols2.filter(c => c._file === 'C25.xlsx');
+  const c15cols = sheetCols2.filter(c => c._file === 'C15.xlsx');
+  const c25axis = c25cols.filter(c => AXIS_HEADERS.has(c.header));
+  const c15axis = c15cols.filter(c => AXIS_HEADERS.has(c.header));
+  console.log(`  E10 stated: 60 axis and 60 signal in C25, plus 18 in C15, summing to 138 with 78 non-axis.`);
+  console.log(`     C25 columns ${c25cols.length} = ${c25axis.length} axis + ${c25cols.length - c25axis.length} signal`);
+  console.log(`     C15 columns ${c15cols.length} = ${c15axis.length} axis + ${c15cols.length - c15axis.length} signal`);
+  console.log(`     total ${sheetCols2.length}, axis ${axis2.length}, non-axis ${nonAxis2.length}`);
+  const e10 = c25axis.length === 60 && (c25cols.length - c25axis.length) === 60 && c15cols.length === 18 &&
+    sheetCols2.length === 138 && nonAxis2.length === 78;
+  console.log(`     ${e10 ? 'CONFIRMED' : 'REFUTED'}\n`);
+
+  // ── Pass 2, Part 2 — the distributions ────────────────────────────────────
+  console.log('══ Pass 2, Part 2 — first-difference CV, all three populations ══\n');
+  console.log('  Percentiles by linear interpolation between closest ranks. Columns with no');
+  console.log('  defined CV are excluded from the population and counted beside it.\n');
+  const cvOf = arr => arr.map(c => c.diffCV).filter(v => v !== null && v !== undefined);
+  const qa = quantiles(cvOf(axis2)), qn = quantiles(cvOf(nonAxis2)), qf = quantiles(cvOf(fixCols2));
+  console.log('  population                     n          min         5th        25th        50th        75th        95th         max');
+  console.log(qrow('axis sheet columns', qa));
+  console.log(qrow('non-axis sheet columns', qn));
+  console.log(qrow('fixture data columns', qf));
+  console.log(`\n  undefined CV: axis ${axis2.length - qa.n}, non-axis ${nonAxis2.length - qn.n}, fixture ${fixCols2.length - qf.n}`);
+  fixCols2.filter(c => c.diffCV === null).forEach(c => console.log(`     ${c._fix} / "${c.header}"  mean first difference is exactly 0`));
+
+  console.log('\n  overlap, stated both ways:');
+  const belowAxisMax = nonAxis2.filter(c => c.diffCV !== null && c.diffCV < qa.max);
+  const aboveNonAxisMin = axis2.filter(c => c.diffCV !== null && c.diffCV > qn.min);
+  console.log(`    non-axis sheet columns below the axis maximum (${fmt(qa.max)}): ${belowAxisMax.length} of ${qn.n}`);
+  belowAxisMax.forEach(c => console.log(`       ${c._sheet.padEnd(16)} "${c.header}" (grp "${c.group}")  CV ${fmt(c.diffCV)}`));
+  console.log(`    axis columns above the non-axis minimum (${fmt(qn.min)}): ${aboveNonAxisMin.length} of ${qa.n}`);
+  const ovHeaders = {};
+  aboveNonAxisMin.forEach(c => { (ovHeaders[c.header] ||= []).push(c.diffCV); });
+  Object.entries(ovHeaders).forEach(([h, vs]) => console.log(`       ${JSON.stringify(h).padEnd(26)} ${vs.length} column(s), CV ${fmt(Math.min(...vs))} to ${fmt(Math.max(...vs))}`));
+  const olo = Math.min(qn.min, ...[qa.max]), ohi = Math.max(qn.min, qa.max);
+  console.log(`    the two sheet populations overlap on [${fmt(qn.min)}, ${fmt(qa.max)}] — ${belowAxisMax.length} non-axis and ${aboveNonAxisMin.length} axis columns inside it.`);
+  console.log(`    E11 stated: the two sheet populations overlap.  ${belowAxisMax.length > 0 && aboveNonAxisMin.length > 0 ? 'HELD' : 'INVERTED — they separate cleanly'}`);
+
+  // ── Candidate 6, as a curve ───────────────────────────────────────────────
+  console.log('\n══ Pass 2, Part 2 — candidate 6, first-difference CV below a threshold ══\n');
+  console.log('  No monotonicity condition. An undefined CV is NOT selected; the one fixture');
+  console.log('  column in that state is named above. Reported as a curve — no threshold is');
+  console.log('  chosen here, because how much of each population a rule may lose is a');
+  console.log('  question this census does not hold.\n');
+  const LADDER = [0.01, 0.02, 0.05, 0.1, 0.15, 0.2, 0.3, 0.5, 1, 2, 5, 10, 15];
+  console.log('  threshold      axis sel/' + String(axis2.length).padEnd(4) + '  non-axis sel/' + String(nonAxis2.length).padEnd(4) + '  fixture sel/' + fixCols2.length);
+  for (const t of LADDER) {
+    const sel = arr => arr.filter(c => c.diffCV !== null && c.diffCV < t).length;
+    console.log(`  ${('< ' + t).padEnd(14)} ${String(sel(axis2)).padStart(8)}      ${String(sel(nonAxis2)).padStart(8)}       ${String(sel(fixCols2)).padStart(8)}`);
+  }
+
+  // ── Pass 2, Part 3 — the six truncated columns ────────────────────────────
+  console.log('\n══ Pass 2, Part 3 — validity check on the six truncated columns ══\n');
+  console.log('  A truncated column\'s CV is computed over the SURVIVING part, not the deposited');
+  console.log('  column, so the numbers above may describe something the file does not contain.\n');
+  const trunc2 = sheetCols2.filter(c => c.truncatedByParseTrim);
+  console.log(`  truncated columns: ${trunc2.length}`);
+  console.log('  sheet            group / header                              population   CV as computed   CV pre-trim');
+  for (const c of trunc2) {
+    const pop = AXIS_HEADERS.has(c.header) ? 'axis' : 'non-axis';
+    const pre = c.preTrim && c.preTrim.diffCV !== null ? fmt(c.preTrim.diffCV) : (c.preTrim ? 'undefined' : 'unreachable');
+    console.log(`  ${c._sheet.padEnd(16)} ${(c.group.slice(0, 28) + ' / ' + c.header).padEnd(44)} ${pop.padEnd(12)} ${fmt(c.diffCV).padEnd(16)} ${pre}`);
+  }
+  const truncAxis = trunc2.filter(c => AXIS_HEADERS.has(c.header));
+  console.log(`\n  split: ${truncAxis.length} axis, ${trunc2.length - truncAxis.length} non-axis.`);
+
+  console.log('\n  Part 2 percentiles with the six excluded:');
+  const drop = new Set(trunc2.map(c => c._sheet + '|' + c.group + '|' + c.header));
+  const keep = arr => arr.filter(c => !drop.has(c._sheet + '|' + c.group + '|' + c.header));
+  const qa2 = quantiles(cvOf(keep(axis2))), qn2 = quantiles(cvOf(keep(nonAxis2)));
+  console.log('  population                     n          min         5th        25th        50th        75th        95th         max');
+  console.log(qrow('axis (six excluded)', qa2));
+  console.log(qrow('non-axis (six excluded)', qn2));
+  const moved = [];
+  for (const k of ['min', 'p05', 'p25', 'p50', 'p75', 'p95', 'max']) {
+    if (qa[k] !== qa2[k]) moved.push(`axis ${k}: ${fmt(qa[k])} -> ${fmt(qa2[k])}`);
+    if (qn[k] !== qn2[k]) moved.push(`non-axis ${k}: ${fmt(qn[k])} -> ${fmt(qn2[k])}`);
+  }
+  console.log(`\n  percentiles that move: ${moved.length ? '\n    ' + moved.join('\n    ') : 'none'}`);
+  console.log('  (the fixture population is untouched — no fixture loses a row at either trim stage)');
+
+  // Does the truncation reach either of this pass's two findings? Measured
+  // rather than eyeballed off the sheet names.
+  const key = c => c._sheet + '|' + c.group + '|' + c.header;
+  const eightTrunc = eight.filter(c => drop.has(key(c)));
+  console.log(`\n  do the six reach Part 1's eight?  ${eightTrunc.length === 0 ? 'NO — disjoint' : 'YES: ' + eightTrunc.map(c => c._sheet + ' / ' + c.header).join(', ')}`);
+  const axMaxCol = axis2.filter(c => c.diffCV !== null).reduce((a, b) => b.diffCV > a.diffCV ? b : a);
+  const naMinCol = nonAxis2.filter(c => c.diffCV !== null).reduce((a, b) => b.diffCV < a.diffCV ? b : a);
+  console.log(`  do the six reach either overlap endpoint?`);
+  console.log(`     axis maximum ${fmt(axMaxCol.diffCV)} is ${axMaxCol._sheet} / "${axMaxCol.header}" — truncated: ${drop.has(key(axMaxCol)) ? 'YES' : 'no'}`);
+  console.log(`     non-axis minimum ${fmt(naMinCol.diffCV)} is ${naMinCol._sheet} / "${naMinCol.header}" — truncated: ${drop.has(key(naMinCol)) ? 'YES' : 'no'}`);
   console.log('');
 }
 

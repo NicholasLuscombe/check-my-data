@@ -489,3 +489,296 @@ reports Part 1 as **unreached** rather than empty.
 | `docs/shared/V1X-DECIDED.md` | tracked, 3 commits |
 | `test/probes/probe-s352-field-dispersion.mjs` | tracked, 1 commit |
 | `test/fixtures/*.csv` | tracked |
+
+---
+---
+
+# Second pass — the near neighbour
+
+Everything above is the first pass, unchanged. It tabulated five candidate
+discriminators against two populations: the sixty axis columns and the 160
+fixture data columns. **Both of those are far neighbours.** A spectrum's own
+intensity column is the near neighbour, and the first pass does not say whether
+any candidate separates an axis from the signal sitting beside it in the same
+group.
+
+This pass answers that. It opens no new file and reruns no battery — every
+figure comes out of measurements the probe already held. Instrument is the same
+`test/probes/probe-s375-p93-census.mjs`, extended with a `--pass2` section.
+
+---
+
+## Part 1 — the eight columns candidate 1 selects
+
+Candidate 1 — strictly monotone — catches 59 of 60 axis columns and no fixture
+column at all. Its entire price is the eight non-axis sheet columns it also
+selects. Those eight were counted in the first pass and never named.
+
+**All eight are in C25. None is in C15.**
+
+They are two groups of one column each, repeated across the groups of one sheet.
+
+### Six on `Fig. 4b` — `ln(Tm2/βh)`
+
+One per group, all six groups. Each column holds five values, strictly
+decreasing, no ties, no nulls.
+
+| Group | Range | Distinct | First-difference CV | The five values |
+|---|---|---|---|---|
+| 1 wt% PPO@TPBi | 9.088 → 6.496 | 5 of 5 | 0.1976 | 9.08755, 8.27385, 7.71869, 7.17946, 6.49599 |
+| 1 wt% DT@TPBi | 10.068 → 7.217 | 5 of 5 | 0.1499 | 10.0676, 9.23075, 8.60635, 7.98380, 7.21702 |
+| 0.1 wt% NPBP@TPBi | 9.157 → 6.136 | 5 of 5 | 0.1673 | 9.15701, 8.28666, 7.63704, 6.99463, 6.13574 |
+| 1 wt% DN@TPBi | 10.595 → 7.725 | 5 of 5 | 0.1876 | 10.5949, 9.75022, 9.18021, 8.54278, 7.72517 |
+| 1 wt% TAQ@TPBi | 10.868 → 8.031 | 5 of 5 | 0.1759 | 10.8683, 10.0188, 9.40182, 8.80953, 8.03050 |
+| 1 wt% TN@TMPyPB | 10.591 → 7.832 | 5 of 5 | 0.1607 | 10.5907, 9.76451, 9.16410, 8.56575, 7.83221 |
+
+Five values is the whole column, so head, middle and tail are the same ten
+numbers; all are printed.
+
+### Two on `Fig. 4e` — `Luminance (mcd/m2)`
+
+Groups 2 and 5 only, out of five. Thirty values each, strictly decreasing, no
+ties, no nulls.
+
+**Group `OLED TIP decay curve (cycle 2)`** — range 0.43872 → 0.01142, 30
+distinct, first-difference CV 2.708.
+
+* first ten: 0.43872, 0.23340, 0.15690, 0.11711, 0.09169, 0.07635, 0.06420, 0.05393, 0.04879, 0.04353
+* middle ten (from index 10 of 30): 0.03847, 0.03485, 0.03225, 0.02896, 0.02666, 0.02499, 0.02333, 0.02121, 0.02023, 0.01908
+* last ten: 0.01858, 0.01677, 0.01602, 0.01542, 0.01452, 0.01400, 0.01363, 0.01232, 0.01210, 0.01142
+
+**Group `OLED TIP decay curve (cycle 5)`** — range 0.43644 → 0.01433, 30
+distinct, first-difference CV 2.681.
+
+* first ten: 0.43644, 0.23501, 0.16213, 0.12157, 0.09693, 0.08118, 0.06870, 0.05984, 0.05267, 0.04715
+* middle ten (from index 10 of 30): 0.04170, 0.03867, 0.03564, 0.03212, 0.03085, 0.02799, 0.02610, 0.02512, 0.02392, 0.02209
+* last ten: 0.02127, 0.01978, 0.01934, 0.01822, 0.01755, 0.01683, 0.01611, 0.01510, 0.01486, 0.01433
+
+### The adjudication
+
+The dispatch asks, per column, which of two things it is: a genuine measurement
+that happens to run in one direction, or a second axis the reference set failed
+to label.
+
+**All eight are genuine measurements. Not one is a mislabelled axis.**
+
+**The two `Luminance` columns are a decay curve, and the strongest evidence is
+that their three siblings are not monotone.** `Fig. 4e` records the same OLED
+luminance decay five times — five cycles of one protocol on one device, on an
+identical 30-point time grid, positions 1 of every group being the same
+`Time (s)` values to the last digit. The five luminance columns have
+first-difference coefficients of variation of 2.659, 2.708, 2.673, 2.654 and
+2.681 — indistinguishable. Yet **only cycles 2 and 5 are strictly monotone; 1, 3
+and 4 are not**, and none of the three has a tie, so each carries at least one
+upward step against a falling trend. The same physical quantity, measured five
+times under one protocol, is selected by candidate 1 twice and passed over three
+times. What decides it is measurement noise.
+
+**The six `ln(Tm2/βh)` columns are the measured side of an Arrhenius fit.**
+`Fig. 4b` estimates trap depth: for each of six materials, five thermoluminescence
+peaks are recorded at five heating rates, and the pair `1/(kB·Tm)` against
+`ln(Tm²/βh)` is fitted for the slope. Both columns are computed from the same five
+`(Tm, βh)` measurements, and the five rows are ordered by heating rate, so both
+run monotonically for the same reason. The ordinate is not an instrument axis and
+it is not a duplicate of the abscissa — it is where the data lives. Deleting it
+deletes the fit. (The abscissa is the contested member of the authored axis set,
+discussed in the first pass; nothing here changes that judgement, and the pass-2
+counts below are reported so the choice stays visible.)
+
+### What this decides about candidate 1
+
+The dispatch names the stake: if the eight are genuine measurements, candidate 1
+excludes real data from the battery and hides fabrication inside a measurement
+column — a worse failure than the one P93 names. That is the case here, on all
+eight.
+
+Two further facts sharpen it, both measured:
+
+* **Candidate 1 fails in both directions inside one corpus, and both failures
+  are within-sheet.** Exactly two headers are monotone in some of their own
+  groups and not others: `Fig. 3b-c`'s `Temperature (K)` — an axis — is monotone
+  in 4 of 5 groups, and `Fig. 4e`'s `Luminance (mcd/m2)` — a signal — is monotone
+  in 2 of 5. One axis leaks out and one signal leaks in, on the same rule, on the
+  same file.
+* **The exclusion is not marginal in size.** Sixty of the 120 C25 columns are
+  signal. Candidate 1 would take eight of them, and the two `Luminance` columns
+  are 30-row decay curves — exactly the shape a replicate-based test is there to
+  read.
+
+### E10 — the column decomposition
+
+Confirmed from the probe rather than from arithmetic over reported totals.
+
+| | Columns | Axis | Signal |
+|---|---|---|---|
+| C25 | 120 | 60 | 60 |
+| C15 | 18 | 0 | 18 |
+| Total | 138 | 60 | 78 |
+
+Every figure matches the stated decomposition exactly.
+
+---
+
+## Part 2 — the distributions
+
+First-difference coefficient of variation for all three populations. Percentiles
+by linear interpolation between closest ranks — the definition R and numpy use
+by default, named because a nearest-rank reading gives different numbers on
+populations this small.
+
+| Population | n | min | 5th | 25th | 50th | 75th | 95th | max |
+|---|---|---|---|---|---|---|---|---|
+| axis sheet columns | 60 | 0 | 0 | 0.0001339 | 0.01910 | 0.1298 | 0.2704 | 0.3646 |
+| non-axis sheet columns | 78 | 0.1499 | 0.1859 | 2.655 | 12.05 | 40.07 | 2802 | 8062 |
+| fixture data columns | 159 | 14.39 | 22.05 | 55.81 | 168.8 | 843.3 | 9787 | 133,800 |
+
+One column has no defined coefficient of variation and is excluded from its
+population rather than counted as zero: `14-crctest-survey.csv / Q1`, whose mean
+first difference is exactly 0. Both sheet populations are complete.
+
+### The overlap, stated directly
+
+**Six of the 78 non-axis sheet columns sit below the axis population's maximum
+of 0.3646.** All six are `Fig. 4b`'s `ln(Tm2/βh)`, spanning 0.1499 to 0.1976 —
+the same six columns Part 1 adjudicated.
+
+**Fourteen of the 60 axis columns sit above the non-axis population's minimum of
+0.1499:**
+
+| Header | Columns | Range |
+|---|---|---|
+| `Temperature (K)` | 8 | 0.1568 to 0.2506 |
+| `Time (s)` | 1 | 0.1984 |
+| `1/(KB*Tm) (eV-1)` | 5 | 0.2490 to 0.3646 |
+
+The two sheet populations overlap on **[0.1499, 0.3646]**, and twenty columns lie
+inside that interval — six signal and fourteen axis. The overlap is not a
+one-sided artefact of a handful of odd columns on one side.
+
+Set against the far neighbour, the separation is of a different order: every
+sheet column with a defined coefficient of variation is at or below 8062, and
+every fixture column is at or above 14.39, but those two ranges overlap heavily.
+It is only the *axis* population that clears the fixtures — its maximum of 0.3646
+sits a factor of forty below the fixture minimum.
+
+### Candidate 6 — first-difference CV below a threshold, no monotonicity condition
+
+Reported as a curve. No threshold is chosen here: which one to take depends on
+how much of each population a rule may lose, and that is not a question this
+census holds. A column with no defined coefficient of variation is not selected.
+
+| Threshold | Axis selected (of 60) | Non-axis sheet selected (of 78) | Fixture selected (of 160) |
+|---|---|---|---|
+| < 0.01 | 26 | 0 | 0 |
+| < 0.02 | 32 | 0 | 0 |
+| < 0.05 | 38 | 0 | 0 |
+| < 0.1 | 42 | 0 | 0 |
+| < 0.15 | 46 | 1 | 0 |
+| < 0.2 | 50 | 6 | 0 |
+| < 0.3 | 57 | 6 | 0 |
+| < 0.5 | 60 | 6 | 0 |
+| < 1 | 60 | 7 | 0 |
+| < 2 | 60 | 16 | 0 |
+| < 5 | 60 | 29 | 0 |
+| < 10 | 60 | 35 | 0 |
+| < 15 | 60 | 45 | 1 |
+
+Read across, the curve says three things. The fixture column stays at zero until
+the threshold passes 14.39, so on the far neighbour this candidate behaves like
+the other four. The axis column reaches 60 of 60 at 0.5 and never rises further,
+because the axis population is bounded at 0.3646. And the non-axis column is
+flat at 6 across the whole band from 0.2 to 0.5 — those six being the `Fig. 4b`
+ordinates and nothing else.
+
+---
+
+## Part 3 — validity check on the six truncated columns
+
+Six columns reach the battery with a smaller range than deposited. A truncated
+column's first-difference coefficient of variation is computed over the surviving
+part, so the numbers in Part 2 may describe something the file does not contain.
+
+| Sheet | Group / header | Population | CV as computed | CV pre-trim |
+|---|---|---|---|---|
+| C25 / Fig. 2b | Phosphorescence / `Wavelength (nm)` | axis | 1.138e-13 | 2.439e-13 |
+| C25 / Fig. 2b | Phosphorescence / `Intensity (a.u.)` | non-axis | 13.71 | **10,270** |
+| C25 / Fig. 2f | TL curves (6 h) / `Temperature (K)` | axis | 0.2152 | 0.3097 |
+| C25 / Fig. 3b-c | TL curves 2 K/min / `Temperature (K)` | axis | 0.2283 | 0.1927 |
+| C25 / Fig. 3b-c | TL curves 2 K/min / `TL intensity (a.u.)` | non-axis | 11.49 | 18.75 |
+| C25 / Fig. 3d | Absorption of TPBi•+ / `Wavelength (nm)` | axis | 0 | 0 |
+
+Four fall in the axis population and two in the non-axis population. The pre-trim
+values are reachable on all six.
+
+**One of the six is distorted by a factor of 750.** `Fig. 2b`'s phosphorescence
+intensity reads 13.71 as analysed and 10,270 as deposited, because the trim keeps
+only the first fifth of that spectrum and the surviving part is its dim tail —
+maximum 5.585 against 2,352 in the file. The other five move by less than a
+factor of two, and one of them moves downward.
+
+### Do the six move Part 2?
+
+**No percentile boundary moves.** The minimum and the maximum of both sheet
+populations are unchanged. Eight interior percentiles move, all by small amounts:
+
+| Population | Percentile | With the six | Without |
+|---|---|---|---|
+| axis | 25th | 0.0001339 | 0.0001762 |
+| axis | 75th | 0.1298 | 0.1106 |
+| axis | 95th | 0.2704 | 0.2807 |
+| non-axis | 5th | 0.1859 | 0.1847 |
+| non-axis | 25th | 2.655 | 2.594 |
+| non-axis | 50th | 12.05 | 12.00 |
+| non-axis | 75th | 40.07 | 40.80 |
+| non-axis | 95th | 2802 | 2833 |
+
+The fixture population is untouched — no fixture loses a row at either trim
+stage.
+
+Two cross-checks, measured rather than read off the sheet names:
+
+* **The six are disjoint from Part 1's eight.** The truncated columns are on
+  `Fig. 2b`, `Fig. 2f`, `Fig. 3b-c` and `Fig. 3d`; the eight are on `Fig. 4b` and
+  `Fig. 4e`. Part 1's adjudication is untouched.
+* **Neither overlap endpoint is a truncated column.** The axis maximum 0.3646 is
+  `Fig. 4b`'s `1/(KB*Tm) (eV-1)` and the non-axis minimum 0.1499 is `Fig. 4b`'s
+  `ln(Tm2/βh)`. So the overlap interval, which is the pass's central measurement,
+  does not rest on a truncated number.
+
+### The truncation itself
+
+Recorded in one paragraph and not investigated further, which is where this
+dispatch scopes it. The parse-stage trim silently shortens six columns, and on
+one of them it changes a distributional statistic by nearly three orders of
+magnitude. Every replicate-based test in the battery reads the truncated column,
+not the deposited one, so the effect is not confined to this census — it reaches
+any statistic computed on `Fig. 2b`'s phosphorescence group. Sizing that, and
+whether it bears on C25's recorded adjudication, is separate work and is not
+opened here.
+
+---
+
+## Verification — second pass
+
+| | Expectation | Result |
+|---|---|---|
+| **E9** | The eight sit mostly in C15 | **INVERTED** — all eight are in C25, none in C15, and they are the case the dispatch named as the dangerous one |
+| **E10** | 60 axis and 60 signal in C25 plus 18 in C15, summing to 138 with 78 non-axis | **CONFIRMED** — every figure exact |
+| **E11** | The two sheet populations overlap | **held** — overlap interval [0.1499, 0.3646], holding six signal and fourteen axis columns |
+
+**E9 is the inversion and it carries the pass.** The lean was that an ecology
+sheet would supply a sorted or index-like column and that C25's spectra would be
+safe. The opposite is true: C15 contributes nothing, and both offenders are C25
+measurement columns — an Arrhenius ordinate and an OLED decay curve. Candidate 1
+therefore excludes real data, and on `Fig. 4e` which real data it excludes is
+settled by measurement noise rather than by anything structural.
+
+### Reproduction
+
+```bash
+node test/probes/probe-s375-p93-census.mjs --pass2    # this pass only
+node test/probes/probe-s375-p93-census.mjs            # both passes
+```
+
+`--pass2` runs the sheet and fixture censuses first, because it is arithmetic
+over what they return.
