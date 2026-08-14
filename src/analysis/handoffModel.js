@@ -35,6 +35,12 @@ import { computeSeverity } from "./severity.js";
 import { classifyCoverage, clusterCoverageState, isWithheld, summarizeCoverage } from "./coverage.js";
 import { fmtP } from "../constants/thresholds.js";
 import { composeFinding } from "./findingComposers.js";
+// S374 (P155) — the row mapper the cards already use. Imported rather than
+// re-derived: `toFileRow(n) = n + skippedRows + headerRows`, and a second copy
+// of that arithmetic here is how the prompt and the cards drift apart.
+// excelExport.js already imports from this module, so a non-component consumer
+// of it is the established shape.
+import { makeRowMapper } from "../components/shared/coordinates.js";
 
 // S156 D5 Outcome ladder (locked). Engine severity 0–3 → outcome positions
 // 1–4 of 4. Renderer formats as "Outcome: {tier+1} of 4 — {label}".
@@ -210,13 +216,19 @@ function buildOutcome(severity, results) {
   };
 }
 
-function buildFindings(results, dataset) {
+function buildFindings(results, dataset, toFileRow) {
   // ctx shape (S162b): minimal dataset slice the composers consume.
   // Conditions are the only branching signal used today (IRC's multi-
   // condition naming, SelNoise's per-condition narration). Threading the
   // full dataset slot keeps the door open for nRows / nCols / vstLabel
   // usage as composers extend.
-  const ctx = { dataset };
+  //
+  // S374 (P155): ctx also carries toFileRow. Producers emit 1-indexed MATRIX
+  // rows; the cards convert and this prompt did not, so the two disagreed by
+  // (skippedRows + headerRows) on every fixture. Composers apply it at each
+  // coordinate they print — never as a wrapper over the whole string, because
+  // the same findings also print row COUNTS, which must not move.
+  const ctx = { dataset, toFileRow };
   const conditions = dataset.conditions;
   const high = results.filter(r => r.flag === "HIGH").map(r => buildFinding(r, ctx));
   const moderate = results.filter(r => r.flag === "MODERATE").map(r => buildFinding(r, ctx));
@@ -395,9 +407,12 @@ export function formatSkipDetail(r) {
 export function buildHandoffModel(results, importConfig, nRows, nCols) {
   const { severity } = computeSeverity(results);
   const dataset = buildDataset(importConfig, nRows, nCols);
+  // No rowMap here: the §4 prompt reports against the matrix the battery ran
+  // on, which is the same basis the cards pass when they hold no rowMap.
+  const { toFileRow } = makeRowMapper(importConfig, null);
   return {
     dataset,
     outcome: buildOutcome(severity, results),
-    findings: buildFindings(results, dataset),
+    findings: buildFindings(results, dataset, toFileRow),
   };
 }
