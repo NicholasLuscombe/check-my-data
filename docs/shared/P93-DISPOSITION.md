@@ -10,12 +10,14 @@ replaced with the census's own count. §10's corrections to other documents were
 three of the five were wrong about what those documents say. **A second correcting commit followed
 the adversarial read** — see §11.
 
-**What S377 changed, and it is the larger of the two.** A read-only survey of the implementation
+**What S377 changed, and it is the larger of the two.** Two read-only surveys of the implementation
 surface found that **a hold-out is a methodology change and this document decided it as an interface
-change.** Removing columns from a group changes the multiplicity correction of every surviving
-pair-family test on that file. §5 now carries that, §6 carries the disclosure it forces, and §7 carries
-it as a specification item. Two further findings: §5's empty-group case is a throw rather than a silent
-fall-through, and §6's point 4 already fails in the hold-out mechanism that ships today. See §12.
+change.** Removing columns changes the multiplicity correction of every surviving pair-family test on
+that file. §5 now carries that, §6 carries the disclosure it forces, and §7 carries the decisions.
+Three further findings: §5's empty-group case is a throw rather than a silent fall-through; §6's point
+4 already fails in the hold-out mechanism that ships today; and **the unit of a hold-out — per group or
+per sheet — is undecided, gives different consequences over different tests, and the engine already
+assumes one of the two answers in a comment.** See §12.
 
 **The adversarial read has run and §3 and §6 both fell.** §4's measurements were not attacked. What
 changed is the framing above them and the default below them: the third-category claim is demoted to a
@@ -227,6 +229,18 @@ by an ordinary user action.
 consequence for the decision is in §6 point 7. The consequence for scoping is that a hold-out cannot be
 specified as an import-view feature alone.
 
+### The unit of a hold-out is not settled, and the engine already assumes one
+
+**The six tests are not dispatched alike.** Selective Noise and Regional Noise run per column group;
+Noise Scaling, Within-Row Variance and both Mahalanobis tests run on the whole matrix. So the
+consequence depends on what a hold-out is a hold-out *of*. **A four-column sheet losing two drops all
+six. A four-column group losing two drops two**, and only where two or more groups survive.
+
+`engine.js:500` states the assumption in its own comment: **"Column count is a whole-dataset fact."**
+A per-group hold-out falsifies that while the sites that read it keep reading it the old way. **The
+unit is therefore not a UI question.** It is §7's first item and everything else in this section
+depends on which answer it takes.
+
 ### The empty-group case is a throw, not a silent fall-through
 
 At any threshold in the plateau the rule selects **both** columns of all six `Fig. 4b` groups — the
@@ -284,10 +298,10 @@ applies is a heuristic standing in for knowledge it does not have.
    what it does today: report that the file has no rows.
 6. **If nothing is suggested, behaviour is unchanged.** The fallback is current behaviour, not a silent
    drop — the same self-validating property the group-attribute rule was built on.
-7. **The interface states the multiplicity consequence at the point of the click.** Holding a column
-   out silences some tests and removes the multiplicity correction from others. **A user cannot consent
-   to a methodology change that is described to them as a display preference.** The wording is not
-   settled here; that it must be said is.
+7. **The interface states the multiplicity consequence at the point of the click, and the report
+   carries it afterwards.** Holding a column out silences some tests and removes the multiplicity
+   correction from others. **A user cannot consent to a methodology change that is described to them
+   as a display preference.** Both mechanisms were decided at S377 and neither is new — see §7.
 
 **The pre-tick was proposed at S375 and is dropped at S376.** A pre-ticked suggestion that informs
 rather than gates, on a user who does not engage, **is automatic exclusion with disclosure.** This
@@ -336,11 +350,28 @@ would have removed every column and produced nothing, and no reader would have k
   depends on the row set, so the statistic is not the same statistic in the two places. The plateau's
   edges were measured on the census's matrix and **which one that was has not been established.**
   Nothing downstream should quote 0.3646 or 0.8481 until it is.
-- **What the multiplicity disclosure says**, per §6 point 7. Not the wording — the content, and which
-  surface carries it.
-- **Whether the correction families are rebuilt or the hold-out is refused when they would collapse.**
-  §5 states the consequence. It does not choose between disclosing it, adjusting for it, or blocking
-  the click that causes it. **This is a methodology decision and it is Chat's.**
+- **The unit of the hold-out — per group or per sheet. Undecided, and it comes first.** §5 shows the
+  two give different consequences over different tests, and `engine.js:500` already assumes the
+  whole-dataset answer. Everything below depends on it.
+- **The N/A half is decided at S377: `columnsNotReplicates`, with its wording corrected. Not an
+  eighteenth code.** It is user-triggered, it is about the replicate status of columns, it is a decline
+  rather than a shortfall, and `condSkip` already runs first in the dispatch chain for five of the six.
+  **What forces a change either way is that all six currently compose one sentence — "this file does
+  not have enough replicate columns" — which under a hold-out is false about the file.** The file has
+  them; the user removed them. A false sentence cannot ship, so a wording changes regardless, and
+  changing one inside an existing code beats adding a code. The corrected wording must drop the
+  *separate conditions* reading, which a held-out axis is not.
+- **The multiplicity half is decided at S377: `ForestPlot`'s `multiplicityNote`, carrying the change
+  rather than the size.** Nine of the ten affected tests already publish family size, and the slot
+  exists with a documented purpose — Autocorrelation uses it and Row-Mean Runs documents why it omits
+  one. **What is missing is not the quantity but the fact that it moved.** The note states the family
+  size against its untouched size, and states explicitly that no correction was applied when `m = 1`.
+  **Constant-Offset is the sole exception** and needs its column-pair family published first;
+  `totalConsecutivePairs` counts row pairs, not column pairs.
+- **Rebuilding the families is rejected, and so is refusing the click.** There is nothing to rebuild —
+  a family is small because the comparisons are few, and correcting one comparison as though it were
+  six invents multiplicity that does not exist. Refusing the click makes the tool insist on analysing
+  a pair that was never a pair, **which is P93 enforced rather than fixed.**
 
 ---
 
@@ -483,3 +514,33 @@ computed before the battery runs.
 **One friction was found and not resolved, correctly.** §7's matrix question — the role stage runs
 pre-trim, the battery runs post-trim, and the statistic depends on the row set. It is now §7's fourth
 bullet.
+
+### Part 3, read at S377: what `NA_CAUSE` can and cannot carry
+
+Full record in `docs/shared/S377-NA-CAUSE-HOLDOUT-FIT.md`. **Four expectations: two held, one split,
+one broke, and the break decided half the question.**
+
+**The enum ships seventeen codes and fourteen are reached on the corpus.** The three unreached were
+measured from `test/flag-matrix.json` rather than cited: `columnsNotReplicates`, `singularComputation`
+and `scanCapExceeded`.
+
+**No N/A result carries provenance anywhere.** But two codes already have a user action as their
+trigger — `columnsNotReplicates` and `rowOrderArbitrary` — and both handle it the same way: they assert
+what the data *is* and leave who decided unrecorded. The import layer does track it, in
+`rowSemanticsAuto`, and keeps it outside the enum.
+
+**All six candidate tests return `TOO_FEW_COLUMNS` and compose from one shared constant**, so under a
+hold-out they would render as a single §5 cluster carrying a sentence that is false about the file.
+Fourteen modules define a tail against that constant.
+
+**The multiplicity quantity is already published and the change is not.** Nine of ten affected tests
+expose family size, provably the same array `bhFDR` was called on in several. `ForestPlot` carries a
+documented `multiplicityNote` slot. **The gap is that nothing records the number moved, that `m = 1` is
+no correction, or that several collapses share one cause.** That inversion is why §7 needs no new
+mechanism.
+
+**Three findings outside the brief, none of them P93's.** `naCause.js:5` says nothing reads it against
+nine live readers, and that comment is Chat-owned. `confirmGrouping.js:149` hand-writes its
+`TOO_FEW_COLUMNS` sentence instead of using the shared cause, so it would not join the §5 cluster.
+And the contract's fixed-denominator requirement **is already failed by the shipped display on 69 of
+135 cluster instances**, independently of anything here.
