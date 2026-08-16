@@ -1,0 +1,1578 @@
+S378 — P93 axis counterfactual: three arms over the fifteen column-grouped sheets
+
+corpus: /Users/hedgehog/Projects/check-my-data/corpus-data
+
+enumeration gate: 15 column-grouped sheets, 138 columns, 60 axes
+
+════════════════════════════════════════════════════════════════════════════════════════════════════
+Output 1 — structural table, per sheet per arm (no test has run)
+════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  A = as deposited.  B = axes held out.  C = grouping suppressed, all columns kept.
+
+  sheet            axes  arm  type            grp  cols  rows   paired  vst   group widths
+  C25/Fig. 2b      4     A    column-grouped  4    8     401    true    log   2/2/2/2
+                         B    none            0    4     401    false   log   —
+                         C    none            0    8     401    false   log   —
+
+  C25/Fig. 2d      3     A    column-grouped  3    6     3600   true    log   2/2/2
+                         B    none            0    3     3600   false   log   —
+                         C    none            0    6     3600   false   log   —
+
+  C25/Fig. 2e      3     A    column-grouped  3    6     300    true    log   2/2/2
+                         B    none            0    3     300    false   log   —
+                         C    none            0    6     300    false   log   —
+
+  C25/Fig. 2f      7     A    column-grouped  7    14    22     true    log   2/2/2/2/2/2/2
+                         B    none            0    7     22     false   log   —
+                         C    none            0    14    22     false   log   —
+
+  C25/Fig. 3b-c    5     A    column-grouped  5    10    606    true    log   2/2/2/2/2
+                         B    none            0    5     606    false   log   —
+                         C    none            0    10    606    false   log   —
+
+  C25/Fig. 3d      5     A    column-grouped  5    10    395    true    log   2/2/2/2/2
+                         B    none            0    5     395    false   log   —
+                         C    none            0    10    395    false   log   —
+
+  C25/Fig. 3f      3     A    column-grouped  3    6     307    true    raw   2/2/2
+                         B    none            0    3     307    false   raw   —
+                         C    none            0    6     307    false   raw   —
+
+  C25/Fig. 3g      10    A    column-grouped  5    20    1362   true    log   4/4/4/4/4
+                         B    column-grouped  5    10    1362   true    log   2/2/2/2/2
+                         C    none            0    20    1362   false   log   —
+
+  C25/Fig. 4b      6     A    column-grouped  6    12    5      true    raw   2/2/2/2/2/2
+                         B    none            0    6     5      false   raw   —
+                         C    none            0    12    5      false   raw   —
+
+  C25/Fig. 4c      6     A    column-grouped  6    12    656    true    log   2/2/2/2/2/2
+                         B    none            0    6     656    false   log   —
+                         C    none            0    12    656    false   log   —
+
+  C25/Fig. 4e      5     A    column-grouped  5    10    30     true    log   2/2/2/2/2
+                         B    none            0    5     30     false   raw   —
+                         C    none            0    10    30     false   log   —
+
+  C25/Fig. 4f      3     A    column-grouped  3    6     100    true    log   2/2/2
+                         B    none            0    3     100    false   log   —
+                         C    none            0    6     100    false   log   —
+
+  C15/Fig. 2       0     A    column-grouped  3    6     6      true    raw   2/2/2
+                         B    column-grouped  3    6     6      true    raw   2/2/2
+                         C    none            0    6     6      false   raw   —
+
+  C15/Fig. 5       0     A    column-grouped  3    6     6      true    raw   2/2/2
+                         B    column-grouped  3    6     6      true    raw   2/2/2
+                         C    none            0    6     6      false   raw   —
+
+  C15/Fig. S1      0     A    column-grouped  3    6     6      true    raw   2/2/2
+                         B    column-grouped  3    6     6      true    raw   2/2/2
+                         C    none            0    6     6      false   raw   —
+
+  Agreement with S378 part 1 (arm B type / group count / paired):
+
+    all fifteen agree with part 1.
+
+  collapse: 11 sheet(s) reclassify to type 'none' in arm B and lose pairing
+            1 axis-bearing sheet(s) keep column grouping: C25/Fig. 3g
+            3 sheet(s) carry no axis (negative control): C15/Fig. 2, C15/Fig. 5, C15/Fig. S1
+
+════════════════════════════════════════════════════════════════════════════════════════════════════
+Cost gate — one battery run on the largest sheet before committing to 45
+════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  timing arm A on C25/Fig. 2d (3600 x 6)...
+  one run: 7.3 s
+  projected 45 runs: 5.5 min (upper bound — this is the largest sheet)
+  within the ~20 min budget — proceeding
+
+════════════════════════════════════════════════════════════════════════════════════════════════════
+Full run — 15 sheets x 3 arms
+════════════════════════════════════════════════════════════════════════════════════════════════════
+
+.............................................
+
+  45 runs in 8.3 min
+
+════════════════════════════════════════════════════════════════════════════════════════════════════
+Control — the three no-axis sheets must be identical in arms A and B
+════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  C15/Fig. 2       zero diff — held
+  C15/Fig. 5       zero diff — held
+  C15/Fig. S1      zero diff — held
+
+  All three hold. The C25 rows are readable.
+
+══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+Output 2 — per test, per arm. flag:naCause, primaryP, correction family, dispatch surface
+══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  Quarantined tests are marked [Q] and excluded from every diff total below. Family is
+  whatever the test publishes; blank means it publishes none, which is not the same as zero.
+
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  C25/Fig. 2b   4 axis column(s) of 8
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  arm A: column-grouped, 4 groups, 8 cols, paired=true, vst=log  ->  severity 3 (10 HIGH, 3 MOD)
+  arm B: none, 0 groups, 4 cols, paired=false, vst=log  ->  severity 3 (13 HIGH, 2 MOD)
+  arm C: none, 0 groups, 8 cols, paired=false, vst=log  ->  severity 3 (14 HIGH, 3 MOD)
+
+  test                             A                              B                              C                              surf
+  Benford's Law (First Digit)      HIGH 0.000200                  HIGH 0.000200                  HIGH 0.000200                  MMM
+  Benford's Law (Second Digit)     HIGH 0.000200                  HIGH 0.000200                  HIGH 0.000200                  MMM
+  Terminal Digit Uniformity        HIGH 0.00                      HIGH 0.00000363                HIGH 0.00                      MMM
+  Decimal Precision Consistency    LOW 1.00                       LOW 1.00                       LOW 1.00                       MMM
+  Value-Frequency Spike            N/A:dataTypeMismatch —         HIGH 0.000191 {nTested=613}    N/A:dataTypeMismatch —         MMM
+  Inter-Replicate Correlation      LOW 1.00 {nPairs=4}            HIGH 0.00 {nPairs=6}           HIGH 0.00 {nPairs=28}          MMM
+  Exact Duplicate Detection        HIGH 9.69e-149                 LOW 0.370                      HIGH 0.00                      GMM
+  Sequential Duplication           HIGH 2.21e-123                 HIGH 2.21e-123                 HIGH 2.21e-123                 MMM
+  Constant-Offset Blocks           MODERATE 0.00100               LOW 0.226                      MODERATE 0.00100               MMM
+  [Q] Residual Spike Correlation   N/A:subjectsSharedAcrossCondi  N/A:premiseVoid —              N/A:premiseVoid —              MMM
+  Baseline Balance                 LOW 0.00                       N/A:tooFewConditions —         N/A:tooFewConditions —         MMM
+  Cross-Condition Rank Correlatio  MODERATE 0.00                  N/A:tooFewConditions —         N/A:tooFewConditions —         MMM
+  [Q] Cross-Condition Consistency  N/A:subjectsSharedAcrossCondi  N/A:tooFewConditions —         N/A:tooFewConditions —         MMM
+  Mahalanobis Row Outlier          N/A:tooFewColumns —            LOW 0.331 {nCols=4}            N/A:singularComputation —      MMM
+  Blocked Mahalanobis              N/A:tooFewRows —               HIGH 0.000200 {nUnits=2}       HIGH 0.000200 {nUnits=2}       MMM
+  Noise Scaling With Measurement   LOW 1.00                       LOW 0.866                      LOW 1.00                       MMM
+  Excess Kurtosis                  LOW 0.000500 {nPairs=1}        LOW 0.000500 {nPairs=6}        LOW 0.00100 {nPairs=27}        GMM
+  Entropy / Zipf Analysis          LOW 0.00229 {nTested=8}        LOW 0.00267 {nTested=4}        LOW 0.00229 {nTested=8}        MMM
+  Column Goodness-of-Fit           HIGH 0.00100 {nTested=2}       HIGH 0.00100 {nTested=2}       HIGH 0.00100 {nTested=2}       MMM
+  Modality Test                    LOW 0.955 {nTested=4}          LOW 0.955 {nTested=4}          LOW 0.955 {nTested=4}          MMM
+  Autocorrelation                  HIGH 0.00 {nPairs=1}           HIGH 0.00 {nPairs=6}           HIGH 0.00 {nPairs=28}          GMM
+  Windowed Autocorrelation         MODERATE 0.00147 {nPairs=1}    MODERATE 0.00520 {nPairs=6}    MODERATE 0.00100 {nPairs=28}   GMM
+  Runs Test                        LOW 1.00 {nPairs=0}            HIGH 1.70e-10 {nPairs=2}       HIGH 2.56e-10 {nPairs=3}       GMM
+  Within-Row Variance              HIGH 0.00                      LOW 1.00                       HIGH 0.00                      MMM
+  LOESS Residual Analysis          HIGH 0.000400                  MODERATE 0.00400               MODERATE 0.00400               GMM
+  Row-Mean Runs                    N/A:premiseVoid —              N/A:premiseVoid —              N/A:premiseVoid —              MMM
+  Selective Noise Partitioning     N/A:tooFewColumns —            HIGH 0.00                      HIGH 0.00                      MMM
+  Regional Noise Homogeneity       N/A:tooFewColumns —            HIGH 0.000800                  HIGH 0.000200                  MMM
+  Missing Data Pattern             HIGH 1.44e-238                 HIGH 9.74e-120                 HIGH 1.44e-238                 MMM
+
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  C25/Fig. 2d   3 axis column(s) of 6
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  arm A: column-grouped, 3 groups, 6 cols, paired=true, vst=log  ->  severity 3 (9 HIGH, 0 MOD)
+  arm B: none, 0 groups, 3 cols, paired=false, vst=log  ->  severity 3 (8 HIGH, 4 MOD)
+  arm C: none, 0 groups, 6 cols, paired=false, vst=log  ->  severity 3 (11 HIGH, 4 MOD)
+
+  test                             A                              B                              C                              surf
+  Benford's Law (First Digit)      HIGH 0.000200                  HIGH 0.000200                  HIGH 0.000200                  MMM
+  Benford's Law (Second Digit)     LOW 0.000200                   LOW 0.000200                   LOW 0.000200                   MMM
+  Terminal Digit Uniformity        HIGH 0.00                      LOW 0.557                      HIGH 0.00                      MMM
+  Decimal Precision Consistency    HIGH 0.00                      HIGH 3.93e-226                 HIGH 0.00                      MMM
+  Value-Frequency Spike            HIGH 0.000155 {nTested=351}    HIGH 0.000155 {nTested=318}    HIGH 0.000155 {nTested=351}    MMM
+  Inter-Replicate Correlation      LOW 1.00 {nPairs=3}            MODERATE 4.02e-8 {nPairs=3}    HIGH 0.00 {nPairs=15}          MMM
+  Exact Duplicate Detection        HIGH 0.00                      HIGH 7.46e-10                  HIGH 0.00                      GMM
+  Sequential Duplication           LOW 0.601                      LOW 0.601                      LOW 0.601                      MMM
+  Constant-Offset Blocks           LOW 0.00200                    LOW 0.00200                    LOW 0.00200                    MMM
+  [Q] Residual Spike Correlation   N/A:subjectsSharedAcrossCondi  N/A:premiseVoid —              N/A:premiseVoid —              MMM
+  Baseline Balance                 HIGH 0.00                      N/A:tooFewConditions —         N/A:tooFewConditions —         MMM
+  Cross-Condition Rank Correlatio  N/A:premiseVoid —              N/A:tooFewConditions —         N/A:tooFewConditions —         MMM
+  [Q] Cross-Condition Consistency  N/A:subjectsSharedAcrossCondi  N/A:tooFewConditions —         N/A:tooFewConditions —         MMM
+  Mahalanobis Row Outlier          N/A:tooFewColumns —            HIGH 0.00 {nCols=3}            HIGH 0.00 {nCols=6}            MMM
+  Blocked Mahalanobis              N/A:tooFewRows —               MODERATE 0.00200 {nUnits=2}    MODERATE 0.00200 {nUnits=2}    MMM
+  Noise Scaling With Measurement   LOW 0.116                      LOW 1.00                       LOW 0.116                      MMM
+  Excess Kurtosis                  LOW 1.00 {nPairs=1}            LOW 1.00 {nPairs=3}            HIGH 0.000500 {nPairs=15}      GMM
+  Entropy / Zipf Analysis          LOW 0.00300 {nTested=6}        LOW 0.00200 {nTested=3}        LOW 0.00300 {nTested=6}        MMM
+  Column Goodness-of-Fit           N/A:shapeNotCovered —          N/A:shapeNotCovered —          N/A:shapeNotCovered —          MMM
+  Modality Test                    LOW 0.818 {nTested=3}          LOW 0.818 {nTested=3}          LOW 0.818 {nTested=3}          MMM
+  Autocorrelation                  HIGH 0.00 {nPairs=1}           HIGH 0.00 {nPairs=3}           HIGH 0.00 {nPairs=15}          GMM
+  Windowed Autocorrelation         LOW 0.00674 {nPairs=1}         LOW 0.0167 {nPairs=3}          MODERATE 0.00202 {nPairs=15}   GMM
+  Runs Test                        HIGH 0.00 {nPairs=1}           HIGH 0.00 {nPairs=3}           HIGH 0.00 {nPairs=14}          GMM
+  Within-Row Variance              LOW 1.00                       LOW 1.00                       LOW 1.00                       MMM
+  LOESS Residual Analysis          HIGH 0.00400                   MODERATE 0.00400               MODERATE 0.00400               GMM
+  Row-Mean Runs                    N/A:premiseVoid —              N/A:premiseVoid —              N/A:premiseVoid —              MMM
+  Selective Noise Partitioning     N/A:tooFewColumns —            HIGH 0.00                      HIGH 0.00                      MMM
+  Regional Noise Homogeneity       N/A:tooFewColumns —            MODERATE 0.00200               MODERATE 0.00200               MMM
+  Missing Data Pattern             N/A:missingnessOutOfBand —     N/A:missingnessOutOfBand —     N/A:missingnessOutOfBand —     MMM
+
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  C25/Fig. 2e   3 axis column(s) of 6
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  arm A: column-grouped, 3 groups, 6 cols, paired=true, vst=log  ->  severity 3 (8 HIGH, 3 MOD)
+  arm B: none, 0 groups, 3 cols, paired=false, vst=log  ->  severity 3 (6 HIGH, 3 MOD)
+  arm C: none, 0 groups, 6 cols, paired=false, vst=log  ->  severity 3 (11 HIGH, 5 MOD)
+
+  test                             A                              B                              C                              surf
+  Benford's Law (First Digit)      HIGH 0.000200                  N/A:rangeOutOfBand —           HIGH 0.000200                  MMM
+  Benford's Law (Second Digit)     MODERATE 0.00180               LOW 0.514                      MODERATE 0.00180               MMM
+  Terminal Digit Uniformity        HIGH 0.00                      LOW 0.247                      HIGH 0.00                      MMM
+  Decimal Precision Consistency    HIGH 7.69e-14                  LOW 0.782                      HIGH 7.69e-14                  MMM
+  Value-Frequency Spike            HIGH 0.000155 {nTested=30}     HIGH 0.000155 {nTested=1}      HIGH 0.000155 {nTested=30}     MMM
+  Inter-Replicate Correlation      LOW 1.00 {nPairs=3}            HIGH 0.00 {nPairs=3}           HIGH 0.00 {nPairs=15}          MMM
+  Exact Duplicate Detection        HIGH 0.0000624                 LOW 1.00                       HIGH 6.32e-17                  GMM
+  Sequential Duplication           LOW 1.00                       LOW 1.00                       LOW 1.00                       MMM
+  Constant-Offset Blocks           MODERATE 0.00100               LOW 0.0240                     MODERATE 0.00100               MMM
+  [Q] Residual Spike Correlation   N/A:subjectsSharedAcrossCondi  N/A:premiseVoid —              N/A:premiseVoid —              MMM
+  Baseline Balance                 HIGH 0.00                      N/A:tooFewConditions —         N/A:tooFewConditions —         MMM
+  Cross-Condition Rank Correlatio  N/A:premiseVoid —              N/A:tooFewConditions —         N/A:tooFewConditions —         MMM
+  [Q] Cross-Condition Consistency  N/A:subjectsSharedAcrossCondi  N/A:tooFewConditions —         N/A:tooFewConditions —         MMM
+  Mahalanobis Row Outlier          N/A:tooFewColumns —            LOW 0.00186 {nCols=3}          HIGH 0.00000173 {nCols=6}      MMM
+  Blocked Mahalanobis              N/A:tooFewRows —               HIGH 0.000200 {nUnits=2}       HIGH 0.000400 {nUnits=2}       MMM
+  Noise Scaling With Measurement   LOW 0.117                      LOW 1.00                       LOW 0.117                      MMM
+  Excess Kurtosis                  LOW 1.00 {nPairs=1}            LOW 1.00 {nPairs=3}            HIGH 0.000500 {nPairs=15}      GMM
+  Entropy / Zipf Analysis          LOW 0.0120 {nTested=6}         LOW 0.00600 {nTested=3}        LOW 0.0120 {nTested=6}         MMM
+  Column Goodness-of-Fit           N/A:shapeNotCovered —          N/A:shapeNotCovered —          N/A:shapeNotCovered —          MMM
+  Modality Test                    LOW 1.00 {nTested=3}           LOW 1.00 {nTested=3}           LOW 1.00 {nTested=3}           MMM
+  Autocorrelation                  HIGH 0.00 {nPairs=1}           HIGH 0.00 {nPairs=3}           HIGH 0.00 {nPairs=15}          GMM
+  Windowed Autocorrelation         MODERATE 0.00107 {nPairs=1}    MODERATE 0.00276 {nPairs=3}    MODERATE 0.00100 {nPairs=15}   GMM
+  Runs Test                        LOW 1.00 {nPairs=0}            HIGH 0.00 {nPairs=3}           HIGH 0.00 {nPairs=4}           GMM
+  Within-Row Variance              LOW 1.00                       HIGH 0.00                      LOW 1.00                       MMM
+  LOESS Residual Analysis          HIGH 0.00400                   MODERATE 0.00400               MODERATE 0.00400               GMM
+  Row-Mean Runs                    N/A:premiseVoid —              N/A:premiseVoid —              N/A:premiseVoid —              MMM
+  Selective Noise Partitioning     N/A:tooFewColumns —            LOW 0.0000444                  LOW 3.11e-9                    MMM
+  Regional Noise Homogeneity       N/A:tooFewColumns —            MODERATE 0.00200               MODERATE 0.00200               MMM
+  Missing Data Pattern             N/A:missingnessOutOfBand —     N/A:missingnessOutOfBand —     N/A:missingnessOutOfBand —     MMM
+
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  C25/Fig. 2f   7 axis column(s) of 14
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  arm A: column-grouped, 7 groups, 14 cols, paired=true, vst=log  ->  severity 3 (6 HIGH, 1 MOD)
+  arm B: none, 0 groups, 7 cols, paired=false, vst=log  ->  severity 3 (5 HIGH, 0 MOD)
+  arm C: none, 0 groups, 14 cols, paired=false, vst=log  ->  severity 3 (7 HIGH, 3 MOD)
+
+  test                             A                              B                              C                              surf
+  Benford's Law (First Digit)      HIGH 0.000200                  LOW 0.886                      HIGH 0.000200                  MMM
+  Benford's Law (Second Digit)     LOW 0.964                      LOW 0.571                      LOW 0.964                      MMM
+  Terminal Digit Uniformity        HIGH 0.000187                  LOW 0.109                      HIGH 0.000187                  MMM
+  Decimal Precision Consistency    HIGH 3.97e-12                  HIGH 0.00000503                HIGH 3.97e-12                  MMM
+  Value-Frequency Spike            N/A:dataTypeMismatch —         N/A:dataTypeMismatch —         N/A:dataTypeMismatch —         MMM
+  Inter-Replicate Correlation      LOW 1.00 {nPairs=7}            HIGH 1.31e-12 {nPairs=21}      HIGH 0.00 {nPairs=91}          MMM
+  Exact Duplicate Detection        HIGH 9.49e-30                  LOW 1.00                       HIGH 9.49e-30                  GMM
+  Sequential Duplication           LOW 1.00                       LOW 1.00                       LOW 1.00                       MMM
+  Constant-Offset Blocks           MODERATE 0.00100               LOW 1.00                       MODERATE 0.00100               MMM
+  [Q] Residual Spike Correlation   N/A:subjectsSharedAcrossCondi  N/A:premiseVoid —              N/A:premiseVoid —              MMM
+  Baseline Balance                 HIGH 0.00                      N/A:tooFewConditions —         N/A:tooFewConditions —         MMM
+  Cross-Condition Rank Correlatio  LOW 1.00                       N/A:tooFewConditions —         N/A:tooFewConditions —         MMM
+  [Q] Cross-Condition Consistency  N/A:subjectsSharedAcrossCondi  N/A:tooFewConditions —         N/A:tooFewConditions —         MMM
+  Mahalanobis Row Outlier          N/A:tooFewColumns —            N/A:tooFewRows —               N/A:tooFewRows —               MMM
+  Blocked Mahalanobis              N/A:tooFewRows —               N/A:tooFewRows —               N/A:tooFewRows —               MMM
+  Noise Scaling With Measurement   N/A:rangeOutOfBand —           LOW 1.00                       N/A:rangeOutOfBand —           MMM
+  Excess Kurtosis                  LOW 1.00 {nPairs=1}            LOW 0.000500 {nPairs=15}       MODERATE 0.00250 {nPairs=78}   GMM
+  Entropy / Zipf Analysis          LOW 0.0980 {nTested=14}        LOW 0.0280 {nTested=7}         LOW 0.0980 {nTested=14}        MMM
+  Column Goodness-of-Fit           N/A:tooFewObservations —       N/A:tooFewObservations —       N/A:tooFewObservations —       MMM
+  Modality Test                    N/A:tooFewObservations —       N/A:tooFewObservations —       N/A:tooFewObservations —       MMM
+  Autocorrelation                  HIGH 0.0000193 {nPairs=1}      HIGH 0.000217 {nPairs=21}      HIGH 0.0000925 {nPairs=91}     GMM
+  undefined                        N/A:tooFewRows —               (absent)                       (absent)                       M??
+  Runs Test                        LOW 1.00 {nPairs=0}            HIGH 0.0000409 {nPairs=4}      HIGH 0.000164 {nPairs=16}      GMM
+  Within-Row Variance              N/A:tooFewRows —               N/A:tooFewRows —               N/A:tooFewRows —               MMM
+  LOESS Residual Analysis          N/A:tooFewRows —               N/A:tooFewRows —               N/A:tooFewRows —               MMM
+  Row-Mean Runs                    N/A:premiseVoid —              N/A:premiseVoid —              N/A:premiseVoid —              MMM
+  Selective Noise Partitioning     N/A:tooFewColumns —            HIGH 0.000599                  MODERATE 0.00610               MMM
+  Regional Noise Homogeneity       N/A:tooFewColumns —            N/A:tooFewRows —               N/A:tooFewRows —               MMM
+  Missing Data Pattern             N/A:missingnessOutOfBand —     N/A:missingnessOutOfBand —     N/A:missingnessOutOfBand —     MMM
+
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  C25/Fig. 3b-c   5 axis column(s) of 10
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  arm A: column-grouped, 5 groups, 10 cols, paired=true, vst=log  ->  severity 3 (6 HIGH, 2 MOD)
+  arm B: none, 0 groups, 5 cols, paired=false, vst=log  ->  severity 3 (9 HIGH, 2 MOD)
+  arm C: none, 0 groups, 10 cols, paired=false, vst=log  ->  severity 3 (12 HIGH, 2 MOD)
+
+  test                             A                              B                              C                              surf
+  Benford's Law (First Digit)      HIGH 0.000200                  HIGH 0.000200                  HIGH 0.000200                  MMM
+  Benford's Law (Second Digit)     LOW 0.838                      LOW 0.0186                     LOW 0.838                      MMM
+  Terminal Digit Uniformity        LOW 0.274                      LOW 0.347                      LOW 0.274                      MMM
+  Decimal Precision Consistency    HIGH 7.33e-20                  LOW 0.366                      HIGH 7.33e-20                  MMM
+  Value-Frequency Spike            LOW 1.00 {nTested=18}          LOW 1.00 {nTested=18}          LOW 1.00 {nTested=18}          MMM
+  Inter-Replicate Correlation      LOW 1.00 {nPairs=5}            HIGH 0.00 {nPairs=10}          HIGH 0.00 {nPairs=45}          MMM
+  Exact Duplicate Detection        LOW 1.00                       LOW 1.00                       LOW 1.00                       GMM
+  Sequential Duplication           LOW 1.00                       LOW 1.00                       LOW 1.00                       MMM
+  Constant-Offset Blocks           LOW 0.00100                    LOW 0.00100                    LOW 0.00100                    MMM
+  [Q] Residual Spike Correlation   N/A:subjectsSharedAcrossCondi  N/A:premiseVoid —              N/A:premiseVoid —              MMM
+  Baseline Balance                 LOW 0.00                       N/A:tooFewConditions —         N/A:tooFewConditions —         MMM
+  Cross-Condition Rank Correlatio  MODERATE 0.000277              N/A:tooFewConditions —         N/A:tooFewConditions —         MMM
+  [Q] Cross-Condition Consistency  N/A:subjectsSharedAcrossCondi  N/A:tooFewConditions —         N/A:tooFewConditions —         MMM
+  Mahalanobis Row Outlier          N/A:tooFewColumns —            LOW 1.57e-8 {nCols=5}          HIGH 1.57e-8 {nCols=10}        MMM
+  Blocked Mahalanobis              N/A:tooFewRows —               HIGH 0.000200 {nUnits=2}       HIGH 0.000200 {nUnits=2}       MMM
+  Noise Scaling With Measurement   N/A:rangeOutOfBand —           LOW 0.165                      N/A:rangeOutOfBand —           MMM
+  Excess Kurtosis                  LOW 1.00 {nPairs=1}            LOW 0.000500 {nPairs=10}       HIGH 0.000500 {nPairs=45}      GMM
+  Entropy / Zipf Analysis          LOW 0.00500 {nTested=10}       LOW 0.0100 {nTested=5}         LOW 0.00500 {nTested=10}       MMM
+  Column Goodness-of-Fit           HIGH 0.00100 {nTested=1}       HIGH 0.00100 {nTested=1}       HIGH 0.00100 {nTested=1}       MMM
+  Modality Test                    LOW 1.00 {nTested=2}           LOW 1.00 {nTested=2}           LOW 1.00 {nTested=2}           MMM
+  Autocorrelation                  HIGH 6.00e-15 {nPairs=1}       HIGH 0.00 {nPairs=10}          HIGH 0.00 {nPairs=45}          GMM
+  Windowed Autocorrelation         MODERATE 0.00167 {nPairs=1}    MODERATE 0.00200 {nPairs=10}   MODERATE 0.00200 {nPairs=45}   GMM
+  Runs Test                        LOW 1.00 {nPairs=0}            HIGH 0.00 {nPairs=7}           HIGH 0.00 {nPairs=7}           GMM
+  Within-Row Variance              LOW 1.00                       LOW 1.00                       LOW 1.00                       MMM
+  LOESS Residual Analysis          HIGH 0.000400                  MODERATE 0.00400               MODERATE 0.00400               GMM
+  Row-Mean Runs                    N/A:premiseVoid —              N/A:premiseVoid —              N/A:premiseVoid —              MMM
+  Selective Noise Partitioning     N/A:tooFewColumns —            HIGH 0.00                      HIGH 0.00                      MMM
+  Regional Noise Homogeneity       N/A:tooFewColumns —            HIGH 0.000200                  HIGH 0.000200                  MMM
+  Missing Data Pattern             HIGH 4.21e-284                 HIGH 5.67e-141                 HIGH 4.21e-284                 MMM
+
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  C25/Fig. 3d   5 axis column(s) of 10
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  arm A: column-grouped, 5 groups, 10 cols, paired=true, vst=log  ->  severity 3 (10 HIGH, 4 MOD)
+  arm B: none, 0 groups, 5 cols, paired=false, vst=log  ->  severity 3 (13 HIGH, 5 MOD)
+  arm C: none, 0 groups, 10 cols, paired=false, vst=log  ->  severity 3 (12 HIGH, 6 MOD)
+
+  test                             A                              B                              C                              surf
+  Benford's Law (First Digit)      HIGH 0.000200                  HIGH 0.000200                  HIGH 0.000200                  MMM
+  Benford's Law (Second Digit)     HIGH 0.000200                  HIGH 0.000200                  HIGH 0.000200                  MMM
+  Terminal Digit Uniformity        HIGH 0.00                      LOW 0.0454                     HIGH 0.00                      MMM
+  Decimal Precision Consistency    HIGH 0.000463                  HIGH 0.000463                  HIGH 0.000463                  MMM
+  Value-Frequency Spike            N/A:dataTypeMismatch —         HIGH 0.0000192 {nTested=15}    N/A:dataTypeMismatch —         MMM
+  Inter-Replicate Correlation      LOW 1.00 {nPairs=5}            HIGH 0.00 {nPairs=10}          HIGH 0.00 {nPairs=45}          MMM
+  Exact Duplicate Detection        HIGH 5.08e-29                  LOW 1.00                       LOW 1.00                       GMM
+  Sequential Duplication           LOW 0.0211                     LOW 0.0211                     LOW 0.0211                     MMM
+  Constant-Offset Blocks           MODERATE 0.00100               LOW 0.0250                     MODERATE 0.00100               MMM
+  [Q] Residual Spike Correlation   N/A:subjectsSharedAcrossCondi  N/A:premiseVoid —              N/A:premiseVoid —              MMM
+  Baseline Balance                 HIGH 0.00                      N/A:tooFewConditions —         N/A:tooFewConditions —         MMM
+  Cross-Condition Rank Correlatio  LOW 1.00                       N/A:tooFewConditions —         N/A:tooFewConditions —         MMM
+  [Q] Cross-Condition Consistency  N/A:subjectsSharedAcrossCondi  N/A:tooFewConditions —         N/A:tooFewConditions —         MMM
+  Mahalanobis Row Outlier          N/A:tooFewColumns —            HIGH 0.00000331 {nCols=5}      N/A:singularComputation —      MMM
+  Blocked Mahalanobis              N/A:tooFewRows —               HIGH 0.000400 {nUnits=2}       HIGH 0.000200 {nUnits=2}       MMM
+  Noise Scaling With Measurement   N/A:rangeOutOfBand —           N/A:rangeOutOfBand —           N/A:rangeOutOfBand —           MMM
+  Excess Kurtosis                  LOW 1.00 {nPairs=1}            LOW 0.000500 {nPairs=10}       HIGH 0.000500 {nPairs=45}      GMM
+  Entropy / Zipf Analysis          MODERATE 0.00222 {nTested=10}  MODERATE 0.00250 {nTested=5}   MODERATE 0.00222 {nTested=10}  MMM
+  Column Goodness-of-Fit           HIGH 0.00100 {nTested=3}       HIGH 0.00100 {nTested=3}       HIGH 0.00100 {nTested=3}       MMM
+  Modality Test                    MODERATE 0.00400 {nTested=4}   MODERATE 0.00400 {nTested=4}   MODERATE 0.00400 {nTested=4}   MMM
+  Autocorrelation                  HIGH 0.00 {nPairs=1}           HIGH 0.00 {nPairs=10}          HIGH 0.00 {nPairs=45}          GMM
+  Windowed Autocorrelation         MODERATE 0.00362 {nPairs=1}    MODERATE 0.00108 {nPairs=10}   MODERATE 0.00105 {nPairs=45}   GMM
+  Runs Test                        LOW 1.00 {nPairs=0}            HIGH 0.00 {nPairs=10}          HIGH 0.00 {nPairs=10}          GMM
+  Within-Row Variance              LOW 1.00                       HIGH 0.00                      LOW 1.00                       MMM
+  LOESS Residual Analysis          HIGH 0.00400                   MODERATE 0.00400               MODERATE 0.00400               GMM
+  Row-Mean Runs                    N/A:premiseVoid —              N/A:premiseVoid —              N/A:premiseVoid —              MMM
+  Selective Noise Partitioning     N/A:tooFewColumns —            HIGH 0.00                      HIGH 0.00                      MMM
+  Regional Noise Homogeneity       N/A:tooFewColumns —            MODERATE 0.00200               MODERATE 0.00200               MMM
+  Missing Data Pattern             HIGH 3.68e-183                 HIGH 1.88e-90                  HIGH 3.68e-183                 MMM
+
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  C25/Fig. 3f   3 axis column(s) of 6
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  arm A: column-grouped, 3 groups, 6 cols, paired=true, vst=raw  ->  severity 3 (8 HIGH, 2 MOD)
+  arm B: none, 0 groups, 3 cols, paired=false, vst=raw  ->  severity 3 (6 HIGH, 3 MOD)
+  arm C: none, 0 groups, 6 cols, paired=false, vst=raw  ->  severity 3 (10 HIGH, 3 MOD)
+
+  test                             A                              B                              C                              surf
+  Benford's Law (First Digit)      N/A:shapeNotCovered —          N/A:shapeNotCovered —          N/A:shapeNotCovered —          MMM
+  Benford's Law (Second Digit)     HIGH 0.000200                  N/A:dataTypeMismatch —         HIGH 0.000200                  MMM
+  Terminal Digit Uniformity        HIGH 0.00                      N/A:dataTypeMismatch —         HIGH 0.00                      MMM
+  Decimal Precision Consistency    LOW 0.531                      N/A:tooFewRows —               LOW 0.531                      MMM
+  Value-Frequency Spike            HIGH 0.000155 {nTested=307}    N/A:rangeOutOfBand —           HIGH 0.000155 {nTested=307}    MMM
+  Inter-Replicate Correlation      LOW 1.00 {nPairs=3}            HIGH 0.00 {nPairs=3}           HIGH 0.00 {nPairs=15}          MMM
+  Exact Duplicate Detection        HIGH 0.00                      LOW 1.00                       HIGH 0.00                      GMM
+  Sequential Duplication           LOW 1.00                       LOW 1.00                       LOW 1.00                       MMM
+  Constant-Offset Blocks           LOW 1.00                       LOW 1.00                       LOW 1.00                       MMM
+  [Q] Residual Spike Correlation   N/A:subjectsSharedAcrossCondi  N/A:premiseVoid —              N/A:premiseVoid —              MMM
+  Baseline Balance                 LOW 0.00                       N/A:tooFewConditions —         N/A:tooFewConditions —         MMM
+  Cross-Condition Rank Correlatio  N/A:premiseVoid —              N/A:tooFewConditions —         N/A:tooFewConditions —         MMM
+  [Q] Cross-Condition Consistency  N/A:subjectsSharedAcrossCondi  N/A:tooFewConditions —         N/A:tooFewConditions —         MMM
+  Mahalanobis Row Outlier          N/A:tooFewColumns —            LOW 0.0121 {nCols=3}           N/A:singularComputation —      MMM
+  Blocked Mahalanobis              N/A:tooFewRows —               HIGH 0.000400 {nUnits=2}       HIGH 0.000400 {nUnits=2}       MMM
+  Noise Scaling With Measurement   LOW 1.00                       LOW 1.00                       LOW 1.00                       MMM
+  Excess Kurtosis                  MODERATE 0.000500 {nPairs=1}   LOW 1.00 {nPairs=3}            LOW 0.0120 {nPairs=12}         GMM
+  Entropy / Zipf Analysis          LOW 0.180 {nTested=6}          LOW 0.0960 {nTested=3}         LOW 0.180 {nTested=6}          MMM
+  Column Goodness-of-Fit           HIGH 0.00100 {nTested=2}       HIGH 0.00100 {nTested=2}       HIGH 0.00100 {nTested=2}       MMM
+  Modality Test                    LOW 0.973 {nTested=2}          LOW 0.973 {nTested=2}          LOW 0.973 {nTested=2}          MMM
+  Autocorrelation                  HIGH 0.00 {nPairs=1}           HIGH 0.00 {nPairs=3}           HIGH 0.00 {nPairs=15}          GMM
+  Windowed Autocorrelation         MODERATE 0.00120 {nPairs=1}    MODERATE 0.00134 {nPairs=3}    MODERATE 0.00120 {nPairs=15}   GMM
+  Runs Test                        HIGH 0.00 {nPairs=1}           HIGH 0.00 {nPairs=3}           HIGH 0.00 {nPairs=12}          GMM
+  Within-Row Variance              LOW 1.00                       LOW 1.00                       LOW 1.00                       MMM
+  LOESS Residual Analysis          HIGH 0.00400                   MODERATE 0.00400               MODERATE 0.00400               GMM
+  Row-Mean Runs                    N/A:premiseVoid —              N/A:premiseVoid —              N/A:premiseVoid —              MMM
+  Selective Noise Partitioning     N/A:tooFewColumns —            HIGH 0.00                      HIGH 0.00                      MMM
+  Regional Noise Homogeneity       N/A:tooFewColumns —            MODERATE 0.00200               MODERATE 0.00200               MMM
+  Missing Data Pattern             N/A:missingnessOutOfBand —     N/A:missingnessOutOfBand —     N/A:missingnessOutOfBand —     MMM
+
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  C25/Fig. 3g   10 axis column(s) of 20
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  arm A: column-grouped, 5 groups, 20 cols, paired=true, vst=log  ->  severity 3 (14 HIGH, 3 MOD)
+  arm B: column-grouped, 5 groups, 10 cols, paired=true, vst=log  ->  severity 3 (5 HIGH, 1 MOD)
+  arm C: none, 0 groups, 20 cols, paired=false, vst=log  ->  severity 3 (13 HIGH, 4 MOD)
+
+  test                             A                              B                              C                              surf
+  Benford's Law (First Digit)      HIGH 0.000200                  N/A:rangeOutOfBand —           HIGH 0.000200                  MMM
+  Benford's Law (Second Digit)     HIGH 0.000200                  N/A:rangeOutOfBand —           HIGH 0.000200                  MMM
+  Terminal Digit Uniformity        HIGH 0.00                      HIGH 0.00                      HIGH 0.00                      MMM
+  Decimal Precision Consistency    HIGH 0.00                      LOW 1.00                       HIGH 0.00                      MMM
+  Value-Frequency Spike            N/A:dataTypeMismatch —         N/A:dataTypeMismatch —         N/A:dataTypeMismatch —         MMM
+  Inter-Replicate Correlation      HIGH 0.00 {nPairs=30}          LOW 1.00 {nPairs=5}            HIGH 0.00 {nPairs=190}         MMM
+  Exact Duplicate Detection        LOW 1.00                       LOW 1.00                       HIGH 1.06e-10                  GGM
+  Sequential Duplication           LOW 1.00                       LOW 1.00                       LOW 1.00                       MMM
+  Constant-Offset Blocks           MODERATE 0.00200               LOW 0.00600                    MODERATE 0.00200               MMM
+  [Q] Residual Spike Correlation   N/A:subjectsSharedAcrossCondi  N/A:subjectsSharedAcrossCondi  N/A:premiseVoid —              MMM
+  Baseline Balance                 HIGH 0.00                      LOW 0.00                       N/A:tooFewConditions —         MMM
+  Cross-Condition Rank Correlatio  MODERATE 0.00                  MODERATE 0.00                  N/A:tooFewConditions —         MMM
+  [Q] Cross-Condition Consistency  N/A:subjectsSharedAcrossCondi  N/A:subjectsSharedAcrossCondi  N/A:tooFewConditions —         MMM
+  Mahalanobis Row Outlier          HIGH 0.00000319 {nCols=4}      N/A:tooFewColumns —            HIGH 0.00 {nCols=20}           GMM
+  Blocked Mahalanobis              MODERATE 0.00200 {nUnits=10}   N/A:tooFewRows —               HIGH 0.000200 {nUnits=2}       MMM
+  Noise Scaling With Measurement   LOW 1.00                       N/A:rangeOutOfBand —           LOW 1.00                       MMM
+  Excess Kurtosis                  LOW 0.000500 {nPairs=6}        LOW 1.00 {nPairs=1}            HIGH 0.000500 {nPairs=190}     GGM
+  Entropy / Zipf Analysis          LOW 1.00 {nTested=20}          LOW 1.00 {nTested=10}          LOW 1.00 {nTested=20}          MMM
+  Column Goodness-of-Fit           HIGH 0.00100 {nTested=10}      HIGH 0.00100 {nTested=10}      HIGH 0.00100 {nTested=10}      MMM
+  Modality Test                    LOW 0.103 {nTested=10}         LOW 0.103 {nTested=10}         LOW 0.103 {nTested=10}         MMM
+  Autocorrelation                  HIGH 0.00 {nPairs=6}           HIGH 0.00 {nPairs=1}           HIGH 0.00 {nPairs=190}         GGM
+  Windowed Autocorrelation         LOW 0.00419 {nPairs=6}         LOW 0.179 {nPairs=1}           MODERATE 0.00216 {nPairs=190}  GGM
+  Runs Test                        HIGH 0.00 {nPairs=1}           LOW 1.00 {nPairs=0}            HIGH 0.00 {nPairs=30}          GGM
+  Within-Row Variance              LOW 1.00                       LOW 0.00                       LOW 1.00                       MMM
+  LOESS Residual Analysis          HIGH 0.00400                   HIGH 0.00400                   MODERATE 0.00400               GGM
+  Row-Mean Runs                    N/A:premiseVoid —              N/A:premiseVoid —              N/A:premiseVoid —              MMM
+  Selective Noise Partitioning     HIGH 0.00                      N/A:tooFewColumns —            LOW 0.00                       GMM
+  Regional Noise Homogeneity       HIGH 0.00200                   N/A:tooFewColumns —            MODERATE 0.00200               GMM
+  Missing Data Pattern             HIGH 0.00                      HIGH 5.85e-250                 HIGH 0.00                      MMM
+
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  C25/Fig. 4b   6 axis column(s) of 12
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  arm A: column-grouped, 6 groups, 12 cols, paired=true, vst=raw  ->  severity 0 (0 HIGH, 0 MOD)
+  arm B: none, 0 groups, 6 cols, paired=false, vst=raw  ->  severity 0 (0 HIGH, 0 MOD)
+  arm C: none, 0 groups, 12 cols, paired=false, vst=raw  ->  severity 0 (0 HIGH, 0 MOD)
+
+  test                             A                              B                              C                              surf
+  Benford's Law (First Digit)      N/A:tooFewRows —               N/A:tooFewRows —               N/A:tooFewRows —               MMM
+  Benford's Law (Second Digit)     N/A:tooFewRows —               N/A:tooFewRows —               N/A:tooFewRows —               MMM
+  Terminal Digit Uniformity        LOW 0.342                      N/A:tooFewRows —               LOW 0.342                      MMM
+  Decimal Precision Consistency    LOW 0.800                      LOW 0.997                      LOW 0.800                      MMM
+  Value-Frequency Spike            N/A:tooFewRows —               N/A:tooFewRows —               N/A:tooFewRows —               MMM
+  Inter-Replicate Correlation      N/A:emptyInput —               N/A:emptyInput —               N/A:emptyInput —               MMM
+  Exact Duplicate Detection        LOW 1.00                       LOW 1.00                       LOW 1.00                       GMM
+  Sequential Duplication           LOW 1.00                       LOW 1.00                       LOW 1.00                       MMM
+  Constant-Offset Blocks           LOW 1.00                       LOW 1.00                       LOW 1.00                       MMM
+  [Q] Residual Spike Correlation   N/A:subjectsSharedAcrossCondi  N/A:premiseVoid —              N/A:premiseVoid —              MMM
+  Baseline Balance                 N/A:tooFewRows —               N/A:tooFewConditions —         N/A:tooFewConditions —         MMM
+  Cross-Condition Rank Correlatio  LOW 1.00                       N/A:tooFewConditions —         N/A:tooFewConditions —         MMM
+  [Q] Cross-Condition Consistency  N/A:subjectsSharedAcrossCondi  N/A:tooFewConditions —         N/A:tooFewConditions —         MMM
+  Mahalanobis Row Outlier          N/A:tooFewColumns —            N/A:tooFewRows —               N/A:tooFewRows —               MMM
+  Blocked Mahalanobis              N/A:tooFewRows —               N/A:tooFewRows —               N/A:tooFewRows —               MMM
+  Noise Scaling With Measurement   N/A:rangeOutOfBand —           N/A:rangeOutOfBand —           N/A:rangeOutOfBand —           MMM
+  Excess Kurtosis                  N/A:tooFewRows —               N/A:tooFewRows —               N/A:tooFewRows —               MMM
+  Entropy / Zipf Analysis          N/A:tooFewObservations —       N/A:tooFewObservations —       N/A:tooFewObservations —       MMM
+  Column Goodness-of-Fit           N/A:tooFewObservations —       N/A:tooFewObservations —       N/A:tooFewObservations —       MMM
+  Modality Test                    N/A:tooFewObservations —       N/A:tooFewObservations —       N/A:tooFewObservations —       MMM
+  Autocorrelation                  N/A:tooFewRows —               N/A:tooFewRows —               N/A:tooFewRows —               MMM
+  undefined                        N/A:tooFewRows —               (absent)                       (absent)                       M??
+  Runs Test                        LOW 1.00 {nPairs=0}            LOW 1.00 {nPairs=0}            LOW 1.00 {nPairs=0}            GMM
+  Within-Row Variance              N/A:tooFewRows —               N/A:tooFewRows —               N/A:tooFewRows —               MMM
+  LOESS Residual Analysis          N/A:tooFewRows —               N/A:tooFewRows —               N/A:tooFewRows —               MMM
+  Row-Mean Runs                    N/A:premiseVoid —              N/A:premiseVoid —              N/A:premiseVoid —              MMM
+  Selective Noise Partitioning     N/A:tooFewColumns —            N/A:emptyInput —               N/A:emptyInput —               MMM
+  Regional Noise Homogeneity       N/A:tooFewColumns —            N/A:tooFewRows —               N/A:tooFewRows —               MMM
+  Missing Data Pattern             N/A:tooFewRows —               N/A:tooFewRows —               N/A:tooFewRows —               MMM
+
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  C25/Fig. 4c   6 axis column(s) of 12
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  arm A: column-grouped, 6 groups, 12 cols, paired=true, vst=log  ->  severity 3 (9 HIGH, 1 MOD)
+  arm B: none, 0 groups, 6 cols, paired=false, vst=log  ->  severity 3 (10 HIGH, 5 MOD)
+  arm C: none, 0 groups, 12 cols, paired=false, vst=log  ->  severity 3 (11 HIGH, 5 MOD)
+
+  test                             A                              B                              C                              surf
+  Benford's Law (First Digit)      HIGH 0.000200                  HIGH 0.000200                  HIGH 0.000200                  MMM
+  Benford's Law (Second Digit)     LOW 0.000200                   LOW 0.000200                   LOW 0.000200                   MMM
+  Terminal Digit Uniformity        HIGH 0.0000156                 HIGH 6.66e-16                  HIGH 0.0000156                 MMM
+  Decimal Precision Consistency    HIGH 2.94e-187                 HIGH 1.17e-57                  HIGH 2.94e-187                 MMM
+  Value-Frequency Spike            HIGH 0.00 {nTested=911}        HIGH 0.00 {nTested=111}        HIGH 0.00 {nTested=911}        MMM
+  Inter-Replicate Correlation      LOW 1.00 {nPairs=6}            HIGH 0.00 {nPairs=15}          HIGH 0.00 {nPairs=66}          MMM
+  Exact Duplicate Detection        HIGH 0.00                      LOW 1.00                       HIGH 0.00                      GMM
+  Sequential Duplication           LOW 0.0152                     LOW 0.0152                     LOW 0.0152                     MMM
+  Constant-Offset Blocks           LOW 0.00100                    LOW 0.00200                    LOW 0.00100                    MMM
+  [Q] Residual Spike Correlation   N/A:subjectsSharedAcrossCondi  N/A:premiseVoid —              N/A:premiseVoid —              MMM
+  Baseline Balance                 HIGH 0.00                      N/A:tooFewConditions —         N/A:tooFewConditions —         MMM
+  Cross-Condition Rank Correlatio  LOW 1.00                       N/A:tooFewConditions —         N/A:tooFewConditions —         MMM
+  [Q] Cross-Condition Consistency  N/A:subjectsSharedAcrossCondi  N/A:tooFewConditions —         N/A:tooFewConditions —         MMM
+  Mahalanobis Row Outlier          N/A:tooFewColumns —            HIGH 2.32e-12 {nCols=6}        N/A:singularComputation —      MMM
+  Blocked Mahalanobis              N/A:tooFewRows —               MODERATE 0.00200 {nUnits=2}    MODERATE 0.00200 {nUnits=2}    MMM
+  Noise Scaling With Measurement   N/A:rangeOutOfBand —           LOW 1.00                       N/A:rangeOutOfBand —           MMM
+  Excess Kurtosis                  LOW 1.00 {nPairs=1}            LOW 0.000500 {nPairs=15}       HIGH 0.000500 {nPairs=51}      GMM
+  Entropy / Zipf Analysis          MODERATE 0.00400 {nTested=12}  MODERATE 0.00200 {nTested=6}   MODERATE 0.00400 {nTested=12}  MMM
+  Column Goodness-of-Fit           HIGH 0.00100 {nTested=4}       HIGH 0.00100 {nTested=4}       HIGH 0.00100 {nTested=4}       MMM
+  Modality Test                    LOW 0.0547 {nTested=6}         LOW 0.0547 {nTested=6}         LOW 0.0547 {nTested=6}         MMM
+  Autocorrelation                  HIGH 0.00 {nPairs=1}           HIGH 0.00 {nPairs=15}          HIGH 0.00 {nPairs=66}          GMM
+  Windowed Autocorrelation         LOW 0.00423 {nPairs=1}         MODERATE 0.00474 {nPairs=15}   MODERATE 0.00337 {nPairs=66}   GMM
+  Runs Test                        LOW 1.00 {nPairs=0}            HIGH 0.00 {nPairs=15}          HIGH 0.00 {nPairs=15}          GMM
+  Within-Row Variance              LOW 1.00                       LOW 1.00                       LOW 1.00                       MMM
+  LOESS Residual Analysis          HIGH 0.00400                   MODERATE 0.00400               MODERATE 0.00400               GMM
+  Row-Mean Runs                    N/A:premiseVoid —              N/A:premiseVoid —              N/A:premiseVoid —              MMM
+  Selective Noise Partitioning     N/A:tooFewColumns —            HIGH 0.00                      HIGH 0.00                      MMM
+  Regional Noise Homogeneity       N/A:tooFewColumns —            MODERATE 0.00200               MODERATE 0.00200               MMM
+  Missing Data Pattern             N/A:missingnessOutOfBand —     N/A:missingnessOutOfBand —     N/A:missingnessOutOfBand —     MMM
+
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  C25/Fig. 4e   5 axis column(s) of 10
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  arm A: column-grouped, 5 groups, 10 cols, paired=true, vst=log  ->  severity 3 (7 HIGH, 1 MOD)
+  arm B: none, 0 groups, 5 cols, paired=false, vst=raw  ->  severity 3 (3 HIGH, 0 MOD)
+  arm C: none, 0 groups, 10 cols, paired=false, vst=log  ->  severity 3 (9 HIGH, 2 MOD)
+
+  test                             A                              B                              C                              surf
+  Benford's Law (First Digit)      HIGH 0.000200                  N/A:rangeOutOfBand —           HIGH 0.000200                  MMM
+  Benford's Law (Second Digit)     HIGH 0.000200                  LOW 0.527                      HIGH 0.000200                  MMM
+  Terminal Digit Uniformity        HIGH 0.00                      LOW 0.580                      HIGH 0.00                      MMM
+  Decimal Precision Consistency    LOW 0.240                      LOW 0.987                      LOW 0.240                      MMM
+  Value-Frequency Spike            N/A:dataTypeMismatch —         N/A:dataTypeMismatch —         N/A:dataTypeMismatch —         MMM
+  Inter-Replicate Correlation      LOW 1.00 {nPairs=5}            LOW 1.00 {nPairs=10}           HIGH 0.00 {nPairs=45}          MMM
+  Exact Duplicate Detection        HIGH 0.00                      LOW 0.664                      HIGH 0.00                      GMM
+  Sequential Duplication           LOW 1.00                       LOW 1.00                       LOW 1.00                       MMM
+  Constant-Offset Blocks           LOW 1.00                       LOW 0.447                      LOW 1.00                       MMM
+  [Q] Residual Spike Correlation   N/A:subjectsSharedAcrossCondi  N/A:premiseVoid —              N/A:premiseVoid —              MMM
+  Baseline Balance                 HIGH 0.00                      N/A:tooFewConditions —         N/A:tooFewConditions —         MMM
+  Cross-Condition Rank Correlatio  LOW 1.00                       N/A:tooFewConditions —         N/A:tooFewConditions —         MMM
+  [Q] Cross-Condition Consistency  N/A:subjectsSharedAcrossCondi  N/A:tooFewConditions —         N/A:tooFewConditions —         MMM
+  Mahalanobis Row Outlier          N/A:tooFewColumns —            LOW 1.00 {nCols=5}             N/A:singularComputation —      MMM
+  Blocked Mahalanobis              N/A:tooFewRows —               N/A:tooFewRows —               N/A:tooFewRows —               MMM
+  Noise Scaling With Measurement   LOW 0.151                      LOW 1.00                       LOW 0.151                      MMM
+  Excess Kurtosis                  LOW 1.00 {nPairs=1}            LOW 1.00 {nPairs=10}           HIGH 0.000500 {nPairs=35}      GMM
+  Entropy / Zipf Analysis          LOW 1.00 {nTested=10}          LOW 1.00 {nTested=5}           LOW 1.00 {nTested=10}          MMM
+  Column Goodness-of-Fit           N/A:shapeNotCovered —          N/A:shapeNotCovered —          N/A:shapeNotCovered —          MMM
+  Modality Test                    N/A:tooFewObservations —       N/A:tooFewObservations —       N/A:tooFewObservations —       MMM
+  Autocorrelation                  HIGH 0.00000667 {nPairs=1}     LOW 0.251 {nPairs=10}          HIGH 0.0000123 {nPairs=45}     GMM
+  Windowed Autocorrelation         MODERATE 0.00133 {nPairs=1}    LOW 0.168 {nPairs=10}          MODERATE 0.00100 {nPairs=45}   GMM
+  Runs Test                        LOW 1.00 {nPairs=0}            HIGH 0.000457 {nPairs=10}      HIGH 0.000457 {nPairs=10}      GMM
+  Within-Row Variance              N/A:tooFewRows —               N/A:tooFewRows —               N/A:tooFewRows —               MMM
+  LOESS Residual Analysis          HIGH 0.000400                  HIGH 0.000400                  HIGH 0.000400                  GMM
+  Row-Mean Runs                    N/A:premiseVoid —              N/A:premiseVoid —              N/A:premiseVoid —              MMM
+  Selective Noise Partitioning     N/A:tooFewColumns —            HIGH 7.11e-11                  LOW 1.00                       MMM
+  Regional Noise Homogeneity       N/A:tooFewColumns —            LOW 0.143                      MODERATE 0.00420               MMM
+  Missing Data Pattern             N/A:missingnessOutOfBand —     N/A:missingnessOutOfBand —     N/A:missingnessOutOfBand —     MMM
+
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  C25/Fig. 4f   3 axis column(s) of 6
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  arm A: column-grouped, 3 groups, 6 cols, paired=true, vst=log  ->  severity 3 (7 HIGH, 3 MOD)
+  arm B: none, 0 groups, 3 cols, paired=false, vst=log  ->  severity 3 (9 HIGH, 2 MOD)
+  arm C: none, 0 groups, 6 cols, paired=false, vst=log  ->  severity 3 (12 HIGH, 3 MOD)
+
+  test                             A                              B                              C                              surf
+  Benford's Law (First Digit)      MODERATE 0.00960               HIGH 0.000200                  MODERATE 0.00960               MMM
+  Benford's Law (Second Digit)     HIGH 0.000200                  LOW 0.696                      HIGH 0.000200                  MMM
+  Terminal Digit Uniformity        HIGH 1.32e-12                  LOW 0.964                      HIGH 1.32e-12                  MMM
+  Decimal Precision Consistency    HIGH 0.000397                  LOW 1.00                       HIGH 0.000397                  MMM
+  Value-Frequency Spike            MODERATE 0.00634 {nTested=123  LOW 1.00 {nTested=84}          MODERATE 0.00634 {nTested=123  MMM
+  Inter-Replicate Correlation      LOW 1.00 {nPairs=3}            HIGH 0.00 {nPairs=3}           HIGH 0.00 {nPairs=15}          MMM
+  Exact Duplicate Detection        HIGH 1.07e-196                 HIGH 4.23e-13                  HIGH 7.50e-199                 GMM
+  Sequential Duplication           LOW 1.00                       LOW 1.00                       LOW 1.00                       MMM
+  Constant-Offset Blocks           LOW 1.00                       LOW 1.00                       LOW 1.00                       MMM
+  [Q] Residual Spike Correlation   N/A:subjectsSharedAcrossCondi  N/A:premiseVoid —              N/A:premiseVoid —              MMM
+  Baseline Balance                 HIGH 0.00                      N/A:tooFewConditions —         N/A:tooFewConditions —         MMM
+  Cross-Condition Rank Correlatio  N/A:premiseVoid —              N/A:tooFewConditions —         N/A:tooFewConditions —         MMM
+  [Q] Cross-Condition Consistency  N/A:subjectsSharedAcrossCondi  N/A:tooFewConditions —         N/A:tooFewConditions —         MMM
+  Mahalanobis Row Outlier          N/A:tooFewColumns —            HIGH 2.52e-7 {nCols=3}         N/A:singularComputation —      MMM
+  Blocked Mahalanobis              N/A:tooFewRows —               HIGH 0.000200 {nUnits=2}       HIGH 0.000200 {nUnits=2}       MMM
+  Noise Scaling With Measurement   LOW 0.0957                     LOW 1.00                       LOW 0.0957                     MMM
+  Excess Kurtosis                  LOW 1.00 {nPairs=1}            LOW 0.0450 {nPairs=3}          HIGH 0.000500 {nPairs=12}      GMM
+  Entropy / Zipf Analysis          LOW 0.00600 {nTested=6}        LOW 0.00300 {nTested=3}        LOW 0.00600 {nTested=6}        MMM
+  Column Goodness-of-Fit           N/A:shapeNotCovered —          N/A:shapeNotCovered —          N/A:shapeNotCovered —          MMM
+  Modality Test                    LOW 0.148 {nTested=3}          LOW 0.148 {nTested=3}          LOW 0.148 {nTested=3}          MMM
+  Autocorrelation                  HIGH 0.00 {nPairs=1}           HIGH 0.00 {nPairs=3}           HIGH 0.00 {nPairs=15}          GMM
+  Windowed Autocorrelation         MODERATE 0.00164 {nPairs=1}    MODERATE 0.00180 {nPairs=3}    MODERATE 0.00120 {nPairs=15}   GMM
+  Runs Test                        LOW 1.00 {nPairs=0}            HIGH 0.00 {nPairs=3}           HIGH 0.00 {nPairs=3}           GMM
+  Within-Row Variance              LOW 1.00                       LOW 1.00                       LOW 1.00                       MMM
+  LOESS Residual Analysis          HIGH 0.000400                  HIGH 0.000400                  HIGH 0.000400                  GMM
+  Row-Mean Runs                    N/A:premiseVoid —              N/A:premiseVoid —              N/A:premiseVoid —              MMM
+  Selective Noise Partitioning     N/A:tooFewColumns —            MODERATE 0.00131               HIGH 0.00                      MMM
+  Regional Noise Homogeneity       N/A:tooFewColumns —            HIGH 0.000200                  HIGH 0.000200                  MMM
+  Missing Data Pattern             N/A:missingnessOutOfBand —     N/A:missingnessOutOfBand —     N/A:missingnessOutOfBand —     MMM
+
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  C15/Fig. 2   0 axis column(s) of 6
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  arm A: column-grouped, 3 groups, 6 cols, paired=true, vst=raw  ->  severity 0 (0 HIGH, 0 MOD)
+  arm B: column-grouped, 3 groups, 6 cols, paired=true, vst=raw  ->  severity 0 (0 HIGH, 0 MOD)
+  arm C: none, 0 groups, 6 cols, paired=false, vst=raw  ->  severity 0 (0 HIGH, 0 MOD)
+
+  test                             A                              B                              C                              surf
+  Benford's Law (First Digit)      N/A:tooFewRows —               N/A:tooFewRows —               N/A:tooFewRows —               MMM
+  Benford's Law (Second Digit)     N/A:tooFewRows —               N/A:tooFewRows —               N/A:tooFewRows —               MMM
+  Terminal Digit Uniformity        N/A:tooFewRows —               N/A:tooFewRows —               N/A:tooFewRows —               MMM
+  Decimal Precision Consistency    LOW 1.00                       LOW 1.00                       LOW 1.00                       MMM
+  Value-Frequency Spike            N/A:tooFewRows —               N/A:tooFewRows —               N/A:tooFewRows —               MMM
+  Inter-Replicate Correlation      LOW 1.00 {nPairs=3}            LOW 1.00 {nPairs=3}            LOW 0.734 {nPairs=15}          MMM
+  Exact Duplicate Detection        LOW 1.00                       LOW 1.00                       LOW 1.00                       GGM
+  Sequential Duplication           LOW 1.00                       LOW 1.00                       LOW 1.00                       MMM
+  Constant-Offset Blocks           LOW 1.00                       LOW 1.00                       LOW 1.00                       MMM
+  [Q] Residual Spike Correlation   N/A:subjectsSharedAcrossCondi  N/A:subjectsSharedAcrossCondi  N/A:premiseVoid —              MMM
+  Baseline Balance                 N/A:tooFewRows —               N/A:tooFewRows —               N/A:tooFewConditions —         MMM
+  Cross-Condition Rank Correlatio  N/A:premiseVoid —              N/A:premiseVoid —              N/A:tooFewConditions —         MMM
+  [Q] Cross-Condition Consistency  N/A:subjectsSharedAcrossCondi  N/A:subjectsSharedAcrossCondi  N/A:tooFewConditions —         MMM
+  Mahalanobis Row Outlier          N/A:tooFewColumns —            N/A:tooFewColumns —            N/A:tooFewRows —               MMM
+  Blocked Mahalanobis              N/A:tooFewRows —               N/A:tooFewRows —               N/A:tooFewRows —               MMM
+  Noise Scaling With Measurement   N/A:rangeOutOfBand —           N/A:rangeOutOfBand —           N/A:rangeOutOfBand —           MMM
+  Excess Kurtosis                  N/A:tooFewRows —               N/A:tooFewRows —               N/A:tooFewRows —               MMM
+  Entropy / Zipf Analysis          N/A:tooFewObservations —       N/A:tooFewObservations —       N/A:tooFewObservations —       MMM
+  Column Goodness-of-Fit           N/A:tooFewObservations —       N/A:tooFewObservations —       N/A:tooFewObservations —       MMM
+  Modality Test                    N/A:tooFewObservations —       N/A:tooFewObservations —       N/A:tooFewObservations —       MMM
+  Autocorrelation                  N/A:tooFewRows —               N/A:tooFewRows —               N/A:tooFewRows —               MMM
+  undefined                        N/A:tooFewRows —               N/A:tooFewRows —               (absent)                       MM?
+  Runs Test                        LOW 1.00 {nPairs=0}            LOW 1.00 {nPairs=0}            LOW 1.00 {nPairs=0}            GGM
+  Within-Row Variance              N/A:tooFewRows —               N/A:tooFewRows —               N/A:tooFewRows —               MMM
+  LOESS Residual Analysis          N/A:tooFewRows —               N/A:tooFewRows —               N/A:tooFewRows —               MMM
+  Row-Mean Runs                    N/A:premiseVoid —              N/A:premiseVoid —              N/A:premiseVoid —              MMM
+  Selective Noise Partitioning     N/A:tooFewColumns —            N/A:tooFewColumns —            N/A:emptyInput —               MMM
+  Regional Noise Homogeneity       N/A:tooFewColumns —            N/A:tooFewColumns —            N/A:tooFewRows —               MMM
+  Missing Data Pattern             N/A:tooFewRows —               N/A:tooFewRows —               N/A:tooFewRows —               MMM
+
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  C15/Fig. 5   0 axis column(s) of 6
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  arm A: column-grouped, 3 groups, 6 cols, paired=true, vst=raw  ->  severity 0 (0 HIGH, 0 MOD)
+  arm B: column-grouped, 3 groups, 6 cols, paired=true, vst=raw  ->  severity 0 (0 HIGH, 0 MOD)
+  arm C: none, 0 groups, 6 cols, paired=false, vst=raw  ->  severity 0 (0 HIGH, 0 MOD)
+
+  test                             A                              B                              C                              surf
+  Benford's Law (First Digit)      N/A:tooFewRows —               N/A:tooFewRows —               N/A:tooFewRows —               MMM
+  Benford's Law (Second Digit)     N/A:tooFewRows —               N/A:tooFewRows —               N/A:tooFewRows —               MMM
+  Terminal Digit Uniformity        N/A:tooFewRows —               N/A:tooFewRows —               N/A:tooFewRows —               MMM
+  Decimal Precision Consistency    LOW 1.00                       LOW 1.00                       LOW 1.00                       MMM
+  Value-Frequency Spike            N/A:tooFewRows —               N/A:tooFewRows —               N/A:tooFewRows —               MMM
+  Inter-Replicate Correlation      LOW 1.00 {nPairs=3}            LOW 1.00 {nPairs=3}            LOW 0.154 {nPairs=15}          MMM
+  Exact Duplicate Detection        LOW 1.00                       LOW 1.00                       LOW 1.00                       GGM
+  Sequential Duplication           LOW 1.00                       LOW 1.00                       LOW 1.00                       MMM
+  Constant-Offset Blocks           LOW 1.00                       LOW 1.00                       LOW 1.00                       MMM
+  [Q] Residual Spike Correlation   N/A:subjectsSharedAcrossCondi  N/A:subjectsSharedAcrossCondi  N/A:premiseVoid —              MMM
+  Baseline Balance                 N/A:tooFewRows —               N/A:tooFewRows —               N/A:tooFewConditions —         MMM
+  Cross-Condition Rank Correlatio  N/A:premiseVoid —              N/A:premiseVoid —              N/A:tooFewConditions —         MMM
+  [Q] Cross-Condition Consistency  N/A:subjectsSharedAcrossCondi  N/A:subjectsSharedAcrossCondi  N/A:tooFewConditions —         MMM
+  Mahalanobis Row Outlier          N/A:tooFewColumns —            N/A:tooFewColumns —            N/A:tooFewRows —               MMM
+  Blocked Mahalanobis              N/A:tooFewRows —               N/A:tooFewRows —               N/A:tooFewRows —               MMM
+  Noise Scaling With Measurement   N/A:rangeOutOfBand —           N/A:rangeOutOfBand —           N/A:rangeOutOfBand —           MMM
+  Excess Kurtosis                  N/A:tooFewRows —               N/A:tooFewRows —               N/A:tooFewRows —               MMM
+  Entropy / Zipf Analysis          N/A:tooFewObservations —       N/A:tooFewObservations —       N/A:tooFewObservations —       MMM
+  Column Goodness-of-Fit           N/A:tooFewObservations —       N/A:tooFewObservations —       N/A:tooFewObservations —       MMM
+  Modality Test                    N/A:tooFewObservations —       N/A:tooFewObservations —       N/A:tooFewObservations —       MMM
+  Autocorrelation                  N/A:tooFewRows —               N/A:tooFewRows —               N/A:tooFewRows —               MMM
+  undefined                        N/A:tooFewRows —               N/A:tooFewRows —               (absent)                       MM?
+  Runs Test                        LOW 1.00 {nPairs=0}            LOW 1.00 {nPairs=0}            LOW 1.00 {nPairs=0}            GGM
+  Within-Row Variance              N/A:tooFewRows —               N/A:tooFewRows —               N/A:tooFewRows —               MMM
+  LOESS Residual Analysis          N/A:tooFewRows —               N/A:tooFewRows —               N/A:tooFewRows —               MMM
+  Row-Mean Runs                    N/A:premiseVoid —              N/A:premiseVoid —              N/A:premiseVoid —              MMM
+  Selective Noise Partitioning     N/A:tooFewColumns —            N/A:tooFewColumns —            N/A:emptyInput —               MMM
+  Regional Noise Homogeneity       N/A:tooFewColumns —            N/A:tooFewColumns —            N/A:tooFewRows —               MMM
+  Missing Data Pattern             N/A:tooFewRows —               N/A:tooFewRows —               N/A:tooFewRows —               MMM
+
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  C15/Fig. S1   0 axis column(s) of 6
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  arm A: column-grouped, 3 groups, 6 cols, paired=true, vst=raw  ->  severity 0 (0 HIGH, 0 MOD)
+  arm B: column-grouped, 3 groups, 6 cols, paired=true, vst=raw  ->  severity 0 (0 HIGH, 0 MOD)
+  arm C: none, 0 groups, 6 cols, paired=false, vst=raw  ->  severity 0 (0 HIGH, 0 MOD)
+
+  test                             A                              B                              C                              surf
+  Benford's Law (First Digit)      N/A:tooFewRows —               N/A:tooFewRows —               N/A:tooFewRows —               MMM
+  Benford's Law (Second Digit)     N/A:tooFewRows —               N/A:tooFewRows —               N/A:tooFewRows —               MMM
+  Terminal Digit Uniformity        N/A:tooFewRows —               N/A:tooFewRows —               N/A:tooFewRows —               MMM
+  Decimal Precision Consistency    LOW 1.00                       LOW 1.00                       LOW 1.00                       MMM
+  Value-Frequency Spike            N/A:tooFewRows —               N/A:tooFewRows —               N/A:tooFewRows —               MMM
+  Inter-Replicate Correlation      LOW 1.00 {nPairs=3}            LOW 1.00 {nPairs=3}            LOW 0.00233 {nPairs=15}        MMM
+  Exact Duplicate Detection        LOW 1.00                       LOW 1.00                       LOW 1.00                       GGM
+  Sequential Duplication           LOW 1.00                       LOW 1.00                       LOW 1.00                       MMM
+  Constant-Offset Blocks           LOW 1.00                       LOW 1.00                       LOW 1.00                       MMM
+  [Q] Residual Spike Correlation   N/A:subjectsSharedAcrossCondi  N/A:subjectsSharedAcrossCondi  N/A:premiseVoid —              MMM
+  Baseline Balance                 N/A:tooFewRows —               N/A:tooFewRows —               N/A:tooFewConditions —         MMM
+  Cross-Condition Rank Correlatio  N/A:premiseVoid —              N/A:premiseVoid —              N/A:tooFewConditions —         MMM
+  [Q] Cross-Condition Consistency  N/A:subjectsSharedAcrossCondi  N/A:subjectsSharedAcrossCondi  N/A:tooFewConditions —         MMM
+  Mahalanobis Row Outlier          N/A:tooFewColumns —            N/A:tooFewColumns —            N/A:tooFewRows —               MMM
+  Blocked Mahalanobis              N/A:tooFewRows —               N/A:tooFewRows —               N/A:tooFewRows —               MMM
+  Noise Scaling With Measurement   N/A:rangeOutOfBand —           N/A:rangeOutOfBand —           N/A:rangeOutOfBand —           MMM
+  Excess Kurtosis                  N/A:tooFewRows —               N/A:tooFewRows —               N/A:tooFewRows —               MMM
+  Entropy / Zipf Analysis          N/A:tooFewObservations —       N/A:tooFewObservations —       N/A:tooFewObservations —       MMM
+  Column Goodness-of-Fit           N/A:tooFewObservations —       N/A:tooFewObservations —       N/A:tooFewObservations —       MMM
+  Modality Test                    N/A:tooFewObservations —       N/A:tooFewObservations —       N/A:tooFewObservations —       MMM
+  Autocorrelation                  N/A:tooFewRows —               N/A:tooFewRows —               N/A:tooFewRows —               MMM
+  undefined                        N/A:tooFewRows —               N/A:tooFewRows —               (absent)                       MM?
+  Runs Test                        LOW 1.00 {nPairs=0}            LOW 1.00 {nPairs=0}            LOW 1.00 {nPairs=0}            GGM
+  Within-Row Variance              N/A:tooFewRows —               N/A:tooFewRows —               N/A:tooFewRows —               MMM
+  LOESS Residual Analysis          N/A:tooFewRows —               N/A:tooFewRows —               N/A:tooFewRows —               MMM
+  Row-Mean Runs                    N/A:premiseVoid —              N/A:premiseVoid —              N/A:premiseVoid —              MMM
+  Selective Noise Partitioning     N/A:tooFewColumns —            N/A:tooFewColumns —            N/A:emptyInput —               MMM
+  Regional Noise Homogeneity       N/A:tooFewColumns —            N/A:tooFewColumns —            N/A:tooFewRows —               MMM
+  Missing Data Pattern             N/A:tooFewRows —               N/A:tooFewRows —               N/A:tooFewRows —               MMM
+
+  surf column: one letter per arm (A B C). M = whole-matrix dispatch, G = per-group.
+
+════════════════════════════════════════════════════════════════════════════════════════════════════
+Output 3 — the three legs, reported separately
+════════════════════════════════════════════════════════════════════════════════════════════════════
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+  A -> C   the cost of LOSING THE GROUPING, axes retained
+────────────────────────────────────────────────────────────────────────────────────────────────────
+
+  C25/Fig. 2b
+      Inter-Replicate Correlation      LOW 1.00 {nPairs=4}                        -> HIGH 0.00 {nPairs=28}
+      Exact Duplicate Detection        HIGH 9.69e-149                             -> HIGH 0.00
+      Baseline Balance                 LOW 0.00                                   -> N/A:tooFewConditions —
+      Cross-Condition Rank Correlation MODERATE 0.00                              -> N/A:tooFewConditions —
+      Mahalanobis Row Outlier          N/A:tooFewColumns —                        -> N/A:singularComputation —
+      Blocked Mahalanobis              N/A:tooFewRows —                           -> HIGH 0.000200 {nUnits=2}
+      Excess Kurtosis                  LOW 0.000500 {nPairs=1}                    -> LOW 0.00100 {nPairs=27}
+      Windowed Autocorrelation         MODERATE 0.00147 {nPairs=1}                -> MODERATE 0.00100 {nPairs=28}
+      Runs Test                        LOW 1.00 {nPairs=0}                        -> HIGH 2.56e-10 {nPairs=3}
+      LOESS Residual Analysis          HIGH 0.000400                              -> MODERATE 0.00400
+      Selective Noise Partitioning     N/A:tooFewColumns —                        -> HIGH 0.00
+      Regional Noise Homogeneity       N/A:tooFewColumns —                        -> HIGH 0.000200
+
+  C25/Fig. 2d
+      Inter-Replicate Correlation      LOW 1.00 {nPairs=3}                        -> HIGH 0.00 {nPairs=15}
+      Baseline Balance                 HIGH 0.00                                  -> N/A:tooFewConditions —
+      Cross-Condition Rank Correlation N/A:premiseVoid —                          -> N/A:tooFewConditions —
+      Mahalanobis Row Outlier          N/A:tooFewColumns —                        -> HIGH 0.00 {nCols=6}
+      Blocked Mahalanobis              N/A:tooFewRows —                           -> MODERATE 0.00200 {nUnits=2}
+      Excess Kurtosis                  LOW 1.00 {nPairs=1}                        -> HIGH 0.000500 {nPairs=15}
+      Windowed Autocorrelation         LOW 0.00674 {nPairs=1}                     -> MODERATE 0.00202 {nPairs=15}
+      LOESS Residual Analysis          HIGH 0.00400                               -> MODERATE 0.00400
+      Selective Noise Partitioning     N/A:tooFewColumns —                        -> HIGH 0.00
+      Regional Noise Homogeneity       N/A:tooFewColumns —                        -> MODERATE 0.00200
+
+  C25/Fig. 2e
+      Inter-Replicate Correlation      LOW 1.00 {nPairs=3}                        -> HIGH 0.00 {nPairs=15}
+      Exact Duplicate Detection        HIGH 0.0000624                             -> HIGH 6.32e-17
+      Baseline Balance                 HIGH 0.00                                  -> N/A:tooFewConditions —
+      Cross-Condition Rank Correlation N/A:premiseVoid —                          -> N/A:tooFewConditions —
+      Mahalanobis Row Outlier          N/A:tooFewColumns —                        -> HIGH 0.00000173 {nCols=6}
+      Blocked Mahalanobis              N/A:tooFewRows —                           -> HIGH 0.000400 {nUnits=2}
+      Excess Kurtosis                  LOW 1.00 {nPairs=1}                        -> HIGH 0.000500 {nPairs=15}
+      Windowed Autocorrelation         MODERATE 0.00107 {nPairs=1}                -> MODERATE 0.00100 {nPairs=15}
+      Runs Test                        LOW 1.00 {nPairs=0}                        -> HIGH 0.00 {nPairs=4}
+      LOESS Residual Analysis          HIGH 0.00400                               -> MODERATE 0.00400
+      Selective Noise Partitioning     N/A:tooFewColumns —                        -> LOW 3.11e-9
+      Regional Noise Homogeneity       N/A:tooFewColumns —                        -> MODERATE 0.00200
+
+  C25/Fig. 2f
+      Inter-Replicate Correlation      LOW 1.00 {nPairs=7}                        -> HIGH 0.00 {nPairs=91}
+      Baseline Balance                 HIGH 0.00                                  -> N/A:tooFewConditions —
+      Cross-Condition Rank Correlation LOW 1.00                                   -> N/A:tooFewConditions —
+      Mahalanobis Row Outlier          N/A:tooFewColumns —                        -> N/A:tooFewRows —
+      Excess Kurtosis                  LOW 1.00 {nPairs=1}                        -> MODERATE 0.00250 {nPairs=78}
+      Autocorrelation                  HIGH 0.0000193 {nPairs=1}                  -> HIGH 0.0000925 {nPairs=91}
+      Runs Test                        LOW 1.00 {nPairs=0}                        -> HIGH 0.000164 {nPairs=16}
+      Selective Noise Partitioning     N/A:tooFewColumns —                        -> MODERATE 0.00610
+      Regional Noise Homogeneity       N/A:tooFewColumns —                        -> N/A:tooFewRows —
+
+  C25/Fig. 3b-c
+      Inter-Replicate Correlation      LOW 1.00 {nPairs=5}                        -> HIGH 0.00 {nPairs=45}
+      Baseline Balance                 LOW 0.00                                   -> N/A:tooFewConditions —
+      Cross-Condition Rank Correlation MODERATE 0.000277                          -> N/A:tooFewConditions —
+      Mahalanobis Row Outlier          N/A:tooFewColumns —                        -> HIGH 1.57e-8 {nCols=10}
+      Blocked Mahalanobis              N/A:tooFewRows —                           -> HIGH 0.000200 {nUnits=2}
+      Excess Kurtosis                  LOW 1.00 {nPairs=1}                        -> HIGH 0.000500 {nPairs=45}
+      Autocorrelation                  HIGH 6.00e-15 {nPairs=1}                   -> HIGH 0.00 {nPairs=45}
+      Windowed Autocorrelation         MODERATE 0.00167 {nPairs=1}                -> MODERATE 0.00200 {nPairs=45}
+      Runs Test                        LOW 1.00 {nPairs=0}                        -> HIGH 0.00 {nPairs=7}
+      LOESS Residual Analysis          HIGH 0.000400                              -> MODERATE 0.00400
+      Selective Noise Partitioning     N/A:tooFewColumns —                        -> HIGH 0.00
+      Regional Noise Homogeneity       N/A:tooFewColumns —                        -> HIGH 0.000200
+
+  C25/Fig. 3d
+      Inter-Replicate Correlation      LOW 1.00 {nPairs=5}                        -> HIGH 0.00 {nPairs=45}
+      Exact Duplicate Detection        HIGH 5.08e-29                              -> LOW 1.00
+      Baseline Balance                 HIGH 0.00                                  -> N/A:tooFewConditions —
+      Cross-Condition Rank Correlation LOW 1.00                                   -> N/A:tooFewConditions —
+      Mahalanobis Row Outlier          N/A:tooFewColumns —                        -> N/A:singularComputation —
+      Blocked Mahalanobis              N/A:tooFewRows —                           -> HIGH 0.000200 {nUnits=2}
+      Excess Kurtosis                  LOW 1.00 {nPairs=1}                        -> HIGH 0.000500 {nPairs=45}
+      Windowed Autocorrelation         MODERATE 0.00362 {nPairs=1}                -> MODERATE 0.00105 {nPairs=45}
+      Runs Test                        LOW 1.00 {nPairs=0}                        -> HIGH 0.00 {nPairs=10}
+      LOESS Residual Analysis          HIGH 0.00400                               -> MODERATE 0.00400
+      Selective Noise Partitioning     N/A:tooFewColumns —                        -> HIGH 0.00
+      Regional Noise Homogeneity       N/A:tooFewColumns —                        -> MODERATE 0.00200
+
+  C25/Fig. 3f
+      Inter-Replicate Correlation      LOW 1.00 {nPairs=3}                        -> HIGH 0.00 {nPairs=15}
+      Baseline Balance                 LOW 0.00                                   -> N/A:tooFewConditions —
+      Cross-Condition Rank Correlation N/A:premiseVoid —                          -> N/A:tooFewConditions —
+      Mahalanobis Row Outlier          N/A:tooFewColumns —                        -> N/A:singularComputation —
+      Blocked Mahalanobis              N/A:tooFewRows —                           -> HIGH 0.000400 {nUnits=2}
+      Excess Kurtosis                  MODERATE 0.000500 {nPairs=1}               -> LOW 0.0120 {nPairs=12}
+      LOESS Residual Analysis          HIGH 0.00400                               -> MODERATE 0.00400
+      Selective Noise Partitioning     N/A:tooFewColumns —                        -> HIGH 0.00
+      Regional Noise Homogeneity       N/A:tooFewColumns —                        -> MODERATE 0.00200
+
+  C25/Fig. 3g
+      Exact Duplicate Detection        LOW 1.00                                   -> HIGH 1.06e-10
+      Baseline Balance                 HIGH 0.00                                  -> N/A:tooFewConditions —
+      Cross-Condition Rank Correlation MODERATE 0.00                              -> N/A:tooFewConditions —
+      Mahalanobis Row Outlier          HIGH 0.00000319 {nCols=4}                  -> HIGH 0.00 {nCols=20}
+      Blocked Mahalanobis              MODERATE 0.00200 {nUnits=10}               -> HIGH 0.000200 {nUnits=2}
+      Excess Kurtosis                  LOW 0.000500 {nPairs=6}                    -> HIGH 0.000500 {nPairs=190}
+      Windowed Autocorrelation         LOW 0.00419 {nPairs=6}                     -> MODERATE 0.00216 {nPairs=190}
+      LOESS Residual Analysis          HIGH 0.00400                               -> MODERATE 0.00400
+      Selective Noise Partitioning     HIGH 0.00                                  -> LOW 0.00
+      Regional Noise Homogeneity       HIGH 0.00200                               -> MODERATE 0.00200
+
+  C25/Fig. 4b
+      Baseline Balance                 N/A:tooFewRows —                           -> N/A:tooFewConditions —
+      Cross-Condition Rank Correlation LOW 1.00                                   -> N/A:tooFewConditions —
+      Mahalanobis Row Outlier          N/A:tooFewColumns —                        -> N/A:tooFewRows —
+      Selective Noise Partitioning     N/A:tooFewColumns —                        -> N/A:emptyInput —
+      Regional Noise Homogeneity       N/A:tooFewColumns —                        -> N/A:tooFewRows —
+
+  C25/Fig. 4c
+      Inter-Replicate Correlation      LOW 1.00 {nPairs=6}                        -> HIGH 0.00 {nPairs=66}
+      Baseline Balance                 HIGH 0.00                                  -> N/A:tooFewConditions —
+      Cross-Condition Rank Correlation LOW 1.00                                   -> N/A:tooFewConditions —
+      Mahalanobis Row Outlier          N/A:tooFewColumns —                        -> N/A:singularComputation —
+      Blocked Mahalanobis              N/A:tooFewRows —                           -> MODERATE 0.00200 {nUnits=2}
+      Excess Kurtosis                  LOW 1.00 {nPairs=1}                        -> HIGH 0.000500 {nPairs=51}
+      Windowed Autocorrelation         LOW 0.00423 {nPairs=1}                     -> MODERATE 0.00337 {nPairs=66}
+      Runs Test                        LOW 1.00 {nPairs=0}                        -> HIGH 0.00 {nPairs=15}
+      LOESS Residual Analysis          HIGH 0.00400                               -> MODERATE 0.00400
+      Selective Noise Partitioning     N/A:tooFewColumns —                        -> HIGH 0.00
+      Regional Noise Homogeneity       N/A:tooFewColumns —                        -> MODERATE 0.00200
+
+  C25/Fig. 4e
+      Inter-Replicate Correlation      LOW 1.00 {nPairs=5}                        -> HIGH 0.00 {nPairs=45}
+      Baseline Balance                 HIGH 0.00                                  -> N/A:tooFewConditions —
+      Cross-Condition Rank Correlation LOW 1.00                                   -> N/A:tooFewConditions —
+      Mahalanobis Row Outlier          N/A:tooFewColumns —                        -> N/A:singularComputation —
+      Excess Kurtosis                  LOW 1.00 {nPairs=1}                        -> HIGH 0.000500 {nPairs=35}
+      Autocorrelation                  HIGH 0.00000667 {nPairs=1}                 -> HIGH 0.0000123 {nPairs=45}
+      Windowed Autocorrelation         MODERATE 0.00133 {nPairs=1}                -> MODERATE 0.00100 {nPairs=45}
+      Runs Test                        LOW 1.00 {nPairs=0}                        -> HIGH 0.000457 {nPairs=10}
+      Selective Noise Partitioning     N/A:tooFewColumns —                        -> LOW 1.00
+      Regional Noise Homogeneity       N/A:tooFewColumns —                        -> MODERATE 0.00420
+
+  C25/Fig. 4f
+      Inter-Replicate Correlation      LOW 1.00 {nPairs=3}                        -> HIGH 0.00 {nPairs=15}
+      Exact Duplicate Detection        HIGH 1.07e-196                             -> HIGH 7.50e-199
+      Baseline Balance                 HIGH 0.00                                  -> N/A:tooFewConditions —
+      Cross-Condition Rank Correlation N/A:premiseVoid —                          -> N/A:tooFewConditions —
+      Mahalanobis Row Outlier          N/A:tooFewColumns —                        -> N/A:singularComputation —
+      Blocked Mahalanobis              N/A:tooFewRows —                           -> HIGH 0.000200 {nUnits=2}
+      Excess Kurtosis                  LOW 1.00 {nPairs=1}                        -> HIGH 0.000500 {nPairs=12}
+      Windowed Autocorrelation         MODERATE 0.00164 {nPairs=1}                -> MODERATE 0.00120 {nPairs=15}
+      Runs Test                        LOW 1.00 {nPairs=0}                        -> HIGH 0.00 {nPairs=3}
+      Selective Noise Partitioning     N/A:tooFewColumns —                        -> HIGH 0.00
+      Regional Noise Homogeneity       N/A:tooFewColumns —                        -> HIGH 0.000200
+
+  C15/Fig. 2
+      Inter-Replicate Correlation      LOW 1.00 {nPairs=3}                        -> LOW 0.734 {nPairs=15}
+      Baseline Balance                 N/A:tooFewRows —                           -> N/A:tooFewConditions —
+      Cross-Condition Rank Correlation N/A:premiseVoid —                          -> N/A:tooFewConditions —
+      Mahalanobis Row Outlier          N/A:tooFewColumns —                        -> N/A:tooFewRows —
+      Selective Noise Partitioning     N/A:tooFewColumns —                        -> N/A:emptyInput —
+      Regional Noise Homogeneity       N/A:tooFewColumns —                        -> N/A:tooFewRows —
+
+  C15/Fig. 5
+      Inter-Replicate Correlation      LOW 1.00 {nPairs=3}                        -> LOW 0.154 {nPairs=15}
+      Baseline Balance                 N/A:tooFewRows —                           -> N/A:tooFewConditions —
+      Cross-Condition Rank Correlation N/A:premiseVoid —                          -> N/A:tooFewConditions —
+      Mahalanobis Row Outlier          N/A:tooFewColumns —                        -> N/A:tooFewRows —
+      Selective Noise Partitioning     N/A:tooFewColumns —                        -> N/A:emptyInput —
+      Regional Noise Homogeneity       N/A:tooFewColumns —                        -> N/A:tooFewRows —
+
+  C15/Fig. S1
+      Inter-Replicate Correlation      LOW 1.00 {nPairs=3}                        -> LOW 0.00233 {nPairs=15}
+      Baseline Balance                 N/A:tooFewRows —                           -> N/A:tooFewConditions —
+      Cross-Condition Rank Correlation N/A:premiseVoid —                          -> N/A:tooFewConditions —
+      Mahalanobis Row Outlier          N/A:tooFewColumns —                        -> N/A:tooFewRows —
+      Selective Noise Partitioning     N/A:tooFewColumns —                        -> N/A:emptyInput —
+      Regional Noise Homogeneity       N/A:tooFewColumns —                        -> N/A:tooFewRows —
+
+  TOTAL: 124 flag/naCause cells moved, 101 p-values moved, over 15 of 15 sheets
+         (quarantine excluded)
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+  C -> B   the AXIS EFFECT at constant structure — THE P93 MEASUREMENT
+  readable scope: the 11 collapsed sheets, where arms C and B share a structure
+────────────────────────────────────────────────────────────────────────────────────────────────────
+
+  C25/Fig. 2b
+      Terminal Digit Uniformity        HIGH 0.00                                  -> HIGH 0.00000363
+      Value-Frequency Spike            N/A:dataTypeMismatch —                     -> HIGH 0.000191 {nTested=613}
+      Exact Duplicate Detection        HIGH 0.00                                  -> LOW 0.370
+      Constant-Offset Blocks           MODERATE 0.00100                           -> LOW 0.226
+      Mahalanobis Row Outlier          N/A:singularComputation —                  -> LOW 0.331 {nCols=4}
+      Noise Scaling With Measurement Size LOW 1.00                                   -> LOW 0.866
+      Excess Kurtosis                  LOW 0.00100 {nPairs=27}                    -> LOW 0.000500 {nPairs=6}
+      Entropy / Zipf Analysis          LOW 0.00229 {nTested=8}                    -> LOW 0.00267 {nTested=4}
+      Windowed Autocorrelation         MODERATE 0.00100 {nPairs=28}               -> MODERATE 0.00520 {nPairs=6}
+      Runs Test                        HIGH 2.56e-10 {nPairs=3}                   -> HIGH 1.70e-10 {nPairs=2}
+      Within-Row Variance              HIGH 0.00                                  -> LOW 1.00
+      Regional Noise Homogeneity       HIGH 0.000200                              -> HIGH 0.000800
+      Missing Data Pattern             HIGH 1.44e-238                             -> HIGH 9.74e-120
+
+  C25/Fig. 2d
+      Terminal Digit Uniformity        HIGH 0.00                                  -> LOW 0.557
+      Decimal Precision Consistency    HIGH 0.00                                  -> HIGH 3.93e-226
+      Inter-Replicate Correlation      HIGH 0.00 {nPairs=15}                      -> MODERATE 4.02e-8 {nPairs=3}
+      Exact Duplicate Detection        HIGH 0.00                                  -> HIGH 7.46e-10
+      Noise Scaling With Measurement Size LOW 0.116                                  -> LOW 1.00
+      Excess Kurtosis                  HIGH 0.000500 {nPairs=15}                  -> LOW 1.00 {nPairs=3}
+      Entropy / Zipf Analysis          LOW 0.00300 {nTested=6}                    -> LOW 0.00200 {nTested=3}
+      Windowed Autocorrelation         MODERATE 0.00202 {nPairs=15}               -> LOW 0.0167 {nPairs=3}
+
+  C25/Fig. 2e
+      Benford's Law (First Digit)      HIGH 0.000200                              -> N/A:rangeOutOfBand —
+      Benford's Law (Second Digit)     MODERATE 0.00180                           -> LOW 0.514
+      Terminal Digit Uniformity        HIGH 0.00                                  -> LOW 0.247
+      Decimal Precision Consistency    HIGH 7.69e-14                              -> LOW 0.782
+      Exact Duplicate Detection        HIGH 6.32e-17                              -> LOW 1.00
+      Constant-Offset Blocks           MODERATE 0.00100                           -> LOW 0.0240
+      Mahalanobis Row Outlier          HIGH 0.00000173 {nCols=6}                  -> LOW 0.00186 {nCols=3}
+      Blocked Mahalanobis              HIGH 0.000400 {nUnits=2}                   -> HIGH 0.000200 {nUnits=2}
+      Noise Scaling With Measurement Size LOW 0.117                                  -> LOW 1.00
+      Excess Kurtosis                  HIGH 0.000500 {nPairs=15}                  -> LOW 1.00 {nPairs=3}
+      Entropy / Zipf Analysis          LOW 0.0120 {nTested=6}                     -> LOW 0.00600 {nTested=3}
+      Windowed Autocorrelation         MODERATE 0.00100 {nPairs=15}               -> MODERATE 0.00276 {nPairs=3}
+      Within-Row Variance              LOW 1.00                                   -> HIGH 0.00
+      Selective Noise Partitioning     LOW 3.11e-9                                -> LOW 0.0000444
+
+  C25/Fig. 2f
+      Benford's Law (First Digit)      HIGH 0.000200                              -> LOW 0.886
+      Benford's Law (Second Digit)     LOW 0.964                                  -> LOW 0.571
+      Terminal Digit Uniformity        HIGH 0.000187                              -> LOW 0.109
+      Decimal Precision Consistency    HIGH 3.97e-12                              -> HIGH 0.00000503
+      Inter-Replicate Correlation      HIGH 0.00 {nPairs=91}                      -> HIGH 1.31e-12 {nPairs=21}
+      Exact Duplicate Detection        HIGH 9.49e-30                              -> LOW 1.00
+      Constant-Offset Blocks           MODERATE 0.00100                           -> LOW 1.00
+      Noise Scaling With Measurement Size N/A:rangeOutOfBand —                       -> LOW 1.00
+      Excess Kurtosis                  MODERATE 0.00250 {nPairs=78}               -> LOW 0.000500 {nPairs=15}
+      Entropy / Zipf Analysis          LOW 0.0980 {nTested=14}                    -> LOW 0.0280 {nTested=7}
+      Autocorrelation                  HIGH 0.0000925 {nPairs=91}                 -> HIGH 0.000217 {nPairs=21}
+      Runs Test                        HIGH 0.000164 {nPairs=16}                  -> HIGH 0.0000409 {nPairs=4}
+      Selective Noise Partitioning     MODERATE 0.00610                           -> HIGH 0.000599
+
+  C25/Fig. 3b-c
+      Benford's Law (Second Digit)     LOW 0.838                                  -> LOW 0.0186
+      Terminal Digit Uniformity        LOW 0.274                                  -> LOW 0.347
+      Decimal Precision Consistency    HIGH 7.33e-20                              -> LOW 0.366
+      Mahalanobis Row Outlier          HIGH 1.57e-8 {nCols=10}                    -> LOW 1.57e-8 {nCols=5}
+      Noise Scaling With Measurement Size N/A:rangeOutOfBand —                       -> LOW 0.165
+      Excess Kurtosis                  HIGH 0.000500 {nPairs=45}                  -> LOW 0.000500 {nPairs=10}
+      Entropy / Zipf Analysis          LOW 0.00500 {nTested=10}                   -> LOW 0.0100 {nTested=5}
+      Missing Data Pattern             HIGH 4.21e-284                             -> HIGH 5.67e-141
+
+  C25/Fig. 3d
+      Terminal Digit Uniformity        HIGH 0.00                                  -> LOW 0.0454
+      Value-Frequency Spike            N/A:dataTypeMismatch —                     -> HIGH 0.0000192 {nTested=15}
+      Constant-Offset Blocks           MODERATE 0.00100                           -> LOW 0.0250
+      Mahalanobis Row Outlier          N/A:singularComputation —                  -> HIGH 0.00000331 {nCols=5}
+      Blocked Mahalanobis              HIGH 0.000200 {nUnits=2}                   -> HIGH 0.000400 {nUnits=2}
+      Excess Kurtosis                  HIGH 0.000500 {nPairs=45}                  -> LOW 0.000500 {nPairs=10}
+      Entropy / Zipf Analysis          MODERATE 0.00222 {nTested=10}              -> MODERATE 0.00250 {nTested=5}
+      Windowed Autocorrelation         MODERATE 0.00105 {nPairs=45}               -> MODERATE 0.00108 {nPairs=10}
+      Within-Row Variance              LOW 1.00                                   -> HIGH 0.00
+      Missing Data Pattern             HIGH 3.68e-183                             -> HIGH 1.88e-90
+
+  C25/Fig. 3f
+      Benford's Law (Second Digit)     HIGH 0.000200                              -> N/A:dataTypeMismatch —
+      Terminal Digit Uniformity        HIGH 0.00                                  -> N/A:dataTypeMismatch —
+      Decimal Precision Consistency    LOW 0.531                                  -> N/A:tooFewRows —
+      Value-Frequency Spike            HIGH 0.000155 {nTested=307}                -> N/A:rangeOutOfBand —
+      Exact Duplicate Detection        HIGH 0.00                                  -> LOW 1.00
+      Mahalanobis Row Outlier          N/A:singularComputation —                  -> LOW 0.0121 {nCols=3}
+      Excess Kurtosis                  LOW 0.0120 {nPairs=12}                     -> LOW 1.00 {nPairs=3}
+      Entropy / Zipf Analysis          LOW 0.180 {nTested=6}                      -> LOW 0.0960 {nTested=3}
+      Windowed Autocorrelation         MODERATE 0.00120 {nPairs=15}               -> MODERATE 0.00134 {nPairs=3}
+
+  C25/Fig. 3g   [OUT OF SCOPE — arms C and B differ structurally here]
+      Benford's Law (First Digit)      HIGH 0.000200                              -> N/A:rangeOutOfBand —
+      Benford's Law (Second Digit)     HIGH 0.000200                              -> N/A:rangeOutOfBand —
+      Decimal Precision Consistency    HIGH 0.00                                  -> LOW 1.00
+      Inter-Replicate Correlation      HIGH 0.00 {nPairs=190}                     -> LOW 1.00 {nPairs=5}
+      Exact Duplicate Detection        HIGH 1.06e-10                              -> LOW 1.00
+      Constant-Offset Blocks           MODERATE 0.00200                           -> LOW 0.00600
+      Baseline Balance                 N/A:tooFewConditions —                     -> LOW 0.00
+      Cross-Condition Rank Correlation N/A:tooFewConditions —                     -> MODERATE 0.00
+      Mahalanobis Row Outlier          HIGH 0.00 {nCols=20}                       -> N/A:tooFewColumns —
+      Blocked Mahalanobis              HIGH 0.000200 {nUnits=2}                   -> N/A:tooFewRows —
+      Noise Scaling With Measurement Size LOW 1.00                                   -> N/A:rangeOutOfBand —
+      Excess Kurtosis                  HIGH 0.000500 {nPairs=190}                 -> LOW 1.00 {nPairs=1}
+      Windowed Autocorrelation         MODERATE 0.00216 {nPairs=190}              -> LOW 0.179 {nPairs=1}
+      Runs Test                        HIGH 0.00 {nPairs=30}                      -> LOW 1.00 {nPairs=0}
+      Within-Row Variance              LOW 1.00                                   -> LOW 0.00
+      LOESS Residual Analysis          MODERATE 0.00400                           -> HIGH 0.00400
+      Selective Noise Partitioning     LOW 0.00                                   -> N/A:tooFewColumns —
+      Regional Noise Homogeneity       MODERATE 0.00200                           -> N/A:tooFewColumns —
+      Missing Data Pattern             HIGH 0.00                                  -> HIGH 5.85e-250
+
+  C25/Fig. 4b
+      Terminal Digit Uniformity        LOW 0.342                                  -> N/A:tooFewRows —
+      Decimal Precision Consistency    LOW 0.800                                  -> LOW 0.997
+
+  C25/Fig. 4c
+      Terminal Digit Uniformity        HIGH 0.0000156                             -> HIGH 6.66e-16
+      Decimal Precision Consistency    HIGH 2.94e-187                             -> HIGH 1.17e-57
+      Exact Duplicate Detection        HIGH 0.00                                  -> LOW 1.00
+      Constant-Offset Blocks           LOW 0.00100                                -> LOW 0.00200
+      Mahalanobis Row Outlier          N/A:singularComputation —                  -> HIGH 2.32e-12 {nCols=6}
+      Noise Scaling With Measurement Size N/A:rangeOutOfBand —                       -> LOW 1.00
+      Excess Kurtosis                  HIGH 0.000500 {nPairs=51}                  -> LOW 0.000500 {nPairs=15}
+      Entropy / Zipf Analysis          MODERATE 0.00400 {nTested=12}              -> MODERATE 0.00200 {nTested=6}
+      Windowed Autocorrelation         MODERATE 0.00337 {nPairs=66}               -> MODERATE 0.00474 {nPairs=15}
+
+  C25/Fig. 4e
+      Benford's Law (First Digit)      HIGH 0.000200                              -> N/A:rangeOutOfBand —
+      Benford's Law (Second Digit)     HIGH 0.000200                              -> LOW 0.527
+      Terminal Digit Uniformity        HIGH 0.00                                  -> LOW 0.580
+      Decimal Precision Consistency    LOW 0.240                                  -> LOW 0.987
+      Inter-Replicate Correlation      HIGH 0.00 {nPairs=45}                      -> LOW 1.00 {nPairs=10}
+      Exact Duplicate Detection        HIGH 0.00                                  -> LOW 0.664
+      Constant-Offset Blocks           LOW 1.00                                   -> LOW 0.447
+      Mahalanobis Row Outlier          N/A:singularComputation —                  -> LOW 1.00 {nCols=5}
+      Noise Scaling With Measurement Size LOW 0.151                                  -> LOW 1.00
+      Excess Kurtosis                  HIGH 0.000500 {nPairs=35}                  -> LOW 1.00 {nPairs=10}
+      Autocorrelation                  HIGH 0.0000123 {nPairs=45}                 -> LOW 0.251 {nPairs=10}
+      Windowed Autocorrelation         MODERATE 0.00100 {nPairs=45}               -> LOW 0.168 {nPairs=10}
+      Selective Noise Partitioning     LOW 1.00                                   -> HIGH 7.11e-11
+      Regional Noise Homogeneity       MODERATE 0.00420                           -> LOW 0.143
+
+  C25/Fig. 4f
+      Benford's Law (First Digit)      MODERATE 0.00960                           -> HIGH 0.000200
+      Benford's Law (Second Digit)     HIGH 0.000200                              -> LOW 0.696
+      Terminal Digit Uniformity        HIGH 1.32e-12                              -> LOW 0.964
+      Decimal Precision Consistency    HIGH 0.000397                              -> LOW 1.00
+      Value-Frequency Spike            MODERATE 0.00634 {nTested=123}             -> LOW 1.00 {nTested=84}
+      Exact Duplicate Detection        HIGH 7.50e-199                             -> HIGH 4.23e-13
+      Mahalanobis Row Outlier          N/A:singularComputation —                  -> HIGH 2.52e-7 {nCols=3}
+      Noise Scaling With Measurement Size LOW 0.0957                                 -> LOW 1.00
+      Excess Kurtosis                  HIGH 0.000500 {nPairs=12}                  -> LOW 0.0450 {nPairs=3}
+      Entropy / Zipf Analysis          LOW 0.00600 {nTested=6}                    -> LOW 0.00300 {nTested=3}
+      Windowed Autocorrelation         MODERATE 0.00120 {nPairs=15}               -> MODERATE 0.00180 {nPairs=3}
+      Selective Noise Partitioning     HIGH 0.00                                  -> MODERATE 0.00131
+
+  C15/Fig. 2   [OUT OF SCOPE — arms C and B differ structurally here]
+      Inter-Replicate Correlation      LOW 0.734 {nPairs=15}                      -> LOW 1.00 {nPairs=3}
+      Baseline Balance                 N/A:tooFewConditions —                     -> N/A:tooFewRows —
+      Cross-Condition Rank Correlation N/A:tooFewConditions —                     -> N/A:premiseVoid —
+      Mahalanobis Row Outlier          N/A:tooFewRows —                           -> N/A:tooFewColumns —
+      Selective Noise Partitioning     N/A:emptyInput —                           -> N/A:tooFewColumns —
+      Regional Noise Homogeneity       N/A:tooFewRows —                           -> N/A:tooFewColumns —
+
+  C15/Fig. 5   [OUT OF SCOPE — arms C and B differ structurally here]
+      Inter-Replicate Correlation      LOW 0.154 {nPairs=15}                      -> LOW 1.00 {nPairs=3}
+      Baseline Balance                 N/A:tooFewConditions —                     -> N/A:tooFewRows —
+      Cross-Condition Rank Correlation N/A:tooFewConditions —                     -> N/A:premiseVoid —
+      Mahalanobis Row Outlier          N/A:tooFewRows —                           -> N/A:tooFewColumns —
+      Selective Noise Partitioning     N/A:emptyInput —                           -> N/A:tooFewColumns —
+      Regional Noise Homogeneity       N/A:tooFewRows —                           -> N/A:tooFewColumns —
+
+  C15/Fig. S1   [OUT OF SCOPE — arms C and B differ structurally here]
+      Inter-Replicate Correlation      LOW 0.00233 {nPairs=15}                    -> LOW 1.00 {nPairs=3}
+      Baseline Balance                 N/A:tooFewConditions —                     -> N/A:tooFewRows —
+      Cross-Condition Rank Correlation N/A:tooFewConditions —                     -> N/A:premiseVoid —
+      Mahalanobis Row Outlier          N/A:tooFewRows —                           -> N/A:tooFewColumns —
+      Selective Noise Partitioning     N/A:emptyInput —                           -> N/A:tooFewColumns —
+      Regional Noise Homogeneity       N/A:tooFewRows —                           -> N/A:tooFewColumns —
+
+  IN SCOPE (11 collapsed sheets): 65 flag/naCause cells moved, 108 p-values moved, over 11 sheets
+  all fifteen, NOT the P93 figure:          97 flag/naCause cells moved, 129 p-values moved, over 15 sheets
+         (quarantine excluded)
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+  A -> B   the CONFOUNDED TOTAL — what a two-arm probe would report
+────────────────────────────────────────────────────────────────────────────────────────────────────
+
+  C25/Fig. 2b
+      Terminal Digit Uniformity        HIGH 0.00                                  -> HIGH 0.00000363
+      Value-Frequency Spike            N/A:dataTypeMismatch —                     -> HIGH 0.000191 {nTested=613}
+      Inter-Replicate Correlation      LOW 1.00 {nPairs=4}                        -> HIGH 0.00 {nPairs=6}
+      Exact Duplicate Detection        HIGH 9.69e-149                             -> LOW 0.370
+      Constant-Offset Blocks           MODERATE 0.00100                           -> LOW 0.226
+      Baseline Balance                 LOW 0.00                                   -> N/A:tooFewConditions —
+      Cross-Condition Rank Correlation MODERATE 0.00                              -> N/A:tooFewConditions —
+      Mahalanobis Row Outlier          N/A:tooFewColumns —                        -> LOW 0.331 {nCols=4}
+      Blocked Mahalanobis              N/A:tooFewRows —                           -> HIGH 0.000200 {nUnits=2}
+      Noise Scaling With Measurement Size LOW 1.00                                   -> LOW 0.866
+      Entropy / Zipf Analysis          LOW 0.00229 {nTested=8}                    -> LOW 0.00267 {nTested=4}
+      Windowed Autocorrelation         MODERATE 0.00147 {nPairs=1}                -> MODERATE 0.00520 {nPairs=6}
+      Runs Test                        LOW 1.00 {nPairs=0}                        -> HIGH 1.70e-10 {nPairs=2}
+      Within-Row Variance              HIGH 0.00                                  -> LOW 1.00
+      LOESS Residual Analysis          HIGH 0.000400                              -> MODERATE 0.00400
+      Selective Noise Partitioning     N/A:tooFewColumns —                        -> HIGH 0.00
+      Regional Noise Homogeneity       N/A:tooFewColumns —                        -> HIGH 0.000800
+      Missing Data Pattern             HIGH 1.44e-238                             -> HIGH 9.74e-120
+
+  C25/Fig. 2d
+      Terminal Digit Uniformity        HIGH 0.00                                  -> LOW 0.557
+      Decimal Precision Consistency    HIGH 0.00                                  -> HIGH 3.93e-226
+      Inter-Replicate Correlation      LOW 1.00 {nPairs=3}                        -> MODERATE 4.02e-8 {nPairs=3}
+      Exact Duplicate Detection        HIGH 0.00                                  -> HIGH 7.46e-10
+      Baseline Balance                 HIGH 0.00                                  -> N/A:tooFewConditions —
+      Cross-Condition Rank Correlation N/A:premiseVoid —                          -> N/A:tooFewConditions —
+      Mahalanobis Row Outlier          N/A:tooFewColumns —                        -> HIGH 0.00 {nCols=3}
+      Blocked Mahalanobis              N/A:tooFewRows —                           -> MODERATE 0.00200 {nUnits=2}
+      Noise Scaling With Measurement Size LOW 0.116                                  -> LOW 1.00
+      Entropy / Zipf Analysis          LOW 0.00300 {nTested=6}                    -> LOW 0.00200 {nTested=3}
+      Windowed Autocorrelation         LOW 0.00674 {nPairs=1}                     -> LOW 0.0167 {nPairs=3}
+      LOESS Residual Analysis          HIGH 0.00400                               -> MODERATE 0.00400
+      Selective Noise Partitioning     N/A:tooFewColumns —                        -> HIGH 0.00
+      Regional Noise Homogeneity       N/A:tooFewColumns —                        -> MODERATE 0.00200
+
+  C25/Fig. 2e
+      Benford's Law (First Digit)      HIGH 0.000200                              -> N/A:rangeOutOfBand —
+      Benford's Law (Second Digit)     MODERATE 0.00180                           -> LOW 0.514
+      Terminal Digit Uniformity        HIGH 0.00                                  -> LOW 0.247
+      Decimal Precision Consistency    HIGH 7.69e-14                              -> LOW 0.782
+      Inter-Replicate Correlation      LOW 1.00 {nPairs=3}                        -> HIGH 0.00 {nPairs=3}
+      Exact Duplicate Detection        HIGH 0.0000624                             -> LOW 1.00
+      Constant-Offset Blocks           MODERATE 0.00100                           -> LOW 0.0240
+      Baseline Balance                 HIGH 0.00                                  -> N/A:tooFewConditions —
+      Cross-Condition Rank Correlation N/A:premiseVoid —                          -> N/A:tooFewConditions —
+      Mahalanobis Row Outlier          N/A:tooFewColumns —                        -> LOW 0.00186 {nCols=3}
+      Blocked Mahalanobis              N/A:tooFewRows —                           -> HIGH 0.000200 {nUnits=2}
+      Noise Scaling With Measurement Size LOW 0.117                                  -> LOW 1.00
+      Entropy / Zipf Analysis          LOW 0.0120 {nTested=6}                     -> LOW 0.00600 {nTested=3}
+      Windowed Autocorrelation         MODERATE 0.00107 {nPairs=1}                -> MODERATE 0.00276 {nPairs=3}
+      Runs Test                        LOW 1.00 {nPairs=0}                        -> HIGH 0.00 {nPairs=3}
+      Within-Row Variance              LOW 1.00                                   -> HIGH 0.00
+      LOESS Residual Analysis          HIGH 0.00400                               -> MODERATE 0.00400
+      Selective Noise Partitioning     N/A:tooFewColumns —                        -> LOW 0.0000444
+      Regional Noise Homogeneity       N/A:tooFewColumns —                        -> MODERATE 0.00200
+
+  C25/Fig. 2f
+      Benford's Law (First Digit)      HIGH 0.000200                              -> LOW 0.886
+      Benford's Law (Second Digit)     LOW 0.964                                  -> LOW 0.571
+      Terminal Digit Uniformity        HIGH 0.000187                              -> LOW 0.109
+      Decimal Precision Consistency    HIGH 3.97e-12                              -> HIGH 0.00000503
+      Inter-Replicate Correlation      LOW 1.00 {nPairs=7}                        -> HIGH 1.31e-12 {nPairs=21}
+      Exact Duplicate Detection        HIGH 9.49e-30                              -> LOW 1.00
+      Constant-Offset Blocks           MODERATE 0.00100                           -> LOW 1.00
+      Baseline Balance                 HIGH 0.00                                  -> N/A:tooFewConditions —
+      Cross-Condition Rank Correlation LOW 1.00                                   -> N/A:tooFewConditions —
+      Mahalanobis Row Outlier          N/A:tooFewColumns —                        -> N/A:tooFewRows —
+      Noise Scaling With Measurement Size N/A:rangeOutOfBand —                       -> LOW 1.00
+      Excess Kurtosis                  LOW 1.00 {nPairs=1}                        -> LOW 0.000500 {nPairs=15}
+      Entropy / Zipf Analysis          LOW 0.0980 {nTested=14}                    -> LOW 0.0280 {nTested=7}
+      Autocorrelation                  HIGH 0.0000193 {nPairs=1}                  -> HIGH 0.000217 {nPairs=21}
+      Runs Test                        LOW 1.00 {nPairs=0}                        -> HIGH 0.0000409 {nPairs=4}
+      Selective Noise Partitioning     N/A:tooFewColumns —                        -> HIGH 0.000599
+      Regional Noise Homogeneity       N/A:tooFewColumns —                        -> N/A:tooFewRows —
+
+  C25/Fig. 3b-c
+      Benford's Law (Second Digit)     LOW 0.838                                  -> LOW 0.0186
+      Terminal Digit Uniformity        LOW 0.274                                  -> LOW 0.347
+      Decimal Precision Consistency    HIGH 7.33e-20                              -> LOW 0.366
+      Inter-Replicate Correlation      LOW 1.00 {nPairs=5}                        -> HIGH 0.00 {nPairs=10}
+      Baseline Balance                 LOW 0.00                                   -> N/A:tooFewConditions —
+      Cross-Condition Rank Correlation MODERATE 0.000277                          -> N/A:tooFewConditions —
+      Mahalanobis Row Outlier          N/A:tooFewColumns —                        -> LOW 1.57e-8 {nCols=5}
+      Blocked Mahalanobis              N/A:tooFewRows —                           -> HIGH 0.000200 {nUnits=2}
+      Noise Scaling With Measurement Size N/A:rangeOutOfBand —                       -> LOW 0.165
+      Excess Kurtosis                  LOW 1.00 {nPairs=1}                        -> LOW 0.000500 {nPairs=10}
+      Entropy / Zipf Analysis          LOW 0.00500 {nTested=10}                   -> LOW 0.0100 {nTested=5}
+      Autocorrelation                  HIGH 6.00e-15 {nPairs=1}                   -> HIGH 0.00 {nPairs=10}
+      Windowed Autocorrelation         MODERATE 0.00167 {nPairs=1}                -> MODERATE 0.00200 {nPairs=10}
+      Runs Test                        LOW 1.00 {nPairs=0}                        -> HIGH 0.00 {nPairs=7}
+      LOESS Residual Analysis          HIGH 0.000400                              -> MODERATE 0.00400
+      Selective Noise Partitioning     N/A:tooFewColumns —                        -> HIGH 0.00
+      Regional Noise Homogeneity       N/A:tooFewColumns —                        -> HIGH 0.000200
+      Missing Data Pattern             HIGH 4.21e-284                             -> HIGH 5.67e-141
+
+  C25/Fig. 3d
+      Terminal Digit Uniformity        HIGH 0.00                                  -> LOW 0.0454
+      Value-Frequency Spike            N/A:dataTypeMismatch —                     -> HIGH 0.0000192 {nTested=15}
+      Inter-Replicate Correlation      LOW 1.00 {nPairs=5}                        -> HIGH 0.00 {nPairs=10}
+      Exact Duplicate Detection        HIGH 5.08e-29                              -> LOW 1.00
+      Constant-Offset Blocks           MODERATE 0.00100                           -> LOW 0.0250
+      Baseline Balance                 HIGH 0.00                                  -> N/A:tooFewConditions —
+      Cross-Condition Rank Correlation LOW 1.00                                   -> N/A:tooFewConditions —
+      Mahalanobis Row Outlier          N/A:tooFewColumns —                        -> HIGH 0.00000331 {nCols=5}
+      Blocked Mahalanobis              N/A:tooFewRows —                           -> HIGH 0.000400 {nUnits=2}
+      Excess Kurtosis                  LOW 1.00 {nPairs=1}                        -> LOW 0.000500 {nPairs=10}
+      Entropy / Zipf Analysis          MODERATE 0.00222 {nTested=10}              -> MODERATE 0.00250 {nTested=5}
+      Windowed Autocorrelation         MODERATE 0.00362 {nPairs=1}                -> MODERATE 0.00108 {nPairs=10}
+      Runs Test                        LOW 1.00 {nPairs=0}                        -> HIGH 0.00 {nPairs=10}
+      Within-Row Variance              LOW 1.00                                   -> HIGH 0.00
+      LOESS Residual Analysis          HIGH 0.00400                               -> MODERATE 0.00400
+      Selective Noise Partitioning     N/A:tooFewColumns —                        -> HIGH 0.00
+      Regional Noise Homogeneity       N/A:tooFewColumns —                        -> MODERATE 0.00200
+      Missing Data Pattern             HIGH 3.68e-183                             -> HIGH 1.88e-90
+
+  C25/Fig. 3f
+      Benford's Law (Second Digit)     HIGH 0.000200                              -> N/A:dataTypeMismatch —
+      Terminal Digit Uniformity        HIGH 0.00                                  -> N/A:dataTypeMismatch —
+      Decimal Precision Consistency    LOW 0.531                                  -> N/A:tooFewRows —
+      Value-Frequency Spike            HIGH 0.000155 {nTested=307}                -> N/A:rangeOutOfBand —
+      Inter-Replicate Correlation      LOW 1.00 {nPairs=3}                        -> HIGH 0.00 {nPairs=3}
+      Exact Duplicate Detection        HIGH 0.00                                  -> LOW 1.00
+      Baseline Balance                 LOW 0.00                                   -> N/A:tooFewConditions —
+      Cross-Condition Rank Correlation N/A:premiseVoid —                          -> N/A:tooFewConditions —
+      Mahalanobis Row Outlier          N/A:tooFewColumns —                        -> LOW 0.0121 {nCols=3}
+      Blocked Mahalanobis              N/A:tooFewRows —                           -> HIGH 0.000400 {nUnits=2}
+      Excess Kurtosis                  MODERATE 0.000500 {nPairs=1}               -> LOW 1.00 {nPairs=3}
+      Entropy / Zipf Analysis          LOW 0.180 {nTested=6}                      -> LOW 0.0960 {nTested=3}
+      Windowed Autocorrelation         MODERATE 0.00120 {nPairs=1}                -> MODERATE 0.00134 {nPairs=3}
+      LOESS Residual Analysis          HIGH 0.00400                               -> MODERATE 0.00400
+      Selective Noise Partitioning     N/A:tooFewColumns —                        -> HIGH 0.00
+      Regional Noise Homogeneity       N/A:tooFewColumns —                        -> MODERATE 0.00200
+
+  C25/Fig. 3g
+      Benford's Law (First Digit)      HIGH 0.000200                              -> N/A:rangeOutOfBand —
+      Benford's Law (Second Digit)     HIGH 0.000200                              -> N/A:rangeOutOfBand —
+      Decimal Precision Consistency    HIGH 0.00                                  -> LOW 1.00
+      Inter-Replicate Correlation      HIGH 0.00 {nPairs=30}                      -> LOW 1.00 {nPairs=5}
+      Constant-Offset Blocks           MODERATE 0.00200                           -> LOW 0.00600
+      Baseline Balance                 HIGH 0.00                                  -> LOW 0.00
+      Mahalanobis Row Outlier          HIGH 0.00000319 {nCols=4}                  -> N/A:tooFewColumns —
+      Blocked Mahalanobis              MODERATE 0.00200 {nUnits=10}               -> N/A:tooFewRows —
+      Noise Scaling With Measurement Size LOW 1.00                                   -> N/A:rangeOutOfBand —
+      Excess Kurtosis                  LOW 0.000500 {nPairs=6}                    -> LOW 1.00 {nPairs=1}
+      Windowed Autocorrelation         LOW 0.00419 {nPairs=6}                     -> LOW 0.179 {nPairs=1}
+      Runs Test                        HIGH 0.00 {nPairs=1}                       -> LOW 1.00 {nPairs=0}
+      Within-Row Variance              LOW 1.00                                   -> LOW 0.00
+      Selective Noise Partitioning     HIGH 0.00                                  -> N/A:tooFewColumns —
+      Regional Noise Homogeneity       HIGH 0.00200                               -> N/A:tooFewColumns —
+      Missing Data Pattern             HIGH 0.00                                  -> HIGH 5.85e-250
+
+  C25/Fig. 4b
+      Terminal Digit Uniformity        LOW 0.342                                  -> N/A:tooFewRows —
+      Decimal Precision Consistency    LOW 0.800                                  -> LOW 0.997
+      Baseline Balance                 N/A:tooFewRows —                           -> N/A:tooFewConditions —
+      Cross-Condition Rank Correlation LOW 1.00                                   -> N/A:tooFewConditions —
+      Mahalanobis Row Outlier          N/A:tooFewColumns —                        -> N/A:tooFewRows —
+      Selective Noise Partitioning     N/A:tooFewColumns —                        -> N/A:emptyInput —
+      Regional Noise Homogeneity       N/A:tooFewColumns —                        -> N/A:tooFewRows —
+
+  C25/Fig. 4c
+      Terminal Digit Uniformity        HIGH 0.0000156                             -> HIGH 6.66e-16
+      Decimal Precision Consistency    HIGH 2.94e-187                             -> HIGH 1.17e-57
+      Inter-Replicate Correlation      LOW 1.00 {nPairs=6}                        -> HIGH 0.00 {nPairs=15}
+      Exact Duplicate Detection        HIGH 0.00                                  -> LOW 1.00
+      Constant-Offset Blocks           LOW 0.00100                                -> LOW 0.00200
+      Baseline Balance                 HIGH 0.00                                  -> N/A:tooFewConditions —
+      Cross-Condition Rank Correlation LOW 1.00                                   -> N/A:tooFewConditions —
+      Mahalanobis Row Outlier          N/A:tooFewColumns —                        -> HIGH 2.32e-12 {nCols=6}
+      Blocked Mahalanobis              N/A:tooFewRows —                           -> MODERATE 0.00200 {nUnits=2}
+      Noise Scaling With Measurement Size N/A:rangeOutOfBand —                       -> LOW 1.00
+      Excess Kurtosis                  LOW 1.00 {nPairs=1}                        -> LOW 0.000500 {nPairs=15}
+      Entropy / Zipf Analysis          MODERATE 0.00400 {nTested=12}              -> MODERATE 0.00200 {nTested=6}
+      Windowed Autocorrelation         LOW 0.00423 {nPairs=1}                     -> MODERATE 0.00474 {nPairs=15}
+      Runs Test                        LOW 1.00 {nPairs=0}                        -> HIGH 0.00 {nPairs=15}
+      LOESS Residual Analysis          HIGH 0.00400                               -> MODERATE 0.00400
+      Selective Noise Partitioning     N/A:tooFewColumns —                        -> HIGH 0.00
+      Regional Noise Homogeneity       N/A:tooFewColumns —                        -> MODERATE 0.00200
+
+  C25/Fig. 4e
+      Benford's Law (First Digit)      HIGH 0.000200                              -> N/A:rangeOutOfBand —
+      Benford's Law (Second Digit)     HIGH 0.000200                              -> LOW 0.527
+      Terminal Digit Uniformity        HIGH 0.00                                  -> LOW 0.580
+      Decimal Precision Consistency    LOW 0.240                                  -> LOW 0.987
+      Exact Duplicate Detection        HIGH 0.00                                  -> LOW 0.664
+      Constant-Offset Blocks           LOW 1.00                                   -> LOW 0.447
+      Baseline Balance                 HIGH 0.00                                  -> N/A:tooFewConditions —
+      Cross-Condition Rank Correlation LOW 1.00                                   -> N/A:tooFewConditions —
+      Mahalanobis Row Outlier          N/A:tooFewColumns —                        -> LOW 1.00 {nCols=5}
+      Noise Scaling With Measurement Size LOW 0.151                                  -> LOW 1.00
+      Autocorrelation                  HIGH 0.00000667 {nPairs=1}                 -> LOW 0.251 {nPairs=10}
+      Windowed Autocorrelation         MODERATE 0.00133 {nPairs=1}                -> LOW 0.168 {nPairs=10}
+      Runs Test                        LOW 1.00 {nPairs=0}                        -> HIGH 0.000457 {nPairs=10}
+      Selective Noise Partitioning     N/A:tooFewColumns —                        -> HIGH 7.11e-11
+      Regional Noise Homogeneity       N/A:tooFewColumns —                        -> LOW 0.143
+
+  C25/Fig. 4f
+      Benford's Law (First Digit)      MODERATE 0.00960                           -> HIGH 0.000200
+      Benford's Law (Second Digit)     HIGH 0.000200                              -> LOW 0.696
+      Terminal Digit Uniformity        HIGH 1.32e-12                              -> LOW 0.964
+      Decimal Precision Consistency    HIGH 0.000397                              -> LOW 1.00
+      Value-Frequency Spike            MODERATE 0.00634 {nTested=123}             -> LOW 1.00 {nTested=84}
+      Inter-Replicate Correlation      LOW 1.00 {nPairs=3}                        -> HIGH 0.00 {nPairs=3}
+      Exact Duplicate Detection        HIGH 1.07e-196                             -> HIGH 4.23e-13
+      Baseline Balance                 HIGH 0.00                                  -> N/A:tooFewConditions —
+      Cross-Condition Rank Correlation N/A:premiseVoid —                          -> N/A:tooFewConditions —
+      Mahalanobis Row Outlier          N/A:tooFewColumns —                        -> HIGH 2.52e-7 {nCols=3}
+      Blocked Mahalanobis              N/A:tooFewRows —                           -> HIGH 0.000200 {nUnits=2}
+      Noise Scaling With Measurement Size LOW 0.0957                                 -> LOW 1.00
+      Excess Kurtosis                  LOW 1.00 {nPairs=1}                        -> LOW 0.0450 {nPairs=3}
+      Entropy / Zipf Analysis          LOW 0.00600 {nTested=6}                    -> LOW 0.00300 {nTested=3}
+      Windowed Autocorrelation         MODERATE 0.00164 {nPairs=1}                -> MODERATE 0.00180 {nPairs=3}
+      Runs Test                        LOW 1.00 {nPairs=0}                        -> HIGH 0.00 {nPairs=3}
+      Selective Noise Partitioning     N/A:tooFewColumns —                        -> MODERATE 0.00131
+      Regional Noise Homogeneity       N/A:tooFewColumns —                        -> HIGH 0.000200
+
+  TOTAL: 144 flag/naCause cells moved, 177 p-values moved, over 12 of 15 sheets
+         (quarantine excluded)
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+  C -> B in scope, by test — where the axis effect actually lands
+────────────────────────────────────────────────────────────────────────────────────────────────────
+
+  test                               flag/naCause moves   p moves   (of 11 sheets)
+  Terminal Digit Uniformity          8                    11
+  Mahalanobis Row Outlier            8                    7
+  Excess Kurtosis                    8                    7
+  Exact Duplicate Detection          6                    8
+  Decimal Precision Consistency      4                    9
+  Noise Scaling With Measurement Size 3                    8
+  Constant-Offset Blocks             4                    6
+  Windowed Autocorrelation           2                    8
+  Benford's Law (Second Digit)       4                    6
+  Entropy / Zipf Analysis            0                    9
+  Value-Frequency Spike              4                    4
+  Benford's Law (First Digit)        4                    4
+  Selective Noise Partitioning       3                    4
+  Within-Row Variance                3                    3
+  Inter-Replicate Correlation        2                    3
+  Regional Noise Homogeneity         1                    2
+  Missing Data Pattern               0                    3
+  Autocorrelation                    1                    2
+  Runs Test                          0                    2
+  Blocked Mahalanobis                0                    2
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+  Direction of the axis effect — C -> B, in scope, quarantine excluded
+────────────────────────────────────────────────────────────────────────────────────────────────────
+
+  P93 predicts axes MANUFACTURE firings, so removing an axis should EXTINGUISH them.
+  The opposite direction is the power reading, and shrinking families predict it.
+
+  firing with the axis, not firing without it (EXTINGUISHED):  45
+  not firing with the axis, firing without it (IGNITED):       8
+  MODERATE -> HIGH: 2    HIGH -> MODERATE: 2
+
+  Extinguished — the cells P93 predicts:
+
+      C25/Fig. 2b      Exact Duplicate Detection        HIGH 0.00 -> LOW 0.370
+      C25/Fig. 2b      Constant-Offset Blocks           MODERATE 0.00100 -> LOW 0.226
+      C25/Fig. 2b      Within-Row Variance              HIGH 0.00 -> LOW 1.00
+      C25/Fig. 2d      Terminal Digit Uniformity        HIGH 0.00 -> LOW 0.557
+      C25/Fig. 2d      Excess Kurtosis                  HIGH 0.000500 -> LOW 1.00
+      C25/Fig. 2d      Windowed Autocorrelation         MODERATE 0.00202 -> LOW 0.0167
+      C25/Fig. 2e      Benford's Law (First Digit)      HIGH 0.000200 -> N/A:rangeOutOfBand —
+      C25/Fig. 2e      Benford's Law (Second Digit)     MODERATE 0.00180 -> LOW 0.514
+      C25/Fig. 2e      Terminal Digit Uniformity        HIGH 0.00 -> LOW 0.247
+      C25/Fig. 2e      Decimal Precision Consistency    HIGH 7.69e-14 -> LOW 0.782
+      C25/Fig. 2e      Exact Duplicate Detection        HIGH 6.32e-17 -> LOW 1.00
+      C25/Fig. 2e      Constant-Offset Blocks           MODERATE 0.00100 -> LOW 0.0240
+      C25/Fig. 2e      Mahalanobis Row Outlier          HIGH 0.00000173 -> LOW 0.00186
+      C25/Fig. 2e      Excess Kurtosis                  HIGH 0.000500 -> LOW 1.00
+      C25/Fig. 2f      Benford's Law (First Digit)      HIGH 0.000200 -> LOW 0.886
+      C25/Fig. 2f      Terminal Digit Uniformity        HIGH 0.000187 -> LOW 0.109
+      C25/Fig. 2f      Exact Duplicate Detection        HIGH 9.49e-30 -> LOW 1.00
+      C25/Fig. 2f      Constant-Offset Blocks           MODERATE 0.00100 -> LOW 1.00
+      C25/Fig. 2f      Excess Kurtosis                  MODERATE 0.00250 -> LOW 0.000500
+      C25/Fig. 3b-c    Decimal Precision Consistency    HIGH 7.33e-20 -> LOW 0.366
+      C25/Fig. 3b-c    Mahalanobis Row Outlier          HIGH 1.57e-8 -> LOW 1.57e-8
+      C25/Fig. 3b-c    Excess Kurtosis                  HIGH 0.000500 -> LOW 0.000500
+      C25/Fig. 3d      Terminal Digit Uniformity        HIGH 0.00 -> LOW 0.0454
+      C25/Fig. 3d      Constant-Offset Blocks           MODERATE 0.00100 -> LOW 0.0250
+      C25/Fig. 3d      Excess Kurtosis                  HIGH 0.000500 -> LOW 0.000500
+      C25/Fig. 3f      Benford's Law (Second Digit)     HIGH 0.000200 -> N/A:dataTypeMismatch —
+      C25/Fig. 3f      Terminal Digit Uniformity        HIGH 0.00 -> N/A:dataTypeMismatch —
+      C25/Fig. 3f      Value-Frequency Spike            HIGH 0.000155 -> N/A:rangeOutOfBand —
+      C25/Fig. 3f      Exact Duplicate Detection        HIGH 0.00 -> LOW 1.00
+      C25/Fig. 4c      Exact Duplicate Detection        HIGH 0.00 -> LOW 1.00
+      C25/Fig. 4c      Excess Kurtosis                  HIGH 0.000500 -> LOW 0.000500
+      C25/Fig. 4e      Benford's Law (First Digit)      HIGH 0.000200 -> N/A:rangeOutOfBand —
+      C25/Fig. 4e      Benford's Law (Second Digit)     HIGH 0.000200 -> LOW 0.527
+      C25/Fig. 4e      Terminal Digit Uniformity        HIGH 0.00 -> LOW 0.580
+      C25/Fig. 4e      Inter-Replicate Correlation      HIGH 0.00 -> LOW 1.00
+      C25/Fig. 4e      Exact Duplicate Detection        HIGH 0.00 -> LOW 0.664
+      C25/Fig. 4e      Excess Kurtosis                  HIGH 0.000500 -> LOW 1.00
+      C25/Fig. 4e      Autocorrelation                  HIGH 0.0000123 -> LOW 0.251
+      C25/Fig. 4e      Windowed Autocorrelation         MODERATE 0.00100 -> LOW 0.168
+      C25/Fig. 4e      Regional Noise Homogeneity       MODERATE 0.00420 -> LOW 0.143
+      C25/Fig. 4f      Benford's Law (Second Digit)     HIGH 0.000200 -> LOW 0.696
+      C25/Fig. 4f      Terminal Digit Uniformity        HIGH 1.32e-12 -> LOW 0.964
+      C25/Fig. 4f      Decimal Precision Consistency    HIGH 0.000397 -> LOW 1.00
+      C25/Fig. 4f      Value-Frequency Spike            MODERATE 0.00634 -> LOW 1.00
+      C25/Fig. 4f      Excess Kurtosis                  HIGH 0.000500 -> LOW 0.0450
+
+  Ignited — read each against its family size before calling it an axis effect:
+
+      C25/Fig. 2b      Value-Frequency Spike            N/A:dataTypeMismatch — -> HIGH 0.000191 {nTested=613}
+      C25/Fig. 2e      Within-Row Variance              LOW 1.00 -> HIGH 0.00
+      C25/Fig. 3d      Value-Frequency Spike            N/A:dataTypeMismatch — -> HIGH 0.0000192 {nTested=15}
+      C25/Fig. 3d      Mahalanobis Row Outlier          N/A:singularComputation — -> HIGH 0.00000331 {nCols=5}
+      C25/Fig. 3d      Within-Row Variance              LOW 1.00 -> HIGH 0.00
+      C25/Fig. 4c      Mahalanobis Row Outlier          N/A:singularComputation — -> HIGH 2.32e-12 {nCols=6}
+      C25/Fig. 4e      Selective Noise Partitioning     LOW 1.00 -> HIGH 7.11e-11
+      C25/Fig. 4f      Mahalanobis Row Outlier          N/A:singularComputation — -> HIGH 2.52e-7 {nCols=3}
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+  File severity per sheet per arm
+────────────────────────────────────────────────────────────────────────────────────────────────────
+
+  sheet            A                  B                  C
+  C25/Fig. 2b      sev 3 (10H 3M)     sev 3 (13H 2M)     sev 3 (14H 3M)
+  C25/Fig. 2d      sev 3 (9H 0M)      sev 3 (8H 4M)      sev 3 (11H 4M)
+  C25/Fig. 2e      sev 3 (8H 3M)      sev 3 (6H 3M)      sev 3 (11H 5M)
+  C25/Fig. 2f      sev 3 (6H 1M)      sev 3 (5H 0M)      sev 3 (7H 3M)
+  C25/Fig. 3b-c    sev 3 (6H 2M)      sev 3 (9H 2M)      sev 3 (12H 2M)
+  C25/Fig. 3d      sev 3 (10H 4M)     sev 3 (13H 5M)     sev 3 (12H 6M)
+  C25/Fig. 3f      sev 3 (8H 2M)      sev 3 (6H 3M)      sev 3 (10H 3M)
+  C25/Fig. 3g      sev 3 (14H 3M)     sev 3 (5H 1M)      sev 3 (13H 4M)
+  C25/Fig. 4b      sev 0 (0H 0M)      sev 0 (0H 0M)      sev 0 (0H 0M)
+  C25/Fig. 4c      sev 3 (9H 1M)      sev 3 (10H 5M)     sev 3 (11H 5M)
+  C25/Fig. 4e      sev 3 (7H 1M)      sev 3 (3H 0M)      sev 3 (9H 2M)
+  C25/Fig. 4f      sev 3 (7H 3M)      sev 3 (9H 2M)      sev 3 (12H 3M)
+  C15/Fig. 2       sev 0 (0H 0M)      sev 0 (0H 0M)      sev 0 (0H 0M)
+  C15/Fig. 5       sev 0 (0H 0M)      sev 0 (0H 0M)      sev 0 (0H 0M)
+  C15/Fig. S1      sev 0 (0H 0M)      sev 0 (0H 0M)      sev 0 (0H 0M)
+
+════════════════════════════════════════════════════════════════════════════════════════════════════
+Quarantine — the two paired-design skips, kept out of every total above
+════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  Both are withheld in arm A on every sheet, because column-grouped data is
+  structurally paired (subjectPairing.js:90) and engine.js:371 withholds on that
+  verdict. Where the grouping collapses the file reads as unpaired, the skip stops
+  firing, and the test runs. That transition is the collapse, not the axes.
+
+  C25/Fig. 2b      A->B    Residual Spike Correlation       N/A:subjectsSharedAcrossConditions —   -> N/A:premiseVoid —
+  C25/Fig. 2b      A->B    Cross-Condition Consistency      N/A:subjectsSharedAcrossConditions —   -> N/A:tooFewConditions —
+  C25/Fig. 2b      A->C    Residual Spike Correlation       N/A:subjectsSharedAcrossConditions —   -> N/A:premiseVoid —
+  C25/Fig. 2b      A->C    Cross-Condition Consistency      N/A:subjectsSharedAcrossConditions —   -> N/A:tooFewConditions —
+  C25/Fig. 2d      A->B    Residual Spike Correlation       N/A:subjectsSharedAcrossConditions —   -> N/A:premiseVoid —
+  C25/Fig. 2d      A->B    Cross-Condition Consistency      N/A:subjectsSharedAcrossConditions —   -> N/A:tooFewConditions —
+  C25/Fig. 2d      A->C    Residual Spike Correlation       N/A:subjectsSharedAcrossConditions —   -> N/A:premiseVoid —
+  C25/Fig. 2d      A->C    Cross-Condition Consistency      N/A:subjectsSharedAcrossConditions —   -> N/A:tooFewConditions —
+  C25/Fig. 2e      A->B    Residual Spike Correlation       N/A:subjectsSharedAcrossConditions —   -> N/A:premiseVoid —
+  C25/Fig. 2e      A->B    Cross-Condition Consistency      N/A:subjectsSharedAcrossConditions —   -> N/A:tooFewConditions —
+  C25/Fig. 2e      A->C    Residual Spike Correlation       N/A:subjectsSharedAcrossConditions —   -> N/A:premiseVoid —
+  C25/Fig. 2e      A->C    Cross-Condition Consistency      N/A:subjectsSharedAcrossConditions —   -> N/A:tooFewConditions —
+  C25/Fig. 2f      A->B    Residual Spike Correlation       N/A:subjectsSharedAcrossConditions —   -> N/A:premiseVoid —
+  C25/Fig. 2f      A->B    Cross-Condition Consistency      N/A:subjectsSharedAcrossConditions —   -> N/A:tooFewConditions —
+  C25/Fig. 2f      A->C    Residual Spike Correlation       N/A:subjectsSharedAcrossConditions —   -> N/A:premiseVoid —
+  C25/Fig. 2f      A->C    Cross-Condition Consistency      N/A:subjectsSharedAcrossConditions —   -> N/A:tooFewConditions —
+  C25/Fig. 3b-c    A->B    Residual Spike Correlation       N/A:subjectsSharedAcrossConditions —   -> N/A:premiseVoid —
+  C25/Fig. 3b-c    A->B    Cross-Condition Consistency      N/A:subjectsSharedAcrossConditions —   -> N/A:tooFewConditions —
+  C25/Fig. 3b-c    A->C    Residual Spike Correlation       N/A:subjectsSharedAcrossConditions —   -> N/A:premiseVoid —
+  C25/Fig. 3b-c    A->C    Cross-Condition Consistency      N/A:subjectsSharedAcrossConditions —   -> N/A:tooFewConditions —
+  C25/Fig. 3d      A->B    Residual Spike Correlation       N/A:subjectsSharedAcrossConditions —   -> N/A:premiseVoid —
+  C25/Fig. 3d      A->B    Cross-Condition Consistency      N/A:subjectsSharedAcrossConditions —   -> N/A:tooFewConditions —
+  C25/Fig. 3d      A->C    Residual Spike Correlation       N/A:subjectsSharedAcrossConditions —   -> N/A:premiseVoid —
+  C25/Fig. 3d      A->C    Cross-Condition Consistency      N/A:subjectsSharedAcrossConditions —   -> N/A:tooFewConditions —
+  C25/Fig. 3f      A->B    Residual Spike Correlation       N/A:subjectsSharedAcrossConditions —   -> N/A:premiseVoid —
+  C25/Fig. 3f      A->B    Cross-Condition Consistency      N/A:subjectsSharedAcrossConditions —   -> N/A:tooFewConditions —
+  C25/Fig. 3f      A->C    Residual Spike Correlation       N/A:subjectsSharedAcrossConditions —   -> N/A:premiseVoid —
+  C25/Fig. 3f      A->C    Cross-Condition Consistency      N/A:subjectsSharedAcrossConditions —   -> N/A:tooFewConditions —
+  C25/Fig. 3g      A->C    Residual Spike Correlation       N/A:subjectsSharedAcrossConditions —   -> N/A:premiseVoid —
+  C25/Fig. 3g      A->C    Cross-Condition Consistency      N/A:subjectsSharedAcrossConditions —   -> N/A:tooFewConditions —
+  C25/Fig. 4b      A->B    Residual Spike Correlation       N/A:subjectsSharedAcrossConditions —   -> N/A:premiseVoid —
+  C25/Fig. 4b      A->B    Cross-Condition Consistency      N/A:subjectsSharedAcrossConditions —   -> N/A:tooFewConditions —
+  C25/Fig. 4b      A->C    Residual Spike Correlation       N/A:subjectsSharedAcrossConditions —   -> N/A:premiseVoid —
+  C25/Fig. 4b      A->C    Cross-Condition Consistency      N/A:subjectsSharedAcrossConditions —   -> N/A:tooFewConditions —
+  C25/Fig. 4c      A->B    Residual Spike Correlation       N/A:subjectsSharedAcrossConditions —   -> N/A:premiseVoid —
+  C25/Fig. 4c      A->B    Cross-Condition Consistency      N/A:subjectsSharedAcrossConditions —   -> N/A:tooFewConditions —
+  C25/Fig. 4c      A->C    Residual Spike Correlation       N/A:subjectsSharedAcrossConditions —   -> N/A:premiseVoid —
+  C25/Fig. 4c      A->C    Cross-Condition Consistency      N/A:subjectsSharedAcrossConditions —   -> N/A:tooFewConditions —
+  C25/Fig. 4e      A->B    Residual Spike Correlation       N/A:subjectsSharedAcrossConditions —   -> N/A:premiseVoid —
+  C25/Fig. 4e      A->B    Cross-Condition Consistency      N/A:subjectsSharedAcrossConditions —   -> N/A:tooFewConditions —
+  C25/Fig. 4e      A->C    Residual Spike Correlation       N/A:subjectsSharedAcrossConditions —   -> N/A:premiseVoid —
+  C25/Fig. 4e      A->C    Cross-Condition Consistency      N/A:subjectsSharedAcrossConditions —   -> N/A:tooFewConditions —
+  C25/Fig. 4f      A->B    Residual Spike Correlation       N/A:subjectsSharedAcrossConditions —   -> N/A:premiseVoid —
+  C25/Fig. 4f      A->B    Cross-Condition Consistency      N/A:subjectsSharedAcrossConditions —   -> N/A:tooFewConditions —
+  C25/Fig. 4f      A->C    Residual Spike Correlation       N/A:subjectsSharedAcrossConditions —   -> N/A:premiseVoid —
+  C25/Fig. 4f      A->C    Cross-Condition Consistency      N/A:subjectsSharedAcrossConditions —   -> N/A:tooFewConditions —
+  C15/Fig. 2       A->C    Residual Spike Correlation       N/A:subjectsSharedAcrossConditions —   -> N/A:premiseVoid —
+  C15/Fig. 2       A->C    Cross-Condition Consistency      N/A:subjectsSharedAcrossConditions —   -> N/A:tooFewConditions —
+  C15/Fig. 5       A->C    Residual Spike Correlation       N/A:subjectsSharedAcrossConditions —   -> N/A:premiseVoid —
+  C15/Fig. 5       A->C    Cross-Condition Consistency      N/A:subjectsSharedAcrossConditions —   -> N/A:tooFewConditions —
+  C15/Fig. S1      A->C    Residual Spike Correlation       N/A:subjectsSharedAcrossConditions —   -> N/A:premiseVoid —
+  C15/Fig. S1      A->C    Cross-Condition Consistency      N/A:subjectsSharedAcrossConditions —   -> N/A:tooFewConditions —
+
+  52 transition(s); 0 land on a FIRING tier (HIGH or MODERATE).
+  None of these is evidence that an axis caused a firing.
+
+════════════════════════════════════════════════════════════════════════════════════════════════════
+Fig. 3g alone — n = 1
+════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  The only sheet that keeps its column grouping through the hold-out: four columns
+  per group, two of them axes, so arm B leaves five two-column groups and the file
+  stays paired. A -> B answers P93's question here with no structural confound.
+  ONE SHEET IN ONE WORKBOOK. n = 1. It does not sit inside a fifteen-sheet total.
+
+  arm A: column-grouped, 5 groups of 4/4/4/4/4, 20 cols, paired=true
+  arm B: column-grouped, 5 groups of 2/2/2/2/2, 10 cols, paired=true
+
+  A -> B: 16 cell(s) moved.
+
+      Benford's Law (First Digit)      HIGH 0.000200                                -> N/A:rangeOutOfBand —
+      Benford's Law (Second Digit)     HIGH 0.000200                                -> N/A:rangeOutOfBand —
+      Decimal Precision Consistency    HIGH 0.00                                    -> LOW 1.00
+      Inter-Replicate Correlation      HIGH 0.00 {nPairs=30}                        -> LOW 1.00 {nPairs=5}
+      Constant-Offset Blocks           MODERATE 0.00200                             -> LOW 0.00600
+      Baseline Balance                 HIGH 0.00                                    -> LOW 0.00
+      Mahalanobis Row Outlier          HIGH 0.00000319 {nCols=4}                    -> N/A:tooFewColumns —
+      Blocked Mahalanobis              MODERATE 0.00200 {nUnits=10}                 -> N/A:tooFewRows —
+      Noise Scaling With Measurement Size LOW 1.00                                     -> N/A:rangeOutOfBand —
+      Excess Kurtosis                  LOW 0.000500 {nPairs=6}                      -> LOW 1.00 {nPairs=1}
+      Windowed Autocorrelation         LOW 0.00419 {nPairs=6}                       -> LOW 0.179 {nPairs=1}
+      Runs Test                        HIGH 0.00 {nPairs=1}                         -> LOW 1.00 {nPairs=0}
+      Within-Row Variance              LOW 1.00                                     -> LOW 0.00
+      Selective Noise Partitioning     HIGH 0.00                                    -> N/A:tooFewColumns —
+      Regional Noise Homogeneity       HIGH 0.00200                                 -> N/A:tooFewColumns —
+      Missing Data Pattern             HIGH 0.00                                    -> HIGH 5.85e-250
+
+════════════════════════════════════════════════════════════════════════════════════════════════════
+Coverage limit — what C -> B cannot reach
+════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  C -> B isolates the axis effect for tests that read columns as replicates without
+  needing a group. For the PER-GROUP dispatch the leg is blind: arms C and B both lack
+  a column-grouped context on the collapsed sheets, so a per-group test is N/A in both
+  and its axis effect is unmeasurable there.
+
+  Tests dispatched per-group in arm A on at least one sheet: 9
+    Autocorrelation
+    Exact Duplicate Detection
+    Excess Kurtosis
+    LOESS Residual Analysis
+    Mahalanobis Row Outlier
+    Regional Noise Homogeneity
+    Runs Test
+    Selective Noise Partitioning
+    Windowed Autocorrelation
+
+  Cells where C -> B is blind (per-group in A, N/A in both C and B, on the 11 collapsed sheets): 0
+
+════════════════════════════════════════════════════════════════════════════════════════════════════
+The confound runs one way
+════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  Removing columns shrinks the correction families, and a BH family of one returns the
+  raw p. So a surviving test gets MORE likely to flag in arm B, not less.
+    - a flag that DISAPPEARS disappeared against that pressure, and is a real loss;
+    - a flag that APPEARS is ambiguous until its family size is read.
+
+  Family sizes C -> B: 70 shrank, 0 grew, 33 unchanged.
+      C25/Fig. 2b      Inter-Replicate Correlation      nPairs: 28 -> 6
+      C25/Fig. 2b      Excess Kurtosis                  nPairs: 27 -> 6
+      C25/Fig. 2b      Entropy / Zipf Analysis          nTested: 8 -> 4
+      C25/Fig. 2b      Autocorrelation                  nPairs: 28 -> 6
+      C25/Fig. 2b      Windowed Autocorrelation         nPairs: 28 -> 6
+      C25/Fig. 2b      Runs Test                        nPairs: 3 -> 2
+      C25/Fig. 2d      Value-Frequency Spike            nTested: 351 -> 318
+      C25/Fig. 2d      Inter-Replicate Correlation      nPairs: 15 -> 3
+      C25/Fig. 2d      Mahalanobis Row Outlier          nCols: 6 -> 3
+      C25/Fig. 2d      Excess Kurtosis                  nPairs: 15 -> 3
+      C25/Fig. 2d      Entropy / Zipf Analysis          nTested: 6 -> 3
+      C25/Fig. 2d      Autocorrelation                  nPairs: 15 -> 3
+      C25/Fig. 2d      Windowed Autocorrelation         nPairs: 15 -> 3
+      C25/Fig. 2d      Runs Test                        nPairs: 14 -> 3
+      C25/Fig. 2e      Value-Frequency Spike            nTested: 30 -> 1
+      C25/Fig. 2e      Inter-Replicate Correlation      nPairs: 15 -> 3
+      C25/Fig. 2e      Mahalanobis Row Outlier          nCols: 6 -> 3
+      C25/Fig. 2e      Excess Kurtosis                  nPairs: 15 -> 3
+      C25/Fig. 2e      Entropy / Zipf Analysis          nTested: 6 -> 3
+      C25/Fig. 2e      Autocorrelation                  nPairs: 15 -> 3
+      C25/Fig. 2e      Windowed Autocorrelation         nPairs: 15 -> 3
+      C25/Fig. 2e      Runs Test                        nPairs: 4 -> 3
+      C25/Fig. 2f      Inter-Replicate Correlation      nPairs: 91 -> 21
+      C25/Fig. 2f      Excess Kurtosis                  nPairs: 78 -> 15
+      C25/Fig. 2f      Entropy / Zipf Analysis          nTested: 14 -> 7
+      C25/Fig. 2f      Autocorrelation                  nPairs: 91 -> 21
+      C25/Fig. 2f      Runs Test                        nPairs: 16 -> 4
+      C25/Fig. 3b-c    Inter-Replicate Correlation      nPairs: 45 -> 10
+      C25/Fig. 3b-c    Mahalanobis Row Outlier          nCols: 10 -> 5
+      C25/Fig. 3b-c    Excess Kurtosis                  nPairs: 45 -> 10
+      C25/Fig. 3b-c    Entropy / Zipf Analysis          nTested: 10 -> 5
+      C25/Fig. 3b-c    Autocorrelation                  nPairs: 45 -> 10
+      C25/Fig. 3b-c    Windowed Autocorrelation         nPairs: 45 -> 10
+      C25/Fig. 3d      Inter-Replicate Correlation      nPairs: 45 -> 10
+      C25/Fig. 3d      Excess Kurtosis                  nPairs: 45 -> 10
+      C25/Fig. 3d      Entropy / Zipf Analysis          nTested: 10 -> 5
+      C25/Fig. 3d      Autocorrelation                  nPairs: 45 -> 10
+      C25/Fig. 3d      Windowed Autocorrelation         nPairs: 45 -> 10
+      C25/Fig. 3f      Inter-Replicate Correlation      nPairs: 15 -> 3
+      C25/Fig. 3f      Excess Kurtosis                  nPairs: 12 -> 3
+      ... and 30 more
+
+JSON written: corpus-out/s378-axis-counterfactual.json
+
+════════════════════════════════════════════════════════════════════════════════════════════════════
+Reading rules
+════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  C -> B is the P93 measurement. A -> B is the confounded total and must be labelled
+  as one wherever it is quoted. The quarantine is not evidence about axes. Fig. 3g is
+  n = 1. Where C -> B is blind, it is blind, and the count is printed above.
+
