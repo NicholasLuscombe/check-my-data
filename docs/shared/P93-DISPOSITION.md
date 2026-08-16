@@ -296,13 +296,15 @@ here as a caveat about what the rule computes on, not as an exposure.
 **Every entry below was checked at source at S376.** Three of the original five were wrong about what
 the target document says, and those three are struck.
 
-- **`STATUS.md`** — the sheet split, the test-case claim and the "ten MODERATEs" figure. **Applied in
-  the S375 rewrite.** The previous version of this bullet claimed the wide overlap sentence reached
-  STATUS's P93 row and road item 2. **That was asserted without reading either.** The P93 row carries
-  the correct narrow form; road item 2 is unread. The wide sentence did reach `S376-CHAT-OPENER.md`.
-- **`STATUS.md`'s register count** — the table holds 129 rows to P169; the counting paragraph says 128
-  to P168. **Not caused by this census**, but found alongside it, and it is the third instance of the
-  pattern P79's own row records.
+- **`STATUS.md`** — the sheet split, the test-case claim and the "ten MODERATEs" figure. **Applied —
+  three sites in the S375 rewrite, the fourth at S377.** The previous version of this bullet claimed
+  the wide overlap sentence reached STATUS's P93 row and road item 2. **That was asserted without
+  reading either.** The P93 row carries the correct narrow form; road item 2 was read at S377 and
+  carried the wide overlap sentence. The wide sentence did reach `S376-CHAT-OPENER.md`.
+- **`STATUS.md`'s register count** — the table held 129 rows to P169 against a counting paragraph
+  saying 128 to P168. Corrected at S376, which replaced the paragraph's arithmetic with a
+  regenerating matcher. The table now holds 131 rows to P171. **Not caused by this census**, but
+  found alongside it, and it is the third instance of the pattern P79's own row records.
 - **`V1X-DECIDED.md`** — `engine.js:109` is `:113`, **and the string occurs twice**, at the choke-point
   claim and again in a source-provenance line. The routing slip called it one line.
 - ~~**The charter's "widest fixture is 1,501 rows × 19 cols"**~~ — **the figure is not in

@@ -213,7 +213,7 @@ The third clause is load-bearing. It is self-validating: a grouping column is on
 
 1. **Detect.** Find candidate grouping columns by the structural rule above. For each, collect the numeric columns constant within all of its levels. Those are the group attributes.
 2. **Route.** Give them a new role — `attribute` — joining `ignore` / `condition` / `label` / `data` in the `roles.js` vocabulary. An attribute is not an identifier (it carries real information) and it is not a measurement of the row.
-3. **Exclude — at one line.** `attribute` columns do not enter the analysis matrix. The S315 read found the choke point: `engine.js:109` builds `dataCols` from `role === "data"`, and **that single line is the sole entry to the entire battery.** No test screens columns afterwards; no per-test patching is needed. Duplicated Data, Constant-Offset Blocks, Value-Frequency Spike, Inter-Replicate Correlation, Selective Noise Partitioning and the digit tests are all excluded at once.
+3. **Exclude — at one line.** `attribute` columns do not enter the analysis matrix. The S315 read found the choke point: `engine.js:113` builds `dataCols` from `role === "data"`, and **that single line is the sole entry to the entire battery.** No test screens columns afterwards; no per-test patching is needed. Duplicated Data, Constant-Offset Blocks, Value-Frequency Spike, Inter-Replicate Correlation, Selective Noise Partitioning and the digit tests are all excluded at once.
 4. **Surface, don't hide.** Report what was excluded and why. "21 of 36 columns are attributes of Site and were excluded" is *itself a useful finding* about the data's shape — and it is the honest disclosure that the analysed matrix is not the deposited one. `dataColHeaders` (`App.jsx:36–38`) already assembles the names of the columns that entered the matrix; that is the handle. `ImportView` needs an `attribute` slot in its per-column role vocabulary with manual override, on the same path the other four roles already have.
 
 **State plainly that the exclusion is blunt.** Because `dataCols` is a one-way gate, excluding a column removes it from *every* test, not only the ones it was corrupting. That is what we want — a site attribute is not a measurement of the plant under any test — but it must be said, because **a wrong exclusion is a false negative across the whole battery.** That is the same defect this section exists to fix, pointed the other way.
@@ -270,7 +270,7 @@ The three are not degrees of one problem. **Applicability produces a verdict on 
 
 **Why it was high:** Long-format tables with joined site, subject or batch attributes are the standard shape of ecological, epidemiological and repeated-measures data. This is not an edge case; it is a *class* of dataset, and the tool currently mis-analyses all of it. The remaining ecology cluster (C07, C09, C15, C16, C20, C22) is held behind this fix and is expected to reproduce the artefact.
 
-**Source:** `REALWORLD-CORPUS-SPEC.md` §0.4 C12 entry (S314), adjudicated at source against `C12.xlsx` sheet `Field survey-data`. Pipeline facts (`engine.js:109` choke point, absent group key, `detectLongFormat` non-firing, batch override absence) from the S315 Code read-only.
+**Source:** `REALWORLD-CORPUS-SPEC.md` §0.4 C12 entry (S314), adjudicated at source against `C12.xlsx` sheet `Field survey-data`. Pipeline facts (`engine.js:113` choke point, absent group key, `detectLongFormat` non-firing, batch override absence) from the S315 Code read-only.
 
 ---
 ### 2.9 Scattered partial-row duplication — BUILT S316 (`e751523`)

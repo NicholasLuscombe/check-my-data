@@ -298,6 +298,8 @@ Each case gets an entry as it is run and adjudicated in the live UI. Adjudicatio
 
 **Ground truth (author-admitted, PubPeer):** the phosphorescence spectrum in Fig. 2b genuinely started at 414.2 nm, not 400.0 like the other three. On figure assembly the phosphorescence data were pasted into wrong wavelength positions then moved, leaving duplicate intensity values in the 400–414.2 nm range. Authors confirm the mistake, assert all remaining data accurate. **Strongest ground-truth class in the corpus — an author admission, not just a commenter's inference.**
 
+The deposited columns do not show that start. All four wavelength columns in the deposited Fig. 2b sheet begin at 400.0. The paste error is why the true spectral start and the deposited column start differ. Measured in the S375 census.
+
 **Class A — CAUGHT.** §2.4 "Recurring value sequences" localised the Phosphorescence intensity block (rows ~20↔75, offset naming per card 4–17→74–87), confirmed at source: intensity 1.135/1.195/1.198/1.226 recurs, wavelength column authentic ascending. This is the admitted defect, caught and correctly localised. The value-pair channel (Exact Duplicate) also counted it but headlined it "within a row" — see Code defect below.
 
 **B2 surface (every flag has a named mechanism):**
