@@ -297,8 +297,7 @@ here as a caveat about what the rule computes on, not as an exposure.
 the target document says, and those three are struck.
 
 - **`STATUS.md`** — the sheet split, the test-case claim and the "ten MODERATEs" figure. **Applied —
-  three sites in the S375 rewrite, the fourth at S377.** The previous version of this bullet claimed
-  the wide overlap sentence reached STATUS's P93 row and road item 2 was read at S376 and carried the wide sentence then. **S376's own STATUS rewrite corrected it: road item 2 now states the narrow form and names this document as the source of the wide wording.** `S376-CHAT-OPENER.md` carried it too and is spent.
+  three sites in the S375 rewrite, the fourth at S377.** The previous version of this bullet claimed the wide overlap sentence reached STATUS's P93 row and road item 2. **That was asserted without reading either.** The P93 row carried the correct narrow form. Road item 2 was read at S376 and did carry the wide sentence, and **S376's own STATUS rewrite corrected it** — road item 2 now states the narrow form and names this document as the source of the wide wording. `S376-CHAT-OPENER.md` carried it too and is spent.
 - **`STATUS.md`'s register count** — the table held 129 rows to P169 against a counting paragraph
   saying 128 to P168. Corrected at S376, which replaced the paragraph's arithmetic with a
   regenerating matcher. The table now holds 131 rows to P171. **Not caused by this census**, but
