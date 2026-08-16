@@ -1,8 +1,15 @@
 # P93 disposition — replicate identity and the measurement axis
 
-**Status:** drafted at S375 on the two-pass structural census and rewritten the same session after the
-candidate-6 curve was read. **Not yet cross-model validated and not yet promoted.** Owner: Chat.
-Tracked file; must land as a commit.
+**Status:** drafted at S375 on the two-pass structural census, rewritten the same session after the
+candidate-6 curve was read, landed at `2e85c8a`, and **corrected at S376.** Owner: Chat. Tracked file.
+
+**What S376 changed.** The two figures §4 rested on were confirmed by measurement and the caveat asking
+a reader to confirm them is gone. §3 carried a false sentence about the overlap region and it is
+replaced with the census's own count. §10's corrections to other documents were checked at source and
+three of the five were wrong about what those documents say.
+
+**Still outstanding: the adversarial cross-model read on §3 and §6.** The measurement half of this
+document stands without it. Those two sections do not.
 
 **Supersedes:** P93's framing as a design problem with no test cases, and its description as an
 axis-plus-signal pair. **It also supersedes this document's own first draft**, which treated the
@@ -49,28 +56,49 @@ scale-matched to within a percent, non-monotone, and mutually uncorrelated. **Th
 what replicates of a homogeneous process look like and what unrelated measurands from one physical law
 look like**, and no measurement in this census separates them.
 
-**Every count below is measured against an axis set authored from header text.** There is no ground
-truth. The census measures agreement with a labelling, and §3 is where that stops being a caveat and
-becomes the finding.
+**Every count below is measured against an axis set authored from header text.** The set is
+`AXIS_HEADERS` in `test/probes/probe-s375-p93-census.mjs`, six headers, and one of the six is the
+contested `1/(KB*Tm) (eV-1)` that §3 argues is not an axis at all. There is no ground truth. The census
+measures agreement with a labelling, and §3 is where that stops being a caveat and becomes the finding.
 
 ---
 
 ## 3. There are three categories, and the third is the whole problem
 
-`Fig. 4b` holds six column groups whose two columns are an Arrhenius pair — `1/(KB*Tm)` against
+`Fig. 4b` holds six column groups whose two columns are an Arrhenius pair — `1/(KB*Tm) (eV-1)` against
 `ln(Tm2/βh)`, both derived from the same five peak-temperature-and-heating-rate measurements. Five rows
-each, so every statistic there rests on four differences.
+each, so every statistic there rests on four differences. **Both headers occur nowhere else in the
+corpus**, so excluding the sheet and excluding the two headers are the same exclusion, and the
+contested membership above cannot reach any figure in §4.
 
 **Neither column is a replicate of the other and neither is an independent measurement.** They are two
 transforms of one quantity. The reference set labels one an axis and one a signal, and that labelling
 is an artefact of which one got plotted horizontally.
 
-**Every column in the overlap region is from that sheet, on both sides.** The axis population's maximum,
-0.3646, is an Arrhenius abscissa. The non-axis population's minimum, 0.1499, is an Arrhenius ordinate.
-Six non-axis and fourteen axis columns sit inside `[0.1499, 0.3646]`, and the six are all `Fig. 4b`.
+**Both ends of the overlap region are `Fig. 4b`, and every non-axis column inside it is `Fig. 4b`.**
+The axis population's maximum, 0.3646, is an Arrhenius abscissa. The non-axis population's minimum,
+0.1499, is an Arrhenius ordinate. Twenty columns lie inside `[0.1499, 0.3646]` — six non-axis and
+fourteen axis. **All six non-axis columns are `Fig. 4b` ordinates**, spanning 0.1499 to 0.1976.
 
-**So the discrimination problem is not axis against signal. It is derived coordinates against
-everything else.** §4 gives the numbers.
+The fourteen axis columns are counted and they are mostly not `Fig. 4b`:
+
+| Header | Columns | Range |
+|---|--:|---|
+| `Temperature (K)` | 8 | 0.1568 – 0.2506 |
+| `Time (s)` | 1 | 0.1984 |
+| `1/(KB*Tm) (eV-1)` | 5 | 0.2490 – 0.3646 |
+
+**Five `Fig. 4b` abscissae, and nine columns from other sheets.** The sixth abscissa sits below 0.1499,
+outside the interval. **Those nine are not errors** — the rule is meant to select axis columns, and
+inside the overlap it still does. The single `Time (s)` at 0.1984 is the column §7 flags for null
+handling.
+
+**So every column the rule gets wrong is one sheet.** The discrimination problem is not axis against
+signal. It is derived coordinates against everything else. §4 gives the numbers.
+
+*(S375's census stated the twenty-column split correctly in both places it appears, and counted the
+fourteen by header. The claim that the overlap was `Fig. 4b` on both sides was this document's, written
+directly above the correct sentence, and it propagated to `STATUS.md` from here.)*
 
 ---
 
@@ -104,19 +132,33 @@ signal, monotone in two of five. **One axis leaks out and one signal leaks in.**
 One fixture column has no defined value — `14-crctest-survey.csv / Q1`, mean first difference exactly
 zero.
 
+**What separates is the axis population, not the sheets.** Every sheet column with a defined value is
+at or below 8,062 and every fixture column at or above 14.4, so those two ranges overlap heavily. It is
+only the axis maximum of 0.3646 that clears the fixture minimum, by a factor of forty. **The rule
+distinguishes axes from everything else. It does not distinguish real data from synthetic.**
+
 The measured curve: `< 0.3` selects 57 axis, 6 non-axis, 0 fixture. `< 0.5` selects 60, 6, 0. `< 1`
-selects 60, 7, 0. **So 60 / 6 / 0 holds across the whole band from just above 0.3646 to wherever the
-seventh non-axis column sits, between 0.5 and 1.** A plateau that wide is not a tuned threshold.
+selects 60, 7, 0. All sixty axis columns are below 0.5, and the seventh non-axis column is the only one
+added between 0.5 and 1. **So the 60 / 6 / 0 plateau runs from just above 0.3646 to 0.8481** — both
+edges now measured. A plateau that wide is not a tuned threshold.
 
 ### And the six it takes are the third category, not signals
 
-**Remove `Fig. 4b` and the two sheet populations separate completely.** The highest remaining axis
-column is 0.2506, a `Temperature (K)`. The lowest remaining non-axis column is above 0.5 — by the
-per-column dump it is C15's `Fig. 5` group 1 `Mean` at 0.8481. **An empty band from 0.2506 to 0.8481,
-holding nothing.**
+**Remove `Fig. 4b` and the two sheet populations separate completely.** The sheet holds twelve columns,
+six of each label, and removing it leaves 54 axis and 72 non-axis columns with no undefined value in
+either.
 
-*(The separation and the identity of the seventh column are Chat's arithmetic over the probe's own
-output, not figures the probe reported. Confirm both before this promotes.)*
+- **Highest remaining axis column: 0.2506.** `C25.xlsx` / `Fig. 2f` / group `TL curves (2 h)` /
+  `Temperature (K)`.
+- **Lowest remaining non-axis column: 0.8481.** `C15.xlsx` / `Fig. 5` / group `βDON`, the first of
+  three / `Mean`.
+- **Nothing lies between them.** Zero columns of either population, strictly inside.
+- **That column is also the seventh** — the one the `< 1` threshold adds. The two are one column, not
+  two, which the earlier draft assumed without checking.
+
+*(All four confirmed at S376 by re-running `test/probes/probe-s375-p93-census.mjs` against expectations
+stated in advance. The flagless invocation is the only one that emits both the candidate table and the
+candidate-6 curve; `--tabulate` and `--pass2` each emit one.)*
 
 So the rule's six errors are six columns that are not replicates either. **On this corpus, at a
 threshold in the plateau, every column the rule selects is a column that should not be treated as a
@@ -171,17 +213,21 @@ set before this is wired.**
 **The rejected alternative** is automatic exclusion with no surface. Cheaper. On six `Fig. 4b` groups it
 would have removed every column and produced nothing, and no reader would have known why.
 
+**This section and §3 are the two the adversarial read must attack.** They are argument. Everything in
+§4 is measurement.
+
 ---
 
 ## 7. What must be specified before implementation
 
-- **The threshold.** The plateau's lower edge is 0.3646 and its upper edge is not pinned. Setting it
-  above the fixture minimum of 14.4 would start taking genuine replicates.
+- **The threshold.** The plateau runs from just above 0.3646 to 0.8481, both edges measured. Anywhere
+  inside gives 60 / 6 / 0. Setting it above the fixture minimum of 14.4 would start taking genuine
+  replicates.
 - **Null handling, and it is not a detail.** `Fig. 3g` position 3 carries 11, 503, 823, 949 and 1,020
   nulls across five groups of the same time column, with variation of 0.037, 0.198, 0.106, 0.072 and
-  0.053. **One of them is the single `Time (s)` inside the overlap.** The relation across the five is
-  not clean, so no mechanism is claimed here — what is claimed is that the statistic depends on whether
-  differences are taken across gaps, and nobody has chosen.
+  0.053. **One of them is the single `Time (s)` inside the overlap**, at 0.1984. The relation across
+  the five is not clean, so no mechanism is claimed here — what is claimed is that the statistic
+  depends on whether differences are taken across gaps, and nobody has chosen.
 - **Undefined variation.** One fixture column has a mean first difference of exactly zero. The rule
   needs a branch, not a crash.
 - **Which matrix it computes on.** Post-trim, since that is what the battery sees.
@@ -213,23 +259,36 @@ plausible threshold at both ends; and no percentile boundary moves when they are
 interior percentiles shift slightly.
 
 **It remains a real defect and it stays recorded** — a measurement silently cut to a fifth of its range
-with nothing announcing it, on user files as much as on this one. It belongs here as a caveat about
-what the rule computes on, not as an exposure.
+with nothing announcing it, on user files as much as on this one. It is register row P169. It belongs
+here as a caveat about what the rule computes on, not as an exposure.
 
 ---
 
 ## 10. Corrections this census forces elsewhere
 
-- **`STATUS`** — "C25's fifteen column-grouped sheets" is twelve of fifteen, C15 holding three; "no
-  test cases and now has fifteen" is wrong on both halves, since DS23 and DS24 are instances; "ten
-  MODERATEs on real spectra" is one test on ten of seventeen paired sheets.
-- **`STATUS`** on DS24, half-refuted, and on its citation, which describes a four-column pre-rebuild
-  file that no longer exists.
-- **The charter's "widest fixture is 1,501 rows × 19 cols"** — two maxima from two files, and both are
-  raw counts. In analysis terms it is 1,500 rows (DS11, 4 data columns) and 18 data columns (DS16, 60
-  rows).
-- **`V1X-DECIDED.md`** — `engine.js:109` is `:113`.
-- **`REALWORLD-CORPUS-SPEC.md`** — the `Fig. 2b` wavelength reading. All four columns start at 400.0
-  and differ in step and span, at 1, 0.2, 2 and 2 nm. **414.2 is a sample within the phosphorescence
-  column, not its start**, which is consistent with the authors' admission that the data were pasted
-  into wrong wavelength positions.
+**Every entry below was checked at source at S376.** Three of the original five were wrong about what
+the target document says, and those three are struck.
+
+- **`STATUS.md`** — the sheet split, the test-case claim and the "ten MODERATEs" figure. **Applied in
+  the S375 rewrite.** One correction is now owed instead: the overlap sentence this document's §3
+  carried, which reached the P93 row and road item 2 from here.
+- **`STATUS.md`'s register count** — the table holds 129 rows to P169; the counting paragraph says 128
+  to P168. **Not caused by this census**, but found alongside it, and it is the third instance of the
+  pattern P79's own row records.
+- **`V1X-DECIDED.md`** — `engine.js:109` is `:113`, **and the string occurs twice**, at the choke-point
+  claim and again in a source-provenance line. The routing slip called it one line.
+- ~~**The charter's "widest fixture is 1,501 rows × 19 cols"**~~ — **the figure is not in
+  `project-instructions.md` at all.** It occurs in thirteen files: five in `docs/shared/archive/`, two
+  session summaries, the S375 census (where it is already corrected), this document, `BANKED.md` twice,
+  and `METHODOLOGY.md` and `METHODOLOGY-TESTS.md` once each. Archive and session files are history and
+  do not get rewritten. **The two live sites say only "the corpus tops out at 1,501 rows"** against a
+  10,000-row threshold, where the raw count is the right count and 1,500 would change nothing. **No
+  repository edit is owed.** The compound form is a Chat artifact's, and that is where it is fixed.
+- ~~**`REALWORLD-CORPUS-SPEC.md` — the `Fig. 2b` wavelength reading**~~ — **the spec is not wrong.**
+  It says the phosphorescence *spectrum* genuinely started at 414.2 nm, which is the authors' own
+  admission, and then explains that the data were pasted into wrong wavelength positions. The census
+  measured that all four *columns in the deposited file* start at 400.0, differing in step and span at
+  1, 0.2, 2 and 2 nm. Both are true about different objects, and the paste error is why they differ.
+  **What is owed is an addition, not a correction:** state the deposited column start beside the true
+  spectrum start, so a reader of the file is not surprised.
+- ~~**`REALWORLD-CORPUS-SPEC.md` — the C25/C15 sheet split**~~ — **already applied**, in two places.
