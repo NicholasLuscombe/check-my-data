@@ -100,18 +100,28 @@
  * Usage:
  *   node test/probes/probe-s378-axis-counterfactual.mjs --structure
  *   node test/probes/probe-s378-axis-counterfactual.mjs --cost
+ *   node test/probes/probe-s378-axis-counterfactual.mjs --boundaries
  *   node test/probes/probe-s378-axis-counterfactual.mjs            # everything
  *   CORPUS_DIR=/abs/path node test/probes/probe-s378-axis-counterfactual.mjs
  *
+ * --boundaries needs NO corpus and runs NO battery. It reads the landed JSON and
+ * answers the question part 2 could not: how far was each sheet from a verdict
+ * boundary, so that "severity did not move" can be told apart from "severity
+ * could not have moved". JSON_IN overrides the input path.
+ *
  * Env: JSON_OUT — also write the full per-sheet per-arm per-test record.
  *
- * The landed run, so the numbers can be re-read without re-running:
+ * The landed runs, so the numbers can be re-read without re-running:
  *   test/probes/s378-axis-counterfactual.txt    the printed tables
  *   test/probes/s378-axis-counterfactual.json   every per-test cell and every diff
- * Regenerate both with:
+ *   test/probes/s378-boundaries.txt / .json     the saturation read
+ * Regenerate with:
  *   JSON_OUT=test/probes/s378-axis-counterfactual.json \
  *     node test/probes/probe-s378-axis-counterfactual.mjs \
  *     > test/probes/s378-axis-counterfactual.txt
+ *   JSON_OUT=test/probes/s378-boundaries.json \
+ *     node test/probes/probe-s378-axis-counterfactual.mjs --boundaries \
+ *     > test/probes/s378-boundaries.txt
  * NOT corpus-out/ — that path is gitignored (.gitignore:60), so an artefact left
  * there is invisible to `git status` and lands nowhere.
  */
@@ -133,10 +143,283 @@ const { summarize } = await import('../../src/import/summary.js');
 const { parseExcel, getSheetNames } = await import('../../src/import/excel.js');
 const { detectAssay, ASSAY_DATATYPE_MAP } = await import('../../src/constants/assays.js');
 
+const { TEST_MECHANISM } = await import('../../src/constants/mechanisms.js');
+
+const line = (n = 100) => '─'.repeat(n);
+const rule = (n = 100) => '═'.repeat(n);
+
 const ARGS = process.argv.slice(2);
 const ONLY_STRUCTURE = ARGS.includes('--structure');
 const ONLY_COST = ARGS.includes('--cost');
-const FULL = !ONLY_STRUCTURE && !ONLY_COST;
+const ONLY_BOUNDARIES = ARGS.includes('--boundaries');
+const FULL = !ONLY_STRUCTURE && !ONLY_COST && !ONLY_BOUNDARIES;
+
+// ════════════════════════════════════════════════════════════════════════════
+// --boundaries — how far was each sheet from a verdict boundary?
+// ════════════════════════════════════════════════════════════════════════════
+//
+// Part 2 found file severity moving on none of the fifteen sheets. That result
+// only means something if a sheet COULD have moved. Eleven read severity 3 and
+// four read 0, so the corpus may be saturated at both ends and structurally
+// unable to show a verdict change whichever way P93 runs.
+//
+// This mode reads the LANDED JSON rather than re-running the batteries, so the
+// answer costs nothing and cannot drift from the run it describes.
+//
+// The severity ladder is transcribed from severity.js:17-23 and then CHECKED
+// against the `severity` field the engine already stored on all 45 arm-records.
+// A transcription that is not checked against its source is a second
+// implementation wearing the first one's name.
+const LADDER_SRC = 'src/analysis/severity.js:17-23';
+function severityOf(high, mod, nDim) {
+  return high >= 3 ? 3
+    : high >= 2 ? 3
+    : (high >= 1 && nDim >= 2) ? 3
+    : high >= 1 ? 2
+    : (mod >= 2 && nDim >= 2) ? 3
+    : mod >= 3 ? 1
+    : mod >= 1 ? 1
+    : 0;
+}
+const dimOf = name => TEST_MECHANISM[name] || null;
+
+/** high / mod / nDim recomputed from a stored arm's test list. */
+function countsOf(tests) {
+  const flagged = tests.filter(t => t.flag === 'HIGH' || t.flag === 'MODERATE');
+  return {
+    high: tests.filter(t => t.flag === 'HIGH').length,
+    mod: tests.filter(t => t.flag === 'MODERATE').length,
+    nDim: new Set(flagged.map(t => dimOf(t.name))).size,
+  };
+}
+
+// How far was this arm from a verdict boundary? "Lose a flag" means the test
+// drops out of the flagged set entirely — to LOW or to N/A — which is what
+// happened to all 45 extinguished cells in arm B. A HIGH demoting to MODERATE
+// is a different move and is not counted as a loss here.
+//
+// The answer is not a simple count, because dropping a flag can also drop a
+// DIMENSION and the ladder reads both. So this searches the whole subset
+// lattice: for k = 1, 2, … is there ANY set of k flags whose removal changes
+// severity? At most ~17 flags on a sheet, so 2^17 — exact, not greedy.
+//
+// TWO answers are needed, and the first one is often UNREACHABLE.
+//   highOnly   losing HIGHs and nothing else. On a sheet whose surviving
+//              MODERATEs span two dimensions, losing every single HIGH still
+//              leaves `H == 0 && M >= 2 && D >= 2`, which is severity 3 again.
+//              The distance is then infinite, not large, and reporting a blank
+//              would read as "no data" rather than "cannot happen".
+//   anyFlag    losing flags of either tier. This is the honest distance to the
+//              nearest boundary and it is what the report should quote.
+function distanceToBoundary(tests) {
+  const base = countsOf(tests);
+  const baseSev = severityOf(base.high, base.mod, base.nDim);
+  const highs = tests.filter(t => t.flag === 'HIGH');
+  const flagged = tests.filter(t => t.flag === 'HIGH' || t.flag === 'MODERATE');
+
+  const search = (pool, fixed) => {
+    const n = pool.length;
+    if (n === 0) return { distance: null, witness: null, unreachable: true };
+    let best = null, witness = null;
+    for (let mask = 1; mask < (1 << n); mask++) {
+      const k = popcount(mask);
+      if (best != null && k >= best) continue;
+      const kept = [...pool.filter((_, i) => !(mask & (1 << i))), ...fixed];
+      const h = kept.filter(t => t.flag === 'HIGH').length;
+      const m = kept.filter(t => t.flag === 'MODERATE').length;
+      const sev = severityOf(h, m, new Set(kept.map(t => dimOf(t.name))).size);
+      if (sev !== baseSev) { best = k; witness = pool.filter((_, i) => (mask & (1 << i))).map(t => t.name); }
+    }
+    return { distance: best, witness, unreachable: best == null };
+  };
+
+  return {
+    base, baseSev,
+    highOnly: search(highs, tests.filter(t => t.flag === 'MODERATE')),
+    anyFlag: search(flagged, []),
+  };
+}
+function popcount(x) { let c = 0; while (x) { x &= x - 1; c++; } return c; }
+
+// The mirror question for a severity-0 sheet: it cannot lose a flag, so the
+// only way its verdict moves is by GAINING one. The ladder makes that exact.
+function distanceUpward(tests) {
+  const b = countsOf(tests);
+  if (b.high > 0 || b.mod > 0) return null;
+  // From 0/0/0: one MODERATE reaches severity 1; one HIGH reaches severity 2.
+  return { toSev1: '1 MODERATE', toSev2: '1 HIGH', toSev3: '2 HIGH, or 1 HIGH across 2 dimensions' };
+}
+
+if (ONLY_BOUNDARIES) {
+  const JSON_IN = process.env.JSON_IN || 'test/probes/s378-axis-counterfactual.json';
+  if (!existsSync(JSON_IN)) {
+    console.error(`No landed run at ${JSON_IN}. Regenerate it with JSON_OUT= on a full run.`);
+    process.exit(2);
+  }
+  const j = JSON.parse(readFileSync(JSON_IN, 'utf-8'));
+  console.log(`read from ${JSON_IN} — no battery re-run\n`);
+
+  // ── Self-check the transcribed ladder against the stored severities ──────
+  let checked = 0, mismatched = 0;
+  for (const s of j.sheets) {
+    for (const arm of ['A', 'B', 'C']) {
+      const stored = s.arms[arm].severity;
+      const c = countsOf(s.arms[arm].tests);
+      checked++;
+      if (c.high !== stored.high || c.mod !== stored.mod || c.nDim !== stored.nFlaggedDimensions
+        || severityOf(c.high, c.mod, c.nDim) !== stored.severity) {
+        mismatched++;
+        console.log(`  LADDER MISMATCH ${s.key} arm ${arm}: recomputed ${c.high}H/${c.mod}M/${c.nDim}dim -> ${severityOf(c.high, c.mod, c.nDim)}, stored ${stored.high}H/${stored.mod}M/${stored.nFlaggedDimensions}dim -> ${stored.severity}`);
+      }
+    }
+  }
+  console.log(mismatched === 0
+    ? `  ladder self-check: ${checked} arm-records, all reproduce the stored severity from ${LADDER_SRC}\n`
+    : `  ladder self-check FAILED on ${mismatched} of ${checked}. Stopping — the transcription is wrong.\n`);
+  if (mismatched > 0) process.exit(3);
+
+  // ── The ladder, in plain terms ──────────────────────────────────────────
+  console.log(rule());
+  console.log(`The severity ladder, read from ${LADDER_SRC}`);
+  console.log(rule() + '\n');
+  console.log('  H = HIGH count, M = MODERATE count, D = distinct mechanism dimensions over HIGH+MODERATE.\n');
+  console.log('    severity 3   H >= 2                                    (two HIGHs, any dimensions)');
+  console.log('                 H == 1 and D >= 2                         (one HIGH plus a flag elsewhere)');
+  console.log('                 H == 0 and M >= 2 and D >= 2              (two MODERATEs, cross-dimension)');
+  console.log('    severity 2   H == 1 and D == 1                         (one HIGH, nothing else flagged)');
+  console.log('    severity 1   H == 0 and M >= 1, not the 3-case above');
+  console.log('    severity 0   H == 0 and M == 0\n');
+  console.log('  So the boundaries a sheet can cross are:');
+  console.log('    3 -> 2   drop to exactly one HIGH AND collapse to one dimension');
+  console.log('    3 -> 1   drop to zero HIGH, keep a MODERATE, and not be cross-dimension on two of them');
+  console.log('    2 -> 1   lose the last HIGH while a MODERATE survives');
+  console.log('    1 -> 0   lose every flag of both tiers\n');
+  console.log('  Note the ladder has no rung that MODERATE count alone can move once H >= 2.');
+  console.log('  M is read only when H is 0 or 1, so on a sheet at two-plus HIGHs the entire');
+  console.log('  MODERATE column is inert.\n');
+
+  // ── Per sheet, per arm ──────────────────────────────────────────────────
+  console.log(rule(112));
+  console.log('Per sheet, per arm — counts, severity, and the arm-A distance to the nearest boundary');
+  console.log(rule(112) + '\n');
+  console.log(`  ${'sheet'.padEnd(16)} ${'arm'.padEnd(4)} ${'H'.padEnd(4)} ${'M'.padEnd(4)} ${'D'.padEnd(4)} ${'sev'.padEnd(5)} arm-A distance to the nearest boundary`);
+  const rows = [];
+  for (const s of j.sheets) {
+    for (const arm of ['A', 'B', 'C']) {
+      const c = countsOf(s.arms[arm].tests);
+      const sev = severityOf(c.high, c.mod, c.nDim);
+      let dist = '';
+      if (arm === 'A') {
+        const d = distanceToBoundary(s.arms[arm].tests);
+        const up = distanceUpward(s.arms[arm].tests);
+        if (up) {
+          dist = 'ON THE FLOOR — no flag of either tier, cannot fall at all';
+        } else {
+          const ho = d.highOnly.unreachable
+            ? `losing HIGHs alone: NEVER (${c.mod} MODERATE across ${c.nDim} dims hold it at 3)`
+            : `losing HIGHs alone: ${d.highOnly.distance} of ${c.high}`;
+          dist = `${ho}   |   any tier: ${d.anyFlag.distance} of ${c.high + c.mod}`;
+        }
+        rows.push({
+          sheet: s.key, high: c.high, mod: c.mod, nDim: c.nDim, severity: sev,
+          highOnlyDistance: d.highOnly.distance, highOnlyUnreachable: d.highOnly.unreachable,
+          anyFlagDistance: d.anyFlag.distance, anyFlagWitness: d.anyFlag.witness,
+          floor: !!up,
+        });
+      }
+      console.log(`  ${(arm === 'A' ? s.key : '').padEnd(16)} ${arm.padEnd(4)} ${String(c.high).padEnd(4)} ${String(c.mod).padEnd(4)} ${String(c.nDim).padEnd(4)} ${String(sev).padEnd(5)} ${dist}`);
+    }
+    console.log('');
+  }
+
+  // ── The three predictions, tested ───────────────────────────────────────
+  console.log(rule());
+  console.log('The three stated predictions');
+  console.log(rule() + '\n');
+
+  // A sheet that carries no HIGH in arm A cannot "reach zero" in arm B — it
+  // started there. Counting it as a failure would score the prediction against a
+  // sheet it was never about, so both readings are printed and the degenerate
+  // case is named.
+  const withAxis = j.sheets.filter(s => s.nAxis > 0);
+  const startedZero = withAxis.filter(s => countsOf(s.arms.A.tests).high === 0);
+  const couldFall = withAxis.filter(s => countsOf(s.arms.A.tests).high > 0);
+  const bZeroAll = withAxis.filter(s => countsOf(s.arms.B.tests).high === 0);
+  const bZeroFell = couldFall.filter(s => countsOf(s.arms.B.tests).high === 0);
+  console.log(`  P1  "No sheet's HIGH count reaches zero in arm B."`);
+  console.log(`      literal reading:  ${bZeroAll.length === 0 ? 'HOLDS' : 'FAILS'} — ${bZeroAll.length} of ${withAxis.length} axis-bearing sheets read zero HIGH in arm B${bZeroAll.length ? ': ' + bZeroAll.map(s => s.key).join(', ') : ''}`);
+  console.log(`      as intended:      ${bZeroFell.length === 0 ? 'HOLDS' : 'FAILS'} — ${bZeroFell.length} of ${couldFall.length} sheets that CARRIED a HIGH in arm A fell to zero`);
+  if (startedZero.length) console.log(`      degenerate: ${startedZero.map(s => s.key).join(', ')} carries zero HIGH in arm A as well — it started at the floor, it did not fall to it`);
+  const bHighs = couldFall.map(s => `${s.key.replace('C25/', '')} ${countsOf(s.arms.B.tests).high}`);
+  console.log(`      arm B HIGH counts where arm A had one: ${bHighs.join(', ')}`);
+  const minB = Math.min(...couldFall.map(s => countsOf(s.arms.B.tests).high));
+  console.log(`      lowest surviving HIGH count: ${minB}\n`);
+
+  const collapsedKeys = new Set(j.collapsedSheets || []);
+  const eleven = j.sheets.filter(s => collapsedKeys.has(s.key));
+  const elevenFlagged = eleven.filter(s => countsOf(s.arms.A.tests).high > 0);
+  const retained = elevenFlagged.filter(s => countsOf(s.arms.B.tests).high >= 1);
+  console.log(`  P2  "Every one of the eleven retains at least one HIGH in arm B."`);
+  console.log(`      ${retained.length === elevenFlagged.length ? 'HOLDS' : 'FAILS'} — ${retained.length} of the ${elevenFlagged.length} collapsed sheets that carried a HIGH in arm A retain one`);
+  console.log(`      (${eleven.length - elevenFlagged.length} of the eleven carried none to begin with)\n`);
+
+  const flagged = rows.filter(r => !r.floor);
+  const movable = flagged.filter(r => r.anyFlagDistance != null && r.anyFlagDistance <= 2);
+  console.log(`  P3  "The arm-A distance is large enough on every sheet that a 45-firing change`);
+  console.log(`       could not have crossed it."`);
+  console.log(`      ${movable.length === 0 ? 'HOLDS' : 'FAILS'} — ${movable.length} sheet(s) sit within 2 flags of a boundary in arm A${movable.length ? ':' : ''}`);
+  for (const r of movable) console.log(`        ${r.sheet.padEnd(16)} ${r.high}H ${r.mod}M, must lose ${r.anyFlagDistance}: ${(r.anyFlagWitness || []).join(', ')}`);
+  const dists = flagged.map(r => r.anyFlagDistance).filter(v => v != null);
+  if (dists.length) {
+    console.log(`      any-tier distances over the ${dists.length} flagged sheets: min ${Math.min(...dists)}, max ${Math.max(...dists)}`);
+  }
+  const unreachable = flagged.filter(r => r.highOnlyUnreachable);
+  console.log(`      ${unreachable.length} of ${flagged.length} flagged sheets cannot change verdict by losing HIGHs AT ALL —`);
+  console.log(`      their surviving cross-dimension MODERATEs re-enter severity 3 on the H == 0 rung:`);
+  for (const r of unreachable) console.log(`        ${r.sheet.padEnd(16)} ${r.high}H ${r.mod}M ${r.nDim}D`);
+  const floors = rows.filter(r => r.floor);
+  console.log(`\n      ${floors.length} sheet(s) carry no flag of either tier and cannot fall at all: ${floors.map(r => r.sheet).join(', ')}\n`);
+
+  console.log(rule());
+  console.log('What this licenses, and what it does not');
+  console.log(rule() + '\n');
+  const far = flagged.filter(r => r.anyFlagDistance != null && r.anyFlagDistance >= 3).length;
+  console.log(`  ${far} of ${flagged.length} flagged sheets sit three or more flags above the nearest boundary.`);
+  console.log(`  ${unreachable.length} cannot be moved by losing HIGHs at any count. ${floors.length} sit on the floor with`);
+  console.log(`  nothing to lose. So the corpus IS saturated at both ends, and "severity did not`);
+  console.log(`  move" is a fact about this corpus's position on the ladder rather than a`);
+  console.log(`  measurement of what P93 can do to a verdict.`);
+  console.log(`\n  Do not quote Part 2's immobility as "P93 cannot move a verdict". The corpus was`);
+  console.log(`  selected for suspicion; the deposits that reach the battery are the ones somebody`);
+  console.log(`  already doubted. A corpus with files near a boundary has not been assembled.\n`);
+
+  if (process.env.JSON_OUT) {
+    writeFileSync(process.env.JSON_OUT, JSON.stringify({
+      generatedBy: 'probe-s378-axis-counterfactual.mjs --boundaries',
+      source: JSON_IN, ladderSource: LADDER_SRC,
+      ladderSelfCheck: { armRecords: checked, mismatched },
+      rows,
+      predictions: {
+        P1_noSheetReachesZeroHighInArmB: {
+          literal: { holds: bZeroAll.length === 0, zeroInArmB: bZeroAll.map(s => s.key) },
+          asIntended: { holds: bZeroFell.length === 0, fellToZero: bZeroFell.map(s => s.key), of: couldFall.length },
+          startedAtZero: startedZero.map(s => s.key),
+          lowestSurvivingHighCount: minB,
+        },
+        P2_elevenRetainAHigh: { holds: retained.length === elevenFlagged.length, retained: retained.length, of: elevenFlagged.length, carriedNoneInArmA: eleven.length - elevenFlagged.length },
+        P3_noSheetWithinTwoOfBoundary: {
+          holds: movable.length === 0,
+          within2: movable.map(r => ({ sheet: r.sheet, high: r.high, mod: r.mod, distance: r.anyFlagDistance })),
+          anyTierDistanceRange: dists.length ? { min: Math.min(...dists), max: Math.max(...dists) } : null,
+          unmovableByHighLossAlone: unreachable.map(r => ({ sheet: r.sheet, high: r.high, mod: r.mod, nDim: r.nDim })),
+          onTheFloor: floors.map(r => r.sheet),
+        },
+      },
+    }, null, 2));
+    console.log(`JSON written: ${process.env.JSON_OUT}\n`);
+  }
+  process.exit(0);
+}
 
 // ── Corpus directory, or a clear failure ───────────────────────────────────
 const CANDIDATES = [
@@ -389,8 +672,6 @@ function diffQuarantine(x, y) {
   return out;
 }
 
-const line = (n = 100) => '─'.repeat(n);
-const rule = (n = 100) => '═'.repeat(n);
 
 // ════════════════════════════════════════════════════════════════════════════
 console.log('S378 — P93 axis counterfactual: three arms over the fifteen column-grouped sheets\n');

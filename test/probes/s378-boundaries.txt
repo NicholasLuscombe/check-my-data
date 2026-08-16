@@ -1,0 +1,138 @@
+read from test/probes/s378-axis-counterfactual.json — no battery re-run
+
+  ladder self-check: 45 arm-records, all reproduce the stored severity from src/analysis/severity.js:17-23
+
+════════════════════════════════════════════════════════════════════════════════════════════════════
+The severity ladder, read from src/analysis/severity.js:17-23
+════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  H = HIGH count, M = MODERATE count, D = distinct mechanism dimensions over HIGH+MODERATE.
+
+    severity 3   H >= 2                                    (two HIGHs, any dimensions)
+                 H == 1 and D >= 2                         (one HIGH plus a flag elsewhere)
+                 H == 0 and M >= 2 and D >= 2              (two MODERATEs, cross-dimension)
+    severity 2   H == 1 and D == 1                         (one HIGH, nothing else flagged)
+    severity 1   H == 0 and M >= 1, not the 3-case above
+    severity 0   H == 0 and M == 0
+
+  So the boundaries a sheet can cross are:
+    3 -> 2   drop to exactly one HIGH AND collapse to one dimension
+    3 -> 1   drop to zero HIGH, keep a MODERATE, and not be cross-dimension on two of them
+    2 -> 1   lose the last HIGH while a MODERATE survives
+    1 -> 0   lose every flag of both tiers
+
+  Note the ladder has no rung that MODERATE count alone can move once H >= 2.
+  M is read only when H is 0 or 1, so on a sheet at two-plus HIGHs the entire
+  MODERATE column is inert.
+
+════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+Per sheet, per arm — counts, severity, and the arm-A distance to the nearest boundary
+════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  sheet            arm  H    M    D    sev   arm-A distance to the nearest boundary
+  C25/Fig. 2b      A    10   3    5    3     losing HIGHs alone: NEVER (3 MODERATE across 5 dims hold it at 3)   |   any tier: 11 of 13
+                   B    13   2    4    3     
+                   C    14   3    4    3     
+
+  C25/Fig. 2d      A    9    0    4    3     losing HIGHs alone: 8 of 9   |   any tier: 8 of 9
+                   B    8    4    3    3     
+                   C    11   4    3    3     
+
+  C25/Fig. 2e      A    8    3    4    3     losing HIGHs alone: NEVER (3 MODERATE across 4 dims hold it at 3)   |   any tier: 9 of 11
+                   B    6    3    2    3     
+                   C    11   5    3    3     
+
+  C25/Fig. 2f      A    6    1    4    3     losing HIGHs alone: 5 of 6   |   any tier: 5 of 7
+                   B    5    0    2    3     
+                   C    7    3    3    3     
+
+  C25/Fig. 3b-c    A    6    2    4    3     losing HIGHs alone: NEVER (2 MODERATE across 4 dims hold it at 3)   |   any tier: 6 of 8
+                   B    9    2    3    3     
+                   C    12   2    3    3     
+
+  C25/Fig. 3d      A    10   4    5    3     losing HIGHs alone: NEVER (4 MODERATE across 5 dims hold it at 3)   |   any tier: 11 of 14
+                   B    13   5    3    3     
+                   C    12   6    4    3     
+
+  C25/Fig. 3f      A    8    2    4    3     losing HIGHs alone: 7 of 8   |   any tier: 7 of 10
+                   B    6    3    2    3     
+                   C    10   3    4    3     
+
+  C25/Fig. 3g      A    14   3    5    3     losing HIGHs alone: NEVER (3 MODERATE across 5 dims hold it at 3)   |   any tier: 15 of 17
+                   B    5    1    4    3     
+                   C    13   4    4    3     
+
+  C25/Fig. 4b      A    0    0    0    0     ON THE FLOOR — no flag of either tier, cannot fall at all
+                   B    0    0    0    0     
+                   C    0    0    0    0     
+
+  C25/Fig. 4c      A    9    1    5    3     losing HIGHs alone: 8 of 9   |   any tier: 8 of 10
+                   B    10   5    3    3     
+                   C    11   5    4    3     
+
+  C25/Fig. 4e      A    7    1    4    3     losing HIGHs alone: 6 of 7   |   any tier: 6 of 8
+                   B    3    0    1    3     
+                   C    9    2    3    3     
+
+  C25/Fig. 4f      A    7    3    4    3     losing HIGHs alone: NEVER (3 MODERATE across 4 dims hold it at 3)   |   any tier: 7 of 10
+                   B    9    2    3    3     
+                   C    12   3    3    3     
+
+  C15/Fig. 2       A    0    0    0    0     ON THE FLOOR — no flag of either tier, cannot fall at all
+                   B    0    0    0    0     
+                   C    0    0    0    0     
+
+  C15/Fig. 5       A    0    0    0    0     ON THE FLOOR — no flag of either tier, cannot fall at all
+                   B    0    0    0    0     
+                   C    0    0    0    0     
+
+  C15/Fig. S1      A    0    0    0    0     ON THE FLOOR — no flag of either tier, cannot fall at all
+                   B    0    0    0    0     
+                   C    0    0    0    0     
+
+════════════════════════════════════════════════════════════════════════════════════════════════════
+The three stated predictions
+════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  P1  "No sheet's HIGH count reaches zero in arm B."
+      literal reading:  FAILS — 1 of 12 axis-bearing sheets read zero HIGH in arm B: C25/Fig. 4b
+      as intended:      HOLDS — 0 of 11 sheets that CARRIED a HIGH in arm A fell to zero
+      degenerate: C25/Fig. 4b carries zero HIGH in arm A as well — it started at the floor, it did not fall to it
+      arm B HIGH counts where arm A had one: Fig. 2b 13, Fig. 2d 8, Fig. 2e 6, Fig. 2f 5, Fig. 3b-c 9, Fig. 3d 13, Fig. 3f 6, Fig. 3g 5, Fig. 4c 10, Fig. 4e 3, Fig. 4f 9
+      lowest surviving HIGH count: 3
+
+  P2  "Every one of the eleven retains at least one HIGH in arm B."
+      HOLDS — 10 of the 10 collapsed sheets that carried a HIGH in arm A retain one
+      (1 of the eleven carried none to begin with)
+
+  P3  "The arm-A distance is large enough on every sheet that a 45-firing change
+       could not have crossed it."
+      HOLDS — 0 sheet(s) sit within 2 flags of a boundary in arm A
+      any-tier distances over the 11 flagged sheets: min 5, max 15
+      6 of 11 flagged sheets cannot change verdict by losing HIGHs AT ALL —
+      their surviving cross-dimension MODERATEs re-enter severity 3 on the H == 0 rung:
+        C25/Fig. 2b      10H 3M 5D
+        C25/Fig. 2e      8H 3M 4D
+        C25/Fig. 3b-c    6H 2M 4D
+        C25/Fig. 3d      10H 4M 5D
+        C25/Fig. 3g      14H 3M 5D
+        C25/Fig. 4f      7H 3M 4D
+
+      4 sheet(s) carry no flag of either tier and cannot fall at all: C25/Fig. 4b, C15/Fig. 2, C15/Fig. 5, C15/Fig. S1
+
+════════════════════════════════════════════════════════════════════════════════════════════════════
+What this licenses, and what it does not
+════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  11 of 11 flagged sheets sit three or more flags above the nearest boundary.
+  6 cannot be moved by losing HIGHs at any count. 4 sit on the floor with
+  nothing to lose. So the corpus IS saturated at both ends, and "severity did not
+  move" is a fact about this corpus's position on the ladder rather than a
+  measurement of what P93 can do to a verdict.
+
+  Do not quote Part 2's immobility as "P93 cannot move a verdict". The corpus was
+  selected for suspicion; the deposits that reach the battery are the ones somebody
+  already doubted. A corpus with files near a boundary has not been assembled.
+
+JSON written: test/probes/s378-boundaries.json
+

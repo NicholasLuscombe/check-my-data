@@ -1,0 +1,372 @@
+{
+  "generatedBy": "probe-s378-axis-counterfactual.mjs --boundaries",
+  "source": "test/probes/s378-axis-counterfactual.json",
+  "ladderSource": "src/analysis/severity.js:17-23",
+  "ladderSelfCheck": {
+    "armRecords": 45,
+    "mismatched": 0
+  },
+  "rows": [
+    {
+      "sheet": "C25/Fig. 2b",
+      "high": 10,
+      "mod": 3,
+      "nDim": 5,
+      "severity": 3,
+      "highOnlyDistance": null,
+      "highOnlyUnreachable": true,
+      "anyFlagDistance": 11,
+      "anyFlagWitness": [
+        "Benford's Law (First Digit)",
+        "Benford's Law (Second Digit)",
+        "Terminal Digit Uniformity",
+        "Exact Duplicate Detection",
+        "Sequential Duplication",
+        "Constant-Offset Blocks",
+        "Cross-Condition Rank Correlation",
+        "Column Goodness-of-Fit",
+        "Autocorrelation",
+        "Within-Row Variance",
+        "LOESS Residual Analysis"
+      ],
+      "floor": false
+    },
+    {
+      "sheet": "C25/Fig. 2d",
+      "high": 9,
+      "mod": 0,
+      "nDim": 4,
+      "severity": 3,
+      "highOnlyDistance": 8,
+      "highOnlyUnreachable": false,
+      "anyFlagDistance": 8,
+      "anyFlagWitness": [
+        "Benford's Law (First Digit)",
+        "Terminal Digit Uniformity",
+        "Decimal Precision Consistency",
+        "Value-Frequency Spike",
+        "Exact Duplicate Detection",
+        "Baseline Balance",
+        "Autocorrelation",
+        "Runs Test"
+      ],
+      "floor": false
+    },
+    {
+      "sheet": "C25/Fig. 2e",
+      "high": 8,
+      "mod": 3,
+      "nDim": 4,
+      "severity": 3,
+      "highOnlyDistance": null,
+      "highOnlyUnreachable": true,
+      "anyFlagDistance": 9,
+      "anyFlagWitness": [
+        "Benford's Law (First Digit)",
+        "Benford's Law (Second Digit)",
+        "Terminal Digit Uniformity",
+        "Decimal Precision Consistency",
+        "Value-Frequency Spike",
+        "Exact Duplicate Detection",
+        "Constant-Offset Blocks",
+        "Baseline Balance",
+        "Autocorrelation"
+      ],
+      "floor": false
+    },
+    {
+      "sheet": "C25/Fig. 2f",
+      "high": 6,
+      "mod": 1,
+      "nDim": 4,
+      "severity": 3,
+      "highOnlyDistance": 5,
+      "highOnlyUnreachable": false,
+      "anyFlagDistance": 5,
+      "anyFlagWitness": [
+        "Benford's Law (First Digit)",
+        "Terminal Digit Uniformity",
+        "Decimal Precision Consistency",
+        "Baseline Balance",
+        "Autocorrelation"
+      ],
+      "floor": false
+    },
+    {
+      "sheet": "C25/Fig. 3b-c",
+      "high": 6,
+      "mod": 2,
+      "nDim": 4,
+      "severity": 3,
+      "highOnlyDistance": null,
+      "highOnlyUnreachable": true,
+      "anyFlagDistance": 6,
+      "anyFlagWitness": [
+        "Benford's Law (First Digit)",
+        "Decimal Precision Consistency",
+        "Cross-Condition Rank Correlation",
+        "Column Goodness-of-Fit",
+        "Autocorrelation",
+        "LOESS Residual Analysis"
+      ],
+      "floor": false
+    },
+    {
+      "sheet": "C25/Fig. 3d",
+      "high": 10,
+      "mod": 4,
+      "nDim": 5,
+      "severity": 3,
+      "highOnlyDistance": null,
+      "highOnlyUnreachable": true,
+      "anyFlagDistance": 11,
+      "anyFlagWitness": [
+        "Benford's Law (First Digit)",
+        "Benford's Law (Second Digit)",
+        "Terminal Digit Uniformity",
+        "Decimal Precision Consistency",
+        "Exact Duplicate Detection",
+        "Constant-Offset Blocks",
+        "Baseline Balance",
+        "Autocorrelation",
+        "Windowed Autocorrelation",
+        "LOESS Residual Analysis",
+        "Missing Data Pattern"
+      ],
+      "floor": false
+    },
+    {
+      "sheet": "C25/Fig. 3f",
+      "high": 8,
+      "mod": 2,
+      "nDim": 4,
+      "severity": 3,
+      "highOnlyDistance": 7,
+      "highOnlyUnreachable": false,
+      "anyFlagDistance": 7,
+      "anyFlagWitness": [
+        "Benford's Law (Second Digit)",
+        "Terminal Digit Uniformity",
+        "Value-Frequency Spike",
+        "Exact Duplicate Detection",
+        "Column Goodness-of-Fit",
+        "Autocorrelation",
+        "Runs Test"
+      ],
+      "floor": false
+    },
+    {
+      "sheet": "C25/Fig. 3g",
+      "high": 14,
+      "mod": 3,
+      "nDim": 5,
+      "severity": 3,
+      "highOnlyDistance": null,
+      "highOnlyUnreachable": true,
+      "anyFlagDistance": 15,
+      "anyFlagWitness": [
+        "Benford's Law (First Digit)",
+        "Benford's Law (Second Digit)",
+        "Terminal Digit Uniformity",
+        "Decimal Precision Consistency",
+        "Inter-Replicate Correlation",
+        "Constant-Offset Blocks",
+        "Baseline Balance",
+        "Cross-Condition Rank Correlation",
+        "Mahalanobis Row Outlier",
+        "Column Goodness-of-Fit",
+        "Autocorrelation",
+        "Runs Test",
+        "LOESS Residual Analysis",
+        "Selective Noise Partitioning",
+        "Regional Noise Homogeneity"
+      ],
+      "floor": false
+    },
+    {
+      "sheet": "C25/Fig. 4b",
+      "high": 0,
+      "mod": 0,
+      "nDim": 0,
+      "severity": 0,
+      "highOnlyDistance": null,
+      "highOnlyUnreachable": true,
+      "anyFlagDistance": null,
+      "anyFlagWitness": null,
+      "floor": true
+    },
+    {
+      "sheet": "C25/Fig. 4c",
+      "high": 9,
+      "mod": 1,
+      "nDim": 5,
+      "severity": 3,
+      "highOnlyDistance": 8,
+      "highOnlyUnreachable": false,
+      "anyFlagDistance": 8,
+      "anyFlagWitness": [
+        "Benford's Law (First Digit)",
+        "Terminal Digit Uniformity",
+        "Decimal Precision Consistency",
+        "Value-Frequency Spike",
+        "Exact Duplicate Detection",
+        "Baseline Balance",
+        "Autocorrelation",
+        "LOESS Residual Analysis"
+      ],
+      "floor": false
+    },
+    {
+      "sheet": "C25/Fig. 4e",
+      "high": 7,
+      "mod": 1,
+      "nDim": 4,
+      "severity": 3,
+      "highOnlyDistance": 6,
+      "highOnlyUnreachable": false,
+      "anyFlagDistance": 6,
+      "anyFlagWitness": [
+        "Benford's Law (First Digit)",
+        "Benford's Law (Second Digit)",
+        "Terminal Digit Uniformity",
+        "Exact Duplicate Detection",
+        "Baseline Balance",
+        "Autocorrelation"
+      ],
+      "floor": false
+    },
+    {
+      "sheet": "C25/Fig. 4f",
+      "high": 7,
+      "mod": 3,
+      "nDim": 4,
+      "severity": 3,
+      "highOnlyDistance": null,
+      "highOnlyUnreachable": true,
+      "anyFlagDistance": 7,
+      "anyFlagWitness": [
+        "Benford's Law (Second Digit)",
+        "Terminal Digit Uniformity",
+        "Exact Duplicate Detection",
+        "Baseline Balance",
+        "Autocorrelation",
+        "Windowed Autocorrelation",
+        "LOESS Residual Analysis"
+      ],
+      "floor": false
+    },
+    {
+      "sheet": "C15/Fig. 2",
+      "high": 0,
+      "mod": 0,
+      "nDim": 0,
+      "severity": 0,
+      "highOnlyDistance": null,
+      "highOnlyUnreachable": true,
+      "anyFlagDistance": null,
+      "anyFlagWitness": null,
+      "floor": true
+    },
+    {
+      "sheet": "C15/Fig. 5",
+      "high": 0,
+      "mod": 0,
+      "nDim": 0,
+      "severity": 0,
+      "highOnlyDistance": null,
+      "highOnlyUnreachable": true,
+      "anyFlagDistance": null,
+      "anyFlagWitness": null,
+      "floor": true
+    },
+    {
+      "sheet": "C15/Fig. S1",
+      "high": 0,
+      "mod": 0,
+      "nDim": 0,
+      "severity": 0,
+      "highOnlyDistance": null,
+      "highOnlyUnreachable": true,
+      "anyFlagDistance": null,
+      "anyFlagWitness": null,
+      "floor": true
+    }
+  ],
+  "predictions": {
+    "P1_noSheetReachesZeroHighInArmB": {
+      "literal": {
+        "holds": false,
+        "zeroInArmB": [
+          "C25/Fig. 4b"
+        ]
+      },
+      "asIntended": {
+        "holds": true,
+        "fellToZero": [],
+        "of": 11
+      },
+      "startedAtZero": [
+        "C25/Fig. 4b"
+      ],
+      "lowestSurvivingHighCount": 3
+    },
+    "P2_elevenRetainAHigh": {
+      "holds": true,
+      "retained": 10,
+      "of": 10,
+      "carriedNoneInArmA": 1
+    },
+    "P3_noSheetWithinTwoOfBoundary": {
+      "holds": true,
+      "within2": [],
+      "anyTierDistanceRange": {
+        "min": 5,
+        "max": 15
+      },
+      "unmovableByHighLossAlone": [
+        {
+          "sheet": "C25/Fig. 2b",
+          "high": 10,
+          "mod": 3,
+          "nDim": 5
+        },
+        {
+          "sheet": "C25/Fig. 2e",
+          "high": 8,
+          "mod": 3,
+          "nDim": 4
+        },
+        {
+          "sheet": "C25/Fig. 3b-c",
+          "high": 6,
+          "mod": 2,
+          "nDim": 4
+        },
+        {
+          "sheet": "C25/Fig. 3d",
+          "high": 10,
+          "mod": 4,
+          "nDim": 5
+        },
+        {
+          "sheet": "C25/Fig. 3g",
+          "high": 14,
+          "mod": 3,
+          "nDim": 5
+        },
+        {
+          "sheet": "C25/Fig. 4f",
+          "high": 7,
+          "mod": 3,
+          "nDim": 4
+        }
+      ],
+      "onTheFloor": [
+        "C25/Fig. 4b",
+        "C15/Fig. 2",
+        "C15/Fig. 5",
+        "C15/Fig. S1"
+      ]
+    }
+  }
+}
