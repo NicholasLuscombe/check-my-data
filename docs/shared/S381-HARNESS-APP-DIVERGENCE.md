@@ -1,6 +1,6 @@
 # S381 — harness-versus-app divergence
 
-Read-only. No `src/` change, no batch, no run.
+No `src/` change, no batch, no full analysis run.
 Worktree `harness-app-divergence-4371ed`, branch `claude/harness-app-divergence-4371ed`.
 
 This is the one address for S381. `docs/sessions/` is gitignored at `.gitignore:45` and has never
@@ -9,7 +9,13 @@ there; it was byte-identical and has been removed.
 
 - **Part 1 — the census.** 33 decision points, app against harness.
 - **Part 2a — the disposition.** Which side is right on each of the 25 divergent rows.
-- **Part 2b — incidence.** Not started.
+- **Part 2b — the BatchView sweep and incidence.** Which rows are shipped product inconsistencies,
+  and which fire on the corpus. Instrument: `test/probes/probe-s381-divergence-incidence.mjs`.
+
+**The one-line result.** On **40 of 41** imported corpus sheets `ImportView.jsx` would have refused
+to run until a human answered a gate. The one sheet that clears both gates meets the
+grouping-confirm card instead. And `BatchView.jsx` — the app's other shipping import surface — sides
+with the harness on 17 of the 25 divergent rows and with ImportView on 2.
 
 ---
 
@@ -288,7 +294,186 @@ C22::Info.
   not reported here: they carry no per-row denominator and no app-side counterfactual, and that is
   the whole of 2b's design.
 
+---
+
+# Part 2b — the BatchView sweep, and incidence
+
+Two questions. Which of the 25 divergent rows actually fire on the corpus, because a divergence at
+zero incidence is a documentation item. And which of them are really ImportView-versus-BatchView — a
+shipped product inconsistency — rather than app-versus-harness, which costs a user nothing.
+
+Instrument: `test/probes/probe-s381-divergence-incidence.mjs`. It calls no engine function and never
+regenerates the artifact.
+
+## The BatchView sweep
+
+`corpus-run.mjs` reproduces BatchView's loop rather than ImportView's — its own header says so at
+`:6-8` — and BatchView ships. One lookup per divergent row.
+
+| # | BatchView | Site | Reads as |
+|---|---|---|---|
+| 1 | third | `BatchView.jsx:41` | neither — keeps ImportView's extension whitelist, drops its 50 MB cap, and skips a rejected file silently with `continue` |
+| 2 | harness | `:44` — `parseExcel(file)` with no sheet argument → `excel.js:51` | product inconsistency |
+| 3 | ImportView | `:45` — the same CSV re-serialise expression as `ImportView.jsx:280` | harness artifact |
+| 4 | harness | `:82` — `Papa.parse(file.text, …)`, no `.trim()` | product inconsistency |
+| 6 | harness | `:92-93` | product inconsistency |
+| 7 | **harness** | `:96-98` — the strip runs on every file | **product inconsistency** |
+| 8 | harness | absent — `:95`'s comment says "remove empty columns" and `:96-98` does not | product inconsistency |
+| 9 | harness | `:101` — `detectHeaderRows` on the stripped block | product inconsistency |
+| 10 | harness | `:115-122` — `forwardFill` only; `:114` calls it "simplified version" | product inconsistency |
+| 11 | harness | `:123` — bare name, no group prefix | product inconsistency |
+| 12 | harness | absent — no blank-row filter at `:109`/`:112`/`:124` | product inconsistency |
+| 13 | third | `:133-138` — the harness's inputs, plus an `nH>0` gate but no single-block gate | product inconsistency |
+| 14 | absent | absent — `:127-132` records the decision to route rather than pivot | product inconsistency |
+| 16 | absent | absent | neither |
+| 17 | harness | `:152` — `detectAssay(file.name, hdrs)` on bare headers | product inconsistency |
+| 18 | absent | `:167` — same default, no override surface at all | neither |
+| 19 | **harness** | `:158` | **product inconsistency** |
+| 20 | **harness** | `:161` — `const batchColRel = 'replicates'` | **product inconsistency** |
+| 21 | harness | `:167-168` — no `dataColHeaders` | neither — unreachable, `:161` hardcodes conditions-mode away |
+| 22 | **harness** | `:166` — `rsSuggestion.value \|\| 'ordered'` | **product inconsistency** |
+| 24 | **harness** | `:170` — `detectVST` with no ordinal bypass | **product inconsistency** |
+| 25 | absent | `:170`; `:196`'s comment states nothing on this path can override it | neither |
+| 26 | harness | absent — no data-column minimum | product inconsistency |
+| 29 | ImportView | `:335` → `ReportView` → `GroupingConfirmCard`; `:309-311` supplies `data`, `roles`, `hdrs` | harness artifact |
+| 33 | harness | `:200` — `null` progress, no `skipHeavy` | neither — the differences are inert in the production build |
+
+**BatchView sides with the harness on 17 rows and with ImportView on 2.** Third on 2, absent on 4.
+
+**Seventeen rows are shipped product inconsistencies.** Five are inherent to an unattended surface —
+rows 2, 6, 14, 20 and 22 need a human answer that batch mode has no way to ask for. **The other
+twelve have no such excuse.** Rows 4, 7, 8, 9, 10, 11, 12, 13, 17, 19, 24 and 26 are places where
+BatchView could match ImportView on the same file and does not. Row 13's `nH>0` gate is its only
+ImportView inheritance, and `detectHeaderRows` returns 0 only on a file under two rows, so that gate
+cannot separate the two in practice.
+
+**Only two rows are pure harness artifacts.** Row 3 — both app surfaces round-trip Excel through CSV,
+and only the harness reads `parseExcel` rows directly. Row 29 — both app surfaces reach the
+grouping-confirm card, and only the harness stops at `groupingPending`.
+
+## Incidence
+
+**Denominators.** 41 imported sheets out of 49 attempted, across 12 workbooks. Rows whose unit is the
+file are counted against 12. The 8 import failures are C07::Fig2_PCA_group, C09::Sheet2,
+C14::Metadata, C15::Article information, C15::Column name, C20::Microcosm metadata,
+C20::Env. gradient metadata, C22::Info.
+
+### Rows that change the matrix
+
+| # | Predicate | Denominator | Count | Sheets | Matrix shape |
+|---|---|---|---|---|---|
+| 3 | a cell differs between `parseExcel` rows and `Papa.parse(serialise(rows))` | 41 sheets | **0** | — | identical on all 41; zero cells differ |
+| 4 | `Papa.parse` differs with and without ImportView's whole-text `.trim()` | 41 sheets | **0** | — | identical on all 41 |
+| 7 | the second preamble strip removes ≥ 1 row | 41 sheets | **0** | — | **identical on all 41 — no row removed anywhere** |
+| 9 | `detectHeaderRows(stripped) ≠ detectHeaderRows(un-stripped)` | 41 sheets | **0** | — | identical; follows from row 7 |
+| 10 | `nH ≥ 2` and the name row repeats a value at ≥ 2 positions, so ImportView's group-start rule can leave `forwardFill` | 41 sheets | **3** | C15::Fig. 2, C15::Fig. 5, C15::Fig. S1 | **unmeasured** — see below |
+| 11 | composed `"group · name"` headers differ from bare | 41 sheets | **3** | same three | n/a — headers, not the matrix |
+| 12 | a wholly blank row survives into the data region | 41 sheets | **0** | — | identical on all 41 |
+
+**Row 7 fires on nothing, and the probe computes why rather than asserting it.** `preprocessRaw`
+strips leading rows below `max(3, ceil(contentWidth × 0.1))`; the second loop strips below
+`max(2, ceil(maxRowLength × 0.1))`. The second threshold is stricter than the first on **0 of 41**
+sheets, so `preprocessRaw` has already removed everything the loop could reach. `preprocessRaw` did
+strip leading rows on 8 sheets, at most 2 each. The loop then removed none anywhere, so the matrix is
+identical either way on every sheet — a computation, not an inference.
+
+**Row 10's effect is unmeasured, and the rule is the reason.** Deciding whether ImportView's
+`condPerCol` actually differs from `forwardFill`'s needs ImportView's group-start loop
+(`ImportView.jsx:169-176`) run against the harness's. That is a port, not a toggle. The count above is
+the upper bound — the sheets where the two rules *can* differ.
+
+### Rows that change how the matrix is analysed
+
+| # | Predicate | Denominator | Count | Sheets |
+|---|---|---|---|---|
+| 13 | ImportView's `detectLongFormat` result differs from the harness's | 41 sheets | **0** | — (both false on all 41) |
+| 17 | `detectAssay` returns a different assay on composed vs bare headers | 41 sheets | **0** | — (row 11's three sheets keep the same assay) |
+| 18 | the manifest overrides `dataType` | 41 sheets | **0** | — (no entry of 49 declares one) |
+| 19 | the harness auto-enabled zero-as-missing | 41 sheets | **0** | — |
+| 20 | `condStructureKind(condPerCol, roles)` falsy — ImportView would block Run | 41 sheets | **21** | all 21 read `conditionType: none` |
+| 22 | `suggestRowSemantics(…).value === null` — ImportView would block Run | 41 sheets | **31** | 29 `general`, 2 `survey` |
+| 24 | ordinal data carrying a transform ImportView forbids | 41 sheets | **1** | C17::Training Feasibility Survey — harness `anscombe`, ImportView forces `raw` |
+| 25 | a non-raw transform is proposed, so ImportView's card renders and a click can decline it | 41 sheets | **16** | 13 `log`, 3 `anscombe` |
+| 29 | `groupingPending` is set — four tests held at `N/A` | 41 sheets | **9** | C09::Sheet1, C14::Data, C15::Data, C15::Fig. 6, C20::Microcosm soil A, C20::Microcosm soil B, C22::Exp. OA, C22::Exp. WA, C22::Exp. ST |
+
+Row 24 note: two sheets are `ordinal`. On C17::Behaviors `detectVST` already returns `raw`, so both
+paths agree there and the divergence does not fire.
+
+### The rest
+
+| # | Predicate | Denominator | Count | Sheets |
+|---|---|---|---|---|
+| 1 | extension outside the whitelist, or size over 50 MB | 12 workbooks | **0** | all `.xlsx`/`.xls`; largest 2.38 MB |
+| 2 | the workbook holds more than one sheet | 12 workbooks | **10** | all but C19.xlsx and C24.xls |
+| 6 | `detectBlocks(…).length > 1` | 41 sheets | **2** | C15::Fig. 6, C15::Fig. S2 |
+| 8 | multi-block, and a column all-empty within block 1 | 41 sheets | **0** | — |
+| 14 | ImportView would offer a long-format pivot | 41 sheets | **0** | — |
+| 16 | the manifest declares a role hint | 41 sheets | **0** | — (no entry of 49 declares one) |
+| 21 | — | — | **unmeasured** | no independent predicate; conditions-mode is unreachable while row 20 hardcodes `replicates` |
+| 26 | fewer than two data columns | 41 sheets | **1** | C22::Exp. ST, at 1 |
+| 33 | — | — | **unmeasured** | no independent predicate; it is row 14, which is 0 |
+
+## The load-bearing finding
+
+**On 40 of 41 imported sheets, ImportView would have refused to run until a human answered at least
+one gate.** Row 20 alone on 9 sheets, row 22 alone on 19, both on 12, neither on 1.
+
+The one sheet that clears both is **C14::Data** — and it carries `groupingPending`, so ImportView
+would have met the reader with the grouping-confirm card instead. **On 41 of 41 sheets the app asks a
+question that the corpus answered with a literal.**
+
+The two literals are `corpus-run.mjs:256` (`colRelationship: 'replicates'`) and `:252`
+(`rsSuggestion.value || 'ordered'`), copied from `BatchView.jsx:161` and `:166`. So this is not a
+harness artifact. It is what the shipped batch surface does too.
+
+And on the nine `groupingPending` sheets the four tests named at 2a — Mahalanobis Row Outlier,
+Entropy / Zipf Analysis, Column Goodness-of-Fit, Modality Test — were `N/A` in every published corpus
+figure. **Every firing count on those nine sheets is a lower bound.** Eight of the nine also sit
+inside the 40.
+
+## Part 2b predictions, scored
+
+1. **Held, overwhelmingly.** BatchView sides with the harness on 17 rows and with ImportView on 2.
+   Most of the 25 are shipped product inconsistencies, and twelve of the seventeen have no
+   unattended-operation excuse. The read does change what it is about.
+2. **Missed, and it is the cleanest disagreement here.** Row 7 was predicted to fire on more sheets
+   than any other row. It fires on **0 of 41** — joint-lowest, not highest. The deposits do carry
+   legend rows and `preprocessRaw` removed some on 8 sheets, but it removes them first and its
+   threshold is never looser than the strip's on any sheet. Row 7 stays an ImportView defect by 2a's
+   disposition; it is a defect with zero measured incidence on this corpus.
+3. **Held.** Row 19 fires on 0 of 41. The live-inversion worry was worth checking — the assay is
+   detected rather than declared — and no sheet detected as `genomics` or `cell_count`.
+4. **Held.** Row 24 fires on 1 of 41.
+5. **Held.** Row 29 fires on 9 of 41, and the lower-bound consequence follows.
+6. Reported rather than predicted, as asked: `condStructureKind` is falsy on 21 of 41.
+
+Ranked by incidence: **row 22 at 31/41, row 20 at 21/41, row 25 at 16/41, row 29 at 9/41, row 2 at
+10/12 workbooks.** Everything else is 3 or fewer, and eleven rows are exactly 0.
+
+## Part 2b verification — which dispatch each value entered through
+
+- **Harness side**: `corpus-out/s379-honest-run.json`'s per-sheet `structure` block, which is
+  `scripts/corpus-run.mjs`'s own recorded output. It supplies `headers`, `roles`, `assay`, `dataType`,
+  `rowSemantics`, `vst`, `longFormatDetected`, `zeroAsMissing`, `nCols`, `conditionType` and
+  `groupingPending`. Opened read-only; never written, never regenerated. Size and mtime unchanged
+  after the run.
+- **Run inputs**: `test/probes/s379-corpus-manifest.json`, the committed manifest for that run.
+- **Shared primitives, called directly**: `parseExcel`, `getSheetNames`; `preprocessRaw`,
+  `detectBlocks`, `detectHeaderRows`, `forwardFill`, `contentWidth`, `isFilledCell`;
+  `detectLongFormat`; `suggestRowSemantics`; `detectAssay`; `condStructureKind`; `Papa.parse`.
+- **Two verbatim transcriptions, both toggled rather than ported, both marked in the probe**: the
+  preamble strip (`corpus-run.mjs:156-161`) and the CSV serialiser (`ImportView.jsx:280`, identical at
+  `BatchView.jsx:45`).
+- **One reconstruction, and it proved itself.** Rebuilding the harness's `hdrs` from the shared
+  primitives produced arrays **byte-identical to `structure.headers` on 41 of 41 sheets**, zero
+  mismatches. That is what licenses treating the reconstructed `condPerCol` as the harness's own
+  answer rather than a third implementation's, and it is what rows 10, 11, 17 and 20 rest on. A sheet
+  failing the check would have been excluded from those four rows; none did.
+- **Not called**: `runFullAnalysis`, `extractAnalysisInputs`, `computeSeverity`, the batch runner.
+  No corpus re-run, no `src/` change.
+- **Unmeasured, with reasons stated**: row 10's effect, and rows 21 and 33.
+
 ## Not done
 
-Part 2b — incidence across the 41 imported corpus sheets, per row marked `Countable: yes` — is not
-started.
+The five `undecided` rows from 2a — 1, 4, 8, 18, 19 — are design calls and are Nick's. The twelve
+excuse-free ImportView-versus-BatchView inconsistencies are reported, not fixed.
