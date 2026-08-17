@@ -1,7 +1,7 @@
 import { mean, variance, stddev, arrayMin, arrayMax, chiSquaredP, zToP } from "../stats/primitives.js";
 import { flagFromP, ALPHA } from "../constants/thresholds.js";
 import { NA_CAUSE } from "../constants/naCause.js";
-import { TOO_FEW_REPLICATE_COLS_CAUSE, joinDeclineReason } from "../constants/assays.js";
+import { TOO_FEW_REPLICATE_COLS_CAUSE, joinDeclineReason, ASSAY_EXPECTED_SLOPE } from "../constants/assays.js";
 
 // Tail under the shared too-few-replicate-columns cause.
 const COLS_TAIL = "This test needs at least 3, to estimate within-row variance.";
@@ -26,8 +26,11 @@ export function testMeanVariance(matrix, assay) {
     if(m>0&&v>0) points.push({mean:m,variance:v});
   }
   if(points.length<5) return {name:"Noise Scaling With Measurement Size",category:"replicate",flag:"N/A",naCause:NA_CAUSE.TOO_FEW_ROWS,naObserved:points.length,naMinimum:5,description:"Need ≥5 rows with ≥3 valid non-zero replicates."};
-  const expectedSlopes={general:null,qpcr:0,densitometry:2,plate_reader:1,cell_count:1,elisa:2,genomics:2,physiological:0};
-  const expSlope=expectedSlopes[assay]??null;
+  // Table lifted to constants/assays.js at S380 as ASSAY_NOISE_MODEL, shared
+  // with detectVST's transform fallback. `?? null` retained: proteomics and
+  // survey have no entry and reach the [0, 2] band through it, exactly as a
+  // stored null does for general.
+  const expSlope=ASSAY_EXPECTED_SLOPE[assay]??null;
   // Check dynamic range of row means — log-log slope is unreliable when data spans
   // less than ~1.0 orders of magnitude (regression has too little x-axis spread).
   // EXCEPTION: when expected slope is 0 (additive noise — qPCR, physiological),

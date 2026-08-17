@@ -109,6 +109,69 @@ export const BENFORD_SPAN_CAUSE =
 export const TOO_FEW_REPLICATE_COLS_CAUSE =
   "Not applicable — this file does not have enough replicate columns.";
 
+// ── Assay noise model — one source of truth (S380) ──────────────────
+// The assay label sets two independent things, and until S380 each was written
+// as its own object literal inside the function that used it: the VST fallback
+// (`assayMap`, formerly inside detectVST in stats/vst.js) and Noise Scaling's
+// expected log-log mean-variance slope (`expectedSlopes`, formerly inside
+// testMeanVariance in tests/meanVariance.js). Their key sets had drifted apart,
+// and neither matched ASSAYS. This table is the single statement; the two maps
+// below are DERIVED from it and are byte-equal to the literals they replace.
+//
+// THREE key sets, deliberately, because three is what the code has:
+//   ASSAYS                  10 — every assay the picker offers
+//   ASSAY_VST_FALLBACK       9 — ASSAYS minus survey
+//   ASSAY_EXPECTED_SLOPE     8 — ASSAYS minus survey and proteomics
+// The absences are recorded here as ABSENT rather than reconciled. Each one
+// changes behaviour by falling through to a different default, so filling one
+// in is a behaviour change and not a tidy-up. What each falls through to is
+// named on its row.
+//
+// NOT recorded here: the `general`-only restriction on the slope-CI override
+// (vst.js), and the [0, 2] band that a null/absent expected slope routes to
+// (meanVariance.js). Both are control flow in the consumer, not per-assay data.
+export const ABSENT = Symbol('absent from this map');
+
+export const ASSAY_NOISE_MODEL = {
+  //              VST fallback   expected β   notes
+  general:      { vstFallback: 'raw',    expectedSlope: null },
+  qpcr:         { vstFallback: 'raw',    expectedSlope: 0 },
+  densitometry: { vstFallback: 'log',    expectedSlope: 2 },
+  plate_reader: { vstFallback: 'raw',    expectedSlope: 1 },
+  cell_count:   { vstFallback: 'raw',    expectedSlope: 1 },
+  elisa:        { vstFallback: 'log',    expectedSlope: 2 },
+  // continuous genomics (normalised) — integer data is caught by detectVST's
+  // integer branch before the fallback is consulted
+  genomics:     { vstFallback: 'log',    expectedSlope: 2 },
+  physiological:{ vstFallback: 'raw',    expectedSlope: 0 },
+  // log-normal intensity data — proportional error. The one assay routed to a
+  // transform by its label while being tested against the [0, 2] band rather
+  // than a point null. Absence preserved deliberately at S380; filling it would
+  // give proteomics a point null nothing has derived.
+  proteomics:   { vstFallback: 'log',    expectedSlope: ABSENT },
+  // Absent from BOTH maps. vstFallback falls through to 'raw' via the `|| 'raw'`
+  // at the lookup; expectedSlope falls through to null and so to the [0, 2]
+  // band. In the app an ordinal data type forces raw before detectVST is
+  // consulted at all (ImportView), so the VST absence is unobservable there —
+  // it is reachable from the headless runner, which applies no such bypass.
+  survey:       { vstFallback: ABSENT,   expectedSlope: ABSENT },
+};
+
+const pick = (field) => Object.fromEntries(
+  Object.entries(ASSAY_NOISE_MODEL)
+    .filter(([, m]) => m[field] !== ABSENT)
+    .map(([k, m]) => [k, m[field]])
+);
+
+// Consumed by detectVST (stats/vst.js) as the assay-type fallback, reached only
+// when the slope CI does not decide. Lookup keeps its `|| 'raw'` so survey's
+// absence resolves exactly as it did.
+export const ASSAY_VST_FALLBACK = pick('vstFallback');
+
+// Consumed by testMeanVariance (tests/meanVariance.js). Lookup keeps its
+// `?? null` so an absent entry and a stored null both reach the [0, 2] band.
+export const ASSAY_EXPECTED_SLOPE = pick('expectedSlope');
+
 // Auto-detect assay type from filename and column headers.
 // Returns { assay, confidence: "high"|"low" } or null if no signal found.
 export function detectAssay(fileName, headers) {
