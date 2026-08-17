@@ -1,0 +1,132 @@
+{
+  "_what": "S379 sheet-level A/U/? classification against S379-ALLEGATION-INDEX.md §2 rule, decided from deposit ID, sheet name and column headers ONLY. Written to disk before any flag was read for the A/U contrast.",
+  "_rule": "A = PubPeer text names this sheet, or names columns that appear in it. U = holds none of the named columns and is not named. ? = cannot be settled from spec + headers without judgement.",
+  "_sourceOfAllegationText": "docs/shared/REALWORLD-CORPUS-SPEC.md §0 master table, Detail column, verbatim thread quotes",
+  "_headersReadFrom": "corpus-data/*.xlsx via SheetJS, independent of the run artifact",
+  "classification": {
+    "C07": {
+      "named": "total P, organic P, inorganic P columns; no sheet named",
+      "sheets": {
+        "Mastersheet": "A",
+        "Fig2_PCA_data": "A",
+        "Fig2_PCA_group": "?",
+        "Fig2_PCA_property": "U",
+        "Fig3": "A"
+      },
+      "notes": {
+        "Mastersheet": "TP, TOP, TIP, OlsenP/Pi/Po — all three named quantities present",
+        "Fig2_PCA_data": "Total soil P + three Pi (inorganic) columns",
+        "Fig2_PCA_group": "legend sheet; headers are Parameters|group, but its ROWS enumerate the alleged parameters incl. 'Total soil P'",
+        "Fig3": "TP_seasonal (total P), TDP (total dissolved P), MBP"
+      }
+    },
+    "C09": {
+      "named": "SLA, LA, LM columns; no sheet named",
+      "sheets": { "Sheet1": "A", "Sheet2": "?" },
+      "notes": { "Sheet2": "Readme glossary; rows enumerate every column name including the alleged ones" }
+    },
+    "C10": {
+      "named": "the P. megatetrium Experiment 1 TAB explicitly; columns OD 1.0_4 and OD 1.0_5 scoped to that tab",
+      "sheets": {
+        "Exiguobacterium sp. Experiment1": "U",
+        "Exiguobacterium sp. Experiment2": "U",
+        "B. pumilus Experiment1": "U",
+        "B. pumilus Experiment2": "U",
+        "P. megatetrium Experiment1": "A",
+        "P. megatetrium Experiment2": "U",
+        "P. megatetrium Experiment3": "U",
+        "B. cereus Experiment1": "U",
+        "B. cereus Experiment2": "U"
+      },
+      "notes": { "_scope": "OD 1.0_N are generic instrument labels present on every tab; the thread scopes them to one named tab, so the sheet-name test decides. Treating the labels as 'named columns' would make all nine A and destroy the contrast." }
+    },
+    "C13": {
+      "named": "Leave 13C atom, Branches 13C atom, 0-15 Soil 13C permil, 15-30 Soil 13C permil",
+      "sheets": { "Leaves to Soil": "A", "Soil CO2": "U" },
+      "notes": { "Soil CO2": "Soil CO2 13C permil is a different column from the two named soil-depth columns" }
+    },
+    "C14": {
+      "named": "growth rate, diameter, height + stand/activity/plot IDs; file named, no sheet named",
+      "sheets": { "Data": "A", "Metadata": "U" }
+    },
+    "C15": {
+      "named": "soil concentration of N forms; leaf concentration values; plot IDs; species",
+      "sheets": {
+        "Article information": "U",
+        "Column name": "?",
+        "Data": "A",
+        "Fig. 2": "U",
+        "Fig. 3": "U",
+        "Fig. 4": "U",
+        "Fig. 5": "U",
+        "Fig. 6": "U",
+        "Fig. S1": "A",
+        "Fig. S2": "U",
+        "Fig. S3": "U"
+      },
+      "notes": {
+        "Data": "SDON/SNH4/SNO3 soil N forms + DON/NH4/NO3 + plot_ID + Species",
+        "Fig. S1": "pool sizes of dissolved N in RHIZOSPHERE SOILS — soil N-form concentrations, which is what the thread names",
+        "Column name": "glossary sheet"
+      }
+    },
+    "C17": {
+      "named": "the Neural sheet; FPN / CON / DMN pre and post",
+      "sheets": {
+        "Demographics 24 Dyads": "U",
+        "Training Feasibility Survey": "U",
+        "Behaviors": "U",
+        "Cognition": "U",
+        "Neural": "A"
+      },
+      "notes": { "Behaviors": "carries Pre_/Post_ columns but of CDI/GAD7/PHQ9/DASS, not FPN/CON/DMN" }
+    },
+    "C18": {
+      "named": "Sheet 2 'chill coma recovery duration(s)' explicitly; COUNT MISMATCH, not duplication",
+      "sheets": { "dorsal abdominal melanization r": "U", "chill coma recovery duration(s)": "A" }
+    },
+    "C19": {
+      "named": "total carbon, total nitrogen, C/N at timepoints 3 and 4",
+      "sheets": { "Sheet3": "A" }
+    },
+    "C20": {
+      "named": "the microcosm soil data; Glucose_IR, Lignin_IR, Basal_respiration",
+      "sheets": {
+        "Microcosm soil A": "A",
+        "Microcosm soil B": "A",
+        "Microcosm metadata": "?",
+        "Environmental gradient": "?",
+        "Env. gradient metadata": "?"
+      },
+      "notes": {
+        "Environmental gradient": "GENUINE CONFLICT between the two halves of the A rule: it carries Glucose_IR/Lignin_IR/Basal_respiration verbatim, but the thread scopes the complaint to 'the microcosm soil data' and this is the environmental-gradient survey. Needs judgement -> ?",
+        "Microcosm metadata": "glossary",
+        "Env. gradient metadata": "glossary"
+      }
+    },
+    "C22": {
+      "named": "the WA experiment; pH at week 8",
+      "sheets": { "Info": "U", "Exp. OA": "?", "Exp. WA": "A", "Exp. ST": "U" },
+      "notes": {
+        "Exp. OA": "same conflict as C20's gradient sheet — carries pH and week8, but is the OA experiment, not the named WA one -> ?",
+        "Exp. ST": "no pH column at all"
+      }
+    },
+    "C24": {
+      "named": "windscreen splatter counts, total insects, date/time, weather, temperature",
+      "sheets": { "Sheet1": "A" }
+    }
+  },
+  "totals": { "A": 16, "U": 26, "?": 7, "all": 49 },
+  "divergenceFromIndexExpectation": {
+    "indexExpected": "~13 A / 34 U",
+    "measured": "16 A / 26 U / 7 ?",
+    "whereItDiverges": [
+      "C07: 3 A not 1 — Fig2_PCA_data and Fig3 both carry total-P columns, not just Mastersheet",
+      "C13: 1 U exists (Soil CO2) where the index said 'possibly 2 A, 0 U' — C13 DOES contribute to the contrast",
+      "C15: 2 A not 1 — Fig. S1 is rhizosphere-soil N pool sizes, which the thread names",
+      "C20: 3 ? not 3 U — two glossaries plus the gradient sheet that shares the named columns",
+      "C22: 1 ? — Exp. OA shares pH/week8 with the named WA experiment"
+    ]
+  }
+}

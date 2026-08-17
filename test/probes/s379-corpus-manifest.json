@@ -1,0 +1,250 @@
+{
+  "datasets": [
+    {
+      "path": "corpus-data/C07.xlsx",
+      "sheet": "Mastersheet",
+      "label": "C07 :: Mastersheet"
+    },
+    {
+      "path": "corpus-data/C07.xlsx",
+      "sheet": "Fig2_PCA_data",
+      "label": "C07 :: Fig2_PCA_data"
+    },
+    {
+      "path": "corpus-data/C07.xlsx",
+      "sheet": "Fig2_PCA_group",
+      "label": "C07 :: Fig2_PCA_group"
+    },
+    {
+      "path": "corpus-data/C07.xlsx",
+      "sheet": "Fig2_PCA_property",
+      "label": "C07 :: Fig2_PCA_property"
+    },
+    {
+      "path": "corpus-data/C07.xlsx",
+      "sheet": "Fig3",
+      "label": "C07 :: Fig3"
+    },
+    {
+      "path": "corpus-data/C09.xlsx",
+      "sheet": "Sheet1",
+      "label": "C09 :: Sheet1"
+    },
+    {
+      "path": "corpus-data/C09.xlsx",
+      "sheet": "Sheet2",
+      "label": "C09 :: Sheet2"
+    },
+    {
+      "path": "corpus-data/C10.xlsx",
+      "sheet": "Exiguobacterium sp. Experiment1",
+      "label": "C10 :: Exiguobacterium sp. Experiment1"
+    },
+    {
+      "path": "corpus-data/C10.xlsx",
+      "sheet": "Exiguobacterium sp. Experiment2",
+      "label": "C10 :: Exiguobacterium sp. Experiment2"
+    },
+    {
+      "path": "corpus-data/C10.xlsx",
+      "sheet": "B. pumilus Experiment1",
+      "label": "C10 :: B. pumilus Experiment1"
+    },
+    {
+      "path": "corpus-data/C10.xlsx",
+      "sheet": "B. pumilus Experiment2",
+      "label": "C10 :: B. pumilus Experiment2"
+    },
+    {
+      "path": "corpus-data/C10.xlsx",
+      "sheet": "P. megatetrium Experiment1",
+      "label": "C10 :: P. megatetrium Experiment1"
+    },
+    {
+      "path": "corpus-data/C10.xlsx",
+      "sheet": "P. megatetrium Experiment2",
+      "label": "C10 :: P. megatetrium Experiment2"
+    },
+    {
+      "path": "corpus-data/C10.xlsx",
+      "sheet": "P. megatetrium Experiment3",
+      "label": "C10 :: P. megatetrium Experiment3"
+    },
+    {
+      "path": "corpus-data/C10.xlsx",
+      "sheet": "B. cereus Experiment1",
+      "label": "C10 :: B. cereus Experiment1"
+    },
+    {
+      "path": "corpus-data/C10.xlsx",
+      "sheet": "B. cereus Experiment2",
+      "label": "C10 :: B. cereus Experiment2"
+    },
+    {
+      "path": "corpus-data/C13.xlsx",
+      "sheet": "Leaves to Soil",
+      "label": "C13 :: Leaves to Soil"
+    },
+    {
+      "path": "corpus-data/C13.xlsx",
+      "sheet": "Soil CO2",
+      "label": "C13 :: Soil CO2"
+    },
+    {
+      "path": "corpus-data/C14.xlsx",
+      "sheet": "Data",
+      "label": "C14 :: Data"
+    },
+    {
+      "path": "corpus-data/C14.xlsx",
+      "sheet": "Metadata",
+      "label": "C14 :: Metadata"
+    },
+    {
+      "path": "corpus-data/C15.xlsx",
+      "sheet": "Article information",
+      "label": "C15 :: Article information"
+    },
+    {
+      "path": "corpus-data/C15.xlsx",
+      "sheet": "Column name",
+      "label": "C15 :: Column name"
+    },
+    {
+      "path": "corpus-data/C15.xlsx",
+      "sheet": "Data",
+      "label": "C15 :: Data"
+    },
+    {
+      "path": "corpus-data/C15.xlsx",
+      "sheet": "Fig. 2",
+      "label": "C15 :: Fig. 2"
+    },
+    {
+      "path": "corpus-data/C15.xlsx",
+      "sheet": "Fig. 3",
+      "label": "C15 :: Fig. 3"
+    },
+    {
+      "path": "corpus-data/C15.xlsx",
+      "sheet": "Fig. 4",
+      "label": "C15 :: Fig. 4"
+    },
+    {
+      "path": "corpus-data/C15.xlsx",
+      "sheet": "Fig. 5",
+      "label": "C15 :: Fig. 5"
+    },
+    {
+      "path": "corpus-data/C15.xlsx",
+      "sheet": "Fig. 6",
+      "label": "C15 :: Fig. 6"
+    },
+    {
+      "path": "corpus-data/C15.xlsx",
+      "sheet": "Fig. S1",
+      "label": "C15 :: Fig. S1"
+    },
+    {
+      "path": "corpus-data/C15.xlsx",
+      "sheet": "Fig. S2",
+      "label": "C15 :: Fig. S2"
+    },
+    {
+      "path": "corpus-data/C15.xlsx",
+      "sheet": "Fig. S3",
+      "label": "C15 :: Fig. S3"
+    },
+    {
+      "path": "corpus-data/C17.xlsx",
+      "sheet": "Demographics 24 Dyads",
+      "label": "C17 :: Demographics 24 Dyads"
+    },
+    {
+      "path": "corpus-data/C17.xlsx",
+      "sheet": "Training Feasibility Survey",
+      "label": "C17 :: Training Feasibility Survey"
+    },
+    {
+      "path": "corpus-data/C17.xlsx",
+      "sheet": "Behaviors",
+      "label": "C17 :: Behaviors"
+    },
+    {
+      "path": "corpus-data/C17.xlsx",
+      "sheet": "Cognition",
+      "label": "C17 :: Cognition"
+    },
+    {
+      "path": "corpus-data/C17.xlsx",
+      "sheet": "Neural",
+      "label": "C17 :: Neural"
+    },
+    {
+      "path": "corpus-data/C18.xlsx",
+      "sheet": "dorsal abdominal melanization r",
+      "label": "C18 :: dorsal abdominal melanization r"
+    },
+    {
+      "path": "corpus-data/C18.xlsx",
+      "sheet": "chill coma recovery duration(s)",
+      "label": "C18 :: chill coma recovery duration(s)"
+    },
+    {
+      "path": "corpus-data/C19.xlsx",
+      "sheet": "Sheet3",
+      "label": "C19 :: Sheet3"
+    },
+    {
+      "path": "corpus-data/C20.xlsx",
+      "sheet": "Microcosm soil A",
+      "label": "C20 :: Microcosm soil A"
+    },
+    {
+      "path": "corpus-data/C20.xlsx",
+      "sheet": "Microcosm soil B",
+      "label": "C20 :: Microcosm soil B"
+    },
+    {
+      "path": "corpus-data/C20.xlsx",
+      "sheet": "Microcosm metadata",
+      "label": "C20 :: Microcosm metadata"
+    },
+    {
+      "path": "corpus-data/C20.xlsx",
+      "sheet": "Environmental gradient",
+      "label": "C20 :: Environmental gradient"
+    },
+    {
+      "path": "corpus-data/C20.xlsx",
+      "sheet": "Env. gradient metadata",
+      "label": "C20 :: Env. gradient metadata"
+    },
+    {
+      "path": "corpus-data/C22.xlsx",
+      "sheet": "Info",
+      "label": "C22 :: Info"
+    },
+    {
+      "path": "corpus-data/C22.xlsx",
+      "sheet": "Exp. OA",
+      "label": "C22 :: Exp. OA"
+    },
+    {
+      "path": "corpus-data/C22.xlsx",
+      "sheet": "Exp. WA",
+      "label": "C22 :: Exp. WA"
+    },
+    {
+      "path": "corpus-data/C22.xlsx",
+      "sheet": "Exp. ST",
+      "label": "C22 :: Exp. ST"
+    },
+    {
+      "path": "corpus-data/C24.xls",
+      "sheet": "Sheet1",
+      "label": "C24 :: Sheet1"
+    }
+  ],
+  "out": "corpus-out/s379-honest-run.json"
+}
