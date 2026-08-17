@@ -1,6 +1,8 @@
 /* ── Variance-Stabilizing Transform detection ────────────────────────
    @see METHODOLOGY.md §"Variance-Stabilizing Transform (VST) Preprocessing" */
 
+import { ASSAY_VST_FALLBACK } from "../constants/assays.js";
+
 /** Human-readable VST labels for §1 Verdict identity row, §4 prompt body
  *  "Variance-stabilising transform" line, and Excel header. Keyed by
  *  detectVST's `transform` field. Single source of truth — replaces the
@@ -160,15 +162,11 @@ export function detectVST(matrix, assay) {
     return { transform: 'log', reason: `Slope=${dataSlope.toFixed(2)}, 95% CI ${ciStr} entirely above 1 → proportional noise → log`, dataSlope, slopeSE, slopeCI, slopeTest, isInteger: false, negFrac };
   }
 
-  // Assay-type fallback (only when slope test is inconclusive or unavailable)
-  const assayMap = {
-    elisa: 'log', densitometry: 'log',
-    genomics: 'log',  // continuous genomics (normalised) — integer caught above
-    proteomics: 'log',  // log-normal intensity data — proportional error
-    cell_count: 'raw', plate_reader: 'raw',
-    qpcr: 'raw', physiological: 'raw', general: 'raw'
-  };
-  const t = assayMap[assay] || 'raw';
+  // Assay-type fallback (only when slope test is inconclusive or unavailable).
+  // Table lifted to constants/assays.js at S380 as ASSAY_NOISE_MODEL, shared
+  // with Noise Scaling's expected slope. `|| 'raw'` retained: survey has no
+  // entry and resolves through it.
+  const t = ASSAY_VST_FALLBACK[assay] || 'raw';
 
   // S111 signed-data gate: block log fallback on signed-centered data even
   // when the assay map recommends log. This catches the DS21/DS22 failure
