@@ -1,13 +1,19 @@
-# S381 Part 1 — harness-versus-app divergence
+# S381 — harness-versus-app divergence
 
-Read-only census. No `src/` change, no batch, no run.
+Read-only. No `src/` change, no batch, no run.
 Worktree `harness-app-divergence-4371ed`, branch `claude/harness-app-divergence-4371ed`.
 
-Two identical copies, because `docs/sessions` is gitignored at `.gitignore:45` and has never carried
-a commit: `docs/sessions/S381-HARNESS-APP-DIVERGENCE.md` is the dispatch's landing path, and
-`docs/shared/S381-HARNESS-APP-DIVERGENCE.md` is the tracked one that carries the commit hash.
+This is the one address for S381. `docs/sessions/` is gitignored at `.gitignore:45` and has never
+carried a commit — ruled at S352, recorded at `BANKED.md:741`. Part 1 briefly left a second copy
+there; it was byte-identical and has been removed.
+
+- **Part 1 — the census.** 33 decision points, app against harness.
+- **Part 2a — the disposition.** Which side is right on each of the 25 divergent rows.
+- **Part 2b — incidence.** Not started.
 
 ---
+
+# Part 1 — the census
 
 ## Why this exists
 
@@ -75,12 +81,18 @@ Last-column convention: where App and Harness agree, the entry reads `same` if
 | 32 | Permutation counts / `B` | none | Neither path passes any; every count is a per-test constant | none | same | same (absent both) | N/A |
 | 33 | Engine call and options | `App.jsx:53-57` | `runFullAnalysis(matrix, rawMatrix, condCtx, assay, setRunProgress, vst, {isPivoted:!!config.isPivoted}, dataType, rowSemantics, skipHeavy)` | `corpus-run.mjs:278-281` | Same function; `null` progress; `{isPivoted:false}`; no `skipHeavy` | differs (`isPivoted` hardcoded false — downstream of row 14; progress and `skipHeavy` are inert in the production build, `App.jsx:52`) | third (`:205-207`, `{}` for opts) |
 
-**33 decision points. 10 same, 23 divergent** — 15 `differs`, 8 `absent one side`.
+**33 decision points. 8 same, 25 divergent** — 17 `differs`, 8 `absent one side`.
+
+> **Corrected at Part 2a.** This line first read "10 same, 23 divergent — 15 `differs`". The column
+> was counted by eye and two of the three numbers were wrong. Recounted by parsing the table:
+> `same` = rows 5, 15, 23, 27, 28, 30, 31, 32; `differs` = rows 2, 3, 4, 6, 7, 9, 10, 11, 13, 16,
+> 17, 18, 19, 20, 22, 25, 33; `absent one side` = rows 1, 8, 12, 14, 21, 24, 26, 29. **No table row
+> changed** — only the tally. The commit message on `58a94f7` carries the old numbers.
 
 ## Predictions, scored
 
-**1. "More than one divergence." Held, by a wide margin.** 23 of 33 rows diverge. The upper end was
-unpredicted; the answer is 23.
+**1. "More than one divergence." Held, by a wide margin.** 25 of 33 rows diverge. The upper end was
+unpredicted; the answer is 25.
 
 **2. "At least one is Class A, likeliest the grouping or column-relationship choice." Held, and the
 named candidate is one of them.** Row 20 is exactly the predicted shape — the app has a click there
@@ -127,7 +139,7 @@ inference and its overrides (15, 16), the column-relationship choice and groupin
 minimum-width and minimum-row gates (26, 27), seed / RNG / `B` (31, 32), and the engine call with
 its options (33). Every checklist item is covered.
 
-## Verification
+## Part 1 verification
 
 Every site above was opened and read in this session; no line number is carried over from the
 dispatch or from memory. `ImportView.jsx:632` was re-located and confirmed. Nothing was executed —
@@ -135,7 +147,148 @@ no batch, no corpus run, no probe. The `same` rows that rest on identical functi
 28, 30) were checked at the definition: `roles.js:25` shows `inferRoles` is exactly `inferBaseRoles`
 followed by `applyGroupAttributes`, which is the pair the harness calls at `corpus-run.mjs:191-192`.
 
+---
+
+# Part 2a — the disposition
+
+Part 1 treated the app as the reference and said nothing about which side is right. That files at
+least one row backwards. Part 2a fixes the disposition per divergent row: which path is correct,
+whether the difference reaches the engine, and whether a predicate can decide per file that the two
+branch apart.
+
+Read-only. Nothing executed against the engine.
+
+## Two lookups
+
+**P179's closing sentence holds, and the reason it holds is not the reason it gives.**
+P179 (`STATUS.md:767`) says `corpus-run.mjs:137`'s `hdrs.indexOf(header)` takes the first matching
+header only, so a declared role lands on one of N repeated axis columns. It closes *"No published
+figure is known to depend on it"*, on the ground that CORPUS-03's `Fish.ID` is a unique header.
+That ground is not needed. **The S379 run was not hint-driven.**
+`test/probes/s379-corpus-manifest.json` holds 49 entries and the only keys any entry uses are
+`path`, `sheet` and `label` — zero `conditionsHint`, zero `assay`, zero `dataType`, zero `vst`.
+`applyRoleHint` (`corpus-run.mjs:131-133`) returns immediately when the hint is not an object
+carrying `.roles`, so the defective line never executed. P179 stays open and stays Chat's.
+
+**Row 29's four tests.** Held at `N/A` with `groupingPending` when the trigger fires, and re-run by
+`runConfirmedGroupedTests` on confirm:
+
+| Test | Engine site | Confirm site |
+|---|---|---|
+| Mahalanobis Row Outlier | `engine.js:499` | `confirmGrouping.js:145` |
+| Entropy / Zipf Analysis | `engine.js:590` | `confirmGrouping.js:175` |
+| Column Goodness-of-Fit | `engine.js:597` | `confirmGrouping.js:187` |
+| Modality Test | `engine.js:610` | `confirmGrouping.js:205` |
+
+## The disposition table
+
+**What `app` means in the Right-side column — it means `ImportView.jsx`, and that is one of two
+shipping import surfaces.** `BatchView.jsx` is the other, and `corpus-run.mjs` reproduces
+*BatchView's* loop, not ImportView's — the harness's own header says so at `:6-8`. Row 19 is the
+confirmed instance: the auto-null threshold traces to `BatchView.jsx:158`, so on that row the
+harness is not diverging from the app at all. It is copying one of the app's two answers. Row 20's
+hardcoded `replicates` has the same shape. **How many of the other rows are that story is
+unmeasured**, and it changes what a row costs: a harness artifact costs nothing, while an app
+surface disagreeing with itself is a v1.0 candidate. Four paths exist — `ImportView.jsx`,
+`BatchView.jsx`, `test/validate-batch.mjs`, `scripts/corpus-run.mjs`. This document covers the first
+and the last, with a lookup column for the third. **BatchView is uncovered.** The BatchView sweep
+belongs to 2b; the dispositions below stand as written until it runs.
+
+25 rows, Part 1 numbering, not renumbered. `unavoidable` means the app's behaviour depends on a
+click and no harness reproduces it — a real category, and not a defect on either side. `undecided`
+means the answer is a design call rather than a source fact; those are marked and left for Nick.
+`Changes: object` means the engine receives a different matrix, condition context, transform or row
+semantics.
+
+| # | Right side | Why | Changes | Countable |
+|---|---|---|---|---|
+| 1 | undecided | Whether a headless runner should carry the browser's extension whitelist and 50 MB cap is a design call; a manifest-driven runner has a different threat model | object | yes |
+| 2 | unavoidable | The app's multi-sheet picker is a click. The manifest names a sheet on all 49 entries, so the harness had an answer and the app has none without a reader | object | yes |
+| 3 | harness | The app re-serialises `parseExcel` rows to CSV and re-parses them. A round-trip can only lose or alter what direct use preserves | object | yes |
+| 4 | undecided | `text.trim()` against no trim — both defensible, and `preprocessRaw` removes most of what separates them | object | yes |
+| 6 | unavoidable | Same default, block 1. The app's block switch is a click | object | yes |
+| 7 | **harness** | The strip removes the title and legend rows a block carries. Nothing about that purpose is specific to multi-block files, and the app runs it only inside `loadBlock`. **The app's placement is the defect** | object | yes |
+| 8 | undecided | An all-empty column is `ignore` under `inferBaseRoles` either way, so dropping it is tidiness. Whether the app should also do it on single-block input is a design call | reporting | yes |
+| 9 | harness | Follows row 7. If the strip belongs on every file, `detectHeaderRows` belongs on the stripped block | object | yes |
+| 10 | app | The app's group-start rule reads each group's label from within its own span. `forwardFill` alone mislabels every layout whose label does not sit on the group's first column | object | yes |
+| 11 | harness | A group label is not instrument signal. Prefixing it onto the header lets `detectAssay` score on "Control" or "Plate 1". Role inference is unaffected — `roles.js:41` short-circuits numeric grouped columns before the keyword pass | object | yes |
+| 12 | app | A wholly blank row is not an observation. Keeping it inflates `data.length`, the input to `detectGroupAttributes`' `MIN_ROWS_FOR_GROUPING = 50` and `MAX_LEVEL_FRACTION` | object | yes |
+| 13 | harness | Long format is not a property of block count. The app runs the detector only on the single-block branch, which is incidental to what it detects | object | yes |
+| 14 | unavoidable | The pivot is a modal and a click | object | yes |
+| 16 | unavoidable | The app's override is a header click; the harness's is a manifest hint. Neither is wrong and neither reproduces the other | object | no |
+| 17 | harness | Consequence of row 11 — same `detectAssay`, different header input. The manifest declared no assay, so the harness ran pure detection | object | yes |
+| 18 | undecided | Same default from `ASSAY_DATATYPE_MAP`. Whether a headless runner may override a field the app locks is a design call | object | yes |
+| 19 | undecided | The harness copies **BatchView** (`BatchView.jsx:158`), not ImportView. The app auto-applies on one surface and only recommends on the other, so the app disagrees with itself | object | yes |
+| 20 | unavoidable | The app blocks Run on a click when no condition structure exists. The harness hardcodes `'replicates'` at `:256`, which is BatchView's constant | object | yes |
+| 21 | app | `dataColHeaders` is information the engine can use and the harness withholds — but `conditionContext.js:84`/`:115` consume it only as condition **names** | reporting | no |
+| 22 | unavoidable | The block is a click. `'ordered'` is the documented batch default (`rowSemantics.js` — the conservative default keeps sequential tests live) | object | yes |
+| 24 | app | The bypass is deliberate and documented. `assays.js:152-157` names the headless runner as the place where the absence is reachable | object | yes |
+| 25 | unavoidable | The card's "Keep raw" is a click. Both sides otherwise land on `detectVST` | object | yes |
+| 26 | app | A one-data-column file is not what the battery is for, and `aggregation.js:24`'s width filter shows what narrow input does downstream | object | yes |
+| 29 | unavoidable | The confirm is a tick and a click. The harness records `groupingPending` and stops | object | yes |
+| 33 | unavoidable | `isPivoted:false` is row 14's consequence, not a decision of its own. `onProgress` and `skipHeavy` are inert in the production build | object | no |
+
+**Right side: 6 harness, 5 app, 9 unavoidable, 5 undecided.**
+**Changes: 23 object, 2 reporting, 0 neither.**
+**Countable: 22 yes, 3 no.**
+
+## What the dispositions say
+
+**The app is not ground truth.** Six rows resolve to the harness. Two of them — 7 and 9 — are one
+defect: the preamble strip sits inside `loadBlock`, so it fires only when `detectBlocks` split the
+file, and the header-row count then reads a different block. Rows 3, 11, 13 and 17 are the rest.
+
+**This reframes Part 1's prediction-3 conclusion.** Part 1 called rows 7, 13 and 19 an inversion —
+the harness being stricter than the app. Disposed, two of those three are cases where **the harness
+is right and the app is wrong**, not cases of harness over-reach. The third, row 19, is the app
+disagreeing with itself across its two surfaces. The inversion is real, and it is mostly an app
+defect wearing an inversion's shape.
+
+**Nine rows are unavoidable, and that is the floor.** Rows 2, 6, 14, 16, 20, 22, 25, 29 and 33 all
+turn on a click. No harness reproduces them, so no amount of harness work closes them. The corpus
+can only ever describe the machine's default answer at those nine points, and rows 20, 22 and 29 are
+where that default is load-bearing.
+
+**Almost everything reaches the engine.** 23 of 25 change the analysis object. Only rows 8 and 21
+are reporting-only, and row 21 is unreachable in the harness anyway.
+
+**Five rows come to Nick**: 1, 4, 8, 18, 19.
+
+## 2b feasibility, found while checking the Countable column
+
+`corpus-out/s379-honest-run.json` **is on disk** in the main checkout — 8.1 MB, 49 datasets, 41
+imported, 8 import failures, generated by `scripts/corpus-run.mjs` on Node v25.8.1. CLAUDE.md warns
+the artifact is gitignored and that its regeneration should be budgeted; it does not need
+regenerating.
+
+Its per-sheet `structure` block records `assay`, `assaySource`, `dataType`, `rowSemantics`,
+`rowSemanticsSource`, `vst`, `vstSource`, `longFormatDetected`, `zeroAsMissing`, `nRows`, `nCols`,
+`nConditions`, `conditionType`, `nCondCols`, `rowGroupStatus`, `groupingPending`, `headers`, `roles`
+and `attributes`. Those are the values the published figures were computed from, so reading them is
+entering through the harness's own dispatch rather than re-deriving it. Rows 13, 17, 18, 19, 22, 24,
+25, 26 and 29 become directly readable off it.
+
+The eight import failures, for the denominator: C07::Fig2_PCA_group, C09::Sheet2, C14::Metadata,
+C15::Article information, C15::Column name, C20::Microcosm metadata, C20::Env. gradient metadata,
+C22::Info.
+
+## Part 2a verification
+
+- Repo state read directly with `git`, not taken from the dispatch.
+- The Part 1 tally was recounted by parsing the committed table, not by eye. Rows 22 and 25 escape a
+  pipe inside a cell and so fall out of a naive column split; both were confirmed by reading those
+  two lines directly.
+- The four `groupingPending` tests were read at all eight sites.
+- The P179 finding was read by parsing the committed manifest: 49 entries, key set
+  `{path, sheet, label}`, zero hints.
+- `condStructureKind` (`coordinates.js:100`) was checked to be a pure function with no browser
+  imports, which is what makes row 20 countable from Node in 2b.
+- Nothing was executed against the engine — no `runFullAnalysis`, no batch, no corpus run. The one
+  artifact read was a field-set confirmation. It printed incidental tallies, which are deliberately
+  not reported here: they carry no per-row denominator and no app-side counterfactual, and that is
+  the whole of 2b's design.
+
 ## Not done
 
-Part 2 — Class A/B/C classification, and which S379 and S380 figures sit downstream of each
-Class A — is not started.
+Part 2b — incidence across the 41 imported corpus sheets, per row marked `Countable: yes` — is not
+started.
