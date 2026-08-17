@@ -1149,7 +1149,7 @@ Forensics prefers the conservative choice. Real biological columns are rarely un
 
 ### 4.1 Mean-Variance Relationship
 
-**Source:** General assay validation methodology; Carlisle (2017) discusses expected variance properties.
+**Source:** General assay validation methodology; Carlisle (2017) discusses expected variance properties. No per-assay measurement stands behind any individual value in the expected-slope table below, and none of the values has been checked against data (S380).
 
 **Count distribution-shape role.** This is the channel that carries distribution-shape forensics on count data: the marginal-shape trio (§3.6 / §3.7 / §3.8) is N/A on count (mixture marginals), so the per-gene mean-variance law (expected β≈2 for genomics) is the count distribution-shape instrument (S180).
 
@@ -1157,7 +1157,7 @@ Forensics prefers the conservative choice. Real biological columns are rarely un
 1. Compute mean and variance of replicates within each row.
 2. Require ≥5 rows with ≥3 valid replicates. Require ≥1.0 orders of magnitude span in row means (except when expected slope = 0, where range is irrelevant).
 3. Fit log-log regression: log(variance) = β × log(mean) + α. Compute regression SE for β̂.
-4. **Block-robust SE (fix 95):** Split rows into up to 10 non-overlapping blocks sorted by mean. Fit slope in each block. Compute blockSE = SD(block slopes) / √(nBlocks). Use SE = max(regressionSE, blockSE).
+4. **Block-robust SE (fix 95):** Split rows into up to 10 non-overlapping blocks sorted by mean. Fit slope in each block. Compute blockSE = SD(block slopes) / √(nBlocks). Use the regression SE; where Cochran's Q rejects linearity at p < 0.05, substitute blockSE instead. The regression SE stands unconditionally otherwise. (Corrected S380: this step previously read `SE = max(regressionSE, blockSE)`, which disagreed with both the implementation and METHODOLOGY.md's own assumptions table.)
 5. For named assays: z = (β̂ − β₀) / SE, two-sided p-value. For general assay: test whether slope falls significantly outside [0, 2].
 
 **Expected slopes by assay:**
@@ -1172,11 +1172,23 @@ Forensics prefers the conservative choice. Real biological columns are rarely un
 | ELISA | 2 | Log-normal |
 | Genomics | 2 | Negative binomial (overdispersed Poisson) |
 
+**No rule is stated here for assays whose noise model has more than one regime, and two rows resolve that ambiguity in opposite directions (S380).** The plate reader row names Poisson at low concentration and proportional at high, and takes β = 1 — the low regime. The *Why block-robust SE* paragraph below describes genomics the same way, Poisson scaling at low expression and negative-binomial scaling at high, and its row takes β = 2 — the high regime. Nothing records which regime should supply the null, or why the two were resolved differently.
+
+Two further rows carry the same ambiguity without naming it. *Physiological* names Normal or log-normal and takes β = 0, which fits Normal only. *Cell count* names Poisson counts and binomial proportions and takes β = 1; **a binomial proportion has no constant slope at all.** Its variance is p(1−p)/n against a mean of p, so the log-log slope is 1 − p/(1−p) — approaching 1 as p approaches zero, exactly 0 at p = 0.5, and unbounded below as p approaches one. A proportion dataset centred near a half reads a slope near 0 against a null of 1.
+
+**Three assays have no row here at all.** `general` is governed instead by the [0, 2] band in step 5. `proteomics` and `survey` have no entry in `ASSAY_EXPECTED_SLOPE` and fall through to that same band; `proteomics` is nonetheless routed to a log transform by its assay label, so it is transformed by one map and tested against the band by the other. Those absences are recorded deliberately in `ASSAY_NOISE_MODEL` (`src/constants/assays.js`) rather than filled.
+
+**This is recorded, not resolved.** Whether a point null with no derivation behind it can support a HIGH verdict is open, and is register row P184. The first observed consequence is the C10 deposit in the real-world corpus: nine independent plate-reader growth experiments, slope near 2.5 at every dilution level of every sheet, read against a null of 1.
+
+**The block-robust SE in step 4 is already a partial defence against this, and on that deposit it fires unevenly.** Across the nine sheets the slope estimate spans 2.31–2.85, a factor of 1.23, while the standard error spans roughly 0.03 to 1.31, a factor of over forty, uncorrelated with row count. The two sheets that do not flag are not different data — Cochran's Q rejected linearity there and the block SE took over, exactly as the *Why block-robust SE* paragraph below intends. It did not do so on the other seven. **A defence that fires on a power criterion cannot substitute for a null of the right shape**, and reading the two paragraphs together is what makes that visible.
+
+**Recomputing those sheets against β = 2, the high regime this row's own noise model names, gives five HIGH, one MODERATE and one LOW in place of seven HIGH** — so changing the value is not inert, but five flags survive every null inside [0, 2]. That is the distinction between a wrong value and a wrong shape. (Derived arithmetic on measured intervals, recorded in STATUS P184; confirm at source before relying on the split.)
+
 **Flag:** p < 0.001 → HIGH, p < 0.01 → MODERATE.
 
 **Why block-robust SE.** The regression SE assumes the log-log model is perfectly linear. Real data is non-linear — RNA-seq has Poisson scaling (slope ≈ 1) at low expression and NB scaling (slope ≈ 2) at high expression. At large N, regression SE shrinks to ~0.005, making any deviation from the point expected slope astronomically significant, even when the observed slope (e.g. 1.72) is well within biological variation. The block-SE captures model non-linearity — if slopes genuinely vary across expression ranges, blockSE >> regressionSE, preventing overpowering. If the model is truly linear (fabricated data with uniformly wrong noise model), block slopes agree and blockSE ≈ regressionSE, preserving sensitivity.
 
-**Known false positives:** Ungrouped multi-sample data where columns are not true replicates (addressed by column structure advisory).
+**Known false positives:** Ungrouped multi-sample data where columns are not true replicates (addressed by column structure advisory). **S380 measurement, against that parenthesis:** of the 21 ungrouped sheets across the twelve real-world deposits used for the S379 run, **none** has headers that read as plain replicates. Seventeen encode a factor the import does not parse — dilution level, temperature × sex, timepoint, statistic — and three carry mutually unrelated measurands. Whether the advisory is sufficient for that population is untested and is register row P185. Note also that on the one sheet family where the consequence was measured (C10), holding the levels apart moved the fitted slope very little, so a non-exchangeable column set is not on its own evidence that this test's number is wrong.
 
 ---
 

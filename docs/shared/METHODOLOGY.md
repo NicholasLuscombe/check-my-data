@@ -250,18 +250,24 @@ The five instances examined, in the order they were found:
 
 1. **Data type check:** If >95% of values are integer, the data is count-type.
 2. **Log-log slope CI test:** Regress log(row variance) on log(row mean) across all rows. Compute the 95% confidence interval for the slope. Test H₀: slope = 1 (Poisson reference):
-   - CI entirely above 1 → proportional/overdispersed noise → **log transform**
+   - CI entirely above 1 → proportional/overdispersed noise → **log transform**, but **on continuous data only when the assay is `general`** (see restriction below)
    - CI contains 1 or is below 1 → inconclusive → **assay-type fallback**
 
    The CI test is asymmetric by design: it can confidently detect proportional noise (slope >> 1) because overdispersion is visible even when condition effects inflate total row variance. But it cannot reliably distinguish additive noise from narrow-range proportional noise — in multi-condition datasets, condition effects dominate total row variance, pushing the slope toward 0 regardless of the true within-replicate noise structure. Therefore the CI test only promotes to log; it never overrides the assay type to assert "raw."
 
 3. **Assay-type fallback:** Used when the slope CI is inconclusive, below 1, or there is insufficient dynamic range for a reliable slope estimate (<10 rows with ≥3 valid positive values).
 
+   **The `general` restriction (recorded S380).** On continuous data the slope-driven promotion above applies **only when the assay is `general`**. For every other assay the fallback stands whatever the interval showed, so a labelled assay can produce an interval entirely above 1 and still be returned as raw. In the real-world corpus the C10 sheets read a slope near 2.8 with a 95% interval of roughly [2.71, 2.84] and are returned raw, because `plate_reader` maps to raw. Until S380 this restriction existed only as a comment in `src/stats/vst.js`, and the rule as written above described a promotion the code does not perform for eight of the nine mapped assays.
+
+   **On integer-dominant data no assay term applies at all.** That branch promotes to log on a decisive interval and returns anscombe otherwise, without consulting the assay map. `cell_count` and `genomics` are declared count assays, so this is their expected path — meaning the coupling between a labelled assay and an uncorrectable transform is a property of the continuous path, not of `detectVST` as a whole.
+
+   **Whether the restriction is correct is not settled here.** It is register row P184.
+
 | Transform | Function | When applied | Reference |
 |-----------|----------|--------------|-----------|
 | Log | ln(x) for x > 0; null otherwise | Slope CI entirely above 1; or assay fallback for {elisa, densitometry, genomics, proteomics} | Box & Cox (1964); Love, Huber & Anders (2014) |
 | Anscombe | √(x + 3/8) for x ≥ 0 | Integer data with slope CI not above 1 | Anscombe (1948) |
-| Raw | No transform | Assay fallback for {qpcr, physiological, general}; or data type = ordinal (always raw) | — |
+| Raw | No transform | Assay fallback for {cell_count, plate_reader, qpcr, physiological, general}, and for {survey} by absence from the map; or data type = ordinal (always raw) | — |
 
 **Safety gate.** Log transform requires >50% of values to be strictly positive. Protects zero-heavy data from producing extreme values. This is a secondary check behind the signed-data gate (S111) below.
 
@@ -313,6 +319,8 @@ every exclusion in the table stands on its stated reason.**
 **Post-S111 unification (S132f).** UI default routing for general-assay continuous data follows detectVST output, matching batch-mode validate-batch.mjs and resolving the parked #41 severity-tier discrepancy on DS15. The S123 defensive raw-default retired because the S111 signed-data gate (negFrac ≥ 0.1 → raw with reasonCode 'signedData') now handles the row-dropping failure mode S123 was defending against. detectVST's slope CI test remains asymmetric (only ever promotes to log, never overrides to raw), preserving the conservative routing posture. Confirmation prompt on the Zone 3 import card continues to fire when a non-raw transform is proposed; the prompt's AUTO-selected button now reflects detectVST's recommendation rather than a hardcoded fallback.
 
 **Display.** Tests run on transformed data display a badge (LOG or ANSC) on their test card. The report header shows the VST decision with reasoning. The copy summary includes the full VST reason string for audit.
+
+**The reason string overstates what the fallback branch knows (S380).** The fallback composes the word `inconclusive` regardless of what the interval showed. A sheet whose interval was entirely above 1 and was then overruled by the assay map produces a reason reading, in full: *slope=2.78, CI [2.71, 2.84] above 1 → inconclusive → assay fallback (plate_reader) → raw*. The word describes the branch taken, not the measurement made, and the interval it calls inconclusive was the most decisive quantity in the file. Because the string reaches `vstProvenance` and is rendered verbatim into the §4 clipboard body noted above, this is a display defect rather than a logging one — and that body is read by an assistant that reasons in the words it is given. Part of P184.
 
 ---
 
@@ -639,7 +647,7 @@ These thresholds are derived from a null hypothesis and a test statistic with a 
 | CUSUM changepoint (LOESS test) | max \|CUSUM\| against row-shuffle null; Bonferroni with scan stat | Page (1954) |
 | Fisher's aggregation (per-group) | χ² = −2 Σ ln(p_i), df=2k | Fisher (1932) |
 | BH-FDR correction (IRC pairs, Runs windows/pairs, Row-Mean Runs windows, Kurtosis conditions, ConstOffset pairs, RegNoise columns, LOESS pairs, Mahalanobis rows, VFS, DupDet 4-p combine) | Benjamini-Hochberg at q=0.01 or q=0.001 | Benjamini & Hochberg (1995) |
-| VST slope CI test (H₀: slope = 1) | 95% CI on log-log regression slope; CI above 1 → log; otherwise assay fallback | Standard regression inference |
+| VST slope CI test (H₀: slope = 1) | 95% CI on log-log regression slope; CI above 1 → log **on continuous data only when assay = `general`**, and on integer data with no assay term; otherwise assay fallback | Standard regression inference |
 | Mean-Variance z-test with Cochran's Q | z = (β̂ − β₀)/SE(β̂); block-robust SE when Q significant | Cochran (1954) |
 | Benford's MAD ≥ 0.015 ("Nonconformity") | Published forensic threshold for first-digit analysis | Nigrini (2012) Table 7.1 p.160 |
 | Benford 2nd digit MAD ≥ 0.008 | Published forensic threshold for second-digit analysis | Nigrini (2012) |
@@ -698,7 +706,7 @@ These are operational decisions that enable the tool to function. They are not s
 | Minimum data: VFS | >80% integer, ≥ 20 distinct values, ≥ 100 obs, span ≤ 10K | Local smoothing requires sufficient neighbourhood density |
 | N ≥ 500 activation for effect-size gates | 500 | Approximate threshold where trivial effects reach significance; not formally derived |
 | Convergence escalation: 2+ MOD cross-dimension → SERIOUS | 2 dimensions | Joint probability ≈ 1/10,000 under independence; independence is approximate |
-| VST assay-type fallback | Per-assay mapping | Used only when slope CI is inconclusive; based on known noise characteristics per assay |
+| VST assay-type fallback | Per-assay mapping, shared with §4.1's expected slopes since S380 via `ASSAY_NOISE_MODEL` in `src/constants/assays.js` | Used when the slope CI is inconclusive, and on continuous data for every assay except `general` even when it is not. The two derived maps have different key sets by design: `survey` has no transform entry and falls to raw; `survey` and `proteomics` have no expected slope and fall to the [0, 2] band. No stated basis exists for any individual value in either map |
 | Cross-Condition Rank: cap at MODERATE | — | High ρ can always reflect biology; corroborating evidence only |
 | VFS: ratio ≥ 2.0 for spike identification | — | Minimum exceedance over local expectation to qualify as spike |
 | VFS: single-spike MODERATE requires ratio ≥ 5.0 + p < 0.001 | — | Natural modes are broad; extreme point spikes are not natural processes |
