@@ -76,7 +76,7 @@ New tests not in the methodology-framework gap list above. Surface as the batter
 
 **Relationship:** sits with §2.1 (rectangular Blocked Mahalanobis) — §2.1 generalises the *column* axis (subset of columns), this generalises the *row* axis (true extent vs fixed window). Both are Blocked-Mahalanobis extensions; decide at implementation whether they share a card.
 
-**Priority:** Bank for v1.x. (STATUS parked #50.)
+**Priority:** Bank for v1.x. (**Was "STATUS parked #50"; corrected S380.** P50 exists but is an empty row closed at `280508d`, so the pointer resolved to nothing. This document is the owner.)
 
 ### 2.4 Column-localised sequential duplication detector
 
@@ -844,7 +844,7 @@ Track C's dimension-based severity formula caps one-dimension fabrications at se
 
 ### 5.3 Modality test plot upgrade
 
-STATUS parked #7. Current Modality plot is the Hartigan dip number; replacement is a per-column histogram with peaks marked. UI refinement, not methodology change. Lands in any Modality-card-touching session.
+**Sole owner, corrected S380** — this used to route to "STATUS parked #7", an address in the truncated `P1–P40` range that resolves nowhere; the topic appears nowhere in STATUS today. **The content below is the only copy.** Current Modality plot is the Hartigan dip number; replacement is a per-column histogram with peaks marked. UI refinement, not methodology change. Lands in any Modality-card-touching session.
 
 ### 5.4 Large-N effect-size gate audit — PROMOTED to v1.0 blocker (S187)
 
@@ -1168,6 +1168,21 @@ fresh clean data at run time, and a held-out dose-response corpus for the false-
 
 When updating these surfaces, edit the source-of-truth first and mirror here.
 
+**S380 correction — read before trusting a "STATUS parked #N" address anywhere in this document.** Nine
+pointers used that scheme and **none of them resolves.** STATUS contains no `parked #` addressing at all;
+its register is P-numbered, `P41–P185`, and the `P1–P40` range those pointers used was **truncated rather
+than renumbered**, so the rows were removed and their content went with them. **Six of the nine name topics
+that appear nowhere in STATUS today** — Modality plot upgrade, long-format detection, onboarding, review-mode
+redesign, the real-data benchmark and the lab beta track. **In every case the substance survives here or in
+`V1X-DECIDED.md`, so nothing was lost — but the ownership was recorded backwards**: this document called
+itself a mirror of a source that no longer held the content. Those rows are corrected below to name this
+document as sole owner. **STATUS has no git history** — it is gitignored and no blob under that name has ever
+been committed — so there is nothing to recover from and no way to check what the removed rows said.
+
+**The general rule this cost: a pointer is a claim about another document, and deleting a row does not
+notify the documents that cite it.** Before truncating a register, grep the other surfaces for its
+addressing scheme.
+
 | Topic | Source-of-truth | This doc's role |
 |---|---|---|
 | Methodology framework gap audit (§1) | METHODOLOGY-MAP.md §"Gap audit" | Mirror only |
@@ -1184,16 +1199,16 @@ When updating these surfaces, edit the source-of-truth first and mirror here.
 | Structural omission (§2.12) | This doc | Single source; **open scope, no capability.** Surfaced by S322 cross-validation of the applicability contract. METHODOLOGY §Applicability cross-references it; the interim position there ("not applicable" is not exculpatory) is a wording constraint, not detection. Not v1.0 — stated as a known limitation in the paper. |
 | Engine correctness — choke points, null-loop cost (§2.11) | This doc | Single source; S317. Four fixes landed (`4dd88c4`); the yield helper, the N_PERM column dimension and `entropy:142` remain open. |
 | AI Screening mode (§4) | This doc | Single source. Original S125 chat history preserved as reference but no longer load-bearing. |
-| Permutation B = 9999 (§5.1) | This doc | **Superseded by §5.9 (S340).** Retained for the record; STATUS parked #8 retires with it. |
+| Permutation B = 9999 (§5.1) | This doc | **Superseded by §5.9 (S340).** Retained for the record. **The companion "STATUS parked #8" no longer exists (S380 check) — it retired with the truncation rather than with §5.9.** |
 | Permutation grid resolution (§5.9) | This doc | Single source; S340. The measurement is Code's resolution audit; the three options are unchosen and need the four-model arc. Read with §5.4 — same abstraction, two sides. |
 | Severity-formula diversity metric (§5.2) | This doc | Primary scope; pairs with §5.5 |
-| Modality plot upgrade (§5.3) | STATUS parked #7 | Mirror |
+| Modality plot upgrade (§5.3) | **This doc** | **Sole owner, corrected S380.** The topic is absent from STATUS; the "mirror" role was inverted — this was the only copy. |
 | Large-N effect-size gate audit / tier FP-equivalence (§5.4) | STATUS.md §v1.0 blockers | Mirror + methodology detail. Promoted v1.0 blocker S187 (ROADMAP Track G origin). |
 | Assay-aware severity weighting (§5.5) | This doc | Primary scope; absorbed from ROADMAP Item 5 |
 | LOESS recursive binary segmentation (§5.6) | This doc | Primary scope; absorbed from ROADMAP Item 6c |
 | Terminal Digit directional statistic (§5.7) | This doc | Primary scope; absorbed from ROADMAP Item 6a |
 | Genomics raw-count normalization advisory (§5.8) | This doc | Primary scope; absorbed from ROADMAP Item 6e |
-| Long-format detection (Archetype 4) | STATUS parked #12 | Source-of-truth at STATUS; ROADMAP Track H (archived) carried fuller detail — Nick's call whether to expand STATUS #12 |
+| Long-format detection (Archetype 4) | **This doc** | **Sole owner, corrected S380.** "STATUS parked #12" resolves nowhere and the topic is absent from STATUS; `V1X-DECIDED.md` also carries it. ROADMAP Track H (archived) had fuller detail, recoverable at `ad270a8:docs/shared/ROADMAP.md`. **The open question is no longer whether to expand a STATUS row — there is none — but whether this doc's account is complete.** |
 
 **ROADMAP.md status:** retired. Was archived as historical record of the v0.7 → v1.0 feature plan (S20–S96 era); all open items extracted into this doc and STATUS by retirement. Recoverable from git history (last live at `ad270a8:docs/shared/ROADMAP.md`).
 
@@ -1204,9 +1219,25 @@ When updating these surfaces, edit the source-of-truth first and mirror here.
 - **v1.0 work in progress.** A1.D3, Phase A2.5 Bik violations, etc. → STATUS.md.
 - **v1.0 UI polish backlog.** Per-arc session follow-ons, parked items in the v1.0 punchlist → STATUS.md.
 - **Implementation details for tests that have landed.** → METHODOLOGY.md per-test sections.
-- **Real-data benchmark + lab beta tracks.** → STATUS.md parked #5, #6.
-- **Onboarding / Phase C-lite.** → STATUS.md parked #2 (blocker).
-- **Review-mode redesign (Phase B).** → STATUS.md parked #3.
+- **Real-data benchmark + lab beta tracks.** ~~→ STATUS.md parked #5, #6.~~ **Destination gone, S380.**
+- **Onboarding / Phase C-lite.** ~~→ STATUS.md parked #2 (blocker).~~ **Destination gone, S380 — and this
+  one was marked a blocker.**
+- **Review-mode redesign (Phase B).** ~~→ STATUS.md parked #3.~~ **Destination gone, S380.**
+
+**These three exclusions are void and the topics are unowned (S380).** Each was excluded from this
+document on the grounds that STATUS owned it. **STATUS holds none of them** — no `parked #` addressing
+survives there and the words *onboarding*, *review-mode*, *lab beta* and *benchmark* appear nowhere in the
+file. So the exclusion routes to an empty address and the topics currently have no owner anywhere.
+
+**What survives, and it is more than nothing:** this document mentions each of them, so the names and
+their rough shape are recoverable from the lines above. **What is gone is whatever the STATUS rows said**,
+and it is gone permanently — STATUS is gitignored and no blob under that name has ever been committed,
+so there is no history to read.
+
+**Not resolved here, deliberately.** Whether these three become sections of this document, rows in
+STATUS's register under the current scheme, or are dropped as no longer wanted, is Nick's call and it
+needs someone who knows whether an onboarding blocker from the `P1–P40` era is still real. **Recording
+that they are unowned is the whole of the fix; guessing their content would be reconstruction.**
 - **AI consultation prompt for v1.0 (§4 prompt body).** Different surface — that's the existing Forensics-mode AI handoff, not AI Screening mode. Landed via A1.D2 / S161 / S162a / S162b / S162b-fix.
 
 If a v1.x topic surfaces that doesn't fit any section above, add a new section here rather than splitting across surfaces.
