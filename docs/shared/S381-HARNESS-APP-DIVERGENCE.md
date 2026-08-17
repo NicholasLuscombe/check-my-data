@@ -94,6 +94,11 @@ Last-column convention: where App and Harness agree, the entry reads `same` if
 > `same` = rows 5, 15, 23, 27, 28, 30, 31, 32; `differs` = rows 2, 3, 4, 6, 7, 9, 10, 11, 13, 16,
 > 17, 18, 19, 20, 22, 25, 33; `absent one side` = rows 1, 8, 12, 14, 21, 24, 26, 29. **No table row
 > changed** — only the tally. The commit message on `58a94f7` carries the old numbers.
+>
+> **The rule, because fixing the instance did not fix the method.** Part 1's tally was counted by eye
+> and was wrong. 2a corrected that one line by parsing — and then 2b's zero-count was counted by eye
+> and was wrong the same way, in this same document. **Every tally over a table in this document is
+> obtained by parsing the table, never by reading it. That includes the tally inside a correction.**
 
 ## Predictions, scored
 
@@ -418,9 +423,13 @@ paths agree there and the divergence does not fire.
 **On 40 of 41 imported sheets, ImportView would have refused to run until a human answered at least
 one gate.** Row 20 alone on 9 sheets, row 22 alone on 19, both on 12, neither on 1.
 
-The one sheet that clears both is **C14::Data** — and it carries `groupingPending`, so ImportView
-would have met the reader with the grouping-confirm card instead. **On 41 of 41 sheets the app asks a
-question that the corpus answered with a literal.**
+The one sheet that clears both is **C14::Data**. It carries `groupingPending`, so ImportView would
+have met the reader with the grouping-confirm card — but that is a different mechanism and it belongs
+on the other side of the run. **Forty sheets were stopped before the run by a blocking gate, and the
+corpus answered each with a literal. One sheet was stopped after the run by the confirm card, and the
+corpus did not answer it with a literal at all — the harness recorded `groupingPending` and left the
+four tests at `N/A`.** What the two share is only the last step: **on none of the 41 did a human
+answer.** The headline is the 40.
 
 The two literals are `corpus-run.mjs:256` (`colRelationship: 'replicates'`) and `:252`
 (`rsSuggestion.value || 'ordered'`), copied from `BatchView.jsx:161` and `:166`. So this is not a
@@ -448,7 +457,10 @@ inside the 40.
 6. Reported rather than predicted, as asked: `condStructureKind` is falsy on 21 of 41.
 
 Ranked by incidence: **row 22 at 31/41, row 20 at 21/41, row 25 at 16/41, row 29 at 9/41, row 2 at
-10/12 workbooks.** Everything else is 3 or fewer, and eleven rows are exactly 0.
+10/12 workbooks.** Everything outside those five is 3 or fewer, and **thirteen rows are exactly 0** —
+rows 1, 3, 4, 7, 8, 9, 12, 13, 14, 16, 17, 18 and 19. (Counted by parsing the count column. An
+earlier draft of this line said eleven, read by eye; `2cf0357`'s commit message carries that error
+and an incomplete row list.)
 
 ## Part 2b verification — which dispatch each value entered through
 
