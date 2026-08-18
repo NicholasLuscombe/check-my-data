@@ -23,7 +23,7 @@ import { join } from 'path';
 
 const Papa = await import('papaparse');
 const { extractAnalysisInputs } = await import('../../src/analysis/engine.js');
-const { detectVST } = await import('../../src/stats/vst.js');
+const { detectVST, computeSignednessStats, requiresPositiveDomain } = await import('../../src/stats/vst.js');
 const { inferRoles } = await import('../../src/import/roles.js');
 const { ASSAYS, ASSAY_DATATYPE_MAP } = await import('../../src/constants/assays.js');
 const { forwardFill, preprocessRaw, detectHeaderRows } = await import('../../src/import/parser.js');
@@ -96,4 +96,36 @@ for (const file of ['09-proteomics-clean.csv', '01-densitometry-clean.csv']) {
     const vst = detectVST(p.matrix, a.v);
     console.log(`SWEEP ${file} :: ${a.v.padEnd(14)} :: transform=${vst.transform.padEnd(8)} :: slopeTest=${String(vst.slopeTest).padEnd(8)} :: branch=${branchOf(vst).padEnd(24)} :: ${vst.reason}`);
   }
+}
+
+console.log('');
+console.log('== Part C — every (fixture x assay) landing in the fallback branch with a CI ==');
+console.log('Classified against the three arms. Any UNCOVERED row is a combination the');
+console.log('arm table does not describe.');
+const tally = new Map();
+for (const [file, expected] of Object.entries(EXPECTED)) {
+  const p = prep(file);
+  const s = computeSignednessStats(p.matrix);
+  const positiveDomain = requiresPositiveDomain(p.matrix);
+  const allVals = p.matrix.flat().filter(v => v != null);
+  const posFrac = allVals.filter(v => v > 0).length / allVals.length;
+  for (const a of ASSAYS) {
+    const vst = detectVST(p.matrix, a.v);
+    if (branchOf(vst) !== 'assay-fallback' || !vst.slopeCI) continue;
+    const decisive = vst.slopeTest === 'above' || vst.slopeTest === 'below';
+    const arm =
+      !decisive                                        ? 'arm1-inconclusive' :
+      a.v !== 'general'                                ? 'arm2-general-only' :
+      (posFrac <= 0.5 || !positiveDomain)              ? 'arm3-positivity'   :
+                                                         'UNCOVERED';
+    const key = `${arm} | slopeTest=${vst.slopeTest} | assay=${a.v === 'general' ? 'general' : 'non-general'} | posFrac>0.5=${posFrac > 0.5} | positiveDomain=${positiveDomain}`;
+    if (!tally.has(key)) tally.set(key, []);
+    tally.get(key).push(`${file}@${a.v}`);
+    if (arm === 'UNCOVERED') console.log(`UNCOVERED ${file} @ ${a.v} :: slopeTest=${vst.slopeTest} posFrac=${posFrac.toFixed(3)} positiveDomain=${positiveDomain} :: ${vst.reason}`);
+  }
+}
+console.log('');
+for (const [key, hits] of [...tally.entries()].sort()) {
+  console.log(`CELL ${String(hits.length).padStart(3)} combos :: ${key}`);
+  console.log(`      e.g. ${hits.slice(0, 3).join(', ')}${hits.length > 3 ? `, +${hits.length - 3} more` : ''}`);
 }
