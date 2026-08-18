@@ -10,6 +10,7 @@ import { detectVST } from "../../stats/vst.js";
 import { detectAssay, ASSAYS, DATA_TYPES, ASSAY_DATATYPE_MAP } from "../../constants/assays.js";
 import { getApplicabilityTests } from "../../analysis/severity.js";
 import { extractAnalysisInputs } from "../../analysis/engine.js";
+import { checkColumnRoleChange } from "../../analysis/holdoutGuard.js";
 import { LongFormatModal } from "./LongFormatModal.jsx";
 import { C, FF, FW, FS, CR, CC, M, UI, BADGE, SIGNAL, ACCENT } from "../../constants/tokens.js";
 import { FLAG_STYLES } from "../../constants/thresholds.js";
@@ -67,6 +68,7 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
   const [longFormatDetected,setLongFormatDetected]=useState(false); // sticky after the pivot modal resolves either way
   const [excelMeta,setExcelMeta]=useState(null); // forensic metadata from .xlsx files (passed through to ReportView)
   const [excelSheetPicker,setExcelSheetPicker]=useState(null); // {file, buf, sheetNames} — multi-sheet picker
+  const [holdoutNotice,setHoldoutNotice]=useState(null); // P177 — refused role change, {group, message}
 
   useEffect(()=>{
     const h=e=>{if(assayRef.current&&!assayRef.current.contains(e.target))setAssayOpen(false);};
@@ -399,6 +401,10 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
   // not frozen a choice (colRelationship === null OR currently in AUTO).
   // The pivot path (confirmPivot) sets 'conditions' explicitly and is not
   // affected because hasCondStructure is false on pivoted output.
+  // P177 — a refusal describes the file on screen, so it goes when the file does.
+  // Keyed on `data` rather than added to each reset site, which is two places today.
+  useEffect(() => { setHoldoutNotice(null); }, [data]);
+
   // S123 — Deps fully enumerated so the effect re-checks when any of its
   // read state changes. setState with identical values is a no-op so there
   // is no re-fire loop. A user click setting colRelAutoSet=false freezes
@@ -883,7 +889,17 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
                 },
               };
             }}
-            onHeaderClick={(ci)=>{setRoles(p=>{const n=[...p];n[ci]=ROLE_KEYS[(ROLE_KEYS.indexOf(n[ci])+1)%ROLE_KEYS.length];return n;});}}
+            onHeaderClick={(ci)=>{
+              const next=[...roles];
+              next[ci]=ROLE_KEYS[(ROLE_KEYS.indexOf(next[ci])+1)%ROLE_KEYS.length];
+              // P177 — a role change that costs the analysis a whole column
+              // group moves the verdict in an unpredictable direction with
+              // nothing announcing it, so it is refused rather than reported.
+              const verdict=checkColumnRoleChange({data,roles,nextRoles:next,condPerCol,zeroAsMissing});
+              if(verdict.refused){setHoldoutNotice(verdict);return;}
+              setHoldoutNotice(null);
+              setRoles(next);
+            }}
           />
           {data.length>EDGE*2+5&&<div style={{padding:"6px 12px",borderTop:`1px solid ${C.BORDER_L}`,fontSize:FS.sm,color:C.TEXT_3,textAlign:"center"}}>Showing first {EDGE} and last {EDGE} of {data.length.toLocaleString()} rows</div>}
           {roles.some(r=>r==="attribute")&&(()=>{const nAttr=roles.filter(r=>r==="attribute").length;return(
@@ -891,6 +907,11 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
               {nAttr} column{nAttr===1?"":"s"} look like group attributes — numeric values that stay constant within a grouping column, such as a site's latitude or a batch's date. They repeat by construction rather than being measured per row, so they were held out of the analysis. Click a header to change a column's role.
             </div>
           );})()}
+        </div>
+      )}
+      {holdoutNotice&&(
+        <div style={{fontSize:FS.sm,color:UI.WARN.text,lineHeight:"1.4",marginTop:"8px"}}>
+          {holdoutNotice.message} The column was left as it was.
         </div>
       )}
       {sum&&sum.nDC<2&&(

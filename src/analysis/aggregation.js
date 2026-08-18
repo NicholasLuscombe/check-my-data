@@ -7,7 +7,18 @@ import { chiSquaredP, kurtosis, trimmedKurtosis, bhFDR, sidakAdjust } from '../s
 /** Yield to the browser between groups to prevent kill-dialog. */
 const tick = () => new Promise(r => requestAnimationFrame(() => setTimeout(r, 0)));
 
-function buildGroups(matrix, dataCols, condPerCol) {
+// The drop rule, named once. A group needs enough rows to support a permutation
+// and at least two columns to be a pair at all. Anything that needs to ask
+// whether a group would survive calls groupIsUsable instead of restating this
+// — see analysis/holdoutGuard.js.
+export const MIN_GROUP_ROWS = 4;
+export const MIN_GROUP_COLUMNS = 2;
+export function groupIsUsable(g) {
+  return g.matrix.length >= MIN_GROUP_ROWS && g.matrix[0].length >= MIN_GROUP_COLUMNS;
+}
+
+/** Every column group, before the drop rule is applied. */
+function buildAllGroups(matrix, dataCols, condPerCol) {
   if(!condPerCol||!condPerCol.some(c=>c)) return null;
   const groups={};
   dataCols.forEach((origColIdx, matrixColIdx)=>{
@@ -21,7 +32,12 @@ function buildGroups(matrix, dataCols, condPerCol) {
     // Build sub-matrix: keep only rows with ≥1 non-null value in this group's columns
     matrix:matrix.map(row=>g.matrixColIndices.map(ci=>row[ci]))
                  .filter(row=>row.some(v=>v!==null))
-  })).filter(g=>g.matrix.length>=4&&g.matrix[0].length>=2);
+  }));
+}
+
+function buildGroups(matrix, dataCols, condPerCol) {
+  const all = buildAllGroups(matrix, dataCols, condPerCol);
+  return all && all.filter(groupIsUsable);
 }
 
 /**
@@ -424,4 +440,4 @@ function pickSummaryNums(r) {
   return{};
 }
 
-export { buildGroups, extractPrimaryP, aggregatePerGroup, pickSummaryNums };
+export { buildGroups, buildAllGroups, extractPrimaryP, aggregatePerGroup, pickSummaryNums };

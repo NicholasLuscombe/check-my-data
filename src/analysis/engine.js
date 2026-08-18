@@ -7,7 +7,7 @@ import { flagRankOf } from '../constants/thresholds.js';
 import { DATATYPE_SKIP, DATATYPE_CAUSE, TOO_FEW_REPLICATE_COLS_CAUSE, joinDeclineReason } from '../constants/assays.js';
 import { NA_CAUSE } from '../constants/naCause.js';
 import { ROW_SEMANTICS_FULL_SKIP, ROW_SEMANTICS_SKIP_REASON } from '../import/rowSemantics.js';
-import { aggregatePerGroup, buildGroups } from './aggregation.js';
+import { aggregatePerGroup, buildGroups, buildAllGroups } from './aggregation.js';
 import { createConditionContext } from './conditionContext.js';
 import { computeTrigger } from './groupingTrigger.js';
 import { computeSubjectPairing, PAIRED_CAUSE, PAIRED_SKIP } from './subjectPairing.js';
@@ -157,6 +157,9 @@ export function extractAnalysisInputs({ data, roles, condPerCol, zeroAsMissing, 
 
   // Build column groups (for group-aware pair tests)
   const groups = buildGroups(matrix, dataCols, condPerCol);
+  // The same groups before the drop rule. Only the import view's hold-out guard
+  // reads this; the analysis path uses `groups`.
+  const allGroups = buildAllGroups(matrix, dataCols, condPerCol);
 
   // Unified condition context
   const condCtx = createConditionContext({ groups, rowConditions, rowConditionsCols, matrix, colRelationship, dataColHeaders });
@@ -186,7 +189,11 @@ export function extractAnalysisInputs({ data, roles, condPerCol, zeroAsMissing, 
   // verdict carries idColIndex; a caller holding raw headers can resolve it.
   condCtx.subjectPairing = computeSubjectPairing({ condCtx, data, roles, filteredIndices });
 
-  return { matrix, rawMatrix, filteredIndices, condCtx };
+  // `groups` is the surviving column groups after aggregation.js's drop rule,
+  // `allGroups` the same list before it. Returned so the import view can ask
+  // whether a role change would lose one WITHOUT restating the rule — see
+  // analysis/holdoutGuard.js.
+  return { matrix, rawMatrix, filteredIndices, condCtx, groups, allGroups };
 }
 
 // ── runFullAnalysis ────────────────────────────────────────────────
