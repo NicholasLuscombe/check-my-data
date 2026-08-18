@@ -69,7 +69,7 @@ const RSC = 'Residual Spike Correlation';
 const ASSAY = 'general';
 const SEEDS = Math.max(1, Number(process.env.SEEDS) || 20);
 const COST = process.env.COST === '1';
-const UNITS_OUT = process.env.UNITS_OUT || 'docs/shared/S350-HETEROGENEITY-UNITS.csv';
+const UNITS_OUT = process.env.UNITS_OUT || 'test/data/S350-HETEROGENEITY-UNITS.csv';
 const FIXTURES = 'test/fixtures';
 const CLEAN_PAIRED = [
   '01-densitometry-clean.csv',

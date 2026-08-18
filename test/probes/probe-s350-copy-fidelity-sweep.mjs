@@ -72,7 +72,7 @@ const SEEDS = Math.max(1, Number(process.env.SEEDS) || 20);
 const COST = process.env.COST === '1';
 const MODE = process.env.MODE === 'shared-subjects' ? 'shared-subjects' : 'full';
 const UNITS_OUT = process.env.UNITS_OUT ||
-  (MODE === 'shared-subjects' ? 'docs/shared/S350-COPY-FIDELITY-UNITS-SHARED.csv' : 'docs/shared/S350-COPY-FIDELITY-UNITS.csv');
+  (MODE === 'shared-subjects' ? 'test/data/S350-COPY-FIDELITY-UNITS-SHARED.csv' : 'test/data/S350-COPY-FIDELITY-UNITS.csv');
 
 function prepFromCsv(csv) {
   const parsed = Papa.default.parse(csv, { skipEmptyLines: true });

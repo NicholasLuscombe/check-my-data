@@ -6,8 +6,8 @@
 
    Run the gate first to produce the sidecar, then this:
 
-     SEEDS=8 SEEDS_JSON=docs/shared/s340-eight-seed.json node test/validate-batch.mjs
-     node test/probes/probe-s340-channel-dump.mjs docs/shared/s340-eight-seed.json > docs/shared/s340-eight-seed.txt
+     SEEDS=8 SEEDS_JSON=test/data/s340-eight-seed.json node test/validate-batch.mjs
+     node test/probes/probe-s340-channel-dump.mjs test/data/s340-eight-seed.json > test/data/s340-eight-seed.txt
 
    Per fixture per test it prints the flag at every seed, the p at every seed,
    and the published resample count. Tests that never leave LOW or N/A at any
@@ -17,7 +17,7 @@
    Reads a JSON file. Touches nothing. */
 import { readFileSync } from 'fs';
 
-const path = process.argv[2] || 'docs/shared/s340-eight-seed.json';
+const path = process.argv[2] || 'test/data/s340-eight-seed.json';
 const S = JSON.parse(readFileSync(path, 'utf8'));
 const SEEDS = S.seeds.length;
 
