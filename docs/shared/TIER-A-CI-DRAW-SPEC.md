@@ -332,9 +332,8 @@ not yet written up here. This section is kept as the record of what was retained
   the flag) are computed and dropped; the window `details` survive but the per-column units the
   display would show do not.
 
-These ride a **separate, gated engine dispatch**, as WS-3 did in v1.0. Read-only-first: confirm
-at source exactly which values are dropped and where, before scoping the retention edit. The
-display build for these two waits on the retention edit landing.
+Nothing retained for either test above has a reader in `src/` — measured at S382 — so the
+display build is the whole of what is outstanding on these two.
 
 ---
 
@@ -469,8 +468,6 @@ POOLED-SINGLE and getting a corrected single band (built S240).
 **Open (named, scoped, not blocking):**
 - Blocked Mahalanobis render mode — strip vs forest-with-derived-reference; confirm at its build
   (§2.5).
-- The retention engine edit for Kurtosis and Regional Noise — read-only-first, separate dispatch
-  (§5).
 - Family B contract — Mahalanobis Row and Within-Row Variance; own pass after Family A is
   confirmed (§8).
 - Component count and visual particulars — Code's build plan and the display/colour specs
