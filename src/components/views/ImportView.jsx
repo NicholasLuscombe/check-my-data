@@ -10,7 +10,7 @@ import { detectVST } from "../../stats/vst.js";
 import { detectAssay, ASSAYS, DATA_TYPES, ASSAY_DATATYPE_MAP } from "../../constants/assays.js";
 import { getApplicabilityTests } from "../../analysis/severity.js";
 import { extractAnalysisInputs } from "../../analysis/engine.js";
-import { checkColumnRoleChange } from "../../analysis/holdoutGuard.js";
+import { checkColumnRoleChange, checkGroupExclusion } from "../../analysis/holdoutGuard.js";
 import { LongFormatModal } from "./LongFormatModal.jsx";
 import { C, FF, FW, FS, CR, CC, M, UI, BADGE, SIGNAL, ACCENT } from "../../constants/tokens.js";
 import { FLAG_STYLES } from "../../constants/thresholds.js";
@@ -895,7 +895,7 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
               // P177 — a role change that costs the analysis a whole column
               // group moves the verdict in an unpredictable direction with
               // nothing announcing it, so it is refused rather than reported.
-              const verdict=checkColumnRoleChange({data,roles,nextRoles:next,condPerCol,zeroAsMissing});
+              const verdict=checkColumnRoleChange({data,roles,nextRoles:next,condPerCol,hdrs,changedIndex:ci,zeroAsMissing});
               if(verdict.refused){setHoldoutNotice(verdict);return;}
               setHoldoutNotice(null);
               setRoles(next);
@@ -910,8 +910,27 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
         </div>
       )}
       {holdoutNotice&&(
-        <div style={{fontSize:FS.sm,color:UI.WARN.text,lineHeight:"1.4",marginTop:"8px"}}>
-          {holdoutNotice.message} The column was left as it was.
+        <div style={{fontSize:FS.sm,color:UI.WARN.text,lineHeight:"1.4",marginTop:"8px",display:"flex",alignItems:"center",gap:"10px",flexWrap:"wrap"}}>
+          <span>{holdoutNotice.message}</span>
+          {holdoutNotice.fork&&(
+            /* Same control as the Auto / All data / All off row above, scoped to
+               one group. Skipping a group deliberately is not the silent event
+               the refusal is about, so it is offered as an action rather than
+               described in a sentence. Re-checked on click: the offer and the
+               act are two moments, and the group floor is enforced at both. */
+            <button
+              onClick={()=>{
+                const ex=checkGroupExclusion({data,roles,condPerCol,group:holdoutNotice.fork.group,zeroAsMissing});
+                if(ex.refused){setHoldoutNotice({...holdoutNotice,message:ex.message,fork:null});return;}
+                setHoldoutNotice(null);
+                setRoles(ex.nextRoles);
+              }}
+              onMouseEnter={e=>e.currentTarget.style.background=C.BG_L}
+              onMouseLeave={e=>e.currentTarget.style.background="transparent"}
+              style={{background:"transparent",border:`1px solid ${C.BORDER}`,color:C.TEXT,fontSize:FS.sm,fontWeight:FW.NORM,padding:"4px 10px",borderRadius:CR.SM,cursor:"pointer",flexShrink:0}}>
+              {holdoutNotice.fork.label}
+            </button>
+          )}
         </div>
       )}
       {sum&&sum.nDC<2&&(

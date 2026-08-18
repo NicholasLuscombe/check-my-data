@@ -34,7 +34,12 @@ export function summarize(data,roles,condPerCol,zeroAsMissing) {
   }
   const conds=new Set();
   for(const row of data) for(const ci of cI) if(row[ci]!=null&&row[ci]!=="")conds.add(String(row[ci]));
-  if(condPerCol) for(const c of condPerCol) if(c)conds.add(c);
+  // A column group counts while it still has a Data column. Everything else
+  // this function reports already counts data columns only — nDC, total, the
+  // precision map — and the row-condition loop above reads roles through cI.
+  // This line was the one exception, so an excluded group kept being named in
+  // the §4 prompt, the report's identity table and the import chips (P177).
+  if(condPerCol) for(const ci of dI){ const c=condPerCol[ci]; if(c)conds.add(c); }
   const prec={};
   const precTrailingZero={};
   for(const s of rawPrecStrs){

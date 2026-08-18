@@ -1,87 +1,153 @@
 /* ── Hold-out guard (P177) ──────────────────────────────────────────────
-   Refuses a column role change in the import view when the change would
-   cost the analysis a whole column group.
+   Two questions about the import view's column roles, and the sentences
+   that answer them.
 
-   Why this exists. A header click takes a column out of the analysis
-   matrix. On a sheet whose groups are two columns wide, that leaves one
-   column, aggregation.js drops the group, and the tests that compare
-   columns within a group quietly start comparing the whole file instead.
-   The verdict moves — measured on 02-densitometry-fabricated, severity 1
-   to 3 on full collapse and 1 to 0 several clicks earlier — and nothing
-   on the page says it happened. The direction is not predictable, so the
-   click is refused rather than announced.
+     checkColumnRoleChange — may this column change role?
+     checkGroupExclusion   — may this whole group be skipped?
 
-   Why it does not restate the drop rule. The rule lives in one place,
-   aggregation.js's groupIsUsable, and this module asks the real import
-   path which groups survive before and after the change. A group four
-   columns wide still clears the rule with three, so a wide group is safe
-   without a special case, and the two halves of the rule — enough rows,
-   at least two columns — are both covered because the code deciding them
-   is the code that ships.
+   Why the first exists. A header click takes a column out of the analysis.
+   On a sheet whose groups are two columns wide, that leaves one column,
+   aggregation.js drops the group, and the tests that compare columns
+   within a group quietly start comparing the whole file instead. The
+   verdict moves — measured on 02-densitometry-fabricated, severity 1 to 3
+   on full collapse and 1 to 0 several clicks earlier — and nothing on the
+   page says it happened. The direction is not predictable, so the click is
+   refused.
 
-   The refusal message lives here too. It cannot use the naCause codes in
-   constants/naCause.js: those stamp a test result, and this refusal
-   happens before any test runs. It follows their naObserved / naMinimum
-   convention instead, naming the count that fell short beside the
-   minimum it fell short of, so a reader can judge for themselves. */
+   Why the second exists. Refusing every click that would lose a group also
+   made it impossible to drop a whole condition, which is ordinary work.
+   Skipping a group deliberately is not the silent event the first guard is
+   about, so it is offered as an action. But the analysis needs two groups
+   (conditionContext.js), and until now nothing had to check that, because
+   no route could lose a group at all. This route can, so it carries the
+   check itself.
+
+   Neither function restates a rule. Both run the real import path and
+   compare which groups survive, so aggregation.js's drop rule and the
+   two-group minimum are both enforced by the code that ships.
+
+   The sentences live here with the predicates. They cannot use the naCause
+   codes in constants/naCause.js: those stamp a test result, and both
+   refusals happen before any test runs. They are built from the names the
+   user can see — the group, the column, the role words on the chips. */
 
 import { extractAnalysisInputs } from './engine.js';
 import { MIN_GROUP_ROWS, MIN_GROUP_COLUMNS } from './aggregation.js';
+import { ROLES } from '../constants/roles.js';
 
-const ALLOWED = {
+/** The analysis needs two groups to compare. conditionContext.js decides it;
+ *  this is the number we report, never the test itself. */
+export const MIN_GROUPS = 2;
+
+const ALLOWED = Object.freeze({
   refused: false, group: null, kind: null,
-  observed: null, minimum: null, message: null,
-};
+  observed: null, minimum: null, message: null, fork: null,
+});
 
-function tail() {
-  return "The group would drop out, and tests that compare columns within a group " +
-         "would switch to comparing the whole file — with nothing on the page to say so.";
+const SMALL = ['none', 'one', 'two', 'three', 'four', 'five'];
+const count = n => SMALL[n] !== undefined ? SMALL[n] : String(n);
+
+/** What the user sees on the chip for a role. */
+const roleWord = r => ROLES[r]?.chipLabel || r;
+
+/** What the user sees at the top of a column, or its position when blank. */
+function colName(hdrs, ci) {
+  const h = hdrs && hdrs[ci] != null ? String(hdrs[ci]).trim() : '';
+  return h || `column ${ci + 1}`;
 }
 
-function compose(name, kind, observed, minimum) {
-  const unit = kind === 'columns'
-    ? `${observed} column${observed === 1 ? '' : 's'}`
-    : `${observed} row${observed === 1 ? '' : 's'} of data`;
-  return `Group "${name}" would be left with ${unit} and the analysis needs at least ${minimum}. ${tail()}`;
+/** "Rep3", "Rep3 or Rep4", "Rep3, Rep4 or Rep5", "Rep3, Rep4 or one of the others". */
+function joinNames(names) {
+  if (names.length === 1) return names[0];
+  if (names.length === 2) return `${names[0]} or ${names[1]}`;
+  if (names.length === 3) return `${names[0]}, ${names[1]} or ${names[2]}`;
+  return `${names[0]}, ${names[1]} or one of the others`;
+}
+
+function survivingGroups(args, roles) {
+  const { groups } = extractAnalysisInputs({ ...args, roles });
+  return (groups || []).map(g => g.name);
+}
+
+/** Original column indices belonging to a group and still set to Data. */
+function dataColsOf(roles, condPerCol, group) {
+  const out = [];
+  for (let i = 0; i < roles.length; i++) {
+    if (roles[i] === 'data' && condPerCol[i] === group) out.push(i);
+  }
+  return out;
+}
+
+/** Original column indices in a group that are NOT set to Data — what the user changed. */
+function changedColsOf(roles, condPerCol, group) {
+  const out = [];
+  for (let i = 0; i < roles.length; i++) {
+    if (condPerCol[i] === group && roles[i] !== 'data') out.push(i);
+  }
+  return out;
 }
 
 /**
- * Would this role change cost the analysis a column group?
+ * May this whole group be skipped?
  *
- * Pure. Takes the data and the two role arrays, returns a verdict. No UI
- * dependency, nothing rendered, nothing mutated.
+ * Refuses when skipping would leave fewer than two groups for the analysis to
+ * compare. Pure: no UI dependency, nothing mutated.
  *
- * @param {Object}   o
- * @param {any[][]}  o.data           raw imported rows
- * @param {string[]} o.roles          roles as they stand
- * @param {string[]} o.nextRoles      roles the click would produce
- * @param {(string|null)[]|null} o.condPerCol  per-column group names
- * @param {boolean}  [o.zeroAsMissing=false]
+ * @returns {{refused:boolean, remaining:string[], minimum:number,
+ *            message:string|null, nextRoles:string[]|null}}
+ */
+export function checkGroupExclusion({
+  data, roles, condPerCol, group, zeroAsMissing = false,
+  colRelationship, dataColHeaders,
+}) {
+  const nextRoles = [...roles];
+  for (const ci of dataColsOf(roles, condPerCol, group)) nextRoles[ci] = 'ignore';
+
+  const args = { data, condPerCol, zeroAsMissing, colRelationship, dataColHeaders };
+  const remaining = survivingGroups(args, nextRoles);
+
+  if (remaining.length >= MIN_GROUPS) {
+    return { refused: false, remaining, minimum: MIN_GROUPS, message: null, nextRoles };
+  }
+  const left = remaining.length === 0
+    ? 'no groups'
+    : `only ${remaining[0]}`;
+  return {
+    refused: true, remaining, minimum: MIN_GROUPS, nextRoles: null,
+    message: `The analysis needs at least ${count(MIN_GROUPS)} groups to compare. ` +
+             `Skipping ${group} would leave ${left}.`,
+  };
+}
+
+/**
+ * May this column change role?
+ *
+ * Refuses when the change would cost the analysis a whole column group. When
+ * skipping that group outright is allowed, the verdict carries a `fork` the
+ * caller can offer as an action.
+ *
  * @returns {{refused:boolean, group:string|null, kind:('columns'|'rows'|null),
- *            observed:number|null, minimum:number|null, message:string|null}}
+ *            observed:number|null, minimum:number|null, message:string|null,
+ *            fork:{group:string, nextRoles:string[], label:string}|null}}
  */
 export function checkColumnRoleChange({
-  data, roles, nextRoles, condPerCol, zeroAsMissing = false,
+  data, roles, nextRoles, condPerCol, hdrs, changedIndex, zeroAsMissing = false,
   colRelationship, dataColHeaders,
 }) {
   if (!data || !data.length || !roles || !nextRoles) return ALLOWED;
-  // No column groups means there is no group to lose.
   if (!condPerCol || !condPerCol.some(c => c)) return ALLOWED;
 
   const args = { data, condPerCol, zeroAsMissing, colRelationship, dataColHeaders };
-  const before = extractAnalysisInputs({ ...args, roles });
-  const kept = new Set((before.groups || []).map(g => g.name));
-  // Nothing survives today, so this click cannot be what loses it.
-  if (kept.size === 0) return ALLOWED;
+  const kept = survivingGroups(args, roles);
+  if (kept.length === 0) return ALLOWED;
 
-  const after = extractAnalysisInputs({ ...args, roles: nextRoles });
-  const stillKept = new Set((after.groups || []).map(g => g.name));
-
-  const lostName = [...kept].find(n => !stillKept.has(n));
+  const stillKept = new Set(survivingGroups(args, nextRoles));
+  const lostName = kept.find(n => !stillKept.has(n));
   if (lostName === undefined) return ALLOWED;
 
   // The group as it would stand after the change. Absent from allGroups when
   // the change takes its last data column, which counts as nought columns.
+  const after = extractAnalysisInputs({ ...args, roles: nextRoles });
   const lost = (after.allGroups || []).find(g => g.name === lostName);
   const cols = lost && lost.matrix[0] ? lost.matrix[0].length : 0;
   const rows = lost ? lost.matrix.length : 0;
@@ -90,8 +156,35 @@ export function checkColumnRoleChange({
   const observed = kind === 'columns' ? cols : rows;
   const minimum = kind === 'columns' ? MIN_GROUP_COLUMNS : MIN_GROUP_ROWS;
 
+  // Is skipping the whole group available as a way out?
+  const exclusion = checkGroupExclusion({ ...args, roles, group: lostName });
+  const fork = exclusion.refused ? null : {
+    group: lostName,
+    nextRoles: exclusion.nextRoles,
+    label: `Skip the whole ${lostName} group`,
+  };
+
+  // ── The sentence ──
+  const idx = typeof changedIndex === 'number' ? changedIndex : -1;
+  const changed = idx >= 0 ? colName(hdrs, idx) : 'this column';
+  const toRole = idx >= 0 && nextRoles[idx] ? roleWord(nextRoles[idx]) : 'something else';
+
+  const need = kind === 'columns'
+    ? `${lostName} needs at least ${count(MIN_GROUP_COLUMNS)} Data columns.`
+    : `${lostName} needs at least ${count(MIN_GROUP_ROWS)} rows of data.`;
+  const effect = `Changing ${changed} to ${toRole} would leave ${count(observed)}.`;
+
+  const restorable = changedColsOf(roles, condPerCol, lostName).map(ci => colName(hdrs, ci));
+  const putBack = restorable.length > 0
+    ? `set ${joinNames(restorable)} back to Data`
+    : `leave ${changed} as Data`;
+
+  const advice = fork
+    ? `Skip the whole ${lostName} group, or ${putBack}.`
+    : `${putBack.charAt(0).toUpperCase()}${putBack.slice(1)}. ${exclusion.message}`;
+
   return {
-    refused: true, group: lostName, kind, observed, minimum,
-    message: compose(lostName, kind, observed, minimum),
+    refused: true, group: lostName, kind, observed, minimum, fork,
+    message: `${need} ${effect} ${advice}`,
   };
 }
