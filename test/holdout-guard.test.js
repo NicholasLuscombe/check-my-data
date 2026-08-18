@@ -10,7 +10,7 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import Papa from 'papaparse';
-import { checkColumnRoleChange, checkGroupExclusion, MIN_GROUPS } from '../src/analysis/holdoutGuard.js';
+import { checkColumnRoleChange, checkGroupExclusion, MIN_GROUPS, SKIP_GROUP_LABEL } from '../src/analysis/holdoutGuard.js';
 import { forwardFill, preprocessRaw, detectHeaderRows } from '../src/import/parser.js';
 import { inferRoles } from '../src/import/roles.js';
 import { summarize } from '../src/import/summary.js';
@@ -80,9 +80,10 @@ describe('P177 — the column guard', () => {
     expect(r.verdict.observed).toBe(1);
     expect(r.verdict.minimum).toBe(2);
     // The sentence names the group, the column changed, and both ways out.
-    expect(r.verdict.message).toContain(group);
+    expect(r.verdict.message).toContain(`"${group}"`);   // quoted, never a bare subject
     expect(r.verdict.message).toContain('back to Data');
-    expect(r.verdict.fork.label).toBe(`Skip the whole ${group} group`);
+    expect(r.verdict.fork.label).toBe(SKIP_GROUP_LABEL);
+    expect(SKIP_GROUP_LABEL).not.toContain(group);   // the label interpolates nothing
   });
 
   it('a two-wide group refuses the first click', () => {

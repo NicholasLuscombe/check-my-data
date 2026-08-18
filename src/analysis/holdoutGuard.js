@@ -39,10 +39,20 @@ import { ROLES } from '../constants/roles.js';
  *  this is the number we report, never the test itself. */
 export const MIN_GROUPS = 2;
 
+/** The fork's button label. Deliberately carries no interpolated string — the
+ *  message beside it already names the group. */
+export const SKIP_GROUP_LABEL = 'Skip this group';
+
 const ALLOWED = Object.freeze({
   refused: false, group: null, kind: null,
   observed: null, minimum: null, message: null, fork: null,
 });
+
+// A group name comes from the user's file. It is never the subject of a verb
+// and never sits bare beside a word it could be mistaken for, so it is quoted
+// wherever it appears inline. A name like `TL curves (2 h)` or `Data` then
+// reads as a name rather than as part of the sentence.
+const q = name => `"${name}"`;
 
 const SMALL = ['none', 'one', 'two', 'three', 'four', 'five'];
 const count = n => SMALL[n] !== undefined ? SMALL[n] : String(n);
@@ -110,12 +120,12 @@ export function checkGroupExclusion({
     return { refused: false, remaining, minimum: MIN_GROUPS, message: null, nextRoles };
   }
   const left = remaining.length === 0
-    ? 'no groups'
-    : `only ${remaining[0]}`;
+    ? 'no groups would be left'
+    : `only ${q(remaining[0])} would be left`;
   return {
     refused: true, remaining, minimum: MIN_GROUPS, nextRoles: null,
-    message: `The analysis needs at least ${count(MIN_GROUPS)} groups to compare. ` +
-             `Skipping ${group} would leave ${left}.`,
+    message: `Skipping the whole group is not an option here — the analysis compares ` +
+             `at least ${count(MIN_GROUPS)} groups, and ${left}.`,
   };
 }
 
@@ -161,7 +171,7 @@ export function checkColumnRoleChange({
   const fork = exclusion.refused ? null : {
     group: lostName,
     nextRoles: exclusion.nextRoles,
-    label: `Skip the whole ${lostName} group`,
+    label: SKIP_GROUP_LABEL,
   };
 
   // ── The sentence ──
@@ -170,21 +180,21 @@ export function checkColumnRoleChange({
   const toRole = idx >= 0 && nextRoles[idx] ? roleWord(nextRoles[idx]) : 'something else';
 
   const need = kind === 'columns'
-    ? `${lostName} needs at least ${count(MIN_GROUP_COLUMNS)} Data columns.`
-    : `${lostName} needs at least ${count(MIN_GROUP_ROWS)} rows of data.`;
-  const effect = `Changing ${changed} to ${toRole} would leave ${count(observed)}.`;
+    ? `Keep at least ${count(MIN_GROUP_COLUMNS)} columns in ${q(lostName)} set to Data.`
+    : `Keep at least ${count(MIN_GROUP_ROWS)} rows of data in ${q(lostName)}.`;
+  const effect = `Changing ${changed} to ${toRole} would leave ${count(observed)}`;
 
   const restorable = changedColsOf(roles, condPerCol, lostName).map(ci => colName(hdrs, ci));
   const putBack = restorable.length > 0
     ? `set ${joinNames(restorable)} back to Data`
     : `leave ${changed} as Data`;
 
-  const advice = fork
-    ? `Skip the whole ${lostName} group, or ${putBack}.`
-    : `${putBack.charAt(0).toUpperCase()}${putBack.slice(1)}. ${exclusion.message}`;
+  // With the fork, two ways out in one sentence. Without it, the way out first
+  // and then why the other one is closed — which is the floor sentence verbatim,
+  // so the two routes to that refusal read identically.
+  const message = fork
+    ? `${need} ${effect}. Skip all of ${q(lostName)}, or ${putBack}.`
+    : `${need} ${effect}, so ${putBack}. ${exclusion.message}`;
 
-  return {
-    refused: true, group: lostName, kind, observed, minimum, fork,
-    message: `${need} ${effect} ${advice}`,
-  };
+  return { refused: true, group: lostName, kind, observed, minimum, fork, message };
 }
