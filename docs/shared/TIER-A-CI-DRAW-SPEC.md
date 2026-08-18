@@ -207,13 +207,15 @@ These are confirmed against source; none requires an engine edit.
 - **Blocked Mahalanobis `direction`** is recoverable per element from `passKey`/`pass` (μ-pass
   = mean shift, Σ-pass = covariance inflation); the readable phrase is headline-scoped and
   derivable at display time. No engine edit.
-- **Four retention cases remain**, not build-ready, needing engine output before they can use
-  the primitive: **Kurtosis** (per-condition simulated null computed and dropped),
-  **Regional Noise** (per-column promoter stats computed and dropped), **Autocorrelation
-  per-pair** (the adjusted per-pair p computed and dropped — recorded in §6 since S283 and
-  counted here from S382) and **VFS** (cleared values dropped; joined S284, recorded until
-  S382 only in `V1.0-PUNCHLIST.md`). These are gated like WS-3 was — a separate engine
-  dispatch (§5).
+- **Four retention cases, engine side discharged.** **Kurtosis** (per-condition simulated
+  null), **Regional Noise** (per-column promoter stats), **Autocorrelation per-pair** (the
+  adjusted per-pair p) and **VFS** (cleared values) each needed the engine to keep a per-unit
+  quantity it was computing and throwing away. That dispatch ran: `6c26fd9` / `9764c7f` at
+  S288 covered all four, and `be4d6ad` at S289 wired Autocorrelation's forest to the retained
+  adjusted p at the 0.001 bar. **What remains on these four is display, not engine.**
+  Autocorrelation is built; three of the four retained quantities still have no reader in
+  `src/`. The gate closed at S288 and this bullet described it as pending until S382 —
+  including in the S382 edit that corrected its count from two to four.
 
 ### 2.7 Out of scope for this spec (deliberately)
 
@@ -308,17 +310,20 @@ the wrong (treatment-contaminated) quantity. This is the same per-unit principle
 rests on, applied at the condition layer: a pooled-condition forest would re-import the exact
 defect the programme removes.
 
-This is also why the four retention cases (§3) cannot be pure presentational
-work: the engine must retain the **per-group / per-column** stats so the worst-group display is
-available. Retaining only a pooled quantity would not satisfy the constraint.
+This is why the four retention cases (§3) needed engine work before display: the engine must
+retain the **per-group / per-column** stats so the worst-group display is available. Retaining
+only a pooled quantity would not satisfy the constraint. That retention landed at S288, so the
+constraint is met and what is outstanding on these four is display alone.
 
 ---
 
-## 5. Engine prerequisite for the retention cases (separate Code dispatch)
+## 5. Engine prerequisite for the retention cases — discharged S288
 
-Four tests compute the per-unit evidence the display needs and then discard it. The two written
-up below were the first found; Autocorrelation per-pair and VFS were counted in at S382, from
-§6 and from the punchlist's S284 entry respectively, and are not yet written up here:
+Four tests computed the per-unit evidence the display needs and discarded it. The engine
+dispatch that fixed this ran at S288 (`6c26fd9` / `9764c7f`), covering all four; `be4d6ad` at
+S289 wired Autocorrelation's forest to the retained adjusted p at the 0.001 bar. The two written
+up below were the first found. Autocorrelation per-pair and VFS were counted in at S382 and are
+not yet written up here. This section is kept as the record of what was retained and why:
 
 - **Kurtosis** — the per-condition simulated null (N_SIM nulls) is computed and collapsed; the
   per-condition `kurtosis`/`kurtDeviation`/`p` survive but the null the forest would plot
