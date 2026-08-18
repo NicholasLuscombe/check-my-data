@@ -190,20 +190,39 @@ export function detectVST(matrix, assay) {
   // on a non-general assay, where the decision defers to the assay fallback
   // rather than the slope — so 'above' must not print as 'contains'.
   const slopeRel = slopeTest === 'above' ? 'above' : slopeTest === 'below' ? 'below' : 'contains';
-  // What follows the interval must not print as 'inconclusive' when the
-  // interval was decisive (S382). A CI containing 1 IS inconclusive and keeps
-  // that word. A CI entirely above or below 1 decided, and the assay fallback
-  // then supplied the transform anyway — reporting that as 'inconclusive'
-  // names the branch taken rather than the measurement made, and the string is
-  // rendered verbatim into the §4 clipboard body an assistant reasons from.
-  // Two different gates send a decisive interval here — the `assay === 'general'`
-  // clause above for a labelled assay, the signed-data gate for `general` itself
-  // — so the wording names the outcome they share rather than either cause.
-  const ciVerdict = slopeRel === 'contains'
-    ? 'inconclusive'
-    : 'assay-specified transform, not overridden by the interval';
+  // What follows the interval must not print as 'inconclusive' when the interval
+  // was decisive (S382). The string is rendered verbatim into the §4 clipboard
+  // body an assistant reasons from, so a word here is a claim, and 'inconclusive'
+  // named the branch taken rather than the measurement made.
+  //
+  // FOUR arms, because four different things send an arrival here. A clause says
+  // only two: what the interval implied, and why the promotion gate did not fire.
+  // It never restates the outcome — the tail below already prints
+  // `→ assay fallback (label) → transform`, and that tail is the statement of
+  // precedence.
+  //
+  // Order is direction first, then the gate. 'contains' and 'below' take
+  // themselves; an 'above' interval splits on the assay clause at :161, then on
+  // positivity. Arm 4 is one arm and not two on purpose: on a below-1 interval
+  // nothing asked to be promoted, and whether the assay map then overrides the
+  // interval (densitometry → log) or agrees with it (qpcr → raw) is exactly what
+  // the tail states. 'transform set by assay' is true of both and claims no
+  // override.
+  //
+  // Every arm carries its own guard and there is deliberately NO trailing else.
+  // 'above' with `assay === 'general'` and positivity holding fires the gate at
+  // :161 and never arrives, so the residual is structurally unreachable — and if
+  // a future edit ever routed something here it drops the clause rather than
+  // borrowing another arm's, which is how one clause came to hide these four.
+  const ciVerdict =
+    slopeRel === 'contains' ? 'inconclusive' :
+    slopeRel === 'below'    ? 'additive noise indicated; transform set by assay' :
+    assay !== 'general'     ? 'CI promotion applies to the general assay only' :
+    (posFrac <= 0.5 || !positiveDomain)
+                            ? 'CI not applied: data is not on a positive domain'
+                            : null;
   const slopeNote = slopeCI
-    ? `slope=${dataSlope.toFixed(2)}, CI ${ciStr} ${slopeRel} 1 → ${ciVerdict}`
+    ? `slope=${dataSlope.toFixed(2)}, CI ${ciStr} ${slopeRel} 1${ciVerdict ? ` → ${ciVerdict}` : ''}`
     : 'insufficient range for slope';
   return { transform: t, reason: `${slopeNote} → assay fallback (${assay}) → ${t}`, dataSlope, slopeSE, slopeCI, slopeTest, isInteger: false, negFrac };
 }

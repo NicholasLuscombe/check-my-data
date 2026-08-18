@@ -99,33 +99,75 @@ for (const file of ['09-proteomics-clean.csv', '01-densitometry-clean.csv']) {
 }
 
 console.log('');
-console.log('== Part C — every (fixture x assay) landing in the fallback branch with a CI ==');
-console.log('Classified against the three arms. Any UNCOVERED row is a combination the');
-console.log('arm table does not describe.');
-const tally = new Map();
-for (const [file, expected] of Object.entries(EXPECTED)) {
+console.log('== Part C — the four-arm partition over every CI-present arrival ==');
+console.log('Two independent classifications per combination: the arm read back from the');
+console.log('SHIPPED clause string, and the arm derived from the conditions. They must');
+console.log('agree on every row, and the tally must sum with UNCOVERED at zero.');
+
+// The four clauses, verbatim. Read back from the emitted reason rather than
+// re-implementing the chain — the point is to prove the partition from the
+// product's own output.
+const CLAUSE = {
+  'inconclusive':                                     'arm1-contains',
+  'additive noise indicated; transform set by assay':  'arm4-below',
+  'CI promotion applies to the general assay only':    'arm2-above-nongeneral',
+  'CI not applied: data is not on a positive domain':  'arm3-above-positivity',
+};
+
+/** Pull the clause out of a fallback reason. The chain is
+ *  `<slope note> → <clause> → assay fallback (label) → <transform>`, or the
+ *  same with the clause absent. Returns null when no clause was composed. */
+function clauseOf(reason) {
+  const parts = reason.split(' → ');
+  if (parts.length === 4) return parts[1];
+  if (parts.length === 3) return null;   // clause omitted — the unreachable residual
+  return '((unparseable))';
+}
+
+const byArm = new Map(), disagree = [], residual = [];
+let total = 0;
+for (const [file] of Object.entries(EXPECTED)) {
   const p = prep(file);
-  const s = computeSignednessStats(p.matrix);
   const positiveDomain = requiresPositiveDomain(p.matrix);
   const allVals = p.matrix.flat().filter(v => v != null);
   const posFrac = allVals.filter(v => v > 0).length / allVals.length;
   for (const a of ASSAYS) {
     const vst = detectVST(p.matrix, a.v);
     if (branchOf(vst) !== 'assay-fallback' || !vst.slopeCI) continue;
-    const decisive = vst.slopeTest === 'above' || vst.slopeTest === 'below';
-    const arm =
-      !decisive                                        ? 'arm1-inconclusive' :
-      a.v !== 'general'                                ? 'arm2-general-only' :
-      (posFrac <= 0.5 || !positiveDomain)              ? 'arm3-positivity'   :
-                                                         'UNCOVERED';
-    const key = `${arm} | slopeTest=${vst.slopeTest} | assay=${a.v === 'general' ? 'general' : 'non-general'} | posFrac>0.5=${posFrac > 0.5} | positiveDomain=${positiveDomain}`;
-    if (!tally.has(key)) tally.set(key, []);
-    tally.get(key).push(`${file}@${a.v}`);
-    if (arm === 'UNCOVERED') console.log(`UNCOVERED ${file} @ ${a.v} :: slopeTest=${vst.slopeTest} posFrac=${posFrac.toFixed(3)} positiveDomain=${positiveDomain} :: ${vst.reason}`);
+    total++;
+
+    // (i) read back from the shipped string
+    const clause = clauseOf(vst.reason);
+    const fromOutput = clause === null ? 'UNCOVERED-no-clause' : (CLAUSE[clause] || `UNCOVERED-unknown-clause:${clause}`);
+
+    // (ii) derive from the conditions, in the shipped precedence order
+    const fromCondition =
+      vst.slopeTest === 'contains' ? 'arm1-contains' :
+      vst.slopeTest === 'below'    ? 'arm4-below' :
+      a.v !== 'general'            ? 'arm2-above-nongeneral' :
+      (posFrac <= 0.5 || !positiveDomain) ? 'arm3-above-positivity' :
+      'UNCOVERED-residual';
+
+    if (fromOutput !== fromCondition) disagree.push(`${file}@${a.v}: output=${fromOutput} condition=${fromCondition}`);
+    if (fromOutput.startsWith('UNCOVERED') || fromCondition.startsWith('UNCOVERED')) residual.push(`${file}@${a.v} :: ${vst.reason}`);
+    if (!byArm.has(fromOutput)) byArm.set(fromOutput, []);
+    byArm.get(fromOutput).push(`${file}@${a.v}`);
   }
 }
+
 console.log('');
-for (const [key, hits] of [...tally.entries()].sort()) {
-  console.log(`CELL ${String(hits.length).padStart(3)} combos :: ${key}`);
-  console.log(`      e.g. ${hits.slice(0, 3).join(', ')}${hits.length > 3 ? `, +${hits.length - 3} more` : ''}`);
+let summed = 0;
+for (const [arm, hits] of [...byArm.entries()].sort()) {
+  summed += hits.length;
+  console.log(`TALLY ${String(hits.length).padStart(3)}  ${arm}`);
+  console.log(`        e.g. ${hits.slice(0, 3).join(', ')}${hits.length > 3 ? `, +${hits.length - 3} more` : ''}`);
 }
+const uncovered = [...byArm.entries()].filter(([k]) => k.startsWith('UNCOVERED')).reduce((n, [, v]) => n + v.length, 0);
+console.log('');
+console.log(`SUM        ${summed}`);
+console.log(`TOTAL      ${total}`);
+console.log(`UNCOVERED  ${uncovered}`);
+console.log(`DISAGREE   ${disagree.length}`);
+for (const d of disagree) console.log(`  ! ${d}`);
+for (const r of residual) console.log(`  residual: ${r}`);
+console.log(`PARTITION  ${summed === total && uncovered === 0 && disagree.length === 0 ? 'CLOSES' : 'DOES NOT CLOSE'}`);
