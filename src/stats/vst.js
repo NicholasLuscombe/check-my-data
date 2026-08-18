@@ -190,8 +190,20 @@ export function detectVST(matrix, assay) {
   // on a non-general assay, where the decision defers to the assay fallback
   // rather than the slope — so 'above' must not print as 'contains'.
   const slopeRel = slopeTest === 'above' ? 'above' : slopeTest === 'below' ? 'below' : 'contains';
+  // What follows the interval must not print as 'inconclusive' when the
+  // interval was decisive (S382). A CI containing 1 IS inconclusive and keeps
+  // that word. A CI entirely above or below 1 decided, and the assay fallback
+  // then supplied the transform anyway — reporting that as 'inconclusive'
+  // names the branch taken rather than the measurement made, and the string is
+  // rendered verbatim into the §4 clipboard body an assistant reasons from.
+  // Two different gates send a decisive interval here — the `assay === 'general'`
+  // clause above for a labelled assay, the signed-data gate for `general` itself
+  // — so the wording names the outcome they share rather than either cause.
+  const ciVerdict = slopeRel === 'contains'
+    ? 'inconclusive'
+    : 'assay-specified transform, not overridden by the interval';
   const slopeNote = slopeCI
-    ? `slope=${dataSlope.toFixed(2)}, CI ${ciStr} ${slopeRel} 1 → inconclusive`
+    ? `slope=${dataSlope.toFixed(2)}, CI ${ciStr} ${slopeRel} 1 → ${ciVerdict}`
     : 'insufficient range for slope';
   return { transform: t, reason: `${slopeNote} → assay fallback (${assay}) → ${t}`, dataSlope, slopeSE, slopeCI, slopeTest, isInteger: false, negFrac };
 }
