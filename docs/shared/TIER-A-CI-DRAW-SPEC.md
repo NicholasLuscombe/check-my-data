@@ -207,10 +207,13 @@ These are confirmed against source; none requires an engine edit.
 - **Blocked Mahalanobis `direction`** is recoverable per element from `passKey`/`pass` (μ-pass
   = mean shift, Σ-pass = covariance inflation); the readable phrase is headline-scoped and
   derivable at display time. No engine edit.
-- **Two retention cases remain**, not build-ready, needing engine output before they can use
-  the primitive: **Kurtosis** (per-condition simulated null computed and dropped) and
-  **Regional Noise** (per-column promoter stats computed and dropped). These are gated like
-  WS-3 was — a separate engine dispatch (§5).
+- **Four retention cases remain**, not build-ready, needing engine output before they can use
+  the primitive: **Kurtosis** (per-condition simulated null computed and dropped),
+  **Regional Noise** (per-column promoter stats computed and dropped), **Autocorrelation
+  per-pair** (the adjusted per-pair p computed and dropped — recorded in §6 since S283 and
+  counted here from S382) and **VFS** (cleared values dropped; joined S284, recorded until
+  S382 only in `V1.0-PUNCHLIST.md`). These are gated like WS-3 was — a separate engine
+  dispatch (§5).
 
 ### 2.7 Out of scope for this spec (deliberately)
 
@@ -261,8 +264,12 @@ IRC (DS02/08), Regional Noise (DS10/21 — *retention-gated*), Selective Noise (
 (DS08/10/12b), Row-Mean Runs (DS21), Cross-Condition Consistency (DS15/19).
 
 **Stage 3 — latent (build-ready by shape, no flagged fixture; renders clean-state only).**
-Entropy, Decimal Precision, Windowed Autocorrelation, Modality, Cross-Condition Rank
-Correlation, Within-Row Variance [Family B], Kurtosis (*retention-gated*). These build against
+Decimal Precision, Windowed Autocorrelation, Cross-Condition Rank Correlation, Within-Row
+Variance [Family B]. Four, not the seven first listed here: Entropy was satisfied by other
+work, Modality was pulled from the programme at S283 (its honest object is a per-column
+histogram, and S285 confirmed `ColumnStatBar` already meets the per-column contract), and
+Kurtosis moved to the retention-gated set (§3). All three removals were recorded in
+`V1.0-PUNCHLIST.md` and not here; corrected S382. These build against
 the existing return shape but can be visually verified only when a fabricated flagged fixture
 exists (#49). Flag each as render-unexercised at close; do not block the build, but do not
 claim visual verification.
@@ -301,7 +308,7 @@ the wrong (treatment-contaminated) quantity. This is the same per-unit principle
 rests on, applied at the condition layer: a pooled-condition forest would re-import the exact
 defect the programme removes.
 
-This is also why the retention cases (Kurtosis, Regional Noise) cannot be pure presentational
+This is also why the four retention cases (§3) cannot be pure presentational
 work: the engine must retain the **per-group / per-column** stats so the worst-group display is
 available. Retaining only a pooled quantity would not satisfy the constraint.
 
@@ -309,7 +316,9 @@ available. Retaining only a pooled quantity would not satisfy the constraint.
 
 ## 5. Engine prerequisite for the retention cases (separate Code dispatch)
 
-Two tests compute the per-unit evidence the display needs and then discard it:
+Four tests compute the per-unit evidence the display needs and then discard it. The two written
+up below were the first found; Autocorrelation per-pair and VFS were counted in at S382, from
+§6 and from the punchlist's S284 entry respectively, and are not yet written up here:
 
 - **Kurtosis** — the per-condition simulated null (N_SIM nulls) is computed and collapsed; the
   per-condition `kurtosis`/`kurtDeviation`/`p` survive but the null the forest would plot
@@ -344,8 +353,8 @@ uses — `MiniCard_Runs.jsx`), falling back to the existing per-condition decay 
 This is the §4/§7 Fisher-combined display open, RESOLVED FOR THE FOREST as suppress-and-fall-back
 (see §4). Two latent items found at the S283 build, both banked, neither blocking: (1) the per-pair
 forest mark gates on the 0.01 `significant` boolean, not the verdict's 0.001 per-pair promotion (the
-adjusted per-pair p is computed and dropped — a third retention case beside Kurtosis and Regional
-Noise, §5); (2) the effect-size gate that withholds lag promotion on large samples means a lag can
+adjusted per-pair p is computed and dropped — one of the four retention cases, §3 and §5);
+(2) the effect-size gate that withholds lag promotion on large samples means a lag can
 be individually significant yet read cleared (DS11 lag-2, 6/6 pairs, p<0.0001, blue) — faithful, and
 made legible by an on-card effect-size caption.
 
