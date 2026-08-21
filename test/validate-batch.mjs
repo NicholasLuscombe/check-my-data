@@ -51,8 +51,48 @@ const { suggestRowSemantics } = await import('../src/import/rowSemantics.js');
 // lookup-table generator (scripts/build-test-display-map.mjs) so the fixture
 // set and routing can't drift between the two. See test/batch-fixtures.mjs.
 const { EXPECTED, ACKNOWLEDGED, SUSPENDED, MATRIX_EXCEPTIONS } = await import('./batch-fixtures.mjs');
+// S384 — the failures this runner is expected to have today. See the header of
+// test/known-failures.mjs for what an entry means and how to add or retire one.
+const { KNOWN_FAILURES } = await import('./known-failures.mjs');
 
 const FIXTURES = 'test/fixtures';
+
+// ── S384 — failure signatures ───────────────────────────────────────────────
+// A signature names one failure in three parts: the check, the gate that
+// rejected it, and the test at fault. Every gate below builds its signatures
+// from the values it just compared — never by parsing its own printed line —
+// so the identity the known failure list matches on is the identity the gate
+// actually rejected.
+//
+// Three parts rather than one, because a fixture name on its own would let a
+// declared red keep hiding a different failure inside the same fixture, which
+// is precisely what this machinery exists to stop.
+function sig(check, gate, test) {
+  return { check, gate, test: test || null };
+}
+// JSON rather than a joined string: a test name can contain any punctuation a
+// separator might use, and a key that could collide would silently match the
+// wrong signature.
+function sigKey(s) {
+  return JSON.stringify([s.check, s.gate, s.test]);
+}
+// How a signature reads in the runner's output. `gateLabel` is the form used
+// under a check's own line, where the check name is already above it.
+function gateLabel(s) {
+  return `${s.gate}${s.test ? `, ${s.test}` : ''}`;
+}
+function sigLabel(s) {
+  return `${s.check} — ${gateLabel(s)}`;
+}
+// The DS01 cross-shape check's name. It shares a CSV with a fixture-loop entry
+// and must not share that entry's name, or declaring one would declare both.
+const CROSS_SHAPE_CHECK = '01-densitometry-clean.csv (long-form cross-shape)';
+const KNOWN_KEYS = new Map(KNOWN_FAILURES.map(e => [sigKey(e), e]));
+
+// Every check that ran, with the signatures it produced. One record per check
+// that counts toward the total; pending fixtures are not checks and are not
+// recorded.
+const checkRecords = [];
 
 // ── S358 P101 — the flag matrix ─────────────────────────────────────
 // Every (fixture, test) cell's flag, pinned at seed offset 0 and compared on
@@ -109,29 +149,33 @@ function cellValue(r) {
 // Cell-by-cell comparison, failing in both directions. A shape change — a test
 // added to or removed from the battery — is reported by name and does not
 // crash, and an unmatched cell is never skipped in silence.
+//
+// S384: each miss carries the test it is about alongside its message, so a
+// signature can be keyed on the cell rather than on the whole fixture. `test`
+// is null for the one miss that is about the fixture as a whole.
 function compareMatrix(file, live) {
   const misses = [];
   const pinned = MATRIX[file];
   if (!pinned) {
-    misses.push(`${file}: fixture is not in the flag matrix — regenerate with WRITE_MATRIX=1`);
+    misses.push({ test: null, msg: `${file}: fixture is not in the flag matrix — regenerate with WRITE_MATRIX=1` });
     return misses;
   }
   const exceptions = MATRIX_EXCEPTIONS[file] || {};
   for (const name of Object.keys(pinned)) {
     if (!(name in live)) {
-      misses.push(`${file} / ${name}: in the matrix, absent from this run — test removed from the battery? regenerate with WRITE_MATRIX=1`);
+      misses.push({ test: name, msg: `${file} / ${name}: in the matrix, absent from this run — test removed from the battery? regenerate with WRITE_MATRIX=1` });
     }
   }
   for (const [name, got] of Object.entries(live)) {
     if (!(name in pinned)) {
-      misses.push(`${file} / ${name}: ran but is absent from the matrix — test added to the battery? regenerate with WRITE_MATRIX=1`);
+      misses.push({ test: name, msg: `${file} / ${name}: ran but is absent from the matrix — test added to the battery? regenerate with WRITE_MATRIX=1` });
       continue;
     }
     const want = pinned[name];
     if (got === want) continue;
     const exc = exceptions[name];
     if (exc && exc.observed.includes(got)) continue;
-    misses.push(`${file} / ${name}: matrix ${want}, live ${got}`);
+    misses.push({ test: name, msg: `${file} / ${name}: matrix ${want}, live ${got}` });
   }
   return misses;
 }
@@ -141,7 +185,33 @@ const PERF_LABEL = process.env.PERF_LABEL || null;
 const perfPerFixture = PERF ? {} : null;
 const batchStart = PERF ? performance.now() : 0;
 
-let passed = 0, failed = 0, pending = 0;
+// S384 — three counts, not two. `knownRed` is a check that failed only in ways
+// the known failure list already declares; `newFailed` is a check that failed
+// in at least one way it does not. Splitting them is the whole point: a repo
+// whose runner is permanently red cannot see tomorrow's failure arrive.
+let passed = 0, knownRed = 0, newFailed = 0, pending = 0;
+
+// S384 — record one check's outcome and sort it into one of the three counts.
+// A check that failed is a known red only when EVERY signature it produced is
+// declared; one undeclared signature makes the whole check a new failure, even
+// alongside a declared one. Erring the other way would let a declared red carry
+// an undeclared one in on its back, which is the failure mode this replaces.
+function tally(name, ok, signatures) {
+  const known = signatures.filter(s => KNOWN_KEYS.has(sigKey(s)));
+  const fresh = signatures.filter(s => !KNOWN_KEYS.has(sigKey(s)));
+  checkRecords.push({ name, ok, signatures, known, fresh });
+  if (ok) {
+    passed++;
+    return;
+  }
+  for (const s of known) {
+    console.log(`    ↳ known failure, expected — ${gateLabel(s)}. It is declared in test/known-failures.mjs.`);
+  }
+  for (const s of fresh) {
+    console.log(`    ↳ NEW FAILURE — ${gateLabel(s)}. Nothing in test/known-failures.mjs accounts for it.`);
+  }
+  if (fresh.length) newFailed++; else knownRed++;
+}
 
 // Multi-seed collectors, populated only when SEEDS > 1.
 // file → { severities[], tests: { name: { flags[], ps[] } }, firing[], ok[], misses[] }
@@ -222,9 +292,9 @@ if (MULTI) setSeed(SEED);
       for (const [name, allow] of Object.entries(expected.flags)) {
         const r = resultsByName.get(name);
         if (!r) {
-          cellMisses.push(`${name}: result not present (unresolved name binding?)`);
+          cellMisses.push({ test: name, msg: `${name}: result not present (unresolved name binding?)` });
         } else if (!allow.includes(r.flag)) {
-          cellMisses.push(`${name}: got ${r.flag}, expected ∈ [${allow.join(', ')}]`);
+          cellMisses.push({ test: name, msg: `${name}: got ${r.flag}, expected ∈ [${allow.join(', ')}]` });
         }
       }
     }
@@ -241,19 +311,22 @@ if (MULTI) setSeed(SEED);
     const firingNames = results
       .filter(r => r.flag === 'MODERATE' || r.flag === 'HIGH')
       .map(r => r.name);
+    // S384: one miss per offending test rather than one miss listing them all.
+    // The known failure list keys on the test, so two undeclared firings on one
+    // fixture have to be two signatures — otherwise declaring the first would
+    // silently bless the second.
     const completenessMisses = [];
     if (expected.severity === 0) {
-      if (firingNames.length > 0) {
-        completenessMisses.push(`clean fixture fired ${firingNames.join(', ')} — false positive`);
+      for (const n of firingNames) {
+        completenessMisses.push({ test: n, msg: `${n} fired on a clean fixture — false positive` });
       }
     } else {
       const accountedNames = new Set([
         ...Object.keys(expected.flags || {}),
         ...Object.keys(ackForFile),
       ]);
-      const undeclared = firingNames.filter(n => !accountedNames.has(n));
-      if (undeclared.length > 0) {
-        completenessMisses.push(`undeclared MOD/HIGH firing(s): ${undeclared.join(', ')} — declare a cell in expected.flags or add to ACKNOWLEDGED with a reason`);
+      for (const n of firingNames.filter(x => !accountedNames.has(x))) {
+        completenessMisses.push({ test: n, msg: `${n} fired MODERATE or HIGH and nothing accounts for it — declare a cell in expected.flags or add it to ACKNOWLEDGED with a reason` });
       }
     }
     const completenessOk = completenessMisses.length === 0;
@@ -275,6 +348,14 @@ if (MULTI) setSeed(SEED);
     const ok = severity === expected.severity && cellsOk && completenessOk && matrixOk;
     const flags = results.filter(r => r.flag === 'HIGH' || r.flag === 'MODERATE').map(r => `${r.name}:${r.flag}`).join(', ');
 
+    // S384 — this fixture's failure signatures, one per rejected thing. Built
+    // from the four gates' own comparisons, in the order they are printed.
+    const signatures = [];
+    if (severity !== expected.severity) signatures.push(sig(file, 'severity', null));
+    for (const m of cellMisses) signatures.push(sig(file, 'per-test flag', m.test));
+    for (const m of completenessMisses) signatures.push(sig(file, 'completeness', m.test));
+    for (const m of matrixMisses) signatures.push(sig(file, 'flag matrix', m.test));
+
     if (MULTI) {
       // Record this seed's verdicts. Flags and p-values are stored per seed and
       // never averaged — the distribution across seeds IS the finding, and a mean
@@ -283,7 +364,9 @@ if (MULTI) setSeed(SEED);
       const rec = seedRuns[file];
       rec.severities.push(severity);
       rec.ok.push(!!ok);
-      rec.misses.push([...cellMisses, ...completenessMisses, ...matrixMisses]);
+      // Strings, as this collector has always held. S384 gave the three miss
+      // arrays a `{ test, msg }` shape; the message is the part this records.
+      rec.misses.push([...cellMisses, ...completenessMisses, ...matrixMisses].map(m => m.msg));
       // Channel composition: which tests carry the fixture at this seed. A fixture
       // can reach its declared severity through different channels at different
       // seeds, and that is not a pass.
@@ -323,13 +406,13 @@ if (MULTI) setSeed(SEED);
       const sevLine = `${mark} ${file}: severity=${severity}${sevSuffix}${!ok && flags ? ' [' + flags + ']' : ''}`;
       console.log(sevLine);
       if (!cellsOk) {
-        for (const m of cellMisses) console.log(`    ↳ per-test miss — ${m}`);
+        for (const m of cellMisses) console.log(`    ↳ per-test miss — ${m.msg}`);
       }
       if (!completenessOk) {
-        for (const m of completenessMisses) console.log(`    ↳ completeness gate — ${m}`);
+        for (const m of completenessMisses) console.log(`    ↳ completeness gate — ${m.msg}`);
       }
       if (!matrixOk) {
-        for (const m of matrixMisses) console.log(`    ↳ flag matrix — ${m}`);
+        for (const m of matrixMisses) console.log(`    ↳ flag matrix — ${m.msg}`);
       }
       // A withdrawn true detection stays visible in the run. A suspension the
       // batch never mentions is a record nobody reads, and a green line beside a
@@ -338,7 +421,7 @@ if (MULTI) setSeed(SEED);
       for (const [name, s] of Object.entries(SUSPENDED[file] || {})) {
         console.log(`    ↳ suspended — ${name}: was [${s.was.join(', ')}], withdrawn by ${s.decision}`);
       }
-      if (ok) passed++; else failed++;
+      tally(file, ok, signatures);
     }
 
     if (PERF) {
@@ -486,11 +569,81 @@ if (MULTI) setSeed(0);
       console.log(`    ↳ ${v.name} flag=${v.flag}, expected ∈ [${allow.join(', ')}]`);
     }
   }
-  if (ok) passed++; else failed++;
+  // S384 — this check's own name, distinct from the fixture-loop entry for the
+  // same CSV, so the known failure list can name one without touching the other.
+  const signatures = [];
+  if (!rgOk) signatures.push(sig(CROSS_SHAPE_CHECK, 'cross-shape routing', null));
+  for (const v of trioViolations) signatures.push(sig(CROSS_SHAPE_CHECK, 'cross-shape trio', v.name));
+  tally(CROSS_SHAPE_CHECK, ok, signatures);
 }
 
-const pendingSuffix = pending ? ` (+ ${pending} pending)` : '';
-console.log(`\n${passed}/${passed + failed} passed${pendingSuffix}` + (failed ? ` — ${failed} FAILED` : ' — all clear'));
+// ── S384 — the summary ──────────────────────────────────────────────────────
+// Three counts, then the detail behind each, then one sentence saying whether
+// the run is clean. Written so that someone who has never seen this file can
+// read the last line and know the answer.
+//
+// A declared failure that did not fire is its own outcome, reported on its own
+// and failing the run. When the DS12b red is eventually fixed, this is the part
+// that says so instead of quietly accepting it.
+const observedKeys = new Set(checkRecords.flatMap(c => c.signatures.map(sigKey)));
+const ranChecks = new Set(checkRecords.map(c => c.name));
+const unexpectedPasses = KNOWN_FAILURES.filter(e => {
+  if (observedKeys.has(sigKey(e))) return false;
+  // Under WRITE_MATRIX=1 the matrix comparison does not run, so a flag matrix
+  // entry cannot fire and its silence means nothing. Not an unexpected pass.
+  if (WRITE_MATRIX && e.gate === 'flag matrix') return false;
+  return true;
+});
+
+const total = passed + knownRed + newFailed;
+const pendingSuffix = pending ? ` (+ ${pending} pending, which are not checks)` : '';
+console.log(`\n${'─'.repeat(72)}`);
+console.log(`${total} checks${pendingSuffix}`);
+console.log(`  ${passed} passed`);
+console.log(`  ${knownRed} failed in a way already known about and declared`);
+console.log(`  ${newFailed} failed in a way nothing declares`);
+
+const firedKnown = checkRecords.flatMap(c => c.known);
+if (firedKnown.length) {
+  console.log(`\nThe known failures, which fired as expected:`);
+  for (const s of firedKnown) {
+    console.log(`  ${sigLabel(s)}`);
+    const why = KNOWN_KEYS.get(sigKey(s)).why;
+    if (why) console.log(`      ${why}`);
+  }
+}
+
+const fresh = checkRecords.flatMap(c => c.fresh);
+if (fresh.length) {
+  console.log(`\nNew failures. Nothing declares these, so somebody needs to look at them:`);
+  for (const s of fresh) console.log(`  ${sigLabel(s)}`);
+}
+
+if (unexpectedPasses.length) {
+  console.log(`\nDeclared known failures that did not fail this time:`);
+  for (const e of unexpectedPasses) {
+    console.log(`  ${sigLabel(e)}`);
+    console.log(ranChecks.has(e.check)
+      ? `      That check ran and passed this gate.`
+      : `      No check by that name ran at all, so the entry may be misspelled.`);
+  }
+  console.log(`  If one of these was fixed on purpose, delete its entry from the known`);
+  console.log(`  failure list in test/known-failures.mjs. Until then the runner cannot`);
+  console.log(`  tell a fix apart from a change that hid the problem.`);
+}
+
+console.log('');
+if (newFailed === 0 && unexpectedPasses.length === 0) {
+  console.log(knownRed
+    ? `This run is clean. Everything that failed was already known about and declared.`
+    : `This run is clean. Nothing failed.`);
+} else {
+  const reasons = [];
+  if (newFailed) reasons.push(`${newFailed} check${newFailed === 1 ? '' : 's'} failed in a way nothing declares`);
+  if (unexpectedPasses.length) reasons.push(`${unexpectedPasses.length} declared failure${unexpectedPasses.length === 1 ? '' : 's'} did not fire`);
+  console.log(`This run is NOT clean: ${reasons.join(', and ')}.`);
+}
+console.log('─'.repeat(72));
 
 // ── Multi-seed report ───────────────────────────────────────────────
 // Only runs under SEEDS>1. Three findings, in descending order of what they
@@ -692,4 +845,7 @@ if (PERF) {
   console.log(`\nSidecar written: ${outPath}`);
 }
 
-process.exit(failed > 0 || seedFailed > 0 ? 1 : 0);
+// S384 — exit 0 needs BOTH halves: nothing failed that is not declared, and
+// every declared failure actually fired. A known red is not a reason to go red,
+// and a known red that has quietly started passing is.
+process.exit(newFailed > 0 || unexpectedPasses.length > 0 || seedFailed > 0 ? 1 : 0);
