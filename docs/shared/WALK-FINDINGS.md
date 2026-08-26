@@ -1,17 +1,20 @@
 # Walk Findings Log
 
-> **⚠ VERIFY BEFORE REPLACING.** This full file = the source `docs/shared/WALK-FINDINGS.md`
-> reconciled at **S266 close**. Drift check at S266: tracked copy's last commit was
-> `98ce344` (18 Jun 2026, the S252 routing pass) — no drift since, confirmed before this
-> reconciliation. **S266 reconciled the routing column against three arcs that shipped since the
-> S252 pass without the column being updated:** Arc B (walk copy, S261–262, `111e5d6`), the Arc A
-> wrapper sub-arc (S265 — every plot hugs), and the Arc A axis sub-arc (S266, `411ab3c` —
-> ColumnStatBar rotate). Headline finding: the wrapper rows are all DONE, but **Arc B closed its copy
-> transcription without addressing the how-it-works / method-prose length sub-theme** — ~16 rows
-> re-tagged "Arc B — method-prose pass (OPEN)" and banked, because the bare "Arc B" tag read as
-> closed once the arc closed. Before overwriting the tracked copy, re-confirm it has not drifted:
-> `git log -1 -- docs/shared/WALK-FINDINGS.md` and diff. If findings were appended after this read,
-> merge rather than overwrite. "Committed" ≠ "content-current."
+> **⚠ VERIFY BEFORE REPLACING.** This full file = the source for `docs/shared/WALK-FINDINGS.md`,
+> **current to S386 close.** Drift check at S386: the tracked copy's last commit is `7d5f4e7` — the
+> S386 P195 label pass, which wrote the P195 row's amendment. **This file adds the IRC resolution on
+> top of that**, landed in `src/` at `d94917f` and not yet in the tracked copy; that is what this
+> commit carries. Before overwriting, re-confirm the tracked copy has not moved since:
+> `git log -1 -- docs/shared/WALK-FINDINGS.md` — **expect `7d5f4e7`** — and diff. If findings were
+> appended after this read, merge rather than overwrite. "Committed" ≠ "content-current."
+>
+> *(S266 provenance, retained. S266 reconciled the routing column against three arcs that shipped
+> since the S252 pass without the column being updated: Arc B (walk copy, S261–262, `111e5d6`), the
+> Arc A wrapper sub-arc (S265 — every plot hugs), and the Arc A axis sub-arc (S266, `411ab3c` —
+> ColumnStatBar rotate). Headline finding: the wrapper rows are all DONE, but Arc B closed its copy
+> transcription without addressing the how-it-works / method-prose length sub-theme — ~16 rows
+> re-tagged "Arc B — method-prose pass (OPEN)" and banked, because the bare "Arc B" tag read as closed
+> once the arc closed. The tracked copy stood at `98ce344` at that time.)*
 >
 > *(Prior S252 pass, retained for provenance: routed the six possible-engine rows (3a, 10a, 16a, 18b,
 > 20a, 24b) and the three α-consistency rows (14b, 15b, 17a) via two read-only triages — no engine
@@ -145,13 +148,16 @@ Date optional; useful if the walk spans days. Routing (which arc each goes to) i
 
 | finding                                                      | verdict substance                                            | possible engine                                              | routing                                                      |
 | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| **The legend labels a cleared mark *Within expected range*, which is a magnitude claim. The field it reads is `droveVerdict`, which means *did not drive the verdict*.** On `vfs-a-pigeonhole-clear` the value `.47` renders at roughly six times its own expected tick, in blue, on a card headed Clear — beside `.42` on `vfs-b-recurrence-high` at 6.4×, in red. | **No.** The verdict is right: the near-duplicate gate suppresses the pigeonhole tail and the card should read Clear. This is a label contradicting a geometry on the same plot. | **No.** The engine writes `droveVerdict` correctly; the display names it wrongly. | **P195, condition 2 candidate.** Fix is the label — *Not flagged* carries no magnitude claim. Scope measured S386 and it is not what this row predicted. The string sits at four `src/` sites and three of them are cards that mount no forest, so it is not a shared-primitive fix. Only Within-Row Variance's use is true — its split is `Math.abs(z) > Z_THRESH`, an actual magnitude test — so a blanket sweep would have replaced a correct label with a wrong one. Two tracked canon documents restate the label; a third occurrence in `PLOT-COLOUR-SEMANTICS` quotes the pre-canon wording as history and must not move. |
+| **The legend labels a cleared mark *Within expected range*, which is a magnitude claim. The field it reads is `droveVerdict`, which means *did not drive the verdict*.** On `vfs-a-pigeonhole-clear` the value `.47` renders at roughly six times its own expected tick, in blue, on a card headed Clear — beside `.42` on `vfs-b-recurrence-high` at 6.4×, in red. | **No.** The verdict is right: the near-duplicate gate suppresses the pigeonhole tail and the card should read Clear. This is a label contradicting a geometry on the same plot. | **No.** The engine writes `droveVerdict` correctly; the display names it wrongly. | **P195, condition 2 candidate.** Fix is the label — *Not flagged* carries no magnitude claim. Scope measured S386 and it is not what this row predicted. The string sits at four `src/` sites and three of them are cards that mount no forest, so it is not a shared-primitive fix. Only Within-Row Variance's use is true — its split is `Math.abs(z) > Z_THRESH`, an actual magnitude test — so a blanket sweep would have replaced a correct label with a wrong one. Two tracked canon documents restate the label; a third occurrence in `PLOT-COLOUR-SEMANTICS` quotes the pre-canon wording as history and must not move. IRC needed a third string rather than the shared one: its card renders two flag surfaces — the heatmap over replicate pairs and the windowed arm off `w.significant` — so *Not flagged* on a pair, on a card where windows flagged, is false as a reader takes it. Keys are *Pair flagged* / *Pair not flagged* / *Window flagged*, both sides scoped, because scoping one leaves a bare *Flagged* that could belong to either surface. Landed `d94917f`, confirmed on DS02. **The generalisation is unread:** the canon assumes one unit class per card and three tests carry two — IRC, Row-Mean Runs, Regional Noise — and whether the other two render two flag surfaces decides whether this is a one-card wording or a canon rule. |
 | **The cleared background is selected by adj-p, so a cleared card shows the twenty most extreme of its family and nothing typical.** On a flagged card the same rule is conservative — a red mark sits among near-misses, hiding its distance from the bulk. On a cleared card it shows an honest file at its worst. | **No.** Ordering is by value, correctly; only selection is p-ranked, and the caption discloses it. | **No.** Display-side selection over a family the engine already returns whole. | **P196.** One build with P195. Not obviously wrong; must not be silent, because it reads like a sampling bug and invites a later "fix" that samples across the value range. |
 
-**Two notes from the same pass, neither a row.** The red *Flagged* legend swatch renders on cards with
-no red mark. And the legend draws Expected as a dashed horizontal while the plot draws it as a solid
-vertical tick, so a reader matching them by shape does not match them — **unchecked against
-Autocorrelation's forest, so it may predate S385 and belong to the shared primitive.**
+**One note from the same pass, and one now closed.** The red *Flagged* legend swatch renders on cards
+with no red mark — **open and unallocated.** It resembles P202, IRC's red key gated on a different
+predicate from the cells it keys, but that is the matrix surface and this is the forest; **do not merge
+on the resemblance.** **Closed:** the legend drew Expected as a dashed horizontal while the plot drew a
+solid vertical tick — **P197, `d94917f` at S386.** The legend sample now follows `referenceMode`. The
+"unchecked against Autocorrelation's forest" caveat was answered in the same read: Autocorrelation has
+no per-unit ticks in zero mode, so no like-for-like dashed tick has ever existed in the project.
 
 
 ---
