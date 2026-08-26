@@ -313,14 +313,24 @@ the *words*. Three keys, in order:
   The label is exactly "Flagged" on every consumer — no parenthetical, no card-specific noun. What *kind*
   of unit is flagged is already carried by the row labels and the axis caption; the legend does not
   restate it.
-- **Within expected range** — blue dot, `CC.OBS` rendered `OBS.dot` (channel 4, the cleared resting
+- **Not flagged** — blue dot, `CC.OBS` rendered `OBS.dot` (channel 4, the cleared resting
   state; `OBS.dot` already names "per-pair strip dots, per-lag decay dots" as its consumers, which the
-  forest's per-unit dots are). Exact label on every consumer.
+  forest's per-unit dots are). Exact label on every consumer. **The label names a decision, not a
+  distance.** It read "Within expected range" until S386 — a magnitude claim the field behind it does
+  not make. The split is a decision flag, and a unit can sit far from its reference and still not have
+  driven the verdict (P195).
 - **Expected** — dashed teal line glyph, `CC.EXP` (channel 3, the null the verdict is read as departure
   from). This is the ONE key that takes a per-card suffix, because the reference *means* something
-  different on each card and a reader needs to know which: Autocorrelation "Expected (r = 0, independent)";
-  Inter-Replicate Correlation "Expected (leave-one-out)". The dot labels stay generic precisely because
-  flagged/cleared mean the same thing everywhere; the reference does not.
+  different on each card and a reader needs to know which: Autocorrelation "Expected (r = 0,
+  independent)". *(The Inter-Replicate Correlation example was removed at S386: IRC mounts no forest
+  today, so the canon was illustrating itself with a consumer that does not exist. The live consumers'
+  suffixes are not transcribed here — report them and Chat will restore a worked example from a read
+  rather than from this paragraph. See P199.)* The dot labels stay generic because they name a decision —
+  flagged or not — and a decision reads the same on every card. **They are not generic because the splits
+  behind them agree; they do not (S386).** Four surfaces in `src/` carried this wording over four
+  different predicates, and exactly one of them tested a magnitude. A legend word naming a quantity is
+  honest only where the split tests that quantity; the reference takes a per-card suffix for the same
+  reason, one level up.
 
 The reference colour is not a new decision — it follows channel 3. The forest reference (the
 Autocorrelation r=0 line and the IRC per-pair leave-one-out tick) is a **distance-null**: clean data sits

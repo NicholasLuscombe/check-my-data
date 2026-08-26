@@ -48,7 +48,7 @@ export function MiniCard_RankCorrelation({ result, importConfig, rowMap }) {
 
   // ── Legend ──
   const legendItems = [
-    { color: CC.OBS, label: "Within expected range", opacity: OBS.solid.fillOpacity },
+    { color: CC.OBS, label: "Not flagged", opacity: OBS.solid.fillOpacity },
     { color: TIER_COLOR.MID, label: "Suspicious" },
   ];
 

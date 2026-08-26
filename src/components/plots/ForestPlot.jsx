@@ -51,7 +51,7 @@ import { PlotSVG } from "./PlotSVG.jsx";
 export function forestLegendItems(referenceLabel = "Expected") {
   return [
     { color: CC.THRESH, label: "Flagged", swatchType: "dot" },
-    { color: CC.OBS, label: "Within expected range", swatchType: "dot" },
+    { color: CC.OBS, label: "Not flagged", swatchType: "dot" },
     { color: CC.EXP, label: referenceLabel, swatchType: "line", dashed: true },
   ];
 }
