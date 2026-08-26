@@ -67,7 +67,7 @@ build is scoped.
 2. **VFS is sequence-against-reference, not windowed.** §2.2/§2.6 of the spec (S289 reframe) calls
    VFS "windowed → strip". The unit read from source is a single value (an integer, or a parsed
    fractional substring) tested against a local Poisson-smoothed λ — `tested.push({ value, obs,
-   smoothed, ratio, rawP })` (`valueFrequencySpike.js:107`). The ±halfW neighbourhood is the
+   smoothed, ratio, rawP })` (`valueFrequencySpike.js:176` and `:238` *(was `:107`; content unchanged, anchor re-located S385 — two push sites, one per pass)*). The ±halfW neighbourhood is the
    smoothing window that computes each value's reference λ; it is not the unit, and the data axis is
    the value axis, not a row/position axis. The honest primitive is a forest/dotplot on the value
    axis (obs vs λ), **not** a spatial strip.
@@ -240,7 +240,7 @@ its justification, (3) what the card renders today, (4) the proposed primitive a
 `src/tests/valueFrequencySpike.js` + `MiniCard_ValueFrequency.jsx`
 
 1. **Unit — per located value.** `tested.push({ value, obs, smoothed, ratio, rawP })`
-   (`valueFrequencySpike.js:107`) — the unit is a single value v (integer, pass 1; or fractional-digit
+   (`valueFrequencySpike.js:176` and `:238` *(was `:107`; content unchanged, anchor re-located S385 — two push sites, one per pass)*) — the unit is a single value v (integer, pass 1; or fractional-digit
    substring, pass 2); `smoothed` is the leave-one-out ±halfW neighbour mean = Poisson λ reference.
    `_spikeValues` (`:441-446`); full BH family retained as `allTested` (`:478-485`, S288).
 2. **Shape — Sequence-against-reference.** A located scalar (obs count) vs a per-value reference (λ),
