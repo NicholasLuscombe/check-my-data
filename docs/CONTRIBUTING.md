@@ -56,6 +56,34 @@ Key directories:
 
 To validate: open the app, load each CSV from `test/fixtures/`, run analysis, and verify the severity rating matches. Alternatively, run `node test/validate-batch.mjs` for automated batch validation. The `TEST-GROUND-TRUTH.md` file has per-test expected flags for each dataset.
 
+### Reading the batch runner (S384)
+
+`node test/validate-batch.mjs` ends with three counts and one verdict sentence:
+
+```
+28 checks
+  27 passed
+  1 failed in a way already known about and declared
+  0 failed in a way nothing declares
+
+This run is clean. Everything that failed was already known about and declared.
+```
+
+The middle count is the point of the split. Some checks are expected to fail today, and if they were simply counted as failures then a genuinely new failure would arrive into a report that already said "failing" and nobody would notice it. So the runner separates the two, and the last line is the answer: it says either **"This run is clean"** or **"This run is NOT clean"**, and nothing else needs interpreting.
+
+The runner exits 0 only when both halves hold — nothing failed that is not declared, **and** every declared failure actually fired. A declared failure that stops failing is reported on its own and fails the run, because otherwise a real fix and a change that merely hid the problem would look identical.
+
+Three numbers get confused here, so: **28 checks** is the runner's total (27 fixtures, plus the DS01 cross-shape check). **27 fixtures** is the CSV count in `EXPECTED`. **29 tests** is the battery each fixture runs — 27 × 29 = the 783 cells in `test/flag-matrix.json`.
+
+Other exit codes are unchanged: `2` for `WRITE_MATRIX=1` combined with `SEEDS>1`, and `2` for an unreadable `test/flag-matrix.json`.
+
+#### Adding or retiring a known failure
+
+The declared list is `test/known-failures.mjs`, and its file header is the full reference. In short:
+
+- **To add.** Run the batch. Beside each new failure it prints the failure signature in three parts — the check, the gate, and the specific failing test. Copy those three into a new entry and write a `why` saying what is broken and what would settle it. Entries key on all three parts, not on the fixture name, so declaring one failing test inside a fixture leaves the rest of that fixture still guarded. Diagnose before you declare: an entry added to quieten a run nobody understood recreates the problem this list exists to solve.
+- **To retire.** Delete the entry. Order does not matter — fix the underlying problem first and the next run will tell you the entry is now stale and name it.
+
 ## Adding a New Statistical Test
 
 Follow these steps in order (see ARCHITECTURE.md for more detail):
