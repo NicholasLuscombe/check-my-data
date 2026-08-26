@@ -280,4 +280,4 @@ test25a test25b test26a test26b test27   test28
 
 ## At close
 
-I take this log, route every finding to its arc (card-surface residual / performance / methodology pass / export / parked #), lock the FLAG set into scoped fixes batched by arc, and confirm the S223/S225 pendings. The seven no-anchor rows (7a, 9a, 11a, 13a, 15a, 18a, 27) close as a documented fixture gap, not failures.
+I take this log, route every finding to its arc (card-surface residual / performance / methodology pass / export / parked #), lock the FLAG set into scoped fixes batched by arc, and confirm the S223/S225 pendings. The seven no-anchor rows (9a, 11a, 13a, 15a, 18a, 27 — and the example row) close as a documented fixture gap, not failures.
