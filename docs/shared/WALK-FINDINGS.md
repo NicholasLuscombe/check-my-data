@@ -141,6 +141,19 @@ Date optional; useful if the walk spans days. Routing (which arc each goes to) i
 | Test28 | DS15 | Test card is pretty clear. Wrapper doesn:t hug plot. Legend in wrong location. | DONE S265 (wrapper) + Arc C (legend location): the S267 legend read-only scopes whether MissingDataHeatmap's legend sits adjacent per the Bik crop standard. |
 | Cross test | | Some test descriptions (How this test works) has the statistical test mentioned. Others not. There is some inconsistency in the description content for these tests. | DONE S270 `49cb1c5` (method-prose pass — ALREADY-ACCEPTABLE): S270 audit found this block already short/de-jargoned/de-cited at live source (Arc B / interim edits); the methodology.md-citation defect was extinct suite-wide. Tag was stale, no edit needed. Superseding: the description-consistency umbrella for the how-it-works cluster; NOT shipped by the S262 copy transcription. → BANKED as the Arc B method-prose follow-up. |
 
+### Over-used numbers (Value-Frequency Spike) — per-unit forest, built S385 (`bb46e7f`)
+
+| finding                                                      | verdict substance                                            | possible engine                                              | routing                                                      |
+| ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| **The legend labels a cleared mark *Within expected range*, which is a magnitude claim. The field it reads is `droveVerdict`, which means *did not drive the verdict*.** On `vfs-a-pigeonhole-clear` the value `.47` renders at roughly six times its own expected tick, in blue, on a card headed Clear — beside `.42` on `vfs-b-recurrence-high` at 6.4×, in red. | **No.** The verdict is right: the near-duplicate gate suppresses the pigeonhole tail and the card should read Clear. This is a label contradicting a geometry on the same plot. | **No.** The engine writes `droveVerdict` correctly; the display names it wrongly. | **P195, condition 2 candidate.** Fix is the label — *Not flagged* carries no magnitude claim. `forestLegendItems` is shared, so check the scope before landing: this reaches every forest consumer (P162's shape). |
+| **The cleared background is selected by adj-p, so a cleared card shows the twenty most extreme of its family and nothing typical.** On a flagged card the same rule is conservative — a red mark sits among near-misses, hiding its distance from the bulk. On a cleared card it shows an honest file at its worst. | **No.** Ordering is by value, correctly; only selection is p-ranked, and the caption discloses it. | **No.** Display-side selection over a family the engine already returns whole. | **P196.** One build with P195. Not obviously wrong; must not be silent, because it reads like a sampling bug and invites a later "fix" that samples across the value range. |
+
+**Two notes from the same pass, neither a row.** The red *Flagged* legend swatch renders on cards with
+no red mark. And the legend draws Expected as a dashed horizontal while the plot draws it as a solid
+vertical tick, so a reader matching them by shape does not match them — **unchecked against
+Autocorrelation's forest, so it may predate S385 and belong to the shared primitive.**
+
+
 ---
 
 ## Routing notes (S244 first-pass)

@@ -129,7 +129,7 @@ condition's units (6 rows), so the family-size count contradicts the visible row
 counts six and the note says eighteen. On these forests the note is omitted; the pair count is
 already legible in the plotted rows and the correction detail lives in the test's "How this test
 works" text. This is a placement carve-out, not a retirement of the prop: a single-panel forest
-whose displayed units are its own correction family still carries the note. A second reason the
+whose displayed units are its own correction family still carries the note. **Extended S385, from VFS's build.** Two further grounds for omission, neither of them the per-condition split. **First, truncation:** where a forest plots a capped subset of a large family, the displayed units are not the correction family and the note contradicts the visible rows for exactly the reason the carve-out already gives — VFS caps at twenty of a family reaching 198. **Second, and this one holds whether or not the forest truncates:** where the retained family is the union of two separately corrected BH families, there is no single family size to state. VFS is that case wherever a depth-admitted deep bucket exists (S312). **Record the second reason, not the first.** The truncation reason would put the note back on an untruncated single-family fixture; the two-family reason would not, and a note that appears on some fixtures and not others is worse than none. A second reason the
 note does not belong on the forest face specifically: the forest axis plots the raw effect
 (correlation r), and "BH adjusted across N" under a raw-r axis implies the plotted quantity is
 adjusted when only the flag decision is — the adjustment applies to the p-values, not the r.
@@ -154,7 +154,7 @@ Row-Mean Runs, and Kurtosis if a positive fixture exists). The others on this li
 mis-assigned by shape and have declined or are being retired: IRC is pairwise → heatmap (forest
 retired S290); Cross-Condition Consistency declined S287 (direction-collapse, table-satisfied);
 Cross-Condition Rank Correlation is pairwise/similarity → check in the S290 audit; Column GoF and
-Entropy/Zipf are served by `ColumnStatBar`; VFS is windowed → strip. A test appearing here means
+Entropy/Zipf are served by `ColumnStatBar`; **VFS is sequence-against-reference → forest on the value axis, corrected S385.** *(This sentence read "VFS is windowed → strip" from S289 until S385. `S290-PER-UNIT-OBJECT-AUDIT.md` finding 2 and §9 refuted it from source in the very next session: the unit is a single value against a Poisson-smoothed λ, the ±halfW neighbourhood is the smoothing window that computes that reference rather than the unit, and there is no row or position axis. The paragraph below already defers to that audit — "the S290 per-card object audit fixes the actual forest membership from source" — so the spec named its own successor and neither reader reconciled them. Built to the audit at S385, `bb46e7f`.)* A test appearing here means
 the engine returns a magnitude-vs-reference tuple, which is necessary but not sufficient for a
 forest to be the honest picture — the unit SHAPE decides. The S290 per-card object audit fixes the
 actual forest membership from source.
@@ -167,7 +167,7 @@ and load-bearing: it tells the reader the units were located by their p-value an
 effect size is being asserted.
 
 Covers the tests with no per-unit reference to plot against: LOESS `pairResults`, and Blocked
-Mahalanobis (provisional — see §2.5 open item).
+Mahalanobis (provisional — see §2.5 open item). **VFS never belonged here and was never listed here; the "windowed → strip" line in §2.2 was the only place it appeared as a strip, and it is corrected. VFS carries a per-unit reference (`smoothed`, the Poisson λ) and renders forest.**
 
 ### 2.4 Why two registers, not one
 
