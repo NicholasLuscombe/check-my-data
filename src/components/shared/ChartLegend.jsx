@@ -5,6 +5,8 @@
    Three modes:
      items=[{color,label}]  → discrete colour swatches (default square)
      items + swatchType="line" → line+dot swatches for line charts
+     items + swatchType="tick" → a short vertical tick, for a per-unit reference
+       mark rather than a line spanning the plot (ForestPlot stored mode, S386)
      gradient={from,to,startLabel,endLabel,mid?,midPos?,width?}  → continuous gradient
        bar (optional mid inserts a three-stop ramp: from → mid → to; optional midPos
        is the mid stop's position in percent, e.g. to mirror a gamma-curved ramp) */
@@ -47,9 +49,18 @@ export function ChartLegend({ items, gradient, swatchType }) {
         );
         const isLine = item.swatchType === "line" || (globalLine && item.swatchType !== "square" && item.swatchType !== "dot");
         const isDot = item.swatchType === "dot";
+        // A tick keys a mark that is itself short and vertical — the forest's
+        // per-unit reference. Tested before isLine so a legend rendered with a
+        // global swatchType="line" cannot capture it.
+        const isTick = item.swatchType === "tick";
         return (
         <div key={i} style={{display: "flex", alignItems: "center", gap: "5px"}}>
-          {isDot ? (
+          {isTick ? (
+            <svg width={SWATCH} height={SWATCH} style={{flexShrink: 0, opacity: item.opacity ?? 1}}>
+              <line x1={SWATCH / 2} y1={1} x2={SWATCH / 2} y2={SWATCH - 1}
+                stroke={item.color} strokeWidth={item.strokeWidth ?? 2} />
+            </svg>
+          ) : isDot ? (
             <svg width={SWATCH} height={SWATCH} style={{flexShrink: 0, opacity: item.opacity ?? 1}}>
               <circle cx={SWATCH / 2} cy={SWATCH / 2} r={SWATCH / 2 - 1}
                 fill={item.color}

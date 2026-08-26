@@ -48,11 +48,21 @@ import { PlotSVG } from "./PlotSVG.jsx";
 // each card (r = 0 for the autocorrelations, the leave-one-out prediction for
 // the correlation card). The reference glyph is a dashed teal line, matching
 // the expected-value lines on the line charts.
-export function forestLegendItems(referenceLabel = "Expected") {
+// The reference sample follows `referenceMode`, because the two modes draw
+// DIFFERENT OBJECTS and a sample keys an object: zero mode draws one dashed line
+// spanning the plot, stored mode draws one short solid tick per row. A dashed
+// horizontal sample over solid ticks keyed something that was not on the plot
+// (P197, S386). The mode is read from the units the plot itself renders, never
+// chosen per card — pass `units[0]?.referenceMode`, so the sample cannot
+// disagree with the marks. The tick stays solid by the concession recorded in
+// PLOT-COLOUR-SEMANTICS: `4,3` at tick scale is one dash and a gap.
+export function forestLegendItems(referenceLabel = "Expected", referenceMode = "zero") {
   return [
     { color: CC.THRESH, label: "Flagged", swatchType: "dot" },
     { color: CC.OBS, label: "Not flagged", swatchType: "dot" },
-    { color: CC.EXP, label: referenceLabel, swatchType: "line", dashed: true },
+    referenceMode === "stored"
+      ? { color: CC.EXP, label: referenceLabel, swatchType: "tick", strokeWidth: CS.REF.w }
+      : { color: CC.EXP, label: referenceLabel, swatchType: "line", dashed: true },
   ];
 }
 

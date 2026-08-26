@@ -332,19 +332,33 @@ the *words*. Three keys, in order:
   honest only where the split tests that quantity; the reference takes a per-card suffix for the same
   reason, one level up.
 
-The reference colour is not a new decision — it follows channel 3. The forest reference (the
-Autocorrelation r=0 line and the IRC per-pair leave-one-out tick) is a **distance-null**: clean data sits
-at the predicted value, the verdict reads the observed mark's distance from it. That is the channel-3 teal
-role (a flat r=0 line and a per-unit expected value are both nulls by function), and the
-grey-neutral-reference role it previously used was the retired mislabelling channel 3 records at its
-close. IRC's reference is NOT the flag-boundary carve-out (the cutoff data flags by exceeding, which stays
-red and is not even drawn on the forest) — the value drawn is the expectation, which is the null. So teal,
-dashed, legend-keyed, on every forest.
+The reference colour is not a new decision — it follows channel 3. The forest reference is a
+**distance-null**: clean data sits at the predicted value, the verdict reads the observed mark's distance
+from it. That is the channel-3 teal role — a flat r = 0 line and a per-unit expected value are both nulls
+by function — and the grey-neutral-reference role it previously used was the retired mislabelling channel
+3 records at its close. It is NOT the flag-boundary carve-out: the cutoff data flags by exceeding stays
+red and is not drawn on the forest at all. The value drawn is the expectation, which is the null. **Teal
+on every forest. Dashed in zero mode only, and the legend sample follows the mode (S386).** Zero mode
+draws one dashed reference line spanning the plot; stored mode draws one short tick per row. These are
+different objects, not one object with its reference moved, and the canon generalised from zero mode when
+that was the only mode built. At tick scale `CS.REF.dash` (`4,3`) yields a single dash and a gap, which
+reads as a nicked line rather than as a dash — so **the stored-mode tick is solid by concession**, the
+same legibility concession `KurtosisDistPlot` took on its sim-null curve. Decided on a real render (DS11
+in zero mode against `vfs-b-recurrence-high` in stored mode), not asserted here. Teal still carries the
+null role, and the tick's weight against a filled dot carries reference-versus-observation. **The legend
+sample must key what the plot draws:** dashed horizontal in zero mode, a solid tick in stored mode. A
+dashed sample over solid ticks was the state until S386, and it keyed an object that was not on the plot.
+*(This paragraph carried the Autocorrelation r = 0 line and the IRC per-pair leave-one-out tick as its
+two worked examples. IRC mounts no forest — S290's audit ruled RESTORE-PRIOR for pairwise units and the
+card has rendered `CorrMatrixSVG` since — so the IRC example is removed rather than re-pointed. See
+P199.)*
 
-The legend is part of the plot's intrinsic-width unit (see INVESTIGATION-DISPLAY-SPEC ForestPlot note) — it
-cannot clip or detach. On small-multiples (the IRC per-condition forests) each plot sets
-`showLegend={false}` and one shared canonical legend keys the set, matching the per-condition matrices'
-treatment.
+The legend is part of the plot's intrinsic-width unit (see INVESTIGATION-DISPLAY-SPEC ForestPlot note) —
+it cannot clip or detach. **The small-multiples rule stands; its only worked example does not.** Where a
+card mounts several forests at once, each sets `showLegend={false}` and one shared canonical legend keys
+the set, matching the per-condition matrices' treatment. *(This read "the IRC per-condition forests"
+until S386. IRC mounts no forest, so the rule is now stated without a live instance — no consumer
+exercises it today, and it is written as a contract rather than as a description. See P199.)*
 
 **Non-observed null treatments (`EXP.*`, ruled S259).** The same split applies to the null channel.
 The null token `CC.EXP` (teal, `#0D9488`) is one hue; how a null *band* or *curve* renders — its fill

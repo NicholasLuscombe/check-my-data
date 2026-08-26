@@ -98,9 +98,9 @@ const cellTxt = (p) => cellTextOn(compositeOver(cellBg(p), cellOp(p), C.BG));
 
 // Legend items
 const legend = [
-  { color: CC.OBS, label: "Within expected range", opacity: OBS.solid.fillOpacity },
+  { color: CC.OBS, label: "Pair not flagged", opacity: OBS.solid.fillOpacity },
 ];
-if (nSusp > 0) legend.push({ color: TIER_COLOR.HIGH, label: "Highly correlated (outlier pair)" });
+if (nSusp > 0) legend.push({ color: TIER_COLOR.HIGH, label: "Pair flagged" });
 
 // All flagged windows, sorted by observed r desc then condition
 const topWins = [...wins].sort((a, b) => {
@@ -161,9 +161,12 @@ const windowsTable = (
             // carries the multiplicity correction) and the engine's per-window
             // `significant` mark. A flagged window is the verdict's visible
             // driver, so it reads red ("Flagged", CC.THRESH \u2014 channel 4 data
-            // model) per PLOT-COLOUR-SEMANTICS; the label is exactly "Flagged".
+            // model) per PLOT-COLOUR-SEMANTICS. The label names its UNIT — "Window
+            // flagged" against the heatmap's "Pair flagged" — because this card
+            // carries two flag surfaces over two different unit classes, and an
+            // unscoped word on either one reads as a claim about the other (S386).
             const flagCell = w.significant === true
-              ? { value: "Flagged", style: { color: CC.THRESH, fontWeight: FW.SEMI } }
+              ? { value: "Window flagged", style: { color: CC.THRESH, fontWeight: FW.SEMI } }
               : { value: "\u2014", style: { color: C.TEXT_3 } };
             const base = [
               pairLabel(w.pair, w.condition || "All data"),
