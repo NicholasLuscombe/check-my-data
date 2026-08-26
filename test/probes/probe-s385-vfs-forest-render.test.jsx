@@ -102,7 +102,7 @@ function countReferenceTicks(container) {
     .filter(l => l.getAttribute("stroke") === CC.EXP).length;
 }
 
-// The three fixtures that make the marking rule falsifiable: a pass-1
+// The four fixtures that make the marking rule falsifiable: a pass-1
 // full-value HIGH, a pass-2 near-dup HIGH, the pigeonhole file where the
 // near-dup gate suppresses entries that clear the significance cut, and a
 // clean file with no spike at all.
