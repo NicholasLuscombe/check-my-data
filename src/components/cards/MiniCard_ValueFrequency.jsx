@@ -200,7 +200,7 @@ export function MiniCard_ValueFrequency({ result, importConfig, rowMap }) {
         <PlotLayout fitContent>
           <ForestPlot units={forestUnits} effectAxisLabel="Occurrences observed" />
         </PlotLayout>
-        <ChartLegend items={forestLegendItems("Expected (neighbouring values)")} />
+        <ChartLegend items={forestLegendItems("Expected (neighbouring values)", forestUnits[0]?.referenceMode)} />
         {/* The subset is stated, never silent: a reader must not take twenty
             rows for the whole tested family. */}
         <div style={{...SUB_HEAD, marginTop: BLOCK_GAP_TIGHT, marginBottom: 0, fontWeight: FW.NORM}}>

@@ -59,6 +59,7 @@ import { render } from "@testing-library/react";
 
 import { MiniPlot } from "../../src/components/cards/MiniPlot.jsx";
 import { MiniCard_RankCorrelation } from "../../src/components/cards/MiniCard_RankCorrelation.jsx";
+import { CC } from "../../src/constants/tokens.js";
 
 const FIXTURES = "test/fixtures";
 
@@ -102,6 +103,13 @@ const FILES = [
   "21-localised-ar.csv",
   "11-rnaseq-multicondition.csv",
   "03-qpcr-clean.csv",
+  // S386 part 3 — IRC's two unit classes, one fixture each. Both measured, not
+  // assumed: 02 carries 20 flagged WINDOWS with nSuspicious = 0 (so no pair is
+  // flagged and the red key is not even shown), and 08 carries one suspicious
+  // PAIR with no windows at all. Between them the two surfaces are exercised
+  // separately, which is the whole point of scoping the words.
+  "02-densitometry-fabricated.csv",
+  "08-elisa-fabricated.csv",
 ];
 
 // Cards whose legend the S386 label change reaches, each with the fixture that
@@ -119,10 +127,22 @@ const GUARDED = [
     test: "Within-Row Variance", file: "03-qpcr-clean.csv",
     why: "split is Math.abs(z) > Z_THRESH — an actual magnitude test, so the words are true",
   },
-  {
-    test: "Inter-Replicate Correlation", file: "03-qpcr-clean.csv",
-    why: "halt B — isPromotionTrigger, with a second flag surface (the windowed arm) below",
-  },
+  // RE-REGISTERED AT S386 PART 3, in the open rather than silently.
+  //
+  // Part 2 pinned a second guard here, verbatim:
+  //
+  //     { test: "Inter-Replicate Correlation", file: "03-qpcr-clean.csv",
+  //       why: "halt B — isPromotionTrigger, with a second flag surface
+  //             (the windowed arm) below" },
+  //
+  // It asserted that IRC still read "Within expected range", because halt B had
+  // stopped the rename there. Part 3 lifts that halt by giving IRC words that
+  // name their own unit class, so this guard began failing BY DESIGN — the
+  // definition it pinned was deliberately changed. It is retired here and
+  // replaced by the two IRC assertions at the foot of this file, which pin the
+  // new scoped wording on the two fixtures that exercise the two surfaces
+  // separately. The old text is kept above so the change is legible rather than
+  // silent; a check must never be edited merely to make a failure go away.
 ];
 
 describe("S386 — P195 legend label", () => {
@@ -130,6 +150,17 @@ describe("S386 — P195 legend label", () => {
   beforeAll(async () => {
     for (const f of FILES) loaded[f] = await runFixture(f);
   }, 600_000);
+
+  // Same render, returning the container rather than its text — the P197
+  // assertion reads a rendered ATTRIBUTE, which textContent cannot carry.
+  const textForContainer = (test, file) => {
+    const { results, importConfig } = loaded[file];
+    const result = results.find(r => r.name === test);
+    expect(result, `${test} produced no result on ${file}`).toBeTruthy();
+    return render(
+      <MiniPlot result={result} importConfig={importConfig} rowMap={null} />
+    ).container;
+  };
 
   const textFor = (test, file) => {
     const { results, importConfig } = loaded[file];
@@ -191,4 +222,84 @@ describe("S386 — P195 legend label", () => {
       expect(text).not.toContain(NEW_LABEL);
     }, 60_000);
   }
+  // ── S386 part 3 ──────────────────────────────────────────────────────────
+  //
+  // The legend's reference swatch. ChartLegend draws every swatch as its own
+  // <svg height="12">, while the plot's own SVG height is computed from the row
+  // count — so filtering on that height isolates legend glyphs from plot marks,
+  // which are the same token colour and would otherwise be counted as legend.
+  const refSwatchLines = (container) =>
+    [...container.querySelectorAll("svg")]
+      .filter(s => s.getAttribute("height") === "12")
+      .map(s => s.querySelector("line"))
+      .filter(l => l && l.getAttribute("stroke") === CC.EXP);
+
+  it("P197 — the forest's reference swatch follows referenceMode, dashed only in zero mode", () => {
+    // STORED mode: MiniCard_ValueFrequency on 13-vfstest-cellcountest.csv.
+    // The plot draws one short solid tick per row, so the sample is a solid
+    // tick. Asserted on the rendered stroke, not on props: the dash is a render
+    // attribute and a props check cannot see it, which is P197's whole content.
+    const stored = textForContainer("Value-Frequency Spike", "13-vfstest-cellcountest.csv");
+    const storedLines = refSwatchLines(stored);
+    expect(storedLines.length).toBeGreaterThan(0);
+    const storedRef = storedLines[0];
+    expect(storedRef.getAttribute("stroke-dasharray")).toBeNull();
+    // and it is a TICK: vertical, so both x co-ordinates agree.
+    expect(storedRef.getAttribute("x1")).toBe(storedRef.getAttribute("x2"));
+    expect(storedRef.getAttribute("y1")).not.toBe(storedRef.getAttribute("y2"));
+
+    // ZERO mode: MiniCard_Autocorrelation on 11-rnaseq-multicondition.csv.
+    // The plot draws one dashed line spanning it, so the sample stays dashed.
+    // This card renders a SECOND teal legend swatch further down (the per-lag
+    // decay chart's own "Expected r = 0" key), which is also dashed; the forest
+    // is Surface 1 so its swatch is the first, and that is the one read here.
+    const zero = textForContainer("Autocorrelation", "11-rnaseq-multicondition.csv");
+    const zeroLines = refSwatchLines(zero);
+    expect(zeroLines.length).toBeGreaterThan(0);
+    const zeroRef = zeroLines[0];
+    expect(zeroRef.getAttribute("stroke-dasharray")).toBe("4,3");
+    // and it is a LINE: horizontal, so both y co-ordinates agree.
+    expect(zeroRef.getAttribute("y1")).toBe(zeroRef.getAttribute("y2"));
+
+    // The two modes must actually differ — the assertion that makes this a test
+    // of the branch rather than of one arm.
+    expect(storedRef.getAttribute("stroke-dasharray"))
+      .not.toBe(zeroRef.getAttribute("stroke-dasharray"));
+  }, 60_000);
+
+  it("IRC on 02-densitometry-fabricated.csv — pair key and window word name their own units", () => {
+    // The halt-B case made concrete. Measured on this fixture: nSuspicious = 0
+    // and no pair is a promotion trigger, so EVERY heatmap cell is cleared —
+    // while 20 row windows read flagged in the table below. An unscoped "Not
+    // flagged" on the blue key would have asserted, on this very card, that
+    // nothing is flagged, directly above twenty flagged windows.
+    const { text, result } = textFor("Inter-Replicate Correlation", "02-densitometry-fabricated.csv");
+    expect(result.flag).toBe("MODERATE");
+    expect(result.nSuspicious).toBe(0);
+    const wins = (result.details || []).filter(d => d.source === "window");
+    expect(wins.filter(w => w.significant === true).length).toBeGreaterThan(0);
+
+    expect(text).toContain("Pair not flagged");
+    expect(text).toContain("Window flagged");
+    // The red PAIR key is gated on nSuspicious > 0, so it is absent here.
+    expect(text).not.toContain("Pair flagged");
+    // No unscoped survivor of either word.
+    expect(text).not.toContain("Within expected range");
+    // The connector renders in exactly this branch and still reads correctly.
+    expect(text).toContain("No single replicate pair is anomalous overall");
+  }, 60_000);
+
+  it("IRC on 08-elisa-fabricated.csv — the red pair key reads 'Pair flagged'", () => {
+    // The complementary fixture: one suspicious PAIR, no windows at all. The
+    // red key renders here and nowhere else in the corpus.
+    const { text, result } = textFor("Inter-Replicate Correlation", "08-elisa-fabricated.csv");
+    expect(result.flag).toBe("HIGH");
+    expect(result.nSuspicious).toBeGreaterThan(0);
+    expect((result.details || []).filter(d => d.source === "window").length).toBe(0);
+
+    expect(text).toContain("Pair flagged");
+    expect(text).toContain("Pair not flagged");
+    expect(text).not.toContain("Highly correlated (outlier pair)");
+    expect(text).not.toContain("Within expected range");
+  }, 60_000);
 });

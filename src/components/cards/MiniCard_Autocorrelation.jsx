@@ -144,7 +144,7 @@ export function MiniCard_Autocorrelation({ result, importConfig, rowMap }) {
         </PlotLayout>
         {/* Canonical legend below the plot wrapper (decay-chart structure) —
             single-panel forest, so the legend sits with it. */}
-        <ChartLegend items={forestLegendItems("Expected (r = 0, independent)")} />
+        <ChartLegend items={forestLegendItems("Expected (r = 0, independent)", forestUnits[0]?.referenceMode)} />
         {/* A lag can be individually significant yet read cleared: higher-lag
             promotion also requires the correlation to clear the effect-size
             floor on large samples. The floor value is read from source

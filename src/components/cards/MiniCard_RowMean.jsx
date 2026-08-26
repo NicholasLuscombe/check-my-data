@@ -106,7 +106,7 @@ export function MiniCard_RowMean({ result, importConfig, rowMap }) {
         <PlotLayout fitContent>
           <ForestPlot units={forestUnits} effectAxisLabel="Runs observed" />
         </PlotLayout>
-        <ChartLegend items={forestLegendItems("Expected (chance)")} />
+        <ChartLegend items={forestLegendItems("Expected (chance)", forestUnits[0]?.referenceMode)} />
       </>)}
 
       {/* What the test does — heads the strip (Surface 2), not the forest;
