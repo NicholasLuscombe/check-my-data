@@ -209,7 +209,7 @@ export function MiniCard_ValueFrequency({ result, importConfig, rowMap }) {
             : `All ${forestPool.length} tested values shown. `}
           A value is marked only when its own spike set the card's verdict — one that
           clears the significance cut but not the effect-size or near-duplicate gate
-          reads as within expected range.
+          reads as not flagged, however far it sits from its expected count.
         </div>
       </>)}
 
