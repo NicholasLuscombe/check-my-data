@@ -831,6 +831,14 @@ export function testDuplicates(matrix, fullMatrix, colGroupId, assay) {
     wrWithinObs, wrWithinExp:wrWithinExp.toFixed(1), wrWithinRatio:wrWithinExp>0?(wrWithinObs/wrWithinExp).toFixed(1):"\u2014",
     wrCrossObs, wrCrossExp:wrCrossExp.toFixed(1), wrCrossRatio:wrCrossExp>0?(wrCrossObs/wrCrossExp).toFixed(1):"\u2014",
     withinColObs, withinColExp:withinColExp.toFixed(1), withinColRatio:withinColExp>0?(withinColObs/withinColExp).toFixed(1):"\u2014",
+    // Uncapped totals for the three evidence arrays below. The arrays are capped
+    // for display; a card heading naming a count reads the total, never the
+    // capped array length — the `partialRowPairs` precedent a few lines up.
+    // `withinRowDupRows` counts rows, not value-pairs: one `withinRowLocs` entry
+    // is pushed per row that carries at least one within-row match.
+    blockCopyTotal:sparseFilteredBlocks.length,
+    rowDupGroupTotal:rowDupGroupList.length,
+    withinRowDupRows:withinRowLocs.length,
     blockCopies:sparseFilteredBlocks.slice(0,20),
     flag, details:allLocs.slice(0,20), overRepresented:overRepresented.slice(0,10),
     rowDupGroupList:rowDupGroupList.slice(0,20), withinRowLocs:withinRowLocs.slice(0,200),

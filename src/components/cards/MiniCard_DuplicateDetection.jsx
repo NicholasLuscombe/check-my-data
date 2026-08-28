@@ -39,6 +39,12 @@ const partialPairs = result.partialRowLocs || []; // scattered partial-row copie
 // Separate block types: multi-row or partial-width blocks vs full-row single-row pairs
 // Full-row height=1 blocks are better shown via rowGroups (multi-way clustering)
 const structuralBlocks = blocks.filter(b => !(b.isFullRow && b.height === 1));
+// S388 — headings name the engine total; the arrays above are display-capped
+// (blocks/groups at 20, within-row rows at 200). The full-row height=1 filter is
+// identity on engine output — the only `isFullRow: true` producer sits past a
+// `h === 1` skip — so the block total is the uncapped array length.
+const structuralTotal = result.blockCopyTotal ?? structuralBlocks.length;
+const rowGroupTotal = result.rowDupGroupTotal ?? rowGroups.length;
 const wrWithinObs = result.wrWithinObs||0, wrWithinExp = parseFloat(result.wrWithinExp)||0;
 const wrCrossObs = result.wrCrossObs||0, wrCrossExp = parseFloat(result.wrCrossExp)||0;
 const withinColObs = result.withinColObs||0, withinColExp = parseFloat(result.withinColExp)||0;
@@ -65,11 +71,11 @@ const colName = (matIdx) => hdrs[dataColMap[matIdx]] || `Column ${matIdx+1}`;
 // ── Footer ──
 const dupBlock = structuralBlocks[0];
 const rowDupClause = hasRowDups
-  ? (rowGroups.length === 1 ? "1 group of duplicate rows" : `${rowGroups.length} groups of duplicate rows`)
+  ? (rowGroupTotal === 1 ? "1 group of duplicate rows" : `${rowGroupTotal} groups of duplicate rows`)
   : null;
 let blockClause = null;
 if (dupBlock) {
-  const _n = structuralBlocks.length;
+  const _n = structuralTotal;
   // Accurate count. The single-column-match description is kept only when there
   // is exactly one block; with several blocks it undercounts (C16: five blocks
   // read as "2 columns … rows 25–31"), so show the true count instead.
@@ -274,7 +280,7 @@ return (
         })}
         {/* S318 — the panels cap at 5; state the remainder so the shown panels
             stay consistent with the heading's total block count. */}
-        {structuralBlocks.length > 5 && <div style={{fontSize:FS.xs,color:C.TEXT_3,fontFamily:FF.UI,marginBottom:"12px"}}>… and {structuralBlocks.length - 5} more block{structuralBlocks.length - 5 !== 1 ? "s" : ""}</div>}
+        {structuralTotal > 5 && <div style={{fontSize:FS.xs,color:C.TEXT_3,fontFamily:FF.UI,marginBottom:"12px"}}>… and {structuralTotal - 5} more block{structuralTotal - 5 !== 1 ? "s" : ""}</div>}
         {/* Row-vector duplicate groups */}
         {rowGroups.slice(0,5).map((grp,gi) => {
           const vc = getVisibleCols();
@@ -363,8 +369,12 @@ return (
       }).filter(Boolean);
       if (allDupRows.length === 0) return null;
       const groupColors = DUP_GROUP_PALETTE;
+      // The engine pushes one `withinRowLocs` entry per row carrying a match and
+      // never with empty `groups`, so `withinRowDupRows` counts exactly the rows
+      // `allDupRows` would hold if the 200-cap did not bind.
+      const withinRowTotal = result.withinRowDupRows ?? allDupRows.length;
       const cappedDupRows = allDupRows.slice(0, 30);
-      const moreDupRows = allDupRows.length - cappedDupRows.length;
+      const moreDupRows = withinRowTotal - cappedDupRows.length;
       // Compute visCols from all colorMap keys in capped rows
       const allCmKeys = new Set();
       cappedDupRows.forEach(fdr => fdr.filteredGroups.forEach(g => g.cols.forEach(c => allCmKeys.add(dataColMap[c] ?? c))));
@@ -373,7 +383,7 @@ return (
       <>
       <div style={{...LEAD_HEAD, marginTop: BLOCK_GAP, marginBottom: BLOCK_GAP_TIGHT}}>
         Duplicate values within a row
-        <span style={{fontWeight: FW.NORM, color: C.TEXT_2}}> — {`${wrTotal} repeated value-pair${wrTotal!==1?"s":""} within ${allDupRows.length} row${allDupRows.length!==1?"s":""}`}</span>
+        <span style={{fontWeight: FW.NORM, color: C.TEXT_2}}> — {`${wrTotal} repeated value-pair${wrTotal!==1?"s":""} within ${withinRowTotal} row${withinRowTotal!==1?"s":""}`}</span>
         {!isFlaggedVerdict && <span style={{fontWeight: FW.NORM, color: C.TEXT_3}}> — {SIG_NOTE}</span>}
       </div>
       <EvidenceBlock lead>

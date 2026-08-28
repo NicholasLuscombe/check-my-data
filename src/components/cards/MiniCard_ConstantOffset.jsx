@@ -24,6 +24,13 @@ export function MiniCard_ConstantOffset({ result, importConfig, rowMap }) {
     ? sub.filter(d => d.pair && d.positions)
     : details.filter(d => d.pair && d.positions);
   const hasBlocks = blockEntries.length > 0 && result.flag !== "LOW" && result.flag !== "N/A";
+  // S388 — the footer names the engine total `consecutiveEqualDiffs`; `details`
+  // is capped at 20 by the producer. Single-condition path only: on the
+  // aggregated path `consecutiveEqualDiffs` is propagated from the WORST GROUP
+  // alone (aggregation.js), while `blockEntries` is `subDetails` — the union of
+  // every applicable group's rows. Different populations, so that path keeps the
+  // capped length, exactly as its "Showing N of M" footer below stays withheld.
+  const offsetCopyCount = isAgg ? blockEntries.length : (result.consecutiveEqualDiffs ?? blockEntries.length);
 
   // Format offset with sign
   const fmtOffset = (d) => {
@@ -36,7 +43,7 @@ export function MiniCard_ConstantOffset({ result, importConfig, rowMap }) {
   return (
     <MiniCardLayout result={result}
       footer={result.flag !== "LOW" && result.flag !== "N/A"
-        ? `${blockEntries.length} offset cop${blockEntries.length !== 1 ? "ies" : "y"} — block reappears shifted by a constant`
+        ? `${offsetCopyCount} offset cop${offsetCopyCount !== 1 ? "ies" : "y"} — block reappears shifted by a constant`
         : "No offset copies found"}
       lookFor="Look at the flagged rows: does the same offset repeat across replicate pairs at the same rows? That points to one column built from another by applying a constant. Inspect the raw data files and compare the replicate columns directly — a fixed difference or ratio that holds row after row is the signature. Check whether the flagged rows cluster in one part of the dataset or run throughout."
       implications={'A constant difference or ratio between replicates across consecutive rows can arise from a batch correction or a drift adjustment applied evenly to a stretch of rows. It can also indicate that one column was copied into another and a fixed amount added, subtracted, or multiplied — turning a copied column into a "replicate" that looks different while staying locked to the original.'}>

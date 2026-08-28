@@ -9,6 +9,10 @@ import { colToExcelLetter, buildOriginalColMap, makeRowMapper } from "../shared/
 export function MiniCard_SequentialDuplication({ result, importConfig, rowMap }) {
   const sequences = result.sequences || [];
   const hasSeq = sequences.length > 0;
+  // S388 — the heading names the engine total; `sequences` is capped at 50 for
+  // display and the panels below cap at 8. `nSequences` is `kept.length`, taken
+  // before that slice.
+  const seqTotal = result.nSequences ?? sequences.length;
 
   const { fileRow, toOrigRow } = makeRowMapper(importConfig, rowMap);
   const roles = importConfig?.roles || [];
@@ -26,9 +30,9 @@ export function MiniCard_SequentialDuplication({ result, importConfig, rowMap })
   const footer = (() => {
     if (!hasSeq) return "No recurring value sequences found";
     const top = sequences[0];
-    const nClause = sequences.length === 1
+    const nClause = seqTotal === 1
       ? "1 recurring sequence"
-      : `${sequences.length} recurring sequences`;
+      : `${seqTotal} recurring sequences`;
     return `Column ${colLetter(top.col)} · ${nClause} · run of ${top.height} recurs at offset ${top.offset}`;
   })();
 
@@ -43,7 +47,7 @@ export function MiniCard_SequentialDuplication({ result, importConfig, rowMap })
           <div style={{ ...LEAD_HEAD, marginBottom: BLOCK_GAP_TIGHT }}>
             Recurring value sequences
             <span style={{ fontWeight: FW.NORM, color: C.TEXT_2 }}>
-              {` — ${sequences.length} found`}
+              {` — ${seqTotal} found`}
             </span>
           </div>
           <EvidenceBlock lead>
@@ -90,9 +94,9 @@ export function MiniCard_SequentialDuplication({ result, importConfig, rowMap })
                 </div>
               );
             })}
-            {sequences.length > 8 && (
+            {seqTotal > 8 && (
               <div style={{ fontSize: FS.xs, color: C.TEXT_3, fontFamily: FF.UI }}>
-                … and {sequences.length - 8} more recurring sequences
+                … and {seqTotal - 8} more recurring sequences
               </div>
             )}
           </EvidenceBlock>
