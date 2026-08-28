@@ -277,6 +277,10 @@ export function ReportView({ results: baseResults, importConfig, matrix, rowMap,
           const _origColMap=buildOriginalColMap((importConfig?.hdrs||[]).length, importConfig?.removedCols);
           const _srcRow=(mi)=>originalFileRow(rowMap?(rowMap[mi]??mi):mi, importConfig?.skippedRows||0, importConfig?.headerRows||0);
           const _srcCol=(mc)=>colToExcelLetter(_origColMap[_dataColMap[mc]] ?? _dataColMap[mc] ?? mc);
+          // S388 — the count names the engine total; `blockCopies` is capped at 20
+          // by the producer and the list below caps at 5 again. Fall back to the
+          // array length on a result that predates the field.
+          const _blockTotal=r.blockCopyTotal ?? r.blockCopies?.length ?? 0;
           if(r.duplicateRows!=null) detail+=` dupRows=${r.duplicateRows} rowP=${r.rowDupPValue||"?"}`;
           if(r.withinRowMatches!=null) {
             detail+=` wrTotal=${r.withinRowMatches} wrExp=${r.withinRowExpected} wrRatio=${r.withinRowExpected>0?(r.withinRowMatches/parseFloat(r.withinRowExpected)).toFixed(1)+"×":"—"} wrZ=${r.withinRowZ} wrP=${r.withinRowP}`;
@@ -286,18 +290,24 @@ export function ReportView({ results: baseResults, importConfig, matrix, rowMap,
               if(r.wrCrossObs!=null) detail+=` | cross=${r.wrCrossObs} exp=${r.wrCrossExp} ratio=${r.wrCrossRatio}×`;
             }
             if(r.withinColObs!=null) detail+=` | colCtrl=${r.withinColObs} exp=${r.withinColExp} ratio=${r.withinColRatio}×`;
-            if(r.blockCopies?.length) detail+=` | blocks=${r.blockCopies.length} largest=${r.blockCopies[0].height}×${r.blockCopies[0].width} blockP=${r.bestBlockP||"?"}`;
+            if(r.blockCopies?.length) detail+=` | blocks=${_blockTotal} largest=${r.blockCopies[0].height}×${r.blockCopies[0].width} blockP=${r.bestBlockP||"?"}`;
           }
           if(r.partialRowSkipped) detail+=` | partialRow=skipped(dataset too large)`;
           else if(r.partialRowPairs!=null) detail+=` | partialRow=${r.partialRowPairs} pair${r.partialRowPairs===1?"":"s"} p=${r.partialRowP||"?"}`;
           if(r.nBins!=null) detail+=` nBins=${r.nBins} nDistinct=${r.nDistinct||"?"} isInt=${r.isInteger||"?"} null=${r.p1Source||"?"}`;
           lines.push(`  ${flagLabel(r.flag).padEnd(8)} ${r.name}${detail}`);
           if(r.blockCopies?.length){
-            for(const blk of r.blockCopies.slice(0,5)){
+            const BLOCK_LINE_CAP=5;
+            const _shownBlocks=r.blockCopies.slice(0,BLOCK_LINE_CAP);
+            for(const blk of _shownBlocks){
               const s1=_srcRow(blk.srcRows[0]), s2=_srcRow(blk.srcRows[1]);
               const d1=_srcRow(blk.dstRows[0]), d2=_srcRow(blk.dstRows[1]);
               lines.push(`           block: ${blk.height}×${blk.width} rows ${s1}–${s2} ↔ ${d1}–${d2} cols=[${blk.cols.slice(0,8).map(_srcCol).join(",")}${blk.cols.length>8?"…":""}]`);
             }
+            // The list stops at BLOCK_LINE_CAP; state the remainder so the printed
+            // lines stay consistent with the total named in `blocks=` above.
+            const _moreBlocks=_blockTotal-_shownBlocks.length;
+            if(_moreBlocks>0) lines.push(`           … and ${_moreBlocks} more block${_moreBlocks!==1?"s":""}`);
           }
           if(r.rowDupGroupList?.length){
             for(const g of r.rowDupGroupList.slice(0,5)){
@@ -1199,8 +1209,11 @@ export function ReportView({ results: baseResults, importConfig, matrix, rowMap,
               else if (b.isFullRow) sub = `Rows ${mf(b.srcRows[0])}\u2013${mf(b.srcRows[1])} are identical to rows ${mf(b.dstRows[0])}\u2013${mf(b.dstRows[1])}`;
               else sub = `${b.height}\u00d7${b.width} block copied \u2014 rows ${mf(b.srcRows[0])}\u2013${mf(b.srcRows[1])} \u2194 ${mf(b.dstRows[0])}\u2013${mf(b.dstRows[1])}`;
             } else if ((r.rowDupGroupList||[]).length > 0) {
-              const nDR = r.rowDupGroupList.reduce((s,g) => s + g.count - 1, 0);
-              const nPt = r.rowDupGroupList.length;
+              // S388 — both name engine totals taken before the 20-slice:
+              // `duplicateRows` is this exact reduce over the uncapped list, and
+              // `rowDupGroupTotal` its group count.
+              const nDR = r.duplicateRows ?? r.rowDupGroupList.reduce((s,g) => s + g.count - 1, 0);
+              const nPt = r.rowDupGroupTotal ?? r.rowDupGroupList.length;
               sub = nDR === 1 ? `1 row is an exact copy of another row` : `${nDR} rows are exact copies (${nPt} pattern${nPt>1?"s":""})`;
             } else if (wrTotal > wrExp * 1.5) {
               sub = `Data entries duplicated within-row ${(wrTotal/Math.max(wrExp,1)).toFixed(0)}\u00d7 more often than expected`;

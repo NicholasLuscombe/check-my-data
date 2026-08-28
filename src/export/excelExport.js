@@ -196,14 +196,18 @@ function testLocalisation(r, rowMap, fileRowFn) {
     return fileRowFn ? fileRowFn(dataRow) : dataRow + 1;
   };
   // Tests with spatial localisation
+  // S388 — the parenthetical names the engine total; both arrays are capped at
+  // 20 by the producer. The row shown is still the first of the capped array.
   if (r.blockCopies?.length) {
     const blk = r.blockCopies[0];
-    return `Rows ${fr(blk.srcRows[0])}–${fr(blk.srcRows[1])} (${r.blockCopies.length} block${r.blockCopies.length > 1 ? "s" : ""})`;
+    const nBlocks = r.blockCopyTotal ?? r.blockCopies.length;
+    return `Rows ${fr(blk.srcRows[0])}–${fr(blk.srcRows[1])} (${nBlocks} block${nBlocks > 1 ? "s" : ""})`;
   }
   if (r.rowDupGroupList?.length) {
     const grp = r.rowDupGroupList[0];
     const rows = grp.rows.slice(0, 3).map(ri => fr(ri));
-    return `Rows ${rows.join(", ")}${grp.rows.length > 3 ? "…" : ""} (${r.rowDupGroupList.length} group${r.rowDupGroupList.length > 1 ? "s" : ""})`;
+    const nGroups = r.rowDupGroupTotal ?? r.rowDupGroupList.length;
+    return `Rows ${rows.join(", ")}${grp.rows.length > 3 ? "…" : ""} (${nGroups} group${nGroups > 1 ? "s" : ""})`;
   }
   if (r.details?.length && r.details[0]?.rows) {
     return `${r.details.length} region${r.details.length > 1 ? "s" : ""}`;
