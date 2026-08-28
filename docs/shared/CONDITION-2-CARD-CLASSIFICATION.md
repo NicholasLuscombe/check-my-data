@@ -134,7 +134,7 @@ Condition 2 should not be scoped to carry them.
 | Column Goodness-of-Fit | Per-column bar colour | `!!c.flagged` (`:109`), coloured `SEV_VERDICT[FLAG_RANK[cardFlag]]` (`ColumnStatBar.jsx:63`) | card-tier fill vs `OBS.areaFill.fill`, **no legend key** | `names-predicate` | The bar carries no per-column tier, so the card tier is a rendering choice rather than a per-column claim. The flag surface is unlabelled — nothing keys the two fills. |
 | Column Goodness-of-Fit | Skipped-column caption | `result.skippedColumns` (`:111`) | *…skipped — near-uniform shape — too flat to fit a distribution* | `names-predicate` | |
 | Column Goodness-of-Fit | Cleared footer | `nFlagged > 0` false (`:117-121`) | *All columns fit their expected shape* | `names-predicate` | Non-rejection of a fit test rendered as a fit claim, and the A² ratio bar renders the magnitude beside it. Type matches; not the P195 shape. |
-| Constant-Offset Blocks · `MiniCard_ConstantOffset.jsx` | Footer count | `blockEntries.length` (`:26`, `:39`), fed by `details`, which the producer caps at 20 (`constantOffset.js:157` `found.length < 20`) | *N offset copies — block reappears shifted by a constant* | `understates` | The true count is `consecutiveEqualDiffs` (`:113`). The table footer discloses *Showing N of M* (`:53`) — but only on the single-condition path, and the headline count never does. Above 20 blocks the card names a number smaller than the one it holds. |
+| Constant-Offset Blocks · `MiniCard_ConstantOffset.jsx` | Footer count | `blockEntries.length` (`:26`, `:39`), fed by `details`, which the producer caps at 20 (`constantOffset.js:157` `found.length < 20`) | *N offset copies — block reappears shifted by a constant* | `understates` | The true count is `consecutiveEqualDiffs` (`:113`) **on the single-condition path only** — on the aggregated path `aggregation.js` spreads the WORST GROUP's keys, so that field holds one group's count while the card reads a UNION across every applicable group (measured S388). **The existing `!isAgg` gate is load-bearing, not an oversight**, and Constant-Offset returns an aggregated result on 0 of 27 fixtures, so no fix on that path is verifiable against this corpus. The table footer discloses *Showing N of M* (`:53`) — but only on the single-condition path, and the headline count never does. Above 20 blocks the card names a number smaller than the one it holds. |
 | Constant-Offset Blocks | Condition-name cell colour | `condColorMap[name].text` (`:13`) | condition hue | — | Group **identity**, not flag state. Excluded by the criterion. |
 | Cross-Condition Consistency · `MiniCard_CrossCondConsistency.jsx` | `Finding` word on ran-but-unflagged rows | `!isAmberRow(d)` where amber = `ran ∧ forensic ∧ gatePassed ∧ ¬degenerate ∧ unitFlag ∈ {HIGH, MODERATE}` (`:60-62`, `:147-148`) | *As expected* | `overstates` | A pair with a strong signal in a **non-forensic direction** reads *As expected*. The label is an agreement claim; the predicate is a direction-gated decision — the same type mismatch as P195. The card discloses it in prose at `:194`, which is the defect signature rather than a defence. |
 | Cross-Condition Consistency | `Finding` word on amber rows | `d.direction` (`:150`) | *Too similar* / *Too different* (+ *(fallback)*) | `names-predicate` | |
@@ -331,6 +331,17 @@ sed 's/\\|/@PIPE@/g' docs/shared/CONDITION-2-CARD-CLASSIFICATION.md \
 | `wrong-vocabulary` | **8** |
 | excluded (identity colour, or a flag surface that is absent) | 6 |
 | **total surface rows** | **120** |
+
+**THE 120 IS A FLOOR, NOT A PRICE FOR CONDITION 2 (P211, S388).** This classification enumerated flag
+surfaces on **cards**. Condition 2's bar is *no surface contradicts its verdict*, which is not scoped
+to cards. **S388 measured a live contradiction on a surface this table never covered:** on
+`14-crctest-survey.csv` the Duplicate Detection card read *42 repeated blocks* while the Copy Summary
+read `blocks=20` — same file, same run, same statistic. Fixed at `47de33b`. **The export surfaces —
+`ReportView.jsx`, `excelExport.js`, `findingComposers.js`, `handoffModel.js` — have never been
+enumerated the way the 28 cards were.** **A `.length` grep finds four of five capped quantities and
+misses the fifth:** `handleExportExcel`'s `getPrimaryFinding` is a third copy of the sentence inside
+`ReportView.jsx` itself, and its `nDR` is a `reduce`. Same shape as P161; P162, P89 and P155 are the
+same finding elsewhere. **A count over one surface family is not a count over the condition.**
 
 All 28 cards carry at least one row. **18 of the 28 carry at least one non-`names-predicate`
 verdict; 10 are clean.**
