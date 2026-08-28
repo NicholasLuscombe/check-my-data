@@ -92,3 +92,78 @@ measures — and an honest error still counts against the tolerance.
 - **The nine unavoidable rows.** Nine of P186's 25 divergences turn on a click no harness can make,
   so arm A measures the machine's defaults there by construction. Arm B is what reaches past them.
 - **Whether any deposit is genuine.** The screen measures the tool, not the data.
+
+## 6 — Rules added S390, before any deposit was acquired
+
+**Nothing above this line changes.** §1–§5 stand as committed at `c125a97`. This section adds rules
+that were missing, and it carries the same evidence the original does: the commit date, ahead of the
+data. **The enumeration had not begun when this landed.**
+
+Five things were unfixed. Four are fixed here. The fifth is named and left open, because it is about
+machinery rather than about what gets analysed.
+
+### 6.1 — What the enumeration is
+
+**The enumeration is one recorded URL.** Build the search in the Dryad web interface, then record the
+URL verbatim in the run log with the retrieval timestamp. Swapping `https://datadryad.org/` for
+`https://datadryad.org/api/v2/` returns the same result set as JSON, so anyone can reproduce the list
+without an account and without a seed.
+
+**Order by the dataset's FIRST publication date, most recent first — not by the current version's
+date.** Dryad keeps the DOI across revisions and dates each version separately, so a 2019 deposit
+revised last week reads as recent under the version date. **Deposits get revised because somebody
+complained.** Round 1 holds eight update pairs for exactly that reason. Sorting on the revision date
+would pull a flag list in through the sort, which §3 forbids at the draw.
+
+**Record the version count and every version date per deposit. No deposit is excluded for having more
+than one version.** The record makes a later sensitivity read possible without a free choice being
+made now.
+
+### 6.2 — Which file, and which sheet
+
+**One sheet per deposit enters the screen.**
+
+- Consider every tabular file in the current version: `.xlsx`, `.xls`, `.csv`, `.tsv`. Nothing else is
+  considered. A deposit carrying no file in that list is rejected and logged with that reason.
+- Take every sheet in every considered file through the product's import and role inference, stopping
+  at `extractAnalysisInputs`. **This is the S373 census path. No test runs and no verdict is computed
+  while the sheet is being chosen.**
+- **The sheet used is the one with the largest cell count — valid rows × data columns — among the
+  sheets that pass the shape filter.**
+- **Tie-break, in this order:** more data columns; then more valid rows; then file name ascending;
+  then sheet index ascending. **C20 produced a tie in round 1 and the census called either choice
+  defensible.** A defensible tie before the data is a free choice after it.
+- If no sheet passes, the deposit is rejected and logged with its reason and its position.
+
+**Stated in advance, because it has a direction:** a deposit whose largest sheet fails and whose
+smaller sheet passes is eligible, and the smaller sheet is what runs. This admits deposits whose main
+table is unusable. The alternative — eligibility decided on the largest sheet alone — rejects them,
+and measures the parser rather than the battery.
+
+### 6.3 — Depth
+
+**If the first fifty positions yield fewer than ten eligible deposits, stop and report the depth
+reached.** A shape filter that rejects four in five is a finding about the corpus, not a reason to
+loosen the filter.
+
+**This rule was carried in the S390 opener and was not in this document.** A stopping rule that lives
+only in an opener is not pre-registered. It is now.
+
+**There is no other stopping rule, and n = 30 does not move.**
+
+### 6.4 — The order of the arms
+
+**Arm-B answers are written down for a deposit before either arm runs on that deposit.** §3 says
+*recorded before running* and does not say before which run. **Answering arm B after seeing arm A's
+verdict makes arm B a reaction to it, and arm A minus arm B stops being the cost of the default.**
+
+**The answers and their structural reasons are recorded when they are made and are not revised after
+any run.** If an answer turns out to be wrong, log the correction with its reason; do not overwrite.
+
+### 6.5 — Not fixed here
+
+**How arm B is executed.** P186 was measured by hand at ImportView, four runs on one sheet. Nothing
+here decides whether thirty arm-B passes are hand-run or driven by a toggle, and **S381's rule stands:
+toggle, do not port — a probe adjudicating two implementations must not become a third.** This section
+fixes what is analysed. It does not fix the machinery that runs it, and that decision is still owed
+before the first deposit.
