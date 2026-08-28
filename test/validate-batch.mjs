@@ -632,11 +632,33 @@ if (unexpectedPasses.length) {
   console.log(`  tell a fix apart from a change that hid the problem.`);
 }
 
+// S389 — the standing register, printed on EVERY run whether or not anything
+// matched. The blocks above are conditional: they report what happened this
+// run. This one reports what the runner is choosing to tolerate at all, with
+// the count and the one thing that would close each entry. A toleration nobody
+// sees becomes permanent — BANKED went forty sessions with a correct entry
+// nobody opened, and an unconditional print is the cheapest guard against this
+// list going the same way. Every entry is listed, fired or not.
+console.log(`\nThe known-failure register — ${KNOWN_FAILURES.length} ` +
+  `${KNOWN_FAILURES.length === 1 ? 'entry' : 'entries'} the runner is choosing to tolerate:`);
+if (!KNOWN_FAILURES.length) {
+  console.log(`  (empty — every failure this runner sees fails the run)`);
+}
+for (const e of KNOWN_FAILURES) {
+  const fired = observedKeys.has(sigKey(e));
+  console.log(`  ${sigLabel(e)}  [${fired ? 'fired this run' : 'did NOT fire this run'}]`);
+  if (e.reviewTrigger) console.log(`      Closes when: ${e.reviewTrigger}`);
+  if (e.provenance) console.log(`      Adjudicated: ${e.provenance}`);
+}
+
 console.log('');
 if (newFailed === 0 && unexpectedPasses.length === 0) {
+  // S389 — the pass condition, stated in the words it is judged in. Exit 0
+  // means zero undeclared failures; it is deliberately not a ratio, because
+  // the pass count moves with the seed offset while the condition does not.
   console.log(knownRed
-    ? `This run is clean. Everything that failed was already known about and declared.`
-    : `This run is clean. Nothing failed.`);
+    ? `This run is clean: zero undeclared failures. Everything that failed was already known about and declared.`
+    : `This run is clean: zero undeclared failures. Nothing failed.`);
 } else {
   const reasons = [];
   if (newFailed) reasons.push(`${newFailed} check${newFailed === 1 ? '' : 's'} failed in a way nothing declares`);

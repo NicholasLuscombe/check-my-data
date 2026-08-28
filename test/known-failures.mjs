@@ -44,13 +44,28 @@
 // offsets the completeness gate does not fire at all. Judging the list across
 // offsets would read that silence as a fix.
 //
+// ── The fields ──────────────────────────────────────────────────────────────
+//
+//   check / gate / test   the signature. All three must match exactly.
+//   why                   what the failure is and why it is not being declared
+//                         as expected behaviour instead of tolerated here.
+//   provenance            where it was adjudicated, and the register row it
+//                         belongs to. A `why` can drift; a citation can be
+//                         followed.
+//   reviewTrigger         the one thing that would close the entry. Printed on
+//                         EVERY run, whether or not the entry fired — a
+//                         toleration nobody sees becomes permanent, and BANKED
+//                         went forty sessions with a correct entry nobody
+//                         opened. This field is what stops that happening here.
+//
 // ── To add an entry ─────────────────────────────────────────────────────────
 //
 // Run `node test/validate-batch.mjs`. Beside every new failure it prints the
 // signature in the exact three parts below. Copy them here and write a `why`
-// that says what is broken and what would settle it. Diagnose first: an entry
-// added to quieten a run nobody understood is the failure this file was built
-// to prevent, one file further along.
+// that says what is broken and what would settle it, a `provenance` naming
+// where it was adjudicated, and a `reviewTrigger` naming what would retire it.
+// Diagnose first: an entry added to quieten a run nobody understood is the
+// failure this file was built to prevent, one file further along.
 //
 // ── To retire an entry ──────────────────────────────────────────────────────
 //
@@ -80,5 +95,22 @@ export const KNOWN_FAILURES = [
       'severity of 0. Until that decision is taken the red stays, and it is ' +
       'declared here so that it stops masking anything else. ' +
       'See docs/shared/SESSION341-DS08-DS12B-ADJUDICATION.md.',
+    provenance:
+      'S341 (docs/shared/SESSION341-DS08-DS12B-ADJUDICATION.md); ' +
+      'settled S358 across eight offsets in docs/shared/SEEDS8-STRADDLE.md, ' +
+      'which reads the firing off the fixture construction rather than off tool ' +
+      'output — 200 honest rows of log-normal noise at sigma 0.18 then 200 ' +
+      'fabricated rows of uniform +/-40% on the same base means. Neither half ' +
+      'flags alone (genuine 4.89x at p = 0.092, fabricated 2.64x at p = 0.778); ' +
+      'pooled they give 7.83x at p = 0.010, and bestVarRatio reads 7.83x on all ' +
+      'eight offsets, so the statistic is stationary and only the Monte-Carlo ' +
+      'estimate of its p straddles ALPHA.NOTE. Register row: STATUS P61, the ' +
+      'Regional Noise half — "settled as a pooling false positive (S358)".',
+    reviewTrigger:
+      'The Regional Noise cross-regime pooling fix. The test pools one ' +
+      'permutation null across two noise regimes; until that is corrected the ' +
+      'firing stays, and this entry with it. Retire the entry when the fix ' +
+      'lands, not before — the runner will name it as a declared failure that ' +
+      'stopped firing on the very next run.',
   },
 ];
