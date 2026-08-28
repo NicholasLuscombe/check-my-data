@@ -519,6 +519,12 @@ function sequentialDuplication(r, ctx) {
 function exactDuplicateDetection(r, ctx) {
   const blockCopies = Array.isArray(r.blockCopies) ? r.blockCopies : [];
   const rowDupGroups = Array.isArray(r.rowDupGroupList) ? r.rowDupGroupList : [];
+  // S388 — every count below names the engine total; both arrays above are
+  // capped at 20 by the producer. `dupRows` (r.duplicateRows) was already the
+  // uncapped figure, which is why it is read directly. Falls back to the array
+  // length on a result that predates the fields.
+  const nBlockCopies = r.blockCopyTotal ?? blockCopies.length;
+  const nRowDupGroups = r.rowDupGroupTotal ?? rowDupGroups.length;
   const dupRows = r.duplicateRows || 0;
   const wrMatches = r.withinRowMatches || 0;
   const wrExpected = parseNum(r.withinRowExpected);
@@ -538,8 +544,8 @@ function exactDuplicateDetection(r, ctx) {
 
   // Location: structural summary.
   const locParts = [];
-  if (blockCopies.length > 0) locParts.push(`${blockCopies.length} block ${pl(blockCopies.length, "copy", "copies")}`);
-  if (dupRows > 0) locParts.push(`${dupRows} rows in ${rowDupGroups.length} duplicate ${pl(rowDupGroups.length, "group")}`);
+  if (blockCopies.length > 0) locParts.push(`${nBlockCopies} block ${pl(nBlockCopies, "copy", "copies")}`);
+  if (dupRows > 0) locParts.push(`${dupRows} rows in ${nRowDupGroups} duplicate ${pl(nRowDupGroups, "group")}`);
   if (wrMatches > 0) locParts.push(`${formatCount(wrMatches)} within-row coincidences`);
   const location = locParts.length > 0 ? locParts.join("; ") : "Global";
 
@@ -561,7 +567,7 @@ function exactDuplicateDetection(r, ctx) {
     },
     {
       name: "row duplication",
-      label: `row duplication (${dupRows} identical row vectors in ${rowDupGroups.length} ${pl(rowDupGroups.length, "group")}, ${formatPClause("p", rowDupP)})`,
+      label: `row duplication (${dupRows} identical row vectors in ${nRowDupGroups} ${pl(nRowDupGroups, "group")}, ${formatPClause("p", rowDupP)})`,
       pStr: rowDupP, fires: parseNum(rowDupP) < 0.01 || rowDupP === "<0.0001",
     },
     {
@@ -571,7 +577,7 @@ function exactDuplicateDetection(r, ctx) {
     },
     {
       name: "block copies",
-      label: `block copies (${blockCopies.length} ${pl(blockCopies.length, "site")}, ${formatPClause("best block p", bestBlockP)})`,
+      label: `block copies (${nBlockCopies} ${pl(nBlockCopies, "site")}, ${formatPClause("best block p", bestBlockP)})`,
       pStr: bestBlockP, fires: parseNum(bestBlockP) < 0.01 || bestBlockP === "<0.0001",
     },
     {
