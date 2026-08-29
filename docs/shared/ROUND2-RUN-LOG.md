@@ -65,12 +65,12 @@ Every position walked, accepted or rejected, in order.
 | 1 | doi:10.5061/dryad.fttdz0980 | 2026-08-28 | 2 | | |
 | 2 | doi:10.5061/dryad.rv15dv4q9 | 2026-08-28 | 1 | | |
 | 3 | doi:10.5061/dryad.4mw6m90r1 | 2026-08-28 | 2 | | |
-| 4 | doi:10.5061/dryad.vdncjszbg | 2026-08-28 | 1 | | |
+| 4 | doi:10.5061/dryad.vdncjszbg | 2026-08-28 | 1 | rejected | under three columns |
 | 5 | doi:10.5061/dryad.p5hqbzkz7 | 2026-08-28 | 1 | rejected | no tabular file in a considered format |
 | 6 | doi:10.5061/dryad.wwpzgmt01 | 2026-08-28 | 1 | rejected | no tabular file in a considered format |
 | 7 | doi:10.5061/dryad.hqbzkh1vv | 2026-08-28 | 1 | | |
 | 8 | doi:10.5061/dryad.djh9w0wf0 | 2026-08-28 | 1 | | |
-| 9 | doi:10.5061/dryad.s7h44j1pg | 2026-08-28 | 1 | | |
+| 9 | doi:10.5061/dryad.s7h44j1pg | 2026-08-28 | 1 | rejected | no numeric matrix with replicate or condition structure |
 | 10 | doi:10.5061/dryad.d2547d8b7 | 2026-08-28 | 1 | rejected | only considered file exceeds the 50 MiB import cap |
 | 11 | doi:10.5061/dryad.2ngf1vj4r | 2026-08-28 | 1 | rejected | no tabular file in a considered format |
 | 12 | doi:10.5061/dryad.d7wm37qh7 | 2026-08-27 | 1 | | |
@@ -80,7 +80,7 @@ Every position walked, accepted or rejected, in order.
 | 16 | doi:10.5061/dryad.fxpnvx18x | 2026-08-27 | 1 | rejected | no tabular file in a considered format |
 | 17 | doi:10.5061/dryad.6djh9w1hn | 2026-08-27 | 1 | rejected | no tabular file in a considered format |
 | 18 | doi:10.5061/dryad.g79cnp5vs | 2026-08-27 | 1 | | |
-| 19 | doi:10.5061/dryad.w3r22817z | 2026-08-27 | 1 | | |
+| 19 | doi:10.5061/dryad.w3r22817z | 2026-08-27 | 1 | rejected | no numeric matrix with replicate or condition structure |
 | 20 | doi:10.5061/dryad.c59zw3rq0 | 2026-08-27 | 1 | rejected | no tabular file in a considered format |
 | 21 | doi:10.5061/dryad.m827p | 2026-08-27 | 2 | | |
 | 22 | doi:10.5061/dryad.xsj3tx9vw | 2026-08-27 | 1 | | |
@@ -90,7 +90,7 @@ Every position walked, accepted or rejected, in order.
 | 26 | doi:10.5061/dryad.z34tmpgws | 2026-08-27 | 1 | rejected | no tabular file in a considered format |
 | 27 | doi:10.5061/dryad.83bk3jb37 | 2026-08-27 | 2 | | |
 | 28 | doi:10.5061/dryad.gtht76j3x | 2026-08-27 | 1 | | |
-| 29 | doi:10.5061/dryad.3j9kd521j | 2026-08-27 | 1 | | |
+| 29 | doi:10.5061/dryad.3j9kd521j | 2026-08-27 | 1 | rejected | no numeric matrix with replicate or condition structure |
 | 30 | doi:10.5061/dryad.qv9s4mwwc | 2026-08-27 | 1 | | |
 | 31 | doi:10.5061/dryad.1vhhmgr9v | 2026-08-27 | 1 | | |
 | 32 | doi:10.5061/dryad.9ghx3fg0p | 2026-08-27 | 1 | | |
@@ -171,8 +171,8 @@ One row per accepted deposit. Filled before either arm runs on it.
 count goes stale silently and the tables cannot.
 
 ```bash
-command grep -c '| rejected |' docs/shared/ROUND2-RUN-LOG.md
-command grep -c '| accepted |' docs/shared/ROUND2-RUN-LOG.md
+command grep -cE '^\| [0-9]+ \| doi:.*\| rejected \|' docs/shared/ROUND2-RUN-LOG.md
+command grep -cE '^\| [0-9]+ \| doi:.*\| accepted \|' docs/shared/ROUND2-RUN-LOG.md
 command grep -cE '^\| [0-9]+ \| doi:.*\| \| \|$' docs/shared/ROUND2-RUN-LOG.md
 ```
 
@@ -182,6 +182,11 @@ The third command counts rows still undecided — outcome and reason both blank.
 returned **24** against 21 real rejections, matching three prose lines including the command quoting
 itself; `-cE "accepted"` returned **4** when no deposit had been accepted. Both figures are plausible
 on sight, which is why the error survived. **Match the table row, not the word.**
+
+**Corrected again S392.** The tightened `| rejected |` still matched line 174 — the command quoting
+itself — and returned **26** against 25 real rejections. The S391 fix moved the rule and left the
+command one prose line short of it. **Anchoring to the DOI row is what cannot self-match**, which is
+why all three commands above now carry `^| N | doi:`.
 
 Positions walked is the highest number in §3's first column.
 
