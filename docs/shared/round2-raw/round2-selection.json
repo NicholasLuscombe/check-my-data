@@ -1,0 +1,54 @@
+{
+  "generatedBy": "scripts/round2-select.mjs",
+  "root": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2",
+  "capBytes": 52428800,
+  "fetch": {
+    "root": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2",
+    "throttleMs": 1200,
+    "capBytes": 52428800,
+    "tokenPresent": false,
+    "dryRun": false,
+    "files": [
+      {
+        "position": 10,
+        "doi": "doi:10.5061/dryad.d2547d8b7",
+        "path": "Porcine_data.csv",
+        "size": 90974480,
+        "outcome": "skipped-over-cap",
+        "note": "90974480 bytes exceeds ImportView's 52428800-byte cap (ImportView.jsx:298)"
+      },
+      {
+        "position": 13,
+        "doi": "doi:10.5061/dryad.nk98sf85b",
+        "path": "interpolated_data_homing_id.csv",
+        "size": 216750635,
+        "outcome": "skipped-over-cap",
+        "note": "216750635 bytes exceeds ImportView's 52428800-byte cap (ImportView.jsx:298)"
+      },
+      {
+        "position": 24,
+        "doi": "doi:10.5061/dryad.sn02v6xfg",
+        "path": "Mesopredator_Data.csv",
+        "size": 151272386,
+        "outcome": "skipped-over-cap",
+        "note": "151272386 bytes exceeds ImportView's 52428800-byte cap (ImportView.jsx:298)"
+      },
+      {
+        "position": 1,
+        "doi": "doi:10.5061/dryad.fttdz0980",
+        "path": "micro_data_compiled.xlsx",
+        "size": 26729,
+        "dest": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/R2-01/micro_data_compiled.xlsx",
+        "url": "https://datadryad.org/api/v2/files/4932651/download",
+        "attempts": 2,
+        "outcome": "failed",
+        "error": "HTTP 401 Unauthorized"
+      }
+    ],
+    "bytesFetched": 0,
+    "bytesSkippedOverCap": 458997501,
+    "aborted": "HTTP 401 on the first fetch (micro_data_compiled.xlsx). DRYAD_TOKEN is not set; /api/v2/files/<id>/download requires a bearer token."
+  },
+  "measure": [],
+  "ranking": []
+}
