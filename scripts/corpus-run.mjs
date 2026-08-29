@@ -12,6 +12,16 @@
 //   node scripts/corpus-run.mjs <datafile>      [--assay X] [--dataType Y]
 //                                               [--sheet S] [--label L]
 //                                               [--out <file.json>]
+//   node scripts/corpus-run.mjs <manifest|datafile> --inventory [--out <file.json>]
+//
+// --inventory is a SECOND MODE, not a flag on the first. It measures every
+// sheet of every named file and runs no test at all: import and role inference,
+// stopping at extractAnalysisInputs. It is the machinery
+// ROUND2-SPECIFICITY-SCREEN.md §6.2 needs to choose one sheet per deposit, and
+// §11.3 keeps the ranking out of it — scripts/round2-select.mjs --rank reads
+// the artifact this writes and applies §6.2's rule to it. Default output is
+// corpus-out/corpus-inventory.json, so an inventory run cannot overwrite an
+// analysis run's artifact.
 //
 // Manifest JSON is either an array of dataset entries or
 // { datasets: [...], out?: "..." }. Each entry:
@@ -34,7 +44,7 @@
 // quick scanning. JSON path defaults to corpus-out/corpus-results.json.
 
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
-import { basename, extname, dirname, join } from 'node:path';
+import { basename, extname, dirname, join, resolve } from 'node:path';
 import Papa from 'papaparse';
 
 import { extractAnalysisInputs, runFullAnalysis } from '../src/analysis/engine.js';
@@ -45,7 +55,7 @@ import { forwardFill, preprocessRaw, detectHeaderRows, detectBlocks } from '../s
 import { detectLongFormat } from '../src/import/longFormat.js';
 import { suggestRowSemantics } from '../src/import/rowSemantics.js';
 import { summarize } from '../src/import/summary.js';
-import { parseExcel } from '../src/import/excel.js';
+import { parseExcel, getSheetNames } from '../src/import/excel.js';
 import { detectAssay, ASSAY_DATATYPE_MAP } from '../src/constants/assays.js';
 
 // The engine yields the Blocked-Mahalanobis permutation loop via this; Node
@@ -148,8 +158,11 @@ function prepStructure(raw, conditionsHint) {
   const preprocessed = prep.rows;
   if (!preprocessed || !preprocessed.length) throw new Error('Empty after preprocessing.');
 
-  // First block if the file holds several.
+  // First block if the file holds several. `nBlocks` is returned rather than
+  // discarded because taking block 1 of several is a silent narrowing of what
+  // the sheet contained, and the inventory has to be able to report it.
   const blocks = detectBlocks(preprocessed);
+  const nBlocks = blocks.length;
   let blockRows = blocks.length > 1 ? blocks[0] : preprocessed;
 
   // Strip preamble rows that carry too few cells to be data/header.
@@ -191,7 +204,49 @@ function prepStructure(raw, conditionsHint) {
   const baseRoles = inferBaseRoles(data, hdrs, condPerCol);
   const { roles, groupings } = detectGroupAttributes(data, baseRoles);
   applyRoleHint(roles, hdrs, conditionsHint);
-  return { hdrs, data, condPerCol, roles, groupings, longFormatDetected };
+  return { hdrs, data, condPerCol, roles, groupings, longFormatDetected, nH, nBlocks };
+}
+
+// ── The analysis config, and the four import settings that decide it ──
+// Extracted from runDataset so the --inventory walk preps a sheet exactly as
+// arm A analyses it. §7 of ROUND2-SPECIFICITY-SCREEN.md is the reason it is a
+// toggle rather than a port: a selection measuring a different prep from the
+// one arm A runs is the confound that section exists to prevent.
+//
+// `entry` supplies the assay / dataType overrides. The inventory passes the
+// entry it was given, so a manifest override reaches both paths identically;
+// with no override this is corpus-run's own auto-detect path.
+//
+// Returns the config plus every derived setting runDataset reports, so the
+// derivation has one home rather than two.
+function buildAnalysisConfig({ entry, hdrs, data, condPerCol, roles, longFormatDetected }) {
+  // Assay: explicit override wins; else detectAssay heuristic (filename +
+  // headers), falling back to "general". Always recorded with its source.
+  const auto = detectAssay(basename(entry.path), hdrs);
+  const autoAssay = auto ? auto.assay : 'general';
+  const assay = entry.assay || autoAssay;
+  const assaySource = entry.assay ? 'override' : 'auto-detected';
+
+  // dataType: explicit override wins; else mapped from the resolved assay.
+  const dataType = entry.dataType || ASSAY_DATATYPE_MAP[assay] || 'continuous';
+  const dataTypeSource = entry.dataType ? 'override' : 'from-assay';
+
+  // Genomics/cell-count zero-as-missing heuristic (BatchView parity). Not
+  // cosmetic on the inventory path either: zeroAsMissing decides which cells
+  // are null, so it moves the valid row count §6.2 ranks on.
+  const sum = summarize(data, roles, condPerCol, false);
+  const isGenomics = assay === 'genomics' || assay === 'cell_count';
+  const zeroAsMissing = isGenomics && sum.zeros > sum.total * 0.1;
+
+  const rsSuggestion = suggestRowSemantics({ assay, longFormatDetected });
+  const rowSemantics = rsSuggestion.value || 'ordered';
+
+  const config = {
+    data, roles, hdrs, condPerCol, zeroAsMissing,
+    assay, dataType, fileName: entry.path, colRelationship: 'replicates', rowSemantics,
+  };
+
+  return { config, assay, assaySource, dataType, dataTypeSource, zeroAsMissing, rsSuggestion, rowSemantics };
 }
 
 // Generic per-test evidence dump — no per-test formatting (deferred to v2).
@@ -232,29 +287,8 @@ async function runDataset(entry) {
   const { raw, sheetUsed } = await readRawMatrix(entry);
   const { hdrs, data, condPerCol, roles, groupings, longFormatDetected } = prepStructure(raw, entry.conditionsHint);
 
-  // Assay: explicit override wins; else detectAssay heuristic (filename +
-  // headers), falling back to "general". Always recorded with its source.
-  const auto = detectAssay(basename(entry.path), hdrs);
-  const autoAssay = auto ? auto.assay : 'general';
-  const assay = entry.assay || autoAssay;
-  const assaySource = entry.assay ? 'override' : 'auto-detected';
-
-  // dataType: explicit override wins; else mapped from the resolved assay.
-  const dataType = entry.dataType || ASSAY_DATATYPE_MAP[assay] || 'continuous';
-  const dataTypeSource = entry.dataType ? 'override' : 'from-assay';
-
-  // Genomics/cell-count zero-as-missing heuristic (BatchView parity).
-  const sum = summarize(data, roles, condPerCol, false);
-  const isGenomics = assay === 'genomics' || assay === 'cell_count';
-  const zeroAsMissing = isGenomics && sum.zeros > sum.total * 0.1;
-
-  const rsSuggestion = suggestRowSemantics({ assay, longFormatDetected });
-  const rowSemantics = rsSuggestion.value || 'ordered';
-
-  const config = {
-    data, roles, hdrs, condPerCol, zeroAsMissing,
-    assay, dataType, fileName: entry.path, colRelationship: 'replicates', rowSemantics,
-  };
+  const { config, assay, assaySource, dataType, dataTypeSource, zeroAsMissing, rsSuggestion, rowSemantics } =
+    buildAnalysisConfig({ entry, hdrs, data, condPerCol, roles, longFormatDetected });
   const { matrix, rawMatrix, condCtx } = extractAnalysisInputs(config);
 
   // VST: explicit override wins; else detectVST (BatchView's behaviour). A
@@ -359,12 +393,123 @@ async function runDataset(entry) {
   };
 }
 
+// ── Inventory: every sheet measured, no test run ─────────────────────
+// ROUND2-SPECIFICITY-SCREEN.md §6.2 picks one sheet per deposit by taking every
+// sheet of every considered file through the product's import and role
+// inference, stopping at extractAnalysisInputs. This mode is that walk and
+// nothing else: no runFullAnalysis, no computeSeverity, no detectVST, no
+// verdict of any kind. validateMatrix is not reached either — it is called by
+// runFullAnalysis (engine.js:205), never by extractAnalysisInputs.
+//
+// It does NOT apply §6.2's ranking or tie-break (§11.3 of the pre-registration
+// keeps that constraint): it reports measurements, and round2-select.mjs
+// --rank applies the rule to them. The field names below are the ones
+// rankDeposit reads, so the ordering consumes this artifact directly rather
+// than through a translation step that could drift away from it.
+//
+// A sheet that throws is recorded and the walk continues. The two outcomes are
+// different findings and both are kept:
+//   passed:false  — parseExcel or prepStructure threw; `error` is verbatim.
+//   passed:true with validRows:0 — extractAnalysisInputs returned an empty
+//                   matrix, which is what it does rather than throwing on a
+//                   metadata or all-text sheet. That is a measurement.
+function inventorySheet({ entry, raw, sheetName, sheetIndex, sheetTotal }) {
+  const rawRows = raw.length;
+  const rawCols = raw.reduce((m, r) => Math.max(m, r.length), 0);
+
+  const { hdrs, data, condPerCol, roles, longFormatDetected, nH, nBlocks } =
+    prepStructure(raw, entry.conditionsHint);
+  const { config, assay, dataType, zeroAsMissing } =
+    buildAnalysisConfig({ entry, hdrs, data, condPerCol, roles, longFormatDetected });
+  const { matrix, condCtx } = extractAnalysisInputs(config);
+  // STOP. Nothing past this point runs a test or computes a verdict.
+
+  const validRows = matrix.length;
+  const nNumericDataCols = matrix[0]?.length || 0;
+  const totalCells = validRows * nNumericDataCols;
+  let nulls = 0;
+  for (const row of matrix) for (const v of row) if (v === null) nulls++;
+
+  // Every role that appears, with the five known ones always present so
+  // roleCounts.data is a number on every record.
+  const roleCounts = { condition: 0, label: 0, data: 0, attribute: 0, ignore: 0 };
+  for (const r of roles) roleCounts[r] = (roleCounts[r] || 0) + 1;
+
+  // groupingTrigger is stamped onto condCtx by extractAnalysisInputs itself
+  // (engine.js:172); runFullAnalysis only reads it. So it is available at the
+  // stopping point and no test has to run to see it.
+  const trig = condCtx.groupingTrigger || { pending: false };
+
+  return {
+    sheet: sheetName, sheetIndex, sheetTotal,
+    passed: true, error: null,
+    rawRows, rawCols, headerRows: nH,
+    nBlocks, detectBlocksSplit: nBlocks > 1,
+    validRows, nNumericDataCols,
+    cellCount: validRows * nNumericDataCols,
+    // nulls ÷ total cells of the RETURNED matrix, as a number. null on an empty
+    // matrix: 0/0 is not a fraction, and a 0 there would read as "nothing
+    // missing" on a sheet that holds nothing.
+    missingFraction: totalCells > 0 ? nulls / totalCells : null,
+    roleCounts,
+    grouping: { kind: condCtx.type },
+    groupingPending: !!trig.pending,
+    assay, dataType, zeroAsMissing, longFormatDetected,
+  };
+}
+
+async function inventoryFile(entry) {
+  const out = { file: basename(entry.path), path: resolve(entry.path),
+                sheetCount: null, sheetNames: null, sheets: [] };
+  const ext = extname(entry.path).toLowerCase();
+
+  if (ext === '.xlsx' || ext === '.xls') {
+    // Read the bytes once; Blob.arrayBuffer() is re-callable, so the workbook
+    // is not re-read per sheet.
+    const blob = new Blob([readFileSync(entry.path)]);
+    let names;
+    try { names = await getSheetNames(blob); }
+    catch (e) {
+      // A workbook whose sheet list will not read is a result, not an absence.
+      out.fileError = e.message;
+      return out;
+    }
+    out.sheetCount = names.length;
+    out.sheetNames = names;
+    for (let i = 0; i < names.length; i++) {
+      try {
+        const { rows } = await parseExcel(blob, names[i]);
+        out.sheets.push(inventorySheet({ entry, raw: rows, sheetName: names[i], sheetIndex: i, sheetTotal: names.length }));
+      } catch (e) {
+        out.sheets.push({ sheet: names[i], sheetIndex: i, sheetTotal: names.length, passed: false, error: e.message });
+      }
+    }
+    return out;
+  }
+
+  // csv/tsv/txt — one pseudo-sheet named for the file, so a delimited file and
+  // a single-sheet workbook present the same shape to the ordering. §6.2
+  // considers .csv and .tsv alongside .xlsx and .xls.
+  out.sheetCount = 1;
+  out.sheetNames = [basename(entry.path)];
+  try {
+    const text = readFileSync(entry.path, 'utf-8');
+    const parsed = Papa.parse(text, { header: false, skipEmptyLines: false });
+    out.sheets.push(inventorySheet({ entry, raw: parsed.data, sheetName: basename(entry.path), sheetIndex: 0, sheetTotal: 1 }));
+  } catch (e) {
+    out.sheets.push({ sheet: basename(entry.path), sheetIndex: 0, sheetTotal: 1, passed: false, error: e.message });
+  }
+  return out;
+}
+
+// ── CSV escaping, shared by both writers ─────────────────────────────
+const esc = v => {
+  const s = v == null ? '' : String(v);
+  return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+};
+
 // ── CSV companion (flat name/flag/primaryP table across datasets) ────
 function toCsv(datasets) {
-  const esc = v => {
-    const s = v == null ? '' : String(v);
-    return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
-  };
   const lines = ['dataset,test,flag,primaryP'];
   for (const d of datasets) {
     if (d.error) { lines.push([esc(d.label), esc('(error)'), esc(d.error), ''].join(',')); continue; }
@@ -375,34 +520,107 @@ function toCsv(datasets) {
   return lines.join('\n') + '\n';
 }
 
-// ── Main ────────────────────────────────────────────────────────────
-const { positional, flags } = parseArgs(process.argv.slice(2));
-const { datasets: entries, manifestOut } = resolveEntries({ positional, flags });
-
-const outPath = flags.out || manifestOut || 'corpus-out/corpus-results.json';
-const csvPath = outPath.replace(/\.json$/i, '') + '.csv';
-
-const outDatasets = [];
-for (const entry of entries) {
-  process.stdout.write(`\n▶ ${entry.label || basename(entry.path)} (${entry.path})\n`);
-  try {
-    const d = await runDataset(entry);
-    outDatasets.push(d);
-    const s = d.structure;
-    console.log(`  structure: assay=${s.assay} (${s.assaySource}), dataType=${s.dataType} (${s.dataTypeSource}), ` +
-      `rowSemantics=${s.rowSemantics}, vst=${s.vst} (${s.vstSource}), ${s.nRows}×${s.nCols}` +
-      (s.nConditions ? `, conditions=${s.nConditions} (${s.conditionType})` : '') +
-      (d.sheet ? `, sheet="${d.sheet}"` : ''));
-    if (s.attributes?.length) {
-      console.log(`  §2.8 held out ${s.attributes.length} column(s): ` +
-        s.attributes.map(a => a.constantWithin[0] ? `${a.header} (constant within ${a.constantWithin[0].header})` : a.header).join(', '));
+// ── CSV companion for the inventory (one row per sheet) ──────────────
+const INVENTORY_CSV_COLS = [
+  'path', 'file', 'sheet', 'sheetIndex', 'sheetTotal', 'passed',
+  'validRows', 'nNumericDataCols', 'cellCount', 'missingFraction',
+  'nBlocks', 'detectBlocksSplit', 'headerRows', 'rawRows', 'rawCols',
+  'roleDataCols', 'grouping', 'groupingPending', 'assay', 'dataType', 'error',
+];
+function inventoryToCsv(files) {
+  const lines = [INVENTORY_CSV_COLS.join(',')];
+  for (const f of files) {
+    if (f.fileError) {
+      lines.push([esc(f.path), esc(f.file), '', '', '', 'false',
+        '', '', '', '', '', '', '', '', '', '', '', '', '', '', esc(f.fileError)].join(','));
+      continue;
     }
-    console.log(`  dataset severity: ${d.severity.severity} (HIGH=${d.severity.high} MOD=${d.severity.mod} dims=${d.severity.nFlaggedDimensions})`);
-    console.log(`  per-test flags: HIGH=${d.counts.HIGH}  MODERATE=${d.counts.MODERATE}  LOW=${d.counts.LOW}  N/A=${d.counts['N/A']}`);
-  } catch (e) {
-    console.log(`  ✗ ERROR: ${e.message}`);
-    outDatasets.push({ label: entry.label || basename(entry.path), path: entry.path, error: e.message });
+    for (const s of f.sheets) {
+      lines.push([
+        esc(f.path), esc(f.file), esc(s.sheet), s.sheetIndex, s.sheetTotal, s.passed,
+        s.validRows ?? '', s.nNumericDataCols ?? '', s.cellCount ?? '',
+        s.missingFraction == null ? '' : s.missingFraction,
+        s.nBlocks ?? '', s.detectBlocksSplit ?? '', s.headerRows ?? '',
+        s.rawRows ?? '', s.rawCols ?? '',
+        s.roleCounts ? s.roleCounts.data : '',
+        s.grouping ? esc(s.grouping.kind) : '',
+        s.groupingPending ?? '', esc(s.assay), esc(s.dataType), esc(s.error),
+      ].join(','));
+    }
   }
+  return lines.join('\n') + '\n';
+}
+
+// ── Mode: inventory ─────────────────────────────────────────────────
+async function runInventoryMode(entries, outPath, csvPath) {
+  const files = [];
+  for (const entry of entries) {
+    process.stdout.write(`\n▶ ${entry.label || basename(entry.path)} (${entry.path})\n`);
+    const f = await inventoryFile(entry);
+    files.push(f);
+    if (f.fileError) { console.log(`  ✗ workbook did not open: ${f.fileError}`); continue; }
+    console.log(`  ${f.sheetCount} sheet(s)`);
+    for (const s of f.sheets) {
+      const pos = `${String(s.sheetIndex + 1).padStart(3)}/${String(s.sheetTotal).padEnd(3)}`;
+      const nm = String(s.sheet).slice(0, 42).padEnd(42);
+      if (!s.passed) { console.log(`  ${pos} ${nm}  DID NOT IMPORT: ${s.error}`); continue; }
+      console.log(`  ${pos} ${nm} ${String(s.validRows).padStart(6)}r x${String(s.nNumericDataCols).padStart(4)}c` +
+        `  cells ${String(s.cellCount).padStart(9)}` +
+        `  miss ${s.missingFraction == null ? '  --  ' : s.missingFraction.toFixed(4)}` +
+        `  blocks ${s.nBlocks}${s.detectBlocksSplit ? ' (took 1st)' : ''}` +
+        (s.validRows === 0 ? '  [no valid rows]' : ''));
+    }
+  }
+
+  const nSheets = files.reduce((n, f) => n + f.sheets.length, 0);
+  const nSheetFail = files.reduce((n, f) => n + f.sheets.filter(s => !s.passed).length, 0);
+  const nFileFail = files.filter(f => f.fileError).length;
+  const nEmpty = files.reduce((n, f) => n + f.sheets.filter(s => s.passed && s.validRows === 0).length, 0);
+
+  mkdirSync(dirname(outPath), { recursive: true });
+  writeFileSync(outPath, JSON.stringify({
+    generatedBy: 'scripts/corpus-run.mjs --inventory',
+    nodeVersion: process.version,
+    note: 'Per-sheet measurements only. No test was run and no verdict was computed. ' +
+          "ROUND2-SPECIFICITY-SCREEN.md §6.2's ranking and tie-break are NOT applied here — " +
+          'scripts/round2-select.mjs --rank reads this artifact and applies them.',
+    fileCount: files.length,
+    sheetCount: nSheets,
+    files,
+  }, null, 2));
+  writeFileSync(csvPath, inventoryToCsv(files));
+
+  console.log(`\n${files.length} file(s), ${nSheets} sheet(s): ` +
+    `${nSheets - nSheetFail} measured, ${nSheetFail} did not import, ${nEmpty} measured with zero valid rows` +
+    (nFileFail ? `, ${nFileFail} workbook(s) did not open` : '') + '.');
+  console.log('No ranking was applied and no verdict was computed.');
+  console.log(`  JSON: ${outPath}`);
+  console.log(`  CSV:  ${csvPath}`);
+}
+
+// ── Mode: analysis (the default) ────────────────────────────────────
+async function runAnalysisMode(entries, outPath, csvPath) {
+  const outDatasets = [];
+  for (const entry of entries) {
+    process.stdout.write(`\n▶ ${entry.label || basename(entry.path)} (${entry.path})\n`);
+    try {
+      const d = await runDataset(entry);
+      outDatasets.push(d);
+      const s = d.structure;
+      console.log(`  structure: assay=${s.assay} (${s.assaySource}), dataType=${s.dataType} (${s.dataTypeSource}), ` +
+        `rowSemantics=${s.rowSemantics}, vst=${s.vst} (${s.vstSource}), ${s.nRows}×${s.nCols}` +
+        (s.nConditions ? `, conditions=${s.nConditions} (${s.conditionType})` : '') +
+        (d.sheet ? `, sheet="${d.sheet}"` : ''));
+      if (s.attributes?.length) {
+        console.log(`  §2.8 held out ${s.attributes.length} column(s): ` +
+          s.attributes.map(a => a.constantWithin[0] ? `${a.header} (constant within ${a.constantWithin[0].header})` : a.header).join(', '));
+      }
+      console.log(`  dataset severity: ${d.severity.severity} (HIGH=${d.severity.high} MOD=${d.severity.mod} dims=${d.severity.nFlaggedDimensions})`);
+      console.log(`  per-test flags: HIGH=${d.counts.HIGH}  MODERATE=${d.counts.MODERATE}  LOW=${d.counts.LOW}  N/A=${d.counts['N/A']}`);
+    } catch (e) {
+      console.log(`  ✗ ERROR: ${e.message}`);
+      outDatasets.push({ label: entry.label || basename(entry.path), path: entry.path, error: e.message });
+    }
 }
 
 mkdirSync(dirname(outPath), { recursive: true });
@@ -418,3 +636,18 @@ writeFileSync(csvPath, toCsv(outDatasets));
 console.log(`\nWrote ${outDatasets.length} dataset(s):`);
 console.log(`  JSON (full, with evidence): ${outPath}`);
 console.log(`  CSV  (flat flag table):     ${csvPath}`);
+}
+
+// ── Main ────────────────────────────────────────────────────────────
+const { positional, flags } = parseArgs(process.argv.slice(2));
+const { datasets: entries, manifestOut } = resolveEntries({ positional, flags });
+const INVENTORY = !!flags.inventory;
+
+// The two modes default to different artifacts so an inventory run cannot
+// silently overwrite an analysis one.
+const outPath = flags.out || manifestOut ||
+  (INVENTORY ? 'corpus-out/corpus-inventory.json' : 'corpus-out/corpus-results.json');
+const csvPath = outPath.replace(/\.json$/i, '') + '.csv';
+
+if (INVENTORY) await runInventoryMode(entries, outPath, csvPath);
+else await runAnalysisMode(entries, outPath, csvPath);
