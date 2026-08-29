@@ -26,6 +26,14 @@ Fill this in before walking position 1.
 address bar rather than described. Swapping `https://datadryad.org/` for
 `https://datadryad.org/api/v2/` returns the same set as JSON.
 
+**The tracked copy is the only copy.** The fetch also wrote per-position `files-NN.json` and
+`versions-NN.json` for all 60 into an untracked `round2-raw/` in the checkout root. Verified S390
+before deletion: the five aggregate files are sha-256 identical between the two copies, and the tracked
+manifest reproduces all 60 file records and all 60 version records with the version records embedded.
+**The untracked directory was deleted.** What it held beyond the manifest was pagination envelopes,
+which say nothing about any deposit — and a scratch copy that duplicates committed content but cannot
+be re-derived identically is later mistaken for a source.
+
 **If the interface cannot sort on first publication date**, stop and record what it does offer here.
 That is a finding about §6.1, not something to work around.
 
