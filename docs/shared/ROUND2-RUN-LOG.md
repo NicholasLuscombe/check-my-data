@@ -63,10 +63,10 @@ Every position walked, accepted or rejected, in order.
 | 7 | doi:10.5061/dryad.hqbzkh1vv | 2026-08-28 | 1 | | |
 | 8 | doi:10.5061/dryad.djh9w0wf0 | 2026-08-28 | 1 | | |
 | 9 | doi:10.5061/dryad.s7h44j1pg | 2026-08-28 | 1 | | |
-| 10 | doi:10.5061/dryad.d2547d8b7 | 2026-08-28 | 1 | | |
+| 10 | doi:10.5061/dryad.d2547d8b7 | 2026-08-28 | 1 | rejected | only considered file exceeds the 50 MiB import cap |
 | 11 | doi:10.5061/dryad.2ngf1vj4r | 2026-08-28 | 1 | rejected | no tabular file in a considered format |
 | 12 | doi:10.5061/dryad.d7wm37qh7 | 2026-08-27 | 1 | | |
-| 13 | doi:10.5061/dryad.nk98sf85b | 2026-08-27 | 1 | | |
+| 13 | doi:10.5061/dryad.nk98sf85b | 2026-08-27 | 1 | rejected | only considered file exceeds the 50 MiB import cap |
 | 14 | doi:10.5061/dryad.bvq83bkr6 | 2026-08-27 | 1 | | |
 | 15 | doi:10.5061/dryad.80gb5mm5q | 2026-08-27 | 1 | rejected | no tabular file in a considered format |
 | 16 | doi:10.5061/dryad.fxpnvx18x | 2026-08-27 | 1 | rejected | no tabular file in a considered format |
@@ -77,7 +77,7 @@ Every position walked, accepted or rejected, in order.
 | 21 | doi:10.5061/dryad.m827p | 2026-08-27 | 2 | | |
 | 22 | doi:10.5061/dryad.xsj3tx9vw | 2026-08-27 | 1 | | |
 | 23 | doi:10.5061/dryad.6q573n6ff | 2026-08-27 | 1 | | |
-| 24 | doi:10.5061/dryad.sn02v6xfg | 2026-08-27 | 1 | | |
+| 24 | doi:10.5061/dryad.sn02v6xfg | 2026-08-27 | 1 | rejected | only considered file exceeds the 50 MiB import cap |
 | 25 | doi:10.5061/dryad.wm37pvn3k | 2026-08-27 | 1 | rejected | no tabular file in a considered format |
 | 26 | doi:10.5061/dryad.z34tmpgws | 2026-08-27 | 1 | rejected | no tabular file in a considered format |
 | 27 | doi:10.5061/dryad.83bk3jb37 | 2026-08-27 | 2 | | |
@@ -119,6 +119,19 @@ Every position walked, accepted or rejected, in order.
 test that failed — no tabular file in a considered format; imports with error; under three columns; no
 numeric matrix with replicate or condition structure. **Never a reason drawn from content, subject,
 author or journal.**
+
+**The cap is two gates, and three is a lower bound.** Verified S390 at `1ad8faa`: 50 MiB, written as a
+literal at `ImportView.jsx:298` on `file.size` and at `:215` on the decoded `text.length`. It sits
+before the xlsx branch, so it covers csv, tsv and Excel alike, and it is a hard refusal with no
+override. **Because `:215` measures the CSV re-serialisation of the chosen sheet, a workbook under
+50 MiB on disk can still be refused** — xlsx is compressed and its serialised form is not.
+
+**So the three cap rejections above were found from file size and are a floor, not a count.** Any
+further one can only surface at import, and is recorded then.
+
+**Why a cap rejection is a rejection rather than a single-armed run.** `BatchView` does not enforce the
+cap (S381 row 1, confirmed S390), so an over-cap deposit would run on arm A and be refused on arm B.
+§3 requires both arms on all 30, and a deposit that can carry only one cannot be scored.
 
 ---
 
