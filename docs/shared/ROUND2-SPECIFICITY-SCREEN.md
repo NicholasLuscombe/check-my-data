@@ -347,3 +347,85 @@ is being built as an `--inventory` mode on `corpus-run.mjs`, so that the selecti
 share one implementation of the prep rather than becoming a second. S381's rule applies: toggle, do
 not port. The inventory reports measurements only — **it does not implement §6.2's ranking or
 tie-break**, which are applied downstream against the rule as written.
+
+## 11 — §10 is withdrawn, S391, before any deposit was analysed
+
+**§10 was wrong. §6.2's citation was correct as originally written and is restored.** §10's text stays
+in the record, as this document's preamble requires. Nothing has been analysed.
+
+### 11.1 — What §10 claimed, and what is true
+
+§10 said of "the S373 census path": *there is no such path*; *S373 was a display-label census*; it
+*enumerated no sheet, called `extractAnalysisInputs` nowhere, and left no script behind*; and *the
+per-sheet measurement §6.2 requires did not exist*. **Every one of those is false.**
+
+`test/probes/probe-s373-corpus-shape-census.mjs` is headed **"S373 Part A"** and states its own scope:
+parse geometry and role inference for every sheet of every real-world deposit — rows and columns as
+held and as parsed, which columns role inference tags, numeric data columns entering the matrix, the
+grouping outcome, and the valid row count after completeness filtering. Its route is
+`parseExcel → preprocessRaw → detectBlocks → detectHeaderRows → inferBaseRoles →
+detectGroupAttributes → extractAnalysisInputs`, stopping before `runFullAnalysis`, with no verdict,
+flag or severity computed.
+
+**That is precisely what §6.2 describes.** The name was accurate. `scripts/round2-select.mjs` cites it
+correctly at `:12` and `:30`.
+
+`docs/shared/S373-DISPLAY-LABEL-CENSUS.md` is **S373 Part 3**, a different part of the same session,
+covering headings, units and frames across eight rendering surfaces.
+
+### 11.2 — How the error was made
+
+Chat read the Part 3 document, saw *display-label census*, and wrote "S373 was a display-label
+census" — a true statement about one part, widened into a statement about the session. The document's
+own second line reads "S373 Part 3" and was not followed up.
+
+Chat then asserted absence — *no such path*, *left no script behind*, *did not exist* — from a search
+over markdown documents only. **`scripts/` and `test/probes/` were never searched.** Four other greps
+were requested that day; this one was not.
+
+Two known signatures at once: a true finding widened past its scope, and absence concluded from a
+window that was never the whole search space.
+
+**§10 was committed at `992b79f` and pushed.** `scripts/round2-select.mjs --measure` had landed at
+`1ad8faa` and merged at `3dcd928`, two and a half hours earlier.
+
+### 11.3 — What survives from §10
+
+Two things, on corrected grounds.
+
+- **The stopping point stands as §6.2 states it** — import and role inference, stopping at
+  `extractAnalysisInputs`, no test run and no verdict computed while the sheet is being chosen. §10
+  said this and it was never in doubt.
+- **The inventory reports measurements and does not implement §6.2's ranking or tie-break.** This
+  constraint stands. §10 called the downstream unnamed; it has a name — `rankDeposit`
+  (`round2-select.mjs:486`), which implements the four-way tie-break plus `decidedBy` and tie
+  detection.
+
+### 11.4 — Disposition of `scripts/round2-select.mjs`
+
+Its three stages get three answers. **One prep implementation remains in the round-2 path.**
+
+- **`--fetch` is superseded by `scripts/round2-fetch.mjs`.** `--fetch` never ran: its tracked artifact
+  `docs/shared/round2-raw/round2-selection.json` records the fetch aborting on HTTP 401 with no token,
+  and `measure: []`, `ranking: []`. The two write different directory conventions — `R2-NN` against
+  `pos-NN` — so `--measure`'s scan at `:453` cannot see the acquired corpus at all. **Two fetchers
+  writing different layouts is how a corpus gets analysed twice from different bytes.**
+- **`--measure` is superseded by `corpus-run.mjs --inventory`.** Its `prepStructure` is a byte-for-byte
+  copy. The copy was correct under its own constraint — both files parse argv and run at load, so
+  neither can be imported, and the header cites S381's 25 divergences as why copying beat
+  re-deriving. **`--inventory` removes the constraint** by living inside the runner that owns the
+  function. A selection measuring a different prep from the one arm A analyses is the confound §7
+  exists to prevent.
+- **`--rank` stays**, reading the inventory's output. It is arithmetic over the measurement and needs
+  no prep. Rebuilding it would be a third implementation of the same rule.
+
+The copied `prepStructure` is deleted with `--measure`.
+
+### 11.5 — A duplicate Chat built
+
+`round2-fetch.mjs` was written at S391 without checking whether a fetcher existed. It does, and had
+since S390. The `R2-NN`/`pos-NN` split in 11.4 is the direct consequence.
+
+**The duplicate is kept and the original superseded**, on the evidence: `round2-fetch.mjs` has 195
+verified files behind it and `--fetch` has none. That is a disposition, not a defence — building blind
+produced a divergence that had to be found by someone else reading the tree.
