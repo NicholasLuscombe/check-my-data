@@ -17,7 +17,7 @@ Fill this in before walking position 1.
 | | |
 |---|---|
 | **Search URL, verbatim** | `https://datadryad.org/api/v2/search`, then `?page=2` and `?page=3` |
-| **Retrieval timestamp** | 2026-08-29, JST — replace with the exact clock time you noted |
+| **Retrieval timestamp** | 2026-08-29, 15:36:00 JST |
 | **Sort control label, as the interface names it** | none applied; the listing returns date-descending by default |
 | **Date field it sorts on** | `publicationDate` — the most recent published version's date, per §9.2 |
 | **Total results reported** | 72,099 (same figure from the web interface at `https://datadryad.org/search?q=`) |
