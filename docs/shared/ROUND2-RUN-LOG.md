@@ -171,8 +171,62 @@ One row per accepted deposit. Filled before either arm runs on it.
 count goes stale silently and the tables cannot.
 
 ```bash
-command grep -cE "accepted" docs/shared/ROUND2-RUN-LOG.md
-command grep -cE "rejected" docs/shared/ROUND2-RUN-LOG.md
+command grep -c '| rejected |' docs/shared/ROUND2-RUN-LOG.md
+command grep -c '| accepted |' docs/shared/ROUND2-RUN-LOG.md
+command grep -cE '^\| [0-9]+ \| doi:.*\| \| \|$' docs/shared/ROUND2-RUN-LOG.md
 ```
 
+The third command counts rows still undecided — outcome and reason both blank.
+
+**The original commands searched the whole file and were wrong.** Measured S391: `-cE "rejected"`
+returned **24** against 21 real rejections, matching three prose lines including the command quoting
+itself; `-cE "accepted"` returned **4** when no deposit had been accepted. Both figures are plausible
+on sight, which is why the error survived. **Match the table row, not the word.**
+
 Positions walked is the highest number in §3's first column.
+
+---
+
+## 6 — Acquisition
+
+**Route.** Dryad's per-file endpoint at `/api/v2/files/<id>/download` requires an OAuth2 bearer token
+and answers 401 without one. An API account is self-serve: ORCID login, then the interface on the
+*My account* page. Tokens last 10 hours. The whole-deposit bundle needs no token but moves 1,425 GiB
+to obtain 247 MiB, and **"largest file per deposit" was rejected as a substitute** — §6.2 ranks on
+valid rows × data columns and a 40 KB CSV can outrank a 4 MB one.
+
+**Rate limit, measured S391.** 100 requests per hour per API account, resetting on the hour UTC.
+Reported on every response as `ratelimit-limit`, `ratelimit-remaining` and `ratelimit-reset`, the last
+a Unix timestamp. **No `Retry-After` header is sent**, so a client backing off blindly will keep
+missing the window. Acquiring 199 files took three windows.
+
+**What was fetched.** 199 considered files across the 39 standing deposits, 247.3 MiB, into
+`corpus-data/round2/pos-NN/`. Each verified on size and then sha-256 against the manifest before being
+written; nothing failing either check was kept. The receipt is `corpus-data/round2/round2-files.json`.
+`corpus-data/` is gitignored — the manifest digests and the receipt make the set reproducible, so the
+bytes are not tracked.
+
+**Zero considered files exceed the 50 MiB cap.** The `ImportView.jsx:298` gate on `file.size` cannot
+fire on this corpus. **The `:215` gate on decoded `text.length` still can**, because it measures the
+CSV re-serialisation of the chosen sheet; §3's floor stands.
+
+### 6.1 — Three facts about the manifest, verified S391
+
+- **The 21 rejections recompute exactly.** From the tracked manifest, all 60 rows matching §3, under
+  both readings of §6.2's format list — extension on `path`, and extension or tabular `mimeType`.
+  §6.2 names formats without saying which field decides, and **that ambiguity has zero incidence**:
+  both readings give the same 21 rejections and the same 39 standing. Recorded as measured, not
+  resolved by choosing after the fact.
+- **`storageSize` equals the sum of `files[].size` on 60 of 60.** Bundle cost and tabular payload are
+  both derivable from the manifest without downloading anything.
+- **No file carries `deleted` status.** 351 `copied`, 60 `created`, 411 total. Nothing was excluded on
+  status grounds and no carried-forward deletion is in play.
+
+### 6.2 — What §6.2's cell count is measured on
+
+**`prepStructure` takes the first block when a sheet holds several** — `corpus-run.mjs:152–153`,
+`detectBlocks(preprocessed)` then `blocks[0]`. So valid rows × data columns is the **first block's**,
+not the sheet's, on any multi-block sheet. Round 1 saw `detectBlocks(…).length > 1` on 2 of 41 sheets.
+
+**Stated, not fixed.** Changing it now would be a selection rule altered after the corpus was in hand.
+The sheet inventory records blocks detected per sheet so the incidence is measurable.
