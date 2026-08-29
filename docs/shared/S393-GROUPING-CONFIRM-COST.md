@@ -355,8 +355,8 @@ Three separate C10 assumptions, each of which read a slow sheet as a broken one:
 from a 5.7 s/run mean over three C10 sheets. Measured here: `C22 :: Exp. OA` at 1.6–2.8 s and
 `C15 :: Fig. 6` at 1.5–1.7 s sit at or below that mean, while `C14 :: Data` needs 167–236 s and
 `C20 :: Microcosm soil B` 238–242 s per run — **40 to 100 times the projection's basis** — and
-`C20 :: Microcosm soil A` did not complete within a 600 s wait. The projection is built on a sheet from
-the cheap end of the corpus. **It is not a budget for round 2.**
+a single run on `C20 :: Microcosm soil A` exceeds 41 minutes without completing. The projection is
+built on a sheet from the cheap end of the corpus. **It is not a budget for round 2.**
 
 ### What was given up in the per-test read, recorded rather than implied
 
@@ -414,9 +414,14 @@ per sheet, not an inventory field. That call is Nick's.
   Finding 2 adds a second reason to hold that line.
 - **The arm-1-only case**, as set out under *The bound on that claim*.
 - **Per-test verdict tiers** for tests that ran, as set out above.
-- **`C20 :: Microcosm soil A`.** Did not complete within the 600 s verdict wait; its structural twin
-  `soil B` is identical in the artifact (204 x 17, 37 groups, same size vector) and completed at ~240 s a
-  run, so the cost is data-dependent rather than shape-dependent. Recorded as a bound, not a result.
+- **`C20 :: Microcosm soil A`.** Not measured, on three attempts. The pre-S393 `runArm` path ran past
+  14 minutes without completing a run; the nine-sheet pass reported run (a) timing out on the 600 s
+  verdict wait; and a retry at a 2400 s wait produced no output in 41 minutes, **during which that
+  wait never fired** — the poll's own 25 ms timer never ran, which is consistent with the battery
+  holding the event loop rather than yielding, though that inference was not itself instrumented. Its
+  structural twin `soil B` is identical in the artifact (204 x 17, 37 groups, same size vector) and
+  completed at ~240 s a run, so the cost is data-dependent rather than shape-dependent. **Recorded as
+  a bound, not a result: a single arm-B run under `replicates` exceeds 41 minutes.**
 - **`C22 :: Exp. ST`.** No arm-B numbers exist for it, because the product will not run it — Finding 4.
 
 ---
