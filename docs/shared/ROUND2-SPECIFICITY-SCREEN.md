@@ -270,3 +270,54 @@ stops and the deposit is not scored.** The risk is low and low is not measured.
 **jsdom is not a browser.** Verdicts do not depend on layout, which is why the probe can produce them,
 but nothing here says anything about what a reader sees. **Display defects remain outside this screen
 entirely** and a clean arm B must not be cited about them.
+
+## 9 — §6.1's ordering rule, corrected S390, still before any deposit was acquired
+
+**This supersedes two things in §6.1: the ordering rule, and the reason given for it. §6.1's text
+stays in the record, as this document's preamble requires.** Nothing has been acquired.
+
+### 9.1 — What was measured
+
+- The empty query returns the whole repository. **72,099** results in the interface and the same
+  figure from `https://datadryad.org/api/v2/search`.
+- **The listing is already ordered by date, descending, with no sort parameter.** First page runs
+  2026-08-28 then 2026-08-27.
+- **`publicationDate` equals `lastModificationDate` on every entry of the first page**, and
+  `versionNumber` there runs 2 through 10, with `versionChanges` reading `files_changed` or
+  `metadata_changed`. Only one entry in the top seventeen sits at version 1.
+- **The dataset page for `doi:10.5061/dryad.d2547d8b7` — `versionNumber: 10` in the API — shows one
+  published version, dated 28 August 2026.**
+
+**So the API's `versionNumber` counts curation rounds, not published versions.** Checked on one
+deposit. §6.1 instructs recording "the version count and every version date"; read against that field
+it records the wrong quantity.
+
+### 9.2 — The ordering rule, replaced
+
+**Order by the search listing's `publicationDate`, most recent first, taking the list in the order the
+recorded URL returns it.**
+
+For a deposit with one published version that **is** its first publication date. For a deposit with
+more than one, it is the most recent published version's date. **Those deposits are recorded, not
+excluded** — an exclusion here would be a content-free rule with a content-shaped effect.
+
+**Why this rather than first publication.** Ordering on first publication would need a per-dataset
+versions call for every candidate, and the resulting list could not be reproduced from a URL at all.
+**One recorded URL is §6.1's binding requirement**, and this rule keeps it.
+
+### 9.3 — The reason given in §6.1 is withdrawn
+
+§6.1 claimed deposits get revised because somebody complained, and used that to reject ordering on the
+current version's date. **That claim was never checked against Dryad's versioning before it was
+written.** Sixteen of the first seventeen entries sit above version 1, which is far too many for
+complaint-driven revision to explain, and the one deposit opened resolves to a single published
+version.
+
+**Complaint-driven revision certainly happens. A high `versionNumber` is not evidence of it.** The
+sampling rule in §3 still forbids drawing from a flag list, a retraction notice or a PubPeer thread,
+and that is untouched.
+
+### 9.4 — What to record, superseding §6.1's version instruction
+
+**Per deposit: the number of published versions and their dates, read from the dataset page's version
+history — not `versionNumber` from the API.**
