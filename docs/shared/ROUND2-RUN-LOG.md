@@ -230,3 +230,10 @@ not the sheet's, on any multi-block sheet. Round 1 saw `detectBlocks(…).length
 
 **Stated, not fixed.** Changing it now would be a selection rule altered after the corpus was in hand.
 The sheet inventory records blocks detected per sheet so the incidence is measurable.
+
+**Measured S391, once the inventory existed.** Across **251 measured round-2 sheets, 5 take block 1 of
+several** — and one of those discards **148 of 149 blocks**. On `C11.xls` (round 1, 34 sheets, run as
+the shakedown), **13 of 31 measured sheets** took block 1 of several, the widest discarding 13 of 14.
+**Low incidence, near-total loss per instance; either figure quoted alone misleads.**
+`detectBlocksSplit` carries it per sheet, so a deposit whose selected sheet ranked on a fragment is
+identifiable rather than assumed.
