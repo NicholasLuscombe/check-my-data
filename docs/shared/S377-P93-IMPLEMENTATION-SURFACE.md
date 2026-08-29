@@ -522,3 +522,15 @@ established as shipped rather than proposed (§4.1).
 `rawPs` at `:807`, `bhFDR` at `:808`, `partialRowP`'s initialiser at `:734` and its only write at
 `:785`, with the gate that guards it at `:738`. No stale line number was found in the material this
 dispatch touched.
+
+---
+
+## Register rows moved from STATUS, S392
+
+STATUS is gitignored and has no git history, so a register row is the only copy of
+whatever it holds. These bodies are moved here verbatim; the register row keeps its
+claim and points at this section.
+
+### P172 — **the `groupings` provenance channel has no consumers in `src/`**
+
+open, **allocated S377**. `detectGroupAttributes` returns `groupings`, recording which columns were held out and why, and its own comment calls that what makes a corpus run auditable. **Nothing in `src/` reads it.** The shipped hold-out therefore already fails P93 disposition §6 point 4 — a column is dropped, the reason is recorded, and nothing surfaces it. **Any P93 interface work inherits this rather than introducing it.** Found in the S377 implementation-surface read, `docs/shared/S377-P93-IMPLEMENTATION-SURFACE.md`

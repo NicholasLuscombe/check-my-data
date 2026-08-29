@@ -434,3 +434,15 @@ not produce. Reported here rather than fixed — this dispatch changes nothing i
   `METHODOLOGY.md:505` separately notes the batch has no coverage of this path at all
   (`groupingPending` is zero across all 27 fixtures), so a run would not have exercised it either.
 - **Preview: N/A.** No rendering surface; the app was not started.
+
+---
+
+## Register rows moved from STATUS, S392
+
+STATUS is gitignored and has no git history, so a register row is the only copy of
+whatever it holds. These bodies are moved here verbatim; the register row keeps its
+claim and points at this section.
+
+### P212 — **a grouping confirm at the batch drill-in never reaches the batch row or the export**
+
+open, **allocated S390**. `confirmedResults` is `ReportView`-local session state at `ReportView.jsx:183` with no setter returning to `BatchView`, so after a human confirms at the drill-in (`BatchView.jsx:297`) the batch row and `generateBatchSummary()` keep the pre-confirm numbers. **One file, two surfaces, different answers, turning on a click.** The Tests column is separately 4 lower on that class: `nApplicable = ran + withheld` at `BatchView.jsx:208-209` excludes pending as its own coverage state (`coverage.js:77`), and `computeSeverity` rates over 25 of 29. **Condition-2 candidate, ruling owed and not made here.** The bar is that a surface contradicts the verdict, and whether confirming moves a verdict is unmeasured — the four grouping-guarded tests were `N/A` on all nine `groupingPending` sheets and nothing has run them. **The deciding measurement is one sheet confirmed at the drill-in with the severity read before and after.** No harness reaches it; the confirm is a click, which is why it survived. Found in the S390 read-only, `docs/shared/S390-GROUPING-PENDING-READ-ONLY.md`

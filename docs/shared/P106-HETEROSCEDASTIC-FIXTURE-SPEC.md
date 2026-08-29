@@ -365,3 +365,15 @@ log-normal story does not explain it, and there is no transform state to blame a
 being mislabelled. The costing run caught one at p = 0.00033, HIGH, severity 2. **A test that calls HIGH
 on roughly one honest file in seven is a different class of problem from the raw-arm two**, and it is
 the open question this instrument produced.
+
+---
+
+## Register rows moved from STATUS, S392
+
+STATUS is gitignored and has no git history, so a register row is the only copy of
+whatever it holds. These bodies are moved here verbatim; the register row keeps its
+claim and points at this section.
+
+### P106 — **no instrument tests honest heteroscedasticity, on either of its two axes**
+
+open, **step 2, and now split**. Spec at `docs/shared/P106-HETEROSCEDASTIC-FIXTURE-SPEC.md`, `9979894`. **Condition axis — proceeds.** `condNoiseRatio` built and merged at `216b80e`, centred so total replicate noise is fixed and only its split moves; negative control 33/33 byte-identical at ratio 1. The §6 ladder reads flag rate per test per rung and never calls `s`, so it is untouched by the S361 finding. **Primary target is Stage 2's stated assumption that replicate noise structure is preserved across conditions in honest data**, and P4's different-direction gate anchored on cross-condition variation "rarely exceeding ±20–30% post-VST". **Subject axis — blocked on its readout, not its generator.** `sigmaS` exists; the pooled `s` estimator is contaminated by the condition ratio (see Accepted limitations). **Ruled at S361: the measurement narrows what METHODOLOGY claims those tests mean and no threshold moves on the strength of it.** Open inside it — whether the two-assay-label arm runs from the start

@@ -296,3 +296,19 @@ runs one cell to arbitrary depth, which is how the control's outlier was settled
 Output lands in `test/probes/out-s369/`, which is gitignored and does not survive a worktree teardown.
 The grid is deterministic given its seed base, so regenerating is safe; it costs 53 seconds per
 replicate.
+
+---
+
+## Register rows moved from STATUS, S392
+
+STATUS is gitignored and has no git history, so a register row is the only copy of
+whatever it holds. These bodies are moved here verbatim; the register row keeps its
+claim and points at this section.
+
+### P83 — `aggregatePerGroup` combines correlated p
+
+open, **measured at S369, narrowed and not closed.** **The layer amplifies and does not originate:** the probability-integral-transform arm collapses Fisher to nominal (0.875%, 0.925%, 0.675% against 1%) on the three column-grouped fixtures with no planted relationship, where the raw arm runs 8.6% to 10.6%. **The stated expectation was half right and the framing was wrong** — the arms do fail in opposite directions, and `:221-222` combines them by maximum, so they cannot cancel and Fisher's error passes through undamped. **The correlation pathway is real and no honest fixture in this corpus exercises it:** 36 of 48 pairwise Spearman figures fall between −0.055 and +0.032, and the four high values are all DS02's planted rescaled copy on the `g1-g2` pair. **Chat's mechanism was refuted** — a shared row order does not by itself correlate two groups — **and no replacement is offered.** The synthetic grid stands as a calibration curve (Fisher 8.4× at two groups, 19.9× at three, 55× at six, 93× at ten, at ρ = 0.9) and nothing honest sits on it. **Sizing the pathway needs deposits with genuinely related conditions — P141.** `docs/shared/S369-P83-AGGREGATION-CALIBRATION.md` and `S369-P83-NULL-CORRELATION.md`
+
+### P142 — **Taking a maximum over the layer's two arms costs a near-doubling at zero correlation**
+
+open. Combined reads 1.48×, 1.66×, 1.73× and 2.04× nominal at two, three, six and ten groups at ρ = 0 — near the **sum** of the arm rates rather than near either, with the arms co-firing on 0.039% of draws against arm rates of 0.104% and 0.101%. **Distinct from P83:** present with every arm exactly calibrated and no correlation at all. The cause is that Fisher aggregates across all groups while the Šidák arm reads the single smallest, so the two respond to different shapes of one p-vector. **Chat predicted "much nearer 1×" from the fact that both arms read the same p-values and was wrong — shared inputs do not make dependent decisions.** `docs/shared/S369-P83-AGGREGATION-CALIBRATION.md`

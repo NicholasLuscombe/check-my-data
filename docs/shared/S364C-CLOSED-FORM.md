@@ -213,3 +213,15 @@ of the check used `τ·exp(sz)`, whose mean is `e^{s²/2}`, and read 5.96 agains
 form was right and the check was wrong. The shipped statistic pools pairwise differences and
 row-centred residuals, both exactly mean zero, so the application is sound; the trap is only in
 checking it.
+
+---
+
+## Register rows moved from STATUS, S392
+
+STATUS is gitignored and has no git history, so a register row is the only copy of
+whatever it holds. These bodies are moved here verbatim; the register row keeps its
+claim and points at this section.
+
+### P124 — **the normaliser is computed from the values it normalises**
+
+open. `fitPredictedSigma` recovers a mean-variance slope of **2.007 on raw and 0.039 on log** — constant-CV, correctly fitted — which makes `σ̂_r ∝ m̂_r`, and the row mean is built from the same replicates being differenced. **Dividing a difference by a denominator containing its own terms compresses the tails.** Cleaning the denominator recovers γ/2 at 1.20 and 1.39 against 0.27 and −0.04 shipped. **Same defect as the dead *s*-gate: an estimator contaminated by the thing it measures.** Scope unknown — needs a census of every `fitPredictedSigma` caller, because nothing establishes this is confined to one test. `docs/shared/S364C-CLOSED-FORM.md`, `9429c55` **Callers measured at S364 close: three — Kurtosis (`kurtosis.js:99`), LOESS (`loessResidual.js:294`) and Regional Noise (`regionalNoise.js:41`).** `primitives.js:65`'s docstring says "Kurtosis, Regional Noise, RSC" and is **wrong in both directions** — RSC does not call it and LOESS is missing, so a census started from the docstring would chase a non-caller and miss a caller. ~~**Stale comment is a `src/` edit and Code owns it; it is owed and needs a dispatch.**~~ **Discharged — superseded by this row's own tail (S367):** at `9c4f563` the docstring reads "Kurtosis, LOESS Residual, Regional Noise" and a caller grep returns exactly those three. Verified at source. **Two of the three carry existing adjudications on DS12b** — LOESS as the positive control, Regional Noise as the measured false positive. **Exposure measured at S365 and the three callers split three ways.** Kurtosis is exposed and verdict-bearing: its statistic is self-normalised and its fit-branch null is not, because `:269` draws `sigR·randn()` and `:272` divides by the same `sigR`, cancelling to `z₁ − z₂`. **LOESS is not exposed at all** — `predSigma` feeds only the `expectedNoise` and `ratio` display columns, no statistic and no p, so the positive-control question dissolves rather than resolving. **Regional Noise is exposed but null-matched**, since its permutation shuffles whole rows and carries the standardisation error into the null, so the cost is power and not calibration — and **P124 therefore does not explain its DS12b false positive**, because a compression cannot manufacture a positive. **22 of 25 fixtures sit on the unmatched branch.** The docstring is corrected at `9c4f563`

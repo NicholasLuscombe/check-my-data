@@ -782,3 +782,15 @@ node test/probes/probe-s375-p93-census.mjs            # both passes
 
 `--pass2` runs the sheet and fixture censuses first, because it is arithmetic
 over what they return.
+
+---
+
+## Register rows moved from STATUS, S392
+
+STATUS is gitignored and has no git history, so a register row is the only copy of
+whatever it holds. These bodies are moved here verbatim; the register row keeps its
+claim and points at this section.
+
+### P93 — no replicate-identity check — an x/y column pair reads as two replicates
+
+open, **disposed at S376 (`9ec70e4`) and amended twice at S377 (`2d89d4c`, `3ac1578`)**. All 138 columns across the fifteen column-grouped sheets enter `dataCols` (`engine.js:113`); sixty are axes; no mechanism can hold one out. Twelve sheets are C25's and three C15's, and **C15's three carry no axis**, so the evidence base is twelve sheets in one workbook. **Strict monotonicity is dead** — `Fig. 4e`'s five recordings of one decay split two-and-three on it, so the property is decided by measurement noise. **First-difference variation separates**: 60 of 60 axes, 6 of 78 non-axis, 0 of 160 fixture columns, on a plateau running from just above 0.3646 to 0.8481. The six are `Fig. 4b`'s Arrhenius ordinates — two transforms of one measurement, neither replicate nor independent signal. **The adversarial read at S376 took both arguments and left the measurement.** The third-category claim is demoted to a description of this corpus; **the pre-tick is dropped** — holding a column out takes an affirmative click. Blocked on P170 and P171 before any removing default. `docs/shared/S375-P93-STRUCTURAL-CENSUS.md`, `docs/shared/P93-DISPOSITION.md`, `test/probes/probe-s375-p93-census.mjs`. **Amended at S377 on the implementation-surface read, `2d89d4c`:** a hold-out is a methodology change, not a display change. Twenty-three of twenty-nine modules read column count; taking four columns to two drops six tests to N/A on `nC < 3` and collapses every surviving pair family from `C(4,2)=6` to 1, where BH returns the raw p. **Detectors go silent while survivors get anti-conservative, in the same action.** The empty-group case is a throw, not a silent fall-through — `"Matrix has no rows."` **Two new rows fall out: P172 and P173.** `docs/shared/S377-P93-IMPLEMENTATION-SURFACE.md`

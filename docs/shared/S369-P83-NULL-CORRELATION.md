@@ -449,3 +449,15 @@ worktree teardown; the run is deterministic given its seeds, so regenerating is 
 `fisherChi`, `fisherDF`, `fisherP`, `worstGroupFlagRaw`, `groupMinP`, `groupMinPAdj` and
 `multiplicityCorrected`: **24 of 24 cells identical, 0 mismatched.** The scheduling shim is
 byte-identical against the conventional stand-in on real test functions.
+
+---
+
+## Register rows moved from STATUS, S392
+
+STATUS is gitignored and has no git history, so a register row is the only copy of
+whatever it holds. These bodies are moved here verbatim; the register row keeps its
+claim and points at this section.
+
+### P41 — **Fisher's arm of `aggregatePerGroup` amplifies an inflated input rather than combining badly**
+
+open, **replicated and reattributed at S369**. The 19.20% at `SESSION339-SUMMARY.md:83` replicates — 17.625% (se 0.602), same cell, same threshold, about 0.85 combined standard errors apart, so the figure is sound. **The attribution was not.** The S369 grid at three groups tops out at 5.592% at `ALPHA.NOTE`, so no dependence level on it reaches 19%, and the probability-integral-transform arm puts 2.150% on dependence and the rest on LOESS's own marginal. **The row's earlier "on clean data" clause was never carried by its own evidence** — DS02 is a fabricated fixture made into a null by a row shuffle, and the one genuine clean-fixture reading in the same probe header is a Route 4 experimental measurement at 2.2%, not a shipped test. **Fisher needs a corrected input before it needs a corrected null — see P135.** `docs/shared/S369-P83-NULL-CORRELATION.md`

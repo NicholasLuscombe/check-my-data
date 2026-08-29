@@ -424,3 +424,15 @@ allocate anew:
 - **One coordinate resolver, one holdout.** Modality names flagged columns `Col ${d.Col}` where
   Column Goodness-of-Fit, Entropy and Baseline Balance all run the two-stage
   `dataColMap → origColMap → letter` resolve. Not a condition-2 defect; recorded so it is not lost.
+
+---
+
+## Register rows moved from STATUS, S392
+
+STATUS is gitignored and has no git history, so a register row is the only copy of
+whatever it holds. These bodies are moved here verbatim; the register row keeps its
+claim and points at this section.
+
+### P211 — the condition-2 classification prices the cards, and condition 2's bar is not scoped to cards
+
+open, allocated S388. `docs/shared/CONDITION-2-CARD-CLASSIFICATION.md` enumerated 120 flag surfaces over 28 cards. The bar is *no surface contradicts its verdict*, and S388 measured a live contradiction on a surface that is neither a card nor a view: on `14-crctest-survey.csv` the Copy Summary read `blocks=20` where the card read 42. **The 120 is a FLOOR.** Fixed at `47de33b`, but the enumeration has never been run over `ReportView.jsx`, `excelExport.js`, `findingComposers.js` or `handoffModel.js`. **A `.length` grep finds four of five capped quantities and misses the fifth** — `handleExportExcel`'s `getPrimaryFinding` is a third copy of the sentence inside `ReportView.jsx` itself and its `nDR` is a `reduce`. Same shape as P161; P162, P89 and P155 are the same finding elsewhere.

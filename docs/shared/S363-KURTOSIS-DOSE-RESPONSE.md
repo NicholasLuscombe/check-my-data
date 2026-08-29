@@ -315,3 +315,15 @@ Three things this grid settles that were not asked for. None is scoped and none 
 - **A rate from a generator is not a field rate.** This bounds behaviour under a log-normal noise model
   on files we wrote, with 120 subjects and two equal-sized conditions. The 50/50 mixture arithmetic
   above depends on the equal split; unequal conditions give a different curve.
+
+---
+
+## Register rows moved from STATUS, S392
+
+STATUS is gitignored and has no git history, so a register row is the only copy of
+whatever it holds. These bodies are moved here verbatim; the register row keeps its
+claim and points at this section.
+
+### P119 — **pooling two conditions of unequal noise manufactures excess kurtosis as closed-form arithmetic, and one comparison hides it**
+
+open, **pooled dependence instance 4 — corrected at S365, the row said 5 and collided with Regional Noise — and the first measured dose-response in the project.** Median p runs 0.47 → `1/2000` across the ratio ladder in all four blocks, a fold change of 806 to 1050, while the flag fires in 1 cell of 28. Predicted by `6(1+q⁴)/(1+q²)² − 3` with **no fitted parameter**, returning exactly 0 at q = 1; observed over predicted 0.940–1.128 on all eight cells. Both constituent conditions sit at zero, so **pooling manufactures the signal rather than silencing a detector — opposite direction to DS12b, which is instance 4.** `fitPredictedSigma` regresses log-variance on the row mean only, so the normaliser is condition-blind. **A suppressed false positive with a curve.** `docs/shared/S363-KURTOSIS-DOSE-RESPONSE.md`, `6351f9e` **S364 adds the constraint that governs any fix: the same directional rule exists twice at two precisions** — `:380` on the pooled statistic at full precision, `:477` on the per-condition statistic off a four-decimal string. The 38% is entirely the pooled arm's; the per-condition arm is capped at MODERATE by Class A2 and reaches even that once in 240. **Moving one copy without the other splits a rule that is currently consistent**

@@ -1316,3 +1316,15 @@ The paper claim this supports is the existing one, verbatim: **"every expert-fla
 - **Two out-of-run documented defects** noted during Tier-1 (CORPUS-01 SynucleinandInflammation.xlsx; CORPUS-02 ATPase-Activity sheet) — possible corpus extensions.
 - **`corpus-out/` holds the Tier-1 results and one stale artefact (S373).** Three per-case pairs dated 30 June — `corpus-01-results.json` / `.csv` and the same for -02 and -03, 40–128 KB each — are the sourced evidence behind §2 and the paper's real-world section. **Beside them sit `corpus-results.json` and `corpus-results.csv`, dated 13 July, 233 and 88 bytes: a failed run.** It holds one dataset, label `C12`, path `"C12"`, `ENOENT` — a bare label passed where `corpus-run.mjs` wants a positional path, so nothing opened. It carries the manifest's own output filename, so it reads as the summary of the three real results beside it, and every distinguishing signal is external: the date, the byte count, opening it. **The CSV is the worse half** — it emits a data row with `(error)` in the test column and an empty `primaryP`, the same shape a real result takes. Third instance of the *looks assessed* pattern after C16's silent singletons and C12's copied roots, this time on the output surface. **Flagged, not deleted — deleting a false positive by accident is not fixing it.**
 - **Machine-manifest tracking** (`corpus-data/corpus-manifest.json`) — a Code-side reproducibility decision, carried. `CORPUS-PROVENANCE.md` carries the human-readable declaration + DOIs.
+
+---
+
+## Register rows moved from STATUS, S392
+
+STATUS is gitignored and has no git history, so a register row is the only copy of
+whatever it holds. These bodies are moved here verbatim; the register row keeps its
+claim and points at this section.
+
+### P158 — **sparse-row trimming silently discards most of a sheet and nothing announces it**
+
+open, **corpus-wide rather than one file's defect.** C25's `Fig. 2c` loses 39,602 of 43,202 raw rows; `Fig. 2b` 1,600 of 2,003, because the phosphorescence group runs to 800 nm while the other three stop early. C10's `B. cereus Experiment1` goes 16,522 to 400; C14's `Metadata` 16,396 to three; C11's `snRNA-seq_Fig 7` 9,279 to three. **A reader sees the surviving count and nothing else.** Same family as C16's sixty silently dropped singletons. It is also why §0.3's published `Fig. 2b` cell did not reproduce. `docs/shared/REALWORLD-CORPUS-SPEC.md` §0.3

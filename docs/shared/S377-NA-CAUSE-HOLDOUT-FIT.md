@@ -509,3 +509,15 @@ precedent or a false friend.
 first draft: `isConditionsMode` (`engine.js:216`) is `column-grouped && !paired`, which is narrower
 than `colRelationship === 'conditions'` — a two-row-header file sets `paired = true` and cannot reach
 `condSkip` at all. `naCause.js:5`'s "nothing reads it yet" is stale against nine live readers (§1.7).
+
+---
+
+## Register rows moved from STATUS, S392
+
+STATUS is gitignored and has no git history, so a register row is the only copy of
+whatever it holds. These bodies are moved here verbatim; the register row keeps its
+claim and points at this section.
+
+### P174 — **the shipped display fails `naCause`'s fixed-denominator requirement on 69 of 135 cluster instances**
+
+open, **allocated S377**. `naCause.js`'s own header binds anything composing a cause: a cause may not assert scale, may not assert a remedy, and may not assert that a different grouping would help. **The fixed-denominator requirement is already failed by the shipped display on 69 of 135 §5 cluster instances**, independently of P93 and of anything S377 touched. Found while reading the contract to see whether a hold-out cause could fit it. **The figure is Code's, from the S377 part 3 read, and has not been independently reproduced.** Not a P93 blocker — it is a live defect in a contract P93 would have to satisfy, so it is worth knowing before P93 composes anything new. `docs/shared/S377-NA-CAUSE-HOLDOUT-FIT.md`

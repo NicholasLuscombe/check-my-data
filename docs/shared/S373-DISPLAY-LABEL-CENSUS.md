@@ -363,3 +363,15 @@ producer. Two claims were checked against the possibility of over-reporting and 
 `finding.summary` consumer search was run across all of `src/` before calling the `findings.js` path
 latent rather than live, and the P89 remedy was confirmed by reading the IRC card's connector and its
 legend gate rather than inferred from the absence of a string.
+
+---
+
+## Register rows moved from STATUS, S392
+
+STATUS is gitignored and has no git history, so a register row is the only copy of
+whatever it holds. These bodies are moved here verbatim; the register row keeps its
+claim and points at this section.
+
+### P148 — **the display contract is battery-wide and nothing enforces it**
+
+open, **and both its sides are now bounded.** **Tier side, S372:** Class A — a corrected value exists and the tier ignores it — has two members, P122 live and P153 latent. Class B — no corrected value exists anywhere — has thirteen. **Label side, S373: Class B is not a display question at all.** Its unpriced extreme reaches display only through `primaryP`, printed under a badge with no heading, an `.xlsx` column reading `p-value`, a `Key metric` column and the prompt's per-arm labels. **Nothing claims a correction, so nothing is mislabelled** — Class B is missing arithmetic and routes to P140 alone. **P148 stops carrying it.** All thirteen `Adj. p` headings trace to a `bhFDR` output; the one exception, IRC's windowed `scanP`, carries its own footer explanation. **A wiring error and missing arithmetic look identical in a census and must not share a list** — keeping them apart has now paid twice. `docs/shared/S373-DISPLAY-LABEL-CENSUS.md`
