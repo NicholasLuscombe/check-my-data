@@ -429,3 +429,136 @@ since S390. The `R2-NN`/`pos-NN` split in 11.4 is the direct consequence.
 **The duplicate is kept and the original superseded**, on the evidence: `round2-fetch.mjs` has 195
 verified files behind it and `--fetch` has none. That is a disposition, not a defence — building blind
 produced a divergence that had to be found by someone else reading the tree.
+
+## 12 — The shape filter, measured S392, before any deposit was analysed
+
+**No rule in this document changes. §3's shape filter is confirmed as written**, and this section
+records what each of its clauses does against the acquired corpus. Nothing has been analysed: no test
+ran, no verdict, flag or severity was computed.
+
+**One claim held outside this document is corrected here**, in §11's form — STATUS's lead block, which
+is gitignored and has no history, asserted that §3's *under three columns* corresponds to nothing the
+product enforces. It does.
+
+### 12.1 — What was measured, and over what
+
+`corpus-out/round2-inventory.json`, produced by `corpus-run.mjs --inventory` over all 199 considered
+files: **270 sheets across 39 standing deposits.** Queries over that artifact, plus one `head` on a
+single CSV.
+**No `src/` file was read in this pass**, so every statement below about parser behaviour is an
+inference from the inventory's output or a citation of a prior measurement, not a fresh source read.
+
+**The inventory records geometry on success only.** `rawCols` is present on 255 sheets and absent on
+the 15 that failed import, all of which report the same string — `Empty after preprocessing.` — with
+no shape. **A sheet that died for being narrow and a metadata sheet that died for being metadata are
+indistinguishable in the artifact.** This is P157's complaint about the user-facing message,
+reproduced in the instrument. It is stated, not fixed: changing the inventory now would be a selection
+input altered after the corpus was in hand.
+
+### 12.2 — "Under three columns" is enforced, and it fires once
+
+§3's first bullet reads *imports without error (three columns minimum, per P157)*. The citation is
+load-bearing and correct.
+
+**pos-04's `band_wavelengths.csv` is two columns wide — `band,wavelength_nm`, an identifier and a
+numeric measurement — and fails import.** It is that deposit's only file and only sheet. Every other
+sheet in the corpus that fails to import belongs to a deposit holding a usable sheet elsewhere, so the
+clause changes exactly one deposit's outcome.
+
+**P157's scope widens on this evidence.** Its row records the floor as measured on workbook sheets
+only, with *whether a two-column CSV takes the same path is unread and must not be assumed* as an
+explicit limit. A two-column CSV takes the same path. `minCells = max(3, ceil(maxC × 0.1))` evaluates
+to 3 on a two-column file, so every row reads sparse and the sheet returns empty. **The register row
+and its open follow-on both move on this; the measurement lives here and the claim lives there.**
+
+**Why the contrary claim was made.** The S391 read searched for column minimums in `src/` and found
+them all per-test — `MAHAL_MIN_COLS`, LOESS's 30 rows, InterReplicate's 3, duplicate detection's 4 —
+and concluded that nothing enforces a three-column floor. **That is true of data columns surviving
+role inference and false of raw columns entering the parser.** The word carries two senses and §3
+means the second, which is why it sits inside *imports without error* and cites an import-stage row.
+A two-data-column matrix does run with the inapplicable tests returning `N/A`; a two-column file never
+reaches them.
+
+### 12.3 — The second bullet is a disjunction and one branch cannot fail
+
+§3's second bullet reads *carries a numeric matrix with replicate or condition structure*. **Its two
+branches are not symmetric, and this was not visible when it was written.**
+
+- **Condition structure is measurable.** Role inference tags condition columns and the inventory
+  records the count. **122 of 238 usable sheets carry at least one; 116 do not.**
+- **Replicate structure is not measurable.** No column-relationship detector exists anywhere in `src/`
+  or `test/`. `colRelationship` is hardcoded to `'replicates'` on every headless path, and the only
+  origin of any other value is a user clicking. **The branch is satisfied by assumption on every
+  sheet.**
+
+**So the bullet's tail cannot reject a sheet that yields a numeric matrix — not because the incidence
+is zero, but because one disjunct is true by construction.** The head of the bullet does the work: a
+sheet either produces a numeric matrix or it does not.
+
+**What this costs, stated rather than hidden.** Roughly half the corpus enters the screen on a
+criterion nothing measures. A reader must not take §3's second bullet as evidence that replicate
+structure was tested on any sheet. It was assumed, exactly as arm A assumes it, which is the thing arm
+B exists to answer.
+
+**A reading that rejects the 116 was considered and is not adopted.** Requiring a detectable condition
+column drops six deposits — pos-01, pos-14, pos-45, pos-49, pos-52 and pos-56 — and yields 29
+eligible. It is rejected because it deletes a disjunct §3 wrote in, and because it would reject
+ordinary replicate designs, which are the screen's normal case and most of round 1. **The count it
+produces is recorded so it is not re-proposed as a stricter reading; it is a misreading, not a
+stricter one.**
+
+### 12.4 — The 270 sheets, classified
+
+| Class | Sheets | §3 clause |
+|---|---|---|
+| Measured, numeric matrix, at least one valid row | 238 | passes |
+| Measured, imports cleanly, no numeric data column | 17 | second bullet, head |
+| Failed import, geometry not recorded | 15 | first bullet, unnameable per sheet |
+
+**All 17 in the middle class are three columns wide or more** — six at 3, and the rest spread to 13.
+Their failure is shape, not width, and the column clause does not touch them.
+
+**27 of the 32 non-usable sheets sit in deposits holding a usable sheet elsewhere** and have no
+bearing on eligibility. Five do not, and those five are §3's rejection log.
+
+### 12.5 — The four rejections
+
+| Position | Sheets | Reason |
+|---|---|---|
+| pos-04 | 1 | under three columns |
+| pos-09 | 1 | no numeric matrix |
+| pos-19 | 2 | no numeric matrix |
+| pos-29 | 1 | no numeric matrix |
+
+**Each reason is read from the record rather than chosen.** The three *no numeric matrix* rejections
+import cleanly at 9, 4, 3 and 13 columns and produce no numeric data column. pos-04's reason required
+one read of the file itself, because the inventory does not record geometry on failure.
+
+**These rows belong in `ROUND2-RUN-LOG.md` §3 with their positions**, and land there rather than here.
+
+### 12.6 — The count
+
+**35 deposits pass the shape filter. §3 takes the first 30 in enumeration order.**
+
+The thirtieth is pos-51. **pos-52, pos-55, pos-56, pos-57 and pos-58 are eligible and outside n** —
+surplus, not rejected, and named here so the cut is auditable rather than implicit. n = 30 does not
+move and no deposit is substituted for another.
+
+**The count was never the open question.** S391 carried three candidates — 29, 32 and 35 — with no
+recorded derivation for any of them, and the third clearing the target was treated as a reason to
+distrust it. The derivations resolve as: 29 is §12.3's rejected misreading; 35 is the filter as §3
+writes it; 32 has no reconstruction and is recorded as unexplained. **No reading of either clause
+moves a deposit across the boundary of the thirty.**
+
+### 12.7 — What this section does not settle
+
+- **Whether any rejection is correct as a matter of design.** pos-04 carries real data and is refused
+  by an import-stage sparsity rule that was not written to be a column floor. The screen records it as
+  a rejection because §3 says so; whether the product should behave that way is P157's question, not
+  this document's.
+- **Whether the 15 import failures include others that are narrow.** The artifact cannot say, and only
+  pos-04's mattered for eligibility. **Do not read the single fire as an incidence measurement.**
+- **Anything about replicate structure on any sheet.** See §12.3.
+- **Runtime on the selected sheets.** pos-40 sits at position 21, inside the thirty, and carries sheets
+  of 13–14 million cells. §6.2 ranks on cell count, so that is what it selects. The widest fixture the
+  battery has run is 1,501 × 19, and nothing here measures the difference.
