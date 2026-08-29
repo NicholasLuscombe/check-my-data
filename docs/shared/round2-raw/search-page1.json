@@ -1,0 +1,3344 @@
+{
+  "_links": {
+    "self": {
+      "href": "/api/v2/search"
+    },
+    "first": {
+      "href": "/api/v2/search"
+    },
+    "last": {
+      "href": "/api/v2/search?page=3605"
+    },
+    "next": {
+      "href": "/api/v2/search?page=2"
+    }
+  },
+  "count": 20,
+  "total": 72099,
+  "_embedded": {
+    "stash:datasets": [
+      {
+        "_links": {
+          "self": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.fttdz0980"
+          },
+          "stash:versions": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.fttdz0980/versions"
+          },
+          "stash:version": {
+            "href": "/api/v2/versions/460461"
+          },
+          "stash:download": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.fttdz0980/download"
+          },
+          "curies": [
+            {
+              "name": "stash",
+              "href": "https://github.com/datadryad/dryad-app/blob/main/documentation/apis/link_relations.md#{rel}",
+              "templated": "true"
+            }
+          ]
+        },
+        "identifier": "doi:10.5061/dryad.fttdz0980",
+        "id": 188354,
+        "storageSize": 31243,
+        "relatedPublicationISSN": "1752-0894",
+        "title": "Experimental simulation of water vapour formation on Earth from dry pebble rain",
+        "authors": [
+          {
+            "firstName": "SUSMITA",
+            "lastName": "GARAI",
+            "email": "sgarai@unm.edu",
+            "affiliation": "University of New Mexico",
+            "affiliationROR": "https://ror.org/05fs6jp91",
+            "affiliations": [
+              {
+                "name": "University of New Mexico",
+                "ror_id": "https://ror.org/05fs6jp91"
+              }
+            ],
+            "orcid": "0000-0002-2072-0553"
+          },
+          {
+            "firstName": "Zachary",
+            "lastName": "Sharp",
+            "email": "zsharp@unm.edu",
+            "affiliation": "University of New Mexico",
+            "affiliationROR": "https://ror.org/05fs6jp91",
+            "affiliations": [
+              {
+                "name": "University of New Mexico",
+                "ror_id": "https://ror.org/05fs6jp91"
+              }
+            ],
+            "order": 1
+          },
+          {
+            "firstName": "Peter L.",
+            "lastName": "Olson",
+            "email": "peterleeolson@unm.edu",
+            "affiliation": "University of New Mexico",
+            "affiliationROR": "https://ror.org/05fs6jp91",
+            "affiliations": [
+              {
+                "name": "University of New Mexico",
+                "ror_id": "https://ror.org/05fs6jp91"
+              }
+            ],
+            "order": 2
+          },
+          {
+            "firstName": "Anthony M.",
+            "lastName": "Gargano",
+            "email": "agargano@unm.edu",
+            "affiliation": "University of New Mexico",
+            "affiliationROR": "https://ror.org/05fs6jp91",
+            "affiliations": [
+              {
+                "name": "University of New Mexico",
+                "ror_id": "https://ror.org/05fs6jp91"
+              },
+              {
+                "name": "Lunar and Planetary Institute",
+                "ror_id": "https://ror.org/01r4eh644"
+              }
+            ],
+            "orcid": "0000-0003-3705-9236",
+            "order": 3
+          }
+        ],
+        "abstract": "<p>Water is vital to planet habitability. However the sources of water for the terrestrial planets and the timing of delivery remain controversial. Here we show that water is produced within Earth's primitive atmosphere by hydrogen reduction of iron oxide during pebble accretion. Pebble accretion supports a massive H<sub>2</sub>-rich atmosphere where basal temperatures exceed the silicate liquidus. Pebbles settling through such an atmosphere melt and react with the gas, causing volatile loss, iron reduction, and H<sub>2</sub>O production. We simulate this process experimentally by melting anhydrous mid-oceanic ridge basalt (MORB), picrobasalt, and synthetic MORB in H<sub>2</sub> streams. A significant portion of the FeO in these samples reduces to iron-rich metal and water vapor in a matter of hours. Moderately volatile elements Na and S evaporate from the melt. The metal produced strongly sequesters P, stripping P from the silicate. The metal is transferred to the core, explaining the low P content of Earth’s mantle relative to Mars as well as the low Fe/Mg ratio of the primitive mantle. Atmospheric reduction of iron oxide is a massive endogenous source of water for Earth. Earth-sized exoplanets may inherit oceans worth of water during their formation by pebble accretion, representing a critical step toward habitability.</p>\n",
+        "funders": [
+          {
+            "organization": "U.S. National Science Foundation",
+            "identifierType": "ror",
+            "identifier": "https://ror.org/021nxhr62",
+            "awardNumber": "EAR1953992",
+            "awardDescription": "",
+            "awardTitle": "",
+            "order": 0
+          }
+        ],
+        "keywords": [
+          "reduction of iron oxide",
+          "water on Earth",
+          "pebble accretion"
+        ],
+        "fieldOfScience": "Earth and related environmental sciences",
+        "methods": "<p>We simulate the effect of the interaction between silicate pebbles and H<sub>2</sub> gas as the pebbles settle through an open nebular atmosphere. We accomplished this by melting mafic silicates in an H<sub>2</sub>-rich stream. Initial materials for our experiments include: i) a mid-ocean ridge basalt (MORB) from the East Pacific Rise; ii) a synthetic P-free mid-ocean ridge basalt (MORB, an olivine tholeiite) provided by Aaron Bell (Bell et al., 2021), and iii) a picrobasalt, prepared by mixing natural MORB and commercially purchased olivine in a 1:1 ratio.</p>\n<p><em><strong>1.           Starting materials</strong></em></p>\n<p>For the silica samples, homogeneous, anhydrous glasses were prepared as starting materials by melting the initial compositions in He streams. MORB samples, each with an initial mass of ~100 mg, were heated in tungsten baskets using a silicon carbide vertical tube heater. The sample baskets were hung in a ¾” alumina tube connected to a He tank below and vented at the top. One pair of samples was heated at 1200°C (which is below the MORB liquidus) for 1 hour and 3 hours, respectively. The other pair was heated at 1300°C (above the MORB liquidus) for the same time periods. The flow rate of the He stream for (i) and (ii) was 200 10 mL/min, controlled with an electronic flow meter. Experimental temperatures were calibrated using a K-type thermocouple (to Au melting point = 1064°C) placed at the point in the heater where the melting/reaction experiments were made.</p>\n<p><em><strong>2.           Reduction in H<sub>2</sub>streams</strong></em></p>\n<p>~100 mg samples of MORB glasses were subsequently heated as above in H<sub>2</sub> streams at 200 10 mL/min. After the reaction, compositional data for the products were compiled using electron microprobe analysis (EMPA).</p>\n",
+        "versionNumber": 8,
+        "versionStatus": "submitted",
+        "curationStatus": "Published",
+        "versionChanges": "metadata_changed",
+        "publicationDate": "2026-08-28",
+        "lastModificationDate": "2026-08-28",
+        "visibility": "public",
+        "sharingLink": "http://datadryad.org/dataset/doi:10.5061/dryad.fttdz0980",
+        "license": "https://spdx.org/licenses/CC0-1.0.html",
+        "metrics": {
+          "views": 0,
+          "downloads": 0,
+          "citations": 0
+        }
+      },
+      {
+        "_links": {
+          "self": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.rv15dv4q9"
+          },
+          "stash:versions": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.rv15dv4q9/versions"
+          },
+          "stash:version": {
+            "href": "/api/v2/versions/460445"
+          },
+          "stash:download": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.rv15dv4q9/download"
+          },
+          "curies": [
+            {
+              "name": "stash",
+              "href": "https://github.com/datadryad/dryad-app/blob/main/documentation/apis/link_relations.md#{rel}",
+              "templated": "true"
+            }
+          ]
+        },
+        "identifier": "doi:10.5061/dryad.rv15dv4q9",
+        "id": 191735,
+        "storageSize": 4284059,
+        "relatedPublicationISSN": "0094-8373",
+        "title": "Data from: Turnover and ecological release drove biogeographic shifts during the Ordovician–Silurian transition",
+        "authors": [
+          {
+            "firstName": "Shasha",
+            "lastName": "Liu",
+            "email": "shashaliu123@hotmail.com",
+            "affiliation": "Friedrich-Alexander-Universität Erlangen-Nürnberg",
+            "affiliationROR": "https://ror.org/00f7hpc57",
+            "affiliations": [
+              {
+                "name": "Nanjing Institute of Geology and Paleontology",
+                "ror_id": "https://ror.org/019av8481"
+              },
+              {
+                "name": "Friedrich-Alexander-Universität Erlangen-Nürnberg",
+                "ror_id": "https://ror.org/00f7hpc57"
+              }
+            ],
+            "orcid": "0009-0008-5090-2519"
+          },
+          {
+            "firstName": "Qijian",
+            "lastName": "Li",
+            "email": "qijianli@hotmail.com",
+            "affiliation": "Nanjing Institute of Geology and Paleontology",
+            "affiliationROR": "https://ror.org/019av8481",
+            "affiliations": [
+              {
+                "name": "Nanjing Institute of Geology and Paleontology",
+                "ror_id": "https://ror.org/019av8481"
+              }
+            ],
+            "order": 1
+          },
+          {
+            "firstName": "Na",
+            "lastName": "Lin",
+            "email": "na-lin13@hotmail.com",
+            "affiliation": "Nanjing Institute of Geology and Paleontology",
+            "affiliationROR": "https://ror.org/019av8481",
+            "affiliations": [
+              {
+                "name": "Nanjing Institute of Geology and Paleontology",
+                "ror_id": "https://ror.org/019av8481"
+              }
+            ],
+            "order": 2
+          },
+          {
+            "firstName": "Wolfgang",
+            "lastName": "Kiessling",
+            "email": "wolfgang.kiessling@fau.de",
+            "affiliation": "Friedrich-Alexander-Universität Erlangen-Nürnberg",
+            "affiliationROR": "https://ror.org/00f7hpc57",
+            "affiliations": [
+              {
+                "name": "Friedrich-Alexander-Universität Erlangen-Nürnberg",
+                "ror_id": "https://ror.org/00f7hpc57"
+              }
+            ],
+            "orcid": "0000-0002-1088-2014",
+            "order": 3
+          }
+        ],
+        "abstract": "<p>This dataset contains fossil occurrence, collection, stratigraphic, paleogeographic, and derived analytical data used to investigate biogeographic changes across the Ordovician–Silurian transition. The files (hosted in Dryad and Zenodo) include the analysis-ready occurrence dataset, stratigraphic bin definitions, geographic information, and numerical results underlying the diversity, network, survivor-occupancy, and extinction analyses presented in the associated article.</p>\n",
+        "funders": [
+          {
+            "organization": "National Natural Science Foundation of China",
+            "identifierType": "ror",
+            "identifier": "https://ror.org/01h0zpd94",
+            "awardNumber": "42372039",
+            "awardDescription": "",
+            "awardTitle": "",
+            "order": 0
+          },
+          {
+            "organization": "Ministry of Science and Technology of the People's Republic of China",
+            "identifierType": "ror",
+            "identifier": "https://ror.org/027s68j25",
+            "awardNumber": "2023FY100901",
+            "awardDescription": "",
+            "awardTitle": "",
+            "order": 1
+          },
+          {
+            "organization": "China Scholarship Council",
+            "identifierType": "ror",
+            "identifier": "https://ror.org/04atp4p48",
+            "awardNumber": "202504910072",
+            "awardDescription": "",
+            "awardTitle": "",
+            "order": 2
+          }
+        ],
+        "keywords": [
+          "mass extinction",
+          "paleobiogeography",
+          "diversity"
+        ],
+        "fieldOfScience": "Earth and related environmental sciences",
+        "relatedWorks": [
+          {
+            "relationship": "software",
+            "identifierType": "DOI",
+            "identifier": "https://doi.org/10.5281/zenodo.22070262"
+          },
+          {
+            "relationship": "supplemental_information",
+            "identifierType": "DOI",
+            "identifier": "https://doi.org/10.5281/zenodo.22070264"
+          }
+        ],
+        "versionNumber": 4,
+        "versionStatus": "submitted",
+        "curationStatus": "Published",
+        "versionChanges": "metadata_changed",
+        "publicationDate": "2026-08-28",
+        "lastModificationDate": "2026-08-28",
+        "visibility": "public",
+        "sharingLink": "http://datadryad.org/dataset/doi:10.5061/dryad.rv15dv4q9",
+        "license": "https://spdx.org/licenses/CC0-1.0.html",
+        "metrics": {
+          "views": 0,
+          "downloads": 0,
+          "citations": 0
+        }
+      },
+      {
+        "_links": {
+          "self": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.4mw6m90r1"
+          },
+          "stash:versions": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.4mw6m90r1/versions"
+          },
+          "stash:version": {
+            "href": "/api/v2/versions/460438"
+          },
+          "stash:download": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.4mw6m90r1/download"
+          },
+          "curies": [
+            {
+              "name": "stash",
+              "href": "https://github.com/datadryad/dryad-app/blob/main/documentation/apis/link_relations.md#{rel}",
+              "templated": "true"
+            }
+          ]
+        },
+        "identifier": "doi:10.5061/dryad.4mw6m90r1",
+        "id": 174019,
+        "storageSize": 14952,
+        "relatedPublicationISSN": "0376-6357",
+        "title": "Choosing substrates with or without predator cues by <em>Prionostemma</em> Opiliones",
+        "authors": [
+          {
+            "firstName": "Andrea",
+            "lastName": "Esquivel-Román",
+            "email": "andrea.esquivel@posgrado.ecologia.edu.mx",
+            "affiliation": "Instituto de Ecología",
+            "affiliationROR": "https://ror.org/03yvabt26",
+            "affiliations": [
+              {
+                "name": "Instituto de Ecología",
+                "ror_id": "https://ror.org/03yvabt26"
+              }
+            ],
+            "order": 0
+          },
+          {
+            "firstName": "Francis Claritsa",
+            "lastName": "Grullón-Peña",
+            "email": "francisgrullon@jbn.gob.do",
+            "affiliation": "Jardín Botánico Nacional Dr. Rafael M. Moscoso",
+            "affiliations": [
+              {
+                "name": "Jardín Botánico Nacional Dr. Rafael M. Moscoso"
+              }
+            ],
+            "order": 1
+          },
+          {
+            "firstName": "Jennifer L.",
+            "lastName": "Stynoski",
+            "email": "stynoski@gmail.com",
+            "affiliation": "Universidad de Costa Rica",
+            "affiliationROR": "https://ror.org/02yzgww51",
+            "affiliations": [
+              {
+                "name": "Universidad de Costa Rica",
+                "ror_id": "https://ror.org/02yzgww51"
+              }
+            ],
+            "order": 2
+          },
+          {
+            "firstName": "Ignacio",
+            "lastName": "Escalante",
+            "email": "iem@uic.edu",
+            "affiliation": "University of Illinois Chicago",
+            "affiliationROR": "https://ror.org/02mpq6x41",
+            "affiliations": [
+              {
+                "name": "University of Illinois Chicago",
+                "ror_id": "https://ror.org/02mpq6x41"
+              }
+            ],
+            "orcid": "0000-0003-1919-4303",
+            "order": 3
+          }
+        ],
+        "abstract": "<p>We experimentally tested for the avoidance of predator cues in an arachnid that relies on contact chemoreception and frequently loses its legs, the Neotropical Opiliones in the genus <em>Prionostemma</em>. First, we tested whether these arachnids can detect and avoid chemical cues derived from potential predators. When choosing between leaf litter substrates with or without the urine of a sympatric predator (the toad <em>Rhinella horribilis</em>), individuals preferred the substrate lacking the predator cue. Second, we tested that substrate choice would be affected by previous leg loss, given a potential reduction in sensory detection with fewer sensory organs. However, we found that individuals with autotomized legs were just as likely to avoid substrates with predator chemical cues as intact individuals.</p>\n",
+        "funders": [
+          {
+            "organization": "Organization For Tropical Studies",
+            "identifierType": "ror",
+            "identifier": "https://ror.org/02kk9ec90",
+            "awardNumber": "",
+            "awardDescription": "",
+            "awardTitle": "",
+            "order": 0
+          },
+          {
+            "organization": "Max Planck Institute for Chemical Ecology",
+            "identifierType": "ror",
+            "identifier": "https://ror.org/02ks53214",
+            "awardNumber": "",
+            "awardDescription": "",
+            "awardTitle": "",
+            "order": 1
+          },
+          {
+            "organization": "Consejo Nacional de Rectores",
+            "identifierType": "ror",
+            "identifier": "https://ror.org/00aack182",
+            "awardNumber": "",
+            "awardDescription": "",
+            "awardTitle": "",
+            "order": 2
+          },
+          {
+            "organization": "Animal Behavior Society",
+            "identifierType": "ror",
+            "identifier": "https://ror.org/031nh9x49",
+            "awardNumber": "",
+            "awardDescription": "",
+            "awardTitle": "Travel Award of the Latin American Affairs Committee",
+            "order": 3
+          },
+          {
+            "organization": "University of Illinois Chicago",
+            "identifierType": "ror",
+            "identifier": "https://ror.org/02mpq6x41",
+            "awardNumber": "",
+            "awardDescription": "",
+            "awardTitle": "",
+            "order": 4
+          }
+        ],
+        "keywords": [
+          "Behavior",
+          "Predator-prey dynamics",
+          "Sensory cues"
+        ],
+        "fieldOfScience": "Biological sciences",
+        "methods": "<p>We collected Opiliones of <em>Prionostemma</em> sp.1 from their daytime roosting aggregations in La Selva Research Station in Sarapiquí, Costa Rica. We brought them to the lab and house in terraria. We then prepared the chemical cue of a potential predator (hereafter referred to as the “predator cue”), we obtained urine from one <em>Rhinella horribilis</em> toad the night before collecting Opiliones. We spread the toad's urine in leaf litter and place  the urine-infused plant material in half of a testing arena. The other half of the arena was control leaf litter that was infused only in water. </p>\n<p>We conducted trials in which we presented both stimuli (leaf litter with and without predator cues) to Opiliones. In each trial (n = 31), we placed five individuals  in the testing arena with the two-stimuli setup. We placed the five individuals one by one in the center of one of the arenas, ensuring and confirming that each individual touched both the control and predator substrates at the moment of release. This way, we ensured that each individual was in contact with (and potentially aware of) both cue options from the start of the trial. We then covered the arena with mesh to prevent escape and permit observation. After 5 minutes (enough time for all individuals to settle), we recorded the number of individuals on each substrate type, as well as the number of legs of each individual.</p>\n",
+        "versionNumber": 4,
+        "versionStatus": "submitted",
+        "curationStatus": "Published",
+        "versionChanges": "files_changed",
+        "publicationDate": "2026-08-28",
+        "lastModificationDate": "2026-08-28",
+        "visibility": "public",
+        "sharingLink": "http://datadryad.org/dataset/doi:10.5061/dryad.4mw6m90r1",
+        "license": "https://spdx.org/licenses/CC0-1.0.html",
+        "metrics": {
+          "views": 21,
+          "downloads": 5,
+          "citations": 0
+        }
+      },
+      {
+        "_links": {
+          "self": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.vdncjszbg"
+          },
+          "stash:versions": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.vdncjszbg/versions"
+          },
+          "stash:version": {
+            "href": "/api/v2/versions/460475"
+          },
+          "stash:download": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.vdncjszbg/download"
+          },
+          "curies": [
+            {
+              "name": "stash",
+              "href": "https://github.com/datadryad/dryad-app/blob/main/documentation/apis/link_relations.md#{rel}",
+              "templated": "true"
+            }
+          ]
+        },
+        "identifier": "doi:10.5061/dryad.vdncjszbg",
+        "id": 189898,
+        "storageSize": 606151894,
+        "title": "Hyperspectral profiles of wild oat (<em>Avena fatua</em> L.) inbred lines",
+        "authors": [
+          {
+            "firstName": "Connor",
+            "lastName": "Nelle",
+            "email": "connornelle@montana.edu",
+            "affiliation": "Montana State University",
+            "affiliationROR": "https://ror.org/02w0trx84",
+            "affiliations": [
+              {
+                "name": "Montana State University",
+                "ror_id": "https://ror.org/02w0trx84"
+              }
+            ],
+            "order": 0
+          },
+          {
+            "firstName": "Barbara",
+            "lastName": "Keith",
+            "email": "bkeith@montana.edu",
+            "affiliation": "Montana State University",
+            "affiliationROR": "https://ror.org/02w0trx84",
+            "affiliations": [
+              {
+                "name": "Montana State University",
+                "ror_id": "https://ror.org/02w0trx84"
+              }
+            ],
+            "order": 1
+          },
+          {
+            "firstName": "Lucas",
+            "lastName": "Wright",
+            "email": "lucas.wright@montana.edu",
+            "affiliation": "Montana State University",
+            "affiliationROR": "https://ror.org/02w0trx84",
+            "affiliations": [
+              {
+                "name": "Montana State University",
+                "ror_id": "https://ror.org/02w0trx84"
+              }
+            ],
+            "order": 2
+          },
+          {
+            "firstName": "Wyatt",
+            "lastName": "Medina",
+            "email": "wyattmedina@gmail.com",
+            "affiliation": "Montana State University",
+            "affiliationROR": "https://ror.org/02w0trx84",
+            "affiliations": [
+              {
+                "name": "Montana State University",
+                "ror_id": "https://ror.org/02w0trx84"
+              }
+            ],
+            "order": 3
+          },
+          {
+            "firstName": "Justin",
+            "lastName": "Vetch",
+            "email": "info@prairion.tech",
+            "affiliation": "Montana State University",
+            "affiliationROR": "https://ror.org/02w0trx84",
+            "affiliations": [
+              {
+                "name": "Montana State University",
+                "ror_id": "https://ror.org/02w0trx84"
+              }
+            ],
+            "order": 4
+          },
+          {
+            "firstName": "Timothy",
+            "lastName": "Seipel",
+            "email": "timothy.seipel@montana.edu",
+            "affiliation": "Montana State University",
+            "affiliationROR": "https://ror.org/02w0trx84",
+            "affiliations": [
+              {
+                "name": "Montana State University",
+                "ror_id": "https://ror.org/02w0trx84"
+              }
+            ],
+            "order": 5
+          },
+          {
+            "firstName": "William",
+            "lastName": "Dyer",
+            "email": "wdyer@montana.edu",
+            "affiliation": "Montana State University",
+            "affiliationROR": "https://ror.org/02w0trx84",
+            "affiliations": [
+              {
+                "name": "Montana State University",
+                "ror_id": "https://ror.org/02w0trx84"
+              }
+            ],
+            "order": 6
+          },
+          {
+            "firstName": "Paul",
+            "lastName": "Nugent",
+            "email": "paul.nugent@montana.edu",
+            "affiliation": "Montana State University",
+            "affiliationROR": "https://ror.org/02w0trx84",
+            "affiliations": [
+              {
+                "name": "Montana State University",
+                "ror_id": "https://ror.org/02w0trx84"
+              }
+            ],
+            "order": 7
+          },
+          {
+            "firstName": "Jennifer",
+            "lastName": "Lachowiec",
+            "email": "jennifer.lachowiec@montana.edu",
+            "affiliation": "Montana State University",
+            "affiliationROR": "https://ror.org/02w0trx84",
+            "affiliations": [
+              {
+                "name": "Montana State University",
+                "ror_id": "https://ror.org/02w0trx84"
+              }
+            ],
+            "orcid": "0000-0003-2962-6448",
+            "order": 8
+          }
+        ],
+        "abstract": "<p>This dataset consists of processed hyperspectral datacubes of inbred<em> </em>lines <em>Avena fatua</em> L. (wild oats) that varied in herbicide resistance. Hyperspectral reflectance data was collected on single leaves in the greenhouse using a moving stage and on whole plants in the field using an airborne sensor. Two separate pipelines were devised to extract and process plant spectra from the benchtop and airborne datasets respectively. Greenhouse and field data were aligned to a single reference spectra to enable comparison. Processed datacubes were used to explore the performance of machine learning models to classify lines for herbicide resistance. This dataset is a valuable resource for training models to both classify wild oat for herbicide resistance and generally distinguish weeds from background pixels.</p>\n",
+        "funders": [
+          {
+            "organization": "National Institute of Food and Agriculture",
+            "identifierType": "ror",
+            "identifier": "https://ror.org/05qx3fv49",
+            "awardNumber": "2023-70006-40596",
+            "awardDescription": "CPPM",
+            "awardTitle": "Detection and management of herbicide resistant weed populations",
+            "order": 0
+          }
+        ],
+        "keywords": [
+          "Weeds",
+          "Herbicides",
+          "Remote sensing",
+          "Avena fatua",
+          "unoccupied aerial system",
+          "Hyperspectral imaging"
+        ],
+        "fieldOfScience": "Agricultural sciences",
+        "methods": "<p><strong>Plant Materials</strong></p>\n<p>The lines of wild oat include six biotypes,  herbicide susceptible: S1 (Naylor &amp; Jana, 1976) and S2 (Lehnhoff et al., 2013, Keith et al., 2015) and multiple herbicide resistant: 93R (Kern et al., 1996), 06R3, 06R4 (Lehnhoff et al., 2013, Keith et al., 2015), and 20R2. Two Recombinant Inbred Line (RIL) populations were derived from 93R x S2 and S2 x 06R4 through single seed descent to generate F6 populations.</p>\n<p><strong>Herbicide resistance screening </strong></p>\n<p>Plants were grown at the Montana State University Plant Growth Center in a 1:1:1 (v/v/v) mixture of Bozeman silt loam, Sunshine Mix #12 (Sun Gro Horticulture, Bellevue, WA, USA), and perlite. Plants received a 16-h photoperiod consisting of natural light supplemented with mercury-vapor lamps providing 165 µmol m⁻² s⁻¹ photosynthetically active radiation. Greenhouse temperature was 25 ± 4°C. Plants were watered as needed and fertilized weekly with 100 ppm Jack’s Professional 20-20-20 fertilizer (JR Peters, Allentown, PA, USA).</p>\n<p>Dose–response assays for biotype 20R2 were performed according to previously reported procedures (Kern et al., 1996; Lehnhoff et al., 2013; Keith et al., 2015), with susceptible biotype S2 included for comparison. Experiments contained five biological replicates per dose and biotype and were repeated twice. Plants were treated at Zadoks stage 13 (Zadoks et al., 1974). Foliar herbicides (flucarbazone, pinoxaden, imazamethabenz, difenzoquat) were applied with a moving-nozzle sprayer delivering 111 L ha⁻¹ at 275.6 kPa. The glyphosate treatments applied to S2, 93R, 06R4, and 20R2 were 0, 25, 74, 245, 735, and 1,470 g a.i. ha⁻¹ of Roundup WeatherMAX 2EC (Bayer CropScience, Creve Coeur, MO, USA). Aboveground biomass was collected 21 d after application, dried at 50°C for 7 d, and weighed.</p>\n<p>Dose–response relationships were analyzed in R version 4.1.1 with the <em>drc</em> package (Ritz et al., 2015). Four-parameter log-logistic models were fitted using biomass as the response variable, dose as the explanatory variable, and biotype as the grouping factor. Resistance-to-susceptible ED₅₀ ratios were estimated and compared with the EDcomp function.</p>\n<p>The S2 x 06R4 RIL population was screened for resistance to flucarbazone, pinoxaden, tralkoxydim, difenzoquat, and triallate. Foliar herbicides were applied at Zadoks stage 13 using the spray conditions described above. Injury was visually rated 21 d after treatment, after which shoots were harvested, dried at 50°C for 7 d, and weighed. Triallate was evaluated by placing eight seeds from each RIL or parent on 6 cm of greenhouse soil mix and covering them with 2.5 cm of untreated or triallate-treated soil. After 21 d, seedlings were rated for injury, harvested, dried, and weighed.  Screening rates were 30 and 60 g a.i. ha⁻¹ flucarbazone (Everest 2.0), 30 and 45 g a.i. ha⁻¹ pinoxaden (Axial XL), 100 and 200 g a.i. ha⁻¹ tralkoxydim (Achieve), 170 g a.i. ha⁻¹ difenzoquat (Avenge), and 1.12 and 2.24 kg a.i. ha⁻¹ triallate (Far-GO). The S2 × 93R population was similarly screened for resistance to foliar-applied difenzoquat and soil-applied triallate.</p>\n<p>Herbicide response was expressed as percentage of untreated biomass: 100 × treated biomass/untreated biomass. For screening only, difenzoquat response was instead evaluated from visual injury ratings.</p>\n<p><strong>Hyperspectral Data Collection: Benchtop</strong></p>\n<p>Single leaves collected at third leaf emergence of greenhouse-grown biotypes and RIL lines were imaged using a Resonon Pika-L and the Spectronon software (Resonon Inc, Bozeman, MT) with a moving stage in a halide line light-controlled room at the Montana State University Plant Growth Center. Dark correction and response correction were performed at the time of imaging. 300 spectral bands were collected across wavelengths between 370.06 and 1008.41 nanometers with a framerate of 81.261.</p>\n<p><strong>Data Pre-processing: Benchtop</strong></p>\n<p>Datacubes were cropped at 1191 lines and 899 samples to remove noisy edges of the images using the Spectronon software. Then, datacubes were processed in Python 3.14, imported with <em>SPy</em> module (Boggs et al. 2022). An NDVI filter of 0.55 (determined from experimentation in the Spectronon software) and an intensity threshold of 0.05 were used to create a binary mask. Morphological opening (element radius of 15) and small object removal (5000 minimum pixels) were used to reduce the mask to leaf pixels (Walt et al. 2014). The spectra were smoothed using a Savitzky-Golay filter using the first derivative, a polynomial degree of two, and a window length of 11. 1000 random pixel spectra and the mean of said spectra were saved from each leaf scan.</p>\n<p><strong>Hyperspectral Data Collection: Airborne</strong></p>\n<p>The RIL populations were also imaged during two field seasons using an airborne Resonon Pika-L and Aurelia X8 platform for the 2024 season and a Resonon Pika-L GigE and Vision Aerial Vector platform for the 2025 season. </p>\n<p>For the 2024 field season, the 06R4 x S2 RILs were planted in a rototilled field on June 28, 2024, at the Western Triangle Agricultural Research Center in Conrad, Montana. RILs were planted in three rows in a randomized complete block design, each row constituting a block. Plants along a row were spaced two feet apart, and blocks were one meter apart. Five seeds were sown per RIL using a hill plot seeder. The field was watered in strong dry spells, and non-target weeds were hand-pulled over the course of the experiment. The software MissionPlanner was used to fly the Aurelia X8 Max UAS.</p>\n<p>For the 2025 field season, 06R4 x S2 and 93R x S2 RILS were planted on June 10, 2025, at the Arthur H. Post Agronomy Farm in Bozeman, MT in a rototilled field using a randomized complete block design. Using hill plot seeders, RILs were placed 2.5 feet apart along a row. In the 2025 season, a Vision Aerial Vector (Vision Aerial, Four Corners, MT) was paired with a Resonon Pika-L GigE hyperspectral camera and a downwelling sensor provided by Ocean Optics (Ocean Optics).</p>\n<p>Both airborne imaging systems were flown at an airspeed of 0.5 meters per second at an altitude of 15 meters. This corresponded to an imager framerate of 107 frames per second with a ground pixel resolution of one centimeter. Every other RIL was marked with a colored stake, staggered in adjacent lines to create a grid which could be used to identify RILs in airborne imagery.</p>\n<p><strong>Data Pre-processing: Airborne</strong></p>\n<p>Using the Spectronon software batch processor, airborne datacubes were georectified and converted to reflectance. The non-default georectification parameters used were: ‘Map Resolution’ = 0.01. inpaint interpolation, and ‘Interpolation Radius’ = 2 for the 2024 data and 1 for the 2025 data. For the 2024 field data, the ‘Correct From Measured Reference’ tool was used to obtain reflectance data as the tarp was not well resolved. For the 2025 field data, the included downwelling sensor data alongside the reflectance tarp was used to better account for calibration uncertainty in the downwelling reflectance correction. The non-default parameters for the ‘Reflectivity Conversion Using Correlation Coefficients’ tool were: ‘Smoothing Width’ = 2.12 nm and reflectivity was scaled to integers.</p>\n<p>A mask was created with the ‘Modified Red Edge Normalized Vegetation Index’ tool using a threshold of 0.4, which isolated pixels containing plant matter. This mask was applied back to the datacube, then the spectra were smoothed using a Savitzky-Golay filter using the first derivative, a polynomial degree of two, and a window length of 15.</p>\n<p>To extract a plant’s pixel data and assign the correct RIL label to the pixels, the <em>Research Grid</em> tool in QGIS was used to create a numbered polygon grid. Each polygon corresponded to a single hill plot, and the boundaries of polygons were manually edited to remove other plant matter. The colored stakes were used as markers to ensure that the correct RIL label was assigned to each hill plot.</p>\n<p>The resulting shapefile and masked datacubes were imported into R version 4.5.2 (R Core Team 2025) on the MSU Tempest Research Cluster, where the <em>terra</em> package (Hijmans 2024) was used to extract both individual pixel data and mean spectra per plant after pixel mask erosion and dilation (structuring element size = 3) to remove small masking artifacts. Diagnostic plots showing removed pixels were created for each datacube. Spectra were retained if the source polygon had 20 or more masked pixels. Extracted spectra were joined to the correct RIL label and the observed herbicide responses for the given RIL.</p>\n<p><strong>Unifying Benchtop and Airborne Datasets</strong></p>\n<p>Each benchtop and airborne dataset was cropped from 430 to 950 nanometers and spectra were aligned by interpolation to reference wavelengths from the 2024 aerial dataset. Herbicide response data for each RIL was joined to the benchtop data. Spectra were then SNV normalized, and both mean and by-pixel datasets were exported.</p>\n<p><strong>References</strong></p>\n<p>Hijmans RJ (2024) terra: Spatial Data Analysis</p>\n<p>Lehnhoff EA, Keith BK, Dyer WE, et al (2013) Multiple Herbicide Resistance in Wild Oat and Impacts on Physiology, Germinability, and Seed Production. Agron J 105:854–862. <a href=\"https://doi.org/10.2134/agronj2012.0428\">https://doi.org/10.2134/agronj2012.0428</a></p>\n<p>Keith BK, Lehnhoff EA, Burns EE, et al (2015) Characterisation of Avena fatua populations with resistance to multiple herbicides. Weed Res 55:621–630. <a href=\"https://doi.org/10.1111/wre.12172\">https://doi.org/10.1111/wre.12172</a></p>\n<p>Kern AJ, Corey T. Colliver, Maxwell BD, et al (1996) Characterization of Wild Oat (Avena fatua L.) Populations and an Inbred Line with Multiple Herbicide Resistance. Weed Sci 44:847–852</p>\n<p>Naylor JM, Jana S (1976) Genetic adaptation for seed dormancy in Avena fatua. Can J Bot 54:306–312. <a href=\"https://doi.org/10.1139/b76-028\">https://doi.org/10.1139/b76-028</a></p>\n<p>Ritz C, Baty F, Streibig JC, Gerhard D (2015) Dose-Response Analysis Using R. PLOS ONE 10:e0146021. <a href=\"https://doi.org/10.1371/journal.pone.0146021\">https://doi.org/10.1371/journal.pone.0146021</a></p>\n<p>Zadoks JC, Chang TT, Konzak CF (1974) A decimal code for the growth stages of cereals. <a href=\"https://onlinelibrary.wiley.com/doi/abs/10.1111/j.1365-3180.1974.tb01084.x\">https://onlinelibrary.wiley.com/doi/abs/10.1111/j.1365-3180.1974.tb01084.x</a>. Accessed 10 Sept 2025</p>\n",
+        "versionNumber": 3,
+        "versionStatus": "submitted",
+        "curationStatus": "Published",
+        "versionChanges": "files_changed",
+        "publicationDate": "2026-08-28",
+        "lastModificationDate": "2026-08-28",
+        "visibility": "public",
+        "sharingLink": "http://datadryad.org/dataset/doi:10.5061/dryad.vdncjszbg",
+        "license": "https://spdx.org/licenses/CC0-1.0.html",
+        "metrics": {
+          "views": 0,
+          "downloads": 0,
+          "citations": 0
+        }
+      },
+      {
+        "_links": {
+          "self": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.p5hqbzkz7"
+          },
+          "stash:versions": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.p5hqbzkz7/versions"
+          },
+          "stash:version": {
+            "href": "/api/v2/versions/460402"
+          },
+          "stash:download": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.p5hqbzkz7/download"
+          },
+          "curies": [
+            {
+              "name": "stash",
+              "href": "https://github.com/datadryad/dryad-app/blob/main/documentation/apis/link_relations.md#{rel}",
+              "templated": "true"
+            }
+          ]
+        },
+        "identifier": "doi:10.5061/dryad.p5hqbzkz7",
+        "id": 141001,
+        "storageSize": 106137682,
+        "relatedPublicationISSN": "2041-210X",
+        "title": "Data from: Towards scalable insect monitoring: Ultra-lightweight CNNs as on-device triggers for insect camera traps",
+        "authors": [
+          {
+            "firstName": "Ross",
+            "lastName": "Gardiner",
+            "email": "rg654@exeter.ac.uk",
+            "affiliation": "University of Exeter",
+            "affiliationROR": "https://ror.org/03yghzc09",
+            "affiliations": [
+              {
+                "name": "University of Exeter",
+                "ror_id": "https://ror.org/03yghzc09"
+              }
+            ],
+            "orcid": "0000-0001-5633-1317"
+          },
+          {
+            "firstName": "Sareh",
+            "lastName": "Rowlands",
+            "email": "s.rowlands@exeter.ac.uk",
+            "affiliation": "University of Exeter",
+            "affiliationROR": "https://ror.org/03yghzc09",
+            "affiliations": [
+              {
+                "name": "University of Exeter",
+                "ror_id": "https://ror.org/03yghzc09"
+              }
+            ],
+            "order": 2
+          },
+          {
+            "firstName": "Benno",
+            "lastName": "Simmons",
+            "email": "b.simmons2@exeter.ac.uk",
+            "affiliation": "University of Exeter",
+            "affiliationROR": "https://ror.org/03yghzc09",
+            "affiliations": [
+              {
+                "name": "University of Exeter",
+                "ror_id": "https://ror.org/03yghzc09"
+              }
+            ],
+            "order": 3
+          }
+        ],
+        "abstract": "<p>Camera traps, combined with AI, have emerged to achieve automated, scalable biodiversity monitoring. However, passive infrared (PIR) sensors that typically trigger camera traps are poorly suited for detecting small, fast-moving ectotherms such as insects. Insects comprise over half of all animal species and are key components of ecosystems and agriculture. The need for an appropriate and scalable insect camera trap is critical in the wake of concerning reports of declines in insect populations. This study proposes an alternative to the PIR trigger: ultra-lightweight convolutional neural networks running on low-powered hardware to detect insects in a continuous stream of captured images. We train such models to distinguish insect images from backgrounds. Our design achieves zero latency between trigger and image capture. Our models are rigorously tested and achieve high accuracy, ranging from 91.8% to 96.4% AUROC on test data and 58.8% to 87.2% AUROC on field data from distributions unseen during training. The high specificity of our models ensures minimal saving of false-positive images, maximizing deployment storage efficiency. High recall scores indicate a minimal false negative rate, maximising insect detection. Analysis using saliency maps reveals that the learned representation of our models is robust, with low reliance on spurious background features. Our method is also shown to operate deployed on off-the-shelf, low-powered microcontroller units, consuming a maximum power draw of less than 300mW. This paves the way for scalable systems with longer deployment times. Overall, we fully define the properties of a successful trigger for camera traps and show how lightweight AI models, made bespoke for efficient hardware, can be realised with a specific focus on insect ectotherms. We provide these models to the community alongside a complete codebase for future modifications, and we demonstrate how they can be deployed on an example ESP32-S3 microcontroller platform. This step potentiates a major advancement for ectotherm camera traps and insect monitoring.</p>",
+        "funders": [
+          {
+            "organization": "Engineering and Physical Sciences Research Council",
+            "identifierType": "ror",
+            "identifier": "https://ror.org/0439y7842",
+            "awardNumber": "EP/S022074/1",
+            "awardDescription": "Environmental Intelligence CDT",
+            "order": 0
+          }
+        ],
+        "keywords": [
+          "Artificial intelligence",
+          "Digital cameras",
+          "Insects"
+        ],
+        "fieldOfScience": "Electrical engineering, electronic engineering, information engineering",
+        "relatedWorks": [
+          {
+            "relationship": "primary_article",
+            "identifierType": "DOI",
+            "identifier": "https://doi.org/10.1111/2041-210x.70098"
+          }
+        ],
+        "versionNumber": 7,
+        "versionStatus": "submitted",
+        "curationStatus": "Published",
+        "versionChanges": "files_changed",
+        "publicationDate": "2026-08-28",
+        "lastModificationDate": "2026-08-28",
+        "visibility": "public",
+        "sharingLink": "http://datadryad.org/dataset/doi:10.5061/dryad.p5hqbzkz7",
+        "license": "https://spdx.org/licenses/CC0-1.0.html",
+        "metrics": {
+          "views": 0,
+          "downloads": 0,
+          "citations": 0
+        }
+      },
+      {
+        "_links": {
+          "self": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.wwpzgmt01"
+          },
+          "stash:versions": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.wwpzgmt01/versions"
+          },
+          "stash:version": {
+            "href": "/api/v2/versions/460404"
+          },
+          "stash:download": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.wwpzgmt01/download"
+          },
+          "curies": [
+            {
+              "name": "stash",
+              "href": "https://github.com/datadryad/dryad-app/blob/main/documentation/apis/link_relations.md#{rel}",
+              "templated": "true"
+            }
+          ]
+        },
+        "identifier": "doi:10.5061/dryad.wwpzgmt01",
+        "id": 177257,
+        "storageSize": 1283417,
+        "relatedPublicationISSN": "1554-8929",
+        "title": "Data for: Multiomic analysis reveals molecular pathways associated with intestinal aggregation of α-synuclein",
+        "authors": [
+          {
+            "firstName": "Elizabeth",
+            "lastName": "Bess",
+            "email": "enbess@uci.edu",
+            "affiliation": "University of California, Irvine",
+            "affiliationROR": "https://ror.org/04gyf1771",
+            "affiliations": [
+              {
+                "name": "University of California, Irvine",
+                "ror_id": "https://ror.org/04gyf1771"
+              }
+            ],
+            "orcid": "0000-0003-0349-0423"
+          },
+          {
+            "firstName": "Julia",
+            "lastName": "Balsamo",
+            "email": "jbalsamo@uci.edu",
+            "affiliation": "University of California, Irvine",
+            "affiliationROR": "https://ror.org/04gyf1771",
+            "affiliations": [
+              {
+                "name": "University of California, Irvine",
+                "ror_id": "https://ror.org/04gyf1771"
+              }
+            ],
+            "orcid": "0009-0008-2140-4043",
+            "order": 1
+          }
+        ],
+        "abstract": "<p>Aggregates of the protein α-synuclein may initially form in the gut before propagating to the brain in Parkinson’s disease (PD). Indeed, our prior work supports that enteroendocrine cells, specialized intestinal epithelial cells, could play a key role in the development of this disease. Enteroendocrine cells natively express α-synuclein and form synapses with enteric neurons as well as the vagus nerve. Severing the vagus nerve reduces the load of α-synuclein aggregates in the brain, suggesting that this nerve is a conduit for gut-to-brain spread. Enteroendocrine cells line the gut lumen; as such, they are in constant contact with metabolites of the gut microbiota. We previously found that when enteroendocrine cells are exposed to nitritea potent oxidant produced by gut bacterial <em>Enterobacteriaceae</em>a biochemical pathway is initiated that results in α-synuclein aggregation. Here, we detail the cellular and molecular mechanisms involved. First, we holistically profiled nitrite-exposed enteroendocrine cells through untargeted proteomics. Next, we performed targeted analyses that specifically probed the mechanistic role of dopamine, as our prior findings suggested that dopamine is critical for nitrite-induced α-synuclein aggregation. In dopamine-free HeLa cells treated with nitrite, α-synuclein aggregation was indeed suppressed. Proteomic signatures in dopamine-free cells treated with nitrite were distinct from those in nitrite-treated enteroendocrine cells, highlighting pathways relevant to intestinal development of PD. Intriguingly, we observed that enteroendocrine cells maintain viability upon exposure to nitrite and in the presence of α-synuclein aggregates. This cellular robustness suggests that these cells may be a reservoir of toxic α-synuclein aggregates. As a possible antidote, our findings show that benserazide and α-methyl tyrosine, chemical inhibitors of dopamine biosynthesis, limited aggregation. Curious about mechanisms of disease etiology outside of α-synuclein aggregation, we also profiled the enteroendocrine cell lipidome, an emerging area of interest in PD research, to motivate future targeted studies delineating the roles of dysregulated lipid metabolism in disease onset. Overall, these studies lay a foundation for mechanistically informed therapeutic targets to prevent the intestinal formation of α-synuclein aggregates before they spread to the brain.</p>\n",
+        "funders": [
+          {
+            "organization": "National Institute of Neurological Disorders and Stroke",
+            "identifierType": "ror",
+            "identifier": "https://ror.org/01s5ya894",
+            "awardNumber": "1R01NS138879-01",
+            "awardURI": "https://reporter.nih.gov/project-details/10941883",
+            "awardDescription": "",
+            "awardTitle": "Discovery of Chemical Factors in the Gut Microbiome that Control Alpha-Synuclein Aggregation in Parkinson's Disease",
+            "order": 0
+          },
+          {
+            "organization": "Research Corporation for Science Advancement",
+            "identifierType": "ror",
+            "identifier": "https://ror.org/00jp8d455",
+            "awardNumber": "28648",
+            "awardDescription": "",
+            "awardTitle": "Tracking alpha-synuclein from enteroendocrine cells to the enteric nervous system",
+            "order": 1
+          },
+          {
+            "organization": "Research Corporation for Science Advancement",
+            "identifierType": "ror",
+            "identifier": "https://ror.org/00jp8d455",
+            "awardNumber": "28647",
+            "awardDescription": "",
+            "awardTitle": "Tracking alpha-synuclein from enteroendocrine cells to the enteric nervous system",
+            "order": 2
+          },
+          {
+            "organization": "Walder Foundation",
+            "identifierType": "ror",
+            "identifier": "",
+            "awardNumber": "",
+            "awardDescription": "",
+            "awardTitle": "",
+            "order": 3
+          }
+        ],
+        "keywords": [
+          "Parkinson disease",
+          "Protein aggregation",
+          "Microbiome",
+          "Proteomics",
+          "Dopamine",
+          "Lipid profiles"
+        ],
+        "fieldOfScience": "Chemical sciences",
+        "relatedWorks": [
+          {
+            "relationship": "primary_article",
+            "identifierType": "DOI",
+            "identifier": "https://doi.org/10.1021/acschembio.5c00686"
+          }
+        ],
+        "versionNumber": 4,
+        "versionStatus": "submitted",
+        "curationStatus": "Published",
+        "versionChanges": "files_changed",
+        "publicationDate": "2026-08-28",
+        "lastModificationDate": "2026-08-28",
+        "visibility": "public",
+        "sharingLink": "http://datadryad.org/dataset/doi:10.5061/dryad.wwpzgmt01",
+        "license": "https://spdx.org/licenses/CC0-1.0.html",
+        "metrics": {
+          "views": 0,
+          "downloads": 0,
+          "citations": 0
+        }
+      },
+      {
+        "_links": {
+          "self": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.hqbzkh1vv"
+          },
+          "stash:versions": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.hqbzkh1vv/versions"
+          },
+          "stash:version": {
+            "href": "/api/v2/versions/460406"
+          },
+          "stash:download": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.hqbzkh1vv/download"
+          },
+          "curies": [
+            {
+              "name": "stash",
+              "href": "https://github.com/datadryad/dryad-app/blob/main/documentation/apis/link_relations.md#{rel}",
+              "templated": "true"
+            }
+          ]
+        },
+        "identifier": "doi:10.5061/dryad.hqbzkh1vv",
+        "id": 163630,
+        "storageSize": 1787595,
+        "relatedPublicationISSN": "1466-822X",
+        "title": "Data from: Climate change has impacted tree growth in temperate and Boreal forests since the beginning of the 21st century, a meta-analysis tells us",
+        "authors": [
+          {
+            "firstName": "Laura",
+            "lastName": "Sergeant",
+            "email": "laura.sergeant@agroparistech.fr",
+            "affiliation": "Silva",
+            "affiliationROR": "https://ror.org/01d5v2p67",
+            "affiliations": [
+              {
+                "name": "Silva",
+                "ror_id": "https://ror.org/01d5v2p67"
+              }
+            ],
+            "orcid": "0009-0006-1277-3598"
+          },
+          {
+            "firstName": "Paulina E.",
+            "lastName": "Pinto",
+            "email": "paulina.pinto@agroparistech.fr",
+            "affiliation": "Silva",
+            "affiliationROR": "https://ror.org/01d5v2p67",
+            "affiliations": [
+              {
+                "name": "Silva",
+                "ror_id": "https://ror.org/01d5v2p67"
+              }
+            ],
+            "orcid": "0000-0002-1628-1826",
+            "order": 1
+          },
+          {
+            "firstName": "Bastien",
+            "lastName": "Castagneyrol",
+            "email": "bastien.castagneyrol@inrae.fr",
+            "affiliation": "UMR BIOdiversity, GEnes & Communities",
+            "affiliationROR": "https://ror.org/033ebya06",
+            "affiliations": [
+              {
+                "name": "UMR BIOdiversity, GEnes & Communities",
+                "ror_id": "https://ror.org/033ebya06"
+              }
+            ],
+            "orcid": "0000-0001-8795-7806",
+            "order": 2
+          },
+          {
+            "firstName": "Jean-Claude",
+            "lastName": "Gégout",
+            "email": "jean-claude.gegout@agroparistech.fr",
+            "affiliation": "Silva",
+            "affiliationROR": "https://ror.org/01d5v2p67",
+            "affiliations": [
+              {
+                "name": "Silva",
+                "ror_id": "https://ror.org/01d5v2p67"
+              }
+            ],
+            "order": 3
+          },
+          {
+            "firstName": "Hervé",
+            "lastName": "Jactel",
+            "email": "herve.jactel@inrae.fr",
+            "affiliation": "UMR BIOdiversity, GEnes & Communities",
+            "affiliationROR": "https://ror.org/033ebya06",
+            "affiliations": [
+              {
+                "name": "UMR BIOdiversity, GEnes & Communities",
+                "ror_id": "https://ror.org/033ebya06"
+              }
+            ],
+            "order": 4
+          },
+          {
+            "firstName": "Neil",
+            "lastName": "Pederson",
+            "email": "mockernut@gmail.com",
+            "affiliation": ",",
+            "affiliations": [
+              {
+                "name": ","
+              }
+            ],
+            "order": 5
+          },
+          {
+            "firstName": "Cyrille",
+            "lastName": "Rathgeber",
+            "email": "cyrille.rathgeber@inrae.fr",
+            "affiliation": "Silva",
+            "affiliationROR": "https://ror.org/01d5v2p67",
+            "affiliations": [
+              {
+                "name": "Silva",
+                "ror_id": "https://ror.org/01d5v2p67"
+              }
+            ],
+            "orcid": "0000-0001-7359-8320",
+            "order": 6
+          },
+          {
+            "firstName": "Damien",
+            "lastName": "Bonal",
+            "email": "damien.bonal@agroparistech.fr",
+            "affiliation": "Silva",
+            "affiliationROR": "https://ror.org/01d5v2p67",
+            "affiliations": [
+              {
+                "name": "Silva",
+                "ror_id": "https://ror.org/01d5v2p67"
+              }
+            ],
+            "order": 7
+          }
+        ],
+        "abstract": "<p>The first decade of the 21<sup>st</sup> century has marked a worsening of anthropogenic climate change which could induce a slowdown in tree growth. However, numerous studies published so far have shown either positive or negative changes, or no change at all, in long-term tree growth in temperate and boreal forests and no overall knowledge is yet available. We conducted a meta-analysis to reveal whether an overall change in tree growth trends has emerged in the last few decades (1980-2009) and to determine which factors may have driven any such changes. We performed statistical meta-regression analyses on the growth of trees in 210 populations gleaned from 62 studies selected after a systematic review of more than 2300 published studies. We calculated effect size values at the population level to compare the slope of tree growth trends over time before and after a given year for each year between 1980 and 2009. We then statistically compared changes in growth among tree species, drought resistance classes, and the position of the species in their climatic niche. Estimated effect sizes were close to 0 throughout the end of the 20<sup>th</sup> century, then became more and more negative from 2005 to 2008, and reached significant levels in 2008. Only drought resistance had a significant effect on the increased occurrence of negative effect sizes. Overall tree growth trends remained stable during the last two decades of the 20<sup>th</sup> century. However, a significant change in tree growth trends occurred during the first decade of the 21<sup>st</sup> century, with a negative trajectory. Europe most strongly displays this negative change in growth. Drought tolerant species were less negatively impacted.</p>\n",
+        "funders": [
+          {
+            "organization": "Agence Nationale de la Recherche",
+            "identifierType": "ror",
+            "identifier": "https://ror.org/00rbzpz17",
+            "awardNumber": "",
+            "awardDescription": "",
+            "order": 0
+          },
+          {
+            "organization": "Université de Lorraine",
+            "identifierType": "ror",
+            "identifier": "https://ror.org/04vfs2w97",
+            "awardNumber": "",
+            "awardDescription": "Lorraine Université d'Excellence (LUE)",
+            "awardTitle": "HACOR Project",
+            "order": 1
+          }
+        ],
+        "keywords": [
+          "Climate change",
+          "Drought resistance",
+          "meta-analysis",
+          "species climatic niche",
+          "tree growth trend"
+        ],
+        "fieldOfScience": "Agriculture, forestry, and fisheries",
+        "relatedWorks": [
+          {
+            "relationship": "primary_article",
+            "identifierType": "DOI",
+            "identifier": "https://doi.org/10.1111/geb.70239"
+          }
+        ],
+        "versionNumber": 9,
+        "versionStatus": "submitted",
+        "curationStatus": "Published",
+        "versionChanges": "files_changed",
+        "publicationDate": "2026-08-28",
+        "lastModificationDate": "2026-08-28",
+        "visibility": "public",
+        "sharingLink": "http://datadryad.org/dataset/doi:10.5061/dryad.hqbzkh1vv",
+        "license": "https://spdx.org/licenses/CC0-1.0.html",
+        "metrics": {
+          "views": 0,
+          "downloads": 0,
+          "citations": 0
+        }
+      },
+      {
+        "_links": {
+          "self": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.djh9w0wf0"
+          },
+          "stash:versions": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.djh9w0wf0/versions"
+          },
+          "stash:version": {
+            "href": "/api/v2/versions/460462"
+          },
+          "stash:download": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.djh9w0wf0/download"
+          },
+          "curies": [
+            {
+              "name": "stash",
+              "href": "https://github.com/datadryad/dryad-app/blob/main/documentation/apis/link_relations.md#{rel}",
+              "templated": "true"
+            }
+          ]
+        },
+        "identifier": "doi:10.5061/dryad.djh9w0wf0",
+        "id": 173882,
+        "storageSize": 2939373,
+        "relatedPublicationISSN": "2072-6651",
+        "title": "Data from: The venom proteome and immunorecognition profile of clinically important <em>Echis carinatus sochureki</em> from northwestern India underscores the need for regionally specific antivenoms",
+        "authors": [
+          {
+            "firstName": "Akhilesh",
+            "lastName": "Kumar",
+            "email": "akhileshph@gmail.com",
+            "affiliation": "All India Institute of Medical Sciences Jodhpur",
+            "affiliationROR": "https://ror.org/05e15a779",
+            "affiliations": [
+              {
+                "name": "All India Institute of Medical Sciences Jodhpur",
+                "ror_id": "https://ror.org/05e15a779"
+              }
+            ],
+            "order": 0
+          },
+          {
+            "firstName": "Alka",
+            "lastName": "Sahu",
+            "email": "alkasahuak@gmail.com",
+            "affiliation": "Centre for Cellular and Molecular Biology",
+            "affiliationROR": "https://ror.org/05shq4n12",
+            "affiliations": [
+              {
+                "name": "Centre for Cellular and Molecular Biology",
+                "ror_id": "https://ror.org/05shq4n12"
+              }
+            ],
+            "orcid": "0009-0007-9294-3637",
+            "order": 1
+          },
+          {
+            "firstName": "Maya",
+            "lastName": "Gopalakrishnan",
+            "email": "mayagopalakrishnan@gmail.com",
+            "affiliation": "All India Institute of Medical Sciences Jodhpur",
+            "affiliationROR": "https://ror.org/05e15a779",
+            "affiliations": [
+              {
+                "name": "All India Institute of Medical Sciences Jodhpur",
+                "ror_id": "https://ror.org/05e15a779"
+              }
+            ],
+            "order": 2
+          },
+          {
+            "firstName": "Avni",
+            "lastName": "Blotra",
+            "email": "ablotra76@gmail.com",
+            "affiliation": "Centre for Cellular and Molecular Biology",
+            "affiliationROR": "https://ror.org/05shq4n12",
+            "affiliations": [
+              {
+                "name": "Centre for Cellular and Molecular Biology",
+                "ror_id": "https://ror.org/05shq4n12"
+              }
+            ],
+            "order": 3
+          },
+          {
+            "firstName": "Vishal",
+            "lastName": "Kumar Raut",
+            "email": "vishalrout3131@gmail.com",
+            "affiliation": "Centre for Cellular and Molecular Biology",
+            "affiliationROR": "https://ror.org/05shq4n12",
+            "affiliations": [
+              {
+                "name": "Centre for Cellular and Molecular Biology",
+                "ror_id": "https://ror.org/05shq4n12"
+              }
+            ],
+            "order": 4
+          },
+          {
+            "firstName": "Sourish",
+            "lastName": "Kuttalam",
+            "email": "bsu8d2@bangor.ac.uk",
+            "affiliation": "Bangor University",
+            "affiliationROR": "https://ror.org/006jb1a24",
+            "affiliations": [
+              {
+                "name": "Bangor University",
+                "ror_id": "https://ror.org/006jb1a24"
+              }
+            ],
+            "order": 5
+          },
+          {
+            "firstName": "Shibi",
+            "lastName": "Muralidar",
+            "email": "shibi3214@gmail.com",
+            "affiliation": "Centre for Cellular and Molecular Biology",
+            "affiliationROR": "https://ror.org/05shq4n12",
+            "affiliations": [
+              {
+                "name": "Centre for Cellular and Molecular Biology",
+                "ror_id": "https://ror.org/05shq4n12"
+              }
+            ],
+            "order": 6
+          },
+          {
+            "firstName": "Anita",
+            "lastName": "Malhotra",
+            "email": "a.malhotra@bangor.ac.uk",
+            "affiliation": "Bangor University",
+            "affiliationROR": "https://ror.org/006jb1a24",
+            "affiliations": [
+              {
+                "name": "Bangor University",
+                "ror_id": "https://ror.org/006jb1a24"
+              }
+            ],
+            "order": 7
+          },
+          {
+            "firstName": "Karthikeyan",
+            "lastName": "Vasudevan",
+            "email": "karthik@ccmb.res.in",
+            "affiliation": "Centre for Cellular and Molecular Biology",
+            "affiliationROR": "https://ror.org/05shq4n12",
+            "affiliations": [
+              {
+                "name": "Centre for Cellular and Molecular Biology",
+                "ror_id": "https://ror.org/05shq4n12"
+              }
+            ],
+            "orcid": "0000-0003-2316-3382",
+            "order": 8
+          }
+        ],
+        "abstract": "<p>The saw-scaled viper <em>Echis carinatus,</em> one of the “Big Four” causes of snakebite in India, occurs from Sri Lanka to eastern Iraq. To investigate clinical reports regarding limited efficacy of Indian polyvalent antivenom (IPAV) against envenomation in <em>Echis carinatus sochureki</em> (ECS) in northwestern India, we obtained 22 snakes from three locations in Rajasthan and identified 148-174 toxin isoforms belonging to 21–25 toxin families in their venom using a bottom-up proteomics approach. All samples showed a high abundance of snake venom metalloproteinases (SVMPs), particularly SVMP class III. Other major components were Phospholipases A<sub>2</sub>, L-amino-acid oxidases, snake venom serine proteases and Snaclecs. Variation in venom composition among locations in Rajasthan and compared to *E. c. carinatus *(ECC) from southern India were primarily due to differences in relative abundance of these toxin families. Recognition of all venom components by Indian poly-valent antivenom (IPAV) using second-generation antivenomics was poor at lower antivenom concentrations. Notably, SVMP classes II and III were poorly recognized at all venom to antivenom ratios in all ECS venoms and a plasma clotting assay revealed poor neutralization of procoagulant activity. This collaborative study highlights the need for the development of regional antivenoms to effectively treat snakebites in northwestern India.</p>\n",
+        "funders": [
+          {
+            "organization": "BFI Biome",
+            "identifierType": "ror",
+            "identifier": "",
+            "awardNumber": "GAP647",
+            "awardDescription": "",
+            "awardTitle": "Implementing replacement and reduction under 3Rs in Big4 polyvalent antivenom production",
+            "order": 0
+          },
+          {
+            "organization": "Royal Society",
+            "identifierType": "ror",
+            "identifier": "https://ror.org/03wnrjx87",
+            "awardNumber": "ES\\R1\\211136",
+            "awardDescription": " Royal Society International Exchanges",
+            "awardTitle": "",
+            "order": 1
+          }
+        ],
+        "keywords": [
+          "Snakes",
+          "Venoms",
+          "Vipers",
+          "Reversed-phase high performance liquid chromatography",
+          "Tandem mass spectrometry",
+          "Proteomes",
+          "a"
+        ],
+        "fieldOfScience": "Biological sciences",
+        "hsiStatement": "1. CCMB internal ethical committee IEC protocol no.- IEC-98/2022\n2. Bangor University College of Environmental Sciences and Engineering Ethics Committee Approval Number: COESE2023SRK01A",
+        "methods": "<p><strong>Materials and Methods</strong></p>\n<p><em>Venom collection</em></p>\n<p>A total of 22 ECS snakes were captured from the deserts of Barmer and Jaisalmer districts of Rajasthan (Figure 1), and subsequently released after venom extraction. Extraction of venom was done by gently massaging the glands, prompting the snakes to bite on the Parafilm membrane fastened onto a Nalgene beaker [35]. The venoms were collected from the beaker, placed into 1.5 ml microcentrifuge tubes and desiccated using silica beads in vacuum chambers. The dried samples were stored at -80 ℃ as soon as practicable. ECC-TN venom from Tamil Nadu, obtained from the Irula Snake-catchers Industrial Cooperative Society, venom from Tamil Nadu was procured from Irula Cooperative Society, Tamil Nadu.</p>\n<p> <em>SDS-PAGE (Sodium dodecyl sulfate-polyacrylamide gel electrophoresis)</em></p>\n<p>Dried crude venom from 22 specimens of ECS (Table S1), were reconstituted in Milli-Q water (0.5 mg in 50 µl). Protein concentration in the samples was estimated using a Thermo Nanodrop Lite spectrophotometer and 20 µg of each sample was subjected to electrophoretic separation under reducing and non-reducing conditions using 12% sodium dodecyl sulphate-polyacrylamide gel electrophoresis (SDS-PAGE). A broad range marker (Takara catalog #3597A) was used as a reference. Bands were visualized by Coomassie brilliant blue R-250 staining, followed by destaining in methanol-acetic acid solution. To generate population-level venom profiles, based on the SDS results, samples from each location were pooled in equimolar amounts to form three regional groups (each within a ~25 km radius, see Figure 1): ECS-BA (Barmer, n=3), ECS-SA (Sam, n=13) and ECS-PO (Pokhran, n=6). Equal quantities of venom from each sample were used to ensure equimolar representation of toxins in each pooled sample; this also ensured sufficient quantity of venoms for further analyses. The pooled samples were lyophilized and stored at -20 °C until further use.</p>\n<p><em>Reverse-phase high-performance liquid chromatography (RP-HPLC)</em></p>\n<p>For protein fractionation, 800 µg of venom from each pool was subjected to reverse-phase high-performance liquid chromatography (RP-HPLC) using a Thermo Ultimate 3000 UHPLC system equipped with Zorbax 300SB-C18 column (4.6 × 150 mm, 3.5 µm; Agilent Technologies, CA, USA). Prior to injection, samples were centrifuged at ~9,400 g for 10 minutes to remove particulates. The separation was carried out using a linear gradient of solvent A (0.1% TFA in water) and solvent B (100% acetonitrile), with some modifications, under the following elution conditions: 5% B for 5 minutes followed by 5–15% B for 5 minutes, 15–35% B for 10 minutes, 35–50% B for 35 minutes and 50–75% B for 10 minutes. The flow rate was maintained at 0.8 mL/min and protein elution was monitored at 215 nm [11,36]. Distinct chromatographic fractions were collected manually and vacuum-dried using Savant™ SpeedVac (ThermoFisher Scientific, Waltham, MA, USA). </p>\n<p><em>In solution digestion</em></p>\n<p>For proteomic analysis, a total of 10 µg of venom from each peak fraction was subjected to in-solution trypsin digestion. The proteins were denatured using 50 μl of 6 M Urea in 50 mM Tris-HCl, pH 8.5. To reduce the disulphide bonds in the proteins, 2 μL of 200 mM dithiothreitol (DTT) in 50 mM Tris-HCl [AM3] was added to the peak fractions followed by 1 h incubation at room temperature. After incubation, 10 μL of 200 mM iodoacetamide (IAA) in 50 mM Tris-HCl[AM4] [AS5]  was added to acetylate the reduced cysteine residues, and the sample was then incubated in the dark for 1 h. Any unreacted IAA was then quenched by adding 10 µL of 200 mM DTT, followed by another 1 h incubation in the dark. 350 μl of 1mM CaCl2 in 50mM Tris-Cl was then added to reduce the urea concentration. Following the addition of trypsin solution at a ratio of 1:30 (w/w trypsin: protein), they were incubated at 37 °C for 16-20 h.  Formic acid was added to lower the pH to 2-4 to stop trypsin action before desalting [11]. Samples were desalted using C-18 Ziptips (Thermo Fisher Scientific, Waltham, MA, USA) and digested peptides were eluted in 70% ACN, 0.1% TFA. Eluted peptides were vacuum-dried and reconstituted in 5% Acetonitrile (ACN) for nano-LC-MS analysis.</p>\n<p><em>MS/MS data analysis</em></p>\n<p>Samples were analysed on a Q-Exactive mass spectrometer (Thermo Fisher Scientific, Waltham, MA, USA; hardware ID- 001999D89836) in conjunction with a nanoflow HPLC system (Easy-nLC 1200 Thermo Scientific). The samples were loaded onto Easy Spray Column PepMap ™ RSLC C18 (3 µm,100 Å, 75 µm x 15 cm) and spectra were generated in positive ion mode. A 45 min linear gradient of solution A (5% acetonitrile in-water containing 0.1% formic acid) and solution B (90% ACN in 0.1% formic acid) at the flow rate of 300 nl/min was applied for eluting peptides as follows: 5–25% B for 25 min followed by 25–60% for 12 min, 60–90% for 5 min,  and a final 3 min wash at 90% B. Eluted peptides were analyzed in data-dependent acquisition (DDA) mode with MS scans (range: m/z 400–1750) at a resolution of 70,000. Charge exclusion criteria were applied to ions with +1, +6 to +8, &gt;+8. MS/MS of the top 10 precursor ions with isolation time of 15 milliseconds was achieved through higher-energy collisional dissociation (HCD) at 30% normalized collision energy. MS/MS spectra were acquired at a resolution of 17,500 at m/z 200, within a scan range extending from 200 to 2000 m/z.</p>\n<p>Spectra were analyzed using Proteome Discoverer (PD) v2.2 with the SEQUEST-HT algorithm against the Viperidae database (NCBI TaxID: 8689; 105,645 nr sequences) and a keratin contaminant database (15,154 nr sequences). For enhanced accuracy in protein identification, search parameters included a precursor mass tolerance of 10 ppm and fragment tolerance of 0.02 Da. Carbamidomethylation of cysteine was set as a fixed modification, while methionine oxidation and N-terminal acetylation were considered variables. <em>Percolator</em> (PD) [AM6] was used to regulate the false discovery rates (FDR) of peptides and proteins at thresholds of 1% (strict) and 5% (relaxed). Entries corresponding to contaminant or low/moderate FDR confidence were eliminated, and high confidence proteins supported by a minimum of two unique peptides were taken as valid hits. For each protein, the abundances of associated PSMs were summed to estimate the toxin abundance. Toxin families were assigned to identified entries according to NCBI annotations, which are curated based on the sequence and protein superfamily characteristics. The relative abundances of toxin family were calculated using equations 1 and 2 essentially integrating precursor ion intensities with corresponding RP-HPLC peak areas at 215 nm (calculated using Chromeleon 7 software). The HPLC fractions were annotated by identifying toxin families contributing &gt;20% of the total abundance within a peak, thereby reflecting the major components.</p>\n<p><em>Affinity chromatography for measuring the immunorecognition of IPAV</em></p>\n<p>All 22 ECS venom samples from three locations Sam Kanoi[AM7] , Barmer, Pokhran were grouped as ECS-SA, ECS-BA, and ECS-PO respectively. Third-generation antivenomics was performed using IPAV from Bharat Serums and Vaccines Limited (BSV) as an affinity ligand (Batch No. A18224036). This particular antivenom was chosen as it is routinely supplied in Rajasthan for snakebite treatment. The antivenom was dialyzed overnight at 4 ℃, lyophilized, and reconstituted in coupling buffer (0.2 M NaHCO₃, 0.5 M NaCl, pH 8.3). We assessed the immunorecognition at six antivenom to venom ratios (20:1, 40:1, 60:1, 80:1, 100:1 and 120:1). For each ratio, a single Micro Bio-Spin column (Bio-Rad, USA) with 35.4 ± 0.1 mg of CNBr-activated Sepharose™ 4B beads (Cytiva) was used. The beads were activated with 10 Matrix Bed Volume (MBV) of 1mM cold HCl. Columns were then equilibrated with 10 MBV of coupling buffer (0.2M NaHCO3, 0.5M NaCl, pH 8.3). Eight mg of IPAV dissolved in coupling buffer was added to the equilibrated column and incubated at room temperature for 4 h. Post IPAV incubation, the flow-through was collected to estimate the unbound antivenom and to calculate antivenom coupling yield (ACY = Initial IPAV amount loaded – Amount of IPAV in flow through). The remaining active groups were blocked using 2 MBV of blocking buffer (0.1M Tris-Cl, pH 8.5), incubated for 4 h at room temperature followed by six rounds of alternative washes with 7 MBV of low pH (0.1M CH3COONa, 0.5M NaCl, pH 4) and high pH (0.1M Tris-Cl, pH 8.5) buffer. The columns were then equilibrated with 5 MBV of binding buffer (1X PBS, pH 7.4), and incubated with six different venom amounts. The toxin retention by antivenom was measured by comparing NR and R fractions for different amounts of incubated venom proteins (ECS-BA 53.61μg - 307.6μg, ECS-PO 55μg – 328μg and ECS-SA 50.8μg - 331.65μg) with the control venom profile. For control, beads were incubated without antivenom in coupling buffer and the highest venom amounts for all three locations were passed through it. The venom toxins that are not bound to the antivenom were collected as flow-through post-incubation and referred to as non-retained (NR) fractions. The bound toxins were further eluted using 10 MBV of the elution buffer (0.1M Glycine-Cl, pH 2.7) and brought to neutral pH immediately using 1M Tris-Cl, pH 9 to yield retained (R) fractions. All fractions were dried using Savant SpeedVac™ Vacuum Concentrators and reconstituted in 120 μl of Milli-Q water. Further, 100 μl of these fractions were loaded for reverse-phase HPLC as described in section 2.3. The remaining aliquots of NR and R fractions were subjected to in-solution trypsin digestion and MS/MS as described previously.  Mass spectrometry data were used to identify the most abundant toxins at the lowest antivenom-to-venom ratio (20:1), and their relative abundances were compared across increasing ratios to track sequential neutralization.</p>\n<p><em>Neutralization of procoagulant activity of venoms</em></p>\n<p>A preliminary coagulation assay was performed following Bhatia et al. [12]. Blood was collected in heparinized tubes from two healthy donors. Platelet poor plasma (PPP) was extracted through a standard procedure [37, 38].  The plasma clotting of venoms was tested for five dilutions 15, 10, 5, 2.5, 1.25, and 0.6 μg against 200 μl of heparinized PPP from two donors separately. The clotting time (CT) was measured in triplicate. Minimum clotting dose (MCD) of venoms was estimated at 60 s. All analyses were performed using GraphPad Prism (version 8.0.2). Different dilutions of antivenoms - 150:1, 120:1, 90:1, 60:1, 30:1, 15:1, 7.5:1, 3.25:1, and 1.6:1 were added to a challenge dose of venom equivalent to 2MCD and incubated at 37°C for 30 minutes. The fold change in the CT was estimated by dividing clotting time for VAV by clotting time for the challenge dose:</p>\n<p>Effective dose was estimated as the AV ratio at which clotting time increased by five-fold.</p>\n<p><em>Statistical analysis</em></p>\n<p>ECC-TN venom was designated as the reference control group, since the IPAV is made using venoms from this source . Minimum clotting dose (MCD) and effective dose (ED) values of venoms from ECS-PO, ECS-BA, and ECS-SA were expressed as mean ± SEM and compared against ECC-TN venom. For each parameter, a one-way ANOVA was used to test for overall differences among groups. When significant, Dunnett’s post-hoc test was applied to determine which venoms differed significantly from the ECC-TN (p&lt;0.05).</p>\n",
+        "relatedWorks": [
+          {
+            "relationship": "primary_article",
+            "identifierType": "DOI",
+            "identifier": "https://doi.org/10.3390/toxins18010054"
+          }
+        ],
+        "versionNumber": 6,
+        "versionStatus": "submitted",
+        "curationStatus": "Published",
+        "versionChanges": "files_changed",
+        "publicationDate": "2026-08-28",
+        "lastModificationDate": "2026-08-28",
+        "visibility": "public",
+        "sharingLink": "http://datadryad.org/dataset/doi:10.5061/dryad.djh9w0wf0",
+        "license": "https://spdx.org/licenses/CC0-1.0.html",
+        "metrics": {
+          "views": 0,
+          "downloads": 0,
+          "citations": 0
+        }
+      },
+      {
+        "_links": {
+          "self": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.s7h44j1pg"
+          },
+          "stash:versions": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.s7h44j1pg/versions"
+          },
+          "stash:version": {
+            "href": "/api/v2/versions/460483"
+          },
+          "stash:download": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.s7h44j1pg/download"
+          },
+          "curies": [
+            {
+              "name": "stash",
+              "href": "https://github.com/datadryad/dryad-app/blob/main/documentation/apis/link_relations.md#{rel}",
+              "templated": "true"
+            }
+          ]
+        },
+        "identifier": "doi:10.5061/dryad.s7h44j1pg",
+        "id": 180345,
+        "storageSize": 1786186,
+        "relatedPublicationISSN": "0024-4074",
+        "title": "Data from: Improved phylogenetic resolution of tribe Orobancheae and revision of <em>Kopsiopsis</em>, including a new species from Baja California",
+        "authors": [
+          {
+            "firstName": "Adam",
+            "lastName": "Schneider",
+            "email": "aschneider2@uwlax.edu",
+            "affiliation": "University of Wisconsin–La Crosse",
+            "affiliationROR": "https://ror.org/00x8ccz20",
+            "affiliations": [
+              {
+                "name": "University of Wisconsin–La Crosse",
+                "ror_id": "https://ror.org/00x8ccz20"
+              }
+            ],
+            "orcid": "0000-0002-4249-864X"
+          }
+        ],
+        "abstract": "<p>We used genome skimming to improve the phylogenetic resolution of tribe Orobancheae (Orobanchaceae). Most importantly, we show that the previously unplaced <em>Eremitilla</em> is sister to <em>Kopsiopsis</em>, and a new species from Baja California that parasitizes <em>Arctostaphylos</em>, described here as <em>Kopsiopsis rosea</em>, as sister to but deeply divergent from the rest of the genus. This data set includes the multiple sequence alignments and Newick tree files generated as part of this research, and a voucher table, all of which was published in the <a href=\"https://doi.org/10.1093/botlinnean/boag066\">Botanical Journal of the Linnaean Society</a> in 2026.</p>\n",
+        "keywords": [
+          "genome skimming",
+          "broomrape",
+          "parasitic plant",
+          "Kopsiopsis",
+          "Orobanchaceae",
+          "Madrean flora",
+          "Mexico",
+          "United States",
+          "Canada"
+        ],
+        "fieldOfScience": "Biological sciences",
+        "methods": "<p>Genetic data were obtained from a total of 26 ingroup samples of holoparasitic Orobancheae, representing complete generic sampling of our clade of interest. These data were derived from three complementary sources. First, eleven samples of <em>Kopsiopsis, Boschniakia, Xylanche,</em> and <em>Eremitilla</em> were extracted from dried floral tissue using a Qiagen DNeasy Plant ProKit, and then sent to Novogene (Sacramento, CA, USA) for library prep and 2 × 150 paired-end sequencing on an Illumina Novaseq X platform. Nine of these eleven samples spanned the geographic and host ranges of the two recognized taxa within <em>Kopsiopsis: K. hookeri</em> (Walp.) Govaerts and <em>K. strobilacea.</em> (A.Gray) Beck (Fig. 3), with the remaining four coming from the closest relatives of the genus. Second, <em>PhyA</em> and <em>PhyB</em> genes from the type of <em>Eremitilla mexicana</em> Yatsk. &amp; J.L.Contr. (<em>Yatskievych &amp; Contreras 06-43</em>) were Sanger sequenced following McNeal et al. (2013), who used these loci to infer relationships across the Orobanchaceae. Third, we augmented our dataset with previously published data for thirteen additional samples, accessed via GenBank or, in two cases, recently published genomes (<a href=\"https://academic.oup.com/g3journal/advance-article/doi/10.1093/g3journal/jkag169/8719292\">Burger &amp; Schneider 2026</a>). Voucher information and GenBank accession numbers are provided in Table 2 of <a href=\"https://doi.org/10.1093/botlinnean/boag066\">Schneider et al. 2026</a> and the Voucher_table2.csv file below.</p>\n<p>Short-read Illumina sequence data were assembled <em>de novo</em> to generate nrDNA cistron (including 18S, 5.8S, and 26S rDNA, and the more rapidly evolving ITS and ETS regions) and plastome sequences using GetOrganelle v.1.7.4.1 (Jin et al., 2020) run on Python v.3.8.2 with dependencies Bowtie2 v.2.4.1, SPAdes v.3.12.0, and Blast v.2.6.0. When multiple contigs were returned instead of one complete sequence, these were joined by comparison with congeneric reference sequences. We did not attempt to assemble the entire plastome, but rather used approximately the entire large single copy unit plus one inverted repeat. Depending on the species, this ranged from 39,724bp (<em>Conopholis americana</em>) to 80,690bp (<em>Kopsiopsis hookeri</em>). <em>PhyA</em> and <em>PhyB</em> sequences for <em>Kospiopsis rosea</em> and <em>Eremitilla mexicana</em> were generated from an iterated reference-guided assembly to existing congeneric Sanger sequences using Geneious Prime 2019.2.3 (Biomatters Ltd, Aukland, New Zealand).</p>\n<p>Multiple sequence alignments were performed using MAFFT v. 7.505 (Katoh &amp; Toh, 2010) and maximum likelihood phylograms were inferred by RAxML-NG v. 1.2.2 (Koslov et al., 2019), both using the CIPRES Science Gateway (Miller et al. 2010). We applied a GTR+G+I nucleotide substitution model because it was the most general model that could be easily implemented, 1000 rapid bootstrap replicates, and used <em>Phelipanche ramosa</em> as an outgroup. Separate gene trees were analyzed for the phytochrome, and plastome, and nrDNA data. Both phytochrome genes (PhyA+PhyB) were concatenated in a single analysis, but we divided that dataset into four partitions: one for the 1<sup>st</sup> and 2<sup>nd</sup> codon positions, one for the 3<sup>rd</sup> codon position, and one for intronic regions. The nrDNA data was divided into three partitions: one for ETS/IGS region, one for all rDNA (18S, 5.8S, and 26S), and one for ITS1+ITS2. We did not partition the plastome analysis due to inconsistent gene/pseudogene content and boundaries across taxa. Compared to an unpartitioned preliminary analyses, partitioning the phytochrome and nrDNA data sets generally but not universally increased bootstrap support of some low to moderate-support nodes (data not shown; see <a href=\"https://pubmed.ncbi.nlm.nih.gov/25660373/\">Kainer and Lanfear 2015</a>).</p>\n",
+        "relatedWorks": [
+          {
+            "relationship": "primary_article",
+            "identifierType": "DOI",
+            "identifier": "https://doi.org/10.1093/botlinnean/boag066"
+          }
+        ],
+        "versionNumber": 3,
+        "versionStatus": "submitted",
+        "curationStatus": "Published",
+        "versionChanges": "files_changed",
+        "publicationDate": "2026-08-28",
+        "lastModificationDate": "2026-08-28",
+        "visibility": "public",
+        "sharingLink": "http://datadryad.org/dataset/doi:10.5061/dryad.s7h44j1pg",
+        "license": "https://spdx.org/licenses/CC0-1.0.html",
+        "metrics": {
+          "views": 0,
+          "downloads": 0,
+          "citations": 0
+        }
+      },
+      {
+        "_links": {
+          "self": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.d2547d8b7"
+          },
+          "stash:versions": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.d2547d8b7/versions"
+          },
+          "stash:version": {
+            "href": "/api/v2/versions/460509"
+          },
+          "stash:download": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.d2547d8b7/download"
+          },
+          "curies": [
+            {
+              "name": "stash",
+              "href": "https://github.com/datadryad/dryad-app/blob/main/documentation/apis/link_relations.md#{rel}",
+              "templated": "true"
+            }
+          ]
+        },
+        "identifier": "doi:10.5061/dryad.d2547d8b7",
+        "id": 142798,
+        "storageSize": 90976052,
+        "title": "Genetic diversity, admixture levels, and extinction risk assessment of South African indigenous and village pig populations resulting from crossbreeding with exotic breeds",
+        "authors": [
+          {
+            "firstName": "Mandisa",
+            "lastName": "Mbuyazi",
+            "email": "219010974@stu.ukzn.ac.za",
+            "affiliation": "University of KwaZulu-Natal",
+            "affiliationROR": "https://ror.org/04qzfn040",
+            "affiliations": [
+              {
+                "name": "University of KwaZulu-Natal",
+                "ror_id": "https://ror.org/04qzfn040"
+              }
+            ],
+            "orcid": "0000-0002-0122-2479"
+          },
+          {
+            "firstName": "Nompilo",
+            "lastName": "Hlongwane",
+            "email": "hlongwanen@arc.agric.za",
+            "affiliation": "Agricultural Research Council of South Africa",
+            "affiliationROR": "https://ror.org/04r1s2546",
+            "affiliations": [
+              {
+                "name": "Agricultural Research Council of South Africa",
+                "ror_id": "https://ror.org/04r1s2546"
+              }
+            ],
+            "order": 1
+          },
+          {
+            "firstName": "Farai",
+            "lastName": "Muchadeyi",
+            "email": "faraidzomba@gmail.com",
+            "affiliation": "International Atomic Energy Agency",
+            "affiliationROR": "https://ror.org/02zt1gg83",
+            "affiliations": [
+              {
+                "name": "International Atomic Energy Agency",
+                "ror_id": "https://ror.org/02zt1gg83"
+              }
+            ],
+            "order": 1
+          },
+          {
+            "firstName": "Magriet",
+            "lastName": "van der Nest",
+            "email": "magriet.vandernest@fabi.up.ac.za",
+            "affiliation": "Forestry and Agricultural Biotechnology Institute",
+            "affiliationROR": "https://ror.org/00nm7mw87",
+            "affiliations": [
+              {
+                "name": "Forestry and Agricultural Biotechnology Institute",
+                "ror_id": "https://ror.org/00nm7mw87"
+              }
+            ],
+            "order": 1
+          },
+          {
+            "firstName": "Tlou",
+            "lastName": "Chokoe",
+            "email": "tlouamin@gmail.com",
+            "affiliation": "Portfolio of Environment, Agriculture and Rural Development, Gauteng Provincial Legislature",
+            "affiliations": [
+              {
+                "name": "Portfolio of Environment, Agriculture and Rural Development, Gauteng Provincial Legislature"
+              }
+            ],
+            "orcid": "0000-0001-6944-1371",
+            "order": 2
+          },
+          {
+            "firstName": "Tlou",
+            "lastName": "Matelele",
+            "email": "tlouma@dalrrd.gov.za",
+            "affiliation": "Department of Agriculture, Land Reform and Rural Development",
+            "affiliationROR": "https://ror.org/02jp3w516",
+            "affiliations": [
+              {
+                "name": "Department of Agriculture, Land Reform and Rural Development",
+                "ror_id": "https://ror.org/02jp3w516"
+              }
+            ],
+            "order": 3
+          },
+          {
+            "firstName": "Noluthando",
+            "lastName": "Netnou-Nkoana",
+            "email": "noluthandon@dalrrd.gov.za",
+            "affiliation": "Department of Agriculture, Land Reform and Rural Development",
+            "affiliationROR": "https://ror.org/02jp3w516",
+            "affiliations": [
+              {
+                "name": "Department of Agriculture, Land Reform and Rural Development",
+                "ror_id": "https://ror.org/02jp3w516"
+              }
+            ],
+            "order": 3
+          },
+          {
+            "firstName": "Edgar",
+            "lastName": "Dzomba",
+            "email": "dzomba@ukzn.ac.za",
+            "affiliation": "University of KwaZulu-Natal",
+            "affiliationROR": "https://ror.org/04qzfn040",
+            "affiliations": [
+              {
+                "name": "University of KwaZulu-Natal",
+                "ror_id": "https://ror.org/04qzfn040"
+              }
+            ],
+            "order": 3
+          }
+        ],
+        "abstract": "<p>Genetic diversity within and between populations is crucial for adaptability, including adaptability to the harsh conditions associated with climate change. This study examined the genetic diversity, admixture levels, and extinction risk of South African indigenous and village pig populations, potentially affected by crossbreeding, uncontrolled mating, and breeding practices. We genotyped 384 pig ear tissue samples from South African villages across six provinces using the Illumina PorcineSNP80K Bead Chip. Additionally, 100 pig genotypes from previous studies were included to compare the clustering and relationships between populations. Genetic variability was assessed using polymorphic information content (<em>PIC</em>), percentage of polymorphic loci (%<em>P</em>), total (<em>Na</em>), effective allele numbers (<em>N<sub>e</sub><sup>alleles</sup></em>), P-value for the Global Hardy Weinberg test (<em>P</em>), observed (<em>Ho</em>), and expected heterozygosity (<em>H<sub>E</sub></em>). The effective population size (<em>Ne</em>) results indicate a rapid decline in <em>Ne</em> across generations for all populations. Low F<sub>ST</sub> values (0.016–0.111) were observed among the populations. Principal component analysis produced five distinct clusters, with PC1 and PC2 explaining 18.169% and 8.918% of total genetic variability, respectively, forming five distinct clusters. Optimal ADMIXTURE clustering (K=14) revealed admixture in all village pig populations. Treemix analysis provided insights into relationships among breeds and populations. The results indicated a decline in population size and high admixture in the investigated pig populations. Further studies on mating systems and their effects on population diversity and structure are recommended.</p>",
+        "funders": [
+          {
+            "organization": "National Research Foundation",
+            "identifierType": "ror",
+            "identifier": "https://ror.org/05s0g1g46",
+            "awardNumber": "PMDS22070230641",
+            "awardDescription": "NRF Postgraduate Scholarship",
+            "order": 0
+          },
+          {
+            "organization": "Department of Agriculture, Land Reform and Rural Development",
+            "identifierType": "ror",
+            "identifier": "https://ror.org/02jp3w516",
+            "awardNumber": "A049",
+            "awardDescription": "Research and Development Projects",
+            "order": 1
+          }
+        ],
+        "keywords": [
+          "genetic diversity",
+          "SNPs",
+          "pig",
+          "PorcineSNP80 BeadChip",
+          "Population structure"
+        ],
+        "fieldOfScience": "Agricultural biotechnology",
+        "methods": "<div>\n<p>Data was collected from South African village pigs in six provinces (Eastern Cape, Gauteng, KwaZulu-Natal, Mpumalanga, Limpopo and North West). The population was genotyped using illumina PorcineSNP80K BeadChip.</p>\n</div>",
+        "versionNumber": 10,
+        "versionStatus": "submitted",
+        "curationStatus": "Published",
+        "versionChanges": "metadata_changed",
+        "publicationDate": "2026-08-28",
+        "lastModificationDate": "2026-08-28",
+        "visibility": "public",
+        "sharingLink": "http://datadryad.org/dataset/doi:10.5061/dryad.d2547d8b7",
+        "license": "https://spdx.org/licenses/CC0-1.0.html",
+        "metrics": {
+          "views": 0,
+          "downloads": 0,
+          "citations": 0
+        }
+      },
+      {
+        "_links": {
+          "self": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.2ngf1vj4r"
+          },
+          "stash:versions": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.2ngf1vj4r/versions"
+          },
+          "stash:version": {
+            "href": "/api/v2/versions/460515"
+          },
+          "stash:download": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.2ngf1vj4r/download"
+          },
+          "curies": [
+            {
+              "name": "stash",
+              "href": "https://github.com/datadryad/dryad-app/blob/main/documentation/apis/link_relations.md#{rel}",
+              "templated": "true"
+            }
+          ]
+        },
+        "identifier": "doi:10.5061/dryad.2ngf1vj4r",
+        "id": 191946,
+        "storageSize": 17265623349,
+        "title": "AERPAW air-to-ground channel sounding and path loss measurement with a UAV at 3.4GHz",
+        "authors": [
+          {
+            "firstName": "Anıl",
+            "lastName": "Gürses",
+            "email": "agurses@ncsu.edu",
+            "affiliation": "North Carolina State University",
+            "affiliationROR": "https://ror.org/04tj63d06",
+            "affiliations": [
+              {
+                "name": "North Carolina State University",
+                "ror_id": "https://ror.org/04tj63d06"
+              }
+            ],
+            "orcid": "0000-0002-8129-3583"
+          },
+          {
+            "firstName": "Mihail",
+            "lastName": "Sichitiu",
+            "email": "mlsichit@ncsu.edu",
+            "affiliation": "North Carolina State University",
+            "affiliationROR": "https://ror.org/04tj63d06",
+            "affiliations": [
+              {
+                "name": "North Carolina State University",
+                "ror_id": "https://ror.org/04tj63d06"
+              }
+            ],
+            "order": 1
+          }
+        ],
+        "abstract": "<p>Uncrewed aerial vehicles (UAVs) have emerged as critical for various use cases, both military and civilian. This paradigm shift is poised to revolutionize various industries and aspects of modern life, from logistics and emergency services to environmental monitoring and entertainment. However, the safety of these UAVs hinges on the availability of a reliable wireless link between the UAV and the ground infrastructure for real-time communication. To effectively harness the vast potential of UAVs with a safe and reliable wireless link, it is essential to model the complex air-to-ground (A2G) channel accurately. In this dataset, we use our open-source channel sounder built with software-defined radios (SDRs), which enables real-time measurement and characterization of the A2G channel in scenarios with mobility. Our measurement campaign conducted in a rural area provides valuable insights into the A2G channel’s characteristics, multipath effects, and channel impairments. This dataset extends our previous work with additional trajectories.</p>\n",
+        "funders": [
+          {
+            "organization": "Division of Computer and Network Systems",
+            "identifierType": "ror",
+            "identifier": "https://ror.org/02rdzmk74",
+            "awardNumber": "1939334",
+            "awardDescription": "",
+            "awardTitle": "PAWR Platform AERPAW: Aerial Experimentation and Research Platform for Advanced Wireless",
+            "order": 0
+          }
+        ],
+        "keywords": [
+          "UAV",
+          "Air-to-ground channel",
+          "channel modeling",
+          "software defined radio",
+          "channel sounding"
+        ],
+        "fieldOfScience": "Electrical engineering, electronic engineering, information engineering",
+        "relatedWorks": [
+          {
+            "relationship": "dataset",
+            "identifierType": "DOI",
+            "identifier": "https://doi.org/10.5061/dryad.7h44j105p"
+          }
+        ],
+        "versionNumber": 2,
+        "versionStatus": "submitted",
+        "curationStatus": "Published",
+        "versionChanges": "files_changed",
+        "publicationDate": "2026-08-28",
+        "lastModificationDate": "2026-08-28",
+        "visibility": "public",
+        "sharingLink": "http://datadryad.org/dataset/doi:10.5061/dryad.2ngf1vj4r",
+        "license": "https://spdx.org/licenses/CC0-1.0.html",
+        "metrics": {
+          "views": 0,
+          "downloads": 0,
+          "citations": 0
+        }
+      },
+      {
+        "_links": {
+          "self": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.d7wm37qh7"
+          },
+          "stash:versions": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.d7wm37qh7/versions"
+          },
+          "stash:version": {
+            "href": "/api/v2/versions/460156"
+          },
+          "stash:download": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.d7wm37qh7/download"
+          },
+          "curies": [
+            {
+              "name": "stash",
+              "href": "https://github.com/datadryad/dryad-app/blob/main/documentation/apis/link_relations.md#{rel}",
+              "templated": "true"
+            }
+          ]
+        },
+        "identifier": "doi:10.5061/dryad.d7wm37qh7",
+        "id": 190750,
+        "storageSize": 180469,
+        "relatedPublicationISSN": "1461-9555",
+        "title": "Data from: Plant-derived eDNA metabarcoding is an effective approach for monitoring invertebrate rice pests",
+        "authors": [
+          {
+            "firstName": "Tingbang",
+            "lastName": "Yang",
+            "email": "tingbang_yang@cwnu.edu.cn",
+            "affiliation": "China West Normal University",
+            "affiliationROR": "https://ror.org/04s99y476",
+            "affiliations": [
+              {
+                "name": "China West Normal University",
+                "ror_id": "https://ror.org/04s99y476"
+              }
+            ],
+            "orcid": "0000-0002-6685-1209"
+          },
+          {
+            "firstName": "Jiayi",
+            "lastName": "Chen",
+            "email": "jiayi1010@stu.cwnu.edu.cn",
+            "affiliation": "China West Normal University",
+            "affiliationROR": "https://ror.org/04s99y476",
+            "affiliations": [
+              {
+                "name": "China West Normal University",
+                "ror_id": "https://ror.org/04s99y476"
+              }
+            ],
+            "order": 1
+          },
+          {
+            "firstName": "Charles C. Y.",
+            "lastName": "Xu",
+            "email": "cxu@wcs.org",
+            "affiliation": "University of Calgary",
+            "affiliationROR": "https://ror.org/03yjb2x39",
+            "affiliations": [
+              {
+                "name": "University of Calgary",
+                "ror_id": "https://ror.org/03yjb2x39"
+              }
+            ],
+            "order": 2
+          },
+          {
+            "firstName": "Lei",
+            "lastName": "Wang",
+            "email": "leiw321@stu.cwnu.cn",
+            "affiliation": "China West Normal University",
+            "affiliationROR": "https://ror.org/04s99y476",
+            "affiliations": [
+              {
+                "name": "China West Normal University",
+                "ror_id": "https://ror.org/04s99y476"
+              }
+            ],
+            "order": 3
+          },
+          {
+            "firstName": "Xuhao",
+            "lastName": "Song",
+            "email": "songxuhao1991@163.com",
+            "affiliation": "China West Normal University",
+            "affiliationROR": "https://ror.org/04s99y476",
+            "affiliations": [
+              {
+                "name": "China West Normal University",
+                "ror_id": "https://ror.org/04s99y476"
+              }
+            ],
+            "order": 4
+          },
+          {
+            "firstName": "Aimin",
+            "lastName": "Shi",
+            "email": "aiminshi2003@126.com",
+            "affiliation": "China West Normal University",
+            "affiliationROR": "https://ror.org/04s99y476",
+            "affiliations": [
+              {
+                "name": "China West Normal University",
+                "ror_id": "https://ror.org/04s99y476"
+              }
+            ],
+            "order": 5
+          }
+        ],
+        "abstract": "<p>Traditional methods based on morphological taxonomy and visual identification of crop damage are increasingly challenged by the diversity and complexity of current and emerging pest occurrences. Although environmental DNA (eDNA) metabarcoding shows potential for improving agricultural pest management, comprehensive evaluation of its effectiveness in pest identification and monitoring remain scarce, particularly studies integrating controlled laboratory experiments with field monitoring. This study evaluated the potential of plant-derived eDNA metabarcoding to identify and monitor invertebrate pests of rice through <em>in silico</em> PCR analysis, controlled feeding experiments, and field investigations. The results indicated that eDNA metabarcoding is effective in the detection of invertebrate rice pest species. <em>In silico</em> PCR analysis showed that the primer pair mlCOIintF / Fol-degen-rev can amplify a 313 bp fragment of the COI gene from 19 prevalent invertebrate rice pest species in China. The feeding experiment confirmed that the eDNA of <em>Marasmia exigua</em> larvae and adult <em>Leptocorisa chinensis</em> remains detectable for up to 16 days post-feeding under natural conditions. The implementation of washing-based extraction protocols, combined with increased amounts of substrate, showed to be effective in recovering target eDNA quantities. Regarding pest species richness, eDNA metabarcoding complements traditional morphological identification methods and facilitates plant part-specific pest detection through targeted sampling. These results indicate that eDNA metabarcoding holds significant potential for monitoring invertebrate pests in rice cultivation systems. Findings support developing future eDNA-based systems for precise pest identification and monitoring in agroecosystem.</p>\n",
+        "funders": [
+          {
+            "organization": "National Natural Science Foundation of China",
+            "identifierType": "ror",
+            "identifier": "https://ror.org/01h0zpd94",
+            "awardNumber": "32101265",
+            "awardDescription": "",
+            "awardTitle": "",
+            "order": 0
+          },
+          {
+            "organization": "Sichuan Science and Technology Program",
+            "identifierType": "ror",
+            "identifier": "",
+            "awardNumber": "2023NSFSC0154",
+            "awardDescription": "",
+            "awardTitle": "",
+            "order": 1
+          },
+          {
+            "organization": "China West Normal University",
+            "identifierType": "ror",
+            "identifier": "https://ror.org/04s99y476",
+            "awardNumber": "25kx007",
+            "awardDescription": "Fundamental Research Funds",
+            "awardTitle": "",
+            "order": 3
+          },
+          {
+            "organization": "Sichuan Science and Technology Program",
+            "identifierType": "ror",
+            "identifier": "",
+            "awardNumber": "2024NSFSC0076",
+            "awardDescription": "",
+            "awardTitle": "",
+            "order": 2
+          }
+        ],
+        "keywords": [
+          "agricultural pests",
+          "DNA metabarcoding",
+          "Environmental DNA",
+          "Pest monitoring",
+          "Population dynamics"
+        ],
+        "fieldOfScience": "Biological sciences",
+        "versionNumber": 3,
+        "versionStatus": "submitted",
+        "curationStatus": "Published",
+        "versionChanges": "files_changed",
+        "publicationDate": "2026-08-27",
+        "lastModificationDate": "2026-08-27",
+        "visibility": "public",
+        "sharingLink": "http://datadryad.org/dataset/doi:10.5061/dryad.d7wm37qh7",
+        "license": "https://spdx.org/licenses/CC0-1.0.html",
+        "metrics": {
+          "views": 0,
+          "downloads": 0,
+          "citations": 0
+        }
+      },
+      {
+        "_links": {
+          "self": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.nk98sf85b"
+          },
+          "stash:versions": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.nk98sf85b/versions"
+          },
+          "stash:version": {
+            "href": "/api/v2/versions/460128"
+          },
+          "stash:download": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.nk98sf85b/download"
+          },
+          "curies": [
+            {
+              "name": "stash",
+              "href": "https://github.com/datadryad/dryad-app/blob/main/documentation/apis/link_relations.md#{rel}",
+              "templated": "true"
+            }
+          ]
+        },
+        "identifier": "doi:10.5061/dryad.nk98sf85b",
+        "id": 161182,
+        "storageSize": 216757956,
+        "relatedPublicationISSN": "1095-9203",
+        "title": "Jet-lagged birds: longitudinal flights cause time-shifts and sun compass error",
+        "authors": [
+          {
+            "firstName": "Patrick",
+            "lastName": "Lewin",
+            "email": "patrick.lewin@biology.ox.ac.uk",
+            "affiliation": "University of Oxford",
+            "affiliationROR": "https://ror.org/052gg0110",
+            "affiliations": [
+              {
+                "name": "University of Oxford",
+                "ror_id": "https://ror.org/052gg0110"
+              }
+            ],
+            "orcid": "0000-0002-2502-7264",
+            "order": 0
+          },
+          {
+            "firstName": "Joe",
+            "lastName": "Wynn",
+            "email": "j.wynn@liverpool.ac.uk",
+            "affiliation": "University of Oxford",
+            "affiliationROR": "https://ror.org/052gg0110",
+            "affiliations": [
+              {
+                "name": "University of Oxford",
+                "ror_id": "https://ror.org/052gg0110"
+              }
+            ],
+            "order": 1
+          },
+          {
+            "firstName": "Joe",
+            "lastName": "Morford",
+            "email": "jmorford@UR.Rochester.edu",
+            "affiliation": "University of Oxford",
+            "affiliationROR": "https://ror.org/052gg0110",
+            "affiliations": [
+              {
+                "name": "University of Oxford",
+                "ror_id": "https://ror.org/052gg0110"
+              }
+            ],
+            "order": 2
+          },
+          {
+            "firstName": "Oliver",
+            "lastName": "Padget",
+            "email": "oliver.padget@liverpool.ac.uk",
+            "affiliation": "University of Oxford",
+            "affiliationROR": "https://ror.org/052gg0110",
+            "affiliations": [
+              {
+                "name": "University of Oxford",
+                "ror_id": "https://ror.org/052gg0110"
+              }
+            ],
+            "order": 3
+          },
+          {
+            "firstName": "Lewis",
+            "lastName": "Lancaster-Reeves",
+            "email": "lewis.lancaster-reeves@biology.ox.ac.uk",
+            "affiliation": "University of Oxford",
+            "affiliationROR": "https://ror.org/052gg0110",
+            "affiliations": [
+              {
+                "name": "University of Oxford",
+                "ror_id": "https://ror.org/052gg0110"
+              }
+            ],
+            "order": 4
+          },
+          {
+            "firstName": "Katrina",
+            "lastName": "Siddiqi-Davies",
+            "email": "katrina.siddiqi-davies@biology.ox.ac.uk",
+            "affiliation": "University of Oxford",
+            "affiliationROR": "https://ror.org/052gg0110",
+            "affiliations": [
+              {
+                "name": "University of Oxford",
+                "ror_id": "https://ror.org/052gg0110"
+              }
+            ],
+            "order": 5
+          },
+          {
+            "firstName": "Hector",
+            "lastName": "Bailey",
+            "email": "hector.bailey@st-annes.ox.ac.uk",
+            "affiliation": "University of Oxford",
+            "affiliationROR": "https://ror.org/052gg0110",
+            "affiliations": [
+              {
+                "name": "University of Oxford",
+                "ror_id": "https://ror.org/052gg0110"
+              }
+            ],
+            "order": 6
+          },
+          {
+            "firstName": "Sarah",
+            "lastName": "Bond",
+            "email": "bondsarahl@gmail.com",
+            "affiliation": "University of Oxford",
+            "affiliationROR": "https://ror.org/052gg0110",
+            "affiliations": [
+              {
+                "name": "University of Oxford",
+                "ror_id": "https://ror.org/052gg0110"
+              }
+            ],
+            "order": 7
+          },
+          {
+            "firstName": "Madeline",
+            "lastName": "Davis",
+            "email": "madeline.davis@liverpool.ac.uk",
+            "affiliation": "University of Liverpool",
+            "affiliationROR": "https://ror.org/04xs57h96",
+            "affiliations": [
+              {
+                "name": "University of Liverpool",
+                "ror_id": "https://ror.org/04xs57h96"
+              }
+            ],
+            "order": 8
+          },
+          {
+            "firstName": "Ben",
+            "lastName": "Dean",
+            "email": "benjamdean@gmail.com",
+            "affiliation": "University of Oxford",
+            "affiliationROR": "https://ror.org/052gg0110",
+            "affiliations": [
+              {
+                "name": "University of Oxford",
+                "ror_id": "https://ror.org/052gg0110"
+              }
+            ],
+            "order": 9
+          },
+          {
+            "firstName": "Annette",
+            "lastName": "Fayet",
+            "email": "annette.fayet@nina.no",
+            "affiliation": "University of Oxford",
+            "affiliationROR": "https://ror.org/052gg0110",
+            "affiliations": [
+              {
+                "name": "University of Oxford",
+                "ror_id": "https://ror.org/052gg0110"
+              }
+            ],
+            "orcid": "0000-0001-6373-0500",
+            "order": 10
+          },
+          {
+            "firstName": "Robin",
+            "lastName": "Freeman",
+            "email": "robin.freeman@ioz.ac.uk",
+            "affiliation": "University of Oxford",
+            "affiliationROR": "https://ror.org/052gg0110",
+            "affiliations": [
+              {
+                "name": "University of Oxford",
+                "ror_id": "https://ror.org/052gg0110"
+              }
+            ],
+            "order": 11
+          },
+          {
+            "firstName": "Natasha",
+            "lastName": "Gillies",
+            "email": "natasha.gillies@liverpool.ac.uk",
+            "affiliation": "University of Oxford",
+            "affiliationROR": "https://ror.org/052gg0110",
+            "affiliations": [
+              {
+                "name": "University of Oxford",
+                "ror_id": "https://ror.org/052gg0110"
+              }
+            ],
+            "orcid": "0000-0002-9950-609X",
+            "order": 12
+          },
+          {
+            "firstName": "Stephanie",
+            "lastName": "Harris",
+            "email": "s.harris@bangor.ac.uk",
+            "affiliation": "University of Liverpool",
+            "affiliationROR": "https://ror.org/04xs57h96",
+            "affiliations": [
+              {
+                "name": "University of Liverpool",
+                "ror_id": "https://ror.org/04xs57h96"
+              }
+            ],
+            "order": 13
+          },
+          {
+            "firstName": "Paris",
+            "lastName": "Jaggers",
+            "email": "parisjaggers@gmail.com",
+            "affiliation": "University of Oxford",
+            "affiliationROR": "https://ror.org/052gg0110",
+            "affiliations": [
+              {
+                "name": "University of Oxford",
+                "ror_id": "https://ror.org/052gg0110"
+              }
+            ],
+            "order": 14
+          },
+          {
+            "firstName": "Holly",
+            "lastName": "Kirk",
+            "email": "hollylkirk@gmail.com",
+            "affiliation": "University of Oxford",
+            "affiliationROR": "https://ror.org/052gg0110",
+            "affiliations": [
+              {
+                "name": "University of Oxford",
+                "ror_id": "https://ror.org/052gg0110"
+              }
+            ],
+            "order": 15
+          },
+          {
+            "firstName": "Louise",
+            "lastName": "Maurice",
+            "email": "loma@bgs.ac.uk",
+            "affiliation": "British Geological Survey",
+            "affiliationROR": "https://ror.org/04a7gbp98",
+            "affiliations": [
+              {
+                "name": "British Geological Survey",
+                "ror_id": "https://ror.org/04a7gbp98"
+              }
+            ],
+            "order": 16
+          },
+          {
+            "firstName": "Elizabeth",
+            "lastName": "Morgan",
+            "email": "emorgan@nts.org.uk",
+            "affiliation": "National Trust for Scotland",
+            "affiliationROR": "https://ror.org/057stj941",
+            "affiliations": [
+              {
+                "name": "National Trust for Scotland",
+                "ror_id": "https://ror.org/057stj941"
+              }
+            ],
+            "order": 17
+          },
+          {
+            "firstName": "Craig",
+            "lastName": "Nisbet",
+            "email": "cnisbet@nts.org.uk",
+            "affiliation": "National Trust for Scotland",
+            "affiliationROR": "https://ror.org/057stj941",
+            "affiliations": [
+              {
+                "name": "National Trust for Scotland",
+                "ror_id": "https://ror.org/057stj941"
+              }
+            ],
+            "order": 18
+          },
+          {
+            "firstName": "Ellie",
+            "lastName": "Owen",
+            "email": "eowen@nts.org.uk",
+            "affiliation": "National Trust for Scotland",
+            "affiliationROR": "https://ror.org/057stj941",
+            "affiliations": [
+              {
+                "name": "National Trust for Scotland",
+                "ror_id": "https://ror.org/057stj941"
+              }
+            ],
+            "order": 19
+          },
+          {
+            "firstName": "Joe",
+            "lastName": "Parker",
+            "email": "jsparker@outlook.com",
+            "affiliation": "The Landmark Trust",
+            "affiliations": [
+              {
+                "name": "The Landmark Trust"
+              }
+            ],
+            "order": 20
+          },
+          {
+            "firstName": "Akiko",
+            "lastName": "Shoji",
+            "email": "akiko.shoji@nagoya-u.jp",
+            "affiliation": "University of Oxford",
+            "affiliationROR": "https://ror.org/052gg0110",
+            "affiliations": [
+              {
+                "name": "University of Oxford",
+                "ror_id": "https://ror.org/052gg0110"
+              }
+            ],
+            "order": 21
+          },
+          {
+            "firstName": "Martyna",
+            "lastName": "Syposz",
+            "email": "syposzmartyna@gmail.com",
+            "affiliation": "University of Oxford",
+            "affiliationROR": "https://ror.org/052gg0110",
+            "affiliations": [
+              {
+                "name": "University of Oxford",
+                "ror_id": "https://ror.org/052gg0110"
+              }
+            ],
+            "orcid": "0000-0002-6148-039X",
+            "order": 22
+          },
+          {
+            "firstName": "Tim",
+            "lastName": "Guilford",
+            "email": "tim.guilford@biology.ox.ac.uk",
+            "affiliation": "University of Oxford",
+            "affiliationROR": "https://ror.org/052gg0110",
+            "affiliations": [
+              {
+                "name": "University of Oxford",
+                "ror_id": "https://ror.org/052gg0110"
+              }
+            ],
+            "order": 23
+          }
+        ],
+        "abstract": "Many animals use the sun compass to guide their movement, sometimes over thousands of kilometres. Consistent use of the sun compass relies on the endogenous clock to track the sun’s arc, yet animals travelling east-west might experience mismatches between their internal clock and local time (clock-shift). Using GPS, we reveal that Manx shearwaters (Puffinus puffinus) experience such shifts during homing flights, generating predictable errors in sun compass orientation. Use of the sun compass persists even when shearwaters have access to compass-independent cues during coast-following. Our findings provide a new avenue for chronobiology research in the wild, suggest that rapid longitudinal movements may impact other processes governed by the endogenous clock, and that conserved chronobiological mechanisms impose remarkable constraints on navigation.",
+        "funders": [
+          {
+            "organization": "Biotechnology and Biological Sciences Research Council",
+            "identifierType": "ror",
+            "identifier": "https://ror.org/00cwqg982",
+            "awardNumber": "BB/M011224/1",
+            "order": 0
+          },
+          {
+            "organization": "Natural Environment Research Council",
+            "identifierType": "ror",
+            "identifier": "https://ror.org/02b5d8509",
+            "awardNumber": "NE/W001217/1",
+            "order": 1
+          },
+          {
+            "organization": "Natural Environment Research Council",
+            "identifierType": "ror",
+            "identifier": "https://ror.org/02b5d8509",
+            "awardNumber": "NE/S007474/1",
+            "order": 2
+          },
+          {
+            "organization": "Leverhulme Trust",
+            "identifierType": "ror",
+            "identifier": "https://ror.org/012mzw131",
+            "awardNumber": "RPG-2020-311",
+            "order": 3
+          },
+          {
+            "organization": "Japan Society for the Promotion of Science",
+            "identifierType": "ror",
+            "identifier": "https://ror.org/00hhkn466",
+            "awardNumber": "23KK0116",
+            "awardDescription": "",
+            "awardTitle": "",
+            "order": 5
+          },
+          {
+            "organization": "National Science Centre",
+            "identifierType": "ror",
+            "identifier": "https://ror.org/03ha2q922",
+            "awardNumber": "2021/40/C/NZ8/00043",
+            "order": 6
+          },
+          {
+            "organization": "Japan Society for the Promotion of Science",
+            "identifierType": "ror",
+            "identifier": "https://ror.org/00hhkn466",
+            "awardNumber": "22K21355",
+            "awardDescription": "",
+            "awardTitle": "",
+            "order": 4
+          }
+        ],
+        "keywords": [
+          "Animal migration",
+          "Animal navigation",
+          "Behavioral ecology"
+        ],
+        "fieldOfScience": "Biological sciences",
+        "relatedWorks": [
+          {
+            "relationship": "software",
+            "identifierType": "DOI",
+            "identifier": "https://doi.org/10.5281/zenodo.15613947"
+          }
+        ],
+        "versionNumber": 3,
+        "versionStatus": "submitted",
+        "curationStatus": "Published",
+        "versionChanges": "metadata_changed",
+        "publicationDate": "2026-08-27",
+        "lastModificationDate": "2026-08-27",
+        "visibility": "public",
+        "sharingLink": "http://datadryad.org/dataset/doi:10.5061/dryad.nk98sf85b",
+        "license": "https://spdx.org/licenses/CC0-1.0.html",
+        "metrics": {
+          "views": 0,
+          "downloads": 0,
+          "citations": 0
+        }
+      },
+      {
+        "_links": {
+          "self": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.bvq83bkr6"
+          },
+          "stash:versions": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.bvq83bkr6/versions"
+          },
+          "stash:version": {
+            "href": "/api/v2/versions/460186"
+          },
+          "stash:download": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.bvq83bkr6/download"
+          },
+          "curies": [
+            {
+              "name": "stash",
+              "href": "https://github.com/datadryad/dryad-app/blob/main/documentation/apis/link_relations.md#{rel}",
+              "templated": "true"
+            }
+          ]
+        },
+        "identifier": "doi:10.5061/dryad.bvq83bkr6",
+        "id": 187058,
+        "storageSize": 24754355338,
+        "relatedPublicationISSN": "2692-8205",
+        "title": "Transient HDACi treatment increases radiation-induced DNA damage signals across cell types",
+        "authors": [
+          {
+            "firstName": "Heng",
+            "lastName": "Li",
+            "email": "hli104@vols.utk.edu",
+            "affiliation": "University of Tennessee at Knoxville",
+            "affiliationROR": "https://ror.org/020f3ap87",
+            "affiliations": [
+              {
+                "name": "University of Tennessee at Knoxville",
+                "ror_id": "https://ror.org/020f3ap87"
+              }
+            ],
+            "order": 0
+          },
+          {
+            "firstName": "Campbell",
+            "lastName": "Maben",
+            "email": "",
+            "affiliation": "University of Tennessee at Knoxville",
+            "affiliationROR": "https://ror.org/020f3ap87",
+            "affiliations": [
+              {
+                "name": "University of Tennessee at Knoxville",
+                "ror_id": "https://ror.org/020f3ap87"
+              }
+            ],
+            "order": 1
+          },
+          {
+            "firstName": "Lindsey",
+            "lastName": "Young",
+            "email": "",
+            "affiliation": "University of Tennessee at Knoxville",
+            "affiliationROR": "https://ror.org/020f3ap87",
+            "affiliations": [
+              {
+                "name": "University of Tennessee at Knoxville",
+                "ror_id": "https://ror.org/020f3ap87"
+              }
+            ],
+            "order": 2
+          },
+          {
+            "firstName": "Debjani",
+            "lastName": "Pal",
+            "email": "",
+            "affiliation": "Oak Ridge National Laboratory",
+            "affiliationROR": "https://ror.org/01qz5mb56",
+            "affiliations": [
+              {
+                "name": "Oak Ridge National Laboratory",
+                "ror_id": "https://ror.org/01qz5mb56"
+              }
+            ],
+            "order": 3
+          },
+          {
+            "firstName": "Sandra",
+            "lastName": "Davern",
+            "email": "",
+            "affiliation": "Oak Ridge National Laboratory",
+            "affiliationROR": "https://ror.org/01qz5mb56",
+            "affiliations": [
+              {
+                "name": "Oak Ridge National Laboratory",
+                "ror_id": "https://ror.org/01qz5mb56"
+              }
+            ],
+            "order": 4
+          },
+          {
+            "firstName": "Rachel",
+            "lastName": "McCord",
+            "email": "rmccord@utk.edu",
+            "affiliation": "University of Tennessee at Knoxville",
+            "affiliationROR": "https://ror.org/020f3ap87",
+            "affiliations": [
+              {
+                "name": "University of Tennessee at Knoxville",
+                "ror_id": "https://ror.org/020f3ap87"
+              }
+            ],
+            "orcid": "0000-0003-0010-5323",
+            "order": 5
+          }
+        ],
+        "abstract": "<p>Radiation therapy plays a prominent role in breast cancer treatment, but the high doses of radiation damage both healthy and cancerous cells. Therefore, additional research is needed into combination therapies that could preferentially radiosensitize cancer cells compared to surrounding healthy tissue without causing deleterious side effects. Histone deacetylase inhibitor drugs (HDACis) have been tested as radiosensitizers in both basic research and clinical trials, but the long exposure usually used in these treatments and lack of examination of effects on matched healthy cells leave aspects of their mechanism of action unclear. Here, we show that transient (2-hour) trichostatin A (TSA) treatment of cancerous and non-tumorigenic breast epithelial cell lines increases immediate DNA damage in both cell types at high radiation doses. Transient TSA treatment also causes an increase in DNA damage signals after 5 Gy in other cancer and healthy cell types: A375 melanoma cells and BJ5-ta fibroblasts. This suggests that chromatin decompaction acts to increase cellular vulnerability to initial DNA damage from high doses of radiation DNA damage in a cell type-independent manner that does not rely on changes to DNA repair pathways caused by longer TSA treatment. However, responses to lower doses of radiation and long-term survival are more cell type-specific: only MCF7 cells experience an effect of TSA on DNA damage after 1 Gy radiation, while MCF10a cells experience more evident cell viability effects of combined TSA and radiation treatment long term. These results suggest that chromatin decompaction is a cell type-invariant part of the mechanism of radiosensitization by HDACis, but downstream repair pathways influence the ultimate cell fate.</p>\n",
+        "funders": [
+          {
+            "organization": "National Institute of General Medical Sciences",
+            "identifierType": "ror",
+            "identifier": "https://ror.org/04q48ey07",
+            "awardNumber": "5R35GM133557-07",
+            "awardURI": "https://reporter.nih.gov/project-details/11175317",
+            "awardDescription": "",
+            "awardTitle": "Folding, Misfolding, and Unfolding: How human 3D genome structure resists, adapts, or succumbs to physical stresses in health and disease",
+            "order": 0
+          }
+        ],
+        "keywords": [
+          "DNA damage",
+          "Chromatin",
+          "Histone acetylation",
+          "Radiation effects"
+        ],
+        "fieldOfScience": "Biological sciences",
+        "hsiStatement": "All human cell lines utilized in this work are standard, de-identified cell lines obtained from the American Type Culture Collection (ATCC) and commonly used in basic research. Research with this type of de-identified cell line is not considered human subjects research by the NIH or IRB and therefore no additional permissions are needed to publish the data from these cells. ",
+        "relatedWorks": [
+          {
+            "relationship": "preprint",
+            "identifierType": "DOI",
+            "identifier": "https://doi.org/10.1101/2025.06.20.660786"
+          }
+        ],
+        "versionNumber": 4,
+        "versionStatus": "submitted",
+        "curationStatus": "Published",
+        "versionChanges": "metadata_changed",
+        "publicationDate": "2026-08-27",
+        "lastModificationDate": "2026-08-27",
+        "visibility": "public",
+        "sharingLink": "http://datadryad.org/dataset/doi:10.5061/dryad.bvq83bkr6",
+        "license": "https://spdx.org/licenses/CC0-1.0.html",
+        "metrics": {
+          "views": 0,
+          "downloads": 0,
+          "citations": 0
+        }
+      },
+      {
+        "_links": {
+          "self": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.80gb5mm5q"
+          },
+          "stash:versions": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.80gb5mm5q/versions"
+          },
+          "stash:version": {
+            "href": "/api/v2/versions/460159"
+          },
+          "stash:download": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.80gb5mm5q/download"
+          },
+          "curies": [
+            {
+              "name": "stash",
+              "href": "https://github.com/datadryad/dryad-app/blob/main/documentation/apis/link_relations.md#{rel}",
+              "templated": "true"
+            }
+          ]
+        },
+        "identifier": "doi:10.5061/dryad.80gb5mm5q",
+        "id": 191085,
+        "storageSize": 1261157301,
+        "relatedPublicationISSN": "0706-652X",
+        "title": "Impact of catch-and-release on behaviour, recovery and fate in two fish species: A before-after-control-impact study in a shallow lake",
+        "authors": [
+          {
+            "firstName": "Maximilian",
+            "lastName": "Rieble",
+            "email": "maximilian.konrad.rieble@gmail.com",
+            "affiliation": "Humboldt-Universität zu Berlin",
+            "affiliationROR": "https://ror.org/01hcx6992",
+            "affiliations": [
+              {
+                "name": "Leibniz Institute of Freshwater Ecology and Inland Fisheries",
+                "ror_id": "https://ror.org/01nftxb06"
+              },
+              {
+                "name": "Humboldt-Universität zu Berlin",
+                "ror_id": "https://ror.org/01hcx6992"
+              }
+            ],
+            "orcid": "0009-0004-9492-7591"
+          },
+          {
+            "firstName": "Chris",
+            "lastName": "Monk",
+            "email": "cmonk@geomar.de",
+            "affiliation": "GEOMAR Helmholtz Centre for Ocean Research Kiel",
+            "affiliationROR": "https://ror.org/02h2x0161",
+            "affiliations": [
+              {
+                "name": "Leibniz Institute of Freshwater Ecology and Inland Fisheries",
+                "ror_id": "https://ror.org/01nftxb06"
+              },
+              {
+                "name": "GEOMAR Helmholtz Centre for Ocean Research Kiel",
+                "ror_id": "https://ror.org/02h2x0161"
+              }
+            ],
+            "orcid": "0000-0002-1647-4740"
+          },
+          {
+            "firstName": "Leander",
+            "lastName": "Höhne",
+            "email": "leanderhoehne@gmx.net",
+            "affiliation": "University of Massachusetts Dartmouth",
+            "affiliationROR": "https://ror.org/00fzmm222",
+            "affiliations": [
+              {
+                "name": "University of Rome Tor Vergata",
+                "ror_id": "https://ror.org/02p77k626"
+              },
+              {
+                "name": "University of Massachusetts Dartmouth",
+                "ror_id": "https://ror.org/00fzmm222"
+              }
+            ]
+          },
+          {
+            "firstName": "Ryo",
+            "lastName": "Futamura",
+            "email": "rfutamurattg@gmail.com",
+            "affiliation": "The University of Tokyo",
+            "affiliationROR": "https://ror.org/057zh3y96",
+            "affiliations": [
+              {
+                "name": "Leibniz Institute of Freshwater Ecology and Inland Fisheries",
+                "ror_id": "https://ror.org/01nftxb06"
+              },
+              {
+                "name": "The University of Tokyo",
+                "ror_id": "https://ror.org/057zh3y96"
+              }
+            ],
+            "orcid": "0000-0001-8128-3476"
+          },
+          {
+            "firstName": "Robert",
+            "lastName": "Arlinghaus",
+            "email": "arlinghaus@igb-berlin.de",
+            "affiliation": "Humboldt-Universität zu Berlin",
+            "affiliationROR": "https://ror.org/01hcx6992",
+            "affiliations": [
+              {
+                "name": "Leibniz Institute of Freshwater Ecology and Inland Fisheries",
+                "ror_id": "https://ror.org/01nftxb06"
+              },
+              {
+                "name": "Humboldt-Universität zu Berlin",
+                "ror_id": "https://ror.org/01hcx6992"
+              }
+            ],
+            "orcid": "0000-0003-2861-527X"
+          }
+        ],
+        "abstract": "<p>This dataset contains whole-lake acoustic telemetry data, catch records, movement-activity time series, Bayesian model outputs, and analysis code for a catch-and-release (CR) study on common carp (<em>Cyprinus carpio</em>, n=43) and Eurasian perch (<em>Perca fluviatilis</em>, n=50) in Kleiner Döllnsee, Germany (2014–2016), comparing movement activity and mortality between CR and control fish under a Before-After-Control-Impact Paired Series (BACIPS) design. Includes: (1) raw fish positions; (2) catch/tagging records; (3) daily movement-activity time series; (4) BACIPS model inputs and posterior outputs; (5) merged per-fish impact parameters, cluster assignments, and mortality outcomes; (6) study lake shoreline shapefile; and (7) R scripts (Scripts/) implementing the full analysis pipeline. See the README for a full file-by-file data dictionary and pipeline order.</p>\n",
+        "funders": [
+          {
+            "organization": "Leibniz Association",
+            "identifierType": "ror",
+            "identifier": "https://ror.org/01n6r0e97",
+            "awardNumber": "SAW-2013-IGB-2",
+            "awardDescription": "SAW",
+            "awardTitle": "B-Types",
+            "order": 0
+          }
+        ],
+        "keywords": [
+          "acoustic telemetry",
+          "catch-and-release",
+          "behavioral impairment",
+          "hooking mortality",
+          "common carp Cyprinus carpio",
+          "Eurasian perch Perca fluviatilis"
+        ],
+        "fieldOfScience": "Biological sciences",
+        "methods": "<p>Fish were captured, anaesthetized, and surgically implanted with acoustic transmitters following Monk and Arlinghaus (2017, 2018). A whole-lake CDMA acoustic telemetry system (20 hydrophones, Lotek Wireless) recorded transmitter positions from June 2014 to March 2016; raw signal arrival times were converted to fish positions via multilateration in ALPS v.2.2 (mean positional accuracy 3.1 m; Baktoft et al. 2015). Positions were filtered using a Hidden Markov Model and aggregated into daily minimally displaced distances (a proxy for daily movement activity), with sub-threshold (&lt;3 m) step distances excluded to reduce positioning-error noise. Mortality was assessed by visual inspection of daily position patterns. A subset of fish were captured by hook-and-line angling and released; movement activity and mortality of CR fish were compared to concurrent uncaptured controls using a Progressive-Change BACIPS Bayesian hierarchical model (Thiault et al. 2017), fitted in JAGS via R2jags (five chains, 100,000 iterations, 10,000 burn-in, thinning of 10). Individual response trajectories were grouped via random forest clustering and hierarchical (Ward's method) cluster analysis to identify distinct impact-severity groups.</p>\n",
+        "relatedWorks": [
+          {
+            "relationship": "article",
+            "identifierType": "DOI",
+            "identifier": "https://doi.org/10.1371/journal.pone.0173989"
+          },
+          {
+            "relationship": "article",
+            "identifierType": "DOI",
+            "identifier": "https://doi.org/10.1139/cjfas-2017-0029"
+          },
+          {
+            "relationship": "primary_article",
+            "identifierType": "DOI",
+            "identifier": "https://doi.org/10.1139/cjfas-2025-0348"
+          },
+          {
+            "relationship": "software",
+            "identifierType": "DOI",
+            "identifier": "https://doi.org/10.5281/zenodo.21935878"
+          }
+        ],
+        "versionNumber": 3,
+        "versionStatus": "submitted",
+        "curationStatus": "Published",
+        "versionChanges": "files_changed",
+        "publicationDate": "2026-08-27",
+        "lastModificationDate": "2026-08-27",
+        "visibility": "public",
+        "sharingLink": "http://datadryad.org/dataset/doi:10.5061/dryad.80gb5mm5q",
+        "license": "https://spdx.org/licenses/CC0-1.0.html",
+        "metrics": {
+          "views": 0,
+          "downloads": 0,
+          "citations": 0
+        }
+      },
+      {
+        "_links": {
+          "self": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.fxpnvx18x"
+          },
+          "stash:versions": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.fxpnvx18x/versions"
+          },
+          "stash:version": {
+            "href": "/api/v2/versions/458156"
+          },
+          "stash:download": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.fxpnvx18x/download"
+          },
+          "curies": [
+            {
+              "name": "stash",
+              "href": "https://github.com/datadryad/dryad-app/blob/main/documentation/apis/link_relations.md#{rel}",
+              "templated": "true"
+            }
+          ]
+        },
+        "identifier": "doi:10.5061/dryad.fxpnvx18x",
+        "id": 191177,
+        "storageSize": 39005,
+        "relatedPublicationISSN": "0706-652X",
+        "title": "Crayfish populations as an indicator of littoral zone recovery in historically acidified lakes with and without predatory fish in the Killarney Region, Ontario",
+        "authors": [
+          {
+            "firstName": "Haley",
+            "lastName": "Moskal",
+            "email": "hmoskal@laurentian.ca",
+            "affiliation": "Laurentian University",
+            "affiliationROR": "https://ror.org/03rcwtr18",
+            "affiliations": [
+              {
+                "name": "Laurentian University",
+                "ror_id": "https://ror.org/03rcwtr18"
+              }
+            ],
+            "orcid": "0009-0006-5142-5916"
+          },
+          {
+            "firstName": "Ed",
+            "lastName": "Snucins",
+            "email": "fishinwater3@gmail.com",
+            "affiliation": "Ontario Ministry of the Environment, Conservation and Parks",
+            "affiliations": [
+              {
+                "name": "Ontario Ministry of the Environment, Conservation and Parks"
+              }
+            ]
+          },
+          {
+            "firstName": "John",
+            "lastName": "Gunn",
+            "email": "jgunn@laurentian.ca",
+            "affiliation": "Laurentian University",
+            "affiliationROR": "https://ror.org/03rcwtr18",
+            "affiliations": [
+              {
+                "name": "Laurentian University",
+                "ror_id": "https://ror.org/03rcwtr18"
+              }
+            ],
+            "order": 1
+          },
+          {
+            "firstName": "Brie",
+            "lastName": "Edwards",
+            "email": "bedwards2@laurentian.ca",
+            "affiliation": "Laurentian University",
+            "affiliationROR": "https://ror.org/03rcwtr18",
+            "affiliations": [
+              {
+                "name": "Laurentian University",
+                "ror_id": "https://ror.org/03rcwtr18"
+              },
+              {
+                "name": "Ontario Ministry of the Environment, Conservation and Parks"
+              }
+            ],
+            "orcid": "0000-0001-8524-4407",
+            "order": 2
+          }
+        ],
+        "abstract": "<p>The dataset contains chemical, physical and biological data from 19 lakes in Killarney Provincial Park, Ontario. The lakes were reassessed after a 25-year period to quantify the multi-faceted ecological changes. Survey work was conducted in 2021-22 to repeat extensive survey work conducted between 1995-97. Crayfish populations were our focal indicator which we complemented with habitat, water quality and littoral zone fish community surveys. Significant increases in pH and DOC and decreases in sulphate, calcium and metals, as well as increases in centrarchid fish predators, appeared to be interacting to affect crayfish populations. Data are provided as CSV files and include analysis ready datasets used for statistical analyses and figure generation in the associated manuscript. Three R scripts are provided to reproduce statistical analyses, long-term trends, and figures presented in the manuscript.  Our results demonstrate the importance of the interactions between historical and contemporary stressors and provide evidence that Killarney’s historically acid-damaged lakes are no longer limited by acidic conditions but are now impacted more by contemporary stressors, especially the expansion of warmwater fishes.</p>\n",
+        "funders": [
+          {
+            "organization": "Natural Sciences and Engineering Research Council of Canada",
+            "identifierType": "ror",
+            "identifier": "https://ror.org/01h531d29",
+            "awardNumber": "",
+            "awardDescription": "",
+            "awardTitle": "Discovery Grant",
+            "order": 0
+          },
+          {
+            "organization": "Wildlife Conservation Society Canada",
+            "identifierType": "ror",
+            "identifier": "https://ror.org/01esc3z41",
+            "awardNumber": "",
+            "awardDescription": "",
+            "awardTitle": "Weston Graduate Student Research Fellowship",
+            "order": 0
+          },
+          {
+            "organization": "Natural Sciences and Engineering Research Council of Canada",
+            "identifierType": "ror",
+            "identifier": "https://ror.org/01h531d29",
+            "awardNumber": "",
+            "awardDescription": "",
+            "awardTitle": "Graduate Scholarship (NSERC CGS M)",
+            "order": 1
+          }
+        ],
+        "keywords": [
+          "Crayfish",
+          "Killarney",
+          "acidification"
+        ],
+        "fieldOfScience": "Earth and related environmental sciences",
+        "versionNumber": 1,
+        "versionStatus": "submitted",
+        "curationStatus": "Published",
+        "versionChanges": "none",
+        "publicationDate": "2026-08-27",
+        "lastModificationDate": "2026-08-27",
+        "visibility": "public",
+        "sharingLink": "http://datadryad.org/dataset/doi:10.5061/dryad.fxpnvx18x",
+        "license": "https://spdx.org/licenses/CC0-1.0.html",
+        "metrics": {
+          "views": 0,
+          "downloads": 0,
+          "citations": 0
+        }
+      },
+      {
+        "_links": {
+          "self": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.6djh9w1hn"
+          },
+          "stash:versions": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.6djh9w1hn/versions"
+          },
+          "stash:version": {
+            "href": "/api/v2/versions/460175"
+          },
+          "stash:download": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.6djh9w1hn/download"
+          },
+          "curies": [
+            {
+              "name": "stash",
+              "href": "https://github.com/datadryad/dryad-app/blob/main/documentation/apis/link_relations.md#{rel}",
+              "templated": "true"
+            }
+          ]
+        },
+        "identifier": "doi:10.5061/dryad.6djh9w1hn",
+        "id": 184208,
+        "storageSize": 4103682595,
+        "relatedPublicationISSN": "2045-7758",
+        "title": "Data from: Genomics detects Japanese and Pacific sardine (<em>Sardinops</em> spp.) hybrids in the Northeast Pacific Ocean",
+        "authors": [
+          {
+            "firstName": "Gary",
+            "lastName": "Longo",
+            "email": "garycharleslongo@gmail.com",
+            "affiliation": "NOAA National Marine Fisheries Service Southwest Fisheries Science Center",
+            "affiliationROR": "https://ror.org/022d75229",
+            "affiliations": [
+              {
+                "name": "NOAA National Marine Fisheries Service Southwest Fisheries Science Center",
+                "ror_id": "https://ror.org/022d75229"
+              },
+              {
+                "name": "OAI Consulting (United States)",
+                "ror_id": "https://ror.org/02vekd613"
+              }
+            ],
+            "orcid": "0000-0002-4282-9111"
+          },
+          {
+            "firstName": "Matthew",
+            "lastName": "Craig",
+            "email": "matthew.craig@noaa.gov",
+            "affiliation": "NOAA National Marine Fisheries Service Southwest Fisheries Science Center",
+            "affiliationROR": "https://ror.org/022d75229",
+            "affiliations": [
+              {
+                "name": "NOAA National Marine Fisheries Service Southwest Fisheries Science Center",
+                "ror_id": "https://ror.org/022d75229"
+              }
+            ],
+            "order": 1
+          }
+        ],
+        "abstract": "<p>Sardine (<em>Sardinops</em> spp.) are ecologically important forage fishes distributed globally across temperate, coastal upwelling zones and, when abundant, they support major fisheries. Previous genomic analyses of Pacific Sardine (<em>S. sagax</em>) in the Northeast Pacific detected the presence of Japanese Sardine (<em>S. melanosticta</em>), a species typically found in the Northwest Pacific, along the west coast of North America starting in 2022 over multiple years. To facilitate continued monitoring, we developed a highly accurate species identification Genotyping-in-Thousands-by-sequencing (GT-seq) panel consisting of 88 single-nucleotide polymorphisms (SNPs). This panel was constructed by utilizing low-coverage, whole-genome sequence data to identify highly divergent, genome-wide loci between Pacific and Japanese Sardine, enabling unambiguous identification of these morphologically indistinguishable species as well as the detection of hybrids. Using the novel panel, we genotyped 1821 sardine samples from the Northeast Pacific and identified 35 hybrid individuals, which were collected from 2023 to 2025 and are the first known observation of such hybrids. Most were F1 hybrids (33); however, two individuals collected in 2025 appeared to be backcrosses with <em>S. sagax</em>. Our newly developed panel is a powerful resource for the continued monitoring of Japanese Sardine in the Eastern Pacific and is critical for investigating the potential fitness consequences of hybridization with Pacific Sardine.</p>\n",
+        "keywords": [
+          "Animal genetics",
+          "Fish genomics",
+          "Fisheries"
+        ],
+        "fieldOfScience": "Agriculture, forestry, and fisheries",
+        "versionNumber": 4,
+        "versionStatus": "submitted",
+        "curationStatus": "Published",
+        "versionChanges": "files_changed",
+        "publicationDate": "2026-08-27",
+        "lastModificationDate": "2026-08-27",
+        "visibility": "public",
+        "sharingLink": "http://datadryad.org/dataset/doi:10.5061/dryad.6djh9w1hn",
+        "license": "https://spdx.org/licenses/CC0-1.0.html",
+        "metrics": {
+          "views": 0,
+          "downloads": 0,
+          "citations": 0
+        }
+      },
+      {
+        "_links": {
+          "self": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.g79cnp5vs"
+          },
+          "stash:versions": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.g79cnp5vs/versions"
+          },
+          "stash:version": {
+            "href": "/api/v2/versions/460154"
+          },
+          "stash:download": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.g79cnp5vs/download"
+          },
+          "curies": [
+            {
+              "name": "stash",
+              "href": "https://github.com/datadryad/dryad-app/blob/main/documentation/apis/link_relations.md#{rel}",
+              "templated": "true"
+            }
+          ]
+        },
+        "identifier": "doi:10.5061/dryad.g79cnp5vs",
+        "id": 112592,
+        "storageSize": 1326978,
+        "relatedPublicationISSN": "1083-8155",
+        "title": "Data from: Suburban land management impacts bee community composition and cucumber (<em>Cucumis sativus</em>) pollination",
+        "authors": [
+          {
+            "firstName": "Sheryl",
+            "lastName": "Hosler",
+            "email": "sherylhosler@gmail.com",
+            "affiliation": "University of Illinois Chicago",
+            "affiliationROR": "https://ror.org/02mpq6x41",
+            "affiliations": [
+              {
+                "name": "University of Illinois Chicago",
+                "ror_id": "https://ror.org/02mpq6x41"
+              }
+            ],
+            "orcid": "0000-0002-9704-0134"
+          },
+          {
+            "firstName": "Megan",
+            "lastName": "Garfinkel",
+            "email": "",
+            "affiliation": "Chicago State University",
+            "affiliationROR": "https://ror.org/05ekwbr88",
+            "affiliations": [
+              {
+                "name": "Chicago State University",
+                "ror_id": "https://ror.org/05ekwbr88"
+              }
+            ],
+            "order": 1
+          },
+          {
+            "firstName": "Michael",
+            "lastName": "Roberts",
+            "email": "",
+            "affiliation": "University of Illinois Chicago",
+            "affiliationROR": "https://ror.org/02mpq6x41",
+            "affiliations": [
+              {
+                "name": "University of Illinois Chicago",
+                "ror_id": "https://ror.org/02mpq6x41"
+              }
+            ],
+            "order": 2
+          },
+          {
+            "firstName": "Christopher",
+            "lastName": "Whelan",
+            "email": "",
+            "affiliation": "University of Illinois Chicago",
+            "affiliationROR": "https://ror.org/02mpq6x41",
+            "affiliations": [
+              {
+                "name": "University of Illinois Chicago",
+                "ror_id": "https://ror.org/02mpq6x41"
+              }
+            ],
+            "order": 3
+          },
+          {
+            "firstName": "Emily",
+            "lastName": "Minor",
+            "email": "",
+            "affiliation": "University of Illinois Chicago",
+            "affiliationROR": "https://ror.org/02mpq6x41",
+            "affiliations": [
+              {
+                "name": "University of Illinois Chicago",
+                "ror_id": "https://ror.org/02mpq6x41"
+              }
+            ],
+            "order": 4
+          }
+        ],
+        "abstract": "<p>Urban green spaces may provide quality habitat for insect pollinators. However, few studies have investigated the quality of pollination services provided by urban insect pollinator communities or compared pollination services between different types of urban green spaces. We evaluated both the taxonomic and functional trait distributions of vegetative and bee communities in two common types of urban green space: residential backyards and electric powerline corridors. We also collected fruits and seeds from sentinel cucumber plants to quantify pollination services. Fruit and seed set were analyzed in response to bee abundance, species richness and diversity, and several functional trait-based metrics. We also analyzed relationships between the bee community and the plant community, and between the plant community and site management. Pollination services were negatively correlated with bee abundance and positively correlated with bee functional evenness, and bee abundance was negatively correlated with flowering plant functional diversity. Our results reinforce the need for more urban ecology studies that compare ecosystem functions in multiple green spaces.</p>\n",
+        "funders": [
+          {
+            "organization": "Commonwealth Edison",
+            "identifierType": "crossref_funder_id",
+            "identifier": "http://dx.doi.org/10.13039/100021064",
+            "awardNumber": ""
+          }
+        ],
+        "keywords": [
+          "Urban ecology",
+          "Bees",
+          "Flowering plants",
+          "Pollination",
+          "Functional groups",
+          "Biodiversity",
+          "Ecosystem functioning"
+        ],
+        "fieldOfScience": "Biological sciences",
+        "methods": "<p>This study was conducted in powerline corridors and residential neighborhoods across the Chicago, IL metropolitan area (Cook, DuPage, and McHenry counties) during the summer of 2021. The powerline corridors are managed by the Commonwealth Edison company (ComEd), the primary provider of electrical power in the area. ComEd’s high-voltage powerline corridors cover over 22,945 hectares in Illinois and are managed in multiple ways; we examined corridors receiving one of three management types. “Mown” corridors are characterized by relatively short turfgrass mowed several times during the growing season. “Oldfield” corridors are managed on a 5-year rotation where large woody vegetation is removed in years 1 and 2, and the remaining vegetation is relatively untouched in years 3-5. “Prairie” corridors are either remnant prairie patches or areas where ComEd is working with stakeholders to restore native prairie vegetation.</p>\n<p>We selected powerline corridor sites for this study based on similar adjacent landcover (bordered by single-family homes on at least one edge) and geographic proximity to reduce potential confounding effects of nearby habitats, weather, and soil type. Three corridors (one of each management type) were selected in each of four study clusters located near the communities of Crystal Lake, Glendale Heights, Morton Grove, and Naperville, IL USA (Fig 1A). Corridors within each cluster were located at least 1km from one another to reduce potential overlap of bee communities. This distance was chosen based on estimates of urban bee flight distances (Langellotto et al. 2018).</p>\n<p>We paired one residential neighborhood with each study corridor (a minimum of 1km distance from all other sites) for a total of 12 neighborhoods, three in each cluster (Fig 1A). Within each neighborhood, yards were selected through a process of door-to-door visitation to receive homeowner permission. The number of participating yards in each neighborhood varied from 4-7 due to homeowner withdrawals and voluntary additions to the study during the first sampling session, with a total of 68 yards included in the study.</p>\n<p>We used 25m<sup>2</sup> sampling modules to study floral resources, bees, and pollination function. In corridor sites, we established six 5m × 5m modules separated by a minimum of 15m and arranged in a relatively linear sequence (Fig 1C). Arrangement and spacing of modules within corridors varied rarely, with variation due to spatial limitations within the corridor (e.g., placement of powerline towers, proximity of adjacent waterways, presence of atypical vegetation sections due to adjacent homeowner mowing). In residential sites, we established one 25m<sup>2</sup> sampling module within each backyard, with the 4-7 participating yards per neighborhood being treated as one neighborhood “site” equivalent to one corridor site (Fig 1B). Placement of residential modules was established to include some non-lawn garden area (if present) and some lawn/turfgrass area (if present) and to minimize impermeable surface area (e.g., sidewalks, patios, driveways). Several backyards were arranged in such a way that we could not establish our sampling modules in squares. In these situations, we split the 25m<sup>2</sup> area into two rectangular sections and established them according to the same guidelines. We sampled the floral resources and bee community at each module twice, once in early summer (within 3 weeks in late June/early July) and once in late summer (within 3 weeks in late August/early September).</p>\n<p>We surveyed each sampling module for floral resources concurrently with bee sampling (see below). A single observer performed all floral resource surveys by counting the visible open flowers/inflorescences on all forbs and shrubs (but not grasses or trees) within the module and identifying them to the lowest possible taxonomic level, using the photo-recognition capabilities of iNaturalist (iNaturalist 2021) when needed.</p>\n<p>We characterized each floral resource species by a suite of morphological, phenological, and life history traits. These included average plant height, flower primary color (in the visible spectrum), flower size (measured as diameter of a flower/umbel or length of an inflorescence spike), plant native status, and plant life cycle (annual, biennial, or perennial). Trait values were collected from the literature (Dickinson &amp; Royer 2014, Wilhelm &amp; Rericha 2017). See Supplemental A for a full list of species and trait values.</p>\n<p>We sampled the bee community at each module with timed observations and pan traps. These complementary methods were used in combination to achieve a more complete survey of the bee community, as visual observations are biased toward large-bodied species, whereas pan traps are more likely to capture only small-bodied species (Wagner et al. 2014). Sampling methods were conducted on the same day for all modules in all sites within a cluster between the hours of 8 am and 7 pm when the air temperature was above 20<sup>o</sup>C, wind speeds were less than 25km/h, and conditions were partly cloudy to sunny.</p>\n<p>During timed observations, a single observer stood in each module and observed all visible bees active within it. Individuals were identified to the lowest possible taxonomic level. When necessary and possible, individuals were captured with an aerial net, placed in a lidded Petri dish, and photographed for identification using iNaturalist before being released. As some residential modules were split in two, the observer dedicated 5 minutes to each half of a module, for a total of 10 minutes of observation per module.          </p>\n<p>To supplement the timed observations, we also deployed arrays of pan traps (Wagner et al. 2014). We used small plastic bowls in three colors (blue, white, and yellow) and deployed 6 per module (2 of each color). In residential modules that were split in two, 3 bowls (one of each color) were placed in each rectangular section. Otherwise, in square residential modules and all corridor modules, the 6 bowls were placed along a randomized diagonal transect between two module corners with no two bowls of the same color adjacent to one another. Pan traps were placed flat on the ground and partially filled with a dilute unscented dish soap solution. We deployed the pan traps immediately following the timed observations in each module, then collected them approximately 24 hours later. During collection, contents of all 6 bowls were strained and combined into a labeled container filled with 70% ethanol. In the lab, samples were sorted, and all bees were washed, dried, and pinned. Samples were identified to the lowest possible taxonomic level using iNaturalist, Discover Life, and Arduser (2020).</p>\n<p>We selected a suite of bee morphological effect traits (organism traits that affect ecological function) related to the mechanics of pollination. These included body size (measured as body length), intertegular distance, tongue length, pollen-carrying structures (absent, corbicula, scopa on tibia, scopa on femur, scopa on both tibia and femur, or scopa on abdomen), and hairiness (estimated on a scale from 0-no hairs to 5-completely covered in long hairs) (Figure 2). Trait values were collected from the literature when available (BugGuide, Cariveau 2016, Discover Life, Hoebeke &amp; Wheeler 1999, McCravy et al. 2020, Mitchell 1960, Mitchell 1962, Roquer-Beni 2020). When trait values were unavailable from the literature, measurements were taken from pinned specimens or assigned as a genus average from literature values. When values for tongue length were not available in the literature, we used the ITconverter() function from the BeeIT package in R (Cariveau et al. 2016) to calculate tongue length based on taxonomic family and intertegular distance. See Supplemental B for a full list of species and trait values.</p>\n<p>To quantify pollination activity, we used cucumber plants (<em>Cucumis sativus,</em> Saladmore Bush Hybrid, from Park Seed, Greenwood, South Carolina) in a sentinel plant assay. Cucumbers are monoecious plants with separate male and female flowers on the same plant. This means they require pollinator activity to produce seed, which makes them a common sentinel plant in ecological studies (Bennett &amp; Lovell 2019, Cunningham-Minnick et al. 2020, Lowenstein et al. 2015). Plants were grown in self-watering pots to control for variation in soil quality between our geographically dispersed sites; the pot design was inspired by that of Cunningham-Minnick et al. (2020).</p>\n<p>Plants were grown at the greenhouse on the campus of the University of Illinois Chicago (UIC). Three cucumber seeds were planted in each pot in early May. Pots were weeded weekly, and plants were monitored for female flower buds, which emerge approximately 10 days after the male flowers. Once a majority of the pots had at least one female flower bud, we deployed the sentinel plants to the study sites. Female flowers that opened before deployment were removed, and all female buds were marked with red tape and counted. As starting female bud counts among all pots were low, we ensured that at least one female bud was present in each module at deployment.</p>\n<p>Pots were deployed in mid-July. All pots within a cluster were deployed on the same day, with all four clusters’ pots being deployed during four consecutive days. Two pots were placed in each sampling module for a total of 12 pots per site; pots were assigned random placement within corridor modules and placed with consideration to homeowner convenience in residential modules. Sentinel plants remained in the field for seven days, at which time they were collected and returned to the UIC greenhouse.</p>\n<p>Upon collection, we marked any additional female flowers that had opened during the assay with red tape. Any unopened female buds were removed, and fruits were allowed to mature while the plants were stored on the greenhouse lawn. We harvested the fruits of the marked female flowers when they appeared ripe, 14-25 days after retrieving the pots from the sites. Cucumbers were sliced in half, and their seeds were removed and frozen in individual containers until counted. For counting, each container was thawed and the contents placed in a Petri dish. A single observer counted all fertilized seeds from each fruit, which we used as a measure of <em>seed set</em>. As not all female flowers in the experiment produced fruits, we also calculated a ratio of successful fruits versus starting female flowers per site. This ratio served as our measure of <em>fruit set</em>.</p>\n<p><br>\nWe evaluated pollination function through a sentinel plant assay using Bidens aristosa, a native annual prairie species. This species is an ideal candidate for a sentinel plant assay because it has been identified as being self-incompatible (Hall 1967, p64). B. aristosa grows 2-5 feet tall and blooms from late summer into early fall, producing small, bright yellow composite flowers.</p>\n<p>We purchased B. aristosa seed (Prairie Moon Nursery, Winona, MN) and cold-stratified the achenes (hereafter, “seeds”) according to the seller’s recommendations. Seeds were then planted in starter trays (ProGreen Plus R Mix Premium Growers Mix) and allowed to germinate in a greenhouse. After establishing 2-3 sets of leaves, the seedlings were separated into larger individual pots. We planted the seedlings in the ground at our field sites in mid-June, using seedlings that were a minimum of 4” tall with healthy stems and leaves.</p>\n<p>We planted one B. aristosa seedling at a corner of each corridor sampling module and one seedling in a spot convenient for the homeowner in the neighborhood sampling modules. Seedlings were immediately watered after planting, and multiple visits were made to water and monitor plants throughout the study. All plants were protected by a vertical cylindrical cage of chicken wire to reduce vertebrate herbivory.</p>\n<p>Sentinel plants were monitored for flower budding. Once buds were detected, we used fine mesh bags to exclude pollinators from 12 haphazardly selected buds (six in the GH cluster and six in the WR cluster) to act as a negative control and confirm the effect of pollen limitation on seed set of B. aristosa (self-incompatibility established by Hall 1967). The sentinel plants were allowed to grow and flower in our sites, and flower heads were collected post-bloom at the end of September. We collected up to 15 flower heads from each plant as well as those senesced flower heads that had been bagged to exclude pollinator activity. Senesced flower heads, both bagged and unbagged, were allowed to complete drying in the lab, after which a single observer counted and recorded all seeds that appeared to be mature from each senesced flower head. Seed counts were recorded as raw numbers rather than proportions of composite flowers. The seeds from the bagged B. aristosa flowers were counted and analyzed using a one-sample t-test to determine if seed set in these pollinator-excluded flowers differed from zero.</p>\n<p>While we protected all B. aristosa seedlings with cylindrical chicken wire cages, sentinel plant survival was low in prairie-type corridors. Anecdotally, we observed that the failed seedlings appeared to be removed entirely (rather than browsed) and were sometimes even repeatedly removed despite replacement. We also observed disturbed soil within the cylindrical cages, leading us to speculate that seedling removal was due to the activity of fossorial vertebrates (e.g., voles, mice, etc.), although it is also possible that white-tailed deer reached down inside the cylindrical cages to remove the seedlings. Due to the low survival of sentinel plants in prairie corridors, we excluded these sites from the structural equation model.</p>\n",
+        "relatedWorks": [
+          {
+            "relationship": "primary_article",
+            "identifierType": "DOI",
+            "identifier": "https://doi.org/10.1007/s11252-026-01953-1"
+          }
+        ],
+        "versionNumber": 5,
+        "versionStatus": "submitted",
+        "curationStatus": "Published",
+        "versionChanges": "files_changed",
+        "publicationDate": "2026-08-27",
+        "lastModificationDate": "2026-08-27",
+        "visibility": "public",
+        "sharingLink": "http://datadryad.org/dataset/doi:10.5061/dryad.g79cnp5vs",
+        "license": "https://spdx.org/licenses/CC0-1.0.html",
+        "metrics": {
+          "views": 0,
+          "downloads": 0,
+          "citations": 0
+        }
+      },
+      {
+        "_links": {
+          "self": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.w3r22817z"
+          },
+          "stash:versions": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.w3r22817z/versions"
+          },
+          "stash:version": {
+            "href": "/api/v2/versions/460227"
+          },
+          "stash:download": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.w3r22817z/download"
+          },
+          "curies": [
+            {
+              "name": "stash",
+              "href": "https://github.com/datadryad/dryad-app/blob/main/documentation/apis/link_relations.md#{rel}",
+              "templated": "true"
+            }
+          ]
+        },
+        "identifier": "doi:10.5061/dryad.w3r22817z",
+        "id": 191524,
+        "storageSize": 110015,
+        "relatedPublicationISSN": "2574-2531",
+        "title": "Data from: Large language model-based triage to identify antiretroviral therapy adherence barriers and risk levels in patient messages",
+        "authors": [
+          {
+            "firstName": "Yuanchao",
+            "lastName": "Ma",
+            "email": "yuanchao.ma@muhc.mcgill.ca",
+            "affiliation": "Polytechnique Montréal",
+            "affiliationROR": "https://ror.org/05f8d4e86",
+            "affiliations": [
+              {
+                "name": "Polytechnique Montréal",
+                "ror_id": "https://ror.org/05f8d4e86"
+              }
+            ],
+            "orcid": "0000-0002-4048-1705"
+          },
+          {
+            "firstName": "Sofiane",
+            "lastName": "Achiche",
+            "email": "",
+            "affiliation": "Polytechnique Montréal",
+            "affiliationROR": "https://ror.org/05f8d4e86",
+            "affiliations": [
+              {
+                "name": "Polytechnique Montréal",
+                "ror_id": "https://ror.org/05f8d4e86"
+              }
+            ]
+          },
+          {
+            "firstName": "David",
+            "lastName": "Lessard",
+            "email": "",
+            "affiliation": "Research Institute of the McGill University Health Centre",
+            "affiliationROR": "https://ror.org/04pemf943",
+            "affiliations": [
+              {
+                "name": "Research Institute of the McGill University Health Centre",
+                "ror_id": "https://ror.org/04pemf943"
+              }
+            ]
+          },
+          {
+            "firstName": "Kim",
+            "lastName": "Engler",
+            "email": "",
+            "affiliation": "Research Institute of the McGill University Health Centre",
+            "affiliationROR": "https://ror.org/04pemf943",
+            "affiliations": [
+              {
+                "name": "Research Institute of the McGill University Health Centre",
+                "ror_id": "https://ror.org/04pemf943"
+              }
+            ]
+          },
+          {
+            "firstName": "Serge",
+            "lastName": "Vicente",
+            "email": "",
+            "affiliation": "École de Technologie Supérieure",
+            "affiliationROR": "https://ror.org/0020snb74",
+            "affiliations": [
+              {
+                "name": "École de Technologie Supérieure",
+                "ror_id": "https://ror.org/0020snb74"
+              }
+            ]
+          },
+          {
+            "firstName": "Gavin",
+            "lastName": "Tu",
+            "email": "",
+            "affiliation": "Université Laval",
+            "affiliationROR": "https://ror.org/04sjchr03",
+            "affiliations": [
+              {
+                "name": "Université Laval",
+                "ror_id": "https://ror.org/04sjchr03"
+              }
+            ]
+          },
+          {
+            "firstName": "Benoît",
+            "lastName": "Lemire",
+            "email": "",
+            "affiliation": "McGill University Health Centre",
+            "affiliationROR": "https://ror.org/04cpxjv19",
+            "affiliations": [
+              {
+                "name": "McGill University Health Centre",
+                "ror_id": "https://ror.org/04cpxjv19"
+              }
+            ]
+          },
+          {
+            "firstName": "Lina",
+            "lastName": "Del Balso",
+            "email": "",
+            "affiliation": "McGill University Health Centre",
+            "affiliationROR": "https://ror.org/04cpxjv19",
+            "affiliations": [
+              {
+                "name": "McGill University Health Centre",
+                "ror_id": "https://ror.org/04cpxjv19"
+              }
+            ]
+          },
+          {
+            "firstName": "Nathalie",
+            "lastName": "Paisible",
+            "email": "",
+            "affiliation": "McGill University Health Centre",
+            "affiliationROR": "https://ror.org/04cpxjv19",
+            "affiliations": [
+              {
+                "name": "McGill University Health Centre",
+                "ror_id": "https://ror.org/04cpxjv19"
+              }
+            ]
+          },
+          {
+            "firstName": "MARVIN Chatbots",
+            "lastName": "Patient Expert Committee",
+            "email": "",
+            "affiliation": "Research Institute of the McGill University Health Centre",
+            "affiliationROR": "https://ror.org/04pemf943",
+            "affiliations": [
+              {
+                "name": "Research Institute of the McGill University Health Centre",
+                "ror_id": "https://ror.org/04pemf943"
+              }
+            ]
+          },
+          {
+            "firstName": "Bertrand",
+            "lastName": "Lebouché",
+            "email": "Bertrand.lebouche@mcgill.ca",
+            "affiliation": "Research Institute of the McGill University Health Centre",
+            "affiliationROR": "https://ror.org/04pemf943",
+            "affiliations": [
+              {
+                "name": "Research Institute of the McGill University Health Centre",
+                "ror_id": "https://ror.org/04pemf943"
+              }
+            ]
+          }
+        ],
+        "abstract": "<p><strong>Objective</strong>: This study aimed to develop large language models (LLMs) to automatically identify antiretroviral therapy (ART) adherence barriers and stratify nonadherence risk levels from patient-generated messages.\\</p>\n<p><strong>Materials &amp; Methods</strong>: With a co-construction committee of people with HIV and providers, 15,480 sentences were annotated for barrier and risk levels. General-domain LLMs (e.g., Flan-T5) and clinical foundation models (e.g., Clinical-T5) were fine-tuned for multi-class classification and evaluated using Macro-F1. Best-performing models were compared with GPT-family and other open-source LLMs. Model fairness, error patterns, and environmental footprints were also assessed.</p>\n<p><strong>Results</strong>: Flan-T5-xl achieved the best barrier detection (Macro-F1 = 0.83(test)/0.71(external)), and Flan-T5-large excelled in risk stratification (0.79/0.57). Fine-tuned general-domain LLMs significantly outperformed clinical foundation models (P&lt;.001) on test split. Error analysis identified both annotation challenges (ambiguous inputs, cross-category overlap, inconsistencies) and inference limitations (semantic overlap, implicit meanings, contextual misinterpretation). On external datasets, Flan-T5 models outperformed other LLMs (P&lt;.001), and were more robust to demographic descriptors, while GPT-4.1 and Gemma3 often misclassified inputs as “None”. Additionally, GPT-4.1’s inference consumed ~30× more energy than Flan-T5-xl. Discussion: Fine-tuned Flan-T5 models demonstrated strong classification performance, greater robustness to demographic attributes, and lower energy consumption, though challenges remained for subjective and underrepresented categories, reflecting both data imbalance and model limitations in implicit reasoning.</p>\n<p><strong>Conclusion</strong>: LLM-based approaches show promise for real-time ART adherence monitoring, offering a scalable solution to individualized HIV care. Beyond performance, our findings highlight the importance of fairness and environmental sustainability in clinical AI development, with next steps focused on real-world validation through deployment in patient-facing digital tools.</p>\n",
+        "funders": [
+          {
+            "organization": "Fonds de Recherche du Québec - Santé",
+            "identifierType": "ror",
+            "identifier": "https://ror.org/02eqrsj93",
+            "awardNumber": "",
+            "awardDescription": "AIDS and Infectious Diseases Network",
+            "awardTitle": "",
+            "order": 0
+          },
+          {
+            "organization": "Obvia",
+            "identifierType": "ror",
+            "identifier": "https://ror.org/05fdt6816",
+            "awardNumber": "",
+            "awardDescription": "",
+            "awardTitle": "Seed financing program 2025",
+            "order": 1
+          },
+          {
+            "organization": "Natural Sciences and Engineering Research Council of Canada",
+            "identifierType": "ror",
+            "identifier": "https://ror.org/01h531d29",
+            "awardNumber": "",
+            "awardDescription": "",
+            "awardTitle": "Postgraduate Scholarship—Doctoral program (PGS D)",
+            "order": 2
+          },
+          {
+            "organization": "Natural Sciences and Engineering Research Council of Canada",
+            "identifierType": "ror",
+            "identifier": "https://ror.org/01h531d29",
+            "awardNumber": "",
+            "awardDescription": "",
+            "awardTitle": "OPSIDIAN program",
+            "order": 3
+          },
+          {
+            "organization": "Fonds de Recherche du Québec – Nature et Technologies",
+            "identifierType": "ror",
+            "identifier": "https://ror.org/00b9f9778",
+            "awardNumber": "",
+            "awardDescription": "",
+            "awardTitle": "doctoral research award",
+            "order": 4
+          }
+        ],
+        "keywords": [
+          "HIV",
+          "Large Language Models",
+          "Medication adherence",
+          "Natural language processing",
+          "responsible AI",
+          "clinical triage"
+        ],
+        "fieldOfScience": "Computer and information sciences",
+        "relatedWorks": [
+          {
+            "relationship": "software",
+            "identifierType": "URL",
+            "identifier": "https://github.com/yma-94/ART_Adherence"
+          },
+          {
+            "relationship": "primary_article",
+            "identifierType": "DOI",
+            "identifier": "https://doi.org/10.1093/jamiaopen/ooag169"
+          },
+          {
+            "relationship": "software",
+            "identifierType": "URL",
+            "identifier": "https://huggingface.co/spaces/marvin-cusm-chatbot/triage-model"
+          }
+        ],
+        "versionNumber": 4,
+        "versionStatus": "submitted",
+        "curationStatus": "Published",
+        "versionChanges": "files_changed",
+        "publicationDate": "2026-08-27",
+        "lastModificationDate": "2026-08-27",
+        "visibility": "public",
+        "sharingLink": "http://datadryad.org/dataset/doi:10.5061/dryad.w3r22817z",
+        "license": "https://spdx.org/licenses/CC0-1.0.html",
+        "metrics": {
+          "views": 0,
+          "downloads": 0,
+          "citations": 0
+        }
+      },
+      {
+        "_links": {
+          "self": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.c59zw3rq0"
+          },
+          "stash:versions": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.c59zw3rq0/versions"
+          },
+          "stash:version": {
+            "href": "/api/v2/versions/460190"
+          },
+          "stash:download": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.c59zw3rq0/download"
+          },
+          "curies": [
+            {
+              "name": "stash",
+              "href": "https://github.com/datadryad/dryad-app/blob/main/documentation/apis/link_relations.md#{rel}",
+              "templated": "true"
+            }
+          ]
+        },
+        "identifier": "doi:10.5061/dryad.c59zw3rq0",
+        "id": 177426,
+        "storageSize": 2493845187,
+        "relatedPublicationISSN": "1365-2699",
+        "title": "Data from: Habitat and thermal breadth shape climate-driven range shifts in Arctic birds",
+        "authors": [
+          {
+            "firstName": "Zhichang",
+            "lastName": "Cheng",
+            "email": "zhichang.cheng@wur.nl",
+            "affiliation": "Wageningen University & Research",
+            "affiliationROR": "https://ror.org/04qw24q55",
+            "affiliations": [
+              {
+                "name": "Wageningen University & Research",
+                "ror_id": "https://ror.org/04qw24q55"
+              }
+            ],
+            "orcid": "0009-0002-4267-4380"
+          },
+          {
+            "firstName": "Jente",
+            "lastName": "Ottenburghs",
+            "email": "jente.ottenburghs@wur.nl",
+            "affiliation": "Wageningen University & Research",
+            "affiliationROR": "https://ror.org/04qw24q55",
+            "affiliations": [
+              {
+                "name": "Wageningen University & Research",
+                "ror_id": "https://ror.org/04qw24q55"
+              }
+            ],
+            "orcid": "0000-0002-0335-9655",
+            "order": 1
+          },
+          {
+            "firstName": "Willem F.",
+            "lastName": "de Boer",
+            "email": "fred.deboer@wur.nl",
+            "affiliation": "Wageningen University & Research",
+            "affiliationROR": "https://ror.org/04qw24q55",
+            "affiliations": [
+              {
+                "name": "Wageningen University & Research",
+                "ror_id": "https://ror.org/04qw24q55"
+              }
+            ],
+            "order": 2
+          }
+        ],
+        "abstract": "<p>Rapid climate change is reshaping Arctic ecosystems and altering species’ breeding distributions. We assessed climate-driven breeding range shifts of Arctic birds and examined how functional traits, including morphology, habitat breadth, and thermal niche breadth, influence these shifts.  We quantified range shift metrics (i.e., record-frequency-weighted centroid latitude change and moving distance) between past and current periods using species occurrence data. Changes in suitable breeding distributions were estimated with species distribution models. The effects of functional traits on range shifts were evaluated using generalized linear models for each of the focal taxonomic groups, with continent-level PGLS models across all species. Climatic trends differed markedly between the European and North American Arctic, resulting in region-specific range shift responses. A significant interaction between habitat breadth and thermal niche emerged, as habitat breadth was positively associated with range shifts in species with narrow thermal breadth and lower critical minimum temperature, but negatively associated with shifts in species with broad thermal breadth and higher critical minimum temperature. Morphological traits linked to dispersal ability showed generally weak effects, and migratory strategy and trophic guild exhibited no consistent influence across taxa or regions. Although sensitivity analyses supported the main patterns, uneven sampling coverage, local record clustering, and unequal sample sizes limited our ability to fully disentangle biological range shifts from changes in sampling effort. Trait interactions were more influential than single traits, indicating that species’ responses to climate change depend on multidimensional trait combinations. Single functional traits provided limited explanatory power for Arctic bird range shifts and were strongly region- and taxon-dependent. Incorporating regional context and trait interactions is therefore essential for improving predictions of biodiversity responses to ongoing climate change.</p>\n",
+        "funders": [
+          {
+            "organization": "China Scholarship Council",
+            "identifierType": "ror",
+            "identifier": "https://ror.org/04atp4p48",
+            "awardNumber": "",
+            "awardDescription": "",
+            "awardTitle": "",
+            "order": 0
+          }
+        ],
+        "keywords": [
+          "Climate change",
+          "arctic birds",
+          "range shift",
+          "functional traits",
+          "species distribution models "
+        ],
+        "fieldOfScience": "Natural sciences",
+        "relatedWorks": [
+          {
+            "relationship": "primary_article",
+            "identifierType": "DOI",
+            "identifier": "https://doi.org/10.1111/jbi.70342"
+          }
+        ],
+        "versionNumber": 11,
+        "versionStatus": "submitted",
+        "curationStatus": "Published",
+        "versionChanges": "files_changed",
+        "publicationDate": "2026-08-27",
+        "lastModificationDate": "2026-08-27",
+        "visibility": "public",
+        "sharingLink": "http://datadryad.org/dataset/doi:10.5061/dryad.c59zw3rq0",
+        "license": "https://spdx.org/licenses/CC0-1.0.html",
+        "metrics": {
+          "views": 0,
+          "downloads": 0,
+          "citations": 0
+        }
+      }
+    ]
+  }
+}

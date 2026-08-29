@@ -1,0 +1,3248 @@
+{
+  "_links": {
+    "self": {
+      "href": "/api/v2/search?page=3"
+    },
+    "first": {
+      "href": "/api/v2/search"
+    },
+    "last": {
+      "href": "/api/v2/search?page=3605"
+    },
+    "prev": {
+      "href": "/api/v2/search?page=2"
+    },
+    "next": {
+      "href": "/api/v2/search?page=4"
+    }
+  },
+  "count": 20,
+  "total": 72099,
+  "_embedded": {
+    "stash:datasets": [
+      {
+        "_links": {
+          "self": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.kprr4xhfb"
+          },
+          "stash:versions": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.kprr4xhfb/versions"
+          },
+          "stash:version": {
+            "href": "/api/v2/versions/459992"
+          },
+          "stash:download": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.kprr4xhfb/download"
+          },
+          "curies": [
+            {
+              "name": "stash",
+              "href": "https://github.com/datadryad/dryad-app/blob/main/documentation/apis/link_relations.md#{rel}",
+              "templated": "true"
+            }
+          ]
+        },
+        "identifier": "doi:10.5061/dryad.kprr4xhfb",
+        "id": 145196,
+        "storageSize": 33005764,
+        "relatedPublicationISSN": "1461-023X",
+        "title": "Data from: Dovetailing the genetic, developmental and functional bases of the adaptation of stomatal traits to climate",
+        "authors": [
+          {
+            "firstName": "Camila",
+            "lastName": "D. Medeiros",
+            "email": "camila.dbmedeiros@gmail.com",
+            "affiliation": "University of California, Los Angeles",
+            "affiliationROR": "https://ror.org/046rm7j60",
+            "affiliations": [
+              {
+                "name": "University of California, Los Angeles",
+                "ror_id": "https://ror.org/046rm7j60"
+              },
+              {
+                "name": "Universidade Federal de Pernambuco",
+                "ror_id": "https://ror.org/047908t24"
+              }
+            ],
+            "orcid": "0000-0002-5822-5603"
+          },
+          {
+            "firstName": "Thomas",
+            "lastName": "Buckley",
+            "email": "",
+            "affiliation": "University of California, Davis",
+            "affiliationROR": "https://ror.org/05rrcem69",
+            "affiliations": [
+              {
+                "name": "University of California, Davis",
+                "ror_id": "https://ror.org/05rrcem69"
+              }
+            ],
+            "order": 1
+          },
+          {
+            "firstName": "Kevin",
+            "lastName": "Sartori",
+            "email": "",
+            "affiliation": "Université Paul-Valéry Montpellier",
+            "affiliationROR": "https://ror.org/00qhdy563",
+            "affiliations": [
+              {
+                "name": "Université Paul-Valéry Montpellier",
+                "ror_id": "https://ror.org/00qhdy563"
+              }
+            ],
+            "order": 2
+          },
+          {
+            "firstName": "Cyrille",
+            "lastName": "Violle",
+            "email": "",
+            "affiliation": "Université Paul-Valéry Montpellier",
+            "affiliationROR": "https://ror.org/00qhdy563",
+            "affiliations": [
+              {
+                "name": "Université Paul-Valéry Montpellier",
+                "ror_id": "https://ror.org/00qhdy563"
+              }
+            ],
+            "order": 3
+          },
+          {
+            "firstName": "Denis",
+            "lastName": "Vile",
+            "email": "",
+            "affiliation": "Université Montpellier 2",
+            "affiliationROR": "https://ror.org/00wh4bp03",
+            "affiliations": [
+              {
+                "name": "Université Montpellier 2",
+                "ror_id": "https://ror.org/00wh4bp03"
+              }
+            ],
+            "order": 4
+          },
+          {
+            "firstName": "François",
+            "lastName": "Vasseur",
+            "email": "",
+            "affiliation": "Université Paul-Valéry Montpellier",
+            "affiliationROR": "https://ror.org/00qhdy563",
+            "affiliations": [
+              {
+                "name": "Université Paul-Valéry Montpellier",
+                "ror_id": "https://ror.org/00qhdy563"
+              }
+            ],
+            "order": 5
+          },
+          {
+            "firstName": "Leila",
+            "lastName": "Fletcher",
+            "email": "",
+            "affiliation": "Southern Oregon University",
+            "affiliationROR": "https://ror.org/010kva064",
+            "affiliations": [
+              {
+                "name": "Southern Oregon University",
+                "ror_id": "https://ror.org/010kva064"
+              }
+            ],
+            "order": 6
+          },
+          {
+            "firstName": "Matteo",
+            "lastName": "Pellegrini",
+            "email": "",
+            "affiliation": "University of California, Los Angeles",
+            "affiliationROR": "https://ror.org/046rm7j60",
+            "affiliations": [
+              {
+                "name": "University of California, Los Angeles",
+                "ror_id": "https://ror.org/046rm7j60"
+              }
+            ],
+            "order": 7
+          },
+          {
+            "firstName": "Etienne",
+            "lastName": "Baron",
+            "email": "",
+            "affiliation": "Université Paul-Valéry Montpellier",
+            "affiliationROR": "https://ror.org/00qhdy563",
+            "affiliations": [
+              {
+                "name": "Université Paul-Valéry Montpellier",
+                "ror_id": "https://ror.org/00qhdy563"
+              }
+            ],
+            "order": 8
+          },
+          {
+            "firstName": "Elena",
+            "lastName": "Kazakou",
+            "email": "",
+            "affiliation": "Université Paul-Valéry Montpellier",
+            "affiliationROR": "https://ror.org/00qhdy563",
+            "affiliations": [
+              {
+                "name": "Université Paul-Valéry Montpellier",
+                "ror_id": "https://ror.org/00qhdy563"
+              }
+            ],
+            "order": 9
+          },
+          {
+            "firstName": "Lawren",
+            "lastName": "Sack",
+            "email": "",
+            "affiliation": "University of California, Los Angeles",
+            "affiliationROR": "https://ror.org/046rm7j60",
+            "affiliations": [
+              {
+                "name": "University of California, Los Angeles",
+                "ror_id": "https://ror.org/046rm7j60"
+              }
+            ],
+            "order": 10
+          }
+        ],
+        "abstract": "<p>Stomata, the micro-valves on leaves, regulate CO<sub>2</sub> uptake and water loss within and across plant species. Thus, maximum stomatal conductance, <em>g</em><sub>max</sub>, is a key influence on gas exchange, productivity, and growth. Yet, the adaptation of <em>g</em><sub>max</sub> to climate and its genetic, developmental, and functional bases have remained unclear. Here, we report on a cross-scale, integrative and synthetic study of 145 geographically diverse ecotypes of <em>Arabidopsis thaliana</em> grown in a common garden. Across ecotypes, higher <em>g</em><sub>max</sub> had strong, polygenic associations with colder and drier macroclimates and shorter growing seasons, consistent with adaptation for stress avoidance. Higher <em>g</em><sub>max</sub> was achieved developmentally through high guard cell initiation rates and small epidermal pavement cells, resulting in greater spatial allocation of the epidermal surfaces to stomata. Our results demonstrate the multi-tiered adaptation of <em>g</em><sub>max</sub> to climatic stress and its mechanisms across a wide-ranging model species.</p>\n",
+        "funders": [
+          {
+            "organization": "U.S. National Science Foundation",
+            "identifierType": "ror",
+            "identifier": "https://ror.org/021nxhr62",
+            "awardNumber": "1457279",
+            "awardDescription": "",
+            "order": 0
+          },
+          {
+            "organization": "U.S. National Science Foundation",
+            "identifierType": "ror",
+            "identifier": "https://ror.org/021nxhr62",
+            "awardNumber": "2017949",
+            "awardDescription": "",
+            "order": 1
+          },
+          {
+            "organization": "U.S. National Science Foundation",
+            "identifierType": "ror",
+            "identifier": "https://ror.org/021nxhr62",
+            "awardNumber": "1951244",
+            "awardDescription": "",
+            "order": 2
+          },
+          {
+            "organization": "U.S. National Science Foundation",
+            "identifierType": "ror",
+            "identifier": "https://ror.org/021nxhr62",
+            "awardNumber": "1557906",
+            "awardDescription": "",
+            "order": 3
+          },
+          {
+            "organization": "U.S. National Science Foundation",
+            "identifierType": "ror",
+            "identifier": "https://ror.org/021nxhr62",
+            "awardNumber": "2307341",
+            "awardDescription": "",
+            "order": 4
+          },
+          {
+            "organization": "National Institute of Food and Agriculture",
+            "identifierType": "ror",
+            "identifier": "https://ror.org/05qx3fv49",
+            "awardNumber": "2020-67013-30913",
+            "awardDescription": "",
+            "order": 5
+          },
+          {
+            "organization": "National Institute of Food and Agriculture",
+            "identifierType": "ror",
+            "identifier": "https://ror.org/05qx3fv49",
+            "awardNumber": "1016439",
+            "awardDescription": "Hatch Project ",
+            "order": 6
+          },
+          {
+            "organization": "Conselho Nacional de Desenvolvimento Científico e Tecnológico",
+            "identifierType": "ror",
+            "identifier": "https://ror.org/03swz6y49",
+            "awardNumber": "202813/2014-2",
+            "awardDescription": "Science Without Borders Program",
+            "order": 7
+          }
+        ],
+        "keywords": [
+          "Stomata",
+          "Arabidopsis thaliana",
+          "Climate Adaptation",
+          "GWAS"
+        ],
+        "fieldOfScience": "Biological sciences",
+        "methods": "<p>We grew 145 ecotypes of <em>Arabidopsis thaliana</em>, sampled from the 1,001 Genomes Consortium populations and the RegMap populations in a common greenhouse. These ecotypes were selected to represent the extent of the natural distribution of the species. Seeds were sown in moist organic compost and stratified in a cold chamber at 4°C for four days. Three seedlings per genotype were then transferred to individual pots filled with organic compost (Neuhaus N2) and watered twice a week for the duration of the experiment (140 days from sowing to harvest). Pots were distributed across four tables in blocks, with one replicate per ecotype per table. The tables were placed in a greenhouse with a controlled temperature of 18°C during the day and 16°C during the night, and rotated daily to reduce block effects within the greenhouse. A supplemental lighting system was used to maintain a constant 12.5 h day-length.</p>",
+        "relatedWorks": [
+          {
+            "relationship": "software",
+            "identifierType": "DOI",
+            "identifier": "https://doi.org/10.5281/zenodo.17288996"
+          }
+        ],
+        "versionNumber": 6,
+        "versionStatus": "submitted",
+        "curationStatus": "Published",
+        "versionChanges": "files_changed",
+        "publicationDate": "2026-08-26",
+        "lastModificationDate": "2026-08-26",
+        "visibility": "public",
+        "sharingLink": "http://datadryad.org/dataset/doi:10.5061/dryad.kprr4xhfb",
+        "license": "https://spdx.org/licenses/CC0-1.0.html",
+        "metrics": {
+          "views": 0,
+          "downloads": 0,
+          "citations": 0
+        }
+      },
+      {
+        "_links": {
+          "self": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.tx95x6bdd"
+          },
+          "stash:versions": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.tx95x6bdd/versions"
+          },
+          "stash:version": {
+            "href": "/api/v2/versions/459989"
+          },
+          "stash:download": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.tx95x6bdd/download"
+          },
+          "curies": [
+            {
+              "name": "stash",
+              "href": "https://github.com/datadryad/dryad-app/blob/main/documentation/apis/link_relations.md#{rel}",
+              "templated": "true"
+            }
+          ]
+        },
+        "identifier": "doi:10.5061/dryad.tx95x6bdd",
+        "id": 190432,
+        "storageSize": 307227685,
+        "relatedPublicationISSN": "2041-1723",
+        "title": "Support for a role of sex chromosome turnover and mitonuclear conflict in reproductive isolation in darters",
+        "authors": [
+          {
+            "firstName": "Rachel",
+            "lastName": "Moran",
+            "email": "rmoran1@uchicago.edu",
+            "affiliation": "University of Chicago",
+            "affiliationROR": "https://ror.org/024mw5h28",
+            "affiliations": [
+              {
+                "name": "University of Chicago",
+                "ror_id": "https://ror.org/024mw5h28"
+              }
+            ],
+            "orcid": "0000-0001-6831-4530"
+          },
+          {
+            "firstName": "Wynne",
+            "lastName": "Radcliffe",
+            "email": "wrad07@uchicago.edu",
+            "affiliation": "University of Chicago",
+            "affiliationROR": "https://ror.org/024mw5h28",
+            "affiliations": [
+              {
+                "name": "University of Chicago",
+                "ror_id": "https://ror.org/024mw5h28"
+              }
+            ],
+            "order": 1
+          }
+        ],
+        "abstract": "<p>Identifying the genetic basis of reproductive barriers is essential for understanding the origin and maintenance of biological diversity. While some hybrid incompatibilities evolve as incidental byproducts of divergence<sup>1-3</sup>, theory predicts that sex chromosomes and cytoplasmic genomes can generate especially strong and repeatable barriers to gene flow through conflict, linkage, and constrained coadaptation<sup>4-7, 10</sup>. Yet tests of these predictions in natural systems with ongoing hybridization remain limited<sup>9-11</sup>. Here, we combine whole-genome resequencing and experimental backcrosses in North American darter fishes to show rapid sex chromosome turnover. Across two hybrid zones involving closely related lineages, sex determination maps to different, nonhomologous chromosomes in the hybridizing partners, indicating two independent turnovers. Sex chromosomes show reduced introgression in hybrid zones and transmission distortion in hybrids. We also detect cytoplasmic-background–associated allele-frequency shifts concentrated on sex chromosomes and enriched near nuclear-encoded mitochondrial genes, consistent with cytonuclear selection contributing to postzygotic barriers. Finally, parental crosses and comparative genomic patterns support a recessive female-determining mutation underlying one turnover, providing a rare empirical example of a predicted but seldom observed route to sex chromosome evolution. Together, these results implicate dynamic sex chromosomes and their linkage context as recurring features shaping hybrid genomes and reproductive isolation despite gene flow.</p>\n",
+        "funders": [
+          {
+            "organization": "Division of Integrative Organismal Systems",
+            "identifierType": "ror",
+            "identifier": "https://ror.org/01rvays47",
+            "awardNumber": "2619530",
+            "awardDescription": "",
+            "awardTitle": "Evolutionary and neurogenomic mechanisms of species discrimination during character displacement",
+            "order": 0
+          }
+        ],
+        "keywords": [
+          "Evolutionary genetics",
+          "Genomics",
+          "Speciation",
+          "Hybridization",
+          "Sex chromosomes"
+        ],
+        "fieldOfScience": "Biological sciences",
+        "methods": "<p>The datasets in this repository were generated from whole-genome resequencing data collected to investigate sex chromosome evolution and reproductive isolation in darters (genus <em>Etheostoma</em>). Whole-genome sequencing, reference genome assembly, read mapping, variant calling, and quality filtering were performed as described in the associated publication. Briefly, paired-end Illumina whole-genome resequencing reads were aligned to species-specific reference genomes using BWA, duplicates were removed with Picard, and SNPs were called using GATK following Best Practices. Variants were filtered to retain high-quality biallelic SNPs after removing repetitive regions, sites with excessive missing data, and low-frequency variants.</p>\n<p>The deposited datasets include the processed outputs used to generate the main-text figures and supplementary analyses:</p>\n<h5>\n<a href=\"#malefemale-heterozygosity-fold-change\" aria-hidden=\"true\" class=\"anchor\" id=\"malefemale-heterozygosity-fold-change\"></a>Male–female heterozygosity fold change</h5>\n<p>For <em>E. spectabile</em>, <em>E. caeruleum</em>, and <em>E. radiosum</em>, observed heterozygosity was calculated separately for males and females at each SNP using the R package vcfR. To reduce stochastic variation, SNPs were aggregated into non-overlapping 250-kb genomic windows, and the mean difference in observed heterozygosity between males and females was calculated for each window. These datasets underlie the genome-wide heterozygosity analyses presented in the manuscript.</p>\n<h5>\n<a href=\"#malefemale-snp-density\" aria-hidden=\"true\" class=\"anchor\" id=\"malefemale-snp-density\"></a>Male–female SNP density</h5>\n<p>Male and female SNP densities were calculated independently for <em>E. spectabile</em>, <em>E. caeruleum</em>, and <em>E. radiosum</em>. Following quality filtering, SNPs were counted in 10-kb genomic windows, and male-biased SNP density was calculated as:</p>\n<p>log₂(mean male SNP density) − log₂(mean female SNP density)</p>\n<p>These processed data were used to identify genomic regions exhibiting sex-specific SNP enrichment.</p>\n<h5>\n<a href=\"#genome-wide-association-analyses-gwas\" aria-hidden=\"true\" class=\"anchor\" id=\"genome-wide-association-analyses-gwas\"></a>Genome-wide association analyses (GWAS)</h5>\n<p>Genome-wide association analyses for phenotypic sex were conducted separately for each species using GEMMA (v0.98.5) linear mixed models. The files deposited here contain the complete SNP-level association statistics generated by GEMMA and used to construct the Manhattan plots in the manuscript.</p>\n<h5>\n<a href=\"#sex-specific-k-mer-analyses\" aria-hidden=\"true\" class=\"anchor\" id=\"sex-specific-k-mer-analyses\"></a>Sex-specific k-mer analyses</h5>\n<p>Sex-specific k-mer analyses were performed for <em>E. spectabile</em> and <em>E. caeruleum</em>. Thirty-one base pair (k = 31) k-mers were counted from whole-genome resequencing data. K-mers present in at least 80% of one sex and absent from the opposite sex were identified, mapped uniquely to the reference genome, and summarized by chromosome. The deposited files contain the processed k-mer datasets used for downstream analyses.</p>\n<h5>\n<a href=\"#twisst-analyses\" aria-hidden=\"true\" class=\"anchor\" id=\"twisst-analyses\"></a>TWISST analyses</h5>\n<p>The deposited TWISST dataset contains the topology weighting input files generated from genome-wide variant data and used to infer phylogenetic relationships across the genome. These files were used to identify genomic regions resistant to introgression and to compare topology weighting between sex chromosomes and autosomes.</p>\n<h4>\n<a href=\"#software\" aria-hidden=\"true\" class=\"anchor\" id=\"software\"></a>Software</h4>\n<p>Major software used to generate these datasets included:</p>\n<ul>\n<li>BWA v0.7.17</li>\n<li>Picard v2.18.27</li>\n<li>SAMtools v1.20</li>\n<li>GATK v4.5</li>\n<li>BCFtools v1.19</li>\n<li>VCFtools v0.1.16</li>\n<li>GEMMA v0.98.5</li>\n<li>R v4.0.3 (including vcfR)</li>\n<li>Custom Python and R scripts</li>\n</ul>\n",
+        "versionNumber": 5,
+        "versionStatus": "submitted",
+        "curationStatus": "Published",
+        "versionChanges": "files_changed",
+        "publicationDate": "2026-08-26",
+        "lastModificationDate": "2026-08-26",
+        "visibility": "public",
+        "sharingLink": "http://datadryad.org/dataset/doi:10.5061/dryad.tx95x6bdd",
+        "license": "https://spdx.org/licenses/CC0-1.0.html",
+        "metrics": {
+          "views": 0,
+          "downloads": 0,
+          "citations": 0
+        }
+      },
+      {
+        "_links": {
+          "self": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.8gtht772x"
+          },
+          "stash:versions": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.8gtht772x/versions"
+          },
+          "stash:version": {
+            "href": "/api/v2/versions/460004"
+          },
+          "stash:download": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.8gtht772x/download"
+          },
+          "curies": [
+            {
+              "name": "stash",
+              "href": "https://github.com/datadryad/dryad-app/blob/main/documentation/apis/link_relations.md#{rel}",
+              "templated": "true"
+            }
+          ]
+        },
+        "identifier": "doi:10.5061/dryad.8gtht772x",
+        "id": 176128,
+        "storageSize": 488643,
+        "title": "Genetic and morphological reassessment of the genus <em>Isoodon</em> (Marsupialia: Peramelemorphia) and description of new species and subspecies",
+        "authors": [
+          {
+            "firstName": "Kenny",
+            "lastName": "Travouillon",
+            "email": "Kenny.Travouillon@museum.wa.gov.au",
+            "affiliation": "Western Australian Museum",
+            "affiliationROR": "https://ror.org/01a3yyc70",
+            "affiliations": [
+              {
+                "name": "Western Australian Museum",
+                "ror_id": "https://ror.org/01a3yyc70"
+              }
+            ],
+            "orcid": "0000-0003-1734-4742"
+          },
+          {
+            "firstName": "Steve",
+            "lastName": "Cooper",
+            "email": "steve.cooper@samuseum.sa.gov.au",
+            "affiliation": "The University of Adelaide",
+            "affiliationROR": "https://ror.org/00892tw58",
+            "affiliations": [
+              {
+                "name": "South Australian Museum",
+                "ror_id": "https://ror.org/02zv7ne49"
+              },
+              {
+                "name": "The University of Adelaide",
+                "ror_id": "https://ror.org/00892tw58"
+              }
+            ],
+            "order": 1
+          },
+          {
+            "firstName": "Terry",
+            "lastName": "Bertozzi",
+            "email": "terry.bertozzi@samuseum.sa.gov.au",
+            "affiliation": "The University of Adelaide",
+            "affiliationROR": "https://ror.org/00892tw58",
+            "affiliations": [
+              {
+                "name": "South Australian Museum",
+                "ror_id": "https://ror.org/02zv7ne49"
+              },
+              {
+                "name": "The University of Adelaide",
+                "ror_id": "https://ror.org/00892tw58"
+              }
+            ],
+            "order": 2
+          },
+          {
+            "firstName": "Anna",
+            "lastName": "MacDonalds",
+            "email": "Anna.MacDonald@aad.gov.au",
+            "affiliation": "Australian National University",
+            "affiliationROR": "https://ror.org/019wvm592",
+            "affiliations": [
+              {
+                "name": "Australian National University",
+                "ror_id": "https://ror.org/019wvm592"
+              }
+            ],
+            "orcid": "0000-0003-2972-200X",
+            "order": 3
+          },
+          {
+            "firstName": "Emily",
+            "lastName": "Roycroft",
+            "email": "emily.roycroft@monash.edu",
+            "affiliation": "Monash University",
+            "affiliationROR": "https://ror.org/02bfwt286",
+            "affiliations": [
+              {
+                "name": "Monash University",
+                "ror_id": "https://ror.org/02bfwt286"
+              }
+            ],
+            "order": 4
+          },
+          {
+            "firstName": "Matthew",
+            "lastName": "Phillips",
+            "email": "m9.phillips@qut.edu.au",
+            "affiliation": "Queensland University of Technology",
+            "affiliationROR": "https://ror.org/03pnv4752",
+            "affiliations": [
+              {
+                "name": "Queensland University of Technology",
+                "ror_id": "https://ror.org/03pnv4752"
+              }
+            ],
+            "orcid": "0000-0003-1532-449X",
+            "order": 5
+          },
+          {
+            "firstName": "Stefan",
+            "lastName": "Dahl",
+            "email": "stefan.dahl@adelaide.edu.au",
+            "affiliation": "The University of Adelaide",
+            "affiliationROR": "https://ror.org/00892tw58",
+            "affiliations": [
+              {
+                "name": "The University of Adelaide",
+                "ror_id": "https://ror.org/00892tw58"
+              }
+            ],
+            "order": 6
+          },
+          {
+            "firstName": "Sarah",
+            "lastName": "Comer",
+            "email": "sarah.comer@dbca.wa.gov.au",
+            "affiliation": "Department of Biodiversity, Conservation and Attractions",
+            "affiliationROR": "https://ror.org/04abk6t05",
+            "affiliations": [
+              {
+                "name": "Department of Biodiversity, Conservation and Attractions",
+                "ror_id": "https://ror.org/04abk6t05"
+              }
+            ],
+            "order": 7
+          },
+          {
+            "firstName": "David",
+            "lastName": "Stemmer",
+            "email": "david.stemmer@samuseum.sa.gov.au",
+            "affiliation": "South Australian Museum",
+            "affiliationROR": "https://ror.org/02zv7ne49",
+            "affiliations": [
+              {
+                "name": "South Australian Museum",
+                "ror_id": "https://ror.org/02zv7ne49"
+              }
+            ],
+            "order": 8
+          }
+        ],
+        "abstract": "<p>Since European colonisation of Australia, bandicoots in the genus <em>Isoodon</em> have been heavily affected by the introduction of feral predators and changes to the landscape, resulting in the contraction of their distribution and loss of genetic diversity. Their taxonomy has also been a challenge: 11 species were originally recorded, amendments in the 1990s led to recognition of only three species, and recent studies utilising molecular and morphological analyses led to documentation of two additional species. To further resolve the taxonomy of this genus, we have opted for a total evidence approach, using both morphological and molecular techniques, including sampling specimens from their historical and extant distributions. Types were also examined and sampled for DNA analyses. Molecular data were generated from 1000s of nuclear gene loci using exon capture as part of the Oz Mammal Genomics initiative. Our results support three additional species being raised and several previously unnamed new subspecies. This new taxonomic framework has important implications for the conservation management of <em>Isoodon</em> species, with current translocation plans to mix populations.</p>\n",
+        "funders": [
+          {
+            "organization": "Australian Biological Resources Study",
+            "identifierType": "ror",
+            "identifier": "https://ror.org/00289aa83",
+            "awardNumber": "",
+            "awardDescription": "",
+            "awardTitle": "",
+            "order": 0
+          }
+        ],
+        "keywords": [
+          "Taxonomy",
+          "New species reports",
+          "Australia"
+        ],
+        "fieldOfScience": "Biological sciences",
+        "relatedWorks": [
+          {
+            "relationship": "supplemental_information",
+            "identifierType": "DOI",
+            "identifier": "https://doi.org/10.5281/zenodo.19325560"
+          }
+        ],
+        "versionNumber": 5,
+        "versionStatus": "submitted",
+        "curationStatus": "Published",
+        "versionChanges": "files_changed",
+        "publicationDate": "2026-08-26",
+        "lastModificationDate": "2026-08-26",
+        "visibility": "public",
+        "sharingLink": "http://datadryad.org/dataset/doi:10.5061/dryad.8gtht772x",
+        "license": "https://spdx.org/licenses/CC0-1.0.html",
+        "metrics": {
+          "views": 0,
+          "downloads": 0,
+          "citations": 0
+        }
+      },
+      {
+        "_links": {
+          "self": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.g4f4qrg50"
+          },
+          "stash:versions": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.g4f4qrg50/versions"
+          },
+          "stash:version": {
+            "href": "/api/v2/versions/459997"
+          },
+          "stash:download": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.g4f4qrg50/download"
+          },
+          "curies": [
+            {
+              "name": "stash",
+              "href": "https://github.com/datadryad/dryad-app/blob/main/documentation/apis/link_relations.md#{rel}",
+              "templated": "true"
+            }
+          ]
+        },
+        "identifier": "doi:10.5061/dryad.g4f4qrg50",
+        "id": 183910,
+        "storageSize": 7178471,
+        "relatedPublicationISSN": "0706-652X",
+        "title": "Data and code from: Using acoustic telemetry to assess spatiotemporal boundaries of a seasonal fishing closure for a marine gamefish",
+        "authors": [
+          {
+            "firstName": "Jessica",
+            "lastName": "Robichaud",
+            "email": "jessrobichaud@cmail.carleton.ca",
+            "affiliation": "Carleton University",
+            "affiliationROR": "https://ror.org/02qtvee93",
+            "affiliations": [
+              {
+                "name": "Carleton University",
+                "ror_id": "https://ror.org/02qtvee93"
+              }
+            ],
+            "orcid": "0000-0002-9721-6873"
+          },
+          {
+            "firstName": "Lucas",
+            "lastName": "Griffin",
+            "email": "",
+            "affiliation": "University of South Florida",
+            "affiliationROR": "https://ror.org/032db5x82",
+            "affiliations": [
+              {
+                "name": "University of South Florida",
+                "ror_id": "https://ror.org/032db5x82"
+              }
+            ]
+          },
+          {
+            "firstName": "Gina M",
+            "lastName": "Clementi",
+            "email": "",
+            "affiliation": "Florida International University",
+            "affiliationROR": "https://ror.org/02gz6gg07",
+            "affiliations": [
+              {
+                "name": "Florida International University",
+                "ror_id": "https://ror.org/02gz6gg07"
+              }
+            ]
+          },
+          {
+            "firstName": "Benjamin M",
+            "lastName": "Binder",
+            "email": "",
+            "affiliation": "Florida International University",
+            "affiliationROR": "https://ror.org/02gz6gg07",
+            "affiliations": [
+              {
+                "name": "Florida International University",
+                "ror_id": "https://ror.org/02gz6gg07"
+              }
+            ]
+          },
+          {
+            "firstName": "Kirk R",
+            "lastName": "Gastrich",
+            "email": "",
+            "affiliation": "Florida International University",
+            "affiliationROR": "https://ror.org/02gz6gg07",
+            "affiliations": [
+              {
+                "name": "Florida International University",
+                "ror_id": "https://ror.org/02gz6gg07"
+              }
+            ]
+          },
+          {
+            "firstName": "Grace",
+            "lastName": "Casselberry",
+            "email": "",
+            "affiliation": "University of Massachusetts Amherst",
+            "affiliationROR": "https://ror.org/0072zz521",
+            "affiliations": [
+              {
+                "name": "University of Massachusetts Amherst",
+                "ror_id": "https://ror.org/0072zz521"
+              }
+            ]
+          },
+          {
+            "firstName": "Luc",
+            "lastName": "LaRochelle",
+            "email": "",
+            "affiliation": "Carleton University",
+            "affiliationROR": "https://ror.org/02qtvee93",
+            "affiliations": [
+              {
+                "name": "Carleton University",
+                "ror_id": "https://ror.org/02qtvee93"
+              }
+            ]
+          },
+          {
+            "firstName": "Danielle",
+            "lastName": "Morley",
+            "email": "",
+            "affiliation": "Florida Fish and Wildlife Conservation Commission",
+            "affiliationROR": "https://ror.org/03y5msf78",
+            "affiliations": [
+              {
+                "name": "Florida Fish and Wildlife Conservation Commission",
+                "ror_id": "https://ror.org/03y5msf78"
+              }
+            ]
+          },
+          {
+            "firstName": "Jessica A",
+            "lastName": "Keller",
+            "email": "",
+            "affiliation": "University of Florida",
+            "affiliationROR": "https://ror.org/02y3ad647",
+            "affiliations": [
+              {
+                "name": "University of Florida",
+                "ror_id": "https://ror.org/02y3ad647"
+              },
+              {
+                "name": "Florida Fish and Wildlife Conservation Commission",
+                "ror_id": "https://ror.org/03y5msf78"
+              }
+            ]
+          },
+          {
+            "firstName": "Jesse",
+            "lastName": "Secord",
+            "email": "",
+            "affiliation": "Florida Fish and Wildlife Conservation Commission",
+            "affiliationROR": "https://ror.org/03y5msf78",
+            "affiliations": [
+              {
+                "name": "Florida Fish and Wildlife Conservation Commission",
+                "ror_id": "https://ror.org/03y5msf78"
+              }
+            ]
+          },
+          {
+            "firstName": "Noah",
+            "lastName": "Reiser",
+            "email": "",
+            "affiliation": "Florida Fish and Wildlife Conservation Commission",
+            "affiliationROR": "https://ror.org/03y5msf78",
+            "affiliations": [
+              {
+                "name": "Florida Fish and Wildlife Conservation Commission",
+                "ror_id": "https://ror.org/03y5msf78"
+              }
+            ]
+          },
+          {
+            "firstName": "Michael",
+            "lastName": "Heithaus",
+            "email": "",
+            "affiliation": "Florida International University",
+            "affiliationROR": "https://ror.org/02gz6gg07",
+            "affiliations": [
+              {
+                "name": "Florida International University",
+                "ror_id": "https://ror.org/02gz6gg07"
+              }
+            ]
+          },
+          {
+            "firstName": "Kevin M",
+            "lastName": "Boswell",
+            "email": "",
+            "affiliation": "Florida International University",
+            "affiliationROR": "https://ror.org/02gz6gg07",
+            "affiliations": [
+              {
+                "name": "Florida International University",
+                "ror_id": "https://ror.org/02gz6gg07"
+              }
+            ]
+          },
+          {
+            "firstName": "Andy J.",
+            "lastName": "Danylchuk",
+            "email": "",
+            "affiliation": "University of Massachusetts Amherst",
+            "affiliationROR": "https://ror.org/0072zz521",
+            "affiliations": [
+              {
+                "name": "University of Massachusetts Amherst",
+                "ror_id": "https://ror.org/0072zz521"
+              }
+            ]
+          },
+          {
+            "firstName": "Aaron",
+            "lastName": "Adams",
+            "email": "",
+            "affiliation": "Florida Atlantic University",
+            "affiliationROR": "https://ror.org/05p8w6387",
+            "affiliations": [
+              {
+                "name": "Bonefish and Tarpon Trust",
+                "ror_id": "https://ror.org/02fn5kf41"
+              },
+              {
+                "name": "Florida Atlantic University",
+                "ror_id": "https://ror.org/05p8w6387"
+              }
+            ]
+          },
+          {
+            "firstName": "Steven",
+            "lastName": "Cooke",
+            "email": "",
+            "affiliation": "Carleton University",
+            "affiliationROR": "https://ror.org/02qtvee93",
+            "affiliations": [
+              {
+                "name": "Carleton University",
+                "ror_id": "https://ror.org/02qtvee93"
+              }
+            ]
+          },
+          {
+            "firstName": "Jacob",
+            "lastName": "Brownscombe",
+            "email": "",
+            "affiliation": "Carleton University",
+            "affiliationROR": "https://ror.org/02qtvee93",
+            "affiliations": [
+              {
+                "name": "Carleton University",
+                "ror_id": "https://ror.org/02qtvee93"
+              }
+            ]
+          }
+        ],
+        "abstract": "Spawning aggregations of fishes are predictable in time and space, making them susceptible to overexploitation. Seasonal fishing closures (SFCs) can reduce pressure during spawning while allowing fishing during non-reproductive periods. However, ensuring closures align with actual species space use is critical to their effectiveness. We used acoustic telemetry to assess spatiotemporal alignment between the recently established Western Dry Rocks SFC (closed April-July) and Permit (Trachinotus falcatus) spawning behavior. Core space use (50% kernel density estimate) overlapped with >90% of the SFC boundary during spawning, while full range (95%) exceeded 70% overlap, indicating substantial protection. Core use areas were smaller during spawning months and since SFC establishment, suggesting reduced pressure may have elicited a contraction in space use. High presence in March with an intermediate space use extent indicated pre-spawning staging, suggesting the closure could be extended to March. Gap analysis revealed higher out-of-range movements during the closure period, indicating mobility remains high throughout spawning. These results demonstrate that acoustic telemetry-derived behavioral metrics can provide timely insights for evaluating and refining SFCs protecting spawning aggregations.",
+        "keywords": [
+          "protected area",
+          "Space use",
+          "acoustic telemetry",
+          "spawning aggregation",
+          "spatiotemporal",
+          "management"
+        ],
+        "fieldOfScience": "Biological sciences",
+        "versionNumber": 2,
+        "versionStatus": "submitted",
+        "curationStatus": "Published",
+        "versionChanges": "files_changed",
+        "publicationDate": "2026-08-26",
+        "lastModificationDate": "2026-08-26",
+        "visibility": "public",
+        "sharingLink": "http://datadryad.org/dataset/doi:10.5061/dryad.g4f4qrg50",
+        "license": "https://spdx.org/licenses/CC0-1.0.html",
+        "metrics": {
+          "views": 0,
+          "downloads": 0,
+          "citations": 0
+        }
+      },
+      {
+        "_links": {
+          "self": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.hqbzkh1zw"
+          },
+          "stash:versions": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.hqbzkh1zw/versions"
+          },
+          "stash:version": {
+            "href": "/api/v2/versions/459623"
+          },
+          "stash:download": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.hqbzkh1zw/download"
+          },
+          "curies": [
+            {
+              "name": "stash",
+              "href": "https://github.com/datadryad/dryad-app/blob/main/documentation/apis/link_relations.md#{rel}",
+              "templated": "true"
+            }
+          ]
+        },
+        "identifier": "doi:10.5061/dryad.hqbzkh1zw",
+        "id": 191020,
+        "storageSize": 361698,
+        "relatedPublicationISSN": "0012-9658",
+        "title": "Fluorescence fingerprint data from: Glowing cradles: hatching larvae of the longhorn beetle <em>Schwarzerium quadricolle</em> remain in fluorescent eggshells",
+        "authors": [
+          {
+            "firstName": "Takao",
+            "lastName": "Konishi",
+            "email": "septempunctata777@gmail.com",
+            "affiliation": "Forestry and Forest Products Research Institute",
+            "affiliationROR": "https://ror.org/044bma518",
+            "affiliations": [
+              {
+                "name": "Forestry and Forest Products Research Institute",
+                "ror_id": "https://ror.org/044bma518"
+              }
+            ],
+            "orcid": "0000-0002-0496-3184"
+          },
+          {
+            "firstName": "Kazushige",
+            "lastName": "Uemori",
+            "email": "",
+            "affiliation": "Forestry and Forest Products Research Institute",
+            "affiliationROR": "https://ror.org/044bma518",
+            "affiliations": [
+              {
+                "name": "Forestry and Forest Products Research Institute",
+                "ror_id": "https://ror.org/044bma518"
+              }
+            ],
+            "order": 1
+          },
+          {
+            "firstName": "Mito",
+            "lastName": "Kokawa",
+            "email": "",
+            "affiliation": "University of Tsukuba",
+            "affiliationROR": "https://ror.org/02956yf07",
+            "affiliations": [
+              {
+                "name": "University of Tsukuba",
+                "ror_id": "https://ror.org/02956yf07"
+              }
+            ],
+            "order": 2
+          },
+          {
+            "firstName": "Shigeaki",
+            "lastName": "Tamura",
+            "email": "",
+            "affiliation": "Forestry and Forest Products Research Institute",
+            "affiliationROR": "https://ror.org/044bma518",
+            "affiliations": [
+              {
+                "name": "Forestry and Forest Products Research Institute",
+                "ror_id": "https://ror.org/044bma518"
+              }
+            ],
+            "order": 3
+          },
+          {
+            "firstName": "Hisatomo",
+            "lastName": "Taki",
+            "email": "",
+            "affiliation": "Forestry and Forest Products Research Institute",
+            "affiliationROR": "https://ror.org/044bma518",
+            "affiliations": [
+              {
+                "name": "Forestry and Forest Products Research Institute",
+                "ror_id": "https://ror.org/044bma518"
+              }
+            ],
+            "order": 4
+          },
+          {
+            "firstName": "Etsuko",
+            "lastName": "Shoda-Kagaya",
+            "email": "",
+            "affiliation": "Forestry and Forest Products Research Institute",
+            "affiliationROR": "https://ror.org/044bma518",
+            "affiliations": [
+              {
+                "name": "Forestry and Forest Products Research Institute",
+                "ror_id": "https://ror.org/044bma518"
+              }
+            ],
+            "order": 5
+          }
+        ],
+        "abstract": "<p>This dataset contains fluorescence fingerprint (FF) data used in the study “Glowing cradles: hatching larvae of the longhorn beetle <em>Schwarzerium quadricolle</em> remain in fluorescent eggshells.” FF is three-dimensional fluorescence data with excitation wavelength, emission wavelength, and fluorescence intensity axes. The FFs of five eggshell samples and a blank sample were obtained using a spectrophotometer (F7000; Hitachi High-Technologies Corporation, Tokyo, Japan). The data are available for public use, and do not contain information on human subjects.</p>\n",
+        "funders": [
+          {
+            "organization": "Bio-oriented Technology Research Advancement Institution",
+            "identifierType": "ror",
+            "identifier": "https://ror.org/02f62sy66",
+            "awardNumber": "04015C1",
+            "awardDescription": "",
+            "awardTitle": "",
+            "order": 0
+          }
+        ],
+        "keywords": [
+          "Ecology",
+          "Insects",
+          "Fluorescence"
+        ],
+        "fieldOfScience": "Biological sciences",
+        "versionNumber": 4,
+        "versionStatus": "submitted",
+        "curationStatus": "Published",
+        "versionChanges": "metadata_changed",
+        "publicationDate": "2026-08-26",
+        "lastModificationDate": "2026-08-26",
+        "visibility": "public",
+        "sharingLink": "http://datadryad.org/dataset/doi:10.5061/dryad.hqbzkh1zw",
+        "license": "https://spdx.org/licenses/CC0-1.0.html",
+        "metrics": {
+          "views": 0,
+          "downloads": 0,
+          "citations": 0
+        }
+      },
+      {
+        "_links": {
+          "self": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.bzkh189qb"
+          },
+          "stash:versions": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.bzkh189qb/versions"
+          },
+          "stash:version": {
+            "href": "/api/v2/versions/460027"
+          },
+          "stash:download": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.bzkh189qb/download"
+          },
+          "curies": [
+            {
+              "name": "stash",
+              "href": "https://github.com/datadryad/dryad-app/blob/main/documentation/apis/link_relations.md#{rel}",
+              "templated": "true"
+            }
+          ]
+        },
+        "identifier": "doi:10.5061/dryad.bzkh189qb",
+        "id": 170510,
+        "storageSize": 59864,
+        "title": "Aspen defensive chemistry and fungal microbial community",
+        "authors": [
+          {
+            "firstName": "Aubrey",
+            "lastName": "Hawks",
+            "email": "aubrey.hawks@utah.edu",
+            "affiliation": "University of Utah",
+            "affiliationROR": "https://ror.org/03r0ha626",
+            "affiliations": [
+              {
+                "name": "University of Utah",
+                "ror_id": "https://ror.org/03r0ha626"
+              }
+            ],
+            "orcid": "0000-0001-6061-2584"
+          }
+        ],
+        "abstract": "<p>This dataset contains metabolomic and microbial community data from a multi-year common garden drought experiment with quaking aspen (<em>Populus tremuloides</em>). Clonal genotypes representing diverse source populations were grown under repeated summer drought treatments (2021–2023) in a randomized block design. Leaf samples were collected at peak drought in 2022 and 2023 and analyzed for specialized metabolites, focusing on salicinoid phenolic glycosides (SPGs) and condensed tannins (CTs), using ultra-performance liquid chromatography–mass spectrometry (UPLC-MS) with purified analytical standards (e.g., salicin, tremulacin, procyanidin B2) and colorimetric acid-butanol assays. Foliar fungal communities were characterized from the same samples using ITS amplicon sequencing.</p>\n",
+        "funders": [
+          {
+            "organization": "U.S. National Science Foundation",
+            "identifierType": "ror",
+            "identifier": "https://ror.org/021nxhr62",
+            "awardNumber": "NSF 2422727",
+            "awardDescription": "",
+            "awardTitle": "",
+            "order": 0
+          },
+          {
+            "organization": "United States Department of Agriculture",
+            "identifierType": "ror",
+            "identifier": "https://ror.org/01na82s61",
+            "awardNumber": "USDA-NIFA 10074268",
+            "awardDescription": "",
+            "awardTitle": "",
+            "order": 1
+          }
+        ],
+        "keywords": [
+          "Chemical ecology",
+          "Plant microbiology",
+          "Climate change"
+        ],
+        "fieldOfScience": "Natural sciences",
+        "versionNumber": 4,
+        "versionStatus": "submitted",
+        "curationStatus": "Published",
+        "versionChanges": "files_changed",
+        "publicationDate": "2026-08-26",
+        "lastModificationDate": "2026-08-26",
+        "visibility": "public",
+        "sharingLink": "http://datadryad.org/dataset/doi:10.5061/dryad.bzkh189qb",
+        "license": "https://spdx.org/licenses/CC0-1.0.html",
+        "metrics": {
+          "views": 0,
+          "downloads": 0,
+          "citations": 0
+        }
+      },
+      {
+        "_links": {
+          "self": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.cnp5hqcmx"
+          },
+          "stash:versions": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.cnp5hqcmx/versions"
+          },
+          "stash:version": {
+            "href": "/api/v2/versions/460037"
+          },
+          "stash:download": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.cnp5hqcmx/download"
+          },
+          "curies": [
+            {
+              "name": "stash",
+              "href": "https://github.com/datadryad/dryad-app/blob/main/documentation/apis/link_relations.md#{rel}",
+              "templated": "true"
+            }
+          ]
+        },
+        "identifier": "doi:10.5061/dryad.cnp5hqcmx",
+        "id": 190586,
+        "storageSize": 34784,
+        "relatedPublicationISSN": "2296-7745",
+        "title": "Data from: More seeds yield more shoots, but not higher per-seed establishment in a clam-mediated seagrass restoration experiment",
+        "authors": [
+          {
+            "firstName": "Cori",
+            "lastName": "Lopazanski",
+            "email": "lopazanski@ucsb.edu",
+            "affiliation": "Duke University",
+            "affiliationROR": "https://ror.org/00py81415",
+            "affiliations": [
+              {
+                "name": "University of California, Santa Barbara",
+                "ror_id": "https://ror.org/02t274463"
+              },
+              {
+                "name": "Duke University",
+                "ror_id": "https://ror.org/00py81415"
+              }
+            ],
+            "orcid": "0000-0002-4086-102X"
+          },
+          {
+            "firstName": "Christina",
+            "lastName": "Cutshaw",
+            "email": "",
+            "affiliation": "Duke University",
+            "affiliationROR": "https://ror.org/00py81415",
+            "affiliations": [
+              {
+                "name": "Duke University",
+                "ror_id": "https://ror.org/00py81415"
+              }
+            ],
+            "order": 1
+          },
+          {
+            "firstName": "Mason",
+            "lastName": "Ibrahim",
+            "email": "",
+            "affiliation": "Duke University",
+            "affiliationROR": "https://ror.org/00py81415",
+            "affiliations": [
+              {
+                "name": "Duke University",
+                "ror_id": "https://ror.org/00py81415"
+              }
+            ],
+            "order": 2
+          },
+          {
+            "firstName": "Joseph",
+            "lastName": "Morton",
+            "email": "",
+            "affiliation": "Duke University",
+            "affiliationROR": "https://ror.org/00py81415",
+            "affiliations": [
+              {
+                "name": "Duke University",
+                "ror_id": "https://ror.org/00py81415"
+              }
+            ],
+            "order": 3
+          },
+          {
+            "firstName": "Brian",
+            "lastName": "Silliman",
+            "email": "",
+            "affiliation": "Duke University",
+            "affiliationROR": "https://ror.org/00py81415",
+            "affiliations": [
+              {
+                "name": "Duke University",
+                "ror_id": "https://ror.org/00py81415"
+              }
+            ],
+            "order": 4
+          }
+        ],
+        "abstract": "<p>This dataset contains plot-level data from a field experiment testing seed density and clam-mediated deployment methods for eelgrass (<em>Zostera marina</em>) restoration in Back Sound, North Carolina. Treatments crossed five seed densities (10–100 seeds per clam) with two clam-placement methods (surface placement or manual burial), with four replicate plots per treatment. The data file includes treatment assignments, repeated measurements of eelgrass shoot abundance (counts) and the heights of five random shoots (cm), and observations of live clams and shell fragments within each plot. The data can be reused to evaluate early eelgrass establishment, seed density-dependent restoration outcomes, and the performance of clam-mediated seed delivery. No human-subject, animal-welfare, or other sensitive data are included.</p>\n",
+        "keywords": [
+          "Ecology",
+          "Zostera marina",
+          "restoration"
+        ],
+        "fieldOfScience": "Earth and related environmental sciences",
+        "versionNumber": 3,
+        "versionStatus": "submitted",
+        "curationStatus": "Published",
+        "versionChanges": "files_changed",
+        "publicationDate": "2026-08-26",
+        "lastModificationDate": "2026-08-26",
+        "visibility": "public",
+        "sharingLink": "http://datadryad.org/dataset/doi:10.5061/dryad.cnp5hqcmx",
+        "license": "https://spdx.org/licenses/CC0-1.0.html",
+        "metrics": {
+          "views": 0,
+          "downloads": 0,
+          "citations": 0
+        }
+      },
+      {
+        "_links": {
+          "self": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.vt4b8gv7r"
+          },
+          "stash:versions": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.vt4b8gv7r/versions"
+          },
+          "stash:version": {
+            "href": "/api/v2/versions/460116"
+          },
+          "stash:download": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.vt4b8gv7r/download"
+          },
+          "curies": [
+            {
+              "name": "stash",
+              "href": "https://github.com/datadryad/dryad-app/blob/main/documentation/apis/link_relations.md#{rel}",
+              "templated": "true"
+            }
+          ]
+        },
+        "identifier": "doi:10.5061/dryad.vt4b8gv7r",
+        "id": 189256,
+        "storageSize": 32943423,
+        "relatedPublicationISSN": "0363-6135",
+        "title": "Supplemental data from: Tobacco and marijuana induce adverse effects on cardiac function and Platelet activity and reduce tissue preservation following myocardial infarction",
+        "authors": [
+          {
+            "firstName": "Xiaoyin",
+            "lastName": "Wang",
+            "email": "xiaoyin.wang@ucsf.edu",
+            "affiliation": "University of California, San Francisco",
+            "affiliationROR": "https://ror.org/043mz5j54",
+            "affiliations": [
+              {
+                "name": "University of California, San Francisco",
+                "ror_id": "https://ror.org/043mz5j54"
+              }
+            ],
+            "orcid": "0000-0002-6667-5209"
+          },
+          {
+            "firstName": "Daniel",
+            "lastName": "Han",
+            "email": "",
+            "affiliation": "University of California, San Francisco",
+            "affiliationROR": "https://ror.org/043mz5j54",
+            "affiliations": [
+              {
+                "name": "University of California, San Francisco",
+                "ror_id": "https://ror.org/043mz5j54"
+              }
+            ],
+            "order": 1
+          },
+          {
+            "firstName": "Huiliang",
+            "lastName": "Qiu",
+            "email": "",
+            "affiliation": "University of California, San Francisco",
+            "affiliationROR": "https://ror.org/043mz5j54",
+            "affiliations": [
+              {
+                "name": "University of California, San Francisco",
+                "ror_id": "https://ror.org/043mz5j54"
+              }
+            ],
+            "order": 2
+          },
+          {
+            "firstName": "Chaitanya",
+            "lastName": "Punnati",
+            "email": "",
+            "affiliation": "University of California, San Francisco",
+            "affiliationROR": "https://ror.org/043mz5j54",
+            "affiliations": [
+              {
+                "name": "University of California, San Francisco",
+                "ror_id": "https://ror.org/043mz5j54"
+              }
+            ],
+            "order": 3
+          },
+          {
+            "firstName": "Natasha",
+            "lastName": "Goyal",
+            "email": "",
+            "affiliation": "University of California, San Francisco",
+            "affiliationROR": "https://ror.org/043mz5j54",
+            "affiliations": [
+              {
+                "name": "University of California, San Francisco",
+                "ror_id": "https://ror.org/043mz5j54"
+              }
+            ],
+            "order": 4
+          },
+          {
+            "firstName": "Alyssa",
+            "lastName": "Parangan",
+            "email": "",
+            "affiliation": "University of California, San Francisco",
+            "affiliationROR": "https://ror.org/043mz5j54",
+            "affiliations": [
+              {
+                "name": "University of California, San Francisco",
+                "ror_id": "https://ror.org/043mz5j54"
+              }
+            ],
+            "order": 5
+          },
+          {
+            "firstName": "Jayita",
+            "lastName": "Mukunda",
+            "email": "",
+            "affiliation": "University of California, San Francisco",
+            "affiliationROR": "https://ror.org/043mz5j54",
+            "affiliations": [
+              {
+                "name": "University of California, San Francisco",
+                "ror_id": "https://ror.org/043mz5j54"
+              }
+            ],
+            "order": 6
+          },
+          {
+            "firstName": "Parmis",
+            "lastName": "Tabibiazar",
+            "email": "",
+            "affiliation": "University of California, San Francisco",
+            "affiliationROR": "https://ror.org/043mz5j54",
+            "affiliations": [
+              {
+                "name": "University of California, San Francisco",
+                "ror_id": "https://ror.org/043mz5j54"
+              }
+            ],
+            "order": 7
+          },
+          {
+            "firstName": "Lam",
+            "lastName": "Tran",
+            "email": "",
+            "affiliation": "University of California, San Francisco",
+            "affiliationROR": "https://ror.org/043mz5j54",
+            "affiliations": [
+              {
+                "name": "University of California, San Francisco",
+                "ror_id": "https://ror.org/043mz5j54"
+              }
+            ],
+            "order": 8
+          },
+          {
+            "firstName": "Kelly",
+            "lastName": "Tan",
+            "email": "",
+            "affiliation": "University of California, San Francisco",
+            "affiliationROR": "https://ror.org/043mz5j54",
+            "affiliations": [
+              {
+                "name": "University of California, San Francisco",
+                "ror_id": "https://ror.org/043mz5j54"
+              }
+            ],
+            "order": 9
+          },
+          {
+            "firstName": "Arailym",
+            "lastName": "Kamzabek",
+            "email": "",
+            "affiliation": "University of California, San Francisco",
+            "affiliationROR": "https://ror.org/043mz5j54",
+            "affiliations": [
+              {
+                "name": "University of California, San Francisco",
+                "ror_id": "https://ror.org/043mz5j54"
+              }
+            ],
+            "order": 10
+          },
+          {
+            "firstName": "Ronak",
+            "lastName": "Derakhshandeh",
+            "email": "",
+            "affiliation": "University of California, San Francisco",
+            "affiliationROR": "https://ror.org/043mz5j54",
+            "affiliations": [
+              {
+                "name": "University of California, San Francisco",
+                "ror_id": "https://ror.org/043mz5j54"
+              }
+            ],
+            "order": 11
+          },
+          {
+            "firstName": "Matthew",
+            "lastName": "Springer",
+            "email": "",
+            "affiliation": "University of California, San Francisco",
+            "affiliationROR": "https://ror.org/043mz5j54",
+            "affiliations": [
+              {
+                "name": "University of California, San Francisco",
+                "ror_id": "https://ror.org/043mz5j54"
+              }
+            ],
+            "order": 12
+          }
+        ],
+        "abstract": "<p>Smoking disrupts cardiac autonomic regulation, vascular biology, and platelet function; however, the acute and longer-term cardiovascular effects of resurging and emerging tobacco and marijuana products remain incompletely characterized. We investigated the impact of exposure to smoke and aerosol from several tobacco and marijuana products on cardiac function, platelet activity, and myocardial susceptibility to ischemia/reperfusion myocardial infarction (MI). Male/female Sprague-Dawley rats underwent single or daily 5-min pulsatile exposure sessions to emissions from tobacco cigarettes, e-cigarettes (JUUL), heated tobacco products (IQOS), marijuana cigarettes, or cannabinoid-depleted (“placebo”) marijuana cigarettes; with an air negative control. Cardiac function was assessed immediately after single exposure using echocardiography and intraventricular hemodynamics. Platelet aggregation was measured immediately after single exposure and one day after repeated (2-week) exposure. Myocardial infarct size, normalized to area-at-risk, was assessed following MI after repeated (4-week) exposure. Single exposure to tobacco smoke or JUUL aerosol reduced left ventricular ejection fraction relative to pre-exposure. Acute marijuana smoke exposure similarly impaired left ventricular function assessed by hemodynamics. Single exposure to tobacco, marijuana, and placebo marijuana smoke increased collagen-induced platelet aggregation, with more pronounced responses in females, whereas repeated (2-week) exposure to smoke/aerosol from tobacco cigarettes, JUUL, IQOS, and placebo marijuana increased platelet aggregation across groups. Notably, repeated (4-week) exposure to tobacco smoke/aerosol or marijuana smoke prior to MI reduced myocardial tissue preservation, resulting in greater infarct size post-MI. These findings indicate that individual tobacco and marijuana smoking and vaping similarly impair cardiac function, enhance platelet reactivity, and reduce myocardial tolerance to ischemia/reperfusion injury.</p>\n",
+        "funders": [
+          {
+            "organization": "National Heart, Lung, and Blood Institute",
+            "identifierType": "ror",
+            "identifier": "https://ror.org/012pb6c26",
+            "awardNumber": "5U54HL147127-10",
+            "awardURI": "https://reporter.nih.gov/project-details/10468880",
+            "awardDescription": "",
+            "awardTitle": "Integrated Health, Behavioral and Economic Research on Current and Emerging Tobacco Products",
+            "order": 0
+          },
+          {
+            "organization": "United States Food and Drug Administration",
+            "identifierType": "ror",
+            "identifier": "https://ror.org/034xvzb47",
+            "awardNumber": "T29IP0490",
+            "awardDescription": "",
+            "awardTitle": "",
+            "order": 1
+          }
+        ],
+        "keywords": [
+          "smoke",
+          "cardiac function",
+          "Myocardial infarction",
+          "Platelet aggregation",
+          "Tobacco",
+          "Marijuana"
+        ],
+        "fieldOfScience": "Medical and health sciences",
+        "relatedWorks": [
+          {
+            "relationship": "primary_article",
+            "identifierType": "DOI",
+            "identifier": "https://doi.org/10.1152/ajpheart.00407.2026"
+          }
+        ],
+        "versionNumber": 10,
+        "versionStatus": "submitted",
+        "curationStatus": "Published",
+        "versionChanges": "files_changed",
+        "publicationDate": "2026-08-26",
+        "lastModificationDate": "2026-08-26",
+        "visibility": "public",
+        "sharingLink": "http://datadryad.org/dataset/doi:10.5061/dryad.vt4b8gv7r",
+        "license": "https://spdx.org/licenses/CC0-1.0.html",
+        "metrics": {
+          "views": 0,
+          "downloads": 0,
+          "citations": 0
+        }
+      },
+      {
+        "_links": {
+          "self": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.3r2280gzk"
+          },
+          "stash:versions": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.3r2280gzk/versions"
+          },
+          "stash:version": {
+            "href": "/api/v2/versions/460093"
+          },
+          "stash:download": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.3r2280gzk/download"
+          },
+          "curies": [
+            {
+              "name": "stash",
+              "href": "https://github.com/datadryad/dryad-app/blob/main/documentation/apis/link_relations.md#{rel}",
+              "templated": "true"
+            }
+          ]
+        },
+        "identifier": "doi:10.5061/dryad.3r2280gzk",
+        "id": 191595,
+        "storageSize": 76181,
+        "relatedPublicationISSN": "0909-6396",
+        "title": "Mechanistic scaling of twig allometry and crown architecture in Scots pine: Implications for moose browse availability",
+        "authors": [
+          {
+            "firstName": "Christer",
+            "lastName": "Kalen",
+            "email": "christer.kalen@skogsstyrelsen.se",
+            "affiliation": "Swedish University of Agricultural Sciences",
+            "affiliationROR": "https://ror.org/02yy8x990",
+            "affiliations": [
+              {
+                "name": "Swedish Forest Agency",
+                "ror_id": "https://ror.org/02qh6my57"
+              },
+              {
+                "name": "Swedish University of Agricultural Sciences",
+                "ror_id": "https://ror.org/02yy8x990"
+              }
+            ],
+            "orcid": "0000-0003-0621-095X"
+          },
+          {
+            "firstName": "Astrid",
+            "lastName": "Bornfeldt Persson",
+            "email": "",
+            "affiliation": "Swedish University of Agricultural Sciences",
+            "affiliationROR": "https://ror.org/02yy8x990",
+            "affiliations": [
+              {
+                "name": "Swedish University of Agricultural Sciences",
+                "ror_id": "https://ror.org/02yy8x990"
+              }
+            ]
+          },
+          {
+            "firstName": "Märtha",
+            "lastName": "Wallgren",
+            "email": "",
+            "affiliation": "Forestry Research Institute of Sweden",
+            "affiliationROR": "https://ror.org/00qqx3790",
+            "affiliations": [
+              {
+                "name": "Forestry Research Institute of Sweden",
+                "ror_id": "https://ror.org/00qqx3790"
+              }
+            ]
+          }
+        ],
+        "abstract": "<p>Balancing moose (<em>Alces alces</em>) populations with forest production objectives remains a major challenge in Swedish forestry. We developed a mechanistic, data-driven model of browse availability in Scots pine (<em>Pinus sylvestris</em>) saplings by linking shoot-level allometry, crown architecture, and tree height development. Empirical data were collected from nine unbrowsed trees, for which current-year shoots were measured by branch whorl, including shoot length, shoot number, and wet/dry biomass ratio. Shoot scaling with whorl position was analysed to quantify crown allometry and distribution. Crown architecture was coupled with a height–age growth model to simulate vertical crown development and estimate shoot biomass accessible to moose browsing within a defined browsing height for moose. Mathematical model simulations of browse availability were conducted with varied site productivity classes and scaled to the stand level. Individual shoot biomass, length and diameter increased with tree height and declined exponentially with distance from the apical top shoot with 50 %, 33 %, and 13 % per whorl, respectively. The vertical distribution of both total shoot length and shoot biomass among whorls was unimodal, with peaks occurring close to the midpoint of the crown. Simulations showed that browse availability increased rapidly with tree growth, peaked at tree heights around 3.5 m (15–25 years depending on site productivity), and subsequently declined. Peak shoot biomass ranged from 330 to 450 g dry weight per tree, with high-productivity sites yielding up to 35% more biomass. When scaled to stands ≤ 2.5 m in height at 2,000 stems ha <sup>-1</sup>, simulated browse availability was 100–200 kg dry weight ha <sup>-1</sup>. These results show that crown architecture in young Scots pine follows consistent scaling rules that can be expressed as functions of tree height and whorl position. The model provides a mechanistic connection between tree growth and herbivore-accessible forage.</p>\n",
+        "funders": [
+          {
+            "organization": "The Research Council of Norway",
+            "identifierType": "ror",
+            "identifier": "https://ror.org/00epmv149",
+            "awardNumber": "",
+            "awardDescription": "",
+            "awardTitle": "",
+            "order": 0
+          }
+        ],
+        "keywords": [
+          "Pinus sylvestris",
+          "Alces alces",
+          "browsing damage",
+          "food availability",
+          "Crown allometry",
+          "simulation"
+        ],
+        "fieldOfScience": "Natural sciences",
+        "relatedWorks": [
+          {
+            "relationship": "primary_article",
+            "identifierType": "DOI",
+            "identifier": "https://doi.org/10.1002/wlb3.01719"
+          }
+        ],
+        "versionNumber": 2,
+        "versionStatus": "submitted",
+        "curationStatus": "Published",
+        "versionChanges": "files_changed",
+        "publicationDate": "2026-08-26",
+        "lastModificationDate": "2026-08-26",
+        "visibility": "public",
+        "sharingLink": "http://datadryad.org/dataset/doi:10.5061/dryad.3r2280gzk",
+        "license": "https://spdx.org/licenses/CC0-1.0.html",
+        "metrics": {
+          "views": 0,
+          "downloads": 0,
+          "citations": 0
+        }
+      },
+      {
+        "_links": {
+          "self": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.1rn8pk187"
+          },
+          "stash:versions": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.1rn8pk187/versions"
+          },
+          "stash:version": {
+            "href": "/api/v2/versions/460101"
+          },
+          "stash:download": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.1rn8pk187/download"
+          },
+          "curies": [
+            {
+              "name": "stash",
+              "href": "https://github.com/datadryad/dryad-app/blob/main/documentation/apis/link_relations.md#{rel}",
+              "templated": "true"
+            }
+          ]
+        },
+        "identifier": "doi:10.5061/dryad.1rn8pk187",
+        "id": 174647,
+        "storageSize": 1485971138931,
+        "relatedPublicationISSN": "0028-0836",
+        "title": "Data from: Reference genomes and fossils revise bat family phylogeny and biogeography",
+        "authors": [
+          {
+            "firstName": "David",
+            "lastName": "Ray",
+            "email": "david.a.ray@ttu.edu",
+            "affiliation": "Texas Tech University",
+            "affiliationROR": "https://ror.org/0405mnx93",
+            "affiliations": [
+              {
+                "name": "Texas Tech University",
+                "ror_id": "https://ror.org/0405mnx93"
+              }
+            ],
+            "orcid": "0000-0002-3340-3987"
+          },
+          {
+            "firstName": "Ariadna",
+            "lastName": "Morales",
+            "email": "ariadna.biologia@gmail.com",
+            "affiliation": "Université de Montpellier",
+            "affiliationROR": "https://ror.org/051escj72",
+            "affiliations": [
+              {
+                "name": "Université de Montpellier",
+                "ror_id": "https://ror.org/051escj72"
+              }
+            ],
+            "orcid": "0000-0002-0637-7349",
+            "order": 1
+          },
+          {
+            "firstName": "Francisco",
+            "lastName": "Castellanos",
+            "email": "xacfran@gmail.com",
+            "affiliation": "Texas Tech University",
+            "affiliationROR": "https://ror.org/0405mnx93",
+            "affiliations": [
+              {
+                "name": "Texas Tech University",
+                "ror_id": "https://ror.org/0405mnx93"
+              }
+            ],
+            "orcid": "0000-0003-0955-8185",
+            "order": 2
+          },
+          {
+            "firstName": "Liliana M",
+            "lastName": "Davalos",
+            "email": "liliana.Davalos@stonybrook.edu",
+            "affiliation": "Stony Brook University",
+            "affiliationROR": "https://ror.org/05qghxh33",
+            "affiliations": [
+              {
+                "name": "Stony Brook University",
+                "ror_id": "https://ror.org/05qghxh33"
+              }
+            ],
+            "orcid": "0000-0002-4327-7697",
+            "order": 3
+          }
+        ],
+        "abstract": "<p>Bats are extraordinary amongst mammals, having uniquely evolved powered-flight and laryngeal echolocation, along with disease resistance, extended healthspans and the ability to hibernate. However, bats’ evolutionary history and our understanding of these adaptations remain unresolved. We analysed chromosome-level, long-read genome assemblies from 103 bat species, including 42 new assemblies, representing all 21 bat families. This dataset, unprecedented in taxonomic scope and assembly quality, yielded a new bat phylogeny. We placed Myzopodidae as the earliest branch within Vespertilionoidea, and resolved yangochiropteran relationships, identifying Emballonuroidea and Vespertilionoidea as sister groups. Our analysis revealed a mosaic evolutionary history across bats and explained why previous phylogenetic studies were misled. Chromosomal ancestral state reconstructions supported 26 ancestral bat chromosomes. We integrated a morphological dataset of 699 characters for 65 species, including 44 pre-Quaternary fossils and representatives of most living bat families, with neutrally-evolving genomic sites. Fossilized Birth-Death and Dispersal-Extinction-Cladogenesis analyses showed that bats, and thus powered-flight, likely originated in Europe in the late Palaeocene, refuting African and North American origins. Placement of the fossil †<em>Vielasia</em> in the oldest ‘Eochiroptera’ clade indicates that laryngeal echolocation predates crown-bat diversification. Total evidence dating including the fossil taxa significantly reduced Unrepresented-Basal-Branch-Lengths compared to molecular-only divergence estimates. By integrating comprehensive genomic and morphological data sets, analysed using innovative methods, we resolve long-standing controversies in bat biology and provide new insights into bats’ evolutionary history and trait diversification.</p>\n",
+        "funders": [
+          {
+            "organization": "Max Planck Society",
+            "identifierType": "ror",
+            "identifier": "https://ror.org/01hhn8329",
+            "awardNumber": "",
+            "awardDescription": "",
+            "awardTitle": "",
+            "order": 0
+          },
+          {
+            "organization": "LOEWE Centre for Translational Biodiversity Genomics",
+            "identifierType": "ror",
+            "identifier": "https://ror.org/0396gab88",
+            "awardNumber": "",
+            "awardDescription": "",
+            "awardTitle": "",
+            "order": 1
+          },
+          {
+            "organization": "Deutsche Forschungsgemeinschaft",
+            "identifierType": "ror",
+            "identifier": "https://ror.org/018mejw64",
+            "awardNumber": "",
+            "awardDescription": "",
+            "awardTitle": "",
+            "order": 2
+          },
+          {
+            "organization": "European Research Council",
+            "identifierType": "ror",
+            "identifier": "https://ror.org/0472cxd90",
+            "awardNumber": "",
+            "awardDescription": "",
+            "awardTitle": "",
+            "order": 3
+          },
+          {
+            "organization": "Science Foundation Ireland",
+            "identifierType": "ror",
+            "identifier": "https://ror.org/0271asj38",
+            "awardNumber": "",
+            "awardDescription": "",
+            "awardTitle": "",
+            "order": 4
+          }
+        ],
+        "keywords": [
+          "Genomics",
+          "Chiroptera",
+          "Phylogenetics"
+        ],
+        "fieldOfScience": "Biological sciences",
+        "versionNumber": 11,
+        "versionStatus": "submitted",
+        "curationStatus": "Published",
+        "versionChanges": "files_changed",
+        "publicationDate": "2026-08-26",
+        "lastModificationDate": "2026-08-26",
+        "visibility": "public",
+        "sharingLink": "http://datadryad.org/dataset/doi:10.5061/dryad.1rn8pk187",
+        "license": "https://spdx.org/licenses/CC0-1.0.html",
+        "metrics": {
+          "views": 0,
+          "downloads": 0,
+          "citations": 0
+        }
+      },
+      {
+        "_links": {
+          "self": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.v15dv42cj"
+          },
+          "stash:versions": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.v15dv42cj/versions"
+          },
+          "stash:version": {
+            "href": "/api/v2/versions/460092"
+          },
+          "stash:download": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.v15dv42cj/download"
+          },
+          "curies": [
+            {
+              "name": "stash",
+              "href": "https://github.com/datadryad/dryad-app/blob/main/documentation/apis/link_relations.md#{rel}",
+              "templated": "true"
+            }
+          ]
+        },
+        "identifier": "doi:10.5061/dryad.v15dv42cj",
+        "id": 190102,
+        "storageSize": 86065,
+        "relatedPublicationISSN": "0307-6946",
+        "title": "Data and code from: Consistent phenotypic shifts in a widespread urban butterfly across three cities",
+        "authors": [
+          {
+            "firstName": "Catherine A.",
+            "lastName": "McManus",
+            "email": "catherine.mcmanus@temple.edu",
+            "affiliation": "Temple University",
+            "affiliationROR": "https://ror.org/00kx1jb78",
+            "affiliations": [
+              {
+                "name": "Temple University",
+                "ror_id": "https://ror.org/00kx1jb78"
+              }
+            ],
+            "orcid": "0000-0003-2437-5993"
+          },
+          {
+            "firstName": "Matthew H.",
+            "lastName": "Koski",
+            "email": "",
+            "affiliation": "Clemson University",
+            "affiliationROR": "https://ror.org/037s24f05",
+            "affiliations": [
+              {
+                "name": "Clemson University",
+                "ror_id": "https://ror.org/037s24f05"
+              }
+            ],
+            "order": 1
+          },
+          {
+            "firstName": "Rachel B.",
+            "lastName": "Spigler",
+            "email": "",
+            "affiliation": "Temple University",
+            "affiliationROR": "https://ror.org/00kx1jb78",
+            "affiliations": [
+              {
+                "name": "Temple University",
+                "ror_id": "https://ror.org/00kx1jb78"
+              }
+            ],
+            "order": 2
+          }
+        ],
+        "abstract": "<p>Urbanization is a major driver of global environmental change, exposing species to stressors such as elevated temperatures and habitat fragmentation. Multi-region comparisons of urban and non-urban populations can reveal functional trait responses to these pressures and whether they generate consistent trait changes. In this study, we used the cabbage white butterfly, <em>Pieris rapae</em>, to test for repeated urban-associated trait shifts related to thermoregulation and flight using 571 butterflies collected across three metropolitan regions in the eastern United States (Cleveland, OH, Philadelphia, PA, and Pittsburgh, PA). We found consistent reductions in overall body size in urban populations relative to non-urban ones. We also found a negative relationship between relative thorax mass and the continuous urbanization gradient. Wing pigmentation and reflectance did not show urban-associated variation, though our results suggest that divergent responses between male and female butterflies may have led to novel sexual dimorphism in near-infrared reflectance within urban populations. Together, these results demonstrate repeated phenotypic differences between urban and non-urban butterfly populations across multiple trait axes and suggest that similar urban pressures may drive parallel responses across regions. They also offer hypotheses about the functional significance and potential fitness consequences of trait shifts while highlighting the need for future work to disentangle the ecological and evolutionary processes underlying urban phenotypic change. The dataset includes measurements of dry body and thorax mass, wing morphology, wing pigmentation, and wing reflectance, along with site-level environmental data used to characterize urbanization gradients. </p>\n",
+        "funders": [
+          {
+            "organization": "American Philosophical Society",
+            "identifierType": "ror",
+            "identifier": "https://ror.org/04egvf158",
+            "awardNumber": "",
+            "awardDescription": "",
+            "awardTitle": "Lewis and Clark Fund",
+            "order": 0
+          },
+          {
+            "organization": "Entomological Society of America",
+            "identifierType": "ror",
+            "identifier": "https://ror.org/03awpb417",
+            "awardNumber": "",
+            "awardDescription": "",
+            "awardTitle": "SysEB Student Research Travel Award",
+            "order": 1
+          },
+          {
+            "organization": "Temple University",
+            "identifierType": "ror",
+            "identifier": "https://ror.org/00kx1jb78",
+            "awardNumber": "",
+            "awardDescription": "",
+            "awardTitle": "University Fellowship",
+            "order": 2
+          }
+        ],
+        "keywords": [
+          "Pieris rapae",
+          "Urbanization",
+          "Urban ecology",
+          "morphology "
+        ],
+        "fieldOfScience": "Biological sciences",
+        "relatedWorks": [
+          {
+            "relationship": "preprint",
+            "identifierType": "DOI",
+            "identifier": "https://doi.org/10.64898/2026.02.11.705400"
+          },
+          {
+            "relationship": "software",
+            "identifierType": "DOI",
+            "identifier": "https://doi.org/10.5281/zenodo.21778589"
+          }
+        ],
+        "versionNumber": 3,
+        "versionStatus": "submitted",
+        "curationStatus": "Published",
+        "versionChanges": "files_changed",
+        "publicationDate": "2026-08-26",
+        "lastModificationDate": "2026-08-26",
+        "visibility": "public",
+        "sharingLink": "http://datadryad.org/dataset/doi:10.5061/dryad.v15dv42cj",
+        "license": "https://spdx.org/licenses/CC0-1.0.html",
+        "metrics": {
+          "views": 0,
+          "downloads": 0,
+          "citations": 0
+        }
+      },
+      {
+        "_links": {
+          "self": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.h44j0zq2v"
+          },
+          "stash:versions": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.h44j0zq2v/versions"
+          },
+          "stash:version": {
+            "href": "/api/v2/versions/460057"
+          },
+          "stash:download": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.h44j0zq2v/download"
+          },
+          "curies": [
+            {
+              "name": "stash",
+              "href": "https://github.com/datadryad/dryad-app/blob/main/documentation/apis/link_relations.md#{rel}",
+              "templated": "true"
+            }
+          ]
+        },
+        "identifier": "doi:10.5061/dryad.h44j0zq2v",
+        "id": 190057,
+        "storageSize": 10158918,
+        "relatedPublicationISSN": "1095-9203",
+        "title": "Data from: Inactivation of p53 initiates a radial gradient of Wnt activity and unrestrained epithelial expansion",
+        "authors": [
+          {
+            "firstName": "Qiwen",
+            "lastName": "Gan",
+            "email": "qiwen.gan@mssm.edu",
+            "affiliation": "Icahn School of Medicine at Mount Sinai",
+            "affiliationROR": "https://ror.org/04a9tmd77",
+            "affiliations": [
+              {
+                "name": "Icahn School of Medicine at Mount Sinai",
+                "ror_id": "https://ror.org/04a9tmd77"
+              }
+            ],
+            "orcid": "0000-0001-8945-5930",
+            "order": 0
+          },
+          {
+            "firstName": "Wei",
+            "lastName": "Li",
+            "email": "wli2@fredhutch.org",
+            "affiliation": "Fred Hutch Cancer Center",
+            "affiliationROR": "https://ror.org/007ps6h72",
+            "affiliations": [
+              {
+                "name": "Fred Hutch Cancer Center",
+                "ror_id": "https://ror.org/007ps6h72"
+              }
+            ],
+            "orcid": "0000-0002-6329-198X",
+            "order": 1
+          },
+          {
+            "firstName": "Rachel",
+            "lastName": "Lex",
+            "email": "rlex@fredhutch.org",
+            "affiliation": "Fred Hutch Cancer Center",
+            "affiliationROR": "https://ror.org/007ps6h72",
+            "affiliations": [
+              {
+                "name": "Fred Hutch Cancer Center",
+                "ror_id": "https://ror.org/007ps6h72"
+              }
+            ],
+            "orcid": "0000-0002-1643-5610",
+            "order": 2
+          },
+          {
+            "firstName": "Zhe",
+            "lastName": "Ying",
+            "email": "zhe.ying@mssm.edu",
+            "affiliation": "Icahn School of Medicine at Mount Sinai",
+            "affiliationROR": "https://ror.org/04a9tmd77",
+            "affiliations": [
+              {
+                "name": "Icahn School of Medicine at Mount Sinai",
+                "ror_id": "https://ror.org/04a9tmd77"
+              }
+            ],
+            "orcid": "0000-0002-0080-5402",
+            "order": 3
+          },
+          {
+            "firstName": "Slobodan",
+            "lastName": "Beronja",
+            "email": "beronja@fredhutch.org",
+            "affiliation": "Fred Hutch Cancer Center",
+            "affiliationROR": "https://ror.org/007ps6h72",
+            "affiliations": [
+              {
+                "name": "Fred Hutch Cancer Center",
+                "ror_id": "https://ror.org/007ps6h72"
+              }
+            ],
+            "order": 4
+          }
+        ],
+        "abstract": "Although TP53 mutations are among the most common founder lesions in epithelial cancers, how p53-loss drives unrestrained clonal expansion remains unclear. Using mouse epidermis as a model, we show that p53 suppresses clonal expansion primarily by limiting progenitor self-renewal rather than through canonical cytostatic pathways. Integrating ChIP-seq, transcriptional analyses, and functional genetic screens in epidermis, we identified a p53-dependent regulatory network controlling progenitor renewal and differentiation. Within this network, the Wnt suppressors Sfrp1, Lrp1, and Usp22 act as p53 targets and function as key upstream regulators. Loss of p53 silences these genes and generates a radial gradient of Wnt activity across mutant clones. Genetic manipulation of Wnt signaling architecture revealed that gradient-shaped, but not uniformly elevated, Wnt activity is associated with sustained clonal expansion. These findings identify spatial organization of signaling activity as a determinant of epithelial clonal behavior and provide a mechanism by which TP53 mutations drive tissue colonization.",
+        "funders": [
+          {
+            "organization": "United States Department of Defense",
+            "identifierType": "ror",
+            "identifier": "https://ror.org/0447fe631",
+            "awardNumber": "HT9425-23-1-0038"
+          },
+          {
+            "organization": "American Cancer Society",
+            "identifierType": "ror",
+            "identifier": "https://ror.org/02e463172",
+            "awardNumber": "19-074-01-TBE"
+          },
+          {
+            "organization": "American Cancer Society",
+            "identifierType": "ror",
+            "identifier": "https://ror.org/02e463172",
+            "awardNumber": "CSCC-PF-23-994844"
+          },
+          {
+            "organization": "National Cancer Institute",
+            "identifierType": "ror",
+            "identifier": "https://ror.org/040gcmg81",
+            "awardNumber": "P30 CA015704",
+            "awardDescription": "",
+            "awardTitle": ""
+          },
+          {
+            "organization": "National Institute of Arthritis and Musculoskeletal and Skin Diseases",
+            "identifierType": "ror",
+            "identifier": "https://ror.org/006zn3t30",
+            "awardNumber": "P30 5P30AR079200"
+          },
+          {
+            "organization": "National Institute of Arthritis and Musculoskeletal and Skin Diseases",
+            "identifierType": "ror",
+            "identifier": "https://ror.org/006zn3t30",
+            "awardNumber": "R01-AR070780"
+          },
+          {
+            "organization": "National Institute of Dental and Craniofacial Research",
+            "identifierType": "ror",
+            "identifier": "https://ror.org/004a2wv92",
+            "awardNumber": "R00-DE029229"
+          },
+          {
+            "organization": "National Institute of Dental and Craniofacial Research",
+            "identifierType": "ror",
+            "identifier": "https://ror.org/004a2wv92",
+            "awardNumber": "R01- DE034100"
+          }
+        ],
+        "keywords": [
+          "Epidermis",
+          "Cell differentiation",
+          "Progenitor self renewal",
+          "p53 inactivation"
+        ],
+        "fieldOfScience": "Biological sciences",
+        "versionNumber": 4,
+        "versionStatus": "submitted",
+        "curationStatus": "Published",
+        "versionChanges": "files_changed",
+        "publicationDate": "2026-08-26",
+        "lastModificationDate": "2026-08-26",
+        "visibility": "public",
+        "sharingLink": "http://datadryad.org/dataset/doi:10.5061/dryad.h44j0zq2v",
+        "license": "https://spdx.org/licenses/CC0-1.0.html",
+        "metrics": {
+          "views": 0,
+          "downloads": 0,
+          "citations": 0
+        }
+      },
+      {
+        "_links": {
+          "self": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.zgmsbccv4"
+          },
+          "stash:versions": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.zgmsbccv4/versions"
+          },
+          "stash:version": {
+            "href": "/api/v2/versions/460094"
+          },
+          "stash:download": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.zgmsbccv4/download"
+          },
+          "curies": [
+            {
+              "name": "stash",
+              "href": "https://github.com/datadryad/dryad-app/blob/main/documentation/apis/link_relations.md#{rel}",
+              "templated": "true"
+            }
+          ]
+        },
+        "identifier": "doi:10.5061/dryad.zgmsbccv4",
+        "id": 190976,
+        "storageSize": 9314357,
+        "relatedPublicationISSN": "2692-8205",
+        "title": "Data from: Munc18 reprograms the intrinsic neuronal SNARE complex assembly pathway",
+        "authors": [
+          {
+            "firstName": "Vicky",
+            "lastName": "Vishvakarma",
+            "email": "vishvakarma@wisc.edu",
+            "affiliation": "University of Wisconsin–Madison",
+            "affiliationROR": "https://ror.org/01y2jtd41",
+            "affiliations": [
+              {
+                "name": "University of Wisconsin–Madison",
+                "ror_id": "https://ror.org/01y2jtd41"
+              }
+            ],
+            "orcid": "0000-0001-9670-6080"
+          },
+          {
+            "firstName": "Edwin",
+            "lastName": "Chapman",
+            "email": "chapman@wisc.edu",
+            "affiliation": "University of Wisconsin–Madison",
+            "affiliationROR": "https://ror.org/01y2jtd41",
+            "affiliations": [
+              {
+                "name": "University of Wisconsin–Madison",
+                "ror_id": "https://ror.org/01y2jtd41"
+              }
+            ],
+            "orcid": "0000-0001-9787-8140",
+            "order": 1
+          }
+        ],
+        "abstract": "<p>The SNARE proteins syntaxin/SNAP-25B (t-SNAREs) and synaptobrevin (v-SNARE) contain motifs that assemble into four-helix bundles to drive synaptic vesicle exocytosis; SNAP-25B contributes two helices, D1 and D2. The sequence in which these motifs interact remains unresolved. To address this, we used fluorescence anisotropy of SNARE motifs to conduct real-time order-of-addition experiments and found that the order in which components are mixed can determine whether on- or off-pathway complexes are formed. Beginning with soluble SNARE fragments alone, the first step in assembly is the binding of D1 to syntaxin, followed by the binding of synaptobrevin and D2, where the latter motif acts as a gatekeeper to control v-SNARE•t-SNARE interactions. We then examined the impact of two regulatory factors, Munc18 and the MUN domain of Munc13-1. Strikingly, in the presence of Munc18, all four isolated SNARE motifs must be present at the same time for assembly to occur, revealing a concerted mechanism, while the Munc13-1 fragment was without effect. We created C-SCORE, which reports assembly of the two SNARE motifs of SNAP-25B via FRET, and confirmed that in the presence of Munc18, SNARE assembly becomes concerted. Munc18 also disaggregated syntaxin, potentially contributing to its activation. Finally, our findings regarding SNARE motif folding were well-correlated with function using full-length SNAREs in <em>in vitro</em> lipid mixing assays. Hence, Munc18 acts as a molecular chaperone that directly promotes the concurrent assembly of SNARE proteins into functional fusion machines.</p>\n",
+        "funders": [
+          {
+            "organization": "National Institute of Mental Health",
+            "identifierType": "ror",
+            "identifier": "https://ror.org/04xeg9z08",
+            "awardNumber": "5R01MH061876-23",
+            "awardURI": "https://reporter.nih.gov/project-details/11300995",
+            "awardDescription": "",
+            "awardTitle": "Synaptotagmin C2B Domain as a Ca2+ Sensing Module",
+            "order": 0
+          },
+          {
+            "organization": "National Institute of Neurological Disorders and Stroke",
+            "identifierType": "ror",
+            "identifier": "https://ror.org/01s5ya894",
+            "awardNumber": "5R35NS136306-02",
+            "awardURI": "https://reporter.nih.gov/project-details/11238921",
+            "awardDescription": "",
+            "awardTitle": "Fusion pore structure and dynamics",
+            "order": 1
+          },
+          {
+            "organization": "Howard Hughes Medical Institute",
+            "identifierType": "ror",
+            "identifier": "https://ror.org/006w34k90",
+            "awardNumber": "",
+            "awardDescription": "",
+            "awardTitle": "",
+            "order": 2
+          }
+        ],
+        "keywords": [
+          "SNARE proteins",
+          "Fluorescence polarization anisotropy",
+          "Liposome fusion",
+          "fluorescence correlation spectroscopy",
+          "Fluorescence resonance energy transfer",
+          "protein protein interactions"
+        ],
+        "fieldOfScience": "Biological sciences",
+        "relatedWorks": [
+          {
+            "relationship": "preprint",
+            "identifierType": "DOI",
+            "identifier": "https://doi.org/10.64898/2026.07.21.739636"
+          }
+        ],
+        "versionNumber": 5,
+        "versionStatus": "submitted",
+        "curationStatus": "Published",
+        "versionChanges": "files_changed",
+        "publicationDate": "2026-08-26",
+        "lastModificationDate": "2026-08-26",
+        "visibility": "public",
+        "sharingLink": "http://datadryad.org/dataset/doi:10.5061/dryad.zgmsbccv4",
+        "license": "https://spdx.org/licenses/CC0-1.0.html",
+        "metrics": {
+          "views": 0,
+          "downloads": 0,
+          "citations": 0
+        }
+      },
+      {
+        "_links": {
+          "self": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.8gtht774v"
+          },
+          "stash:versions": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.8gtht774v/versions"
+          },
+          "stash:version": {
+            "href": "/api/v2/versions/460088"
+          },
+          "stash:download": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.8gtht774v/download"
+          },
+          "curies": [
+            {
+              "name": "stash",
+              "href": "https://github.com/datadryad/dryad-app/blob/main/documentation/apis/link_relations.md#{rel}",
+              "templated": "true"
+            }
+          ]
+        },
+        "identifier": "doi:10.5061/dryad.8gtht774v",
+        "id": 191556,
+        "storageSize": 772858557,
+        "relatedPublicationISSN": "2469-9950",
+        "title": "Data from: Unexplored phases in HfO<sub>2</sub> from first principles",
+        "authors": [
+          {
+            "firstName": "Tianhongyi",
+            "lastName": "Zhao",
+            "email": "dlzthy@sas.upenn.edu",
+            "affiliation": "University of Pennsylvania",
+            "affiliationROR": "https://ror.org/00b30xv10",
+            "affiliations": [
+              {
+                "name": "University of Pennsylvania",
+                "ror_id": "https://ror.org/00b30xv10"
+              }
+            ],
+            "orcid": "0000-0002-7199-2348"
+          },
+          {
+            "firstName": "Songsong",
+            "lastName": "Zhou",
+            "email": "songzhou@seas.upenn.edu",
+            "affiliation": "University of Pennsylvania",
+            "affiliationROR": "https://ror.org/00b30xv10",
+            "affiliations": [
+              {
+                "name": "University of Pennsylvania",
+                "ror_id": "https://ror.org/00b30xv10"
+              }
+            ]
+          },
+          {
+            "firstName": "Andrew M.",
+            "lastName": "Rappe",
+            "email": "rappe@sas.upenn.edu",
+            "affiliation": "University of Pennsylvania",
+            "affiliationROR": "https://ror.org/00b30xv10",
+            "affiliations": [
+              {
+                "name": "University of Pennsylvania",
+                "ror_id": "https://ror.org/00b30xv10"
+              }
+            ],
+            "orcid": "0000-0003-4620-6496"
+          }
+        ],
+        "abstract": "<p>Experimentally, hafnia (HfO<sub>2</sub>) has shown a complicated structural configuration space with various metastable phases that are not present in the equilibrium phase diagram. This leads not only to the ferroelectric orthorhombic phase with promising applications, but also to various nonpolar phases that suggest complicated phase transitions and polarization switching paths. To date, the structural configuration space is still not fully explored. In this study, we perform first-principles quantum chemically based searches and identify two alternate nonpolar phases of HfO<sub>2</sub>, which can be achieved through atomic plane shifts from high-symmetry cubic or tetragonal phases. The metastable phases have lower energy than the tetragonal phase which is commonly believed to be an intermediate state of polarization switching. These phases imply different polarization switching paths with lower barriers and coercive fields for polarization switching in hafnia.</p>\n",
+        "funders": [
+          {
+            "organization": "Office of Basic Energy Sciences",
+            "identifierType": "ror",
+            "identifier": "https://ror.org/05mg91w61",
+            "awardNumber": "DE-SC0021118",
+            "awardDescription": "",
+            "awardTitle": ""
+          },
+          {
+            "organization": "National Energy Research Scientific Computing Center",
+            "identifierType": "ror",
+            "identifier": "https://ror.org/05v3mvq14",
+            "awardNumber": "DE-AC02-05CH11231",
+            "awardDescription": "",
+            "awardTitle": ""
+          }
+        ],
+        "keywords": [
+          "Ferroelect",
+          "material science",
+          "Density functional theory"
+        ],
+        "fieldOfScience": "Chemical sciences",
+        "relatedWorks": [
+          {
+            "relationship": "primary_article",
+            "identifierType": "DOI",
+            "identifier": "https://doi.org/10.1103/4m2d-3h2w"
+          }
+        ],
+        "versionNumber": 2,
+        "versionStatus": "submitted",
+        "curationStatus": "Published",
+        "versionChanges": "files_changed",
+        "publicationDate": "2026-08-26",
+        "lastModificationDate": "2026-08-26",
+        "visibility": "public",
+        "sharingLink": "http://datadryad.org/dataset/doi:10.5061/dryad.8gtht774v",
+        "license": "https://spdx.org/licenses/CC0-1.0.html",
+        "metrics": {
+          "views": 0,
+          "downloads": 0,
+          "citations": 0
+        }
+      },
+      {
+        "_links": {
+          "self": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.jm63xsjrt"
+          },
+          "stash:versions": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.jm63xsjrt/versions"
+          },
+          "stash:version": {
+            "href": "/api/v2/versions/460064"
+          },
+          "stash:download": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.jm63xsjrt/download"
+          },
+          "curies": [
+            {
+              "name": "stash",
+              "href": "https://github.com/datadryad/dryad-app/blob/main/documentation/apis/link_relations.md#{rel}",
+              "templated": "true"
+            }
+          ]
+        },
+        "identifier": "doi:10.5061/dryad.jm63xsjrt",
+        "id": 183973,
+        "storageSize": 1135810,
+        "relatedPublicationISSN": "1617-1381",
+        "title": "Data and code from: In-crop measures and fallows are most effective agri-environmental measures for the Eurasian Skylark (<em>Alauda arvensis</em>) in Germany",
+        "authors": [
+          {
+            "firstName": "Jannik",
+            "lastName": "Beninde",
+            "email": "jbeninde@gmail.com",
+            "affiliation": "Nature And Biodiversity Conservation Union",
+            "affiliationROR": "https://ror.org/02y1msw11",
+            "affiliations": [
+              {
+                "name": "Nature And Biodiversity Conservation Union",
+                "ror_id": "https://ror.org/02y1msw11"
+              }
+            ],
+            "orcid": "0000-0001-7521-3105"
+          },
+          {
+            "firstName": "Philip",
+            "lastName": "Hunke",
+            "email": "philip.hunke@nabu.de",
+            "affiliation": "Nature And Biodiversity Conservation Union",
+            "affiliationROR": "https://ror.org/02y1msw11",
+            "affiliations": [
+              {
+                "name": "Nature And Biodiversity Conservation Union",
+                "ror_id": "https://ror.org/02y1msw11"
+              }
+            ],
+            "order": 1
+          }
+        ],
+        "abstract": "<p>The intensification of agricultural practices in all its facets has led to strong decrease of farmland bird populations. The Eurasian Skylark (<em>Alauda arvensis</em>), while still the most common bird of agricultural fields, has undergone a strong population and distribution decline in Western and Central Europe. Many different agri-environmental measures have been proposed to support the Eurasian skylark. Using a dataset from nine intensively managed farms across Germany that have implemented a broad set of agri-environmental measures (AEMs), we aimed to identify the most effective measures as well as what factors influence their effectiveness.</p>\n<p>First, we analysed how skylarks used normally farmed crops. We then analysed the number of sightings on agri-environmental measures in comparison to references crops. If there was no significant difference in the usage of crops all were used as reference crops. We find strong differences in the usage of measures. Legume plots and low-input cereal strips in maize both lead to at least 5x higher sightings compared to controls, while both annual fallows and farmland bird plots lead to 3-4x higher sightings. Flower-based measures are less effective (&lt; 2x higher sightings), while some measures show no positive effect at all.</p>\n",
+        "funders": [
+          {
+            "organization": "Federal Agency for Nature Conservation",
+            "identifierType": "ror",
+            "identifier": "https://ror.org/05j8qnr48",
+            "awardNumber": "",
+            "awardDescription": "",
+            "awardTitle": "",
+            "order": 0
+          }
+        ],
+        "keywords": [
+          "Agri-environmental measure",
+          "Agriculture",
+          "Alauda arvensis",
+          "Eurasian Skylark",
+          "Germany",
+          "Legume plot",
+          "low-input"
+        ],
+        "fieldOfScience": "Other natural sciences",
+        "methods": "<p>From 2017 to 2023, per year up to seven monitoring rounds were conducted on each farm. There was one round per half month, starting in the second half of March. In short, during each round, a fixed transect was followed, and every observation of single or groups of birds was noted, together with behaviour and precise location. In this study, we focused on the breeding season which in Germany typically spans March to July or August. We only included fields in our analyses that were at least partially within a 250 m radius of a field with skylark detections in that year. As farmers were asked to implement AEMs for skylarks at least 100 m from wooded areas and due to the high degree of avoidance exhibited by skylarks (Figure 1), all areas within 100 m of forests were excluded from any further analyses (on average 286 ha per year).</p>\n<p>Individuals that did not show a clear relationship to the location they were observed at were not included in the analysis, i.e. overflying individuals were excluded. We analysed skylark sightings per crop or AEMs per monitoring round as the most direct indicator of habitat use, rather than inferring breeding pair numbers.</p>\n",
+        "relatedWorks": [
+          {
+            "relationship": "primary_article",
+            "identifierType": "DOI",
+            "identifier": "https://doi.org/10.1016/j.jnc.2026.127395"
+          },
+          {
+            "relationship": "supplemental_information",
+            "identifierType": "DOI",
+            "identifier": "https://doi.org/10.5281/zenodo.22053879"
+          }
+        ],
+        "versionNumber": 4,
+        "versionStatus": "submitted",
+        "curationStatus": "Published",
+        "versionChanges": "files_changed",
+        "publicationDate": "2026-08-26",
+        "lastModificationDate": "2026-08-26",
+        "visibility": "public",
+        "sharingLink": "http://datadryad.org/dataset/doi:10.5061/dryad.jm63xsjrt",
+        "license": "https://spdx.org/licenses/CC0-1.0.html",
+        "metrics": {
+          "views": 0,
+          "downloads": 0,
+          "citations": 0
+        }
+      },
+      {
+        "_links": {
+          "self": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.0k6djhbh0"
+          },
+          "stash:versions": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.0k6djhbh0/versions"
+          },
+          "stash:version": {
+            "href": "/api/v2/versions/460090"
+          },
+          "stash:download": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.0k6djhbh0/download"
+          },
+          "curies": [
+            {
+              "name": "stash",
+              "href": "https://github.com/datadryad/dryad-app/blob/main/documentation/apis/link_relations.md#{rel}",
+              "templated": "true"
+            }
+          ]
+        },
+        "identifier": "doi:10.5061/dryad.0k6djhbh0",
+        "id": 190044,
+        "storageSize": 182029527,
+        "relatedPublicationISSN": "1558-8238",
+        "title": "ROCK1 restrains STING pathway activation through promoting ATR-mediated DNA damage repair in prostate cancer",
+        "authors": [
+          {
+            "firstName": "Kai",
+            "lastName": "Wang",
+            "email": "kaiwang0810@163.com",
+            "affiliation": "Zhongda Hospital Southeast University",
+            "affiliationROR": "https://ror.org/01k3hq685",
+            "affiliations": [
+              {
+                "name": "Zhongda Hospital Southeast University",
+                "ror_id": "https://ror.org/01k3hq685"
+              }
+            ],
+            "orcid": "0000-0001-5512-7496"
+          },
+          {
+            "firstName": "Bin",
+            "lastName": "Xu",
+            "email": "njxbseu@seu.edu.cn",
+            "affiliation": "Zhongda Hospital Southeast University",
+            "affiliationROR": "https://ror.org/01k3hq685",
+            "affiliations": [
+              {
+                "name": "Zhongda Hospital Southeast University",
+                "ror_id": "https://ror.org/01k3hq685"
+              }
+            ],
+            "order": 1
+          }
+        ],
+        "abstract": "<p>The stimulator of interferon genes (STING) pathway is a central regulator of antitumor immunity, yet its activation in prostate cancer remains limited. Here, through kinome-focused CRISPR screening and p-STING-based flow sorting, we identify ROCK1 as a repressor of STING signaling in prostate cancer cells. In vitro and in vivo experiments show that ROCK1 knockdown or ROCK inhibitor treatment significantly upregulates p-STING and downstream STING pathway genes. Phosphoproteomic analysis reveals decreased phosphorylation of ATR and other core DNA damage repair proteins upon ROCK1 knockdown, accompanied by elevated DNA damage marker expression. Mechanistically, co-immunoprecipitation and immunofluorescence assays demonstrate that ROCK1 knockdown markedly attenuates the binding between ATR/ATRIP and RPA32, as well as their nuclear co-localization. Rescue experiments further show that re-expression of full-length ROCK1 or its N-terminal domain restores ATRIP-RPA32 binding and ATR phosphorylation, whereas the C-terminal domain does not. Additionally, hypoxia treatment increases ROCK1 acetylation at K974, promotes ROCK1 binding to Rho proteins and enhances ATR phosphorylation. In mouse models, ROCK1 loss induces antitumor immune responses and sensitizes tumors to anti-PD-1 therapy. Clinically, elevated ROCK1 expression in human prostate cancer specimens correlates with worse prognosis and diminished CD8+ T cell infiltration. In a pilot clinical expansion, the clinically approved ROCK inhibitor fasudil combined with tislelizumab induced biochemical and radiographic responses in heavily pretreated metastatic prostate cancer patients, indicating ROCK1 blockade as a readily translatable strategy to sensitize prostate cancer to immunotherapy.</p>\n",
+        "keywords": [
+          "Prostate cancer",
+          "Sting",
+          "CRISPR screening",
+          "DNA damage repair"
+        ],
+        "fieldOfScience": "Medical and health sciences",
+        "versionNumber": 3,
+        "versionStatus": "submitted",
+        "curationStatus": "Published",
+        "versionChanges": "files_changed",
+        "publicationDate": "2026-08-26",
+        "lastModificationDate": "2026-08-26",
+        "visibility": "public",
+        "sharingLink": "http://datadryad.org/dataset/doi:10.5061/dryad.0k6djhbh0",
+        "license": "https://spdx.org/licenses/CC0-1.0.html",
+        "metrics": {
+          "views": 0,
+          "downloads": 0,
+          "citations": 0
+        }
+      },
+      {
+        "_links": {
+          "self": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.280gb5n39"
+          },
+          "stash:versions": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.280gb5n39/versions"
+          },
+          "stash:version": {
+            "href": "/api/v2/versions/459777"
+          },
+          "stash:download": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.280gb5n39/download"
+          },
+          "curies": [
+            {
+              "name": "stash",
+              "href": "https://github.com/datadryad/dryad-app/blob/main/documentation/apis/link_relations.md#{rel}",
+              "templated": "true"
+            }
+          ]
+        },
+        "identifier": "doi:10.5061/dryad.280gb5n39",
+        "id": 170665,
+        "storageSize": 301525,
+        "relatedPublicationISSN": "0909-6396",
+        "title": "Data and code from: Why wolves walk – drivers of daily movement in a social large carnivore",
+        "authors": [
+          {
+            "firstName": "Julia",
+            "lastName": "Björk",
+            "email": "julia.a.bjork@slu.se",
+            "affiliation": "Swedish University of Agricultural Sciences",
+            "affiliationROR": "https://ror.org/02yy8x990",
+            "affiliations": [
+              {
+                "name": "Swedish University of Agricultural Sciences",
+                "ror_id": "https://ror.org/02yy8x990"
+              }
+            ],
+            "order": 0
+          },
+          {
+            "firstName": "Håkan",
+            "lastName": "Sand",
+            "email": "hakan.sand@slu.se",
+            "affiliation": "Swedish University of Agricultural Sciences",
+            "affiliationROR": "https://ror.org/02yy8x990",
+            "affiliations": [
+              {
+                "name": "Swedish University of Agricultural Sciences",
+                "ror_id": "https://ror.org/02yy8x990"
+              }
+            ],
+            "orcid": "0000-0002-2646-022X",
+            "order": 1
+          },
+          {
+            "firstName": "Petter",
+            "lastName": "Wabakken",
+            "email": "petter.wabakken@inn.no",
+            "affiliation": "University of Inland Norway",
+            "affiliationROR": "https://ror.org/02dx4dc92",
+            "affiliations": [
+              {
+                "name": "University of Inland Norway",
+                "ror_id": "https://ror.org/02dx4dc92"
+              }
+            ],
+            "order": 2
+          },
+          {
+            "firstName": "Barbara",
+            "lastName": "Zimmermann",
+            "email": "barbara.zimmermann@inn.no",
+            "affiliation": "University of Inland Norway",
+            "affiliationROR": "https://ror.org/02dx4dc92",
+            "affiliations": [
+              {
+                "name": "University of Inland Norway",
+                "ror_id": "https://ror.org/02dx4dc92"
+              }
+            ],
+            "orcid": "0000-0001-5133-9379",
+            "order": 3
+          },
+          {
+            "firstName": "Camilla",
+            "lastName": "Wikenros",
+            "email": "camilla.wikenros@slu.se",
+            "affiliation": "Swedish University of Agricultural Sciences",
+            "affiliationROR": "https://ror.org/02yy8x990",
+            "affiliations": [
+              {
+                "name": "Swedish University of Agricultural Sciences",
+                "ror_id": "https://ror.org/02yy8x990"
+              }
+            ],
+            "orcid": "0000-0002-2825-8834",
+            "order": 4
+          }
+        ],
+        "abstract": "<p>Animal movement patterns are influenced by a range of extrinsic and intrinsic factors, including the distribution of resources, human disturbance, landscape connectivity, species interactions, and individual traits. We examined factors associated with daily movement distance (DMD) and linearity in 20 territorial Scandinavian wolves (<em>Canis lupus</em>) during summer (n = 406) and winter (n = 614) by analysing hourly GPS locations (2001-2019). We used generalised linear mixed-effects models to relate DMD and linearity to explanatory variables including indicators of road infrastructure (gravel road density, paved road density), environmental quality (forest fragmentation), prey availability (moose (<em>Alces alces</em>) and roe deer (<em>Capreolus capreolus</em>) densities), intra- and interspecific density (number of neighbouring wolf territories, brown bear (<em>Ursus arctos</em>) density), individual characteristic (breeding status, inbreeding coefficient), and annual home range size. DMD was shorter during winter than summer, but linearity was similar. In summer, DMD was positively associated with the number of neighbouring territories, home range size, and brown bear density, but linearity was not related to any of the included variables. A higher number of neighbouring territories and larger home range size likely require longer daily movements to cover and defend the territory. The relationship with brown bear density supports previous research showing increased search time for ungulate prey for wolves in areas with high brown bear densities. In winter, DMD was negatively associated with forest fragmentation, suggesting reduced movement when forests are patchy. DMD was also negatively associated with roe deer density, indicating reduced movement when preferred prey is abundant. Contrary to summer, linearity in winter decreased with increasing number of neighbouring territories. Alternative models also indicated reduced DMD with increasing paved road density and increased movement linearity with increasing gravel road density during winter. Our results showed that wolf movement in Scandinavia is shaped by extrinsic factors, with limited influence from individual-level traits.</p>\n",
+        "funders": [
+          {
+            "organization": "Swedish Environmental Protection Agency",
+            "identifierType": "ror",
+            "identifier": "https://ror.org/02y7nf053",
+            "awardNumber": "",
+            "awardDescription": "",
+            "awardTitle": "",
+            "order": 0
+          },
+          {
+            "organization": "Norwegian Environment Agency",
+            "identifierType": "ror",
+            "identifier": "https://ror.org/023jta124",
+            "awardNumber": "",
+            "awardDescription": "",
+            "awardTitle": "",
+            "order": 1
+          },
+          {
+            "organization": "Swedish Association for Hunting and Wildlife Management",
+            "identifierType": "crossref_funder_id",
+            "identifier": "",
+            "awardNumber": "",
+            "awardDescription": "",
+            "awardTitle": "",
+            "order": 2
+          },
+          {
+            "organization": "Interreg Sweden-Norway",
+            "identifierType": "crossref_funder_id",
+            "identifier": "",
+            "awardNumber": "",
+            "awardDescription": "",
+            "awardTitle": "",
+            "order": 3
+          },
+          {
+            "organization": "Swedish Research Council for Environment Agricultural Sciences and Spatial Planning",
+            "identifierType": "ror",
+            "identifier": "https://ror.org/03pjs1y45",
+            "awardNumber": "2016-01038",
+            "awardDescription": "",
+            "awardTitle": "",
+            "order": 4
+          },
+          {
+            "organization": "Innlandet County Governor",
+            "identifierType": "crossref_funder_id",
+            "identifier": "",
+            "awardNumber": "",
+            "awardDescription": "",
+            "awardTitle": "",
+            "order": 5
+          },
+          {
+            "organization": "Innlandet County Council",
+            "identifierType": "crossref_funder_id",
+            "identifier": "",
+            "awardNumber": "",
+            "awardDescription": "",
+            "awardTitle": "",
+            "order": 6
+          },
+          {
+            "organization": "Norskog Consulting (Norway)",
+            "identifierType": "ror",
+            "identifier": "https://ror.org/05qtgz885",
+            "awardNumber": "",
+            "awardDescription": "",
+            "awardTitle": "",
+            "order": 7
+          }
+        ],
+        "keywords": [
+          "Canis lupus",
+          "individual characteristics",
+          "intra- and interspecific density",
+          "environmental quality",
+          "prey availability",
+          "Road Infrastructure"
+        ],
+        "fieldOfScience": "Biological sciences",
+        "relatedWorks": [
+          {
+            "relationship": "preprint",
+            "identifierType": "DOI",
+            "identifier": "https://doi.org/10.22541/au.176013561.12170913/v1"
+          }
+        ],
+        "versionNumber": 7,
+        "versionStatus": "submitted",
+        "curationStatus": "Published",
+        "versionChanges": "metadata_changed",
+        "publicationDate": "2026-08-25",
+        "lastModificationDate": "2026-08-25",
+        "visibility": "public",
+        "sharingLink": "http://datadryad.org/dataset/doi:10.5061/dryad.280gb5n39",
+        "license": "https://spdx.org/licenses/CC0-1.0.html",
+        "metrics": {
+          "views": 0,
+          "downloads": 0,
+          "citations": 0
+        }
+      },
+      {
+        "_links": {
+          "self": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.5dv41nsmd"
+          },
+          "stash:versions": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.5dv41nsmd/versions"
+          },
+          "stash:version": {
+            "href": "/api/v2/versions/459741"
+          },
+          "stash:download": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.5dv41nsmd/download"
+          },
+          "curies": [
+            {
+              "name": "stash",
+              "href": "https://github.com/datadryad/dryad-app/blob/main/documentation/apis/link_relations.md#{rel}",
+              "templated": "true"
+            }
+          ]
+        },
+        "identifier": "doi:10.5061/dryad.5dv41nsmd",
+        "id": 183716,
+        "storageSize": 14306523,
+        "relatedPublicationISSN": "0031-0182",
+        "title": "Data from: Species-level diversity dynamics during the Great Ordovician biodiversification Event: A phylodynamic case study of Laurentian brachiopod lineages",
+        "authors": [
+          {
+            "firstName": "Alycia",
+            "lastName": "Stigall",
+            "email": "stigall@utk.edu",
+            "affiliation": "University of Tennessee at Knoxville",
+            "affiliationROR": "https://ror.org/020f3ap87",
+            "affiliations": [
+              {
+                "name": "University of Tennessee at Knoxville",
+                "ror_id": "https://ror.org/020f3ap87"
+              }
+            ],
+            "orcid": "0000-0002-4722-3303"
+          },
+          {
+            "firstName": "David",
+            "lastName": "Wright",
+            "email": "wrightdf@ou.edu",
+            "affiliation": "University of Oklahoma",
+            "affiliationROR": "https://ror.org/02aqsxs83",
+            "affiliations": [
+              {
+                "name": "University of Oklahoma",
+                "ror_id": "https://ror.org/02aqsxs83"
+              }
+            ],
+            "orcid": "0000-0002-2444-4867",
+            "order": 1
+          },
+          {
+            "firstName": "Shaolin",
+            "lastName": "Censullo",
+            "email": "sc424718@ohio.edu",
+            "affiliation": "Ohio University",
+            "affiliationROR": "https://ror.org/01jr3y717",
+            "affiliations": [
+              {
+                "name": "Ohio University",
+                "ror_id": "https://ror.org/01jr3y717"
+              }
+            ],
+            "order": 2
+          }
+        ],
+        "abstract": "<p>Marine life underwent a dramatic increase in global biodiversity and ecological restructuring during the Ordovician Period, with diversification rates peaking during the main pulse of the Great Ordovician Biodiversification Event (GOBE) in the Middle Ordovician. Because global diversification patterns summarize discrete speciation events within individual lineages, reconstructing species-level diversification patterns can constrain hypotheses for the factors and mechanisms that promoted diversification during the GOBE. Herein, we present a phylodynamic case study for three clades of rhynchonelliformean brachiopods: <em>Hesperorthis</em> Schuchert and Cooper, 1931, <em>Mimella</em> Cooper, 1930, and <em>Oepikina</em> Salmon, 1942. Together, they provide the opportunity to reconstruct a detailed snapshot of diversification across the GOBE in Laurentia within a critical benthic clade. Initial evolutionary trajectories combined early burst evolution with gradual lineage accumulation, indicating that local processes and conditions were important in driving speciation in the early history of these clades. During the Darriwilian Age, speciation rapidly increased in all three clades, and speciation events alternated between dispersal and vicariance, indicating that speciation was facilitated by an oscillating environmental factor. The Middle Ordovician records a global shift in climatic and oceanographic conditions. The most likely oscillating factor that would have impacted these lineages during the Middle Ordovician was sea level change that alternately connected and isolated basins within the epicontinental sea of Laurentia, facilitated by this global climatic shift, which indicates that global factors substantially influenced speciation patterns in these clades during the main phase of the GOBE. This dataset includes specimen numbers, morphological data, character codes, nexus files, stratigraphic data, and maximum clade credibility trees used in the analysis.</p>\n",
+        "funders": [
+          {
+            "organization": "Yale Peabody Museum",
+            "identifierType": "ror",
+            "identifier": "https://ror.org/03db5ay71",
+            "awardNumber": "",
+            "awardDescription": "",
+            "awardTitle": "",
+            "order": 0
+          },
+          {
+            "organization": "Division of Earth Sciences",
+            "identifierType": "ror",
+            "identifier": "https://ror.org/05v01mk25",
+            "awardNumber": "2346400",
+            "awardDescription": "",
+            "awardTitle": "Collaborative Research: Biogeography, turnover, and evolutionary dynamics of the Late Ordovician mass extinction: phylogenetic and field-based approaches",
+            "order": 1
+          },
+          {
+            "organization": "Ohio University",
+            "identifierType": "ror",
+            "identifier": "https://ror.org/01jr3y717",
+            "awardNumber": "",
+            "awardDescription": "",
+            "awardTitle": "",
+            "order": 2
+          }
+        ],
+        "keywords": [
+          "Paleontology",
+          "Species diversity",
+          "Evolutionary biology",
+          "Brachiopods",
+          "Ordovician period",
+          "Phylogenetic analysis",
+          "Biodiversity"
+        ],
+        "fieldOfScience": "Earth and related environmental sciences",
+        "relatedWorks": [
+          {
+            "relationship": "primary_article",
+            "identifierType": "DOI",
+            "identifier": "https://doi.org/10.1016/j.palaeo.2026.114134"
+          }
+        ],
+        "versionNumber": 5,
+        "versionStatus": "submitted",
+        "curationStatus": "Published",
+        "versionChanges": "files_changed",
+        "publicationDate": "2026-08-25",
+        "lastModificationDate": "2026-08-25",
+        "visibility": "public",
+        "sharingLink": "http://datadryad.org/dataset/doi:10.5061/dryad.5dv41nsmd",
+        "license": "https://spdx.org/licenses/CC0-1.0.html",
+        "metrics": {
+          "views": 0,
+          "downloads": 0,
+          "citations": 0
+        }
+      },
+      {
+        "_links": {
+          "self": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.dbrv15fht"
+          },
+          "stash:versions": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.dbrv15fht/versions"
+          },
+          "stash:version": {
+            "href": "/api/v2/versions/459648"
+          },
+          "stash:download": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.dbrv15fht/download"
+          },
+          "curies": [
+            {
+              "name": "stash",
+              "href": "https://github.com/datadryad/dryad-app/blob/main/documentation/apis/link_relations.md#{rel}",
+              "templated": "true"
+            }
+          ]
+        },
+        "identifier": "doi:10.5061/dryad.dbrv15fht",
+        "id": 187263,
+        "storageSize": 2419171,
+        "relatedPublicationISSN": "2352-409X",
+        "title": "Data from: Archaeogenomic identification of ancient plant and feather remains from Túcume, Peru",
+        "authors": [
+          {
+            "firstName": "Juan",
+            "lastName": "Esteves",
+            "email": "juan.esteves2@unmsm.edu.pe",
+            "affiliation": "Norwegian University of Science and Technology",
+            "affiliationROR": "https://ror.org/05xg72x27",
+            "affiliations": [
+              {
+                "name": "National University of San Marcos",
+                "ror_id": "https://ror.org/006vs7897"
+              },
+              {
+                "name": "Norwegian University of Science and Technology",
+                "ror_id": "https://ror.org/05xg72x27"
+              }
+            ],
+            "order": 0
+          },
+          {
+            "firstName": "Renato",
+            "lastName": "La Torre Ramirez",
+            "email": "",
+            "affiliation": "Norwegian University of Science and Technology",
+            "affiliationROR": "https://ror.org/05xg72x27",
+            "affiliations": [
+              {
+                "name": "Norwegian University of Science and Technology",
+                "ror_id": "https://ror.org/05xg72x27"
+              }
+            ],
+            "order": 1
+          },
+          {
+            "firstName": "Jacqueline",
+            "lastName": "Hernández",
+            "email": "",
+            "affiliation": "Norwegian University of Science and Technology",
+            "affiliationROR": "https://ror.org/05xg72x27",
+            "affiliations": [
+              {
+                "name": "National University of San Marcos",
+                "ror_id": "https://ror.org/006vs7897"
+              },
+              {
+                "name": "Norwegian University of Science and Technology",
+                "ror_id": "https://ror.org/05xg72x27"
+              }
+            ],
+            "order": 2
+          },
+          {
+            "firstName": "Alejandra",
+            "lastName": "Arana",
+            "email": "",
+            "affiliation": "Norwegian University of Science and Technology",
+            "affiliationROR": "https://ror.org/05xg72x27",
+            "affiliations": [
+              {
+                "name": "National University of San Marcos",
+                "ror_id": "https://ror.org/006vs7897"
+              },
+              {
+                "name": "Norwegian University of Science and Technology",
+                "ror_id": "https://ror.org/05xg72x27"
+              }
+            ],
+            "order": 3
+          },
+          {
+            "firstName": "Jaime",
+            "lastName": "Morin-Lagos",
+            "email": "",
+            "affiliation": "Norwegian University of Science and Technology",
+            "affiliationROR": "https://ror.org/05xg72x27",
+            "affiliations": [
+              {
+                "name": "Norwegian University of Science and Technology",
+                "ror_id": "https://ror.org/05xg72x27"
+              }
+            ],
+            "order": 4
+          },
+          {
+            "firstName": "Sarah",
+            "lastName": "Martin",
+            "email": "",
+            "affiliation": "Norwegian University of Science and Technology",
+            "affiliationROR": "https://ror.org/05xg72x27",
+            "affiliations": [
+              {
+                "name": "Norwegian University of Science and Technology",
+                "ror_id": "https://ror.org/05xg72x27"
+              }
+            ],
+            "order": 5
+          },
+          {
+            "firstName": "José",
+            "lastName": "Capriles",
+            "email": "",
+            "affiliation": "Pennsylvania State University",
+            "affiliationROR": "https://ror.org/04p491231",
+            "affiliations": [
+              {
+                "name": "Pennsylvania State University",
+                "ror_id": "https://ror.org/04p491231"
+              }
+            ],
+            "order": 6
+          },
+          {
+            "firstName": "Letty",
+            "lastName": "Salinas",
+            "email": "",
+            "affiliation": "National University of San Marcos",
+            "affiliationROR": "https://ror.org/006vs7897",
+            "affiliations": [
+              {
+                "name": "National University of San Marcos",
+                "ror_id": "https://ror.org/006vs7897"
+              }
+            ],
+            "order": 7
+          },
+          {
+            "firstName": "Alfredo",
+            "lastName": "Narváez",
+            "email": "",
+            "affiliation": "Tucume Museum",
+            "affiliations": [
+              {
+                "name": "Tucume Museum"
+              }
+            ],
+            "order": 8
+          },
+          {
+            "firstName": "Bernarda",
+            "lastName": "Delgado",
+            "email": "",
+            "affiliation": "Tucume Museum",
+            "affiliations": [
+              {
+                "name": "Tucume Museum"
+              }
+            ],
+            "order": 9
+          },
+          {
+            "firstName": "César",
+            "lastName": "Arana",
+            "email": "",
+            "affiliation": "National University of San Marcos",
+            "affiliationROR": "https://ror.org/006vs7897",
+            "affiliations": [
+              {
+                "name": "National University of San Marcos",
+                "ror_id": "https://ror.org/006vs7897"
+              }
+            ],
+            "order": 10
+          },
+          {
+            "firstName": "Michael",
+            "lastName": "Martin",
+            "email": "sameoldmike@gmail.com",
+            "affiliation": "Norwegian University of Science and Technology",
+            "affiliationROR": "https://ror.org/05xg72x27",
+            "affiliations": [
+              {
+                "name": "Norwegian University of Science and Technology",
+                "ror_id": "https://ror.org/05xg72x27"
+              }
+            ],
+            "orcid": "0000-0002-2010-5139",
+            "order": 11
+          }
+        ],
+        "abstract": "<p>The recovery of ancient DNA (aDNA) from non-mineralized archaeological materials remains a major methodological challenge, particularly in tropical and semi-arid environments where high temperature and humidity accelerate molecular degradation. We evaluated the feasibility of extracting, authenticating, and identifying aDNA from feathers and plant remains recovered at the Túcume Archaeological Complex, a major Lambayeque and later Inca administrative and ceremonial center on the northern coast of Peru. A total of 201 archaeological subsamples (126 feathers and 75 plant remains) were processed in a dedicated aDNA laboratory under strict contamination controls. DNA extraction followed protocols optimized for aDNA extraction, shallow shotgun sequencing data was generated, and metagenomic pipelines were used to assess authenticity and taxonomic assignment. DNA was retrieved from both avian and plant materials, showing highly fragmented molecules and, in some cases, characteristic deamination patterns consistent with aDNA. Although endogenous DNA content was generally low, in many cases it was sufficient for molecular classification in a subset of samples. Initial classifications were obtained for approximately 40% of feather samples and 36% of plant samples, with most assignments restricted to higher taxonomic levels (order or family). The recovery of authentic DNA from such challenging substrates demonstrates the methodological viability of archaeogenomic analysis under tropical-arid conditions, but also emphasizes the current limitations imposed by low endogenous DNA content, shallow sequencing, and incomplete reference databases. This study supports the idea that unconventional biological materials could be included with appropriate caution in future archaeogenomic research in Peru and other tropical regions.<br>\n<br>\nThis Dryad dataset reports the DNA sequences of Peruvian bird mitogenome assemblies derived from tissues deposited in UNMSM Natural History Collections. </p>\n",
+        "funders": [
+          {
+            "organization": "Norwegian Directorate for Higher Education and Skills",
+            "identifierType": "ror",
+            "identifier": "",
+            "awardNumber": "NORPART-2021/10475",
+            "awardDescription": "Norwegian Partnership Programme for Global Academic Cooperation (NORPART)",
+            "awardTitle": "BiGTREE: Biodiversity Genomics Training, Research, Education, and Exchanges",
+            "order": 0
+          }
+        ],
+        "keywords": [
+          "Genomics",
+          "Peru",
+          "Mitochondrial DNA",
+          "Ornithology"
+        ],
+        "fieldOfScience": "Biological sciences",
+        "relatedWorks": [
+          {
+            "relationship": "preprint",
+            "identifierType": "DOI",
+            "identifier": "https://doi.org/10.2139/ssrn.6307436"
+          },
+          {
+            "relationship": "primary_article",
+            "identifierType": "DOI",
+            "identifier": "https://doi.org/10.1016/j.jasrep.2026.105979"
+          }
+        ],
+        "versionNumber": 3,
+        "versionStatus": "submitted",
+        "curationStatus": "Published",
+        "versionChanges": "files_changed",
+        "publicationDate": "2026-08-25",
+        "lastModificationDate": "2026-08-25",
+        "visibility": "public",
+        "sharingLink": "http://datadryad.org/dataset/doi:10.5061/dryad.dbrv15fht",
+        "license": "https://spdx.org/licenses/CC0-1.0.html",
+        "metrics": {
+          "views": 0,
+          "downloads": 0,
+          "citations": 0
+        }
+      },
+      {
+        "_links": {
+          "self": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.s1rn8pkq5"
+          },
+          "stash:versions": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.s1rn8pkq5/versions"
+          },
+          "stash:version": {
+            "href": "/api/v2/versions/459628"
+          },
+          "stash:download": {
+            "href": "/api/v2/datasets/doi%3A10.5061%2Fdryad.s1rn8pkq5/download"
+          },
+          "curies": [
+            {
+              "name": "stash",
+              "href": "https://github.com/datadryad/dryad-app/blob/main/documentation/apis/link_relations.md#{rel}",
+              "templated": "true"
+            }
+          ]
+        },
+        "identifier": "doi:10.5061/dryad.s1rn8pkq5",
+        "id": 190558,
+        "storageSize": 3361390,
+        "relatedPublicationISSN": "0022-1503",
+        "title": "Rivers as barriers to gene flow: A comparative population genomic analysis using causal modeling",
+        "authors": [
+          {
+            "firstName": "Garett L",
+            "lastName": "Maag",
+            "email": "",
+            "affiliation": "Arizona State University",
+            "affiliationROR": "https://ror.org/03efmqc40",
+            "affiliations": [
+              {
+                "name": "Arizona State University",
+                "ror_id": "https://ror.org/03efmqc40"
+              }
+            ],
+            "order": 0
+          },
+          {
+            "firstName": "Austin R",
+            "lastName": "Biddy",
+            "email": "",
+            "affiliation": "University of Alabama at Birmingham",
+            "affiliationROR": "https://ror.org/008s83205",
+            "affiliations": [
+              {
+                "name": "University of Alabama at Birmingham",
+                "ror_id": "https://ror.org/008s83205"
+              }
+            ],
+            "order": 1
+          },
+          {
+            "firstName": "Maya F",
+            "lastName": "Stokes",
+            "email": "",
+            "affiliation": "Florida State University",
+            "affiliationROR": "https://ror.org/05g3dte14",
+            "affiliations": [
+              {
+                "name": "Florida State University",
+                "ror_id": "https://ror.org/05g3dte14"
+              }
+            ],
+            "order": 2
+          },
+          {
+            "firstName": "Greer",
+            "lastName": "Dolby",
+            "email": "gdolby@uab.edu",
+            "affiliation": "University of Alabama at Birmingham",
+            "affiliationROR": "https://ror.org/008s83205",
+            "affiliations": [
+              {
+                "name": "University of Alabama at Birmingham",
+                "ror_id": "https://ror.org/008s83205"
+              }
+            ],
+            "orcid": "0000-0002-5923-0690",
+            "order": 4
+          }
+        ],
+        "abstract": "<p>Earth’s physiographic features shape the genetic evolution of organisms, but understanding how such features act as barriers to gene flow requires quantifying characteristics of both the barrier and the organism. Many barrier characteristics, however, are interdependent and not fully captured by traditional multivariate statistics. Here, we evaluate the use of directed acyclic (causal) graphs and structural equation modeling (SEM) to test the Riverine Barrier Hypothesis using 27 river-spanning population genomic datasets of terrestrial plants and animals associated with 24 rivers across the contiguous United States. These data were paired with seasonality, river width, and river discharge data. SEM analysis revealed patterns not captured by standard approaches. River width had a strong effect on population differentiation, with distinct direct and indirect effects for high and low dispersers. Results suggest a negative width-Fst relationship for low dispersers, which we interpret to be due to topographic context of higher elevation or bedrock-incised rivers. In contrast, high dispersers had a positive relationship, indicating wider rivers present a greater barrier to dispersal. The total effect of river discharge was negligible because its direct effects on population differentiation were canceled out by indirect effects on other river features. Overall, the best-fitting SEM explained 52% of population differentiation for low dispersers and 13% for high dispersers, consistent with the idea that high-dispersing species are less impacted from river barrier effects. This proof of concept shows the utility of causal graphs and SEM at modeling complex relationships between Earth’s physiographic features and the organisms that evolve with them.</p>\n",
+        "funders": [
+          {
+            "organization": "Division of Earth Sciences",
+            "identifierType": "ror",
+            "identifier": "https://ror.org/05v01mk25",
+            "awardNumber": "2305608",
+            "awardDescription": "FRES",
+            "awardTitle": "Collaborative Research: Testing Evolutionary Pseudocongruence Along the Baja California Peninsula Through Integration of Geologic and Genomic Data",
+            "order": 0
+          }
+        ],
+        "keywords": [
+          "Causality",
+          "Speciation",
+          "Rivers",
+          "structural equation modeling",
+          "geogenomics",
+          "Biogeography"
+        ],
+        "fieldOfScience": "Mathematics",
+        "relatedWorks": [
+          {
+            "relationship": "preprint",
+            "identifierType": "DOI",
+            "identifier": "https://doi.org/10.22541/au.168757934.40979900/v1"
+          },
+          {
+            "relationship": "primary_article",
+            "identifierType": "DOI",
+            "identifier": "https://doi.org/10.1093/jhered/esag056"
+          }
+        ],
+        "versionNumber": 5,
+        "versionStatus": "submitted",
+        "curationStatus": "Published",
+        "versionChanges": "files_changed",
+        "publicationDate": "2026-08-25",
+        "lastModificationDate": "2026-08-25",
+        "visibility": "public",
+        "sharingLink": "http://datadryad.org/dataset/doi:10.5061/dryad.s1rn8pkq5",
+        "license": "https://spdx.org/licenses/CC0-1.0.html",
+        "metrics": {
+          "views": 0,
+          "downloads": 0,
+          "citations": 0
+        }
+      }
+    ]
+  }
+}
