@@ -149,11 +149,42 @@ One row per accepted deposit. Filled before either arm runs on it.
 
 | # | DOI | File | Sheet | Sheet index / total | Column relationship | Row semantics | Structural reason | Arm B run by | Polyfill assertion |
 |---|---|---|---|---|---|---|---|---|---|
+| 1 | doi:10.5061/dryad.fttdz0980 | micro_data_compiled.xlsx | 1300-3 | 7 / 7 |  |  |  |  |  |
+| 2 | doi:10.5061/dryad.rv15dv4q9 | os_cells_new.csv | os_cells_new.csv | 1 / 1 |  |  |  |  |  |
+| 3 | doi:10.5061/dryad.4mw6m90r1 | OpilionesChemicalCues_v2(data).csv | OpilionesChemicalCues_v2(data).csv | 1 / 1 |  |  |  |  |  |
+| 7 | doi:10.5061/dryad.hqbzkh1vv | data_complete.csv | data_complete.csv | 1 / 1 |  |  |  |  |  |
+| 8 | doi:10.5061/dryad.djh9w0wf0 | ECS-SA_(Affinity).xlsx | Protein-Peptide Info | 1 / 3 |  |  |  |  |  |
+| 12 | doi:10.5061/dryad.d7wm37qh7 | Non-target_OUTs.csv | Non-target_OUTs.csv | 1 / 1 |  |  |  |  |  |
+| 14 | doi:10.5061/dryad.bvq83bkr6 | Rawdata_Figures_Tables_TSA.xlsx | Figure 2 | 2 / 8 |  |  |  |  |  |
+| 18 | doi:10.5061/dryad.g79cnp5vs | Data_2022.xlsx | Floral_M | 4 / 15 |  |  |  |  |  |
+| 21 | doi:10.5061/dryad.m827p | FEMS_dryad_v2_published.xlsx | Data | 1 / 3 |  |  |  |  |  |
+| 22 | doi:10.5061/dryad.xsj3tx9vw | pgls_all_genera.csv | pgls_all_genera.csv | 1 / 1 |  |  |  |  |  |
+| 23 | doi:10.5061/dryad.6q573n6ff | 05_hydrodynamic_daily_outputs.csv | 05_hydrodynamic_daily_outputs.csv | 1 / 1 |  |  |  |  |  |
+| 27 | doi:10.5061/dryad.83bk3jb37 | radMS_table_1.xlsx | Sheet1 | 1 / 1 |  |  |  |  |  |
+| 28 | doi:10.5061/dryad.gtht76j3x | dominance_data.csv | dominance_data.csv | 1 / 1 |  |  |  |  |  |
+| 30 | doi:10.5061/dryad.qv9s4mwwc | ips_density_Goundar_et_al_2026_Where_are_they_now.csv | ips_density_Goundar_et_al_2026_Where_are_they_now.csv | 1 / 1 |  |  |  |  |  |
+| 31 | doi:10.5061/dryad.1vhhmgr9v | MC_Drosophila_hydei.xlsx | Males | 2 / 3 |  |  |  |  |  |
+| 32 | doi:10.5061/dryad.9ghx3fg0p | XLarge_All_Pod_Inference_data.csv | XLarge_All_Pod_Inference_data.csv | 1 / 1 |  |  |  |  |  |
+| 34 | doi:10.5061/dryad.m0cfxppgt | Sperm_morphological_data.csv | Sperm_morphological_data.csv | 1 / 1 |  |  |  |  |  |
+| 35 | doi:10.5061/dryad.4xgxd25s6 | AgeRelatedChangesInAcousticCues_data.csv | AgeRelatedChangesInAcousticCues_data.csv | 1 / 1 |  |  |  |  |  |
+| 38 | doi:10.5061/dryad.3tx95x6t7 | Nightly_Capture_Rates_Spp_Updated.csv | Nightly_Capture_Rates_Spp_Updated.csv | 1 / 1 |  |  |  |  |  |
+| 39 | doi:10.5061/dryad.280gb5n5c | FIG3.xlsx | FIG3A | 2 / 5 |  |  |  |  |  |
+| 40 | doi:10.5061/dryad.2280gb64c | 13._b_Planctomycetota_asv.csv | 13._b_Planctomycetota_asv.csv | 1 / 1 |  |  |  |  |  |
+| 41 | doi:10.5061/dryad.kprr4xhfb | SNPeffect_BSLMM_allvar.csv | SNPeffect_BSLMM_allvar.csv | 1 / 1 |  |  |  |  |  |
+| 43 | doi:10.5061/dryad.8gtht772x | Isoodon_data_raw_only.csv | Isoodon_data_raw_only.csv | 1 / 1 |  |  |  |  |  |
+| 44 | doi:10.5061/dryad.g4f4qrg50 | subset_dets.csv | subset_dets.csv | 1 / 1 |  |  |  |  |  |
+| 45 | doi:10.5061/dryad.hqbzkh1zw | FF_blank.csv | FF_blank.csv | 1 / 1 |  |  |  |  |  |
+| 46 | doi:10.5061/dryad.bzkh189qb | full_chemistry_wMeta.csv | full_chemistry_wMeta.csv | 1 / 1 |  |  |  |  |  |
+| 47 | doi:10.5061/dryad.cnp5hqcmx | seed-density.csv | seed-density.csv | 1 / 1 |  |  |  |  |  |
+| 49 | doi:10.5061/dryad.3r2280gzk | data_R.csv | data_R.csv | 1 / 1 |  |  |  |  |  |
+| 50 | doi:10.5061/dryad.1rn8pk187 | Assemblies_and_species.tsv | Assemblies_and_species.tsv | 1 / 1 |  |  |  |  |  |
+| 51 | doi:10.5061/dryad.v15dv42cj | Pieris_phenotype.csv | Pieris_phenotype.csv | 1 / 1 |  |  |  |  |  |
 
 - **Sheet** is chosen by §6.2 — largest cell count among sheets that pass, tie-broken on data columns,
   then rows, then file name, then sheet index.
 - **Sheet index / total** is §7's requirement, and it is what makes the discarded alternative
-  auditable.
+  auditable. **The index is 1-based**, so the first sheet in a workbook reads 1.
+  `round2-ranking.json` stores `sheetIndex` 0-based and this column adds one.
 - **Column relationship** and **Row semantics** each carry the answer and its provenance word:
   `(user-set)` where you answered, `(assumed)` where the product supplied it. §8.2 — these are two
   separate gates and on C10 the product answered one of them by itself.
