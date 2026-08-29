@@ -19,6 +19,35 @@ baseline with zero differences, and the `groupingPending` read agreeing with the
 
 ---
 
+## 0 — Superseded in part, S391
+
+**Two of this script's three stages no longer exist.** `ROUND2-SPECIFICITY-SCREEN.md` §11.4 at
+`268ce0a`; implementation at `ec5bf83`, merged `2cf8647`.
+
+- **`--fetch` is superseded by `scripts/round2-fetch.mjs`.** It never ran: the 401 recorded in the
+  headline above was never cleared, and `round2-selection.json` still reads `measure: []`,
+  `ranking: []`. Acquisition ran instead through an OAuth2 bearer token — see `ROUND2-RUN-LOG.md` §6.
+- **`--measure` is superseded by `scripts/corpus-run.mjs --inventory`**, which uses the runner's own
+  `prepStructure` rather than a copy. The copied function is deleted.
+- **`--rank` is retained**, reading the inventory. `rankDeposit` is byte-identical to its S390 form;
+  only its input moved.
+
+**Both retired flags exit 2.** They are refused, not ignored.
+
+**The `R2-NN` layout is stale.** `round2-fetch.mjs` writes `<corpus-data>/round2/pos-NN/` and `--rank`
+now groups by that. Every `R2-NN` path below is historical. Line 240's control is accurate as history:
+it was built and run that way at S390.
+
+**Stale invocations, named so nobody runs one:** lines 178–179, 356, 358, 364, 369 — as numbered
+before this section was inserted; add 29 to relocate them now.
+
+**§3's claim about the S373 census path is correct and stands.**
+`test/probes/probe-s373-corpus-shape-census.mjs` is **S373 Part A** and is that path.
+`ROUND2-SPECIFICITY-SCREEN.md` §10 wrongly withdrew that citation; §11 restores it. The error was
+Chat's, not this document's.
+
+---
+
 ## 1 — The import cap, verified before anything is rejected
 
 `S381-HARNESS-APP-DIVERGENCE.md`, part 2b's `BatchView` sweep, row 1: `BatchView.jsx:41` "keeps
