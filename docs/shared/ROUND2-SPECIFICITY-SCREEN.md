@@ -321,3 +321,29 @@ and that is untouched.
 
 **Per deposit: the number of published versions and their dates, read from the dataset page's version
 history — not `versionNumber` from the API.**
+
+## 10 — §6.2's census citation, withdrawn S391, before any deposit was analysed
+
+**This withdraws a citation in §6.2. The rule it names is unchanged.** Same form as §9.3: the claim
+stays in the record and is corrected here rather than quietly dropped.
+
+§6.2 says the sheet is chosen by taking every sheet through import and role inference, stopping at
+`extractAnalysisInputs`, and calls this **"the S373 census path."**
+
+**There is no such path.** S373 was a display-label census — what heading, unit and frame each printed
+quantity appears under, across eight rendering surfaces. It traced source fields by hand, enumerated
+no sheet, called `extractAnalysisInputs` nowhere, and left no script behind.
+
+**The stopping point stands exactly as §6.2 states it**: import and role inference, stopping at
+`extractAnalysisInputs`, no test run and no verdict computed while the sheet is being chosen. That
+description is self-contained and needs no citation. Only the name attached to it was wrong.
+
+**Why this is recorded rather than edited away.** §6.2 was committed before any deposit was acquired
+and its text does not move. A reader checking the pre-registration against S373 would find a mismatch
+and have no way to tell whether the rule or the citation was the error.
+
+**The machinery is new and is named here.** The per-sheet measurement §6.2 requires did not exist and
+is being built as an `--inventory` mode on `corpus-run.mjs`, so that the selection path and arm A
+share one implementation of the prep rather than becoming a second. S381's rule applies: toggle, do
+not port. The inventory reports measurements only — **it does not implement §6.2's ranking or
+tie-break**, which are applied downstream against the rule as written.
