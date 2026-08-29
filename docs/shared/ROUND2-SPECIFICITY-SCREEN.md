@@ -210,3 +210,63 @@ import the same four guards at `engine.js:506`, `:597`, `:604` and `:617`; `Batc
 suspends on the grouping-confirm card nor supplies a default, and neither does the harness.
 **S381's "every firing count on those nine is a lower bound" is a statement about the product's reach
 with a human at the drill-in. It is not a statement about arm A, and it must not be read as one.**
+
+## 8 — How arm B is executed, added S390, still before any deposit was acquired
+
+**This closes the item §6.5 named and left open. §6 stands as written, including its count** — the
+fifth thing was named there as unfixed, and it is fixed here rather than there.
+
+**Arm B is produced by `test/probes/probe-s390-armb-spike.test.jsx`, committed at `e663f6b`.** It
+mounts the product, loads the workbook through the shipped file input, picks the sheet from the
+product's own picker, answers both gates by operating the product's own controls, and starts the run
+the same way. It sets no state, exports nothing from `src/`, and required no `src/` change. If the
+probe is later renamed or replaced, the successor is recorded here by commit.
+
+**It is validated, not assumed.** Against S383's four hand runs on `C10 :: Exiguobacterium sp.
+Experiment1`: batch default severity 3; replicates/ordered severity 3; non-replicates severity 1 at
+H = 0, M = 1; row semantics varied, same as the third. **Four of four, on first execution, with the
+expectations written before the run and nothing adjusted afterwards.** C10 is not adjudicated and
+nothing here says it is.
+
+**The negative control is part of the validation.** Before any click the run button reads *Select
+column relationship above to proceed* and is disabled; after the column answer it reads *Run analyses*
+and is enabled. The product refuses to run until answered, through the shipped UI.
+
+### 8.1 — Deposits the probe cannot drive
+
+**A deposit needing an interaction the probe does not perform — the long-format pivot, the block
+picker, or any control not yet driven — has its arm B hand-run through the same shipped surface,
+logged as hand-run with the control named. No deposit is dropped for it and n stays 30.**
+
+**This rule is fixed now, before anyone knows which deposits trip it.** Dropping them would be a
+rejection rule invented after seeing which deposits it catches, and §3's rejection log exists to stop
+exactly that. Extending the probe to drive a new control is a fine optimisation and is not the rule,
+because the next unfamiliar control raises the same question again.
+
+Round 1 saw `detectBlocks(…).length > 1` on 2 of 41 sheets. **Expect this to fire. It is not a
+surprise and it is not grounds to revisit anything here.**
+
+### 8.2 — Provenance per gate
+
+**Record, per deposit, for each of the two gates separately: `(user-set)` where the answer was given,
+`(assumed)` where the product supplied it.**
+
+On C10 the product auto-answered row order and blocked only on columns. **"Answered honestly" is
+therefore not one act performed identically on every sheet**, and §3's per-deposit record — the arm-B
+answers with the structural reason for each — extends by one word per gate. Without it, arm A minus
+arm B cannot say which gate carried the difference.
+
+### 8.3 — The one place arm B is not the shipped path
+
+**jsdom's `File` has no `arrayBuffer`, so the probe restores it as a `Blob.prototype.arrayBuffer`
+polyfill over jsdom's own `FileReader`. Every byte arm B analyses arrives through it.**
+
+**Assert its inertness per deposit rather than assuming it:** `parseExcel` through the polyfill against
+`parseExcel` on a buffer read directly from disk, same workbook, same sheet. **Identical, or the run
+stops and the deposit is not scored.** The risk is low and low is not measured.
+
+### 8.4 — What a clean arm B is not evidence about
+
+**jsdom is not a browser.** Verdicts do not depend on layout, which is why the probe can produce them,
+but nothing here says anything about what a reader sees. **Display defects remain outside this screen
+entirely** and a clean arm B must not be cited about them.
