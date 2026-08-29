@@ -167,3 +167,46 @@ here decides whether thirty arm-B passes are hand-run or driven by a toggle, and
 toggle, do not port — a probe adjudicating two implementations must not become a third.** This section
 fixes what is analysed. It does not fix the machinery that runs it, and that decision is still owed
 before the first deposit.
+
+## 7 — Arm A's sheet, added S390, still before any deposit was acquired
+
+**This amends §2. §6 stands as written, including its count of what it fixed** — this is a new section
+rather than a sixth item inside it, so that count stays true.
+
+**Measured at S390, `9fe30bd`.** `BatchView` as it ships calls `parseExcel(file)` with no sheet
+argument, `excel.js:51` returns `SheetNames[0]`, and `BatchView.jsx:44` discards the sheet name. **The
+shipped batch surface analyses the first sheet of a workbook and never records which one it took.**
+§6.2 selects the largest sheet that passes the shape filter. **Those are different files.**
+
+**Arm A is `BatchView`'s loop BODY, run on the §6.2-selected sheet. The file-open path is deliberately
+not reproduced.**
+
+Two reasons, and the first is the binding one.
+
+- **Both arms must run on the same sheet or the comparison is confounded.** Arm A minus arm B would
+  otherwise mix the cost of the default with the cost of sheet position, and the screen could not
+  separate them.
+- **The first sheet is not the data sheet.** Round 1's twelve workbooks carry sheets named `Metadata`,
+  `Article information`, `Info` and `Column name`. Matching `BatchView`'s open path would let sheet
+  order decide what the screen measures.
+
+**What this gives up, stated rather than hidden: the screen does not measure `BatchView`'s sheet-open
+behaviour at all.** If taking `SheetNames[0]` silently is itself a defect, it is a register item and
+not a finding of this screen. **Do not read a clean arm A as evidence that the open path is sound.**
+
+**Mechanism, confirmed at S390 and needing no `src/` change:** the manifest `sheet` key or `--sheet`,
+both feeding `parseExcel`'s existing second parameter.
+
+**Arm B runs on the same sheet.** At `ImportView` the sheet is a user choice, and the user answers with
+the §6.2-selected sheet like every other arm-B answer.
+
+**Record per deposit, in addition to §3's list: the selected sheet's name and its position in
+`SheetNames`.** The position is what makes the discarded alternative auditable — a later reader can
+ask whether first-sheet selection would have changed anything without re-running the screen.
+
+**One instrument doubt is closed and the closure belongs here.** Arm A produced by
+`scripts/corpus-run.mjs` reproduces `BatchView` on the `groupingPending` class exactly. Both surfaces
+import the same four guards at `engine.js:506`, `:597`, `:604` and `:617`; `BatchView` neither
+suspends on the grouping-confirm card nor supplies a default, and neither does the harness.
+**S381's "every firing count on those nine is a lower bound" is a statement about the product's reach
+with a human at the drill-in. It is not a statement about arm A, and it must not be read as one.**
