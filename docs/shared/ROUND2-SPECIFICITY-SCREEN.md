@@ -862,3 +862,65 @@ class §16.5 deliberately kept apart. **Two figures, both reported: eight member
 
 **pos-41 and pos-46 have not been answered yet**, so nothing is being back-filled — the rule is
 fixed before their rows are written, which is the only reason it can be audited.
+
+### 16.8 — pos-38 leaves the class, and §16.3's count is ten, ruled S396 after the answers and before any arm ran
+
+**§16.5 counts pos-38 a member on *thirteen species crossed with `_c`/`_rate`*. It is not one, and
+the reason is §16.5's own definition.** The member side reads *rows are features; each column is one
+specimen, replicate or channel*. **pos-38's rows are 311 capture nights** — observations — and its
+columns are 26 distinct quantities recorded on each. `COTO_c` and `COTO_rate` are a count and a rate,
+not one quantity on two samples.
+
+**pos-18 is the same shape and §16.5 classifies it the other way**: 200 plant-species columns over
+144 sampling events, called variables. Two sheets of one shape cannot sit on both sides of a
+two-way diagnostic, and the diagnostic is the thing fixed in advance, so the classification moves
+rather than the rule.
+
+**Ruled: pos-38 is columns-as-variables. §16.5's eight members become seven.**
+
+| | §16.5 as written | as ruled here |
+|---|---|---|
+| Merged header cells | pos-01, pos-14, pos-35 | unchanged |
+| Naming scheme | pos-08, pos-12, pos-38, pos-40, pos-45 | **pos-38 removed** — four remain |
+| Mixed | pos-41, pos-46 | **pos-07 added** at §16.7 — three |
+| **Total carrying §16.2's string** | 10 | **10** |
+
+**The total is unchanged and the composition is not**, which is why this is worth logging rather
+than absorbing. Two corrections in opposite directions landed on the same number.
+
+**No answer moves.** pos-38's column relationship is `replicates` under both readings — §16.1 rules
+it for a member and the ordinary reason rules it for a variables sheet — and its run-log cell
+already records the disagreement in its own text. **§16.6's *no deposit's answer changes* holds
+across both this and §16.7.**
+
+#### 16.8.1 — what §16.3 reports
+
+**Ten deposits: pos-01, 07, 08, 12, 14, 35, 40, 41, 45, 46.** Seven members by mechanism and three
+mixed. `command grep -c 'structure inexpressible'` over the run log counts occurrences rather than
+deposits, because §4 and §7 both carry the string; **count distinct positions, not lines.**
+
+**Ten of twenty-seven answered deposits, 37%, is the forced-agreement figure**, and §16.3's reason
+stands: on these the column gate contributes nothing to §4's default-cost reading, because arm A
+hardcodes `replicates` and §16.1 sends arm B to the same place.
+
+#### 16.8.2 — the diagnostic covers one mechanism, not both
+
+**§16.5's samples-or-variables question decides the naming-scheme mechanism and does not decide the
+merged-header one.** pos-14's rows are nuclei and pos-35's are human subjects — observations, not
+features — yet both are members, because a spanning band over blank continuation cells is a grouping
+the product loses at header detection whatever the rows are. **Mechanism 1 stands on §16's original
+predicate; the diagnostic added at §16.5 governs mechanism 2.** Stated because reading the
+diagnostic as the whole class test would remove pos-14 and pos-35 wrongly.
+
+#### 16.8.3 — the ordering §16.7.1 claimed did hold
+
+**§16.7.1 fixed the mixed-deposit rule while pos-41 and pos-46 were unanswered, and both were
+answered afterwards** — batches 4 and 5 of the same session, each carrying §16.2's string because
+the rule already said to. That sentence now reads as history rather than as a present-tense claim,
+and it is left standing because what it records is the sequence, which is the thing an auditor
+checks.
+
+#### 16.8.4 — what this section does not settle
+
+- **Whether a naming scheme should be detected at all.** Still a register question. No row claimed.
+- **Anything about a verdict.** No arm has run on any round-2 deposit.
