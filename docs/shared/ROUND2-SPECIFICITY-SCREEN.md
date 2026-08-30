@@ -731,3 +731,50 @@ That ordering is the point. A rule written after the read would be a rule writte
 - **What role inversion does to a clean deposit.** Round 1 is saturated at severity 3 and has zero fabricated-condition-only sheets. The measured direction is suppressing on every instance available, which is why the screen can run — but the clean-to-flagged transition is unmeasured on any corpus.
 - **Anything about round 2.** No deposit has been analysed or timed.
 
+
+
+## 16 — a structure neither gate expresses, added S395, before any deposit was answered and before either arm ran
+
+**The case: a sheet whose columns carry a grouping the product does not read, so that neither answer to the column gate is true of it.** `replicates` pools the groups into one. `conditions` fabricates one level per column where the file has few.
+
+**Found at position 1, which is where the sitting starts.** `micro_data_compiled.xlsx [1300-3]` carries three spanning band labels over fifteen data columns, in bands of five, six and four. `detectHeaderRows` returned 1, so the band row was taken as the header row, twelve of sixteen headers are `Col N` placeholders synthesised for the continuation cells, and the design survives in no role, no `condPerCol`, no `condCtx` and no inventory field. Recorded at `docs/shared/S395-POS01-STRUCTURE.md` §3 and §4.
+
+**The band widths are unequal, and that is what rules out the pooled reading being merely imprecise.** A replicate set is equal-width by construction. Five, six and four is the file stating its own grouping in the one field that survives header collapse.
+
+**This is neither P217 nor P218.** Neither mechanism moved a column here — the forty-row window is the whole column, and §2.8 returned at its fifty-row floor. **The structure is lost before role inference runs, at header detection.** Whether that is a defect is a register question and not this document's.
+
+### 16.1 — the rule
+
+**Where the file's structure carries a grouping the column gate cannot express, arm B answers `replicates`.**
+
+Three reasons, and the first is the binding one.
+
+- **Fabricating levels changes what the tool believes it is analysing. Pooling only costs power.** A screen that counts false positives can absorb lost power. It cannot absorb an answer that invents a factor, because every per-condition quantity downstream is then computed over groups that do not exist.
+- **Fabricating levels is the failure this screen is measuring.** P217 inverts designs by building a condition level set from a misread column. Answering `conditions` here would reproduce by hand the defect the tool is being screened for.
+- **`conditions` has no coverage forecast and starves pair-based tests.** §15.4: groups one column wide are not a pair, and no round-1 sheet calibrates that answer.
+
+**The predicate is the file's structure, not the result.** The rule applies where the grouping is legible on the shipped screen and inexpressible in the gate. **Where the structure is expressible, §8.2 stands unchanged and this section does not apply.**
+
+**No role reassignment, no header reinterpretation, no second import.** §14.3's reason holds unchanged: arm B is the shipped surface answered honestly, and the surface is not asking those questions.
+
+### 16.2 — what to record
+
+- **The true structure, in the structural reason** — how many groups, their widths, and the mechanism by which the product lost them.
+- **That the answer is forced rather than matched.** §8.2's two provenance words do not change. The answer is `(user-set)` because a human gave it: **the provenance word records who answered, not whether a true answer was available.** Do not invent a third word for this.
+- **In run log §7's Notes, the string `structure inexpressible`.** One form, greppable, so the class can be counted at the end of the sitting without anyone re-reading thirty structural reasons.
+
+### 16.3 — a zero arm difference in this class is not evidence the default is right
+
+**Arm A hardcodes `replicates` and this rule sends arm B to the same answer.** So on a deposit in this class the column gate contributes nothing to §4's default-cost reading, **and that is a forced agreement rather than a measured one.**
+
+**Report the count of deposits in this class beside the default-cost figure.** §14.4's reason: a reader can then compute the reading without them, and no denominator has been chosen after seeing results.
+
+**On pos-01 the difference survives at the other gate.** `suggestRowSemantics` returns `{value: null, reason: "user-choice"}` — the product declining to guess — and `corpus-run.mjs:246` substitutes `'ordered'` for the null. **Arm A answers where the shipped surface refuses to.**
+
+### 16.4 — what this section does not settle
+
+- **Whether `detectHeaderRows` should read a spanning band row.** A register question. No row is claimed here and no fix is proposed.
+- **Whether this rule is right.** It is fixed before the deposit is answered so that it cannot be chosen to fit a result. That makes it auditable, not correct.
+- **How common the class is.** One deposit. Nothing here forecasts the other twenty-nine, and the count is an output of the sitting rather than an input to it.
+- **The `TOTAL` row**, a separate structural fact on the same sheet, recorded and unpriced.
+- **Anything about a verdict.** No arm has run on any round-2 deposit.
