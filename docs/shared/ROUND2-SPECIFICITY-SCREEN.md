@@ -778,3 +778,38 @@ Three reasons, and the first is the binding one.
 - **How common the class is.** One deposit. Nothing here forecasts the other twenty-nine, and the count is an output of the sitting rather than an input to it.
 - **The `TOTAL` row**, a separate structural fact on the same sheet, recorded and unpriced.
 - **Anything about a verdict.** No arm has run on any round-2 deposit.
+
+
+### 16.5 — the predicate is the grouping, not the mechanism, measured S395 before any arm ran
+
+**§16 above names spanning band labels as the case, and that is one mechanism rather than the class.** The predicate is *a grouping the column gate cannot express*. A merged header cell is one way a file writes one. **A naming scheme in the column headers is another, and over the thirty it is the more common of the two.**
+
+**Measured, not proposed.** The structural read over all thirty is at `docs/shared/S395-ROUND2-STRUCTURE-TABLE.md`, `49351b2`. Nothing below is a verdict and no arm has run.
+
+**The diagnostic, fixed here so the classification is a rule rather than thirty judgement calls: are the columns samples, or are they variables?**
+
+- **Columns as samples.** Rows are features; each column is one specimen, replicate or channel; the design is written into the column names. **The grouping is in the header and the product reads none of it.**
+- **Columns as variables.** Rows are observations; columns are distinct measured quantities; any grouping sits in a column the product already reads as a condition. **This is the ordinary case and §16 does not apply to it.**
+
+**It is decidable from a header list without domain knowledge**, which is what §8.2 requires of a structural reason.
+
+**Eight of the thirty are columns-as-samples**, by two mechanisms:
+
+| Mechanism | Deposits |
+|---|---|
+| **Merged header cells** — a spanning label over blank continuation cells, lost when `detectHeaderRows` returns 1 | pos-01 (3 bands, 5/6/4) · pos-14 (four figure panels) · pos-35 (four instrument blocks) |
+| **A naming scheme in the headers** — the grouping written into the column names themselves | pos-12 (`Y1B`/`Y1Q`/`Y3Q`, five each) · pos-40 (416 sample columns on a prefix scheme) · pos-45 (`200`…`700`, a wavelength sweep) · pos-08 (`Abundance:` ratio crossed with NR/R) · pos-38 (thirteen species crossed with `_c`/`_rate`) |
+
+**There is no stem or suffix logic anywhere in `src/`** — ruled out at source at S394. So the second mechanism is not a detector failing; there is nothing to fail.
+
+**pos-43 is not a member.** Two width-2 spans from two blank cells in an eighty-column header, with `isSparseGroupRow` false. That reads as sparse header cells rather than a design, and it is recorded as a weak case rather than counted.
+
+**Two deposits are both at once and are recorded as mixed rather than forced into one side.** **pos-41** crosses six traits with abaxial / adaxial / mean and then carries climate variables beside them; **pos-46** crosses four compounds with two years and carries `treatment.y1`, `treatment.y2` and `group` as real condition columns. **Both also carry columns derived from their neighbours** — pos-41's `_mean`, pos-46's `d.*` — which is pos-01's `TOTAL` row spread sideways, and it is recorded and unpriced for the same reason.
+
+### 16.6 — what 16.5 changes, and what it does not
+
+- **No deposit's answer changes.** §16.1 rules `replicates` on the whole class and the reasons hold for both mechanisms without alteration.
+- **§16.3's count covers eight, not three.** The count of deposits in this class is reported beside the default-cost figure, and the forced agreement it describes now applies to more than a quarter of the corpus.
+- **§16's own text stands as written.** This is a correction logged beside it, per §6.4. Nothing above was edited.
+- **Whether a naming scheme should be detected is a register question.** No row is claimed here and no fix is proposed.
+- **Still nothing about a verdict.** No arm has run on any round-2 deposit.
