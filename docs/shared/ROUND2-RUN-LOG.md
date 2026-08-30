@@ -149,7 +149,7 @@ One row per accepted deposit. Filled before either arm runs on it.
 
 | # | DOI | File | Sheet | Sheet index / total | Column relationship | Row semantics | Confirm gate | Structural reason | Arm B run by | Polyfill assertion |
 |---|---|---|---|---|---|---|---|---|---|---|
-| 1 | doi:10.5061/dryad.fttdz0980 | micro_data_compiled.xlsx | 1300-3 | 7 / 7 | replicates (user-set) | unordered (user-set) | gate did not render | Three spanning band labels over the 15 data columns, in bands of 5, 6 and 4 — `Anhydrous MORB glass`, `silicate part of the melt`, `Metals`. `detectHeaderRows` returned 1, so the band row was read as the header row and 12 of 16 headers are synthesised `Col N` placeholders; the grouping survives in no role, no `condPerCol` and no `condCtx`. **Neither gate answer is true of the file and §16 rules `replicates`** — the bands are unequal, so this is not one replicate set, and `conditions` would fabricate 15 levels where the file has 3. **Row order carries no meaning:** column 0 is a label column of element symbols and `TOTAL` is the last row, so the rows are a set being summed rather than a sequence — `unordered`. **Confirm gate:** `computeTrigger` returns `pending: false`, both arms false, 0 condition columns (`S395-POS01-STRUCTURE.md` §9.1). Structure at §3–§4 of the same record. |  |  |
+| 1 | doi:10.5061/dryad.fttdz0980 | micro_data_compiled.xlsx | 1300-3 | 7 / 7 | replicates (user-set) | arbitrary (user-set) — corrected from `unordered`; this file, §4.1 | gate did not render | Three spanning band labels over the 15 data columns, in bands of 5, 6 and 4 — `Anhydrous MORB glass`, `silicate part of the melt`, `Metals`. `detectHeaderRows` returned 1, so the band row was read as the header row and 12 of 16 headers are synthesised `Col N` placeholders; the grouping survives in no role, no `condPerCol` and no `condCtx`. **Neither gate answer is true of the file and §16 rules `replicates`** — the bands are unequal, so this is not one replicate set, and `conditions` would fabricate 15 levels where the file has 3. **Row order carries no meaning:** column 0 is a label column of element symbols and `TOTAL` is the last row, so the rows are a set being summed rather than a sequence — `arbitrary` (written `unordered` when the answer was made; this file, §4.1). **Confirm gate:** `computeTrigger` returns `pending: false`, both arms false, 0 condition columns (`S395-POS01-STRUCTURE.md` §9.1). Structure at §3–§4 of the same record. |  |  |
 | 2 | doi:10.5061/dryad.rv15dv4q9 | os_cells_new.csv | os_cells_new.csv | 1 / 1 | gate did not render | gate did not render | gate did not render | 21 columns infer to 1 Data / 1 Label / 7 Cond / 12 Attr. **§2.8 is the sole cause**: without the group-attribute hold-out the sheet carries 13 data columns. `collection_no`, a museum collection identifier, survives as the only data column and is the grouping key holding twelve of the others out. Screen read 30 Aug: `Data cols 1`, no column-relationship card, no run zone, *"Assign at least 2 data columns to proceed."* An Anscombe transform was pre-selected `Auto` on the identifier. | **refused (`ImportView.jsx:974`)** | n/a — no run |
 | 3 | doi:10.5061/dryad.4mw6m90r1 | OpilionesChemicalCues_v2(data).csv | OpilionesChemicalCues_v2(data).csv | 1 / 1 |  |  |  |  |  |  |
 | 7 | doi:10.5061/dryad.hqbzkh1vv | data_complete.csv | data_complete.csv | 1 / 1 |  |  |  |  |  |  |
@@ -199,6 +199,32 @@ One row per accepted deposit. Filled before either arm runs on it.
   render* rather than blank.
 - **Polyfill assertion** is §8.3: `parseExcel` through the polyfill against `parseExcel` on a buffer
   read from disk. `pass`, or the deposit is not scored.
+
+### 4.1 — Corrections
+
+**Per §6.4 an answer is never overwritten. A correction is logged with its reason**, newest last,
+one entry per correction. The original wording stays where it was written.
+
+**A bare §-reference in this file points at `ROUND2-SPECIFICITY-SCREEN.md`, so this one is qualified
+wherever it is cited.** §4.1 is this file's own section and the only one that needs saying.
+
+**C1 — pos-01, row semantics. The word, not the answer. Logged S396.**
+
+`unordered (user-set)` was written at `75e5be6`. **`unordered` is not a value this gate carries.**
+`rowSemantics` is `ordered` or `arbitrary` — METHODOLOGY.md §Row Semantics Gate,
+`src/import/rowSemantics.js`. The word came from nowhere in the product.
+
+**The answer does not move.** The reason recorded at the time — column 0 is a label column of
+element symbols, `TOTAL` is the last row, so the rows are a set being summed rather than a sequence
+— is a reason for `arbitrary` and for no other value. What was wrong was the word standing in for
+it.
+
+**No arm had run on pos-01 when the answer was made and none has run since**, so §6.4's ordering
+holds: this is not an answer revised against a result.
+
+**`75e5be6`'s commit subject carries `unordered` permanently** and cannot be corrected. Anyone
+reading `git log` will find it there, and STATUS's generated commit list copies it. That is history,
+not a live record.
 
 ---
 
