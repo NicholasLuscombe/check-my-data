@@ -327,3 +327,244 @@ still contains it. Both are correct on their own object.
   document's question and no register row is claimed for it.
 - **Anything about the other 29 deposits.** One deposit, one sheet. The §2.8 floor result in
   particular is a property of this sheet's 17 rows and generalises to nothing.
+
+---
+
+# 9 — the two gate facts
+
+**Appended S395, second pass. Sections 1–8 above are not rewritten.** Where a scope statement in §8
+is discharged by this section it is named in §9.6 rather than edited in place.
+
+**Read-only, and it stops before either gate is answered.** No `src/` file was modified. **Neither
+gate was answered and neither arm was run** — the trigger probe stops at `extractAnalysisInputs` and
+never calls `runFullAnalysis`; the screen probe clicks the sheet picker and nothing else. §14.3 and
+§6.4 both forbid answering ahead of arm B, and a screen read is not an answer.
+
+**Instruments.** Two, because the two reads sit on different surfaces.
+
+```bash
+node --import ./test/probes/s395-corpus-run-hook.mjs \
+     test/probes/probe-s395-pos01-trigger.mjs --trigger --card --arm1 --rowsem
+
+GATES=1 npx vitest run test/probes/probe-s395-pos01-gates.test.jsx
+```
+
+`probe-s395-pos01-trigger.mjs` runs through the same S394 hook §0 names, so `prepStructure` and
+`buildAnalysisConfig` are the census path's own source text; `computeTrigger`,
+`extractAnalysisInputs`, `suggestRowSemantics`, `condStructureKind` and `detectVST` are imported from
+`src/` under the specifiers the engine and the view already use.
+`probe-s395-pos01-gates.test.jsx` mounts the product — `render(<CheckMyData />)` — and hands
+`ImportView` the deposit's real bytes, the mechanism `probe-s390-armb-spike.test.jsx` established and
+ROUND2 §8 pre-registers as arm B. It sets no state and rebuilds no config.
+
+**Both S390 jsdom gaps apply and are declared, not buried:** `Blob.prototype.arrayBuffer`
+(polyfilled from the `FileReader` jsdom does ship) and `ResizeObserver` (stubbed). Both are standard
+browser APIs jsdom omits; neither changes anything in `src/`.
+
+## 9.1 — read one: `computeTrigger`
+
+Read off `condCtx.groupingTrigger` — the field `extractAnalysisInputs` stamps at
+**`src/analysis/engine.js:174-178`** — not recomputed. The function is
+**`src/analysis/groupingTrigger.js:54`**. The answer in force is `colRelationship: 'replicates'`,
+which `scripts/corpus-run.mjs:247` hardcodes.
+
+**The returned object, verbatim:**
+
+```json
+{"attempted":false,"nGroups":null,"sizes":[],"median":null,"condCols":0,"arm1":false,"arm2":false,"pending":false}
+```
+
+**The two arms, separately**, as §13.4 asks:
+
+| Arm | Expression | Inputs | Value |
+|---|---|---|---|
+| **Arm 1** | `nCondCols >= 3` | `condCols` = **0** | **`false`** |
+| **Arm 2** | `!usable \|\| median <= THIN_MEDIAN` | no partition to evaluate | **`false`** |
+| — | `pending` | — | **`false`** |
+
+**`pending` here is a literal, not `arm1 || arm2`, and that is a distinction worth keeping.**
+`attempted` is `false`, so the function returned at the early branch **`groupingTrigger.js:85-86`**,
+where `pending: false` is written out directly. `:109`'s `pending = arm1 || arm2` never ran. The
+disjunction §13.4 names is the `:107-109` branch, and this sheet did not reach it.
+
+**Why `attempted` is false.** `condCols` is `roles.map(r === "condition")` at `engine.js:114` and
+pos-01 has **zero** condition-role columns (§4's role counts). `condCtx.type` is `none`, not
+`column-grouped`, so `engine.js:176` passes `condCols` itself rather than the empty set — and
+`condCols` **is** empty. With no columns to read, `rc` is all-null at `:60-65`, `rowConditions` is
+`null` at `:66`, and `attempted` is `false` at `:83`.
+
+**The stamp is the helper's own output.** A second, direct `computeTrigger` call with the same four
+arguments returns a byte-identical object, and the `filteredIndices` rebuilt for it (16) matches the
+matrix row count (16).
+
+### Would the confirm card render — no, and here is the chain
+
+| # | Link | Value | How |
+|---|---|---|---|
+| 1 | `trigger.pending` | `false` | **driven** |
+| 2 | `engine.js:242` `groupingPending = !!trigger.pending` | `false` | source |
+| 3 | `engine.js:506/:597/:604/:617` call `pendingResult()` only `if (groupingPending)`, and `:254-259` is the **only** producer of a result carrying `groupingPending` | no result stamped | source |
+| 4 | `ReportView.jsx:188` `groupingPendingBase = baseResults.some(r => r.groupingPending)` | `false` | source |
+| 5 | `GroupingConfirmCard.jsx:72` `if (!groupingPendingBase) return null` | renders nothing | **driven** |
+
+Links 2–4 are source reads rather than driven ones **because driving them would mean running arm A**,
+which this pass may not do. Link 5 is driven directly: `<GroupingConfirmCard results={[]}
+groupingPendingBase={false} />` renders an empty string.
+
+**So the card does not render, and run log §4's `Confirm gate` cell for pos-01 is *gate did not
+render*** — the §13.3 value, not a blank.
+
+### Arm 1 on the not-attempted branch is unreachable
+
+The dispatch flags the arm-1-only case as unmeasured on any corpus and worth catching. On the early
+return, `arm1` is written as `nCondCols >= 3` (`:86`), so the question is whether that can ever
+report true there. **It cannot.**
+
+`!attempted` means every column in `condColSet` is blank at every row. Each per-column array at
+`:74-78` is then all-null, `filtered.some(c => c)` is false, the entry becomes `null`, and
+`.filter(Boolean)` drops it — so `rowConditionsCols` is `[]` and `nCondCols` is `0` whenever
+`attempted` is false.
+
+Searched as well as argued: **25 shapes** — condition-column sets of size 1 to 5 crossed with
+all-`null`, all-`""`, all-whitespace, one-populated and all-populated patterns. **15 came back
+not-attempted, and `arm1` was `false` on every one.** The search is not vacuous: the all-populated
+shapes at 3, 4 and 5 columns return `arm1: true` on the `:107` branch, which is the positive control.
+
+**Consequence, and it is the useful half:** an arm-1-only instance can only arise where the file
+*has* row conditions — three or more populated condition columns over a partition arm 2 does not also
+catch. pos-01 is not a candidate and cannot become one by any reading of this branch.
+
+## 9.2 — read two: the row-semantics gate
+
+**`suggestRowSemantics` returns a suggestion with no value, so there is nothing to auto-apply.**
+
+| | |
+|---|---|
+| `assay` | `general` (auto-detected) |
+| `longFormatDetected` | `false` |
+| **`suggestRowSemantics({assay, longFormatDetected})`** | **`{"value": null, "auto": false, "reason": "user-choice"}`** |
+
+`src/import/rowSemantics.js:38`. `general` is not long-format, not `genomics`, and not in
+`INSTRUMENT_ASSAYS`, so the function falls through to `:48`. Its own precedence note at `:14` names
+this case: *assay ∈ {general, proteomics, survey} → null (user choice REQUIRED)*.
+
+`ImportView.jsx:431` auto-applies **only when `rowSemSuggestion.value` is truthy**. It is `null`, so
+`rowSemantics` stays `null`, `rowSemAutoSet` stays `false`, and
+`rowSemRequired = !rowSemantics && data && roles.length > 0 && rowSemSuggestion.value === null`
+(`:441`) is **true**.
+
+### What the product renders, with nothing clicked
+
+Driven through the mounted product. The deposit's bytes go in through the shipped
+`<input type="file">`, the product's own sheet picker offers the workbook's sheets, `1300-3` is
+clicked — **that is sheet selection, not one of the three gates** — and then the screen is read.
+
+| Observation | Value |
+|---|---|
+| column-relationship card rendered | **yes** |
+| … carries the `REQUIRED` badge | **yes** |
+| … carries *"Select the column relationship before running analysis."* | yes |
+| … either option pre-selected | **no** |
+| … either option carrying an `Auto` badge | **no** |
+| row-semantics card rendered | **yes** |
+| … carries the `REQUIRED` badge | **yes** |
+| … carries *"Select the row order before running analysis."* | yes |
+| … either option pre-selected | **no** |
+| … either option carrying an `Auto` badge | **no** |
+| … the `Auto:` sub-text (`ImportView.jsx:1030-1032`) | **none rendered** |
+| run button present | yes |
+| run button **disabled** | **yes** |
+| run button label | **`"Select column relationship above to proceed"`** |
+
+**Neither gate is auto-answered. Both block, and the label names only the first outstanding one.**
+`ImportView.jsx:1273` computes `ready = !!effectiveColRel && !rowSemRequired`; both conjuncts are
+false here. The label ternary at `:1274-1277` tests `!effectiveColRel` **first**, so the button reads
+*"Select column relationship above to proceed"* while the row-semantics gate is equally unanswered,
+and only flips to *"Select row order above to proceed"* once the column gate is answered.
+
+**The column gate is not auto-resolved either, and that is a separate mechanism from read two's.**
+`ImportView.jsx:413` auto-applies `'replicates'` only when `hasCondStructure` is truthy.
+`condStructureKind(condPerCol, roles)` (`coordinates.js:100`) reads `condPerCol` — **`null` on this
+sheet, because `detectHeaderRows` returned 1 (§3)** — and then `roles.some(r === 'condition')`, which
+is false. It returns **`false`**, so `effectiveColRel` stays `null` at `:396`.
+
+**Two corroborations off a surface §1–§8 never touched.** The screen names **15 DATA columns**,
+matching §2's `nNumericDataCols`; and its own prep notice reads **`"Auto-cleaned: stripped 3 preamble
+rows"`** (`ImportView.jsx:727-728`), matching §3's finding that the preamble strip removed raw rows
+0–2.
+
+## 9.3 — the one decision the product does supply here
+
+Recorded because §8.2's two provenance words turn on which decisions the product answers by itself,
+and because pos-47's run log row shows an auto-detected measurement type cascading into three other
+answers. **On pos-01 the cascade is real but small: it reaches the transform and neither gate.**
+
+| | |
+|---|---|
+| `detectVST(matrix, "general", "continuous")` | transform **`"log"`** |
+| reason | `Slope=1.65, 95% CI [1.22, 2.07] entirely above 1 → proportional noise → log` |
+| Zone 3, *Apply log transform* | **selected**, opacity 1, carries the **`Auto`** badge |
+| Zone 3, *Keep raw (no transform)* | not selected, dimmed to opacity 0.65 |
+| Zone 3 sub-text | `"Auto: log transform for Unspecified / General assay"` |
+| Zone 3 evidence line | `"slope = 1.65, 95% CI [1.22, 2.07]"` |
+
+**Exactly one `Auto` badge is on the whole screen and it is this one** — read as `<span>`s whose own
+trimmed text is `"Auto"`, of which there is 1. A substring scan of the page text returns **4**, and
+the difference is not badges: the other three are `"Auto-cleaned: stripped 3 preamble rows"`, the
+role-assignment row's `Auto` button, and the Zone 3 sub-text. **Quote the span count; the substring
+count over-reports.**
+
+## 9.4 — the headless path answers row semantics where the screen refuses to
+
+`scripts/corpus-run.mjs:246-247` is `const rowSemantics = rsSuggestion.value || 'ordered'`. With
+`value` at `null`, **arm A runs this sheet as `ordered` by a fallback, at the exact point
+`ImportView` disables the run button and demands a human answer.**
+
+**This is a §15.1-class prep divergence and it is on the row-semantics axis.** §15.1 closed §14.2's
+`nNumericDataCols` / `sum.nDC` step and left prep divergence open, censused in
+`S381-HARNESS-APP-DIVERGENCE.md`. Nothing here is a new defect claim: the fallback is the census
+path behaving as written, and it is recorded so that arm A's row-semantics value on this deposit is
+read as *supplied by the runner* rather than as *the file's own answer*.
+
+## 9.5 — one instrument near-miss, recorded rather than quietly fixed
+
+**The first version of the screen probe reported `REQUIRED` absent on both cards, and both were
+showing it.** It located each card as *the smallest `<div>` containing that card's two option
+strings* — which is the inner button-row div (`ImportView.jsx:985`, `:1042`), not the card. That div
+contains neither the question text, nor the `REQUIRED` badge, nor the tail sentence, so all three
+read absent from a screen displaying all three.
+
+It was caught because the same element failed a second read taken beside it: the question's
+`Are the (\d+) DATA columns` capture returned nothing. **A single observation would have shipped the
+wrong answer, and the fix is an anchor the button row does not have** — each card is now located by
+its two option strings *and* its own question text. This is the file's own standing rule biting the
+instrument rather than the product: *a check that cannot reach its subject returns green*.
+
+## 9.6 — what §8 said, and what this section discharges
+
+Two of §8's scope statements are now discharged. **Neither was wrong when written**; both described
+the first pass, and are named here rather than edited in place.
+
+- §8 said *"There is no screen read in this record."* **There is now** — §9.2 and §9.3 are taken from
+  the mounted product. §8's sentence stands as a statement about §1–§8.
+- §8 said *"this record does not assert that the shipped surface accepts this sheet; it asserts only
+  that the floor `nNumericDataCols` feeds reads 15."* **The surface accepts it**: both gate cards
+  render and the run-button zone renders, so `ImportView.jsx:974`'s floor is cleared on the screen
+  and not only in the census figure. pos-01 is **not** a §14 refusal.
+
+## 9.7 — what this section still does not settle
+
+- **Neither gate is answered.** The column-relationship, row-semantics and confirm cells of run log
+  §4's pos-01 row stay empty until arm B answers them, except that the **`Confirm gate` cell is now
+  determined**: the card does not render, so §13.3's value is *gate did not render*.
+- **Neither arm was run.** No test, no flag, no severity, no `cov.ran`, no timing.
+- **Nothing about what a reader sees.** The screen read is a jsdom render behind two polyfills and
+  reports control state and copy, not layout, legibility or appearance. ROUND2 §8.4 already scopes
+  the arm-B probe out of that and this inherits the scope.
+- **The row-semantics answer is not implied by `value: null`.** The suggestion declining to supply one
+  is a fact about the product, not evidence for `ordered` or for `arbitrary`. §9.4's `ordered` is the
+  runner's fallback and is not an answer to the gate.
+- **`detectVST`'s `log` is recorded, not endorsed.** Whether the transform is right for this sheet is
+  not asked here, and nothing in §9.3 says the pre-selection should stand.
+- **Arm-1-only reachability is bounded on one branch, not censused.** §9.1 shows `:86` cannot report
+  it. It says nothing about how often the `:107` branch produces an arm-1-only pending on any corpus.
