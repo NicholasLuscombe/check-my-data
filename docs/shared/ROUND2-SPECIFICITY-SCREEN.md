@@ -924,3 +924,109 @@ checks.
 
 - **Whether a naming scheme should be detected at all.** Still a register question. No row claimed.
 - **Anything about a verdict.** No arm has run on any round-2 deposit.
+
+## 17 — a deposit the machine cannot complete, added S396 after three timing runs and before any deposit was scored
+
+**§14 makes a refusal arm B's recorded outcome. §15.3 makes an empty partition an outcome rather
+than an error. Neither covers a deposit the machine cannot finish**, and the thirty contain at least
+one. n is fixed at 30 by §3 and dropping a deposit for cost is not available — that would be a
+selection rule changed after seeing which files are expensive.
+
+### 17.1 — what was measured
+
+**pos-40 does not run at all.** `13._b_Planctomycetota_asv.csv`, 33,678 × 416, 38.28 MB. Arm A at
+the default Node heap: `FATAL ERROR: Reached heap limit`, 3,472 MB exhausted, process aborted at
+17.6 s. **It died before the battery got going**, so this is not the same failure as a slow run.
+
+**pos-41 is quadratic in rows.** `SNPeffect_BSLMM_allvar.csv`, 109,228 × 27. Timed on truncations
+under arm A's defaults: 1,000 rows in 58.1 s and again in 63.3 s — **9% run-to-run variance, so no
+single pair is worth three figures** — and 5,000 rows in 1,160 s. A five-fold increase in rows cost
+19.8× the time, an exponent of **1.81 to 1.85**. Extrapolated, the full file is days rather than
+hours. **A truncation is not the deposit and cost is data-dependent, so this measures the scaling
+law rather than pos-41's runtime.** The law is the useful object because it generalises.
+
+**One test carries it: §2.6b Blocked Mahalanobis, about 81%.** 63.3 s with it, and 8.8 s, 7.8 s or
+12.1 s by three independent routes to N/A — `--dataType count`, `--assay genomics`, and both
+overrides together leaving `dataType` continuous. **Every run without that test lands in an 8–12 s
+band and the only run with it is 63 s.** The attribution is a measurement; the mechanism is not, and
+`blockedMahalanobis` has not been read.
+
+**pos-41 also errors one test rather than failing.** `Map maximum size exceeded` at
+`duplicateDetection.js:759`, caught by the engine, logged, and the run continued — so that deposit
+yields a verdict over 28 tests with Duplicate Detection in `classifyCoverage`'s `errored` state.
+**A test that throws cannot fire, so this suppresses rather than inflates**, which is why the screen
+can still read it.
+
+**pos-32 is unmeasured.** 52,588 × 10, and it answers `ordered (assumed)` at the row gate, so it
+gets no saving on either arm.
+
+### 17.2 — the rule
+
+- **n stays 30 and no deposit is dropped for cost.** Non-completion is an outcome, the third
+  alongside §14's refusal and §15.3's empty partition.
+- **No resource limit is raised, on either arm.** No `--max-old-space-size`, no engine change, no
+  synthetic substitute for a real file. **A run that succeeds only because a flag was raised
+  measures the flag**, and arm B is a jsdom probe standing in for a browser whose ceiling is lower
+  than Node's, so a raised heap would put arm A above a limit the shipped surface cannot exceed.
+- **The budget is 24 hours of wall clock per run, fixed here.** A run that exceeds it is killed and
+  its elapsed time recorded. The figure is deliberately generous so that it catches genuine
+  unreachability rather than mere slowness — the distinction the screen needs is *cannot* against
+  *slow*, and a tight budget would blur it.
+- **The budget is per run, not per deposit.** A deposit may complete on one arm and not the other,
+  and that asymmetry is recorded rather than resolved.
+- **Peak memory is recorded alongside elapsed time** — `/usr/bin/time -l` on macOS, whose maximum
+  resident set size the shell's `time` keyword does not report. pos-40 failed on memory and pos-41
+  on time; without both curves neither failure is predictable from the other.
+
+### 17.3 — how it enters §4's reading
+
+- **Sev reads `did not complete`** with the arm and the reason, `memory` or `budget`.
+- **Counted and named on its own line, never folded in**, for §14.4's reason: a difference in kind
+  is not a difference in degree.
+- **No figure is recomputed over "the deposits that completed."** Choosing a denominator after
+  seeing which files are expensive is the free choice §3 exists to prevent.
+- **`cov.ran` reads `no run` where nothing ran**, and where a run completed with a test errored it
+  reads the count that ran with the errored test named in Notes.
+
+### 17.4 — the asymmetry is itself a reading of the default's cost
+
+**Arm B answers `arbitrary` on pos-40 and pos-41. That routes Blocked Mahalanobis to N/A through the
+shipped row-semantics gate, with no override**, and it is the test carrying 81% of the runtime.
+**Arm A hardcodes `ordered` at `corpus-run.mjs:246` and pays for it.**
+
+**So on these two deposits the cost of the default is not a verdict difference but a completion
+difference** — arm A may exceed the budget where arm B does not. §4's default-cost reading has only
+ever been posed as a severity comparison. **This is a second axis and it is recorded as one.**
+
+**It does not generalise across the thirty.** pos-32 and pos-49 answer `ordered (assumed)`, so both
+arms run the expensive test and neither gets the saving. The saving exists exactly where arm B
+answers `arbitrary`, which is 18 of the 27 answered deposits.
+
+### 17.5 — a declared exposure
+
+**The timing runs printed flags for a modified pos-41 before any deposit was scored.** The 1,000-row
+truncation under arm A's defaults reported severity 3, HIGH 6, MODERATE 8; the 5,000-row truncation
+reported severity 3, HIGH 7, MODERATE 8; the override runs reported others. **That is information
+about a truncation of pos-41, seen by the analyst.**
+
+**It is declared here rather than left unmentioned**, because a screen whose integrity rests on
+answers preceding results cannot have an unrecorded look at either.
+
+Three things bound it. **pos-41's arm-B answers were made and committed before any timing run** —
+batch 4, `16eb86a`, and the timing began afterwards. **None of these figures enters §7**, which
+takes the deposit's own results and not a truncation's. **And a 1,000-row slice of a 109,228-row
+file analysed under an assay override is not the deposit**, so no verdict is anticipated by it.
+
+### 17.6 — what this section does not settle
+
+- **The mechanism inside Blocked Mahalanobis.** Timing attributes cost; it does not explain it.
+  Sliding (μ, Σ) windows with a covariance inversion at 27 columns is a plausible shape and it is a
+  hypothesis. **The source is unread and no register row should state a cause from timing alone.**
+- **pos-40's cause.** It died before the battery, and 416 columns give 86,320 column pairs against
+  pos-41's 351. **Rows explain pos-41 and do not explain pos-40**, and the two failures should not
+  be given one story.
+- **pos-32's runtime**, unmeasured, and it takes the expensive test on both arms.
+- **Whether the product should carry a row or width ceiling.** `ImportView.jsx:298` caps bytes at
+  50 MiB, which **cannot fire anywhere on this corpus**, while the limit that actually binds is
+  invisible to the user. A register question, and no row is claimed here.
+- **Anything about a verdict.** No round-2 deposit has been scored on either arm.
