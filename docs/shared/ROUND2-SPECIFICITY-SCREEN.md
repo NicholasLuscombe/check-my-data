@@ -1030,3 +1030,43 @@ file analysed under an assay override is not the deposit**, so no verdict is ant
   50 MiB, which **cannot fire anywhere on this corpus**, while the limit that actually binds is
   invisible to the user. A register question, and no row is claimed here.
 - **Anything about a verdict.** No round-2 deposit has been scored on either arm.
+
+### 17.7 — §17.1 joins two measurements that were never connected, logged S396 beside it
+
+**§17.1 says pos-41 is quadratic in rows and that one test carries it. Both measurements stand. The
+word joining them does not.**
+
+**The exponent is a property of the whole battery**, measured at two row counts on one arm: 1,000
+rows in 58.1 s and 63.3 s, 5,000 rows in 1,160 s, giving 1.81 to 1.85. **The 81% is a property of
+one test at one row count** — Blocked Mahalanobis at 1,000 rows, by three independent routes to
+N/A. **Blocked Mahalanobis's share at 5,000 rows was never measured**, so nothing establishes that
+the test carrying the cost is the thing that scales.
+
+**And the source reads linear.** `src/tests/blockedMahalanobis.js:476` computes
+`nWin = Math.floor((N - W) / S_STRIDE) + 1` with `W = max(30, 3·nC)` and `stride = W/3`, **both
+constant in N**. Line 510 sets `N_PERM = maxN <= 500 ? 4999 : 999`, and 1,000 and 5,000 rows both
+sit above that threshold, so the permutation count does not change between the two timings. Windows
+grow linearly, each does fixed work, and the permutation count is constant: **O(N), which predicts
+5× where 19.8× was measured.**
+
+**A third explanation is therefore likelier than either.** `EARLY_EXIT_BURN_IN = 20` with an exit
+once the p-value floor is unreachable makes the permutations actually run **data-dependent**, so a
+1,000-row slice may exit early where a 5,000-row slice does not. That would make the growth a
+property of the data rather than of the algorithm — **which is what `C20 :: Microcosm soil A`
+against `soil B` already established**, two sheets of identical shape an order of magnitude apart in
+cost. Candidate, not finding: the permutation counts sit in the artifacts already written and have
+not been read.
+
+**Nothing in §17.2 depends on this.** n stays 30, no resource limit is raised, the budget is 24
+hours per run, and non-completion is a recorded outcome — none of it turns on why a deposit is
+expensive.
+
+**What must not happen is a register row stating a cause.** The measurements are solid and the
+mechanism is unknown; a row reading *Blocked Mahalanobis is quadratic in rows* would be false on the
+source as written.
+
+**How the error was made, because the shape recurs.** Two measurements of different quantities were
+written into one sentence, and the pronoun did work the measurements did not support. That is
+widening a true finding past its scope — the register's fourth signature — and it reached a
+committed pre-registration section before the source was read. **The read that caught it was
+prompted by the section itself**, which had recorded the mechanism as unread.
