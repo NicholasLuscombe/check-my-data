@@ -813,3 +813,52 @@ Three reasons, and the first is the binding one.
 - **§16's own text stands as written.** This is a correction logged beside it, per §6.4. Nothing above was edited.
 - **Whether a naming scheme should be detected is a register question.** No row is claimed here and no fix is proposed.
 - **Still nothing about a verdict.** No arm has run on any round-2 deposit.
+
+### 16.7 — a third mixed deposit, and the header list §16.5 decided on, logged S396 before either arm ran
+
+**pos-07 is mixed.** `data_complete.csv` is semicolon-delimited with 91 columns. Columns 0–16 are
+study descriptors and climate variables. **Columns 17–86 are the years 1950 to 2019** — seventy
+columns carrying one quantity across a year axis written into the header. That is pos-45's
+wavelength sweep sitting beside pos-41's real variables, and it is recorded as mixed rather than
+forced onto one side, for the reason §16.5 gives for the other two.
+
+**§16.5 missed it because the header list it decided on did not contain the headers.**
+`S395-ROUND2-STRUCTURE-TABLE.md` rolls up 66 of pos-07's 91 columns, listing
+`Aridity_index_3_month` at 15 and `2015` at 82 with the run between them compressed to ranges. The
+diagnostic is *decidable from a header list without domain knowledge*, and the list available was
+25 of 91. **The classification was correct against what it read**, which is the point: a
+compression is not a smaller version of the record, it is a different record.
+
+**Five deposits carry such a roll-up** — pos-07 (66 hidden), pos-18 (139), pos-40 (408), pos-43
+(62), pos-45 (94). Three are now settled:
+
+- **pos-18 confirms as written.** All 204 headers read at source: `Cluster`, `Site`, `Type`,
+  `Module`, then 200 alphabetical plant species. Columns are variables.
+- **pos-43's verdict survives and its reason does not.** §16.5 rules it out on the merged-header
+  mechanism — the two width-2 spans are the blank separator columns after `Side` and after `m4PW` —
+  and is silent on the naming scheme, which the full list does carry: `P1L`/`P1W` upper dentition
+  against `p1L`/`p1W` lower, in three anatomical blocks. On the samples-or-variables diagnostic it
+  reads variables, because `P1L` and `M2W` are different quantities on one specimen rather than one
+  quantity on different samples. **Not a member, for a reason §16.5 does not give.**
+- **pos-40 and pos-45 are unread and are not exposed in the same direction.** Both are already
+  classified as members on their naming schemes, so a hidden header can add detail and cannot
+  remove them from the class.
+
+**What this does not settle.** Whether pos-38's membership survives the same diagnostic —
+thirteen species crossed with `_c`/`_rate` may be twenty-six distinct quantities rather than
+thirteen samples measured twice. **Unverified**, and to be checked when pos-38 is answered.
+
+#### 16.7.1 — what a mixed deposit records
+
+**§16.2 requires the string `structure inexpressible` in run log §7's Notes so the class can be
+counted; §16.6 says §16.3's count covers eight. Neither says what a mixed deposit does**, and
+there are now three.
+
+**Ruled: a mixed deposit carries the string and is reported as its own figure beside the eight.**
+§16.3 exists to mark where the column gate's agreement is forced rather than measured, and on a
+mixed deposit it is equally forced — §16.1 sends arm B to `replicates` and arm A hardcodes it.
+Omitting them understates the forced-agreement count; folding them into the eight overstates a
+class §16.5 deliberately kept apart. **Two figures, both reported: eight members, three mixed.**
+
+**pos-41 and pos-46 have not been answered yet**, so nothing is being back-filled — the rule is
+fixed before their rows are written, which is the only reason it can be audited.
