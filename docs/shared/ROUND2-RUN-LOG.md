@@ -147,38 +147,38 @@ cap (S381 row 1, confirmed S390), so an over-cap deposit would run on arm A and 
 
 One row per accepted deposit. Filled before either arm runs on it.
 
-| # | DOI | File | Sheet | Sheet index / total | Column relationship | Row semantics | Structural reason | Arm B run by | Polyfill assertion |
-|---|---|---|---|---|---|---|---|---|---|
-| 1 | doi:10.5061/dryad.fttdz0980 | micro_data_compiled.xlsx | 1300-3 | 7 / 7 |  |  |  |  |  |
-| 2 | doi:10.5061/dryad.rv15dv4q9 | os_cells_new.csv | os_cells_new.csv | 1 / 1 | gate did not render | gate did not render | 21 columns infer to 1 Data / 1 Label / 7 Cond / 12 Attr. **§2.8 is the sole cause**: without the group-attribute hold-out the sheet carries 13 data columns. `collection_no`, a museum collection identifier, survives as the only data column and is the grouping key holding twelve of the others out. Screen read 30 Aug: `Data cols 1`, no column-relationship card, no run zone, *"Assign at least 2 data columns to proceed."* An Anscombe transform was pre-selected `Auto` on the identifier. | **refused (`ImportView.jsx:974`)** | n/a — no run |
-| 3 | doi:10.5061/dryad.4mw6m90r1 | OpilionesChemicalCues_v2(data).csv | OpilionesChemicalCues_v2(data).csv | 1 / 1 |  |  |  |  |  |
-| 7 | doi:10.5061/dryad.hqbzkh1vv | data_complete.csv | data_complete.csv | 1 / 1 |  |  |  |  |  |
-| 8 | doi:10.5061/dryad.djh9w0wf0 | ECS-SA_(Affinity).xlsx | Protein-Peptide Info | 1 / 3 |  |  |  |  |  |
-| 12 | doi:10.5061/dryad.d7wm37qh7 | Non-target_OUTs.csv | Non-target_OUTs.csv | 1 / 1 |  |  |  |  |  |
-| 14 | doi:10.5061/dryad.bvq83bkr6 | Rawdata_Figures_Tables_TSA.xlsx | Figure 2 | 2 / 8 |  |  |  |  |  |
-| 18 | doi:10.5061/dryad.g79cnp5vs | Data_2022.xlsx | Floral_M | 4 / 15 |  |  |  |  |  |
-| 21 | doi:10.5061/dryad.m827p | FEMS_dryad_v2_published.xlsx | Data | 1 / 3 |  |  |  |  |  |
-| 22 | doi:10.5061/dryad.xsj3tx9vw | pgls_all_genera.csv | pgls_all_genera.csv | 1 / 1 |  |  |  |  |  |
-| 23 | doi:10.5061/dryad.6q573n6ff | 05_hydrodynamic_daily_outputs.csv | 05_hydrodynamic_daily_outputs.csv | 1 / 1 |  |  |  |  |  |
-| 27 | doi:10.5061/dryad.83bk3jb37 | radMS_table_1.xlsx | Sheet1 | 1 / 1 |  |  |  |  |  |
-| 28 | doi:10.5061/dryad.gtht76j3x | dominance_data.csv | dominance_data.csv | 1 / 1 |  |  |  |  |  |
-| 30 | doi:10.5061/dryad.qv9s4mwwc | ips_density_Goundar_et_al_2026_Where_are_they_now.csv | ips_density_Goundar_et_al_2026_Where_are_they_now.csv | 1 / 1 |  |  |  |  |  |
-| 31 | doi:10.5061/dryad.1vhhmgr9v | MC_Drosophila_hydei.xlsx | Males | 2 / 3 |  |  |  |  |  |
-| 32 | doi:10.5061/dryad.9ghx3fg0p | XLarge_All_Pod_Inference_data.csv | XLarge_All_Pod_Inference_data.csv | 1 / 1 |  |  |  |  |  |
-| 34 | doi:10.5061/dryad.m0cfxppgt | Sperm_morphological_data.csv | Sperm_morphological_data.csv | 1 / 1 |  |  |  |  |  |
-| 35 | doi:10.5061/dryad.4xgxd25s6 | AgeRelatedChangesInAcousticCues_data.csv | AgeRelatedChangesInAcousticCues_data.csv | 1 / 1 |  |  |  |  |  |
-| 38 | doi:10.5061/dryad.3tx95x6t7 | Nightly_Capture_Rates_Spp_Updated.csv | Nightly_Capture_Rates_Spp_Updated.csv | 1 / 1 |  |  |  |  |  |
-| 39 | doi:10.5061/dryad.280gb5n5c | FIG3.xlsx | FIG3A | 2 / 5 |  |  |  |  |  |
-| 40 | doi:10.5061/dryad.2280gb64c | 13._b_Planctomycetota_asv.csv | 13._b_Planctomycetota_asv.csv | 1 / 1 |  |  |  |  |  |
-| 41 | doi:10.5061/dryad.kprr4xhfb | SNPeffect_BSLMM_allvar.csv | SNPeffect_BSLMM_allvar.csv | 1 / 1 |  |  |  |  |  |
-| 43 | doi:10.5061/dryad.8gtht772x | Isoodon_data_raw_only.csv | Isoodon_data_raw_only.csv | 1 / 1 |  |  |  |  |  |
-| 44 | doi:10.5061/dryad.g4f4qrg50 | subset_dets.csv | subset_dets.csv | 1 / 1 | gate did not render | gate did not render | 12 columns infer to 1 Data / 1 Label / 6 Cond / 4 Attr. **§2.8 is the sole cause**: without the hold-out the sheet carries 5 data columns — `Date` holds `month` and `year`, `station` holds `lon` and `lat`. `timediff` survives. `Non-numeric 8` against `Missing 0`: eight `NA` cells counted as non-numeric rather than missing, unresolved. Screen read 30 Aug, same page text. | **refused (`ImportView.jsx:974`)** | n/a — no run |
-| 45 | doi:10.5061/dryad.hqbzkh1zw | FF_blank.csv | FF_blank.csv | 1 / 1 |  |  |  |  |  |
-| 46 | doi:10.5061/dryad.bzkh189qb | full_chemistry_wMeta.csv | full_chemistry_wMeta.csv | 1 / 1 |  |  |  |  |  |
-| 47 | doi:10.5061/dryad.cnp5hqcmx | seed-density.csv | seed-density.csv | 1 / 1 | gate did not render | gate did not render | 11 columns infer to 1 Data / 1 Label / 5 Cond / 2 Attr. **§2.8 is the sole cause**: without the hold-out the sheet carries 3 data columns — `plot_id` holds `seed_density` and `burial_treatment`, the two experimental factors. **Role inference is also contradicted by the file's own structure**: `length_cm_1`–`_5` are five replicate measurements scored `condition` (P217), their 40-row window being 200 cells of the literal `NA`. Measurement type auto-detected *Western Blot Densitometry* on a seagrass field experiment, which locked the data type, pre-selected Anscombe and auto-answered the row-semantics gate. Screen read 30 Aug, same page text. | **refused (`ImportView.jsx:974`)** | n/a — no run |
-| 49 | doi:10.5061/dryad.3r2280gzk | data_R.csv | data_R.csv | 1 / 1 |  |  |  |  |  |
-| 50 | doi:10.5061/dryad.1rn8pk187 | Assemblies_and_species.tsv | Assemblies_and_species.tsv | 1 / 1 |  |  |  |  |  |
-| 51 | doi:10.5061/dryad.v15dv42cj | Pieris_phenotype.csv | Pieris_phenotype.csv | 1 / 1 |  |  |  |  |  |
+| # | DOI | File | Sheet | Sheet index / total | Column relationship | Row semantics | Confirm gate | Structural reason | Arm B run by | Polyfill assertion |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | doi:10.5061/dryad.fttdz0980 | micro_data_compiled.xlsx | 1300-3 | 7 / 7 |  |  |  |  |  |  |
+| 2 | doi:10.5061/dryad.rv15dv4q9 | os_cells_new.csv | os_cells_new.csv | 1 / 1 | gate did not render | gate did not render | gate did not render | 21 columns infer to 1 Data / 1 Label / 7 Cond / 12 Attr. **§2.8 is the sole cause**: without the group-attribute hold-out the sheet carries 13 data columns. `collection_no`, a museum collection identifier, survives as the only data column and is the grouping key holding twelve of the others out. Screen read 30 Aug: `Data cols 1`, no column-relationship card, no run zone, *"Assign at least 2 data columns to proceed."* An Anscombe transform was pre-selected `Auto` on the identifier. | **refused (`ImportView.jsx:974`)** | n/a — no run |
+| 3 | doi:10.5061/dryad.4mw6m90r1 | OpilionesChemicalCues_v2(data).csv | OpilionesChemicalCues_v2(data).csv | 1 / 1 |  |  |  |  |  |  |
+| 7 | doi:10.5061/dryad.hqbzkh1vv | data_complete.csv | data_complete.csv | 1 / 1 |  |  |  |  |  |  |
+| 8 | doi:10.5061/dryad.djh9w0wf0 | ECS-SA_(Affinity).xlsx | Protein-Peptide Info | 1 / 3 |  |  |  |  |  |  |
+| 12 | doi:10.5061/dryad.d7wm37qh7 | Non-target_OUTs.csv | Non-target_OUTs.csv | 1 / 1 |  |  |  |  |  |  |
+| 14 | doi:10.5061/dryad.bvq83bkr6 | Rawdata_Figures_Tables_TSA.xlsx | Figure 2 | 2 / 8 |  |  |  |  |  |  |
+| 18 | doi:10.5061/dryad.g79cnp5vs | Data_2022.xlsx | Floral_M | 4 / 15 |  |  |  |  |  |  |
+| 21 | doi:10.5061/dryad.m827p | FEMS_dryad_v2_published.xlsx | Data | 1 / 3 |  |  |  |  |  |  |
+| 22 | doi:10.5061/dryad.xsj3tx9vw | pgls_all_genera.csv | pgls_all_genera.csv | 1 / 1 |  |  |  |  |  |  |
+| 23 | doi:10.5061/dryad.6q573n6ff | 05_hydrodynamic_daily_outputs.csv | 05_hydrodynamic_daily_outputs.csv | 1 / 1 |  |  |  |  |  |  |
+| 27 | doi:10.5061/dryad.83bk3jb37 | radMS_table_1.xlsx | Sheet1 | 1 / 1 |  |  |  |  |  |  |
+| 28 | doi:10.5061/dryad.gtht76j3x | dominance_data.csv | dominance_data.csv | 1 / 1 |  |  |  |  |  |  |
+| 30 | doi:10.5061/dryad.qv9s4mwwc | ips_density_Goundar_et_al_2026_Where_are_they_now.csv | ips_density_Goundar_et_al_2026_Where_are_they_now.csv | 1 / 1 |  |  |  |  |  |  |
+| 31 | doi:10.5061/dryad.1vhhmgr9v | MC_Drosophila_hydei.xlsx | Males | 2 / 3 |  |  |  |  |  |  |
+| 32 | doi:10.5061/dryad.9ghx3fg0p | XLarge_All_Pod_Inference_data.csv | XLarge_All_Pod_Inference_data.csv | 1 / 1 |  |  |  |  |  |  |
+| 34 | doi:10.5061/dryad.m0cfxppgt | Sperm_morphological_data.csv | Sperm_morphological_data.csv | 1 / 1 |  |  |  |  |  |  |
+| 35 | doi:10.5061/dryad.4xgxd25s6 | AgeRelatedChangesInAcousticCues_data.csv | AgeRelatedChangesInAcousticCues_data.csv | 1 / 1 |  |  |  |  |  |  |
+| 38 | doi:10.5061/dryad.3tx95x6t7 | Nightly_Capture_Rates_Spp_Updated.csv | Nightly_Capture_Rates_Spp_Updated.csv | 1 / 1 |  |  |  |  |  |  |
+| 39 | doi:10.5061/dryad.280gb5n5c | FIG3.xlsx | FIG3A | 2 / 5 |  |  |  |  |  |  |
+| 40 | doi:10.5061/dryad.2280gb64c | 13._b_Planctomycetota_asv.csv | 13._b_Planctomycetota_asv.csv | 1 / 1 |  |  |  |  |  |  |
+| 41 | doi:10.5061/dryad.kprr4xhfb | SNPeffect_BSLMM_allvar.csv | SNPeffect_BSLMM_allvar.csv | 1 / 1 |  |  |  |  |  |  |
+| 43 | doi:10.5061/dryad.8gtht772x | Isoodon_data_raw_only.csv | Isoodon_data_raw_only.csv | 1 / 1 |  |  |  |  |  |  |
+| 44 | doi:10.5061/dryad.g4f4qrg50 | subset_dets.csv | subset_dets.csv | 1 / 1 | gate did not render | gate did not render | gate did not render | 12 columns infer to 1 Data / 1 Label / 6 Cond / 4 Attr. **§2.8 is the sole cause**: without the hold-out the sheet carries 5 data columns — `Date` holds `month` and `year`, `station` holds `lon` and `lat`. `timediff` survives. `Non-numeric 8` against `Missing 0`: eight `NA` cells counted as non-numeric rather than missing, unresolved. Screen read 30 Aug, same page text. | **refused (`ImportView.jsx:974`)** | n/a — no run |
+| 45 | doi:10.5061/dryad.hqbzkh1zw | FF_blank.csv | FF_blank.csv | 1 / 1 |  |  |  |  |  |  |
+| 46 | doi:10.5061/dryad.bzkh189qb | full_chemistry_wMeta.csv | full_chemistry_wMeta.csv | 1 / 1 |  |  |  |  |  |  |
+| 47 | doi:10.5061/dryad.cnp5hqcmx | seed-density.csv | seed-density.csv | 1 / 1 | gate did not render | gate did not render | gate did not render | 11 columns infer to 1 Data / 1 Label / 5 Cond / 2 Attr. **§2.8 is the sole cause**: without the hold-out the sheet carries 3 data columns — `plot_id` holds `seed_density` and `burial_treatment`, the two experimental factors. **Role inference is also contradicted by the file's own structure**: `length_cm_1`–`_5` are five replicate measurements scored `condition` (P217), their 40-row window being 200 cells of the literal `NA`. Measurement type auto-detected *Western Blot Densitometry* on a seagrass field experiment, which locked the data type, pre-selected Anscombe and auto-answered the row-semantics gate. Screen read 30 Aug, same page text. | **refused (`ImportView.jsx:974`)** | n/a — no run |
+| 49 | doi:10.5061/dryad.3r2280gzk | data_R.csv | data_R.csv | 1 / 1 |  |  |  |  |  |  |
+| 50 | doi:10.5061/dryad.1rn8pk187 | Assemblies_and_species.tsv | Assemblies_and_species.tsv | 1 / 1 |  |  |  |  |  |  |
+| 51 | doi:10.5061/dryad.v15dv42cj | Pieris_phenotype.csv | Pieris_phenotype.csv | 1 / 1 |  |  |  |  |  |  |
 
 - **Sheet** is chosen by §6.2 — largest cell count among sheets that pass, tie-broken on data columns,
   then rows, then file name, then sheet index.
@@ -189,6 +189,10 @@ One row per accepted deposit. Filled before either arm runs on it.
   `(user-set)` where you answered, `(assumed)` where the product supplied it. §8.2 — these are two
   separate gates and on C10 the product answered one of them by itself.
 - **Structural reason** is why that answer follows from the file's own structure.
+- **Confirm gate** is §13.3 — the ticked set confirmed with its provenance word, or `gate did not
+  render`. The card pre-ticks every condition column, so accepting it unexamined is `(assumed)` and
+  is a default taken at the third gate. **Where the surface refuses, all three gate cells read
+  *gate did not render*** (§14.3), never blank.
 - **Arm B run by** is `probe`, `hand-run` or `refused (<gate>)`. A hand-run names the control the
   probe could not drive, §8.1, and no deposit is dropped for needing one. **A refusal is §14.3 and is
   not a hand-run** — the product offers nothing to perform, so the gate cells read *gate did not
@@ -275,3 +279,79 @@ the shakedown), **13 of 31 measured sheets** took block 1 of several, the widest
 **Low incidence, near-total loss per instance; either figure quoted alone misleads.**
 `detectBlocksSplit` carries it per sheet, so a deposit whose selected sheet ranked on a fragment is
 identifiable rather than assumed.
+
+
+---
+
+## 7 — Results
+
+**One row per deposit, filled after both arms have run on it.** §4 is the pre-run record by its own
+instruction and this is the post-run record. Keeping them apart is what stops a later reader asking
+whether an answer was written after a verdict was seen. **§6.4 holds across both:** an answer is
+never revised after a run, and a correction is logged with its reason rather than overwritten.
+
+**Rows are keyed on position and carry no DOI, deliberately.** §5's counting commands anchor on
+`^| N | doi:` and have already been corrected twice for matching text they were never meant to
+reach. A second DOI-led table in this file would break them a third time. **Do not add a DOI column
+here** — §4 maps position to DOI and the position is the key throughout.
+
+| # | Sev A | Sev B | Differs | cov.ran A | cov.ran B | Row frac A | Row frac B | Notes |
+|---|---|---|---|---|---|---|---|---|
+
+| 1 |  |  |  |  |  |  |  |  |
+| 2 |  | refused | arm B refused |  | no run |  | no run |  |
+| 3 |  |  |  |  |  |  |  |  |
+| 7 |  |  |  |  |  |  |  |  |
+| 8 |  |  |  |  |  |  |  |  |
+| 12 |  |  |  |  |  |  |  |  |
+| 14 |  |  |  |  |  |  |  |  |
+| 18 |  |  |  |  |  |  |  |  |
+| 21 |  |  |  |  |  |  |  |  |
+| 22 |  |  |  |  |  |  |  |  |
+| 23 |  |  |  |  |  |  |  |  |
+| 27 |  |  |  |  |  |  |  |  |
+| 28 |  |  |  |  |  |  |  |  |
+| 30 |  |  |  |  |  |  |  |  |
+| 31 |  |  |  |  |  |  |  |  |
+| 32 |  |  |  |  |  |  |  |  |
+| 34 |  |  |  |  |  |  |  |  |
+| 35 |  |  |  |  |  |  |  |  |
+| 38 |  |  |  |  |  |  |  |  |
+| 39 |  |  |  |  |  |  |  |  |
+| 40 |  |  |  |  |  |  |  |  |
+| 41 |  |  |  |  |  |  |  |  |
+| 43 |  |  |  |  |  |  |  |  |
+| 44 |  | refused | arm B refused |  | no run |  | no run |  |
+| 45 |  |  |  |  |  |  |  |  |
+| 46 |  |  |  |  |  |  |  |  |
+| 47 |  | refused | arm B refused |  | no run |  | no run |  |
+| 49 |  |  |  |  |  |  |  |  |
+| 50 |  |  |  |  |  |  |  |  |
+| 51 |  |  |  |  |  |  |  |  |
+
+- **Sev A** and **Sev B** are the file verdict severities, 0 to 3. **On a refusal Sev B reads
+  `refused`** (§14.3): arm A scores the sheet, arm B has no run, and the cost of the default on that
+  deposit is the largest it can be.
+- **Differs** answers §4's default-cost reading. `yes` or `no` on the severity comparison, and
+  **`arm B refused` where there is no arm B to compare** — §14.4 requires that counted and named on
+  its own line, never folded in, because a difference in kind is not a difference in degree.
+- **cov.ran A / B** is §13.5, the count of tests that ran, per arm. On this class the arms can
+  differ in coverage as well as in severity, and a severity difference cannot be separated from a
+  coverage difference unless both are recorded. **On a refusal arm B reads `no run`**, which §14.4
+  distinguishes from a run that assessed nothing.
+- **Row frac A / B** is §15.2, the fraction of rows sitting in groups that survived `slices()`'s
+  three-row filter. **`cov.ran` records how many tests ran, not how much of the file they saw.** A
+  deposit reading clean on a quarter of its rows is not the same result as one reading clean on all
+  of them, and without this field the two are indistinguishable here.
+- **Notes** carries the structural reason for anything unusual — zero surviving groups (§15.3), a
+  hand-run with its named control (§8.1), a sheet that ranked on one block of several.
+
+**Per-test firing counts are not transcribed into this file.** §4's per-test malfunction reading
+needs every test's flag on every deposit, which lives in the run artifacts. Record the artifact path
+per arm and compute the tally from it at the end of the sitting. **A count typed twice is a count
+that will disagree with itself**, which is what §5 says about rejections and the reason it keeps no
+running total in prose.
+
+**The refusal count is reported beside every arm-B figure** (§14.4). No figure is recomputed over
+"the deposits that ran" — choosing a denominator after seeing results is the free choice §3 exists
+to prevent.
