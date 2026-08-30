@@ -683,3 +683,51 @@ That ordering is the point. A rule written after the read would be a rule writte
 - **Incidence.** Three deposits are candidates on one inventory field. Nothing here says the count is three, or that it is not larger.
 - **Whether the two surfaces should agree.** The screen records the divergence; it does not rule on it.
 - **Anything about round 2.** No round-2 deposit has been opened, analysed or timed.
+
+## 15 — what the screen must record about role inference, added S394, before any deposit was analysed
+
+**No rule above this line changes.** §14's refusal rule stands exactly as written. **Nothing has been analysed: no test has run on any round-2 deposit, no verdict, flag or severity computed.** Every figure below comes from structural reads that stop before `runFullAnalysis`, or from round 1.
+
+### 15.1 — §14.2's open step is closed, and the three candidates are established
+
+**`nNumericDataCols` and `sum.nDC` are the same computation within a prep.** Proven at source at `engine.js:118-126` against `summary.js:4`. §14.2 calls the step between them unread; it is read. **What stays open is prep divergence**, and `S381-HARNESS-APP-DIVERGENCE.md` censuses 33 decision points of it, not the four §0.5 of the census record named.
+
+**All three candidates refuse, established from the screen on 30 August.** pos-02, pos-44 and pos-47, each `Data cols 1` on the product's own summary panel, no column-relationship card, no run zone, page ending at section 4. Recorded as `refused (ImportView.jsx:974)` per §14.3.
+
+**And the cause is not the deposit.** §2.8's group-attribute hold-out is the sole cause on all three: without it they carry 13, 5 and 3 data columns. **Any structural reason of the form \*this file has one measurement\* is false and must not be written.** The reason is that the product removed the others.
+
+### 15.2 — rows reaching the tests, recorded per deposit
+
+**`cov.ran` records how many tests ran. It does not record how much of the file they saw.** The `slices()` filter drops every group below three rows, and the cost is per-sheet and does not track the group count: `pos-44` loses 75.5% of its rows, `pos-47` 32.6%, and `pos-08` drops 103 of its 107 groups while losing almost none.
+
+**So §13.5's record gains one field: the fraction of rows in surviving groups, per arm.** It is derivable from the partition and needs no extra run.
+
+**A deposit reading clean on a quarter of its rows is not the same result as one reading clean on all of them, and without this field the two are indistinguishable in the record.**
+
+### 15.3 — a sheet with no surviving group
+
+**`pos-31 MC_Drosophila_hydei.xlsx [Males]` partitions into 486 groups, every one a singleton, and `slices()` returns none.** No group-based test can run on it.
+
+**This is not §14's refusal.** The file imports, the gates render, the run button appears. The analysis runs and reports on whatever is not group-based.
+
+**The rule, fixed before the sitting and before anyone sees what else it catches:**
+
+- **The deposit runs and is recorded normally.** Zero surviving groups is an outcome, not an error.
+- **`cov.ran` and the §15.2 row fraction carry it.** No separate verdict category is created.
+- **It stays in the denominator of 30** and contributes to numerators only through whatever actually fired.
+- **The structural reason names the partition**, so a later reader is not left to infer why coverage is low.
+
+### 15.4 — the `conditions` answer has no coverage forecast
+
+**Answering the column gate `conditions` claims the sheet column-grouped on 27 of the thirty and replaces row fragmentation with groups one column wide**, which is not a pair and starves every pair-based test instead.
+
+**No round-1 sheet has a one-column group, so nothing calibrates that answer.** Where arm B's column answer comes out `conditions`, **the deposit's coverage is recorded as unforecast** rather than compared against a round-1 expectation.
+
+**Neither answer to the column gate is the safe one**, and §8.2 treats it as a neutral two-way question. It is not.
+
+### 15.5 — what this section does not settle
+
+- **Whether either role mechanism should be fixed.** Both are open register items, P217 and P218, and §2.8's removal would create false positives of its own. **Not this document's question.**
+- **What role inversion does to a clean deposit.** Round 1 is saturated at severity 3 and has zero fabricated-condition-only sheets. The measured direction is suppressing on every instance available, which is why the screen can run — but the clean-to-flagged transition is unmeasured on any corpus.
+- **Anything about round 2.** No deposit has been analysed or timed.
+
