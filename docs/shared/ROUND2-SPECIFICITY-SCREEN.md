@@ -562,3 +562,124 @@ moves a deposit across the boundary of the thirty.**
 - **Runtime on the selected sheets.** pos-40 sits at position 21, inside the thirty, and carries sheets
   of 13–14 million cells. §6.2 ranks on cell count, so that is what it selects. The widest fixture the
   battery has run is 1,501 × 19, and nothing here measures the difference.
+
+## 13 — the confirm gate, added S393, before any deposit was analysed
+
+**No rule above this line changes.** This section adds a rule §8 did not fix and corrects two claims §8 makes. §8's text stays in the record, as this document's preamble requires. **Nothing has been analysed: no test has run on any round-2 deposit, no verdict, flag or severity has been computed.**
+
+### 13.1 — what was not fixed
+
+§8.2 records a provenance word for **each of the two gates**. On the `groupingPending` class the product asks a **third** question — `GroupingConfirmCard` — and this document says nothing about what arm B answers there. It is not covered by §8.1, which fixes machinery for deposits the probe cannot drive and does not fix what any answer should be.
+
+The gate holds four tests at `N/A`, computes severity over 25 of 29, and reads four lower on the applicable count. **Arm A cannot answer it**: `BatchView`'s loop neither suspends nor supplies a value, and the confirm surface is strictly downstream of the loop that would have to wait for it (`S390-GROUPING-PENDING-READ-ONLY.md`). So on this class the arms differ in **which tests were assessed**, not only in what they flagged.
+
+### 13.2 — what was measured, and how far it reaches
+
+`docs/shared/S393-GROUPING-CONFIRM-COST.md`, at `1940a1f`. Seven drivable round-1 sheets, each run with the gates held at `replicates` / `ordered` and only the confirm varying.
+
+**Confirming moved nothing on any of the seven.** Severity, H and M identical across confirm, decline and neither.
+
+**The mechanism is a shared root.** The pending precondition is `!hasGroups && hasRowConds`. Arm 2 of the trigger is *the groups are too thin to support a permutation test*; confirm, and the four tests run and decline for that same thinness. The guard's cause is what makes the tests inapplicable once they run.
+
+**The finding is bounded and the bound is not incidental.** `pending = arm1 || arm2` is a disjunction. Arm 1 is `nCondCols >= 3` — a structural condition, not a thinness one. All nine round-1 sheets carry arm 2 and **none carries arm 1 alone**, so the arm-1-only case is unmeasured. **On an arm-1-only sheet the groups are of ordinary size, the four tests would run for real, and confirming could move a verdict.** Three or more condition columns is an unremarkable design and round 2 may carry it.
+
+**Do not read this section as "confirming never matters."** It matters nowhere in the arm-2 class and is untested elsewhere.
+
+### 13.3 — the rule
+
+**Arm B answers the confirm gate where it renders.**
+
+- **Examine the ticked set before confirming.** The card pre-ticks every condition column (`ForensicsBody.jsx:178–182`). **That is a display default**, and confirming it unexamined is accepting a default at the third gate — the thing arm B exists to avoid at the first two. Untick any column that is not a condition column on the file's own structure, then confirm.
+- **Record the ticked set as confirmed, with its structural reason**, in the same form §3 requires of the other two answers.
+- **Record a third provenance word**, per §8.2's rule extended: `(user-set)` where the set was examined and answered, `(assumed)` where the pre-ticked set was accepted as offered.
+- **Where the gate does not render, record that** rather than leaving the field blank. A blank cannot be told from an unanswered gate.
+
+**Answers are not revised after any run**, per §6.4. A correction is logged with its reason.
+
+### 13.4 — the gate has a precondition, and it is the first gate's answer
+
+**The confirm gate exists only under the `replicates` answer.** At `conditions` with two or more data columns, `conditionContext.js:63–65` claims the sheet as column-grouped, `engine.js:176` passes an empty `condColSet`, and `computeTrigger` returns `pending: false` at `groupingTrigger.js:84–86`. Derived by source read and then driven: the card rendered on no run under the `conditions` answer.
+
+**So the two gates §8.2 treats as parallel have a dependency running between them, and the order is fixed: the column answer first.** How many deposits reach the third gate is decided by the sitting, not by the corpus.
+
+**Every `groupingPending` figure this project holds is a `replicates` figure by construction.** `corpus-run.mjs:246` hardcodes the answer on the headless path, and the inventory's field (`corpus-run.mjs:456`, a boolean, per sheet) inherits it. Round 1's nine and any round-2 count alike. **The arm-B count is not merely unmeasured — its lower bound is zero.** No figure taken from `corpus-out/` may be cited as the number of deposits reaching this gate.
+
+### 13.5 — what to record per deposit, in addition to §3 and §7
+
+- Whether the confirm gate rendered.
+- If it did: the ticked set confirmed, its structural reason, and the provenance word.
+- **`cov.ran` per arm.** On this class arm A and arm B can differ in coverage as well as in severity, and a severity difference cannot be separated from a coverage difference unless both are recorded. §4's *count of deposits whose severity differs between arms* is not sufficient on its own here.
+
+### 13.6 — two corrections to §8
+
+**§8's validation did not cover the outcome the screen exists to find.** Its four-of-four is true and was taken on a sheet where every arm is severity 1 or 3. The probe as validated **could not read a clean verdict at all**: `VerdictBanner` gates the action one-liner on `severity > 0`, so `VERDICT_TEXT[0].sub` is never in the DOM and `readVerdict` had nothing to match. Round 2 is a specificity screen and severity 0 is its expected outcome. **A clean deposit would have hung the probe while presenting as not drivable**, which §8.1 routes to a hand-run on a deposit with nothing wrong with it. Fixed at `2c53e84`.
+
+**§8's cost projection is a C10 figure and is superseded.** *30 deposits, arm B only, ≈ 3 min* rests on a 5.7 s/run mean. Measured across the seven round-1 pending sheets: 1.5 s to over 2,460 s per run. **And cost is data-dependent, not shape-dependent** — `C20 :: Microcosm soil A` and `soil B` are the same 204 × 17 with the same group-size vector, and one completes at ~240 s while the other did not complete at 2,460 s. **The consequence reaches §12.7: timing pos-40 on a synthetic sheet of the same shape may measure nothing, and pos-40's runtime is unmeasured.**
+
+**The probe as changed is `2c53e84`**, recorded here as §8 requires: `runArm` gained `confirm` and `inspect`, three instrument defects were fixed, and parts 1–4 including the four-of-four hold unchanged. `git diff HEAD -- src scripts` empty.
+
+### 13.7 — what this section does not settle
+
+- **P212**, which is about confirmed state failing to reach the batch row and the export. Untouched.
+- **The arm-1-only case.** See §13.2.
+- **Whether the QC branch tells a reader that four tests are paused.** The report opens in `qc` mode and the card sits behind the Forensics tab. Unread, and a register question rather than this document's.
+- **Anything about round 2.** No round-2 deposit was opened, analysed or timed.
+
+## 14 — the import floor, added S394, before any deposit was analysed
+
+**No rule above this line changes.** This section adds a rule §8 and §13 both leave open. **Nothing has been analysed: no test has run on any round-2 deposit, no verdict, flag or severity has been computed.** And this section is written **before the screen read that would tell anyone whether the case it governs occurs** — pos-02, pos-44 and pos-47 have not been opened at the shipped surface, and the only screen read behind this rule is S393's, on a round-1 sheet.
+
+That ordering is the point. A rule written after the read would be a rule written knowing the case exists on three named deposits, which is what §3 forbids at the rejection rule.
+
+### 14.1 — what was not fixed
+
+§8.1 fixes machinery for deposits **the probe cannot drive**. §13 fixes a gate the probe reaches and the document had not named. Neither fixes what arm B *is* when **the shipped surface refuses to analyse the selected sheet at all**.
+
+§6.2 chooses the sheet on the headless census path, which stops at `extractAnalysisInputs` and consults none of the import screen's own floors. So a sheet can be selected by §6.2, scored by arm A, and refused by the surface arm B is defined as.
+
+### 14.2 — the mechanism, and how far the reading reaches
+
+**`ImportView.jsx:974` gates the column-relationship card, and the whole run-button zone, on `sum.nDC >= 2`.** The page reads *"Assign at least 2 data columns to proceed."* **Read off the screen at S393 on round-1 `C22 :: Exp. ST`**, not inferred from source. `corpus-run.mjs` analyses the same sheet headlessly and returns a verdict.
+
+**Three round-2 deposits are candidates and none is established.** pos-02, pos-44 and pos-47 select a sheet ranking `n × 1` in the inventory. **That is a different quantity from the one the gate reads.** The inventory's `nNumericDataCols` and ImportView's `sum.nDC` are two computations, and the step between them is unread. **No deposit is recorded as refused on an inventory figure.** The divergence between the two surfaces is a register item and is allocated in STATUS, not here.
+
+**`:974` is not asserted to be the only floor.** `ImportView.jsx:215` gates on the decoded `text.length` of the chosen sheet's CSV re-serialisation and can still fire on this corpus (run log §6). **The rule below governs any refusal by the shipped surface, whatever the gate**, because a rule naming one gate would need rewriting the first time a different one fired.
+
+### 14.3 — the rule
+
+- **A refusal is arm B's outcome, recorded as a refusal.** It is not a missing measurement and not a deposit to fix. Arm A scores the sheet, arm B has no run, and **the cost of the default on that deposit is the largest it can be.** That is a finding of the screen.
+- **A refusal is established from the screen, not from the inventory.** Open the deposit's §6.2-selected sheet at the shipped surface and read what renders. One word carrying two senses is how P157 was misread; the same word carries two senses here.
+- **n stays 30.** No substitution from §12.6's five surplus deposits, and none dropped.
+- **No role reassignment.** Assigning an extra column to data to make the run button appear is a fourth answer the product never asks for, chosen after seeing which deposits need it. It is outside arm B by definition: arm B is the shipped surface answered honestly, and the surface is not asking this question.
+- **Arm A still runs on that deposit and is recorded as normal.** The asymmetry is the measurement.
+- **Where the surface refuses, the gates do not render. Record that**, per §13.3's fourth bullet extended to all three gates. A blank cannot be told from an unanswered gate.
+- **A refusal is not §8.1.** §8.1 covers a probe that cannot perform an interaction the product offers. Here the product offers nothing to perform. Routing a refusal to a hand-run sends someone to reproduce by hand a screen that has already refused.
+
+### 14.4 — how a refusal enters §4's readings
+
+- **The denominator stays 30 and a refusal contributes nothing to any numerator.** Both of §4's malfunction readings — more than 6 of 30 at severity 2 or 3, and any test firing on more than half — are computed over 30.
+- **Declared now, so it cannot be read later as tuning: this leans toward finding no malfunction.** A refused deposit cannot produce a positive.
+- **Report the refusal count beside every arm-B figure.** Do not recompute any figure over "the deposits that ran". Choosing a denominator after seeing the results is the same free choice §3 exists to prevent; reporting the count lets a reader compute that reading without anyone having chosen it.
+- **§4's default-cost reading gets a separate line.** *Deposits where arm A produced a verdict and arm B could not run* is counted and named on its own, and **never folded into the count of deposits whose severity differs between arms.** A difference in kind is not a difference in degree.
+- **`cov.ran` per arm, per §13.5.** On a refusal arm B's entry is *no run*, which is not the same record as a run that assessed nothing.
+
+### 14.5 — what to record per deposit, in addition to §3, §7, §13.5
+
+- Whether the shipped surface accepted the §6.2-selected sheet.
+- If it refused: the exact page text, the surface and the gate, the inventory's `nNumericDataCols` for that sheet, and any count the screen itself reports.
+- **In run log §4's *Arm B run by* column: `refused (<gate>)`**, alongside the existing `probe` and `hand-run` values.
+- Arm A's result, recorded as for any other deposit.
+
+### 14.6 — the instrument must tell a refusal from a hang
+
+**This is §13.6's shape and it is the second instance.** A probe that expects a run button and finds none does not throw. It waits, then reports the deposit as undrivable — the same presentation the clean-verdict gap produced at S393, and the same wrong route out of it.
+
+**So on any deposit where a refusal is possible, the screen read comes first and by hand.** The probe runs that deposit only after the surface has been seen to accept it. Extending the probe to recognise the refusal text is a fine optimisation and is not the rule, for §8.1's reason.
+
+### 14.7 — what this section does not settle
+
+- **Whether the floor is correct as a matter of design.** Whether a one-data-column sheet should be analysable at all is P157's neighbourhood and a register question, not this document's.
+- **Whether any deposit refuses.** Unread at the time of writing, on all thirty.
+- **Incidence.** Three deposits are candidates on one inventory field. Nothing here says the count is three, or that it is not larger.
+- **Whether the two surfaces should agree.** The screen records the divergence; it does not rule on it.
+- **Anything about round 2.** No round-2 deposit has been opened, analysed or timed.
