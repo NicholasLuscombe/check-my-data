@@ -485,6 +485,32 @@ and an incomplete row list.)
   No corpus re-run, no `src/` change.
 - **Unmeasured, with reasons stated**: row 10's effect, and rows 21 and 33.
 
+# Addendum, S396 — row 26 fires on a batch fixture
+
+**One of the 27 batch fixtures has fewer than two data columns, so the app would refuse to run it.**
+`19-inheritance-fabricated.csv` reads 1 data column — `value`, with `ID` as label and `COND` as
+condition — and `ImportView.jsx`'s `sum.nDC >= 2` gate does not render the Run button below two. The
+other 26 pass. Measured over all 27 by
+`node --import ./test/probes/s395-corpus-run-hook.mjs test/probes/probe-s396-inversion-incidence.mjs --pop fixtures`,
+which walks the fixtures through `corpus-run.mjs`'s own `prepStructure`; the count is parsed from the
+run, not read off the table.
+
+**It is one data column by design, not by accident.** `TEST-GROUND-TRUTH.md`'s DS19 row names "the
+pooled `value` column" and "each 600-row slice", so the fixture is a long-format inheritance file with
+a single measurement. Nothing is wrong with the fixture.
+
+**What it adds to row 26.** Part 2b measured the predicate on 41 real sheets and found it firing once
+(`C22::Exp. ST`). It also fires on the corpus the batch is built from — so the gate separates the app
+from the harness on a file the project ships and runs on every commit, not only on deposited data.
+Row 26's disposition is unchanged and this is recorded as incidence, not as an argument for moving it.
+**ROUND2-SPECIFICITY-SCREEN §14.7 leaves "whether the floor is correct as a matter of design" open;
+this gives that question a fixture.**
+
+**One more thing S396 measured about the fixtures and row 13.** `detectLongFormat` fires on DS19, and
+rows 10/11's two-row-header path is taken by four densitometry fixtures (DS01, DS02, DS16, DS17). So
+**5 of the 27 fixtures reach the app by a route the harness does not take**, against 0 of the 30
+selected round-2 sheets. Full record in `docs/shared/ROLE-INFERENCE-INVERSION-CENSUS.md` Part 2.
+
 ## Not done
 
 The five `undecided` rows from 2a — 1, 4, 8, 18, 19 — are design calls and are Nick's. The twelve
