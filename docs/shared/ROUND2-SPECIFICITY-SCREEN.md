@@ -1441,3 +1441,75 @@ by the person about to do the re-answering is not a measurement.
 
 **Whether the corpus contains other master/detail exports.** pos-08 is one instance. A repeated literal
 sub-header row is cheap to detect and the pass will surface others if they exist.
+
+## 22 — what the analysed matrix holds, recorded S399 before the re-answer pass and before any deposit was scored
+
+**§3's shape filter asks whether a sheet has a numeric matrix. It does not ask whether the numbers are
+comparable measurements.** Identifiers, genomic positions, coordinates, dates parsed as numbers and
+row counts are all numeric and none is a quantity a fabrication battery has any business modelling.
+
+**The filter is loose because the product is loose, and that is deliberate.** §3's filter approximates
+the import floor. **A corpus tightened past the product would measure a tool nobody ships**, so the
+filter is not changed here and no deposit is dropped, re-selected or re-ranked. **n stays 30.**
+
+### 22.1 — the three fields
+
+Recorded per deposit, before either arm runs on it, in §4 beside the answers.
+
+- **`rows`** — are the analysed rows one population? `one population`, `mixed`, or `undetermined`.
+  pos-08 is `mixed`: 102 protein records and 1,563 peptide records in one matrix (§21.1). pos-01's
+  `TOTAL` row inside the analysed 16 × 15 is the same class at a smaller scale.
+- **`columns`** — is each analysed column one variable? `one variable each`, `mixed`, or
+  `undetermined`. pos-08 is `mixed`: four columns are numeric in both populations and mean different
+  quantities in each.
+- **`measurements`** — are the analysed columns quantities at all? `measurements`, `not measurements`,
+  `mixed`, or `undetermined`.
+
+**One spelling per value.** A field that gets counted must not hold variant spellings of one answer —
+the rule §4's legend states and which §18.1's cell and this section both follow.
+
+**`undetermined` is a value, never a blank**, on the same principle as §14.3's *gate did not render*. A
+blank cannot be told from a field nobody filled.
+
+**Each non-default value carries its structural reason**, in the same form §3 requires of the answers.
+
+### 22.2 — the classification is recorded and acted on by nothing
+
+**No deposit is excluded, no sheet is re-chosen, no answer turns on it, and neither arm changes.**
+Narrowing to the files that look like clean data matrices, after seeing which ones do not, is a
+rejection rule invented after seeing what it catches — **which is what §3's rejection log exists to
+prevent**, and why §12's four rejections and five surplus deposits were left where they are.
+
+**The refusal question belongs to the product, not to the corpus.** If the tool should decline a sheet
+it cannot read as comparable measurements, that refusal is a **product behaviour**, and the screen
+measures it the way it measures any other — the deposit goes through the gates, the product declines,
+and the outcome is `refused` with its reason, exactly as pos-02, pos-44 and pos-47 already do at the
+import floor. **A refusal is a recorded outcome, not an exclusion.** This section is the evidence base
+such a rule would need. **It is not that rule.**
+
+### 22.3 — why it is recorded: two kinds of false positive
+
+**A flag on a table of identifiers and a flag on a real measurement matrix are different findings.**
+The first says the product should not have analysed the file. The second says the statistics are
+miscalibrated. **Only the second is what this screen is for.**
+
+**If both land in one tally the headline number pools two populations** — which is the error the
+product commits on pos-08 and which this instrument would then be committing one level above it.
+
+**So §7's counts are reported with the classification beside them, never recomputed over a subset.**
+Choosing a denominator after seeing results is the free choice §3 exists to prevent, and §14.4 already
+refuses it for refusals. **The same refusal applies here.**
+
+### 22.4 — what this section does not settle
+
+**Whether any deposit but pos-08 is mixed on any field.** One deposit has been read. The pass measures
+this rather than assuming it, and **a classification returning twenty-nine `one population` rows is a
+real result.**
+
+**What the product should do about it.** Refuse, warn, or analyse and caveat are three different
+designs with costs on all sides, and **a refusal is also a way of missing fabrication** — pos-08 may
+contain a fabricated protein table and declining to look is not a null act. That decision is v1.x and
+must not be made in the middle of a screen.
+
+**Whether the assay detector's seven wrong or silent readings bear on this.** They are a detector
+finding, and reading a deposit's contents off its filename is not an adjudication.
