@@ -46,6 +46,7 @@ import React from "react";
 
 import CheckMyData from "../../src/App.jsx";
 import { VERDICT_TEXT } from "../../src/analysis/narrative.js";
+import { guardPolyfillOrThrow } from "./s397-polyfill-inertness.mjs";
 
 const ENABLED = !!process.env.ARMB;
 
@@ -516,6 +517,15 @@ async function readVerdictOrThrow(container, label) {
 async function runArm({ path, sheet, colRel, rowSem, confirm = "none", inspect = false, log = () => {} }) {
   polyfillArrayBuffer();
   stubResizeObserver();
+  /* ROUND2 §8.3, scoped by §18 — FIRST, before anything is rendered, so a
+   * deposit whose bytes do not survive the polyfill is not scored. Inapplicable
+   * on the 22 non-Excel deposits and it says so rather than passing quietly;
+   * on the eight xlsx it throws on a mismatch and this function does not
+   * return. §18 requires it to block scoring, so it cannot sit after the run. */
+  const inert = await guardPolyfillOrThrow({ path, sheet });
+  log(inert.applicable
+    ? `§8.3 polyfill inertness: PASS — ${inert.reason} (sha256 ${inert.sha256Polyfill.slice(0, 16)})`
+    : `§8.3 polyfill inertness: inapplicable — ${inert.reason}`);
   const t0 = Date.now();
   const { container } = render(<CheckMyData />);
 
