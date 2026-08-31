@@ -1455,6 +1455,61 @@ written.
 
 **No arm has run on pos-41.** §6.4's ordering holds.
 
+**C38 — pos-23, the block check answered. The file has three blocks and the product reaches two. Logged S401.**
+
+**No answer moves. Both recorded figures are corrected and one is a product defect rather than a
+record error.**
+
+**The owed check expected a stale block count.** What it found is that §19's *two blocks* correctly
+described the product and the depositor's *three vertically stacked data blocks* correctly described
+the file. **Screen §19.2 carries the mechanism**; this entry carries what it costs the deposit.
+
+**Measured on the file.** 2,198 lines, blank rows at 733 and 1466 only, three segments of 732 lines
+each carrying a label, a header and **730 data rows**. **2,190 data rows in the deposit.**
+
+**Measured in the product.** *Stripped 1 preamble row · trimmed 733 trailing rows*, then two blocks of
+730 × 5 offered. **733 is the separator plus the whole of block 3**, removed by `preprocessRaw`
+because block 3 is `Date, Q` padded to five commas and carries two filled cells against a `minCells`
+of 3.
+
+**§4.1 corrects two figures.** **Arm A scores 730 of 2,190 rows, a third — not the *exactly 50%*
+recorded**, which described the trimmed matrix. And **§19's two-block count is the product's, not the
+file's**.
+
+**Discharge is absent from both arms.** Blocks 1 and 2 are water level and flow velocity under
+identical headers; the third measured quantity is unreachable. **`preprocessRaw` runs before both arms
+identically, so the arm difference is unaffected and this does not stop scoring** — but §7's count for
+pos-23 records that its analysed matrix is one block of three.
+
+**pos-23 is also a §23 `declared generated` member** (§4.3), so its analysed matrix is a third of a
+deposit whose values are modelled. Both facts are recorded and neither is acted on.
+
+**No arm has run on pos-23.** §6.4's ordering holds.
+
+**C39 — pos-43, the block check answered. Two quantities were read as two counts. Logged S401.**
+
+**No answer moves and pos-43 carries no defect.** The check is answered as an error in our record.
+
+**`blockSummary` returns `rows: block.length` and `dataRows` separately** (`parser.js:81`), where
+`dataRows` counts rows with more than 30% numeric cells, **and the picker renders `dataRows`.**
+
+**So §19.1's 873 / 506 / 32 / 182 are line counts and the picker's 452 / 310 / 20 / 110 are data-row
+counts. Both are correct.** Measured: block 1 spans 874 lines and holds **452 rows above the product's
+own 30%-numeric rule**, matching the picker exactly.
+
+**The file's structure is confirmed independently.** Blank rows at 875, 1383, 1417 and then 48
+contiguous at the end; four segments of 874 / 507 / 33 / 184 lines. **The four blocks reach the picker
+and the 48 trailing blanks are what the trim exists for.**
+
+**One figure is not settled.** A naive comma split reports 80 to 83 fields per line against §19.1's
+70 / 71 / 71 / 69 data columns. **`awk -F,` inflates on quoted commas, so 80 is a ceiling for the
+naive split and not a measurement of the file.** Recorded as open rather than reconciled.
+
+**Screen §19.2.4 supersedes §19.1's labels rather than editing them.** §19.1 was written to correct a
+display metric read as an analysed count and then made a neighbouring version of the same error.
+
+**No arm has run on pos-43.** §6.4's ordering holds.
+
 ### 4.2 — What the analysed matrix holds
 
 **§22's three fields, one row per deposit, filled before either arm runs on it.** Kept apart from §4's
