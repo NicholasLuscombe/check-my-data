@@ -197,8 +197,16 @@ One row per accepted deposit. Filled before either arm runs on it.
   probe could not drive, §8.1, and no deposit is dropped for needing one. **A refusal is §14.3 and is
   not a hand-run** — the product offers nothing to perform, so the gate cells read *gate did not
   render* rather than blank.
-- **Polyfill assertion** is §8.3: `parseExcel` through the polyfill against `parseExcel` on a buffer
-  read from disk. `pass`, or the deposit is not scored.
+- **Polyfill assertion** is §8.3 as scoped by §18: `parseExcel` through the polyfill against
+  `parseExcel` on a buffer read from disk. **On a probe-driven xlsx deposit, `pass`, or the deposit
+  is not scored.** Everywhere else the cell records why the check does not apply, never blank, in one
+  of three fixed spellings. **`n/a — hand-run, no polyfill in path`** wherever the deposit was
+  hand-run, whatever its file type — the browser supplies `File.arrayBuffer` natively and nothing is
+  substituted (§18.1). **`n/a — text path, polyfill never invoked`** on a probe-driven csv or tsv,
+  where `ImportView.jsx:301-323` routes the file to `readAsText` so the polyfill is installed and
+  never reached (§18). **`n/a — no run`** on a refusal (§14.3). **A skipped check and an inapplicable
+  one look identical in a log**, and a field that gets counted must not hold variant spellings of one
+  answer.
 
 ### 4.1 — Corrections
 
