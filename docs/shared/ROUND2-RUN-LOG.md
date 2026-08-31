@@ -264,6 +264,59 @@ This is the `unordered` failure in its harmless form — a field that gets count
 spelling of one answer. Logged rather than silently tidied, because *every change to an answered
 cell is logged* is a cleaner rule than deciding case by case which changes are substantive.
 
+### 4.2 — What the analysed matrix holds
+
+**§22's three fields, one row per deposit, filled before either arm runs on it.** Kept apart from §4's
+table for the reason §7 gives: **rows are keyed on position and carry no DOI, deliberately**, because
+§5's counting commands anchor on `^| N | doi:` and a second DOI-led table would break them a third
+time.
+
+**A blank cell means not yet classified. `undetermined` means classified and not determinable.** The
+two are different states and §22.1's rule — never a blank — governs a cell once it has been filled,
+not a table still being filled.
+
+| # | rows | columns | measurements | reason |
+|---|---|---|---|---|
+| 1 |  |  |  |  |
+| 2 |  |  |  |  |
+| 3 |  |  |  |  |
+| 7 |  |  |  |  |
+| 8 | mixed | mixed | mixed | **§21.1, measured before either arm ran.** 102 protein rows, 102 identical literal sub-header rows and 1,563 peptide rows in one block; `extractAnalysisInputs` drops the 102 sub-headers, leaving 102 protein records stacked on 1,563 peptide records. Four columns are numeric in both populations and name different quantities in each — `Exp. q-value` over `# Proteins`, `# Unique Peptides` over `# PSMs`, and likewise `Sum PEP Score` and `Coverage [%]`. **The exact analysed set is not pinned:** 1,767 × 15 = 26,505 = 6,197 + 20,002 + 306 admits four column sets, **but all four contain `Exp. q-value` and `# Unique Peptides`**, so the `columns` answer holds on every one. `measurements` is `mixed` on the same footing — every candidate set mixes precursor abundances and modification counts with a q-value and a peptide count. The deposit's README states the hierarchy and that **the blanks are structural, not missing data.** |
+| 12 |  |  |  |  |
+| 14 |  |  |  |  |
+| 18 |  |  |  |  |
+| 21 |  |  |  |  |
+| 22 |  |  |  |  |
+| 23 |  |  |  |  |
+| 27 |  |  |  |  |
+| 28 |  |  |  |  |
+| 30 |  |  |  |  |
+| 31 |  |  |  |  |
+| 32 |  |  |  |  |
+| 34 |  |  |  |  |
+| 35 |  |  |  |  |
+| 38 |  |  |  |  |
+| 39 |  |  |  |  |
+| 40 |  |  |  |  |
+| 41 |  |  |  |  |
+| 43 |  |  |  |  |
+| 44 |  |  |  |  |
+| 45 |  |  |  |  |
+| 46 |  |  |  |  |
+| 47 |  |  |  |  |
+| 49 |  |  |  |  |
+| 50 |  |  |  |  |
+| 51 |  |  |  |  |
+
+- **`rows`** — `one population`, `mixed`, `undetermined`.
+- **`columns`** — `one variable each`, `mixed`, `undetermined`.
+- **`measurements`** — `measurements`, `not measurements`, `mixed`, `undetermined`.
+- **`reason`** carries the structural evidence for any non-default value, in the form §3 requires of
+  the answers. **One spelling per value** — a field that gets counted must not hold a variant spelling
+  of one answer.
+- **Nothing here excludes a deposit, moves a sheet or changes an answer** (§22.2). It is recorded and
+  acted on by nothing.
+
 ---
 
 ## 5 — Counts
