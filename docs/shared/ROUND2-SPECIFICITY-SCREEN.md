@@ -315,6 +315,37 @@ nine sheets were run as nine processes.
 and the heap, needs no change to the probe, and isolates a deposit that dies from the deposits that
 follow it.
 
+#### 8.5.3 — §8.5's wait tally is wrong, corrected S397 before any deposit was scored
+
+**§8.5 reads eight sites at the 20 s default and three reading `ARMB_TIMEOUT`. That sums to eleven by
+dropping a site.** At source, at `9c1f583`: **8** sites at the 20 s default, **1** hardcoded at 30 s
+(`:465`), **2** reading `ARMB_TIMEOUT` across **3** invocations (`:495`, `:503`, `:526`).
+
+**Neither the rule nor the count of eleven moves.** The error is in the split, and it under-reports
+the unruled sites by one — the 30 s site was as unoverridable as the eight.
+
+**How it was made.** The figure was taken from a prose summary rather than from the table above it,
+where the 30 s site has its own row. **A count lifted from a compression and asserted as a census.**
+
+**Nothing downstream depends on it.** `10fb958` retired all eleven: three explicit, seven by the
+default, one named exception, zero hardcoded.
+
+#### 8.5.4 — a determinate refusal is detected on sight, ruled S397 at `10fb958` before any deposit was scored
+
+**§8.5 forbids a wait expiring before the budget. Waiting the budget out on a refusal the product has
+already rendered is the same error inverted** — the screen has decided, and the probe sits in front
+of the answer for 24 hours.
+
+**The import floor's sentence is matched on sight at both import waits.** It bites the CSV path
+hardest, which is where round 2 lives: on a workbook the picker resolves the first wait, but on a CSV
+the first wait is the one that hangs, and **§15.1's three refusals — pos-02, pos-44, pos-47 — are all
+CSVs.** Measured: four runs in 2.5 s, against roughly 30 s each by expiry and **four days** under the
+budget without it.
+
+**A refusal read on sight and a refusal read by expiry are the same outcome reached two ways, and only
+one of them is affordable.** The general form: **where the product has rendered a determinate answer,
+the probe reads it; the budget covers waiting, not deciding.**
+
 ## 9 — §6.1's ordering rule, corrected S390, still before any deposit was acquired
 
 **This supersedes two things in §6.1: the ordering rule, and the reason given for it. §6.1's text
@@ -1146,3 +1177,47 @@ about verdicts; here the same exact landing decides whether a run pays for its p
 The artifact read surfaced Blocked Mahalanobis's flag and p-value on the 1,000-row truncation, finer
 than the severity and tier counts §17.5 already declared. **Same truncation, same non-deposit, and
 declared rather than left in a checkpoint.**
+
+### 17.9 — the arms may share a machine, ruled S397 before any deposit was scored
+
+**The arms run concurrently by default. A deposit at or above 20,000 valid rows runs alone.**
+
+The threshold is fixed here, on the S395 census's row counts, before any deposit has been scored. It
+names five: pos-02, pos-32, pos-40, pos-41 and pos-44. **A threshold set after seeing which deposits
+contend would be fitted to what it catches**, which is §3's hazard in a new place.
+
+**Why the five are different in kind.** On them the elapsed time and the peak memory are the recorded
+outcome (§17.2, §17.3). A figure taken while another arm held the CPU or the heap measures contention,
+and a deposit killed at the budget because of a neighbour is a non-completion the machine
+manufactured. On the other twenty-five, elapsed time is recorded in no §7 cell and nothing sits near a
+limit.
+
+**S397 measured the effect before ruling on it.** In a 16-arm single process a run took 246 s and in
+another 396 s, both at about 5% CPU with identical output; isolated, the same runs read 3.3 s and
+2.6 s. **Two orders of magnitude, entirely from sharing.**
+
+**Where the arms did share a machine, Notes says so.** One line per deposit, so no later reader takes
+a concurrent elapsed figure for a clean one.
+
+**This changes no rule in §17.2.** n stays 30, no resource limit rises, the budget is 24 hours per run,
+and non-completion stays a recorded outcome. It fixes only where a run may sit.
+
+## 18 — §8.3's premise is false on 22 of the 30, and its assertion is scoped, ruled S397 before any deposit was scored
+
+**§8.3 requires, per deposit, `parseExcel` through the polyfill against `parseExcel` on a buffer read
+from disk — identical, or the run stops and the deposit is not scored.**
+
+**Measured at `9c1f583`.** `ImportView.jsx:301-323` routes only `xlsx`/`xls` through `getSheetNames`,
+the sole `arrayBuffer` consumer; everything else goes to `FileReader.readAsText`. **The thirty are 8
+xlsx — pos-01, 08, 14, 18, 21, 27, 31, 39 — plus 21 csv and 1 tsv.**
+
+**So §8.3's premise sentence, *every byte arm B analyses arrives through it*, is false for 22
+deposits.** The polyfill is installed there and never invoked.
+
+**Scoped.** The assertion runs on the eight and blocks scoring there. **On the other 22 it is recorded
+inapplicable with its reason, not silently skipped** — a skipped check and an inapplicable one look
+identical in a log.
+
+**It does not exist yet**, neither when §8.3 was written nor at `10fb958`. It is built before any xlsx
+deposit is scored. **A CSV deposit may be scored before it exists**, because on a CSV there is nothing
+for it to assert.
