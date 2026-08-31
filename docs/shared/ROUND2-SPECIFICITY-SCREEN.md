@@ -1820,17 +1820,56 @@ refuse.
 **§7's counts carry the classification beside them and are never recomputed over a subset**, on
 §22.3's rule. Choosing a denominator after seeing results is the free choice §3 exists to prevent.
 
-### 23.4 — the census has not been run
+### 23.4 — the census, and the instrument first specified here was wrong
 
-**A `grep` over the run log returns one deposit. That is a count over our own record, not over the
-thirty**, and the pass read the READMEs for structure rather than for provenance. **The census is a
-keyword read of the thirty READMEs and published abstracts** — synthetic, simulated, generated,
-artificial, mock, dummy — **followed by a read of every hit**, since the words carry other senses.
-§21.3 binds: all thirty or none.
+**§23.4 as written at S401 named a keyword screen over the thirty READMEs and abstracts. That
+instrument is withdrawn**, on the pattern §11 set for §10, and it is withdrawn before any
+`provenance` cell was filled. **It was run once and it failed in both directions.**
 
-**The column lands in §4.2 when the census runs, not before.** Writing it now would put one value
-beside twenty-nine blanks, **which is the thing §22.1 forbids**: a blank cannot be told from a field
-nobody filled.
+- **It misses the class it exists to catch.** pos-41's README describes its analysed file as *SNP
+  effects on traits and environmental variables derived from Bayesian sparse linear mixed model
+  (BSLMM) analysis performed in GEMMA*. Those values are produced rather than observed and §23.1's
+  definition reaches them. **No provenance word appears**, because a depositor describing model
+  output has no reason to use one.
+- **It returns members it should not.** `synthetic` matches inside `photosynthetic`, which flagged
+  pos-32 and pos-39 on a substring alone. Simulation words attach to methods, materials and analyses
+  far more often than to deposited values: pos-02's null models, pos-22's Blomberg's K, pos-49's
+  crown-growth model, pos-12's *in silico* PCR, pos-01's lab-made *synthetic MORB*, pos-31's
+  artificially coloured flies, pos-41's *integrative and synthetic study*.
+
+**A census whose instrument cannot find its own definition's members is not a census**, and a
+`provenance` column filled from it would have looked complete.
+
+#### 23.4.1 — the read
+
+**For each deposit, the README's description of the analysed file, asking one question: does the
+deposit describe those values as measured or as produced.** One paragraph per deposit, thirty times.
+**§21.3 binds: all thirty or none.**
+
+**§4.2's `measurements` reasons are read beside it**, because that field already made this read once
+and reached pos-41 by it. **Where the two disagree the disagreement is recorded rather than
+reconciled** — a field that catches what another field's stated instrument missed is worth knowing
+about, and §22.4 does not claim `measurements` was asked this question.
+
+**A keyword screen may be run as an aid and never as the census.** Its output is a list of paragraphs
+to read, not a list of members.
+
+#### 23.4.2 — three members are known before the pass runs
+
+**Declared here so that the pass cannot find them again and call that a result.**
+
+- **pos-44** — *a synthetic but structurally representative subset*, §4.1 C28.
+- **pos-23** — *daily hydrodynamic-model outputs*, and *values are modeled daily water levels in
+  meters*, read S401.
+- **pos-41** — BSLMM model output, already recorded in §4.2's reason and not in any provenance field.
+
+**The pass measures the other twenty-seven and confirms these three.** A pass that recovered three
+known members and nothing else would be reporting its own inputs.
+
+#### 23.4.3 — when the column lands
+
+**In §4.2 after the pass, not before.** Writing it now would put three values beside twenty-seven
+blanks, **which is the thing §22.1 forbids**: a blank cannot be told from a field nobody filled.
 
 ### 23.5 — what this section does not settle
 
