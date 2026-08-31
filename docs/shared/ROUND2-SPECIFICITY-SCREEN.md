@@ -1442,6 +1442,47 @@ by the person about to do the re-answering is not a measurement.
 **Whether the corpus contains other master/detail exports.** pos-08 is one instance. A repeated literal
 sub-header row is cheap to detect and the pass will surface others if they exist.
 
+### 21.7 — a declared exposure on pos-01, logged S400 before any deposit was scored
+
+**During the re-answer pass the operator ran a five-column subset of pos-01 and saw a verdict.**
+`micro_data_compiled.xlsx` / `1300-3` was imported with columns A–F — the `Element` label column and
+the five columns of the `Anhydrous MORB glass` band — and the battery was run. It returned Duplicated
+Data HIGH at p < 0.0001 on sixteen repeated value-pairs within two rows, `Cr` and `Ni` reading zero
+across the band but for one cell.
+
+**It is neither arm, and its output is not a screen result.** Arm A is `BatchView`'s loop on all
+fifteen data columns; arm B is the same sheet answered honestly. A five-column hold-out is a third
+configuration. **The verdict is not recorded in §7 and may not be cited as a round-2 result.**
+
+**What is not compromised, stated so the exposure can be priced rather than feared.**
+
+- **No answer was made after seeing a verdict.** pos-01's answers were recorded at `75e5be6` and
+  corrected at `d9c4f6e`, both before this run.
+- **The re-answer reading also predates it.** Run log §4.1's C5 was reached from the deposit's README
+  and the import screen, and its conclusion — that neither answer moves — was written before the
+  verdict was seen.
+- **Neither of pos-01's arms is hand-run.** It is one of §20's paired deposits, so both arms execute
+  from the manifests. **The operator's information state cannot reach a machine-executed arm.** The
+  only channel is the answers, and the answers are committed and unmoved.
+- **§16.1 forecloses the one change that was in question, independently of this section.** Three bands
+  of 5/6/4 are inexpressible in a gate offering replicates or conditions, so `replicates` is ruled
+  whatever anyone comes to believe about the bands being experimental conditions.
+
+**What is compromised.** §21.3's sentence — *nothing has been scored on either arm, so no answer can
+be a reaction to a verdict* — is no longer true of pos-01 without this qualification. **It is true of
+the other twenty-nine.**
+
+**Ruled: pos-01's answers do not move.** If a later reading argues that they should, the change is
+logged as a §4.1 correction carrying a reference to this section, so a reader can discount it.
+
+**Scope, stated because an undeclared scope is worth nothing.** One deposit, one five-column subset,
+one run. **Nothing has been run on any other deposit on either arm.**
+
+**The observation is parked, not banked.** Duplicated Data firing on rows of structural zeros —
+elements below the detection limit reported as `0` — is the kind of finding this screen exists to
+produce. **It must come from an arm before it counts as one**, and the full sheet's zero count is not
+this band's, so nothing here forecasts what either arm will return.
+
 ## 22 — what the analysed matrix holds, recorded S399 before the re-answer pass and before any deposit was scored
 
 **§3's shape filter asks whether a sheet has a numeric matrix. It does not ask whether the numbers are
