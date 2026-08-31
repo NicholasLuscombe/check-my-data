@@ -1353,6 +1353,50 @@ confirmed exactly at 571.
 pos-39's §4.2 `columns` and `measurements` held open pending `FIG3_metadata` (§4.1 C24) and no arm run
 on any deposit.
 
+**C35 — pos-39, §4.2's open fields, closed on the workbook's documentation sheet. Logged S400.**
+
+**This supersedes C24's open cell.** §4.2's `columns` and `measurements` were left blank there pending
+`FIG3_metadata`, sheet 1 of `FIG3.xlsx`, which §21.8 puts in arm B's information set. The sheet has now
+been read. **No answer moves and the two fields are filled.**
+
+**The transformations belong to the authors' analysis and not to the deposited values.** Every
+transformation note on the sheet has the same form — *before performing the PCA, values were cube root
+transformed*, *arcsin transformed*, *square root transformed*, *log transformed*, in each case *to
+better fit a normal distribution and avoid strong influence of extreme values*. **The deposited columns
+are untransformed and the data shows it:** `Green_Biomass` reads 14.22, 9.17 and 0.49 on `FIG3A`, which
+a cube-rooted dry mass would not, and `Cd_AA` runs 1.51 to 19.26 with `Zn_TOT` reaching 50,210 — raw
+concentrations rather than logs.
+
+**That is the clause the cell was held open for**, and the answer is the one the column headers already
+suggested. **Filling the field from the headers would have produced the same value by a process the
+open sheet forbade**, which is why the blank was carried rather than guessed.
+
+**All fourteen analysed columns are measured quantities in stated units.** Dry mass in g harvested on
+1/16 of a square metre for the two biomass columns; proportions on [0,1] for rock and bare-soil cover;
+mean vegetation height in cm; `Sand_texture` and `Clays` as weights in g kg⁻¹ after sieving at 2 mm;
+`pH` measured in water; `Cd_AA`, `Zn_AA`, `Cd_TOT` and `Zn_TOT` as concentrations in mg kg⁻¹; `OM` as
+total organic matter in g kg⁻¹.
+
+**`C:N` is a derived ratio and it carries no in-matrix relation.** The sheet gives it as *the ratio of
+total carbon: total nitrogen*, and **neither constituent is a column of this sheet.** Recorded because
+the pattern went the other way five times in this pass — pos-30, pos-38, pos-46, pos-49 and pos-51 each
+carry a derived column beside the columns it is derived from (§4.1 C18, C23, C30, C32, C34) — **and
+pos-39 is the case where a derived column's inputs are absent.**
+
+**Two confirmations.** The sheet documents four data sheets in one — `FIG3A` through `FIG3D`, each with
+its own column list — which is why §6.2's *2 of 5* leaves four data sheets beside the analysed one. And
+**`Between 3-4 SubAlp` is a real sampling site named by the depositor**: *one site is located between
+site 3-SubAlp and 4-SubAlp, and is named "Between 3-4 SubAlp" here.* C24 recorded that fourth condition
+level as a boundary standing as a level of its own; **§13.3 kept it on shape and the documentation
+confirms it is a site.**
+
+**§21.8 pays out here in the way it did not on pos-31.** On pos-31 the README duplicated the
+documentation sheet, so the rule cost nothing and changed nothing. **On pos-39 the sheet carried
+something no other document in the deposit did**, and it is the one cell in §4.2 that was blank because
+of it.
+
+**No arm has run on pos-39.** §6.4's ordering holds.
+
 ### 4.2 — What the analysed matrix holds
 
 **§22's three fields, one row per deposit, filled before either arm runs on it.** Kept apart from §4's
@@ -1385,7 +1429,7 @@ not a table still being filled.
 | 34 | one population | one variable each | mixed | **Six µm morphometrics and a within-image identifier.** Every row is one sperm cell measured from one image; `No` is *measurement number assigned to each sperm cell* and `IndID` is *individual ID from which the sperm was sampled*, 74 levels over 1,232 rows. No column changes meaning down the rows. **`measurements` is `mixed`:** `SpermLength`, `HeadLength`, `HeadWidth`, `MPLength`, `MPWidth` and `FlagellaLength` are quantities in µm, while **`SpermNo` is *identifier for each sperm within a given image*** — reading 1, 1, 1, 1, 1, 1, 2, 1, 2, 1 down the visible rows — and it is scored `Data`. **An unchecked candidate, resting on nothing:** `SpermLength` is *total length of the sperm cell* and three of the others are its named regions, which would be a total-equals-its-parts relation; none of those columns is visible on the import screens and §4.1 C21 records the check owed. `Missing 0` beside 850 non-numeric is the file's own `NA`. 1,232 × 7 = 8,624 less 850 gives the screen's 7,774. §4.1 C21. |
 | 35 | mixed | one variable each | mixed | **The sub-header line is inside the analysed matrix.** The header block is three physical lines — four spanning block labels, a blank line, then the sub-header names — and `detectHeaderRows` returned 1, so **86 delivered rows cover 84 human subjects plus an empty line and a line carrying `R_StandardThreshold`, `R_10and12kThreshold` and `L_StandardThreshold`**, which is pos-08's two-populations shape at a smaller scale. Each analysed column is one measurement of one subject. **`measurements` is `mixed`: four incommensurable batteries plus a demographic** — hearing thresholds in dB HL, ABR latencies in ms and amplitudes in µV, digit-span and speech-recognition scores in percent correct, and `Age` in years as a data column with `AgeGroup` derived from it. `Range -15.00 – 100.0`. 86 × 27 = 2,322 less 26 missing and 44 non-numeric gives the screen's 2,252. §4.1 C22. |
 | 38 | one population | one variable each | mixed | **Twelve deterministic relations sharing one divisor, all inside the analysed matrix.** Every row is one site-night survey. No column changes meaning down the rows. **The depositor states the relation:** *`XXXX_rate` = Nightly capture rate, calculated as `XXXX_c / Total.Capture.Effort`* — and twelve counts, twelve rates and the effort divisor are all scored `Data` across 28 columns. Instance on screen: effort 78.00, `COTO_c` 1.00, `COTO_rate` 0.01. **`measurements` is `mixed`:** twelve counts, twelve rates in individuals per m²h, an effort in m²h, and **`Year`, a calendar year**, giving `Range 0.000 – 2024`. §16.8's ruling that `_c` and `_rate` are a count and a rate rather than one quantity on two samples is corroborated by the README. 311 × 28 = 8,708 with `Missing 0`; 7,095 zeros, 81.5%, twelve species mostly absent on any given night. §4.1 C23. |
-| 39 | one population |  |  | **Two fields filled and one left open, pending the workbook's own documentation sheet.** Every row is one sampling point — `Point ID` runs `CB126`, `CB128`, `CB129`, 146 non-contiguous points with `SITE` at four levels — so `rows` is `one population`. **`columns` and `measurements` are blank because `FIG3_metadata`, sheet 1 of the same workbook, has not been read**, and §21.8 puts it in arm B's information set. The README states that sheet records *a description of the variables, their units, and any transformations applied (e.g., log transformation) prior to analysis*; **the fourteen analysed columns would read `measurements` on their headers alone — biomass, cover proportions, vegetation height, sand texture, `pH`, metal concentrations to 8.7 × 10⁴ — and filling the field from headers is what the unread sheet forbids.** A blank records not yet classified; `undetermined` would claim a classification nobody made. 146 × 14 = 2,044 with `Missing 0`. §4.1 C24. |
+| 39 | one population | one variable each | measurements | **Fourteen measured quantities in stated units, confirmed against the workbook's documentation sheet** (§4.1 C35, superseding C24's open fields). Every row is one sampling point — `Point ID` is *one unique identifier for each square meter and soil sample analyzed*, 146 non-contiguous points with `SITE` at four levels, one of which the depositor names as a real site *located between site 3-SubAlp and 4-SubAlp*. No column changes meaning down the rows. **`measurements` is `measurements`:** dry mass in g on 1/16 m², proportions on [0,1], vegetation height in cm, sieved weights in g kg⁻¹, `pH` in water, metal concentrations in mg kg⁻¹, organic matter in g kg⁻¹, and `C:N` as *the ratio of total carbon: total nitrogen*. **The transformations the sheet describes — cube root, arcsin, square root, log — were applied before the authors' PCA and not to the deposited values**, which the data confirms: `Green_Biomass` reads 14.22 and `Zn_TOT` reaches 50,210. **`C:N` is derived and neither constituent is in the matrix**, the one deposit of the five carrying a derived column whose inputs are absent. 146 × 14 = 2,044 with `Missing 0`. §4.1 C35. |
 | 40 | one population | one variable each | measurements | **The corpus's sparsest matrix, and its column scheme is documented nowhere.** Every row is one amplicon sequence variant; `ASV_ID` labels 33,678 of them. Every column is a read count for one soil sample, so no column changes meaning down the rows. **`measurements` is `measurements`:** sequencing counts, integer 100% at 0dp, `Range 0.000 – 1442`. **The 416 column headers are a three-letter island code with a two-digit plot number — `BAD_01` onward — and the README gives the ten ASV tables half a line between them** (§4.1 C25), so §16.1's ruling rests on the file's structure alone. The sampling text implies the scheme without stating it: samples per island run 13 to 41 and island names are withheld under national security regulations. 33,678 × 416 = 14,010,048 with `Missing 0`; **13,852,754 zeros, 98.87%**, and the heap exhausts before the battery. §4.1 C25. |
 | 41 | one population | mixed | mixed | **Genomic coordinates sit among model-derived effect sizes.** Every row is one SNP; `rs` labels 109,228 of them with `chr` at 1 and `ps` ascending. **`columns` is `mixed` and `measurements` is `mixed` for the same two columns:** `chr` is a chromosome number and `ps` a base-pair position — coordinates, not effects — inside the same 27-column matrix as twenty-five BSLMM effect sizes, giving `Range -54.95 – 3.041e+7`. The README states the file is *SNP effects on traits and environmental variables derived from Bayesian sparse linear mixed model (BSLMM) analysis performed in GEMMA*, so **the twenty-five are model output rather than measurement**, visible on screen at ±0.01 with the `i_` family at 10⁻⁷. **The column definitions are in `legend.csv`, a separate file the shape filter did not select** — a third delegation pattern §21.8 does not cover, recorded at §4.1 C26. `Missing 0` beside 31,164 non-numeric is the README's *missing values were coded as NAs*. 109,228 × 27 = 2,949,156 less 31,164 gives the screen's 2,917,992. §4.1 C26. |
 | 43 | one population | one variable each | measurements | **Seventy cranial and dental measurements, every abbreviation defined in mm.** Every row is one bandicoot specimen. No column changes meaning down the rows: the README defines `aIL`, `apl`, `bcl`, `ctl`, `jl`, `onl`, `zw` and the rest as distinct quantities on one skull, which is the recorded reading of `P1L` and `M2W` as different quantities rather than one quantity on different samples. **`measurements` is `measurements`:** all in mm, `Range 0.000 – 186.0`, `Precision mixed (0–2dp)`. **`Missing 37,486` is real missingness, not structure** — *any NAs and empty cells represent missing data* — which is why `Count` is blank on 436 of 873 rows and `arbitrary` stands. **The block figures are contested and the count is owed before scoring** (§4.1 C27): §19.1 records four blocks at 873 / 506 / 32 / 182 rows while the picker shows 452 / 310 / 20 / 110 at 80 cols, with the selected block summarised as 873 rows and 49 trailing rows trimmed. 873 × 70 = 61,110; the screen reads `Values 23308` against `Missing 37486` and 316 non-numeric. §4.1 C27. |
