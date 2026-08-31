@@ -318,7 +318,13 @@ const payload = {
     readmesAlreadyPresentAtStart: present,
     metadataWritten: metaWritten, metadataAlreadyPresent: metaSkipped,
     metadataFieldsNonEmpty: fieldNonEmpty,
-    bytesUnderCorpusRoot: corpusBytes + metaBytes, bytesReadmes: corpusBytes, bytesMetadata: metaBytes,
+    /* ON DISK, not written-this-run. A settled re-run writes nothing, and a
+     * field named `bytesReadmes` reading 0 beside 287,530 bytes of READMEs is a
+     * figure describing the run in a slot a reader takes for the state. The
+     * written-this-run figures keep their own names. */
+    bytesReadmesOnDisk: rows.reduce((a, r) => a + (r.readme && existsSync(r.readme.localPath) ? statSync(r.readme.localPath).size : 0), 0),
+    bytesMetadataOnDisk: rows.reduce((a, r) => a + (existsSync(r.metadata.localPath) ? statSync(r.metadata.localPath).size : 0), 0),
+    bytesReadmesWrittenThisRun: corpusBytes, bytesMetadataWrittenThisRun: metaBytes,
   },
   errors: failures,
   rows,
