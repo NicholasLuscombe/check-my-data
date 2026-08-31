@@ -344,6 +344,43 @@ the shakedown), **13 of 31 measured sheets** took block 1 of several, the widest
 `detectBlocksSplit` carries it per sheet, so a deposit whose selected sheet ranked on a fragment is
 identifiable rather than assumed.
 
+### 6.3 — §6's rate-limit sentence is false on three endpoints, corrected S398 before any deposit was scored
+
+**§6 says the limit is reported on every response as `ratelimit-limit`, `ratelimit-remaining` and
+`ratelimit-reset`. Measured S398: three endpoints report none of the three.**
+
+| endpoint | auth sent | status | `ratelimit-*` headers |
+|---|---|---|---|
+| `/api/v2/test` | bearer | 200 | none |
+| `/api/v2/datasets/<doi>` | bearer | 200 | none, on a full header dump |
+| `_links["stash:download"].href` — pos-21's `README.md` | bearer | 200, 773 of 773 bytes | none |
+
+**The first two prove nothing about the token.** Dryad's dataset metadata is public and both answer
+without a bearer, so neither request exercised authentication. **The third does** — it is the endpoint
+the fetcher calls, it carried the bearer, and it returned the file whole.
+
+**What is corrected and what is not.** The field names and the reset semantics in §6 were measured at
+S391 and are not withdrawn; something reported them then. What is withdrawn is *reported on every
+response*. **Whether the API changed or the S391 reading came from a response no longer in the path is
+not settled here**, and no claim is made about it. What is established is that the header cannot be
+relied on at the point of use.
+
+**The consequence, which is a defect and not a tuning question.**
+`scripts/fetch-round2-readmes.mjs` gated its first request on a remaining count, read the absent header
+as a budget of zero, formatted the absent reset as `new Date(0)`, and printed *window reopens at
+1970-01-01T00:00:00.000Z* on a two-second loop. **It issued no request at all in that state.** A wait
+computed from an absent value is not a backoff, and **absence of a header is not a measurement of a
+limit** — the same shape as P231, where a timeout above Node's ceiling reported a wait that never
+happened.
+
+**The rule.** A client counts its own requests against 100 per UTC hour and treats the headers as
+corroboration where they appear. **Where a budget figure is unavailable it halts and says so; it never
+derives a wait from a value it has not checked for existence.** On this job the counter cannot bind —
+thirty requests against a hundred — and it exists for the case where it does.
+
+**This changes no rule in §17.2.** No resource limit rises, n stays 30, and a non-completion stays a
+recorded outcome.
+
 
 ---
 
