@@ -381,6 +381,36 @@ thirty requests against a hundred — and it exists for the case where it does.
 **This changes no rule in §17.2.** No resource limit rises, n stays 30, and a non-completion stays a
 recorded outcome.
 
+#### 6.3.1 — §6.3's account of the loop is wrong in one sentence, corrected S398 beside it
+
+**§6.3 says *It issued no request at all in that state.* That is false.**
+
+Read at source rather than inferred: **the throttle sits after a successful download, not before the
+first request.** **Seven READMEs landed** — pos-01, 02, 03, 07, 08, 12, 14 — and all seven verify today
+on size and sha-256 against the manifest. What the script did between downloads was sleep two seconds
+and print 1970. **So 23 remain to fetch, not 30.**
+
+**The mechanism, exact.** `Number(res.headers.get('ratelimit-remaining'))`. `Headers.get` returns
+`null` for an absent header, **`Number(null)` is `0`**, and `Number.isFinite(0)` is `true`. So a header
+Dryad does not send passed a validity test and read as a budget of zero. The absent reset became
+`new Date(0)`, which is the 1970 in the output.
+
+**How the error was made.** The claim was inferred from where the loop appeared in the run output
+rather than read from the code. A script that spins on its first request is a tidier story than one
+that downloads seven files and then spins, and the tidier story was written down without opening the
+source. **The correction came from Code reading `fetch-round2-readmes.mjs`.**
+
+**What survives from §6.3, unchanged.** The three endpoint measurements and their statuses. The
+withdrawal of *reported on every response*. That the first two endpoints prove nothing about the token
+and the third does. That the field names and reset semantics measured at S391 are not withdrawn, and
+that whether the API changed is not settled. And the rule: **count requests locally, treat headers as
+corroboration, halt rather than derive a wait from a value never checked for existence.**
+
+**A second fault of the same shape, found in the fix and recorded here.** The on-disk verification sat
+inside the token branch — a check gated on a condition it does not need, since verifying a file
+already present costs no network. It now runs unconditionally, so the manifest reports the disk whether
+or not a fetch can run.
+
 
 ---
 
