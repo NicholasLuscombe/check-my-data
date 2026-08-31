@@ -49,6 +49,100 @@ import { VERDICT_TEXT } from "../../src/analysis/narrative.js";
 
 const ENABLED = !!process.env.ARMB;
 
+/* ── §8.5 — a probe's patience is not a resource limit ──────────────────────
+ *
+ * No wait inside this probe may expire before §17.2's 24-hour run budget does.
+ * A probe that gives up first manufactures a drivability finding out of a cost
+ * one, and §8.1 routes "not drivable" to a hand-run, so an expiring wait does
+ * not merely mislabel a deposit — it loses the outcome.
+ *
+ * ONE CONSTANT, and every import-or-run wait reads it. Raising the eight
+ * call sites individually would leave the ninth able to inherit 20 s in
+ * silence, so `waitFor`'s DEFAULT is the budget: a site that specifies nothing
+ * gets the budget rather than a C10 figure.
+ *
+ * `ARMB_TIMEOUT` is retained as an alias — SESSION393-SUMMARY.md:117 documents
+ * it as "overrides the 600 s verdict wait", and it now overrides every wait. */
+const RUN_BUDGET_MS = +(process.env.ARMB_BUDGET || process.env.ARMB_TIMEOUT || 86400000);
+const BUDGET_SOURCE = process.env.ARMB_BUDGET ? "ARMB_BUDGET"
+                    : process.env.ARMB_TIMEOUT ? "ARMB_TIMEOUT (alias)"
+                    : "§17.2 default";
+
+/* §8.5's ONE named exception. `:557` waits for BatchView's drop zone after a
+ * view switch — not an import and not a run. On the budget it would hang for
+ * 24 hours on a broken button, so it keeps a short timeout, explicitly, where
+ * it can be seen rather than inherited. */
+const UI_WAIT_MS = 20000;
+
+/* ── A refusal is detected ON SIGHT, never by expiry ────────────────────────
+ *
+ * FOUND BY RUNNING §8.5, not by reading it. `ImportView.jsx:936-938` renders
+ * this sentence whenever `sum.nDC < 2`, and it is a §14 outcome — the PRODUCT
+ * declining the sheet — which §8.1 routes to a hand-run. Both waits below used
+ * to surface it by EXPIRING: the gate-card wait's catch block read the screen
+ * after 30 s and said so. Under the budget that becomes a 24-hour wait on a
+ * state that is already on screen and will never change.
+ *
+ * §8.5 forbids a probe that gives up before the budget because it manufactures
+ * a drivability finding out of a cost one. The converse is just as wrong, and
+ * this is it: waiting out the budget on a determinate refusal manufactures a
+ * cost finding out of a drivability one. Patience is for something that might
+ * still happen.
+ *
+ * IT BITES THE CSV PATH HARDEST, which is where round 2 lives. On a workbook
+ * the picker resolves the first wait and the gate-card wait catches the
+ * refusal. On a CSV there is no picker, so the FIRST wait is the one that
+ * hangs — and pos-02, pos-44 and pos-47, the three round-2 refusals §15.1
+ * measured, are all CSVs. Measured at 9c1f583 on `C22 :: Exp. ST`: four runs,
+ * four expiries, ~30 s each. Under the budget and without this, that sheet
+ * alone is four days. */
+const FLOOR_REFUSAL = "Assign at least 2 data columns to proceed.";   // ImportView.jsx:938
+const refusalError = (container) => new Error(
+  `the PRODUCT is declining this sheet: the screen reads ${JSON.stringify(FLOOR_REFUSAL)} ` +
+  `(ImportView.jsx:938). Detected on sight, not by expiry (ROUND2 §8.5). | screen: ` +
+  (container.textContent || "").replace(/\s+/g, " ").slice(0, 400));
+
+/* ── §8.5.1 — the ceiling, and a timeout that lies ──────────────────────────
+ *
+ * Node's setTimeout ceiling is 2^31-1 ms = 24.855 days. Above it, vitest 2.1.9
+ * fails in about 1 ms while reporting "Test timed out in 3110400000ms" — a
+ * 36-day wait that never happened — with the overflow warning on stderr where
+ * a log grep never sees it. That is a MANUFACTURED NON-COMPLETION, the one
+ * outcome §17.3 records as real.
+ *
+ * The two halves are a pair and neither works alone. `blockTimeout` CLAMPS, so
+ * the `it` argument can never overflow and can never produce the lying message;
+ * `assertUnderCeiling` then REFUSES at the top of the block, so a run that the
+ * clamp could not honour does not start. Clamping without refusing would give a
+ * truthful-looking timeout at 24.855 days on a job needing longer. */
+const SETTIMEOUT_CEILING = 2 ** 31 - 1;
+const blockTimeout = (arms) => Math.min(arms * RUN_BUDGET_MS, SETTIMEOUT_CEILING);
+function assertUnderCeiling(arms, what) {
+  if (arms * RUN_BUDGET_MS <= SETTIMEOUT_CEILING) return;
+  throw new Error(
+    `${what}: ${arms} arms x ${RUN_BUDGET_MS} ms = ${arms * RUN_BUDGET_MS} ms exceeds Node's ` +
+    `setTimeout ceiling (${SETTIMEOUT_CEILING}). vitest would fail in ~1 ms while reporting a ` +
+    `timeout that never elapsed. Invoke once per deposit through ARMB_MANIFEST (ROUND2 §8.5.2), ` +
+    `which is how round 2's arm B is run and which also keeps the heap where S393 found it.`);
+}
+
+/* §8.5 — "The budget is printed, not merely set." Emitted once per process, at
+ * the top of whichever `it` runs first, so a single-test invocation carries it
+ * too: no §7 figure can be taken from a run without its budget beside it. */
+let headerDone = false;
+function runHeader() {
+  if (headerDone) return;
+  headerDone = true;
+  const h = (RUN_BUDGET_MS / 3600000).toFixed(2);
+  console.log(`\n[hdr] ROUND2 §8.5 — run budget ${RUN_BUDGET_MS} ms (${h} h), from ${BUDGET_SOURCE}` +
+              (BUDGET_SOURCE === "§17.2 default" ? "" : "  <-- OVERRIDDEN"));
+  console.log(`[hdr] every import/run wait takes it; the batch drop-zone wait keeps ${UI_WAIT_MS} ms ` +
+              `(§8.5's named exception)`);
+  console.log(`[hdr] §8.5.1 ceiling ${SETTIMEOUT_CEILING} ms -> at most ` +
+              `${Math.floor(SETTIMEOUT_CEILING / RUN_BUDGET_MS)} full-budget arms per it; ` +
+              `round 2 runs one deposit per process (§8.5.2)`);
+}
+
 /* corpus-data lives in the main checkout only. */
 function corpusDir() {
   if (process.env.CORPUS_DIR) return process.env.CORPUS_DIR;
@@ -128,7 +222,7 @@ function stubResizeObserver() {
 /* Poll the DOM for a condition the product reaches asynchronously (FileReader,
  * dynamic import of SheetJS, the analysis itself). No fake timers: the engine's
  * Blocked-Mahalanobis loop yields on real setTimeout. */
-async function waitFor(fn, { timeout = 20000, interval = 25, label = "condition" } = {}) {
+async function waitFor(fn, { timeout = RUN_BUDGET_MS, interval = 25, label = "condition" } = {}) {
   const t0 = Date.now();
   for (;;) {
     let v;
@@ -354,7 +448,7 @@ function expandAll(container) {
 
 /* The verdict wait, shared by both read points.
  *
- * TIMEOUT. `waitFor`'s 20 s default is a C10 figure. A row-grouped sheet
+ * TIMEOUT. `waitFor`'s old 20 s default was a C10 figure. A row-grouped sheet
  * dispatches per condition group — C14 :: Data carries 236 groups
  * (S390-GROUPING-PENDING-READ-ONLY.md §Part 2) — and the battery takes far
  * longer than that under `replicates`. Measured at S393: sheets that timed out
@@ -366,14 +460,16 @@ function expandAll(container) {
  * Waiting for a verdict through that is a timeout reporting the wrong cause, so
  * the error is matched and raised by name. `waitFor` swallows exceptions thrown
  * inside its predicate, so the branch is returned and raised outside it. */
-const VERDICT_TIMEOUT = +(process.env.ARMB_TIMEOUT || 600000);
+/* S397: the 600 s that replaced the 20 s is itself a figure, and §8.5 retires
+ * it. Both sites below now name RUN_BUDGET_MS rather than take the default —
+ * they are the two RUN waits and saying so at the site is worth the repetition. */
 async function readVerdictOrThrow(container, label) {
   const got = await waitFor(() => {
     const v = readVerdict(container);
     if (v) return { v };
     const m = (container.textContent || "").match(/Error: ([^\n]{1,200})/);
     return m ? { err: m[1] } : null;
-  }, { timeout: VERDICT_TIMEOUT, label });
+  }, { timeout: RUN_BUDGET_MS, label });
   if (got.err) throw new Error("the product reported an analysis error: " + got.err);
   return got.v;
 }
@@ -432,9 +528,11 @@ async function runArm({ path, sheet, colRel, rowSem, confirm = "none", inspect =
     () => (container.textContent.includes("Select sheet") ? "picker"
         : container.textContent.includes("Run analyses") ? "loaded"
         : container.textContent.includes("Select column relationship") ? "loaded"
-        : container.textContent.includes("import error") ? "error" : null),
+        : container.textContent.includes("import error") ? "error"
+        : container.textContent.includes(FLOOR_REFUSAL) ? "refused" : null),
     { label: "sheet picker or loaded data" });
   if (needsPicker === "error") throw new Error("product reported an import error: " + container.textContent.slice(0, 300));
+  if (needsPicker === "refused") throw refusalError(container);
   /* The picker renders `wb.SheetNames` in order (ImportView.jsx:746), so this
    * is a direct read of the workbook's sheet order — which is what ROUND2 §7
    * asks to be recorded per deposit alongside the chosen sheet. */
@@ -461,18 +559,15 @@ async function runArm({ path, sheet, colRel, rowSem, confirm = "none", inspect =
   //     least 2 data columns to proceed." (:936-938) and there is nothing to
   //     click. A timeout alone reads as a probe limit; the screen text tells
   //     you it is the product declining.
-  try {
-    await waitFor(() => {
-      try { control(container, "replicates"); control(container, "ordered"); return true; }
-      catch { return false; }
-    }, { timeout: 30000, label: "the two gate cards" });
-  } catch (e) {
-    const t = (container.textContent || "").replace(/\s+/g, " ");
-    const floor = t.includes("Assign at least 2 data columns to proceed.")
-      ? ' — the screen reads "Assign at least 2 data columns to proceed." (ImportView.jsx:938), so the PRODUCT is declining this sheet, not the probe'
-      : "";
-    throw new Error(e.message + floor + " | screen: " + t.slice(0, 400));
-  }
+  const gate = await waitFor(() => {
+    /* Cards first: the two states are mutually exclusive (`nDC >= 2` against
+     * `nDC < 2`), and asking for the answer before the refusal keeps it that
+     * way if they ever stop being. */
+    try { control(container, "replicates"); control(container, "ordered"); return "cards"; }
+    catch { /* not yet */ }
+    return (container.textContent || "").includes(FLOOR_REFUSAL) ? "refused" : null;
+  }, { timeout: RUN_BUDGET_MS, label: "the two gate cards" });
+  if (gate === "refused") throw refusalError(container);
 
   const preRun = container.textContent;
   log("gates as the product resolved them (before any click): " +
@@ -501,7 +596,7 @@ async function runArm({ path, sheet, colRel, rowSem, confirm = "none", inspect =
     //     the only one that mounts the card (ReportView.jsx:1492).
     fireEvent.click(modeTab(container, "forensics"));
     await waitFor(() => container.textContent.includes("Test coverage"),
-      { timeout: VERDICT_TIMEOUT, label: "the Forensics body" });
+      { timeout: RUN_BUDGET_MS, label: "the Forensics body" });
     cardSeen = cardPresent(container);
 
     // 8 — the confirm decision, through the card's own button
@@ -555,7 +650,8 @@ async function runBatchArm({ path, log = () => {} }) {
   fireEvent.click(toBatch);
 
   await waitFor(() => container.textContent.includes("Batch analysis") &&
-    container.querySelector('input[type="file"][multiple]'), { label: "batch drop zone" });
+    container.querySelector('input[type="file"][multiple]'),
+    { timeout: UI_WAIT_MS, label: "batch drop zone" });
   const input = container.querySelector('input[type="file"][multiple]');
   fireEvent.change(input, { target: { files: [fileFrom(path)] } });
 
@@ -589,6 +685,7 @@ async function runBatchArm({ path, log = () => {} }) {
 
 describe.skipIf(!ENABLED)("S390 — arm-B spike", () => {
   it("part 1 — mounts App and loads a real file through the shipped input", async () => {
+    runHeader();
     const path = C10();
     expect(existsSync(path), `corpus file missing: ${path}`).toBe(true);
     console.log("[p1] Blob.arrayBuffer:", polyfillArrayBuffer());
@@ -607,9 +704,10 @@ describe.skipIf(!ENABLED)("S390 — arm-B spike", () => {
       sheets.map((b) => b.textContent).join(" | "));
     expect(sheets.length).toBe(9);
     cleanup();
-  }, 60000);
+  }, blockTimeout(1));   // one import, no run
 
   it("part 2 — drives both gates and the run button as a user does", async () => {
+    runHeader();
     /* THE NEGATIVE CONTROL. A probe that reached a verdict without the clicks
      * mattering would be measuring a default and reporting it as an answer. So
      * the blocked state is asserted BEFORE any gate is clicked, and the released
@@ -641,9 +739,10 @@ describe.skipIf(!ENABLED)("S390 — arm-B spike", () => {
     const r = await runArm({ path: C10(), sheet: SHEET, colRel: "conditions", rowSem: "ordered", log });
     console.log("[p2] verdict:", JSON.stringify(r));
     expect(r.severity).not.toBeNull();
-  }, 300000);
+  }, blockTimeout(2));   // one bare import for the control, then one arm
 
   it("part 3 — reproduces S383's four runs on C10 :: Exiguobacterium sp. Experiment1", async () => {
+    runHeader();
     /* S383 / P186, as recorded. The probe agrees with the hand measurement or it
      * does not; nothing here is adjusted to make it agree.
      * C10 is NOT adjudicated. These numbers say what the tool returns under four
@@ -686,15 +785,22 @@ describe.skipIf(!ENABLED)("S390 — arm-B spike", () => {
       got.reduce((a, g) => a + g.secs, 0).toFixed(1), "s");
 
     for (const r of rows) expect(r.agree, `${r.arm}: recorded ${r.recorded}, probe ${r.observed}`).toBe(true);
-  }, 600000);
+  }, blockTimeout(4));   // one batch arm plus three ImportView arms
 
-  it("part 4 — cost, and thirty runs as a loop rather than thirty edits", async () => {
-    /* The sheet and the two answers are already inputs to runArm. This drives a
-     * manifest — the same shape ROUND2 §6.2/§7 needs per deposit — to show that
-     * scaling is a longer list, not a longer probe. Override with
-     * ARMB_MANIFEST=<file.json>; the default is three C10 sheets so the spike
-     * stays cheap and still proves the loop. */
-    const manifest = process.env.ARMB_MANIFEST
+  /* The sheet and the two answers are already inputs to runArm. This drives a
+   * manifest — the same shape ROUND2 §6.2/§7 needs per deposit — to show that
+   * scaling is a longer list, not a longer probe. Override with
+   * ARMB_MANIFEST=<file.json>; the default is three C10 sheets so the spike
+   * stays cheap and still proves the loop.
+   *
+   * S397: RESOLVED HERE RATHER THAN IN THE BODY, because the `it` timeout is an
+   * argument to `it` and must know the arm count before the body runs. A bad
+   * ARMB_MANIFEST path would then throw during COLLECTION and take parts 1, 2,
+   * 3 and 5 down with it, so the read is caught and the error re-raised inside
+   * part 4 where it belongs. */
+  let manifest = [], manifestError = null;
+  try {
+    manifest = process.env.ARMB_MANIFEST
       ? JSON.parse(readFileSync(process.env.ARMB_MANIFEST, "utf-8"))
       : [
           { label: "C10 :: Exiguobacterium sp. Experiment1", file: "C10.xlsx",
@@ -704,6 +810,14 @@ describe.skipIf(!ENABLED)("S390 — arm-B spike", () => {
           { label: "C10 :: B. cereus Experiment1", file: "C10.xlsx",
             sheet: "B. cereus Experiment1", colRel: "replicates", rowSem: "ordered" },
         ];
+    if (!Array.isArray(manifest)) throw new Error("ARMB_MANIFEST must be a JSON array");
+  } catch (e) { manifestError = e.message; manifest = []; }
+
+  it("part 4 — cost, and thirty runs as a loop rather than thirty edits", async () => {
+    runHeader();
+    if (manifestError) throw new Error(`ARMB_MANIFEST: ${manifestError}`);
+    /* §8.5.1 — refuse at the top rather than run. One arm per entry. */
+    assertUnderCeiling(manifest.length, "part 4");
 
     /* ── S397: `confirm` and `inspect` join the manifest ────────────────────
      *
@@ -770,7 +884,7 @@ describe.skipIf(!ENABLED)("S390 — arm-B spike", () => {
     const mean = total / manifest.length;
     console.log(`[p4] ${manifest.length} arm-B runs in ${total.toFixed(1)} s; mean ${mean.toFixed(1)} s/run`);
     console.log(`[p4] projection — 30 deposits, arm B only: ${(mean * 30 / 60).toFixed(1)} min`);
-  }, 900000);
+  }, blockTimeout(Math.max(1, manifest.length)));   // one arm per manifest entry
 
   /* ── S393 — does confirming the grouping move the verdict, and by how much ──
    *
@@ -828,12 +942,20 @@ describe.skipIf(!ENABLED)("S390 — arm-B spike", () => {
    * `description` when there is no naCauseText (noVerdictReasons.js:78-83). */
   const PENDING_DESC = "grouping unconfirmed — pending user confirmation";
 
+  /* S397: hoisted for the same reason as part 4's manifest — the `it` timeout
+   * is an argument to `it`, so the sheet count has to be known before the body
+   * runs. RUNS.length arms per sheet. */
+  const p5only = process.env.S393_SHEETS
+    ? process.env.S393_SHEETS.split("|").map((s) => s.trim())
+    : null;
+  const p5sheets = p5only ? PENDING_NINE.filter((s) => p5only.includes(s.label)) : PENDING_NINE;
+
   it("part 5 — the grouping confirm's cost on the nine round-1 pending sheets", async () => {
-    const only = process.env.S393_SHEETS
-      ? process.env.S393_SHEETS.split("|").map((s) => s.trim())
-      : null;
-    const sheets = only ? PENDING_NINE.filter((s) => only.includes(s.label)) : PENDING_NINE;
+    runHeader();
+    const sheets = p5sheets;
     expect(sheets.length, "no sheets selected").toBeGreaterThan(0);
+    /* §8.5.1 — refuse at the top rather than run. */
+    assertUnderCeiling(sheets.length * RUNS.length, "part 5");
 
     const rows = [];
     const notDrivable = [];
@@ -965,5 +1087,5 @@ describe.skipIf(!ENABLED)("S390 — arm-B spike", () => {
     expect(droveSomething, "no run drove on any sheet — the table would be empty and this must not read as a pass").toBe(true);
     const broken = integrity.filter((c) => !c.ok);
     expect(broken.map((c) => `${c.dep} ${c.check}: ${c.detail}`).join("; ")).toBe("");
-  }, 5400000);
+  }, blockTimeout(Math.max(1, p5sheets.length) * RUNS.length));
 });
