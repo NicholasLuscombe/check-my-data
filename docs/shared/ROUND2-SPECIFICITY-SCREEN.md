@@ -1635,6 +1635,62 @@ ruled about it.
 **Whether any other file in a deposit is in the information set** — a second data table, a script, a
 figure. Nothing here reaches them and nothing is ruled about them.
 
+### 21.10 — a rule cited before it was committed, recorded S401 before any deposit was scored
+
+**§21.8 was applied in the run log one commit before it existed in this document.** `df5356f` — run log
+§4.1 C11–C15, batch 2 of the re-answer pass — added four lines citing §21.8 and §21.8.1: one in
+pos-14's owed-check paragraph, two in pos-18's entry, one in pos-21's. **§21.8 is absent from this
+document at that tree.** It landed at `c13e5d7`, the next commit but one.
+
+**What is not compromised, stated so the exposure can be priced rather than feared.**
+
+- **Nothing had been scored, so there was no result the rule could be chosen to fit.** §21.8.3's
+  hazard is a rule shaped to a verdict. No verdict existed on any deposit on either arm, and none
+  does now.
+- **No answer moved.** All four lines record that the rule costs the deposit nothing or that a check
+  is owed. §6.4 is not triggered and no §4.1 correction is due.
+- **The reasoning order was right and only the writing order inverted.** pos-18 and pos-21 are the two
+  deposits §21.8 was ruled *for*, named in its opening paragraph. The deposits raised the question and
+  the rule answered it; the commits recorded the answer second.
+- **Both the rule and its applications landed inside S400, before either arm ran on any deposit.**
+
+**What is compromised.** §21.8.3 says the rule is fixed so that it cannot be chosen to fit a result,
+**which makes it auditable rather than correct.** That is a claim about legibility to a reader who was
+not present. **A reader reconstructing the order from the commit history sees the application and then
+the rule**, and this section is what that reader needs in order to price it.
+
+**Ruled: §21.8 stands, no deposit is re-answered, and the four citations are left as written.** The
+exposure is recorded rather than repaired. **Editing the cells or moving the rule earlier would make
+the record less legible, not more** — it would remove the only evidence that the order was ever in
+question.
+
+#### 21.10.1 — the class, measured on the two nearest neighbours
+
+**Both are clean and neither is a member.**
+
+- **§21.7**, ruled at `08bec3f`. The run log first cites it at `f569235`, the next commit. Rule, then
+  application.
+- **§22**, ruled at `b6ad491`. The run log carries no occurrence of `§22` in that tree at all, and
+  first cites it at `bdd927a`, the next commit. Rule, then application.
+
+**§21.8 is the only member of the three measured.** One instance rather than a pattern, which is why
+the general rule below is written as a working discipline and not as a defect in this document.
+
+**Scope, stated because an undeclared scope is worth nothing.** Three rules measured — §21.7, §21.8,
+§22. **Every section from §6 to §20 is unmeasured**, and the same two reads answer it for each: does
+the applying commit's tree contain the section, and which commit first cites it.
+
+#### 21.10.2 — the general form
+
+**A rule and its applications committed in the same session are not thereby committed in that order.**
+Session ordering is not commit ordering, and the audit a reader can actually perform runs on commits.
+**Commit the rule first.**
+
+**A read that cannot return the failing answer is not a check.** `git show <commit> -- <path>` on a
+commit that does not touch that path returns nothing and counts zero whatever the truth is. The read
+that settled §21.7 was `git log -S`, and the read that settled §22 was `git show <commit>:<path>`,
+which reads the file at that tree rather than the commit's diff.
+
 ## 22 — what the analysed matrix holds, recorded S399 before the re-answer pass and before any deposit was scored
 
 **§3's shape filter asks whether a sheet has a numeric matrix. It does not ask whether the numbers are
