@@ -705,17 +705,66 @@ describe.skipIf(!ENABLED)("S390 — arm-B spike", () => {
             sheet: "B. cereus Experiment1", colRel: "replicates", rowSem: "ordered" },
         ];
 
+    /* ── S397: `confirm` and `inspect` join the manifest ────────────────────
+     *
+     * They were already inputs to `runArm` (:420) and hardcoded at this call
+     * site alone, so thirteen of the 27 answered round-2 deposits — the ones
+     * that render the grouping-confirm gate — could not be given an answer
+     * without editing the probe.
+     *
+     * THE DEFAULT IS NOT RESTATED HERE. A key absent from the entry is a key
+     * absent from the call, so `runArm`'s own signature defaults supply it.
+     * Writing `e.confirm ?? "none"` would put "none" in a second place and let
+     * the two drift; this cannot. Every entry that omits both fields — every
+     * entry in the default manifest below, and every ARMB_MANIFEST written
+     * before today — therefore calls `runArm` with byte-identical arguments.
+     *
+     * VALIDATED BEFORE THE FIRST RUN, WHICH IS THE POINT. Both fields already
+     * fail loudly on a bad value: `confirm: "confrim"` reaches `cardButton`
+     * (:510), matches zero buttons and throws. But it throws at step 8, AFTER
+     * the import, the run and the verdict read — on `pos-41` that is hours
+     * spent to report a typo. The whole manifest is checked here instead, so
+     * a bad entry costs nothing and a thirty-entry loop cannot die on entry
+     * thirty. The legal set is read off `CARD` rather than written out, so a
+     * third card action would be admitted automatically. */
+    const CONFIRM_VALUES = ["none", ...Object.keys(CARD)];
+    const bad = [];
+    manifest.forEach((e, i) => {
+      const at = `entry ${i} (${e.label || e.file || "?"})`;
+      if (e.confirm !== undefined && !CONFIRM_VALUES.includes(e.confirm))
+        bad.push(`${at}: confirm ${JSON.stringify(e.confirm)} — expected one of ${CONFIRM_VALUES.join(" | ")}`);
+      if (e.inspect !== undefined && typeof e.inspect !== "boolean")
+        bad.push(`${at}: inspect ${JSON.stringify(e.inspect)} — expected a boolean`);
+    });
+    expect(bad.join("\n"), "manifest field values").toBe("");
+
     console.log("\n[p4] " + "deposit".padEnd(42) + "answers".padEnd(30) +
       "sheet".padEnd(10) + "arm B".padEnd(22) + "s");
     let total = 0;
     for (const e of manifest) {
-      const r = await runArm({ path: join(corpusDir(), e.file), sheet: e.sheet,
-                               colRel: e.colRel, rowSem: e.rowSem });
+      const opts = { path: join(corpusDir(), e.file), sheet: e.sheet,
+                     colRel: e.colRel, rowSem: e.rowSem };
+      if (e.confirm !== undefined) opts.confirm = e.confirm;
+      if (e.inspect !== undefined) opts.inspect = e.inspect;
+      const r = await runArm(opts);
       total += r.secs;
+      /* The line an entry using neither field prints is unchanged to the byte.
+       * A field that did nothing must not read like one that worked, so an
+       * entry that used one gets its evidence appended: the pre-confirm
+       * verdict beside the post-confirm one, which is the delta the confirm
+       * field exists to measure, and §5's own coverage figure where `inspect`
+       * went and read it. */
+      const extra = [
+        opts.confirm && opts.confirm !== "none"
+          ? `confirm=${opts.confirm} pre sev ${r.pre.severity} H=${r.pre.high} M=${r.pre.mod} card=${r.cardSeen}`
+          : null,
+        opts.inspect ? `covRan ${r.s5?.covRan}/${r.s5?.covTotal}` : null,
+      ].filter(Boolean).join("  ");
       console.log("[p4] " + e.label.padEnd(42) +
         `${e.colRel}/${e.rowSem}`.padEnd(30) +
         `${r.sheetIndex}/${r.nSheets}`.padEnd(10) +
-        `sev ${r.severity}  H=${r.high} M=${r.mod}`.padEnd(22) + r.secs);
+        `sev ${r.severity}  H=${r.high} M=${r.mod}`.padEnd(22) + r.secs +
+        (extra ? "  " + extra : ""));
       expect(r.severity).not.toBeNull();
     }
     const mean = total / manifest.length;
