@@ -40,9 +40,12 @@ import { readFileSync, writeFileSync, existsSync, mkdirSync, statSync } from 'no
 import { join, dirname, resolve, sep } from 'node:path';
 import { execSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
+import { headerNumber, validatedResetMs, makeBudget, sleep, LOCAL_LIMIT }
+  from './lib/round2-ratelimit.mjs';
 
 const BASE = 'https://datadryad.org';                 // scripts/round2-fetch.mjs:23
 const DRY  = process.argv.includes('--dry-run');
+const STARTED_AT = Date.now();
 
 // ── the two roots ──────────────────────────────────────────────────────────
 const repoRoot = execSync('git rev-parse --show-toplevel', { encoding: 'utf-8' }).trim();
@@ -178,46 +181,88 @@ for (const p of plan) {
 console.log(`phase A — metadata: ${metaWritten} written, ${metaSkipped} already present, ${metaBytes} bytes`);
 console.log(`  non-empty: ` + Object.entries(fieldNonEmpty).map(([k, v]) => `${k} ${v}/30`).join(' · '));
 
+// ── phase B0 — what is already on disk, verified. No network, no token. ────
+//
+// This was inside the token branch, which is the same fault as the one above at
+// a smaller scale: a check gated on something it does not need. Verifying a file
+// already present costs nothing and must happen whether or not a fetch can run,
+// or the manifest reports "not fetched" for a file sitting verified on disk.
+let sizeOk0 = 0, digestOk0 = 0, present = 0;
+const preFailures = [];
+for (const p of plan) {
+  if (!p.file) continue;
+  const dest = join(p.dir, p.file.path);
+  if (!existsSync(dest)) continue;
+  present++;
+  const have = readFileSync(dest);
+  const okS = have.length === p.file.size;
+  const okD = sha(have) === p.file.digest;
+  if (okS) sizeOk0++;
+  if (okD) digestOk0++;
+  const row = rows.find((r) => r.position === p.pos);
+  row.readme.status = okS && okD ? 'already present, verified' : 'already present, FAILS VERIFICATION';
+  row.readme.error = okS && okD ? null
+    : `on disk but ${!okS ? 'size' : 'digest'} does not match the manifest; left untouched`;
+  if (!(okS && okD)) preFailures.push(`pos-${pad(p.pos)}: ${row.readme.error}`);
+}
+console.log(`phase B0 — on disk: ${present} present, ${sizeOk0} size ok, ${digestOk0} digest ok`);
+
 // ── phase B — the downloads ────────────────────────────────────────────────
 const token = process.env.DRYAD_TOKEN;                 // never printed, never stored
-let requests = 0, remaining = null, sizeOk = 0, digestOk = 0, kept = 0, corpusBytes = 0;
-const failures = [];
+let requests = 0, remaining = null, kept = 0, corpusBytes = 0;
+let sizeOk = sizeOk0, digestOk = digestOk0;
+const budget = makeBudget(LOCAL_LIMIT);   // THE budget; headers only corroborate it
+const failures = [...preFailures];
 
-if (!token) {
-  console.log('\nphase B — HALT: DRYAD_TOKEN is unset. Nothing was fetched.');
-  for (const r of rows) if (r.readme) r.readme.error = 'DRYAD_TOKEN unset — no request was made';
+/* A token too short to be a credential is refused rather than sent. Found the
+ * hard way: `export DRYAD_TOKEN="…"` pasted with the prompt's own ellipsis
+ * placeholder sets a 3-byte value that is truthy, so a bare `!token` test lets
+ * it through and thirty bogus bearers reach a third party. Presence is not
+ * validity. The value is never printed — only its length. */
+const MIN_TOKEN_BYTES = 16;
+const tokenTooShort = !!token && Buffer.byteLength(token, 'utf8') < MIN_TOKEN_BYTES;
+
+if (!token || tokenTooShort) {
+  const why = !token
+    ? 'DRYAD_TOKEN is unset'
+    : `DRYAD_TOKEN is only ${Buffer.byteLength(token, 'utf8')} bytes, short of the `
+      + `${MIN_TOKEN_BYTES}-byte floor — that is a placeholder, not a credential`;
+  console.log(`\nphase B — HALT: ${why}. Nothing was fetched.`);
+  for (const r of rows)
+    if (r.readme && r.readme.status === 'not fetched') r.readme.error = `${why} — no request was made`;
 } else if (DRY) {
   console.log('\nphase B — --dry-run, no request made.');
 } else {
-  const waitForReset = async (reset, why) => {
-    const ms = Math.max(0, reset * 1000 - Date.now()) + 2000;
-    console.log(`  ${why}; window reopens at ${new Date(reset * 1000).toISOString()} — waiting ${Math.ceil(ms / 1000)} s`);
-    await new Promise((r) => setTimeout(r, ms));
+  /* Waiting on a VALIDATED instant only. `validatedResetMs` throws by name when
+   * the header is absent, resolves to the past, or implies over an hour. */
+  const waitUntil = async (untilMs, why) => {
+    const ms = Math.max(0, untilMs - Date.now()) + 2000;
+    console.log(`  ${why}; window reopens at ${new Date(untilMs).toISOString()} — waiting ${Math.ceil(ms / 1000)} s`);
+    await sleep(ms);
   };
   for (const p of plan) {
     const row = rows.find((r) => r.position === p.pos);
     if (!p.file) continue;
     const dest = join(p.dir, p.file.path);
-    if (existsSync(dest)) {                      // idempotent: verify, never replace
-      const have = readFileSync(dest);
-      const okS = have.length === p.file.size, okD = sha(have) === p.file.digest;
-      if (okS) sizeOk++; if (okD) digestOk++;
-      row.readme.status = okS && okD ? 'already present, verified' : 'already present, FAILS VERIFICATION';
-      if (!(okS && okD)) { row.readme.error = `on disk but ${!okS ? 'size' : 'digest'} does not match; left untouched`; failures.push(`pos-${pad(p.pos)}: ${row.readme.error}`); }
-      else kept++;
-      continue;
-    }
+    if (existsSync(dest)) { kept++; continue; }  // verified at B0; never re-fetched, never replaced
     let res;
     for (;;) {
+      /* THE BUDGET IS OURS, not the server's. A slot is taken before the request;
+       * when the hour is full the wait is arithmetic on the clock, so it is
+       * always available and cannot be poisoned by a missing header. */
+      const hold = budget.reserve();
+      if (hold > 0) await waitUntil(Date.now() + hold, `local budget of ${LOCAL_LIMIT} per UTC hour is full`);
       res = await fetch(p.url, { headers: { Authorization: `Bearer ${token}` }, redirect: 'follow' });
       requests++;
-      const rem = Number(res.headers.get('ratelimit-remaining'));
-      if (Number.isFinite(rem)) remaining = rem;
+      /* Corroboration where it appears, never a precondition. An absent header
+       * is normal on this endpoint and the run proceeds. */
+      const rem = headerNumber(res, 'ratelimit-remaining');
+      if (rem !== null) remaining = rem;
       if (res.status === 401 || res.status === 403) throw new Error(`HALT — authentication failed (${res.status}) at pos-${pad(p.pos)}`);
       if (res.status === 429) {
-        const reset = Number(res.headers.get('ratelimit-reset'));
-        if (!Number.isFinite(reset)) throw new Error(`HALT — 429 with no ratelimit-reset at pos-${pad(p.pos)}`);
-        await waitForReset(reset, `quota exhausted at pos-${pad(p.pos)}`);
+        // A wait is genuinely required here, so the reset must exist and validate.
+        const until = validatedResetMs(res, `429 at pos-${pad(p.pos)}`, STARTED_AT);
+        await waitUntil(until, `server reported quota exhausted at pos-${pad(p.pos)}`);
         continue;
       }
       break;
@@ -246,10 +291,11 @@ if (!token) {
     row.readme.status = st === 'written' ? 'fetched and verified' : st;
     row.readme.fetchedAt = utc();
     if (st === 'written') { kept++; corpusBytes += buf.length; }
-    if (remaining !== null && remaining <= 1) {
-      const reset = Number(res.headers.get('ratelimit-reset'));
-      if (Number.isFinite(reset) && plan.indexOf(p) < plan.length - 1) await waitForReset(reset, 'ratelimit-remaining exhausted');
-    }
+    /* No throttle is derived from `ratelimit-remaining`. It is reported when
+     * present and otherwise ignored; the local budget above is what governs.
+     * Reading an absent header as a remaining count of zero is the defect this
+     * replaces. */
+    if (remaining === 0) console.log(`  note: server reports ratelimit-remaining 0 at pos-${pad(p.pos)}`);
   }
 }
 
@@ -265,8 +311,11 @@ const payload = {
     file: rows.filter((r) => r.artefactType === 'file').length,
     landing: rows.filter((r) => r.artefactType === 'landing').length,
     absent: rows.filter((r) => r.artefactType === 'absent').length,
-    requests, ratelimitRemainingAtEnd: remaining,
+    requests, localBudgetUsed: budget.total, localBudgetLimitPerHour: LOCAL_LIMIT,
+    ratelimitRemainingAtEnd: remaining,
+    ratelimitHeadersSeen: remaining !== null,
     sizeChecksPassed: sizeOk, digestChecksPassed: digestOk, readmesOnDisk: kept,
+    readmesAlreadyPresentAtStart: present,
     metadataWritten: metaWritten, metadataAlreadyPresent: metaSkipped,
     metadataFieldsNonEmpty: fieldNonEmpty,
     bytesUnderCorpusRoot: corpusBytes + metaBytes, bytesReadmes: corpusBytes, bytesMetadata: metaBytes,
@@ -277,6 +326,8 @@ const payload = {
 guardPath(MANIFEST_OUT, 'manifest');
 if (!DRY) { mkdirSync(dirname(MANIFEST_OUT), { recursive: true }); writeFileSync(MANIFEST_OUT, JSON.stringify(payload, null, 2) + '\n'); }
 console.log(`\nmanifest: ${MANIFEST_OUT} — ${rows.length} rows, complete=${payload.complete}`);
-console.log(`requests ${requests} · ratelimit-remaining at end ${remaining ?? 'n/a'} · size checks ${sizeOk}/30 · digest checks ${digestOk}/30`);
+console.log(`requests ${requests} · local counter ${budget.total}/${LOCAL_LIMIT} per UTC hour `
+  + `· ratelimit-remaining at end ${remaining === null ? 'header absent' : remaining} `
+  + `· size checks ${sizeOk}/30 · digest checks ${digestOk}/30`);
 if (failures.length) { console.log('\nERRORS:'); for (const f of failures) console.log('  ' + f); }
 process.exit(failures.length ? 1 : (!token ? 2 : 0));

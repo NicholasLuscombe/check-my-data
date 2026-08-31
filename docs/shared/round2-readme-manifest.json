@@ -1,6 +1,6 @@
 {
   "generatedBy": "scripts/fetch-round2-readmes.mjs",
-  "generatedAt": "2026-08-31T10:13:17.400Z",
+  "generatedAt": "2026-08-31T10:33:08.512Z",
   "source": "docs/shared/ROUND2-RUN-LOG.md §4 for the thirty; docs/shared/round2-raw/round2-manifest.json for sizes, sha-256 and download hrefs",
   "roots": {
     "corpus": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2",
@@ -13,10 +13,14 @@
     "landing": 0,
     "absent": 0,
     "requests": 0,
+    "localBudgetUsed": 0,
+    "localBudgetLimitPerHour": 100,
     "ratelimitRemainingAtEnd": null,
-    "sizeChecksPassed": 0,
-    "digestChecksPassed": 0,
+    "ratelimitHeadersSeen": false,
+    "sizeChecksPassed": 7,
+    "digestChecksPassed": 7,
     "readmesOnDisk": 0,
+    "readmesAlreadyPresentAtStart": 7,
     "metadataWritten": 0,
     "metadataAlreadyPresent": 30,
     "metadataFieldsNonEmpty": {
@@ -43,8 +47,8 @@
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-01/readme/README.md",
         "url": "https://datadryad.org/api/v2/files/4932658/download",
         "fetchedAt": null,
-        "status": "not fetched",
-        "error": "DRYAD_TOKEN unset — no request was made"
+        "status": "already present, verified",
+        "error": null
       },
       "metadata": {
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-01/readme/metadata.md",
@@ -72,8 +76,8 @@
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-02/readme/README.md",
         "url": "https://datadryad.org/api/v2/files/4933091/download",
         "fetchedAt": null,
-        "status": "not fetched",
-        "error": "DRYAD_TOKEN unset — no request was made"
+        "status": "already present, verified",
+        "error": null
       },
       "metadata": {
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-02/readme/metadata.md",
@@ -101,8 +105,8 @@
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-03/readme/README.md",
         "url": "https://datadryad.org/api/v2/files/4933025/download",
         "fetchedAt": null,
-        "status": "not fetched",
-        "error": "DRYAD_TOKEN unset — no request was made"
+        "status": "already present, verified",
+        "error": null
       },
       "metadata": {
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-03/readme/metadata.md",
@@ -130,8 +134,8 @@
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-07/readme/README.md",
         "url": "https://datadryad.org/api/v2/files/4932992/download",
         "fetchedAt": null,
-        "status": "not fetched",
-        "error": "DRYAD_TOKEN unset — no request was made"
+        "status": "already present, verified",
+        "error": null
       },
       "metadata": {
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-07/readme/metadata.md",
@@ -159,8 +163,8 @@
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-08/readme/README.md",
         "url": "https://datadryad.org/api/v2/files/4933277/download",
         "fetchedAt": null,
-        "status": "not fetched",
-        "error": "DRYAD_TOKEN unset — no request was made"
+        "status": "already present, verified",
+        "error": null
       },
       "metadata": {
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-08/readme/metadata.md",
@@ -188,8 +192,8 @@
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-12/readme/README.md",
         "url": "https://datadryad.org/api/v2/files/4930548/download",
         "fetchedAt": null,
-        "status": "not fetched",
-        "error": "DRYAD_TOKEN unset — no request was made"
+        "status": "already present, verified",
+        "error": null
       },
       "metadata": {
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-12/readme/metadata.md",
@@ -217,8 +221,8 @@
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-14/readme/README.md",
         "url": "https://datadryad.org/api/v2/files/4930866/download",
         "fetchedAt": null,
-        "status": "not fetched",
-        "error": "DRYAD_TOKEN unset — no request was made"
+        "status": "already present, verified",
+        "error": null
       },
       "metadata": {
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-14/readme/metadata.md",
@@ -247,7 +251,7 @@
         "url": "https://datadryad.org/api/v2/files/4930531/download",
         "fetchedAt": null,
         "status": "not fetched",
-        "error": "DRYAD_TOKEN unset — no request was made"
+        "error": "DRYAD_TOKEN is only 3 bytes, short of the 16-byte floor — that is a placeholder, not a credential — no request was made"
       },
       "metadata": {
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-18/readme/metadata.md",
@@ -276,7 +280,7 @@
         "url": "https://datadryad.org/api/v2/files/4930888/download",
         "fetchedAt": null,
         "status": "not fetched",
-        "error": "DRYAD_TOKEN unset — no request was made"
+        "error": "DRYAD_TOKEN is only 3 bytes, short of the 16-byte floor — that is a placeholder, not a credential — no request was made"
       },
       "metadata": {
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-21/readme/metadata.md",
@@ -305,7 +309,7 @@
         "url": "https://datadryad.org/api/v2/files/4930914/download",
         "fetchedAt": null,
         "status": "not fetched",
-        "error": "DRYAD_TOKEN unset — no request was made"
+        "error": "DRYAD_TOKEN is only 3 bytes, short of the 16-byte floor — that is a placeholder, not a credential — no request was made"
       },
       "metadata": {
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-22/readme/metadata.md",
@@ -334,7 +338,7 @@
         "url": "https://datadryad.org/api/v2/files/4931378/download",
         "fetchedAt": null,
         "status": "not fetched",
-        "error": "DRYAD_TOKEN unset — no request was made"
+        "error": "DRYAD_TOKEN is only 3 bytes, short of the 16-byte floor — that is a placeholder, not a credential — no request was made"
       },
       "metadata": {
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-23/readme/metadata.md",
@@ -363,7 +367,7 @@
         "url": "https://datadryad.org/api/v2/files/4932014/download",
         "fetchedAt": null,
         "status": "not fetched",
-        "error": "DRYAD_TOKEN unset — no request was made"
+        "error": "DRYAD_TOKEN is only 3 bytes, short of the 16-byte floor — that is a placeholder, not a credential — no request was made"
       },
       "metadata": {
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-27/readme/metadata.md",
@@ -392,7 +396,7 @@
         "url": "https://datadryad.org/api/v2/files/4932089/download",
         "fetchedAt": null,
         "status": "not fetched",
-        "error": "DRYAD_TOKEN unset — no request was made"
+        "error": "DRYAD_TOKEN is only 3 bytes, short of the 16-byte floor — that is a placeholder, not a credential — no request was made"
       },
       "metadata": {
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-28/readme/metadata.md",
@@ -421,7 +425,7 @@
         "url": "https://datadryad.org/api/v2/files/4932021/download",
         "fetchedAt": null,
         "status": "not fetched",
-        "error": "DRYAD_TOKEN unset — no request was made"
+        "error": "DRYAD_TOKEN is only 3 bytes, short of the 16-byte floor — that is a placeholder, not a credential — no request was made"
       },
       "metadata": {
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-30/readme/metadata.md",
@@ -450,7 +454,7 @@
         "url": "https://datadryad.org/api/v2/files/4932006/download",
         "fetchedAt": null,
         "status": "not fetched",
-        "error": "DRYAD_TOKEN unset — no request was made"
+        "error": "DRYAD_TOKEN is only 3 bytes, short of the 16-byte floor — that is a placeholder, not a credential — no request was made"
       },
       "metadata": {
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-31/readme/metadata.md",
@@ -479,7 +483,7 @@
         "url": "https://datadryad.org/api/v2/files/4931868/download",
         "fetchedAt": null,
         "status": "not fetched",
-        "error": "DRYAD_TOKEN unset — no request was made"
+        "error": "DRYAD_TOKEN is only 3 bytes, short of the 16-byte floor — that is a placeholder, not a credential — no request was made"
       },
       "metadata": {
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-32/readme/metadata.md",
@@ -508,7 +512,7 @@
         "url": "https://datadryad.org/api/v2/files/4923672/download",
         "fetchedAt": null,
         "status": "not fetched",
-        "error": "DRYAD_TOKEN unset — no request was made"
+        "error": "DRYAD_TOKEN is only 3 bytes, short of the 16-byte floor — that is a placeholder, not a credential — no request was made"
       },
       "metadata": {
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-34/readme/metadata.md",
@@ -537,7 +541,7 @@
         "url": "https://datadryad.org/api/v2/files/4929278/download",
         "fetchedAt": null,
         "status": "not fetched",
-        "error": "DRYAD_TOKEN unset — no request was made"
+        "error": "DRYAD_TOKEN is only 3 bytes, short of the 16-byte floor — that is a placeholder, not a credential — no request was made"
       },
       "metadata": {
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-35/readme/metadata.md",
@@ -566,7 +570,7 @@
         "url": "https://datadryad.org/api/v2/files/4920999/download",
         "fetchedAt": null,
         "status": "not fetched",
-        "error": "DRYAD_TOKEN unset — no request was made"
+        "error": "DRYAD_TOKEN is only 3 bytes, short of the 16-byte floor — that is a placeholder, not a credential — no request was made"
       },
       "metadata": {
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-38/readme/metadata.md",
@@ -595,7 +599,7 @@
         "url": "https://datadryad.org/api/v2/files/4929285/download",
         "fetchedAt": null,
         "status": "not fetched",
-        "error": "DRYAD_TOKEN unset — no request was made"
+        "error": "DRYAD_TOKEN is only 3 bytes, short of the 16-byte floor — that is a placeholder, not a credential — no request was made"
       },
       "metadata": {
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-39/readme/metadata.md",
@@ -624,7 +628,7 @@
         "url": "https://datadryad.org/api/v2/files/4929480/download",
         "fetchedAt": null,
         "status": "not fetched",
-        "error": "DRYAD_TOKEN unset — no request was made"
+        "error": "DRYAD_TOKEN is only 3 bytes, short of the 16-byte floor — that is a placeholder, not a credential — no request was made"
       },
       "metadata": {
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-40/readme/metadata.md",
@@ -653,7 +657,7 @@
         "url": "https://datadryad.org/api/v2/files/4929343/download",
         "fetchedAt": null,
         "status": "not fetched",
-        "error": "DRYAD_TOKEN unset — no request was made"
+        "error": "DRYAD_TOKEN is only 3 bytes, short of the 16-byte floor — that is a placeholder, not a credential — no request was made"
       },
       "metadata": {
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-41/readme/metadata.md",
@@ -682,7 +686,7 @@
         "url": "https://datadryad.org/api/v2/files/4929406/download",
         "fetchedAt": null,
         "status": "not fetched",
-        "error": "DRYAD_TOKEN unset — no request was made"
+        "error": "DRYAD_TOKEN is only 3 bytes, short of the 16-byte floor — that is a placeholder, not a credential — no request was made"
       },
       "metadata": {
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-43/readme/metadata.md",
@@ -711,7 +715,7 @@
         "url": "https://datadryad.org/api/v2/files/4929371/download",
         "fetchedAt": null,
         "status": "not fetched",
-        "error": "DRYAD_TOKEN unset — no request was made"
+        "error": "DRYAD_TOKEN is only 3 bytes, short of the 16-byte floor — that is a placeholder, not a credential — no request was made"
       },
       "metadata": {
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-44/readme/metadata.md",
@@ -740,7 +744,7 @@
         "url": "https://datadryad.org/api/v2/files/4926142/download",
         "fetchedAt": null,
         "status": "not fetched",
-        "error": "DRYAD_TOKEN unset — no request was made"
+        "error": "DRYAD_TOKEN is only 3 bytes, short of the 16-byte floor — that is a placeholder, not a credential — no request was made"
       },
       "metadata": {
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-45/readme/metadata.md",
@@ -769,7 +773,7 @@
         "url": "https://datadryad.org/api/v2/files/4929557/download",
         "fetchedAt": null,
         "status": "not fetched",
-        "error": "DRYAD_TOKEN unset — no request was made"
+        "error": "DRYAD_TOKEN is only 3 bytes, short of the 16-byte floor — that is a placeholder, not a credential — no request was made"
       },
       "metadata": {
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-46/readme/metadata.md",
@@ -798,7 +802,7 @@
         "url": "https://datadryad.org/api/v2/files/4929611/download",
         "fetchedAt": null,
         "status": "not fetched",
-        "error": "DRYAD_TOKEN unset — no request was made"
+        "error": "DRYAD_TOKEN is only 3 bytes, short of the 16-byte floor — that is a placeholder, not a credential — no request was made"
       },
       "metadata": {
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-47/readme/metadata.md",
@@ -827,7 +831,7 @@
         "url": "https://datadryad.org/api/v2/files/4930009/download",
         "fetchedAt": null,
         "status": "not fetched",
-        "error": "DRYAD_TOKEN unset — no request was made"
+        "error": "DRYAD_TOKEN is only 3 bytes, short of the 16-byte floor — that is a placeholder, not a credential — no request was made"
       },
       "metadata": {
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-49/readme/metadata.md",
@@ -856,7 +860,7 @@
         "url": "https://datadryad.org/api/v2/files/4930118/download",
         "fetchedAt": null,
         "status": "not fetched",
-        "error": "DRYAD_TOKEN unset — no request was made"
+        "error": "DRYAD_TOKEN is only 3 bytes, short of the 16-byte floor — that is a placeholder, not a credential — no request was made"
       },
       "metadata": {
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-50/readme/metadata.md",
@@ -885,7 +889,7 @@
         "url": "https://datadryad.org/api/v2/files/4930000/download",
         "fetchedAt": null,
         "status": "not fetched",
-        "error": "DRYAD_TOKEN unset — no request was made"
+        "error": "DRYAD_TOKEN is only 3 bytes, short of the 16-byte floor — that is a placeholder, not a credential — no request was made"
       },
       "metadata": {
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-51/readme/metadata.md",
