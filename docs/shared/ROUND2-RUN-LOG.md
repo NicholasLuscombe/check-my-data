@@ -1256,6 +1256,103 @@ plots across fortnightly surveys from November 2025 to April 2026, giving the sc
 
 **No arm has run on pos-47.** §6.4's ordering holds.
 
+**C32 — pos-49, the structural reason. A stated ratio in the matrix, and a sequential index that is not sequential. Logged S400.**
+
+**The re-answer pass under §21 returns *contradicts*, on the ground the row-semantics answer was let
+stand.** No answer moves.
+
+**A deterministic relation the cell does not carry.** `dry_wetratio` is *dry weight / wet weight* in the
+depositor's own words, and `WetWeight` and `DryWeight` are both analysed columns. Checked on the three
+visible rows: 32.68 ÷ 70.6 = 0.463, 15.941 ÷ 31.3 = 0.509, 16.214 ÷ 32.4 = 0.500, against recorded
+values of 0.463, 0.509 and 0.500. **Three rows of 1,857, recorded as that.** The cell records §2.8
+moving three columns and names `Treenr` and `Height` as the mutually-constant pair; **it does not
+mention that three of the five surviving analysed columns stand in an exact ratio.** Fourth
+relation-carrying deposit in this pass after pos-30, pos-38 and pos-46 (§4.1 C18, C23, C30).
+
+**The row-semantics ground is false.** The cell lets `ordered (assumed)` stand because *`ID` runs 1,857
+distinct numeric values over 1,857 rows and reads as a sequential index*. **The import screen shows `ID`
+reading 915, 916, 917, 918, 927, 919, 939, 920, 215, 608 down the first ten rows** — not sequential and
+not in delivered order. **The delivery order is by tree:** `Treenr` holds 6 for eight consecutive rows,
+then 3, then 5. A shoot ID is a specimen label and the file is sorted by tree, which the README
+confirms — *shoots were sorted by tree and branch whorl and placed in separate bags*.
+
+**`ordered (assumed)` does not move.** §16.2 governs the word: the provenance records that the product
+answered, not that the answer was good, and arm B did not choose it. **What changes is that the third
+`(assumed)` deposit now reads differently from how it was recorded** — pos-32's `Col 1` is a genuine
+row index, pos-39's auto-answer looks wrong, and **pos-49 was recorded as plausibly right on a ground
+the screen does not support.** The screen also shows the auto-answer's own reason, *Auto: instrument
+assay*, from a `physiological` detection on a shoot-allometry table — the seventh detector case.
+
+**The row count is confirmed exactly.** *In total 1857 shoots were recorded from the nine sampled
+trees*, against `Rows 1857`.
+
+**No arm has run on pos-49.** §6.4's ordering holds.
+
+**C33 — pos-50, the structural reason. The deposit calls the analysed file a name key. Logged S400.**
+
+**The re-answer pass under §21 returns *says nothing about the analysed columns*.** No answer moves.
+
+**The depositor's whole description of the file is a lookup table.** *In some analyses, particularly
+section 8, alternative naming systems were used, ToLIDs (e.g. mAntPal2.1.pri) vs. Senckenberg IDs (e.g.
+HLantPal2). Replacing those names in the very, very large whole genome alignment files is prohibitively
+time consuming, thus we are providing this file as a key for interconversion.* **Two sentences, in a
+README of 1,145 lines that documents the deposit's other files in detail.** No variable list, no
+mention of the three gene counts, no mention of `Contig N50 (L50)`. The import screen matches: `Species`,
+`Bat family`, `Assembly name (Senckenberg)` and `Assembly name (ToLID)` are four columns of names.
+
+**So the recorded compositional question stays open, and now with a reason.** The cell records the three
+TOGA gene counts — intact, inactivating-mutation and missing-sequence — as *possibly compositional; not
+verified*. **The README never names them, so it cannot settle it**, and the three columns are not
+visible on either screen. **A sum to a constant is plausible against the deposit's own GENCODE v38
+figures of 39,664 transcripts from 19,456 protein-coding genes, and that is arithmetic about a
+reference annotation rather than a measurement of this file.** Three values from one row settle it;
+**recorded as owed rather than asserted, on pos-30's precedent** (§4.1 C18).
+
+**Row structure confirmed from the screen.** 147 assemblies over 103 species, so assemblies repeat per
+species — `Artibeus lituratus` at `HLartLit1A` and `HLartLit1B`, `Brachyphylla cavernarum` likewise.
+The single ticked column `Bat family` holds 21 levels, all rendered, and is a genuine categorical, so
+§13.3 leaves it. `arbitrary` stands: no date, run number or index anywhere.
+
+**No arm has run on pos-50.** §6.4's ordering holds.
+
+**C34 — pos-51, the structural reason. Two derivations stated and checked exactly, and the `*_nir` cause is missingness. Logged S400.**
+
+**The re-answer pass under §21 returns *adds detail*, and this is the last deposit of the thirty.** No
+answer moves.
+
+**Both derived columns are defined by the depositor and both check on screen.** `aspect_ratio` is *4 ×
+(forewing length)² / forewing area*: 4 × 22.722² ÷ 218.405 = 9.4556 against a recorded 9.4556, **exact
+to the last printed digit**. `wing_loading` is *dry body mass divided by total forewing area*: 16.6 ÷
+218.405 = 0.07601 against a recorded 0.038002793, and 14.7 ÷ 192.763 = 0.07626 against 0.038129724 —
+**each recorded value is exactly half the quotient**, which is *total* forewing area being both wings
+where `fw_area` is one. **So the relation holds as `total_mass ÷ (2 × fw_area)` and the depositor's word
+*total* is what carries it.**
+
+**Five of the nine analysed columns are involved and two are computed from the other three.** Fifth
+relation-carrying deposit in the pass, **and the only one where both derivations could be checked to
+the last digit rather than to the rounding** (§4.1 C18, C23, C30, C32).
+
+**The `*_nir` cause is missingness, not an abstract fraction.** The cell records six `*_nir` columns
+scored `label` *on a numeric fraction near 0.47*. The README defines all six as *near-infrared
+reflectance (%)* of named wing regions — **six genuine measurements outside the analysed matrix** — and
+the screen gives the mechanism: **650 non-numeric cells against `Missing 0`**, with *missing values are
+coded as NA in all data files* and row 3 showing a specimen `NA` across every measurement. **The
+fraction is produced by the missing-data code.** Six real measurements are excluded from the analysed
+matrix by a string.
+
+**`ordered` holds and the contrast the cell draws with pos-43 survives.** `SampleID` reads 4, 5, 6, 7,
+8, 9, 10, 11 down the visible rows, filled on every row and one per specimen, with `CollectionDate`
+moving 6/16/22 to 6/17/22 in step; the README confirms *unique identifier for each butterfly* and
+collection *during the summer of 2022*. **pos-43's `Count` is blank on 436 of 873 rows and pos-49's `ID`
+is not in delivered order; this one is what the recorded reason says it is.** The row count is
+confirmed exactly at 571.
+
+**No arm has run on pos-51.** §6.4's ordering holds.
+
+**The re-answer pass is read on all thirty deposits** — §21.3's *all thirty or none* is satisfied, with
+pos-39's §4.2 `columns` and `measurements` held open pending `FIG3_metadata` (§4.1 C24) and no arm run
+on any deposit.
+
 ### 4.2 — What the analysed matrix holds
 
 **§22's three fields, one row per deposit, filled before either arm runs on it.** Kept apart from §4's
@@ -1296,9 +1393,9 @@ not a table still being filled.
 | 45 | one population | mixed | mixed | **The file is a two-dimensional grid and `Col 1` is one of its axes.** The depositor states the geometry: *the first row contains the excitation wavelength [nm]. The first column contains the emission wavelength [nm]. The second to last rows and columns contain the fluorescence intensity (arbitrary units).* So every row is one emission wavelength, 200 to 700 nm at 5 nm steps, and **`Col 1` — scored `Data` and ascending 200, 205, 210, 215 on screen — is the emission axis**, while the other 101 analysed columns are excitation channels from 200 to 500 nm. **`columns` and `measurements` are both `mixed`: one ordered wavelength coordinate beside 101 columns of fluorescence intensity in arbitrary units.** **A saturation sentinel occupies a diagonal band** — `9999.9` wherever emission approaches excitation and scattered light swamps the detector, against `Range 2.959 – 1.000e+4` and `Integer values 13%` — undocumented as a code and not a measurement. The file is the experiment's control, *FF of barium sulfate powder*. **The recorded reason has both axes wrong and §4.1 C29 restates the ground without moving the answer.** 101 × 102 = 10,302 with `Missing 0`. §4.1 C29. |
 | 46 | one population | one variable each | measurements | **Three documented derivation chains, all inside the analysed matrix.** Every row is one aspen tree; `sample.id` is *individual tree identifier*, 259 distinct over 264 rows. No column changes meaning down the rows, and **`measurements` is `measurements`** — all fifteen are percent dry weight or a change in it. **The derivations are the depositor's own:** `pdw.total.22` is *total SPGs* over salicin, salicortin and tremulacin, checked on two visible rows to the rounding — 1.011 + 6.043 + 5.449 = 12.504 against 12.505 — with the same structure for 2023; and the five `d.` columns are *change in percent dry weight* from 2022 to 2023, each one column minus its partner. **So ten measurements, two derived totals and five derived differences are read as replicates of one measurand**, giving `Range -35.81 – 44.34`. `group` is also derived — *three year treatment pattern (CCC, CDD, DCD, DDD)* — but is a condition column, not analysed. 264 × 15 = 3,960 with `Missing 0`. §4.1 C30. |
 | 47 | one population | one variable each | measurements | **The deposit's five measurement columns are scored as conditions and the analysed matrix is what is left.** *Each row represents one plot surveyed on one sampling date* — 80 plots monitored fortnightly from November 2025 to April 2026, giving 760 rows. The single analysed column is `shoot_count`, *number of live eelgrass shoots observed within the plot*, so `columns` is `one variable each` and **`measurements` is `measurements`:** a count, integer 100% at 0dp, `Range 0.000 – 27.00`, with **484 of 760 values zero** across the early surveys before germination. **P217 is confirmed by the depositor:** `length_cm_1`–`_5` are *heights (cm) of up to five randomly selected shoots* and all five are scored `Cond`, with 2.3, 1.9, 2.8, 4.7 and 3.7 standing as condition levels; *`NA` indicates that fewer than five shoots were present*, which is why the 40-row window is all `NA`. **§4.1 C31 records that the refusal has two causes and the §4 cell names one as sole.** 760 × 1 = 760 with `Missing 0`. §4.1 C31. |
-| 49 |  |  |  |  |
-| 50 |  |  |  |  |
-| 51 |  |  |  |  |
+| 49 | one population | one variable each | mixed | **A stated ratio and a positional index among the measurements.** Every row is one current-year shoot — the README's *in total 1857 shoots were recorded from the nine sampled trees* matches `Rows 1857` exactly. No column changes meaning down the rows. **`measurements` is `mixed`:** `Length` in cm, `WetWeight` and `DryWeight` in grams, **`dry_wetratio` a derived quantity — *dry weight / wet weight*, checked on three visible rows at 0.463, 0.509 and 0.500 — and `Whorl`, *beginning from top shoot = 0*, a positional index rather than a measured quantity.** So three of the five analysed columns stand in an exact ratio, recorded at §4.1 C32 with the check taken on three rows of 1,857. `Range 0.000 – 70.60`, `Missing 0`. 1,857 × 5 = 9,285. §4.1 C32. |
+| 50 | one population | one variable each | mixed | **The deposit describes the analysed file as a name key and never names its numeric columns.** Every row is one genome assembly — 147 over 103 species, so assemblies repeat per species, `Artibeus lituratus` appearing at `HLartLit1A` and `HLartLit1B`. No column changes meaning down the rows. **`measurements` is `mixed`:** the three TOGA gene counts are quantities, integer 100% at 0dp with `Range 86.00 – 1.754e+4`, while `Contig N50 (L50)` is an assembly-quality statistic rather than a measurement of the organism. **Whether the three counts are compositional stays open** — the README's entry for this file is two sentences describing it as *a key for interconversion* between ToLIDs and Senckenberg IDs, and it never names them; the columns are not visible on the import screen. **Three values from one row settle it, recorded as owed at §4.1 C33 rather than asserted.** 147 × 3 = 441 with `Missing 0`. §4.1 C33. |
+| 51 | one population | one variable each | measurements | **Two derivations stated by the depositor and both checked exactly.** Every row is one butterfly; 571, matching the README. No column changes meaning down the rows. **`measurements` is `measurements`:** masses in mg, lengths in mm, areas in mm², and two derived ratios. **`aspect_ratio` is *4 × (forewing length)² / forewing area* — 4 × 22.722² ÷ 218.405 = 9.4556 against a recorded 9.4556, exact to the last printed digit — and `wing_loading` is *dry body mass divided by total forewing area*, each recorded value being exactly half the quotient of `total_mass` and `fw_area`, so the relation holds as `total_mass ÷ (2 × fw_area)`.** Five of nine analysed columns are involved and two are computed from the other three. **Recorded and acted on by nothing: six `*_nir` columns are genuine near-infrared reflectance measurements scored `label`**, and the cause is the missing-data code — 650 non-numeric cells against `Missing 0`, with *missing values are coded as NA in all data files* (§4.1 C34). 571 × 9 = 5,139 less 650 gives the screen's 4,489. §4.1 C34. |
 
 - **`rows`** — `one population`, `mixed`, `undetermined`.
 - **`columns`** — `one variable each`, `mixed`, `undetermined`.
