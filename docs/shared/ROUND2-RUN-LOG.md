@@ -886,6 +886,172 @@ thirteen variables are documented and the screen shows a fourteenth column score
 **No arm has run on pos-32.** §6.4's ordering holds. Its runtime is unmeasured and it is one of the
 five deposits §17.9 runs alone.
 
+**C21 — pos-34, the structural reason. `No` is confirmed and `SpermNo` is not accounted for. Logged S400.**
+
+**The re-answer pass under §21 returns *adds detail*.** No answer moves.
+
+**`ordered` is corroborated by the depositor.** The recorded reason derived measurement sequence from
+the column's own behaviour — `No` running 1 to 1,429 over 1,232 rows with six local descents and gaps
+where cells were dropped. The README defines `No` as *measurement number assigned to each sperm cell*,
+which is that. **Third `ordered` deposit confirmed after pos-23 and pos-31.** The gaps are explained
+too: `Missing data: NA` closes the file's variable list, and the screen reads `Missing 0` beside 850
+non-numeric, so the `NA`s are counted as non-numeric — the fourth instance of that shape after pos-28,
+pos-31 and pos-44.
+
+**`IndID` is confirmed as a repeated-subject key rather than a free identifier** — *individual ID from
+which the sperm was sampled*, 74 levels over 1,232 rows, rendered on the confirm card as
+`Chromis_notata1` through `9` and `Amphiprion_clarkii1` through `5`. The recorded reason's distinction
+holds in the depositor's own words.
+
+**The recorded reason accounts for six of the seven analysed columns.** It reads *six sperm
+morphometrics per cell*, which is right about the six. **The seventh is `SpermNo`, *identifier for each
+sperm within a given image***, reading 1, 1, 1, 1, 1, 1, 2, 1, 2, 1 down the visible rows and scored
+`Data`. That is what puts §4.2's `measurements` at `mixed`.
+
+**An unchecked candidate, recorded with its check named and resting on nothing.** `SpermLength` is
+*total length of the sperm cell* and `HeadLength`, `MPLength` and `FlagellaLength` are three named
+regions of it, which is the shape of a total-equals-its-parts relation and would make pos-34 a
+candidate for the deterministic-relation class. **None of those four columns is visible on either
+import screen and the relation is not asserted here.** Four values from one row settle it. **This is
+recorded as a candidate precisely because pos-30's cell recorded a relation that ought to have held and
+did not** (§4.1 C18).
+
+**No arm has run on pos-34.** §6.4's ordering holds.
+
+**C22 — pos-35, the structural reason. The merged-header mechanism generalises, by a second route. Logged S400.**
+
+**The re-answer pass under §21 returns *adds detail*.** No answer moves.
+
+**The README's variable list is structured as the spreadsheet's spanning header.** Four blocks —
+*Hearing Thresholds*, *ABR Metrics*, *Digit Span*, *Speech-in-Speech Recognition* — each with its
+sub-items indented beneath, matching the four spanning labels the recorded reason names at widths
+6 / 14 / 3 / 3. **The depositor's document carries the structure the product reads none of.**
+
+**And the import screen shows how the header is lost, which extends pos-01 rather than repeating it.**
+The sub-header names sit in the data: row 3 carries `R_StandardThreshold`, `R_10and12kThreshold` and
+`L_StandardThreshold` in italic, with row 2 entirely empty. **So the header block is three physical
+lines — block labels, a blank line, then the sub-headers — and the header-rows control offers 0, 1 and
+2.** Setting it to 2 consumes the blank line and still misses the names.
+
+**Both merged-header members are unrecoverable from the shipped surface by different routes.** pos-01's
+band labels are merged horizontally over a vertically merged block, so the lost information is the span
+and no header-row setting reaches it (§4.1 C5). **pos-35's lost information is a third header line the
+control cannot reach.** P222's shared conjunct is confirmed across all three members by the recorded
+reason; **the mechanism is now established on two of the three, with pos-14's `A)`–`D)` figure panels
+standing as the negative** (§4.1 C11).
+
+**A correction to a claim made during this pass and not in any document.** pos-35 being a single CSV was
+offered as a reason its blocks could not be spanning cells. **That is wrong: a CSV carries a spanning
+label as a value in the first cell of the block with the continuation cells empty**, which is what the
+screen shows and what produces 22 synthesised `Col N` headers of 29. **The file format was never the
+predicate; §16.5's predicate is the grouping.**
+
+**No arm has run on pos-35.** §6.4's ordering holds.
+
+**C23 — pos-38, the structural reason. §16.8's ruling corroborated, and twelve deterministic relations. Logged S400.**
+
+**The re-answer pass under §21 returns *adds detail*.** No answer moves.
+
+**§16.8 moved this deposit out of §16.5's naming-scheme class on the reading that `COTO_c` and
+`COTO_rate` are a count and a rate rather than one quantity on two samples. The README states exactly
+that:** *`XXXX_c` = Count of individuals captured*; *`XXXX_rate` = Nightly capture rate, calculated as
+`XXXX_c / Total.Capture.Effort` (individuals per m²h)*. **§16.5's member side requires each column to be
+one specimen, replicate or channel; here the suffix names a unit.** A ruling reached from a header list
+is confirmed by the depositor, the second such corroboration in the pass after pos-18's.
+
+**Twelve deterministic relations sit inside the analysed matrix, sharing one divisor.** Every
+`XXXX_rate` is `XXXX_c` divided by `Total.Capture.Effort`, and **all three quantities are analysed
+columns**: twelve counts, twelve rates and the effort, all scored `Data` across 28 columns. The screen
+carries an instance — `Total.Capture.Effort` 78.00, `COTO_c` 1.00, `COTO_rate` 0.01, and 1 ÷ 78 rounds
+to 0.01. **The deterministic-relation class records one relation per deposit; this deposit carries
+twelve of them.** Whether pos-38 is currently in that class is not checked here — the roster lives in
+§7's Notes, which no deposit has reached — and this is recorded for whoever writes them.
+
+**`Year` is a data column**, so `Range 0.000 – 2024` pools a calendar year with capture rates running
+in thousandths. Second deposit after pos-32 where a year sits among the measurements.
+
+**Both conditions are confirmed by the README** — `Stage` at *Invasion (2017-2019)* and *Establishment
+(2022-2024)*, `park_unit` at JECA, MORU and WICA — which are exactly the five levels on the confirm
+card. **`Bat.Night` is *sequential survey night number to differentiate surveys that occurred on the
+same night at different sites***, and it is a `Label`, so it does not make the row axis a sequence.
+
+**No arm has run on pos-38.** §6.4's ordering holds.
+
+**C24 — pos-39, the structural reason. §21.8 pays out, and one field is left open. Logged S400.**
+
+**The re-answer pass under §21 returns *adds detail*, and this is the deposit §21.8 was ruled for.** No
+answer moves, and **§4.2's `measurements` is left blank rather than filled** — a blank recording *not
+yet classified*, which is the honest state.
+
+**The documentation is a sheet the README points at and does not duplicate.** *In each FIGX.xlsx file,
+the data are provided in the second sheet, which has the same name as the corresponding figure. The
+first sheet, entitled "FIGX_metadata", provides information about the data, including a description of
+the variables, their units, and any transformations applied (e.g., log transformation) prior to
+analysis.* **The README carries no variable list at all.** So on the README alone pos-39 is a no-change
+row and the definitions sit one sheet away — **unlike pos-31, where the README duplicated the
+documentation sheet and §21.8 cost nothing** (§4.1 C19).
+
+**`FIG3_metadata` has not been read, and one clause in that sentence is why the field stays open:**
+*any transformations applied (e.g., log transformation) prior to analysis.* **If any of the fourteen
+analysed columns is already transformed, that is a fact about the analysed matrix and nothing else in
+the deposit states it.** The columns span biomass, cover proportions, vegetation height, sand texture,
+`pH` and metal concentrations to 8.7 × 10⁴, all of which are quantities — so the field would read
+`measurements` on the headers alone, **and filling it from the headers is what the open sheet forbids.**
+
+**The recorded row reading is corroborated.** `Point ID` runs `CB126`, `CB128`, `CB129` — 146
+non-contiguous sampling points with `SITE` at four levels, and no date, run number or transect index
+anywhere on the sheet. **So *rows are 146 sampling points* stands and the auto-answer looks wrong for
+the reason recorded.**
+
+**`ordered (assumed)` does not move, and the pair it belongs to is now complete.** The product supplied
+it from `suggestRowSemantics` returning `{value: "ordered", auto: true, reason: "assay"}` off a
+`physiological` detection on a soil-chemistry sheet. **§16.2 governs the word: the provenance records
+who answered, not whether the answer was good**, and arm B did not answer here any more than on
+pos-32. **Both `(assumed)` deposits are now read — pos-32's auto-answer is plausibly right and this
+one looks wrong — which makes that contrast a reading of two records rather than an impression.**
+
+**Recorded and acted on by nothing.** The confirm card's four levels are `3-SubAlp`, `4-SubAlp`,
+`5-SubAlp` and **`Between 3-4-SubAlp`** — a boundary between two others standing as a level of its own.
+§13.3 reads shape and all four are low-cardinality, so nothing moves.
+
+**No arm has run on pos-39.** §6.4's ordering holds.
+
+**C25 — pos-40, the structural reason. The cleanest naming scheme in the corpus is documented nowhere. Logged S400.**
+
+**The re-answer pass under §21 returns *says nothing about the analysed file*, and on this deposit that
+is the result.** No answer moves.
+
+**Ten files share half a line.** The README lists `env.csv`, a diversity table and two dissimilarity
+matrices with column-by-column variable definitions, then: *5-14): ASVs abundance tables for fungal (f)
+and bacterial (b) groups.* **No sample-code scheme, no explanation of `BAD_01`, no statement of what the
+values are.** §16.5 records pos-40 as its cleanest naming-scheme instance — 416 sample columns on a
+three-letter prefix with a two-digit suffix — and **the deposit whose columns most obviously carry a
+design is the one that documents them least.** §16.1's ruling stands on the file's structure alone, as
+it did before this pass.
+
+**The sampling text explains the prefix by inference rather than by statement.** *At each site, five
+soil cores were homogenized from a 1×1 m plot… plots adjacent to 1, 10, 50, 100, 200 and 400 m in each
+cardinal direction from a central plot… total soil samples per island range from 13 on smaller islands
+(e.g., GZD, WZD, and XGD) to 41 on larger islands (e.g., DZD).* **The three-letter form is an island
+code and the README's own examples are in it.** One refinement to the recorded reason follows: **the
+two-digit suffix is a plot, not a replicate** — plots at different distances from the island centre are
+the study's spatial gradient rather than repeats of each other. **Island names are withheld** *due to
+national security regulations*, so the codes are all there is.
+
+**Recorded and drawn on for nothing.** `env.csv` and the alpha-diversity table are documented as
+carrying log₁₀-transformed and normalized columns. **Those are other files**; it says the depositor
+transforms before depositing and says nothing about this matrix.
+
+**Nothing changes what the assay detector saw.** METHODOLOGY's genomics auto-route to `arbitrary` did
+not fire because the detector returned `general` on an ASV table, so arm A substitutes `ordered` here.
+**A README cannot reach a detector.**
+
+**No arm has run on pos-40, and none will complete on arm A** — the heap exhausts at 3,472 MB and
+aborts at 17.6 s before the battery, which §17 records as an outcome rather than a failure. Its 98.87%
+zero fraction is the reason.
+
+**No arm has run on pos-40.** §6.4's ordering holds.
+
 ### 4.2 — What the analysed matrix holds
 
 **§22's three fields, one row per deposit, filled before either arm runs on it.** Kept apart from §4's
@@ -915,11 +1081,11 @@ not a table still being filled.
 | 30 | one population | one variable each | measurements | **A column that is the sum of two others sits in the analysed matrix.** Every row is one billet; `billet_ID` 46 distinct over 46 rows. No column changes meaning down the rows. The six analysed columns are three billet dimensions in cm and three insect counts, all quantities about the billet. **`brood_total` = `total_ips_count_per_billet` + `total_parasitoids_per_billet` on all ten rows visible at import** — 190 + 0 = 190, 13 + 3 = 16, 33 + 6 = 39 — **measured on ten of forty-six and not on the file.** **This replaces the circumference-to-diameter relation the §4 cell recorded, which is refuted on those same ten rows** (§4.1 C18): circumference ÷ π gives 14.44, 14.05, 16.78 and 19.33 against recorded diameters of 14.21, 13.63, 16.88 and 18.59. The grouping sits in `site` and `tree_ID`, which the product reads, and the README confirms the nesting — *pine billets were obtained from two trees at each of four study sites*. 46 × 6 = 276 with `Missing 0`. §4.1 C18. |
 | 31 | one population | one variable each | mixed | **An apparatus identifier, two room readings and three coded outcomes in one matrix.** Every row is one courtship trial, 486 of them. No column changes meaning down the rows. **The README names all six analysed columns:** `Device` is *number of the set-up*, an apparatus identifier scored `Data`; `Temp` and `Humidity` are room temperature in °C and humidity in %, measured on the room rather than the flies; `MCS`, `CS1` and `DC` are coded behavioural outcomes at 0/1 and 0/1/2. **`Range 0.000 – 69.00` pools a binary score with a humidity percentage.** `Missing 0` beside 371 non-numeric is `NA` counted as non-numeric, the third instance after pos-28 and pos-44. The workbook's third sheet is a documentation sheet under §21.8 and its content is duplicated in the README, so the information set gains nothing new here. 486 × 6 = 2,916 less 371 gives the screen's 2,545. §4.1 C19. |
 | 32 | one population | one variable each | not measurements | **Third `not measurements`, and the clearest: a detection log in image space.** Every row is one pod detected by a YOLOv11 model — *a full list of the detected pods when run on all image slices*. No column changes meaning down the rows. **Not one of the ten analysed columns is a measurement of a plant:** `Slice_X` and `Slice_Y` are *slice index of image with respect to full plot image*; `X` and `Y` are *pixel position of detection within the slice*; `Width` and `Height` are *pixel width and height of pod*; `Confidence` is *detection confidence*; `Year` is a calendar year; `Plot` is a plot identifier; and `Pod_Class` is undocumented in the README's variable list. **`Range 0.000 – 2024` is a pixel coordinate pooled with a calendar year.** **The deposit's real measurements are in files the shape filter did not select** — `cowpea_biomass.csv`, `cowpea_leaf_nitrogen_vs_CCI.csv` and `cowpea_architecture.csv` carry dry masses, leaf areas and branch counts. Largest analysed matrix of the thirty: 52,588 × 10 = 525,880 with `Missing 0`. §4.1 C20. |
-| 34 |  |  |  |  |
-| 35 |  |  |  |  |
-| 38 |  |  |  |  |
-| 39 |  |  |  |  |
-| 40 |  |  |  |  |
+| 34 | one population | one variable each | mixed | **Six µm morphometrics and a within-image identifier.** Every row is one sperm cell measured from one image; `No` is *measurement number assigned to each sperm cell* and `IndID` is *individual ID from which the sperm was sampled*, 74 levels over 1,232 rows. No column changes meaning down the rows. **`measurements` is `mixed`:** `SpermLength`, `HeadLength`, `HeadWidth`, `MPLength`, `MPWidth` and `FlagellaLength` are quantities in µm, while **`SpermNo` is *identifier for each sperm within a given image*** — reading 1, 1, 1, 1, 1, 1, 2, 1, 2, 1 down the visible rows — and it is scored `Data`. **An unchecked candidate, resting on nothing:** `SpermLength` is *total length of the sperm cell* and three of the others are its named regions, which would be a total-equals-its-parts relation; none of those columns is visible on the import screens and §4.1 C21 records the check owed. `Missing 0` beside 850 non-numeric is the file's own `NA`. 1,232 × 7 = 8,624 less 850 gives the screen's 7,774. §4.1 C21. |
+| 35 | mixed | one variable each | mixed | **The sub-header line is inside the analysed matrix.** The header block is three physical lines — four spanning block labels, a blank line, then the sub-header names — and `detectHeaderRows` returned 1, so **86 delivered rows cover 84 human subjects plus an empty line and a line carrying `R_StandardThreshold`, `R_10and12kThreshold` and `L_StandardThreshold`**, which is pos-08's two-populations shape at a smaller scale. Each analysed column is one measurement of one subject. **`measurements` is `mixed`: four incommensurable batteries plus a demographic** — hearing thresholds in dB HL, ABR latencies in ms and amplitudes in µV, digit-span and speech-recognition scores in percent correct, and `Age` in years as a data column with `AgeGroup` derived from it. `Range -15.00 – 100.0`. 86 × 27 = 2,322 less 26 missing and 44 non-numeric gives the screen's 2,252. §4.1 C22. |
+| 38 | one population | one variable each | mixed | **Twelve deterministic relations sharing one divisor, all inside the analysed matrix.** Every row is one site-night survey. No column changes meaning down the rows. **The depositor states the relation:** *`XXXX_rate` = Nightly capture rate, calculated as `XXXX_c / Total.Capture.Effort`* — and twelve counts, twelve rates and the effort divisor are all scored `Data` across 28 columns. Instance on screen: effort 78.00, `COTO_c` 1.00, `COTO_rate` 0.01. **`measurements` is `mixed`:** twelve counts, twelve rates in individuals per m²h, an effort in m²h, and **`Year`, a calendar year**, giving `Range 0.000 – 2024`. §16.8's ruling that `_c` and `_rate` are a count and a rate rather than one quantity on two samples is corroborated by the README. 311 × 28 = 8,708 with `Missing 0`; 7,095 zeros, 81.5%, twelve species mostly absent on any given night. §4.1 C23. |
+| 39 | one population |  |  | **Two fields filled and one left open, pending the workbook's own documentation sheet.** Every row is one sampling point — `Point ID` runs `CB126`, `CB128`, `CB129`, 146 non-contiguous points with `SITE` at four levels — so `rows` is `one population`. **`columns` and `measurements` are blank because `FIG3_metadata`, sheet 1 of the same workbook, has not been read**, and §21.8 puts it in arm B's information set. The README states that sheet records *a description of the variables, their units, and any transformations applied (e.g., log transformation) prior to analysis*; **the fourteen analysed columns would read `measurements` on their headers alone — biomass, cover proportions, vegetation height, sand texture, `pH`, metal concentrations to 8.7 × 10⁴ — and filling the field from headers is what the unread sheet forbids.** A blank records not yet classified; `undetermined` would claim a classification nobody made. 146 × 14 = 2,044 with `Missing 0`. §4.1 C24. |
+| 40 | one population | one variable each | measurements | **The corpus's sparsest matrix, and its column scheme is documented nowhere.** Every row is one amplicon sequence variant; `ASV_ID` labels 33,678 of them. Every column is a read count for one soil sample, so no column changes meaning down the rows. **`measurements` is `measurements`:** sequencing counts, integer 100% at 0dp, `Range 0.000 – 1442`. **The 416 column headers are a three-letter island code with a two-digit plot number — `BAD_01` onward — and the README gives the ten ASV tables half a line between them** (§4.1 C25), so §16.1's ruling rests on the file's structure alone. The sampling text implies the scheme without stating it: samples per island run 13 to 41 and island names are withheld under national security regulations. 33,678 × 416 = 14,010,048 with `Missing 0`; **13,852,754 zeros, 98.87%**, and the heap exhausts before the battery. §4.1 C25. |
 | 41 |  |  |  |  |
 | 43 |  |  |  |  |
 | 44 |  |  |  |  |
