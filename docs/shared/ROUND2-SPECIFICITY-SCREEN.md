@@ -346,6 +346,23 @@ budget without it.
 one of them is affordable.** The general form: **where the product has rendered a determinate answer,
 the probe reads it; the budget covers waiting, not deciding.**
 
+#### 8.5.5 — the untick set is three deposits, and confirm cannot express it, ruled S397 at `a5a5bac`
+
+**`runArm`'s `confirm` reaches two of the card's three buttons and none of its checkboxes**, so it can
+only confirm the pre-ticked set. `GroupingConfirmCard.jsx:163-165` renders one checkbox per condition
+column.
+
+**Three deposits carry an untick, per the run log's §4: pos-08 (2 unticked), pos-31 (1), pos-40 (3).**
+All three route to §8.1's hand-run. Ten of the thirteen rendering the gate are `confirmed as offered`
+and drivable today.
+
+**pos-40 is hand-run like the others.** It exhausts the heap on arm A, and a predicted failure is not
+a recorded one.
+
+**The field, if it is ever built, matches header names and not indices** — the card renders `col.name`
+with a 1-based `Col N` fallback, names are what §4 records, and an index would drift silently if
+`roles` moved. **Not built.**
+
 ## 9 — §6.1's ordering rule, corrected S390, still before any deposit was acquired
 
 **This supersedes two things in §6.1: the ordering rule, and the reason given for it. §6.1's text
@@ -1221,3 +1238,25 @@ identical in a log.
 **It does not exist yet**, neither when §8.3 was written nor at `10fb958`. It is built before any xlsx
 deposit is scored. **A CSV deposit may be scored before it exists**, because on a CSV there is nothing
 for it to assert.
+
+## 19 — pos-43 and pos-23 split into blocks, and the arms do not analyse the same rows, ruled S397 before either was scored
+
+**Measured at `a5a5bac`.** `ImportView.jsx:758` renders the block picker on `blocks.length > 1` and
+offers every block; `corpus-run.mjs:152-156` takes block 1 and offers nothing. **On pos-43 that is 452
+of 892 data rows — arm A discards 440, or 49%, without a word.** Four blocks: 452, 310, 20, 110 rows,
+all 80 columns. pos-23 is the only other splitter among the thirty.
+
+**So on a splitting deposit the arms analyse different data, and arm A minus arm B is not the cost of
+the two gate defaults.** It is that plus a row-set difference, and the two cannot be separated by the
+subtraction §2 defines.
+
+**Both are scored and both §7 rows stand.** Notes records the block counts and the discarded row
+count, and **the §7 difference on a splitting deposit is not cited as the cost of the default** — the
+quantity §2 names is not what that cell holds.
+
+**Detected before either ran.** `detectBlocks` splits on fully blank rows; a header band spans columns
+and raises nothing. **The two are unrelated and the band count predicts nothing** — pos-01, 14 and 35
+carry 3, 4 and 4 bands and render no picker; pos-43 carries 2 and is the splitter.
+
+**pos-23 is measured the same way before it is scored**, and if its arms differ in rows, this section
+covers it as written.
