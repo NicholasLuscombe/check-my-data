@@ -1540,6 +1540,101 @@ auditable rather than correct.
 **Whether the same applies to a documentation file that is neither the README nor the data file** — a
 separate `variables.txt`, say. No deposit in the thirty has raised it and nothing is ruled about it.
 
+### 21.9 — a documentation file that is not the data file, ruled S401 before any deposit was scored
+
+**pos-41 raises what §21.8.3 recorded as unraised.** Its README's first entry is *Legend with the
+complete list of trait and environmental variables with descriptions, symbols, and units
+(legend.csv)*, and its entry for the analysed file is one line. The definitions exist, they are in the
+deposit, and they are in neither the README, the published metadata fields, nor the analysed data
+file. Run log §4.1 C26.
+
+**§21.8.3's second paragraph is superseded rather than edited**, on the pattern §11 set for §10. It
+says no deposit in the thirty has raised it. One has.
+
+**Ruled: a file in the deposit whose content is documentation of the analysed file's variables is part
+of arm B's information set.**
+
+**Two of §21.8's three reasons do not carry, and the ruling is written as an extension rather than a
+reading because of it.**
+
+- **§21.2 does not already cover it.** §21.8's first reason was that a sheet inside the data file is
+  in the data file. A sibling CSV is not the data file, not the README and not a published metadata
+  field. **This widens §21.2's enumeration and says so.**
+- **The shipped surface does not open it.** §21.8's second reason was that the product opens
+  `SheetNames[0]` and puts the documentation on screen first, so arm B declining it would be arm B
+  pretending not to see. The product never opens `legend.csv`. **Nothing was shown and nothing is
+  being ignored.**
+- **The audience holds it, and this reason carries alone.** §21's binding argument is that the
+  integrity officer and the editor hold the deposit and its documentation. A depositor who writes the
+  variable list into a sibling file has documented the deposit. §21.8 already ruled that where the
+  text sits is a formatting choice; **a file boundary is that same choice one step out.**
+
+**What decides it is the alternative.** Ruling it out makes the information set turn on whether the
+depositor used a tab or a separate file. pos-18's legend is a tab and is in; pos-41's is a file and
+would be out; both depositors documented their variables. **One surviving reason that goes to the
+rule's purpose beats two that go to its mechanics**, and a rule that splits two equally documented
+deposits on file format cannot be defended to a reader.
+
+#### 21.9.1 — what it does not license
+
+**It does not move which file or sheet is analysed.** §6.2 fixed file and sheet on cell count before
+any deposit was answered. **The temptation is larger here than in §21.8.1**, because a sibling file
+can itself be a data file — `legend.csv` is a table — and it is refused for the reason it has always
+been refused: a file re-chosen after reading is a selection rule applied having seen what it catches.
+
+**It does not extend to another file's values.** A documentation file is read as documentation.
+Reading a sibling file's *data* to infer the analysed file's structure is a different act and is not
+licensed here, exactly as §21.8.1 refuses it for a second sheet.
+
+**It reaches only a file the README itself names.** The information set is the deposit as published,
+and what a deposit publishes about itself includes its own file list. **Browsing the deposit for a
+file the documentation does not mention is discretion exercised after seeing what is there**, which
+is what §3 exists to refuse.
+
+**It does not reopen §13.3, which stays shape-only.** A documentation file can say what a column
+means; the confirm-card rule still reads shape.
+
+#### 21.9.2 — the cost, and it is higher than §21.8's
+
+**§21.8 could name its class from a column that already existed.** §7 records sheet position and sheet
+count, so *seven of the thirty are multi-sheet* was a read of the record rather than new work.
+**There is no equivalent column for sibling files.** §6.2 recorded the file selected, not the files
+present. **So the class has to be built: a read of all thirty READMEs' own file lists, recording for
+each whether a documentation file is named.**
+
+**§21.3 binds and the census is all thirty or none.** A rule applied to the deposits somebody happened
+to notice is the error this screen exists to detect, committed one level up.
+
+**A deposit whose README names no documentation file records that it names none**, on §14.3's
+principle: a blank cannot be told from a check nobody ran.
+
+**The pass cannot be assumed to have done this already.** All thirty READMEs were read, but they were
+read for structure. pos-41's legend was caught because it was the README's first entry, not because
+anyone was reading file lists. **Nobody looked systematically, and a record produced by a different
+question does not answer this one.**
+
+**Two checks §21.8.2 left as a likelihood.** It disposes of pos-01 and pos-08 on the ground that their
+READMEs document every sheet themselves, so neither is *likely* to hold documentation the pass has
+not seen. **Its own next rule requires a deposit with no documentation sheet to record that it has
+none.** A likelihood is not a recorded none, and pos-01 has six unexamined sheets behind one. Both
+cells are owed and both reads combine with this section's census.
+
+**pos-41's answers do not turn on this ruling.** C26 records the classification as confirmed by the
+header text alone. **The cost is paid to make the rule uniform, not to move an answer**, and no answer
+may move on a document read after this section was written without a §4.1 correction citing it.
+
+#### 21.9.3 — what this section does not settle
+
+**Whether any deposit's documentation file contradicts a recorded answer.** One has been raised and it
+did not. **The rule is fixed before the census runs**, so it cannot be chosen to fit what the census
+finds — auditable rather than correct, on §21.8.3's terms.
+
+**What happens where a documentation file and a README disagree.** No instance exists and nothing is
+ruled about it.
+
+**Whether any other file in a deposit is in the information set** — a second data table, a script, a
+figure. Nothing here reaches them and nothing is ruled about them.
+
 ## 22 — what the analysed matrix holds, recorded S399 before the re-answer pass and before any deposit was scored
 
 **§3's shape filter asks whether a sheet has a numeric matrix. It does not ask whether the numbers are
@@ -1611,3 +1706,86 @@ must not be made in the middle of a screen.
 
 **Whether the assay detector's seven wrong or silent readings bear on this.** They are a detector
 finding, and reading a deposit's contents off its filename is not an adjudication.
+
+## 23 — what a deposit declares about its own data, recorded S401 before any deposit was scored
+
+**pos-44's README states twice that the deposited file is synthetic** — *a synthetic but structurally
+representative subset*, and *the subset is synthetic and does not represent actual permit detections*
+— with detection intensities *designed to satisfy all data sufficiency thresholds used in the
+manuscript*. Run log §4.1 C28.
+
+**First, the ground C28 states is wrong, and the correction matters more than the ruling.** C28 says
+the re-answer pass contradicts an assumption the screen rests on: that §3 samples without reference to
+any allegation *so that the screen measures how often the battery flags honest data*. **§4 says the
+opposite in as many words** — *these deposits are unadjudicated, not honest*, nothing establishes that
+any of them is genuine, and the measured quantity is a flag on a deposit with no known complaint.
+**So pos-44 contradicts nothing the screen rests on.** Run log §4.1 C36 records the correction beside
+C28 rather than over it.
+
+**What survives is smaller and is still worth recording.** A flag on values built to clear stated
+numeric thresholds is a statement about a generator, not about the battery's calibration on data
+somebody collected. **That is §22.3's argument one step out from the matrix.** §22.3 keeps a flag on a
+table of identifiers apart from a flag on a measurement matrix, because one tally would pool two
+populations. **Declared-generated data is a third population and the same refusal applies.**
+
+### 23.1 — the field
+
+**Recorded: `provenance`, one value per deposit, in run log §4.2 beside §22's three fields.**
+
+- **`declared generated`** — the deposit's own documentation states that the analysed values were
+  produced rather than observed.
+- **`not declared`** — it states nothing of the kind.
+- **`undetermined`** — classified and not determinable.
+
+**One spelling per value**, as §22.1 requires of any field that gets counted. **Each non-default value
+carries its structural reason**, in the form §3 requires of the answers.
+
+**The name is doing work.** A documentation read finds a deposit that says it generated its data. **It
+cannot find one that generated its data and did not say so.** The field records a declaration, and its
+name must not claim more than the read supports.
+
+### 23.2 — it is not a fourth §22 field
+
+**§22's subject is what the analysed matrix holds.** Provenance is not held by the matrix. And *§22's
+three fields* is a phrase now carried by §4.2's legend, by thirty run-log cells and by the pass's own
+record. **A fourth field inside §22 would falsify it everywhere at once.** This is a separate record
+kept in the same place.
+
+### 23.3 — it is acted on by nothing, on §22.2's terms
+
+**No deposit is excluded, no file or sheet is re-chosen, no answer turns on it, and neither arm
+changes. n stays 30.** §22.2 forbids dropping pos-44, §21.3 forbids re-selecting, **and a deposit is
+not excluded for what its documentation says.**
+
+**pos-44 refuses at the import floor, so no verdict will be produced on either arm. That is fortune
+rather than design**, and the rule is written for the deposit that declares generation and does not
+refuse.
+
+**§7's counts carry the classification beside them and are never recomputed over a subset**, on
+§22.3's rule. Choosing a denominator after seeing results is the free choice §3 exists to prevent.
+
+### 23.4 — the census has not been run
+
+**A `grep` over the run log returns one deposit. That is a count over our own record, not over the
+thirty**, and the pass read the READMEs for structure rather than for provenance. **The census is a
+keyword read of the thirty READMEs and published abstracts** — synthetic, simulated, generated,
+artificial, mock, dummy — **followed by a read of every hit**, since the words carry other senses.
+§21.3 binds: all thirty or none.
+
+**The column lands in §4.2 when the census runs, not before.** Writing it now would put one value
+beside twenty-nine blanks, **which is the thing §22.1 forbids**: a blank cannot be told from a field
+nobody filled.
+
+### 23.5 — what this section does not settle
+
+**Whether the tool should behave differently on declared-generated data.** Refuse, warn, or analyse
+and caveat, exactly as §22.4 leaves the parallel question. **That is v1.x and must not be decided in
+the middle of a screen.**
+
+**Whether any deposit in the thirty generated its data and did not say so.** This instrument cannot
+see it. **Stated rather than left implied**, because a field named for a declaration will otherwise be
+read as a field naming a fact.
+
+**Whether the review paper should report a figure over the deposits that declare nothing.** §7's
+counts are not recomputed over a subset and that does not move. Whether a second figure is worth
+printing beside them is a writing decision and is not pre-registered here.
