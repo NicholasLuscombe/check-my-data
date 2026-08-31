@@ -538,6 +538,181 @@ OTU table. **Nothing about either arm's outcome is forecast from it.**
 
 **No arm has run on pos-12.** §6.4's ordering holds.
 
+**C11 — pos-14, the structural reason. Units added, structure not documented. Logged S400.**
+
+**The re-answer pass under §21 returns *adds detail* on the unit and *says nothing* on the structure.**
+No answer moves.
+
+**The README does not describe the analysed sheet.** It carries thirty-one file entries, almost all
+`.lif` microscopy files, and `Rawdata_Figures_Tables_TSA.xlsx` gets one paragraph plus one variable
+line. The paragraph says the workbook holds the raw measurements underlying all figures, *organized
+into tabs by figures*, which confirms the sheet naming and says nothing about what is inside
+`Figure 2`. **No panel is named, no column is named, no row is defined.** A reader with this
+documentation in hand knows no more about the structure than one without it.
+
+**What it does add is the unit.** *Imaging data quantification are presented as mean gray value* — the
+only variable statement in the file, and it confirms the two measurements the recorded reason already
+names.
+
+**The Code/software section carries the detail the Variables block does not.** Z-stacks summed in
+ImageJ, nuclei bounded by DAPI thresholding, merged nuclei split by watershed, **nuclei under 50 µm²
+excluded**, mean grey value recorded per bounded nucleus, and **nuclei excluded where the γH2AX signal
+was widespread rather than in foci**. So the rows are a filtered population and the excluded nuclei are
+gone before the file exists. **Two quantification pipelines are documented, not one:** MCF-7 and
+MCF-10A by mean grey value, **A375 and BJ5-ta thresholded first** against a threshold chosen on
+non-irradiated cells, with foci counting performed separately on the 1 Gy conditions.
+
+**On the class question, this deposit gives a negative and it is worth recording as one.** pos-01's
+three spanning labels are the sheet's own variables and its README names them. **pos-14's four are
+`A)` `B)` `C)` `D)`, a figure layout, documented nowhere.** So §16.5's merged-header-cells members
+share a symptom on this evidence and a mechanism is not established. P222's claim that all three fail
+at the same conjunct is about detection, which is a different question from what the lost label meant.
+**Whether pos-14's header is merged horizontally over a vertically merged block the way pos-01's is
+remains unread**, and nothing here infers it from the width pattern.
+
+**One check owed, recorded rather than left implicit.** §21.8 rules an in-workbook documentation sheet
+part of arm B's information set. **That rule was made after pos-14 was re-answered and its workbook was
+not checked for one.** Eight sheets; if `Rawdata_Figures_Tables_TSA.xlsx` carries a documentation tab,
+this entry is superseded by a later one rather than edited.
+
+**No arm has run on pos-14.** §6.4's ordering holds.
+
+**C12 — pos-18, the structural reason. The documentation is in the workbook. Logged S400.**
+
+**The re-answer pass under §21 returns *adds detail*, and the detail is not in the README.** It is
+eight lines and delegates: *the first sheet in the document, "Metadata," includes a list of the
+subsequent sheets, their column names, and the information contained within.* **Read under §21.8, that
+sheet is part of the information set and it settles three things.** No answer moves.
+
+**§16.8's classification is corroborated by the depositor.** The Metadata sheet gives `Raw_Floral`'s
+columns as `Cluster`, `Site`, `Type`, `Module`, `Date`, then *additional columns are for each plant
+species (in alphabetical order); values in the cells are counts of flowers/flowerheads/inflorescences.*
+**Rows are sampling events and columns are per-species counts** — §16.5's columns-as-variables read
+straight off. **§16.8 reached that from a header list and moved pos-38 to match it; the classification
+it was anchored on now has documentation behind it.**
+
+**The three confirmed conditions reconcile exactly.** `Cluster` is CL, GH, MG, WR; `Site` is P, M, O;
+`Type` is C, R — nine level values, and the screen shows exactly those nine. `confirmed as offered —
+all 3` stands and all three are genuine categoricals under §13.3.
+
+**`Floral_M` is `Raw_Floral` aggregated**, in the Metadata sheet's own words: *floral resource survey
+data totaled for each module.* **A raw sheet sits beside the analysed one in the same workbook and the
+sheet choice does not move** (§6.2, §21.3, §21.8.1). Why `Floral_M` outranked `Raw_Floral` on cell
+count is not reasoned about here; `round2-ranking.json` carries `decidedBy`.
+
+**A discrepancy recorded and not chased.** §16.8 records pos-18 as *200 plant-species columns over 144
+sampling events*. The screen agrees on 144 and reads **`Data cols 147`**, not 200. The Metadata sheet
+gives no species count — it says *additional columns are for each plant species* and stops. **A
+candidate explanation is arithmetic rather than a measurement:** `Allium_cepa` is scored `Attr` and
+every visible value in it is zero, so §2.8 removes all-zero species columns, and 20,079 of 21,168
+values in this matrix are zero. **That would put the gap at roughly fifty removed species plus
+`Module`, and it is offered, not measured.** §16.8's 200 feeds §16.3's class figure, which is reported
+beside the default-cost reading at the sitting, **so this is a check owed before §7's counts are
+written and not a reason to stop the pass.**
+
+**No arm has run on pos-18.** §6.4's ordering holds.
+
+**C13 — pos-21, the structural reason. A factor inside the analysed matrix. Logged S400.**
+
+**The re-answer pass under §21 returns *adds detail*.** No answer moves. The README delegates as
+pos-18's does — *all the units and information about the variables are included in the "Metadata"
+spreadsheet* — and §21.8 puts that sheet in the information set. **Unlike pos-18, `Metadata` is not
+sheet 1 here: the analysed `Data` is 1 of 3**, so the product does not put the documentation on screen
+first.
+
+**The deposit's own abstract names a factor that sits in the analysed matrix as a measurement.** It
+describes *bare and vegetated microsites*, and `Microsite` is scored `Data` on screen, coded at two
+levels. **The recorded reason already contains the fact and does not draw the consequence** — it names
+`Site` 16 distinct crossed with `Microsite` at 2 levels to justify `arbitrary`, then classifies the
+columns as *23 soil and enzyme quantities per site* without noticing that one of the 23 is the design's
+second factor. Only `Country` reached the condition role.
+
+**This is not P217 or P218.** The recorded reason's non-instance note holds unchanged: §2.8 returned at
+the 50-row floor on 32 rows, and the 40-row window is the whole column. **`Microsite` reaching `Data`
+is plain role inference on a two-level numeric code**, which is why it belongs in §4.2 rather than in
+either census.
+
+**Recorded and acted on by nothing.** `Aridity` reads `0.6890000000000001` beside `0.649`, `0.621` and
+`0.645` in neighbouring rows — a float-representation artefact, a value needing more than fifteen
+significant figures to round-trip, on a matrix whose other columns are 3dp. `Precision mixed (0–17dp)`.
+**Decimal Precision and Terminal Digit read that, and it is a property of how the file was written.**
+
+**No arm has run on pos-21.** §6.4's ordering holds.
+
+**C14 — pos-22, the structural reason. Two columns, two provenances. Logged S400.**
+
+**The re-answer pass under §21 returns *adds detail*, and the addition is provenance.** No answer
+moves. Columns-as-variables stands, §16 does not apply, `arbitrary` stands, and the recorded
+non-instance note on both inversion mechanisms is untouched.
+
+**The two analysed columns did not come from the same study.** `%occur` is derived here — *calculated
+from raw data as: observed occurrence/total surveyed*, over 114 human and 1,468 non-human primate
+crania. **`CBA` was not measured in this study at all:** the methods state that *average CBA for all 31
+genera were gathered from the literature (Ross and Ravosa, 1993; Strait, 1999)*, a per-genus average
+lifted from two earlier papers.
+
+**So the product reads a proportion computed by these authors and an angle taken from someone else's
+publications as replicates of one measurand.** That is the shape recorded of DS23 and DS24 in the
+fixture corpus, and it is the third instance in this pass after pos-01's two compositional bases and
+pos-07's basal-area-increment against ring width. The scales say it too: `%occur` runs 0 to 0.39 at
+4dp, `CBA` runs 161 to 187 at 0–1dp, **on a two-column matrix with `Range 0.000 – 187.0`.**
+
+**Recorded and not acted on.** The README says `CBA` values are *whole numbers*; the screen shows 161.5
+and 172.5. **§21 is explicit that this pass is not an audit of whether a deposit's data matches its
+documentation**, so nothing follows from it here.
+
+**pos-22 is the file P141 said round 2 would need.** Two data columns give one pair, so `nPairs < 2` is
+reachable — the shape P138's phantom-member path requires and no fixture in the corpus carries.
+**Recorded as a property of the deposit; whether the path fires is for the arms to say.**
+
+**No arm has run on pos-22.** §6.4's ordering holds.
+
+**C15 — pos-23, the structural reason. The depositor documents three blocks and §19 records two. Logged S400.**
+
+**The re-answer pass under §21 returns *contradicts*, and what it contradicts is a pre-registration
+section rather than a §4 cell.** No answer moves.
+
+**The README is unambiguous.** *It contains three vertically stacked data blocks* — Water level, Flow
+velocity, Discharge — *each block contains 730 daily observations*, with *blank separator rows used
+between the three data blocks*. **The third has a different shape**: `Date` and `Q`, two columns rather
+than five, because *discharge is represented by one common daily time series rather than separate
+site-specific columns*.
+
+**§19 and §4 both record two blocks, with arm A taking exactly 50.0%.** Those cannot both be true of a
+three-block file: block 1 of three equal blocks is a third, not a half. **One candidate reading, offered
+and not measured:** `detectBlocks` splits on blank rows, blocks 1 and 2 share a five-column header and
+block 3 has two, so a third block dropped or merged rather than offered would leave a picker showing two
+and a block 1 that is half of what remains. **The mechanism is not asserted and the screen read is not
+legible enough to settle it.**
+
+**§19's ruling survives either way.** The arms analyse different rows on this deposit and their §7
+difference may not be cited as the cost of the default; three blocks makes that stronger rather than
+weaker. **What is owed is the block count itself, before scoring** — it sits in a committed
+pre-registration section, and unlike pos-18's 200 it is settled by one look at the picker on the
+analysed file rather than by opening a neighbouring record.
+
+**It also bears on §4.2.** `rows` is recorded `one population` **on the analysed block**. If the
+discharge block reaches the matrix it becomes `mixed`, since discharge is a different quantity on a
+different column set. **A second reason the count is owed before the run.**
+
+**The transform gate returns a slope of 18.37 and the product pre-selects the log transform.**
+`Proportional noise detected (slope = 18.37, 95% CI [18.00, 18.73])` against an expected band of
+`[0, 2]`. The reason is on the same screen: values run 263.8 to 279.4 and `Mag. span` reads **0.0
+orders**. Regressing log dispersion on log mean where the mean barely varies amplifies the slope without
+bound, and **the interval is tight because the fit is precise rather than because the slope is
+meaningful.** This is P184's finding on a real deposit — the correct exponent is a property of the
+dataset's dynamic range and not of the assay label. **Second auto-transform observation in the pass
+after pos-01's, and the sharper of the two.**
+
+**`ordered` is confirmed by the depositor** — daily outputs spanning 1 January 2022 through 31 December
+2023, 730 days, with `date` running from 2022/1/1 on screen.
+
+**And the values are modelled rather than observed.** The deposit keeps observed water levels in a
+separate file, `07_hydrodynamic_calibration_data.csv`, used for model evaluation. Modelled values are
+still quantities; the provenance is recorded because a battery reading them cannot tell.
+
+**No arm has run on pos-23.** §6.4's ordering holds.
+
 ### 4.2 — What the analysed matrix holds
 
 **§22's three fields, one row per deposit, filled before either arm runs on it.** Kept apart from §4's
@@ -557,11 +732,11 @@ not a table still being filled.
 | 7 | one population | mixed | measurements | **`Unit` is either basal area increment or ring width, per row, so one year column holds two different physical quantities.** Every row is one growth series from one population; 210 populations from 62 studies, `Rows 210`. The analysed 74 columns are the years **1950 to 2023** — corrected from the recorded 1950–2019 at §4.1 C8 — each *value of growth in YYYY extracted from the growth series with webplotdigitizer*. **`columns` is `mixed` on the depositor's own statement about `Unit`**, and the values are further detrended by six different methods across rows. **`measurements` is `measurements`** — growth values are quantities — **with the provenance recorded: these are readings taken off other people's published figures rather than measurements of trees**, so any digit-level test measures the digitiser, and `Precision mixed (0–9dp)` with 3% integers is consistent with that. `Missing 3706` is the extent of each series, not missing data: 210 × 74 = 15,540 less 3,706 missing and 14 non-numeric gives the screen's 11,820. §4.1 C8. |
 | 8 | mixed | mixed | mixed | **§21.1, measured before either arm ran.** 102 protein rows, 102 identical literal sub-header rows and 1,563 peptide rows in one block; `extractAnalysisInputs` drops the 102 sub-headers, leaving 102 protein records stacked on 1,563 peptide records. Four columns are numeric in both populations and name different quantities in each — `Exp. q-value` over `# Proteins`, `# Unique Peptides` over `# PSMs`, and likewise `Sum PEP Score` and `Coverage [%]`. **The exact analysed set is not pinned:** 1,767 × 15 = 26,505 = 6,197 + 20,002 + 306 admits four column sets, **but all four contain `Exp. q-value` and `# Unique Peptides`**, so the `columns` answer holds on every one. `measurements` is `mixed` on the same footing — every candidate set mixes precursor abundances and modification counts with a q-value and a peptide count. The deposit's README states the hierarchy and that **the blanks are structural, not missing data.** |
 | 12 | one population | one variable each | measurements | **Rows are features and columns are samples — §16.5's member definition read straight off, and documented.** Every row is one non-target OTU; the README's first variable is *OTUs: operational taxonomic units*, and the filename's `OUTs` is a transposition its own text corrects. The fifteen analysed columns are three leaf-processing treatments at five replicates each — `Y1B` leaf-retained, `Y1Q` leaf-removed, `Y3Q` leaf-accumulated — every one a read count for one sample, so no column changes meaning down the rows. **`measurements` is `measurements`:** sequencing read counts are quantities, integer 100% at 0dp. 3,420 × 15 = 51,300 matches `Values 51300` with `Missing 0`. **Recorded and acted on by nothing: 43,293 of 51,300 values are zero, 84.4%**, ordinary for an OTU table and forecasting nothing about either arm. §4.1 C10. |
-| 14 |  |  |  |  |
-| 18 |  |  |  |  |
-| 21 |  |  |  |  |
-| 22 |  |  |  |  |
-| 23 |  |  |  |  |
+| 14 | one population | mixed | measurements | **Two measurements repeated across four panels that are not comparable.** Every row is one bounded nucleus from image analysis, filtered before the file existed — nuclei under 50 µm² excluded, and nuclei excluded where the γH2AX signal was widespread rather than in foci. **`columns` is `mixed` because the four spanning panels `A)`–`D)` are different cell lines at different radiation doses quantified by two different pipelines:** MCF-7 and MCF-10A by mean grey value, A375 and BJ5-ta thresholded first against a threshold chosen on non-irradiated cells. So `gammaH2Ax Mean Gray Value` under panel A and the same-named column under panel C are not the same quantity. **`measurements` is `measurements`** — the README's one variable line reads *imaging data quantification are presented as mean gray value*, and an image intensity per nucleus is a quantity. 419 × 16 = 6,704 less 2,652 missing and 20 non-numeric gives the screen's 4,032. §4.1 C11. |
+| 18 | one population | one variable each | mixed | **`Module` is the grouping key of the aggregation, pooled into the matrix as a measurement.** Every row is one module-level survey total — the workbook's Metadata sheet describes `Floral_M` as *floral resource survey data totaled for each module*. Each species column is the count of one named plant species, *counts of flowers/flowerheads/inflorescences*, so no column changes meaning down the rows. **`measurements` is `mixed`: 146 species counts and one sampling-module code**, `Module` being *the number code for the sampling module (1-7)* in the depositor's words and scored `Data` on screen — the level the sheet is totalled at, read as a quantity. **Recorded and acted on by nothing:** `Allium_cepa` is scored `Attr` with every visible value zero, and 20,079 of 21,168 values are zero, 94.9%; §4.1 C12 carries the open discrepancy between §16.8's 200 species columns and the screen's 147. 144 × 147 = 21,168 with `Missing 0`. §4.1 C12. |
+| 21 | one population | one variable each | mixed | **The design's second factor sits in the analysed matrix as a measurement.** Every row is one site-microsite record, 16 sites crossed with 2 microsites giving the screen's 32 rows. No column changes meaning down the rows. **`measurements` is `mixed`, and the 23 analysed columns hold at least four kinds:** `Microsite`, a two-level code for the bare and vegetated microsites the deposit's own abstract names, scored `Data`; `Latitude` and `Longitude`, coordinates; `Aridity` and `Abiotic_ax1`, derived indices, the second a named axis score; and genuine soil, enzyme and amoA/amoB gene-abundance measurements. **`Mag. span 8.1 orders` across the matrix is what pooling a latitude with a gene copy number looks like.** Not an inversion instance — §2.8 returned at the 50-row floor and the window is the whole column, so this is plain role inference on a two-level numeric code. 32 × 23 = 736 with `Missing 0`. §4.1 C13. |
+| 22 | one population | one variable each | measurements | **Two quantities from two studies, read as replicates of one measurand.** Every row is one taxon; `Genus` 31 distinct over 31 rows. Neither column changes meaning down the rows. **`measurements` is `measurements` — a percentage occurrence and a cranial angle are both quantities — and the provenance is the finding rather than the field:** `%occur` is derived here, *observed occurrence/total surveyed* over 114 human and 1,468 non-human primate crania, while **`CBA` was not measured in this study at all**, being a per-genus average *gathered from the literature (Ross and Ravosa, 1993; Strait, 1999)*. `%occur` runs 0 to 0.39 at 4dp against `CBA` at 161 to 187 and 0–1dp, on a two-column matrix reading `Range 0.000 – 187.0`. **Smallest sheet of the thirty, and the only one where `nPairs < 2` is reachable** (P141, P138). 31 × 2 = 62 with `Missing 0`. §4.1 C14. |
+| 23 | one population | one variable each | measurements | **Recorded on the analysed block, and the block count is owed** (§4.1 C15). The README documents three vertically stacked blocks — water level, flow velocity, discharge, 730 daily observations each, separated by blank rows — against §19's recorded two. On the analysed block every row is one day's modelled water level, `date` running 2022/1/1 through 2023/12/31, and `L1`, `H1`, `R1`, `R2` are four sites carrying one water level each, so no column changes meaning down the rows. **If the discharge block reaches the matrix `rows` becomes `mixed`**, discharge being a different quantity on a two-column header rather than five. **`measurements` is `measurements`, with the provenance recorded: these are modelled outputs, not observations** — the deposit keeps observed water levels in `07_hydrodynamic_calibration_data.csv` for model evaluation. 730 × 4 = 2,920 with `Missing 0`; `Mag. span 0.0 orders`. §4.1 C15. |
 | 27 |  |  |  |  |
 | 28 |  |  |  |  |
 | 30 |  |  |  |  |
