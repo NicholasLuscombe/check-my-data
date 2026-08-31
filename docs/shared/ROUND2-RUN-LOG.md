@@ -310,6 +310,57 @@ this is not an answer revised against a result.
 
 **`d9c4f6e` carries the first wording permanently.** That is history, not a live record.
 
+**C5 — pos-01, the structural reason. The evidence, not the answer. Logged S400.**
+
+**The re-answer pass under §21 returns *adds detail* on the column side and *says nothing* on the row
+side. Neither answer moves.** The reason as written is not false; it is thinner than the deposit's own
+documentation, and one part of its argument was weaker than it needed to be.
+
+**The three bands are the depositor's own variables, named.** The README carries a section headed
+*Variables for sheets 1200-1, 1200-3, 1300-1, 1300-3* listing exactly `Anhydrous MORB glass`,
+`silicate part of the melt` and `metals`, defined as the initial melt, the silicate run product and
+the metals produced in the run product's interior. **The band structure the reason inferred from a
+spanning header row is the design, stated by the depositor.**
+
+**Within a band the columns are replicates, and the README says so:** *Data points shown for a given
+melt are individual measurements from separate locations within the melt.* The recorded reason argues
+`replicates` as the least-wrong of two gate answers — *neither gate answer is true of the file*, which
+remains true of the fifteen columns taken as one set. **What the documentation adds is that
+`replicates` is exactly right within each band and wrong only in pooling three bands**, which is a
+stronger footing than the one recorded.
+
+**The bands are not on one compositional basis, and the reason does not say so.** The README states
+that initial, starting and silicate reaction products are assumed to have all cations as oxides, while
+for metals all elements are considered elemental without any O. **Eleven columns are oxide-basis and
+four are elemental**, so the product pools two bases as replicates of one measurand — the shape
+recorded of DS23 and DS24 in the fixture corpus, here on a real deposit.
+
+**Band widths confirmed at source: 5/6/4.** `Anhydrous MORB glass` spans B:F, `silicate part of the
+melt` G:L and `Metals` M:P, with `Element` in A — so A:P is sixteen columns of which fifteen are data,
+matching `Data cols 15` and `Values 240` on the import screen and the twelve synthesised `Col N`
+headers the reason already records. **A count of 6/6/4 counts the label column into the first band.**
+
+**The header cannot be recovered from the shipped surface, which the reason does not record.** The
+band labels are merged *horizontally* across B:F, G:L and M:P over a header block merged *vertically*
+across the two physical rows, so the second row is empty. **Setting header rows to 2 consumes a blank
+row and recovers nothing** — the information lost is the horizontal span. Read off the screen at
+S400. This strengthens §16.1's premise rather than qualifying it: the grouping is inexpressible in the
+gate *and* unrecoverable by the one control that looks like it should reach it. P222 records the
+detection half.
+
+**The row-semantics answer is untouched.** The README describes composition, not order, and says
+nothing bearing on the row axis. `arbitrary` stands on the ground recorded at C1 — an element label
+column with `TOTAL` last. The README does add that low totals are expected and explained by unmeasured
+volatile species, so the `TOTAL` row is informative rather than a checksum.
+
+**Ordering.** Neither arm has run on pos-01. This entry was reached from the README and the import
+screen and its conclusion was written before the verdict described at §21.7 of the pre-registration
+was seen. **See §21.7: a five-column subset of this deposit was run during the pass, and this entry
+does not rest on it.**
+
+**`75e5be6`'s committed row carries the original reason permanently.** That is history, not a live
+record.
+
 ### 4.2 — What the analysed matrix holds
 
 **§22's three fields, one row per deposit, filled before either arm runs on it.** Kept apart from §4's
@@ -323,7 +374,7 @@ not a table still being filled.
 
 | # | rows | columns | measurements | reason |
 |---|---|---|---|---|
-| 1 |  |  |  |  |
+| 1 | mixed | mixed | measurements | **§22.1's own example, measured before either arm ran.** The analysed matrix is 16 × 15 = 240 values: fifteen element rows and a `TOTAL` row, last, which is their sum. **`rows` is `mixed`** because a derived total sits in the same matrix as the measurements it aggregates — the case §22.1 names. **`columns` is `mixed` on that same fact read down the column:** every column holds fifteen element wt% values and their own sum, so its last cell is a different quantity from the fifteen above it. **The three bands do not bear on `columns`** — 5 `Anhydrous MORB glass` at B:F, 6 `silicate part of the melt` at G:L and 4 `Metals` at M:P, confirmed at source — because that is a difference across columns and §22.1's test is per-column. **`measurements` is `measurements`:** electron microprobe wt% compositions are quantities. **Two caveats recorded and acted on by nothing:** the depositor states that initial, starting and silicate products have all cations as oxides while metals are elemental without any O, so the analysed set pools **eleven oxide-basis columns with four elemental** ones; and low totals are stated to reflect unmeasured volatile species, so `TOTAL` is informative rather than a checksum. §4.1 C5. |
 | 2 |  |  |  |  |
 | 3 |  |  |  |  |
 | 7 |  |  |  |  |
