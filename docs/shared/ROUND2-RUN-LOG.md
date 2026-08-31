@@ -1397,6 +1397,64 @@ of it.
 
 **No arm has run on pos-39.** §6.4's ordering holds.
 
+**C36 — pos-44, the ground C28 states is wrong, and the property becomes a recorded field. Logged S401.**
+
+**No answer moves and the refusal is untouched.** This corrects a reason inside an earlier correction
+and lands beside it, on §6.4.
+
+**C28's stated ground does not hold.** It says the pass contradicts an assumption the screen rests on
+— that §3 samples without reference to any allegation *so that the screen measures how often the
+battery flags honest data*. **Screen §4 says the opposite in as many words:** *these deposits are
+unadjudicated, not honest*, nothing here establishes that any of them is genuine, and the quantity
+measured is a flag on a deposit with no known complaint. **pos-44 contradicts nothing the screen rests
+on**, and C28's sentence *what it contradicts is not a cell but an assumption the screen rests on* is
+superseded by this entry.
+
+**What C28 recorded correctly stands.** The two README statements, the three data-sufficiency
+thresholds, the withheld real data, the eight simulated fish, and the reading that a battery run on
+such a file returns a statement about a generator. **The observation was right and the reason given
+for why it reaches the screen was not.**
+
+**Screen §23 is the ruling C28 said was owed.** A `provenance` field of `declared generated`,
+`not declared` or `undetermined`, recorded in §4.2 beside §22's three fields, acted on by nothing.
+**pos-44 is `declared generated`.**
+
+**The column is not written yet and that is deliberate.** §23.4 requires the census before the column
+lands, because one value beside twenty-nine blanks is what §22.1 forbids. **The census is a keyword
+read of all thirty READMEs and abstracts, not a `grep` over this document** — this document was
+written to record structure and a count taken from it would be a count of what somebody happened to
+write down.
+
+**No arm has run on pos-44.** §6.4's ordering holds.
+
+**C37 — pos-41, the delegation is ruled in scope and no answer moves. Logged S401.**
+
+**Screen §21.9 rules that a file in the deposit whose content documents the analysed file's variables
+is part of arm B's information set**, which is the ruling C26 recorded as owed. **`legend.csv` is in
+scope.**
+
+**pos-41's answers do not move and none of its recorded reasons changes.** C26 records the
+classification as confirmed by the header text alone — `e_ABA_um2`, `e_ADA_um2`, `e_mean_um2` and
+`i_ABA_unitless` read off the import screen — so the ruling costs this deposit nothing. **`replicates`
+and `arbitrary` both stand, and `structure inexpressible` is unaffected.**
+
+**What the ruling does cost is a census, recorded here so it is not left implicit.** §21.9.2 requires a
+read of all thirty READMEs' own file lists for a named documentation file, with a recorded *names
+none* where there is none. **§6.2 recorded the file selected and not the files present, so no column
+in this document answers it.** The pass read every README for structure, not for file lists, and
+pos-41's legend was caught only because it was the first entry.
+
+**Two cells §21.8.2 left as a likelihood are owed with it.** pos-01 and pos-08 are disposed of there on
+the ground that their READMEs document every sheet, so neither is *likely* to hold documentation the
+pass has not seen. **§21.8.2's own next rule requires a recorded none**, and pos-01 has six unexamined
+sheets behind that likelihood. Both reads combine with §21.9.2's census.
+
+**If a documentation file moves an answer on any deposit, the change is logged as a §4.1 correction
+citing §21.9**, so a reader can see that the answer moved on a document read after the rule was
+written.
+
+**No arm has run on pos-41.** §6.4's ordering holds.
+
 ### 4.2 — What the analysed matrix holds
 
 **§22's three fields, one row per deposit, filled before either arm runs on it.** Kept apart from §4's
