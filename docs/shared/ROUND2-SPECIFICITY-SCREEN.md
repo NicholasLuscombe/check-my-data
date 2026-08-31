@@ -1316,6 +1316,89 @@ A scores block 1 and discards the rest without a word, on both deposits.
 **§19's detection claim is strengthened, not weakened.** pos-23 carries **zero** bands and splits;
 pos-01, 14 and 35 carry 3, 4 and 4 and do not. The band count predicts nothing in either direction.
 
+### 19.2 — pos-23 loses a data block before block detection runs, measured S401 before either deposit was scored
+
+**§19 records pos-23 as splitting into two blocks with arm A taking exactly 50%. The file has three
+blocks and arm A takes a third.** Both records were right about different objects: §19 described what
+the product can reach, the depositor described the file.
+
+**Measured on the file.** `05_hydrodynamic_daily_outputs.csv` is 2,198 lines with blank rows at 733
+and 1466 only — three segments of 732 lines, each a label, a header and **730 data rows**, matching
+the depositor's *three vertically stacked data blocks* at 730 rows each. **2,190 data rows in total,
+and arm A's block 1 is 730 of them.**
+
+**Measured in the product.** The import banner reads *stripped 1 preamble row · trimmed 733 trailing
+rows* and the picker offers two blocks of 730 × 5. **Both are honest.** 733 rows back from the end is
+the blank separator plus the whole of block 3.
+
+#### 19.2.1 — the mechanism, read at source
+
+**`preprocessRaw` computes one sparsity threshold from the whole file and applies it to every row.**
+At `parser.js:44-48`: `minCells = max(3, ceil(contentWidth × 0.1))`, a row is sparse when it holds
+fewer than `minCells` filled cells, and two scans walk in from the top and the bottom while rows are
+sparse.
+
+**pos-23's blocks are not the same width.** Blocks 1 and 2 carry five gauges, `date, L1, H1, R1, R2`.
+**Block 3 is `Date, Q` — discharge, one series — padded to five commas by the writer.** Two filled
+cells against a threshold of 3, so every row of it reads as sparse and the backward scan takes all
+733.
+
+**The threshold's floor is what bites.** A five-wide file gives `ceil(0.5) = 1`, so the floor of 3
+demands 60% fill; a fifty-wide file demands 10%. `contentWidth`'s own comment records the opposite
+failure — a used range running to XFD inflating `minCells` until an honest file strips to nothing —
+and the floor is the residue of that fix.
+
+**The ordering is the defect and it is unconditional.** `ImportView.jsx:240` calls `preprocessRaw`,
+`:243` calls `detectBlocks(cleaned)`. **A block removed as sparse cannot be offered by the picker**,
+and `trimmedRows` is written to `prepInfo` for the banner and tested by no branch, so a 733-row trim
+and a two-row footer trim are the same event to every surface downstream.
+
+#### 19.2.2 — what it costs this screen, and what it does not
+
+**Neither arm can reach block 3.** `preprocessRaw` runs before both, identically, so **the arm
+difference is unaffected and this does not stop scoring.** §7's count for pos-23 records that its
+analysed matrix is one of three blocks and that discharge is absent from both arms.
+
+**pos-23's *exactly 50%* is withdrawn.** It described the trimmed matrix. **Arm A scores 730 of 2,190,
+a third.** §19's substance stands: arm A takes block 1 and discards the rest without a word.
+
+**pos-23 is a `declared generated` member** (§23.4.4) whose analysed matrix is now known to be a third
+of what the deposit holds. Both facts are recorded and neither is acted on.
+
+#### 19.2.3 — scope, and it is one instance
+
+**One deposit, measured. The generality is argued from the source and is not measured.**
+`preprocessRaw`'s forward scan is the same code, so a file whose *first* block is narrow would lose it
+as preamble — that is an argument from `parser.js:47`, not a finding.
+
+**A corpus-wide scan was attempted and measured its own faults instead**: it read the first CSV in
+each directory rather than the analysed file, used one delimiter for all, and skipped nine deposits
+whose analysed file is not `.csv`. **It is recorded here because a scan that cannot see its subject is
+the same error this section is about.**
+
+**The read that would settle it:** per deposit, the analysed file named in §7, its own delimiter, and
+whether any row below `minCells` sits at row 1 or at the final row. Sparse rows in the middle are
+separators and are what `detectBlocks` wants.
+
+#### 19.2.4 — §19.1's own figures were two quantities, not two counts
+
+**§19.1 corrected §19 for reading a display metric as the analysed count. It then made a neighbouring
+version of the same error and this supersedes it rather than editing it.**
+
+**`blockSummary` returns `rows: block.length` and `dataRows` separately** (`parser.js:81`), where
+`dataRows` counts rows with more than 30% numeric cells. **The picker renders `dataRows`.** So
+§19.1's 873 / 506 / 32 / 182 are `block.length` and the picker's 452 / 310 / 20 / 110 are `dataRows`.
+**Both are correct and neither contradicts the other.**
+
+**Measured: 452 data rows in pos-43's block 1 against 874 lines**, by the same 30%-numeric rule the
+product uses. pos-23 shows it cleanly at 732 lines and 730 data rows.
+
+**pos-43 carries no defect.** Its four blocks reach the picker and its 48 trailing blank rows are what
+the trim exists for. **The check §4.1 owed on it is answered as a labelling error in our record.**
+
+**Name the field a figure was read from in the sentence that first states it.** That rule is already
+in the project's register and this is its third instance in the same document.
+
 ## 20 — the three hand-runs, ruled S397 before any of them was run
 
 **pos-08, pos-31 and pos-40 carry an untick — 2, 1 and 3 columns — and `runArm` reaches the confirm
