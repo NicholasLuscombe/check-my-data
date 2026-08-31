@@ -1336,3 +1336,108 @@ run**, not from memory or from this section.
 
 **This is a carve-out §8.1 already granted.** It is not a new exception, and it does not extend to any
 deposit the probe can drive.
+
+## 21 — arm B's information set, ruled S398 after one README was read and before any deposit was scored
+
+**Arm B is *answered honestly*. This section fixes what an honest answer is allowed to draw on, which
+§2 named and never bounded.**
+
+Until now arm B was answered from the spreadsheet grid alone. That is not what the instrument's users
+have. Of the three named audiences, the researcher owns the data and knows what every column means;
+the integrity officer and the editor hold the deposit **and its documentation**. **Nobody in the target
+audience infers structure from the numbers alone.** The probe does, arm A does, and arm B was built in
+the same shape by omission rather than by decision.
+
+### 21.1 — what was measured, on the deposit that raised it
+
+**pos-08's README states the structure in the depositor's own words.** The workbooks were exported
+directly from the mass spectrometry program with protein, peptide and PSM information **on multiple
+levels**; converting to CSV would flatten a hierarchy the interpretation depends on; and **blank cells
+do not indicate unavailable or inapplicable data**. The body lists two separate schemas for one sheet —
+protein-level fields in blue cells, peptide-level fields in orange.
+
+**The file agrees, measured.** `Protein-Peptide Info` holds 1,767 body rows: **102 protein rows, 102
+identical literal sub-header rows, 1,563 peptide rows**, no blank rows, so `detectBlocks` sees one
+block. Four columns are numeric in both populations and mean different quantities in each —
+`Exp. q-value` over `# Proteins`, `# Unique Peptides` over `# PSMs`, and likewise `Sum PEP Score` and
+`Coverage [%]`.
+
+**§4's recorded reason for pos-08 is contradicted by the deposit's own documentation.** It reads *Rows
+are proteins — `Accession`, `Description` with 1,016 distinct descriptions — the alphabetised-protein-
+list case*. Column B carries **76 distinct protein descriptions on protein rows and 939 distinct
+peptide sequences on peptide rows**. The 1,016 is a count taken across two populations and read as a
+property of one.
+
+**And the product's own summary reports a quantity the deposit says does not exist** — *Missing 20002*
+on a file whose depositor states in writing that the blanks are structural. **On this sheet any test
+keyed on missingness is measuring layout.**
+
+### 21.2 — the rule
+
+**Arm B's information set is the deposit as published: the data file, the deposit's README, and the
+published metadata fields — abstract, methods, usage notes, keywords.**
+
+**Arm B is still the shipped surface, answered.** The README changes what *honestly* may draw on. It
+changes nothing about what the product does, which gates render, or what is analysed. **Arm A is
+untouched and reads nothing** — it is the hardcoded default and that is the whole point of it.
+
+**The arm A minus arm B difference is expected to widen, and that is the quantity being measured**, not
+a distortion of it. A default's cost is measured against a user who knows what the product did not ask.
+
+### 21.3 — all thirty, or none
+
+**Twenty-seven answers were made without READMEs. Answering the remainder with them and counting the
+two sets together is the error this screen exists to detect, committed one level up.**
+
+So every answered deposit is re-answered with its README and metadata in view. **Every change is logged
+as a §4.1 correction with its reason; nothing is overwritten** (§6.4). **Where the README contradicts a
+recorded answer, the answer is corrected. Where it only adds detail, the answer stands and the reason
+is enriched — and that is logged too**, because "the README changed nothing here" is a finding and a
+silent row cannot express it.
+
+**n stays 30. No deposit is dropped, re-selected or re-ranked**, and no deposit's sheet choice moves.
+The re-answer pass is work, not a selection rule.
+
+**The §3 hazard is live here and is met the same way it always is.** A reader with a document in hand
+can pick the answer that produces a nicer result. **Nothing has been scored on either arm**, so no
+answer can be a reaction to a verdict, and the correction log makes every change and its reason
+readable afterwards.
+
+### 21.4 — what this does not change
+
+**The three refusals stand.** pos-02, pos-44 and pos-47 refuse at the import floor because §2.8 holds
+their measurements out. **That is a product behaviour and is independent of what the user knows**, so no
+README can move it. §14.3 applies unchanged, and their gate cells still read *gate did not render*.
+
+**§16.2's `structure inexpressible` is not withdrawn.** A README that explains a structure does not give
+the product a gate that can express it. On pos-08 both remain true: the structure is documented, and
+neither gate answer is true of the file.
+
+**No threshold moves.** The gross-malfunction rule is unchanged and remains arm B's alone (§17.9).
+
+### 21.5 — the partition is in the file and the product reads none of it
+
+**Measured on pos-08's column D: cell fill partitions the rows exactly.** 1 header, 102 protein rows at
+`FFDDEBF7`, 102 sub-header rows at `FFF0CBA8`, 1,563 peptide rows at `FFFCE4D6`. **Zero disagreement
+with the four classes derived from cell contents.** The file carries a complete, machine-readable
+statement of its own row structure, and the import path reads no cell colour at all.
+
+**This is a product finding and it does not move in this screen.** Changing which cells reach the
+battery would change both arms and make the thirty non-comparable to the rules fixed at S387 through
+S398. It is a register row and it queues.
+
+**One file, one column.** That fill encodes level here is measured; that it does so anywhere else is
+not.
+
+### 21.6 — what this section does not settle
+
+**Whether a README settles structure on any deposit other than pos-08.** One document was read. Thirty
+exist, median 4,514 bytes, but **`methods` is non-empty on only 8 of 30**, which is a mild argument
+against assuming the documentation is uniformly informative. The re-answer pass measures this rather
+than assuming it.
+
+**How many answers actually change.** Unknown, and deliberately not predicted here — a prediction made
+by the person about to do the re-answering is not a measurement.
+
+**Whether the corpus contains other master/detail exports.** pos-08 is one instance. A repeated literal
+sub-header row is cheap to detect and the pass will surface others if they exist.
