@@ -25,10 +25,24 @@ import { readFileSync, writeFileSync } from "fs";
 import { join, dirname } from "path";
 import { execSync } from "child_process";
 
-const root = dirname(execSync("git rev-parse --path-format=absolute --git-common-dir",
+/* TWO ROOTS, and they are not the same directory.
+ *
+ * TRACKED docs (`docs/shared/…`) live in the WORKTREE — `--show-toplevel`. The
+ * GITIGNORED corpus (`corpus-data/`) exists in the MAIN CHECKOUT and in no
+ * worktree, so it is reached through the common dir's parent, which is the rule
+ * CLAUDE.md already records.
+ *
+ * FOUND BY RUNNING, at S397 part 6. Both were resolved through the common-dir
+ * parent, so a tracked doc was read from MAIN. The arm-B checker passed at
+ * 4a28354 only because a copy of the manifest happened to be sitting in main's
+ * working tree at that moment; it was removed in the same part, and the check
+ * has been unreproducible since. A worktree's own committed docs must be read
+ * from the worktree, or a probe scores a file the branch did not write. */
+const repoRoot = execSync("git rev-parse --show-toplevel", { encoding: "utf-8" }).trim();
+const mainRoot = dirname(execSync("git rev-parse --path-format=absolute --git-common-dir",
   { encoding: "utf-8" }).trim());
-const LOG = join(root, "docs/shared/ROUND2-RUN-LOG.md");
-const RANK = join(root, "docs/shared/round2-raw/round2-ranking.json");
+const LOG = join(repoRoot, "docs/shared/ROUND2-RUN-LOG.md");
+const RANK = join(repoRoot, "docs/shared/round2-raw/round2-ranking.json");
 
 const text = readFileSync(LOG, "utf-8");
 const s4 = text.slice(text.indexOf("\n## 4 —"), text.indexOf("\n## 5 —"));

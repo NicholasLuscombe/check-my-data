@@ -18,13 +18,27 @@ import { join, dirname } from "path";
 import { execSync } from "child_process";
 
 const ENABLED = !!process.env.MANIFEST;
-const root = dirname(execSync("git rev-parse --path-format=absolute --git-common-dir",
+/* TWO ROOTS, and they are not the same directory.
+ *
+ * TRACKED docs (`docs/shared/…`) live in the WORKTREE — `--show-toplevel`. The
+ * GITIGNORED corpus (`corpus-data/`) exists in the MAIN CHECKOUT and in no
+ * worktree, so it is reached through the common dir's parent, which is the rule
+ * CLAUDE.md already records.
+ *
+ * FOUND BY RUNNING, at S397 part 6. Both were resolved through the common-dir
+ * parent, so a tracked doc was read from MAIN. The arm-B checker passed at
+ * 4a28354 only because a copy of the manifest happened to be sitting in main's
+ * working tree at that moment; it was removed in the same part, and the check
+ * has been unreproducible since. A worktree's own committed docs must be read
+ * from the worktree, or a probe scores a file the branch did not write. */
+const repoRoot = execSync("git rev-parse --show-toplevel", { encoding: "utf-8" }).trim();
+const mainRoot = dirname(execSync("git rev-parse --path-format=absolute --git-common-dir",
   { encoding: "utf-8" }).trim());
-const MANIFEST = process.env.ARMB_MANIFEST || join(root, "docs/shared/round2-raw/round2-armb-manifest.json");
+const MANIFEST = process.env.ARMB_MANIFEST || join(repoRoot, "docs/shared/round2-raw/round2-armb-manifest.json");
 
 /* §4, re-read and parsed by content rather than by column position. */
 function readS4() {
-  const t = readFileSync(join(root, "docs/shared/ROUND2-RUN-LOG.md"), "utf-8");
+  const t = readFileSync(join(repoRoot, "docs/shared/ROUND2-RUN-LOG.md"), "utf-8");
   const s4 = t.slice(t.indexOf("\n## 4 —"), t.indexOf("\n## 5 —"));
   const out = new Map();
   for (const line of s4.split("\n")) {
