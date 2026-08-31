@@ -1508,6 +1508,53 @@ not a table still being filled.
 - **Nothing here excludes a deposit, moves a sheet or changes an answer** (§22.2). It is recorded and
   acted on by nothing.
 
+### 4.3 — Documentation files named, and declared provenance
+
+**Two fields, one row per deposit, recorded S401 after the census and the pass and before either arm
+runs.** The left field answers §21.9.2, the right §23.4.3. **Both were read from the deposit's own
+README, never from its directory** (§21.9.1).
+
+**Legend.** `documentation file` is the file the README names as documenting the analysed file's
+variables, or `names none` with its reason where something was considered and rejected. `provenance`
+is `declared generated`, `not declared` or `undetermined` (§23.1), bounded by whether the number was
+produced by a model or a generator rather than recorded by an instrument or an observer.
+
+**Two members on the left — pos-41 and pos-47. Four on the right — pos-23, pos-32, pos-41 and
+pos-44.** No cell is blank and none is `undetermined`.
+
+| pos | documentation file (§21.9) | provenance (§23) | reason |
+|---|---|---|---|
+| 01 | names none | not declared |  |
+| 02 | names none — delegates to an external stratigraphic reference *not included in this deposit*, outside §21.2's information set (§21.9.4) | not declared |  |
+| 03 | names none | not declared |  |
+| 07 | names none | not declared |  |
+| 08 | names none | not declared |  |
+| 12 | names none | not declared |  |
+| 14 | names none | not declared |  |
+| 18 | names none | not declared |  |
+| 21 | names none | not declared |  |
+| 22 | names none | not declared |  |
+| 23 | names none | declared generated | *daily modeled water level, flow velocity, and discharge*; *values are modeled daily water levels in meters* |
+| 27 | names none | not declared |  |
+| 28 | names none — delegates to the Main Text and Supplementary Materials | not declared |  |
+| 30 | names none | not declared |  |
+| 31 | names none | not declared |  |
+| 32 | names none | declared generated | *a full list of the detected pods when run on all image slices*, object-detection inference over photographs; §4.2 records `not measurements` |
+| 34 | names none | not declared |  |
+| 35 | names none | not declared |  |
+| 38 | names none | not declared |  |
+| 39 | names none | not declared |  |
+| 40 | names none | not declared |  |
+| 41 | `legend.csv` — *Legend with the complete list of trait and environmental variables with descriptions, symbols, and units* | declared generated | *SNP effects … derived from Bayesian sparse linear mixed model (BSLMM) analysis performed in GEMMA* |
+| 43 | names none — `OMG_sample_metadata_…csv` holds *the metadata for all molecular samples*, a table about specimens rather than a dictionary for the analysed file; the README carries its own abbreviations | not declared |  |
+| 44 | names none | declared generated | *a synthetic but structurally representative subset*, 8 simulated fish (§4.1 C28) |
+| 45 | names none | not declared |  |
+| 46 | names none | not declared |  |
+| 47 | `seed-density-metadata.csv` — *Data dictionary describing every variable in `seed-density.csv`* | not declared |  |
+| 49 | names none | not declared |  |
+| 50 | names none — delegates to a GitHub repository | not declared |  |
+| 51 | names none | not declared |  |
+
 ---
 
 ## 5 — Counts
