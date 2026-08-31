@@ -308,7 +308,7 @@ replaces it.
 **No arm has run on pos-08 and nothing has been scored on either arm**, so §6.4's ordering holds:
 this is not an answer revised against a result.
 
-**`<d9c4f6e>` carries the first wording permanently.** That is history, not a live record.
+**`d9c4f6e` carries the first wording permanently.** That is history, not a live record.
 
 ### 4.2 — What the analysed matrix holds
 
