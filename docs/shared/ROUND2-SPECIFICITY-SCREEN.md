@@ -1239,6 +1239,36 @@ identical in a log.
 deposit is scored. **A CSV deposit may be scored before it exists**, because on a CSV there is nothing
 for it to assert.
 
+### 18.1 — the assertion has no subject on a hand-run, ruled S398 before any deposit was scored
+
+**§18 blocks scoring on the eight xlsx deposits until the assertion runs. Two of the eight are
+hand-runs, and on those two there is nothing for it to assert.**
+
+§20 routes pos-08, pos-31 and pos-40 to a hand-run through the shipped surface. **pos-08 and pos-31
+are xlsx**; pos-40 is csv and §18 already places it among the 22.
+
+**The polyfill is the probe's, not the product's.** §8.3 installs `Blob.prototype.arrayBuffer`
+because jsdom's `File` lacks it. A hand-run is made in a browser, which supplies `File.arrayBuffer`
+natively, so nothing is installed and nothing is substituted. **The assertion exists to show that the
+probe's path and the shipped path agree, and a hand-run is the shipped path** — what the assertion
+would establish holds by construction rather than by measurement. Recording `pass` there would record
+a comparison nobody made.
+
+**The rule.** On a hand-run the polyfill cell reads **`n/a — hand-run, no polyfill in path`**. This is
+§18's own instruction applied to a second inapplicable class: recorded inapplicable with its reason,
+never silently skipped and never blank. **Add the value to §4's legend**, alongside `pass` and §14.3's
+`n/a — no run`.
+
+**What this changes about the build.** §18 says the assertion is built before any xlsx deposit is
+scored. **It is owed before the first probe-driven xlsx — pos-01, 14, 18, 21, 27 and 39, six
+deposits.** It is not owed before pos-08 or pos-31, which §20 places first in the run order, **so the
+sitting's opening moves are not held by a check that has not been written.**
+
+**What this does not settle.** Nothing here reaches arm A, which reads from disk in Node and meets the
+polyfill on no deposit. Nothing here says the assertion will pass when it is built on the six. **And
+this is not a route around §18** — a probe-driven xlsx deposit is still not scored until the assertion
+has run on it, and a deposit is not moved to a hand-run to avoid the check.
+
 ## 19 — pos-43 and pos-23 split into blocks, and the arms do not analyse the same rows, ruled S397 before either was scored
 
 **Measured at `a5a5bac`.** `ImportView.jsx:758` renders the block picker on `blocks.length > 1` and
