@@ -264,6 +264,52 @@ This is the `unordered` failure in its harmless form — a field that gets count
 spelling of one answer. Logged rather than silently tidied, because *every change to an answered
 cell is logged* is a cleaner rule than deciding case by case which changes are substantive.
 
+**C4 — pos-08, the structural reason. The row population, not the answer. Logged S400.**
+
+Written **Rows are proteins** — `Accession`, `Description` with 1,016 distinct descriptions — the
+alphabetised-protein-list case METHODOLOGY names, so `arbitrary`. **The rows are not one population,
+and the deposit's own documentation says so.**
+
+`Protein-Peptide Info` holds 1,767 body rows with no blank rows, so `detectBlocks` sees one block:
+**102 protein rows, 102 identical literal sub-header rows and 1,563 peptide rows** (§21.1).
+`extractAnalysisInputs` drops the 102 sub-headers, so the analysed matrix is **102 protein records
+stacked on 1,563 peptide records**. The README states the hierarchy in the depositor's own words — the
+workbooks were exported from the mass spectrometry program with protein, peptide and PSM information
+on multiple levels, and the body lists two schemas for this one sheet, protein-level fields in blue
+cells and peptide-level fields in orange. Cell fill on column D partitions the same four classes with
+zero disagreement against the classes derived from cell contents (§21.5).
+
+**The 1,016 is a count taken across two populations and read as a property of one.** Column B carries
+**76 distinct protein descriptions on protein rows and 939 distinct peptide sequences on peptide
+rows** (§21.1). *Arithmetic, offered and not measured:* 76 + 939 = 1,015, and the 102 sub-header rows
+carry one identical literal, which would be the 1,016th distinct value. If that holds the recorded
+figure is fully accounted for; one distinct-count over column B settles it, and nothing in this entry
+rests on it.
+
+**The cell already held the evidence against its own reason.** Its closing sentence records
+`extractAnalysisInputs` dropping 102 of 1,767 rows — the sub-header count exactly — written beside a
+reason asserting a single population of proteins. **A measurement can sit in the same cell as the
+claim it refutes and neither reads as odd**, because the two were written for different purposes.
+
+**What this entry corrects, and what it leaves open.** The row clause is corrected. **The column
+clause stands**: nine `Abundance: <ratio> <NR/R>: Sample` columns crossing a loading ratio with NR/R
+is a header naming scheme, which the README does not contradict, and §16.5 membership and
+`structure inexpressible` are not withdrawn (§21.4). **The untick set does not move here** — nothing
+in the documentation bears on which columns the confirm gate pre-ticks, so the two named in §4 stand
+unless the pass rules otherwise, and any change to them is its own entry.
+
+**The answers are not settled by this entry.** Whether `replicates` and `arbitrary` still hold with
+the hierarchy in view is a judgement for the re-answer pass. **If either moves, that is a separate
+correction with its own reason**, newest last; nothing here overwrites an answer. **This is the first
+entry in this section that does not settle the answer it bears on**, and it is written that way
+deliberately: the correction records what was false when it was written, and the pass records what
+replaces it.
+
+**No arm has run on pos-08 and nothing has been scored on either arm**, so §6.4's ordering holds:
+this is not an answer revised against a result.
+
+**`<d9c4f6e>` carries the first wording permanently.** That is history, not a live record.
+
 ### 4.2 — What the analysed matrix holds
 
 **§22's three fields, one row per deposit, filled before either arm runs on it.** Kept apart from §4's
