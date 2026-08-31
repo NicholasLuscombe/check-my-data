@@ -1,0 +1,905 @@
+{
+  "generatedBy": "scripts/fetch-round2-readmes.mjs",
+  "generatedAt": "2026-08-31T10:13:17.400Z",
+  "source": "docs/shared/ROUND2-RUN-LOG.md §4 for the thirty; docs/shared/round2-raw/round2-manifest.json for sizes, sha-256 and download hrefs",
+  "roots": {
+    "corpus": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2",
+    "manifest": "/Users/hedgehog/Projects/check-my-data/.claude/worktrees/s398-readme/docs/shared/round2-readme-manifest.json"
+  },
+  "complete": false,
+  "counts": {
+    "rows": 30,
+    "file": 30,
+    "landing": 0,
+    "absent": 0,
+    "requests": 0,
+    "ratelimitRemainingAtEnd": null,
+    "sizeChecksPassed": 0,
+    "digestChecksPassed": 0,
+    "readmesOnDisk": 0,
+    "metadataWritten": 0,
+    "metadataAlreadyPresent": 30,
+    "metadataFieldsNonEmpty": {
+      "abstract": 30,
+      "methods": 8,
+      "usageNotes": 0,
+      "keywords": 30
+    },
+    "bytesUnderCorpusRoot": 0,
+    "bytesReadmes": 0,
+    "bytesMetadata": 0
+  },
+  "errors": [],
+  "rows": [
+    {
+      "position": 1,
+      "doi": "doi:10.5061/dryad.fttdz0980",
+      "artefactType": "file",
+      "readmeCandidates": 1,
+      "readme": {
+        "filename": "README.md",
+        "size": 4514,
+        "sha256": "f2c91d88724f6ecd7b8eb4270576cc66e94b48a531479bd8b5a70b2126f66648",
+        "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-01/readme/README.md",
+        "url": "https://datadryad.org/api/v2/files/4932658/download",
+        "fetchedAt": null,
+        "status": "not fetched",
+        "error": "DRYAD_TOKEN unset — no request was made"
+      },
+      "metadata": {
+        "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-01/readme/metadata.md",
+        "status": "skipped (already present)",
+        "sourceVersion": 8,
+        "sourceVersionStatus": "submitted",
+        "versionBasis": "versionNumber matches the deposit",
+        "fieldBytes": {
+          "abstract": 1350,
+          "methods": 1847,
+          "usageNotes": 0,
+          "keywords": 55
+        }
+      }
+    },
+    {
+      "position": 2,
+      "doi": "doi:10.5061/dryad.rv15dv4q9",
+      "artefactType": "file",
+      "readmeCandidates": 1,
+      "readme": {
+        "filename": "README.md",
+        "size": 13287,
+        "sha256": "0094b328777aa8442cca1be5a6a294529ad1a74a7025b88b3b700756b48c9012",
+        "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-02/readme/README.md",
+        "url": "https://datadryad.org/api/v2/files/4933091/download",
+        "fetchedAt": null,
+        "status": "not fetched",
+        "error": "DRYAD_TOKEN unset — no request was made"
+      },
+      "metadata": {
+        "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-02/readme/metadata.md",
+        "status": "skipped (already present)",
+        "sourceVersion": 4,
+        "sourceVersionStatus": "submitted",
+        "versionBasis": "versionNumber matches the deposit",
+        "fieldBytes": {
+          "abstract": 486,
+          "methods": 0,
+          "usageNotes": 0,
+          "keywords": 43
+        }
+      }
+    },
+    {
+      "position": 3,
+      "doi": "doi:10.5061/dryad.4mw6m90r1",
+      "artefactType": "file",
+      "readmeCandidates": 1,
+      "readme": {
+        "filename": "README.md",
+        "size": 2120,
+        "sha256": "87c97b077c3f0a95ddffe724507da10458a1aa615eb9d6d24ff7aa3efdb28ad8",
+        "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-03/readme/README.md",
+        "url": "https://datadryad.org/api/v2/files/4933025/download",
+        "fetchedAt": null,
+        "status": "not fetched",
+        "error": "DRYAD_TOKEN unset — no request was made"
+      },
+      "metadata": {
+        "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-03/readme/metadata.md",
+        "status": "skipped (already present)",
+        "sourceVersion": 4,
+        "sourceVersionStatus": "submitted",
+        "versionBasis": "versionNumber matches the deposit",
+        "fieldBytes": {
+          "abstract": 825,
+          "methods": 1422,
+          "usageNotes": 0,
+          "keywords": 44
+        }
+      }
+    },
+    {
+      "position": 7,
+      "doi": "doi:10.5061/dryad.hqbzkh1vv",
+      "artefactType": "file",
+      "readmeCandidates": 1,
+      "readme": {
+        "filename": "README.md",
+        "size": 59603,
+        "sha256": "372640a3206fea982f1f1a0872a1694727261f73dafd93186904832f9b08c86b",
+        "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-07/readme/README.md",
+        "url": "https://datadryad.org/api/v2/files/4932992/download",
+        "fetchedAt": null,
+        "status": "not fetched",
+        "error": "DRYAD_TOKEN unset — no request was made"
+      },
+      "metadata": {
+        "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-07/readme/metadata.md",
+        "status": "skipped (already present)",
+        "sourceVersion": 9,
+        "sourceVersionStatus": "submitted",
+        "versionBasis": "versionNumber matches the deposit",
+        "fieldBytes": {
+          "abstract": 1741,
+          "methods": 0,
+          "usageNotes": 0,
+          "keywords": 88
+        }
+      }
+    },
+    {
+      "position": 8,
+      "doi": "doi:10.5061/dryad.djh9w0wf0",
+      "artefactType": "file",
+      "readmeCandidates": 1,
+      "readme": {
+        "filename": "README.md",
+        "size": 7149,
+        "sha256": "7b888df8cafe8b0f6923a95f9dfde2118d27b9db6b4336a9114ebbbce5e55342",
+        "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-08/readme/README.md",
+        "url": "https://datadryad.org/api/v2/files/4933277/download",
+        "fetchedAt": null,
+        "status": "not fetched",
+        "error": "DRYAD_TOKEN unset — no request was made"
+      },
+      "metadata": {
+        "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-08/readme/metadata.md",
+        "status": "skipped (already present)",
+        "sourceVersion": 6,
+        "sourceVersionStatus": "submitted",
+        "versionBasis": "versionNumber matches the deposit",
+        "fieldBytes": {
+          "abstract": 1441,
+          "methods": 11769,
+          "usageNotes": 0,
+          "keywords": 111
+        }
+      }
+    },
+    {
+      "position": 12,
+      "doi": "doi:10.5061/dryad.d7wm37qh7",
+      "artefactType": "file",
+      "readmeCandidates": 1,
+      "readme": {
+        "filename": "README.md",
+        "size": 6847,
+        "sha256": "a7830434bba4ebea76e4ead86c33613a44a91c56dd980e6b0f44ce49aff630db",
+        "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-12/readme/README.md",
+        "url": "https://datadryad.org/api/v2/files/4930548/download",
+        "fetchedAt": null,
+        "status": "not fetched",
+        "error": "DRYAD_TOKEN unset — no request was made"
+      },
+      "metadata": {
+        "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-12/readme/metadata.md",
+        "status": "skipped (already present)",
+        "sourceVersion": 3,
+        "sourceVersionStatus": "submitted",
+        "versionBasis": "versionNumber matches the deposit",
+        "fieldBytes": {
+          "abstract": 1834,
+          "methods": 0,
+          "usageNotes": 0,
+          "keywords": 90
+        }
+      }
+    },
+    {
+      "position": 14,
+      "doi": "doi:10.5061/dryad.bvq83bkr6",
+      "artefactType": "file",
+      "readmeCandidates": 1,
+      "readme": {
+        "filename": "README.md",
+        "size": 11193,
+        "sha256": "5536ec9a67ca37525fe811cec14aef4a0133a097aa15f0a816fd781f8cfb2ac4",
+        "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-14/readme/README.md",
+        "url": "https://datadryad.org/api/v2/files/4930866/download",
+        "fetchedAt": null,
+        "status": "not fetched",
+        "error": "DRYAD_TOKEN unset — no request was made"
+      },
+      "metadata": {
+        "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-14/readme/metadata.md",
+        "status": "skipped (already present)",
+        "sourceVersion": 4,
+        "sourceVersionStatus": "submitted",
+        "versionBasis": "versionNumber matches the deposit",
+        "fieldBytes": {
+          "abstract": 1770,
+          "methods": 0,
+          "usageNotes": 0,
+          "keywords": 58
+        }
+      }
+    },
+    {
+      "position": 18,
+      "doi": "doi:10.5061/dryad.g79cnp5vs",
+      "artefactType": "file",
+      "readmeCandidates": 1,
+      "readme": {
+        "filename": "README.md",
+        "size": 1103,
+        "sha256": "a902a0551d1b814df0ef236816b6c3899ae901d5aa1b99f594c1ed55f1c02fdb",
+        "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-18/readme/README.md",
+        "url": "https://datadryad.org/api/v2/files/4930531/download",
+        "fetchedAt": null,
+        "status": "not fetched",
+        "error": "DRYAD_TOKEN unset — no request was made"
+      },
+      "metadata": {
+        "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-18/readme/metadata.md",
+        "status": "skipped (already present)",
+        "sourceVersion": 5,
+        "sourceVersionStatus": "submitted",
+        "versionBasis": "versionNumber matches the deposit",
+        "fieldBytes": {
+          "abstract": 1184,
+          "methods": 13941,
+          "usageNotes": 0,
+          "keywords": 100
+        }
+      }
+    },
+    {
+      "position": 21,
+      "doi": "doi:10.5061/dryad.m827p",
+      "artefactType": "file",
+      "readmeCandidates": 1,
+      "readme": {
+        "filename": "README.md",
+        "size": 773,
+        "sha256": "f869da261ca09fabfb5f0467703e557f5a041b9607001bbd81c096de31e087c8",
+        "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-21/readme/README.md",
+        "url": "https://datadryad.org/api/v2/files/4930888/download",
+        "fetchedAt": null,
+        "status": "not fetched",
+        "error": "DRYAD_TOKEN unset — no request was made"
+      },
+      "metadata": {
+        "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-21/readme/metadata.md",
+        "status": "skipped (already present)",
+        "sourceVersion": 3,
+        "sourceVersionStatus": "submitted",
+        "versionBasis": "versionNumber matches the deposit",
+        "fieldBytes": {
+          "abstract": 1342,
+          "methods": 0,
+          "usageNotes": 0,
+          "keywords": 64
+        }
+      }
+    },
+    {
+      "position": 22,
+      "doi": "doi:10.5061/dryad.xsj3tx9vw",
+      "artefactType": "file",
+      "readmeCandidates": 1,
+      "readme": {
+        "filename": "README.md",
+        "size": 5362,
+        "sha256": "78ba82f1fe90d1aa438c7c17115d9b5c61e047515a4db8d6775740be9ac7d9a3",
+        "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-22/readme/README.md",
+        "url": "https://datadryad.org/api/v2/files/4930914/download",
+        "fetchedAt": null,
+        "status": "not fetched",
+        "error": "DRYAD_TOKEN unset — no request was made"
+      },
+      "metadata": {
+        "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-22/readme/metadata.md",
+        "status": "skipped (already present)",
+        "sourceVersion": 3,
+        "sourceVersionStatus": "submitted",
+        "versionBasis": "versionNumber matches the deposit",
+        "fieldBytes": {
+          "abstract": 1437,
+          "methods": 9692,
+          "usageNotes": 0,
+          "keywords": 33
+        }
+      }
+    },
+    {
+      "position": 23,
+      "doi": "doi:10.5061/dryad.6q573n6ff",
+      "artefactType": "file",
+      "readmeCandidates": 1,
+      "readme": {
+        "filename": "README.md",
+        "size": 32254,
+        "sha256": "397c29975ccb9e4f527152474c01cbf4d71d892031949cc9bce29c6d288a224c",
+        "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-23/readme/README.md",
+        "url": "https://datadryad.org/api/v2/files/4931378/download",
+        "fetchedAt": null,
+        "status": "not fetched",
+        "error": "DRYAD_TOKEN unset — no request was made"
+      },
+      "metadata": {
+        "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-23/readme/metadata.md",
+        "status": "skipped (already present)",
+        "sourceVersion": 2,
+        "sourceVersionStatus": "submitted",
+        "versionBasis": "versionNumber matches the deposit",
+        "fieldBytes": {
+          "abstract": 1314,
+          "methods": 1281,
+          "usageNotes": 0,
+          "keywords": 123
+        }
+      }
+    },
+    {
+      "position": 27,
+      "doi": "doi:10.5061/dryad.83bk3jb37",
+      "artefactType": "file",
+      "readmeCandidates": 1,
+      "readme": {
+        "filename": "README.md",
+        "size": 1350,
+        "sha256": "9865a0713df87c4716ac6f060842880554c411f34199767d1bf520c3f9d23ddd",
+        "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-27/readme/README.md",
+        "url": "https://datadryad.org/api/v2/files/4932014/download",
+        "fetchedAt": null,
+        "status": "not fetched",
+        "error": "DRYAD_TOKEN unset — no request was made"
+      },
+      "metadata": {
+        "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-27/readme/metadata.md",
+        "status": "skipped (already present)",
+        "sourceVersion": 7,
+        "sourceVersionStatus": "submitted",
+        "versionBasis": "versionNumber matches the deposit",
+        "fieldBytes": {
+          "abstract": 1777,
+          "methods": 0,
+          "usageNotes": 0,
+          "keywords": 53
+        }
+      }
+    },
+    {
+      "position": 28,
+      "doi": "doi:10.5061/dryad.gtht76j3x",
+      "artefactType": "file",
+      "readmeCandidates": 1,
+      "readme": {
+        "filename": "README.md",
+        "size": 3649,
+        "sha256": "054045518c614c99b99fb03a37ce8b0fbe6ce715706a314eba225620cfad5c58",
+        "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-28/readme/README.md",
+        "url": "https://datadryad.org/api/v2/files/4932089/download",
+        "fetchedAt": null,
+        "status": "not fetched",
+        "error": "DRYAD_TOKEN unset — no request was made"
+      },
+      "metadata": {
+        "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-28/readme/metadata.md",
+        "status": "skipped (already present)",
+        "sourceVersion": 3,
+        "sourceVersionStatus": "submitted",
+        "versionBasis": "versionNumber matches the deposit",
+        "fieldBytes": {
+          "abstract": 1664,
+          "methods": 0,
+          "usageNotes": 0,
+          "keywords": 32
+        }
+      }
+    },
+    {
+      "position": 30,
+      "doi": "doi:10.5061/dryad.qv9s4mwwc",
+      "artefactType": "file",
+      "readmeCandidates": 1,
+      "readme": {
+        "filename": "README.md",
+        "size": 2006,
+        "sha256": "5321016f21040598a1c010ed4b58764b8763056380287b4594a1102a4d922d5a",
+        "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-30/readme/README.md",
+        "url": "https://datadryad.org/api/v2/files/4932021/download",
+        "fetchedAt": null,
+        "status": "not fetched",
+        "error": "DRYAD_TOKEN unset — no request was made"
+      },
+      "metadata": {
+        "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-30/readme/metadata.md",
+        "status": "skipped (already present)",
+        "sourceVersion": 2,
+        "sourceVersionStatus": "submitted",
+        "versionBasis": "versionNumber matches the deposit",
+        "fieldBytes": {
+          "abstract": 1899,
+          "methods": 0,
+          "usageNotes": 0,
+          "keywords": 47
+        }
+      }
+    },
+    {
+      "position": 31,
+      "doi": "doi:10.5061/dryad.1vhhmgr9v",
+      "artefactType": "file",
+      "readmeCandidates": 1,
+      "readme": {
+        "filename": "README.md",
+        "size": 4449,
+        "sha256": "3a5b64b74387098d6122183463abcaf390c183a7a3d4b5d1729713f11e54bed5",
+        "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-31/readme/README.md",
+        "url": "https://datadryad.org/api/v2/files/4932006/download",
+        "fetchedAt": null,
+        "status": "not fetched",
+        "error": "DRYAD_TOKEN unset — no request was made"
+      },
+      "metadata": {
+        "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-31/readme/metadata.md",
+        "status": "skipped (already present)",
+        "sourceVersion": 3,
+        "sourceVersionStatus": "submitted",
+        "versionBasis": "versionNumber matches the deposit",
+        "fieldBytes": {
+          "abstract": 1880,
+          "methods": 0,
+          "usageNotes": 0,
+          "keywords": 57
+        }
+      }
+    },
+    {
+      "position": 32,
+      "doi": "doi:10.5061/dryad.9ghx3fg0p",
+      "artefactType": "file",
+      "readmeCandidates": 1,
+      "readme": {
+        "filename": "README.md",
+        "size": 5332,
+        "sha256": "29787841c44a2440e7717a18cc742bdf6125342acc8e07bdb80b1ee97d41a193",
+        "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-32/readme/README.md",
+        "url": "https://datadryad.org/api/v2/files/4931868/download",
+        "fetchedAt": null,
+        "status": "not fetched",
+        "error": "DRYAD_TOKEN unset — no request was made"
+      },
+      "metadata": {
+        "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-32/readme/metadata.md",
+        "status": "skipped (already present)",
+        "sourceVersion": 3,
+        "sourceVersionStatus": "submitted",
+        "versionBasis": "versionNumber matches the deposit",
+        "fieldBytes": {
+          "abstract": 1022,
+          "methods": 0,
+          "usageNotes": 0,
+          "keywords": 33
+        }
+      }
+    },
+    {
+      "position": 34,
+      "doi": "doi:10.5061/dryad.m0cfxppgt",
+      "artefactType": "file",
+      "readmeCandidates": 1,
+      "readme": {
+        "filename": "README.md",
+        "size": 6770,
+        "sha256": "6de0a3f44e794b3ad5dde496da4966c442f12593ec56cbe78ad6fcd5e7c14ed3",
+        "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-34/readme/README.md",
+        "url": "https://datadryad.org/api/v2/files/4923672/download",
+        "fetchedAt": null,
+        "status": "not fetched",
+        "error": "DRYAD_TOKEN unset — no request was made"
+      },
+      "metadata": {
+        "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-34/readme/metadata.md",
+        "status": "skipped (already present)",
+        "sourceVersion": 13,
+        "sourceVersionStatus": "submitted",
+        "versionBasis": "versionNumber matches the deposit",
+        "fieldBytes": {
+          "abstract": 1531,
+          "methods": 0,
+          "usageNotes": 0,
+          "keywords": 86
+        }
+      }
+    },
+    {
+      "position": 35,
+      "doi": "doi:10.5061/dryad.4xgxd25s6",
+      "artefactType": "file",
+      "readmeCandidates": 1,
+      "readme": {
+        "filename": "README.md",
+        "size": 2477,
+        "sha256": "9e99fc29e125b779ad5ed842d0edf997340fa8ee9c94d5774ca5377a69dd1f66",
+        "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-35/readme/README.md",
+        "url": "https://datadryad.org/api/v2/files/4929278/download",
+        "fetchedAt": null,
+        "status": "not fetched",
+        "error": "DRYAD_TOKEN unset — no request was made"
+      },
+      "metadata": {
+        "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-35/readme/metadata.md",
+        "status": "skipped (already present)",
+        "sourceVersion": 4,
+        "sourceVersionStatus": "submitted",
+        "versionBasis": "versionNumber matches the deposit",
+        "fieldBytes": {
+          "abstract": 1777,
+          "methods": 0,
+          "usageNotes": 0,
+          "keywords": 120
+        }
+      }
+    },
+    {
+      "position": 38,
+      "doi": "doi:10.5061/dryad.3tx95x6t7",
+      "artefactType": "file",
+      "readmeCandidates": 1,
+      "readme": {
+        "filename": "README.md",
+        "size": 13007,
+        "sha256": "87bbb8b1c711d53fc99618d0b8a21b592de884fb9b25beb2fb8e98a9e6a12a8f",
+        "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-38/readme/README.md",
+        "url": "https://datadryad.org/api/v2/files/4920999/download",
+        "fetchedAt": null,
+        "status": "not fetched",
+        "error": "DRYAD_TOKEN unset — no request was made"
+      },
+      "metadata": {
+        "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-38/readme/metadata.md",
+        "status": "skipped (already present)",
+        "sourceVersion": 9,
+        "sourceVersionStatus": "submitted",
+        "versionBasis": "versionNumber matches the deposit",
+        "fieldBytes": {
+          "abstract": 1343,
+          "methods": 2098,
+          "usageNotes": 0,
+          "keywords": 59
+        }
+      }
+    },
+    {
+      "position": 39,
+      "doi": "doi:10.5061/dryad.280gb5n5c",
+      "artefactType": "file",
+      "readmeCandidates": 1,
+      "readme": {
+        "filename": "README.md",
+        "size": 1873,
+        "sha256": "e50fe449810af48aab8c5215fc4232ad28a9ced0948a1831c296f65efa1e9987",
+        "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-39/readme/README.md",
+        "url": "https://datadryad.org/api/v2/files/4929285/download",
+        "fetchedAt": null,
+        "status": "not fetched",
+        "error": "DRYAD_TOKEN unset — no request was made"
+      },
+      "metadata": {
+        "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-39/readme/metadata.md",
+        "status": "skipped (already present)",
+        "sourceVersion": 3,
+        "sourceVersionStatus": "submitted",
+        "versionBasis": "versionNumber matches the deposit",
+        "fieldBytes": {
+          "abstract": 2644,
+          "methods": 0,
+          "usageNotes": 0,
+          "keywords": 190
+        }
+      }
+    },
+    {
+      "position": 40,
+      "doi": "doi:10.5061/dryad.2280gb64c",
+      "artefactType": "file",
+      "readmeCandidates": 1,
+      "readme": {
+        "filename": "README.md",
+        "size": 3646,
+        "sha256": "59f8ac1980ec5c437d2b72764a3cef33b5212e5af6f730c50a82c49cab3301f7",
+        "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-40/readme/README.md",
+        "url": "https://datadryad.org/api/v2/files/4929480/download",
+        "fetchedAt": null,
+        "status": "not fetched",
+        "error": "DRYAD_TOKEN unset — no request was made"
+      },
+      "metadata": {
+        "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-40/readme/metadata.md",
+        "status": "skipped (already present)",
+        "sourceVersion": 13,
+        "sourceVersionStatus": "submitted",
+        "versionBasis": "versionNumber matches the deposit",
+        "fieldBytes": {
+          "abstract": 1974,
+          "methods": 0,
+          "usageNotes": 0,
+          "keywords": 60
+        }
+      }
+    },
+    {
+      "position": 41,
+      "doi": "doi:10.5061/dryad.kprr4xhfb",
+      "artefactType": "file",
+      "readmeCandidates": 1,
+      "readme": {
+        "filename": "README.md",
+        "size": 6915,
+        "sha256": "8e7074a3ff820d27a39ccefbb5a6d0619d2936fe2c8f52afd2657d1081d919b8",
+        "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-41/readme/README.md",
+        "url": "https://datadryad.org/api/v2/files/4929343/download",
+        "fetchedAt": null,
+        "status": "not fetched",
+        "error": "DRYAD_TOKEN unset — no request was made"
+      },
+      "metadata": {
+        "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-41/readme/metadata.md",
+        "status": "skipped (already present)",
+        "sourceVersion": 6,
+        "sourceVersionStatus": "submitted",
+        "versionBasis": "versionNumber matches the deposit",
+        "fieldBytes": {
+          "abstract": 1116,
+          "methods": 929,
+          "usageNotes": 0,
+          "keywords": 52
+        }
+      }
+    },
+    {
+      "position": 43,
+      "doi": "doi:10.5061/dryad.8gtht772x",
+      "artefactType": "file",
+      "readmeCandidates": 1,
+      "readme": {
+        "filename": "README.md",
+        "size": 3441,
+        "sha256": "cb1dca33b1cda62038e3aa86dc8365982e865c4ac35676bce95175833fc09931",
+        "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-43/readme/README.md",
+        "url": "https://datadryad.org/api/v2/files/4929406/download",
+        "fetchedAt": null,
+        "status": "not fetched",
+        "error": "DRYAD_TOKEN unset — no request was made"
+      },
+      "metadata": {
+        "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-43/readme/metadata.md",
+        "status": "skipped (already present)",
+        "sourceVersion": 5,
+        "sourceVersionStatus": "submitted",
+        "versionBasis": "versionNumber matches the deposit",
+        "fieldBytes": {
+          "abstract": 1204,
+          "methods": 0,
+          "usageNotes": 0,
+          "keywords": 38
+        }
+      }
+    },
+    {
+      "position": 44,
+      "doi": "doi:10.5061/dryad.g4f4qrg50",
+      "artefactType": "file",
+      "readmeCandidates": 1,
+      "readme": {
+        "filename": "README.md",
+        "size": 7191,
+        "sha256": "eadbdcbf1a5b54a87435cc19ae065d5226987718db4cba0777e8e2f8378fd9ce",
+        "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-44/readme/README.md",
+        "url": "https://datadryad.org/api/v2/files/4929371/download",
+        "fetchedAt": null,
+        "status": "not fetched",
+        "error": "DRYAD_TOKEN unset — no request was made"
+      },
+      "metadata": {
+        "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-44/readme/metadata.md",
+        "status": "skipped (already present)",
+        "sourceVersion": 2,
+        "sourceVersionStatus": "submitted",
+        "versionBasis": "versionNumber matches the deposit",
+        "fieldBytes": {
+          "abstract": 1311,
+          "methods": 0,
+          "usageNotes": 0,
+          "keywords": 90
+        }
+      }
+    },
+    {
+      "position": 45,
+      "doi": "doi:10.5061/dryad.hqbzkh1zw",
+      "artefactType": "file",
+      "readmeCandidates": 1,
+      "readme": {
+        "filename": "README.md",
+        "size": 1764,
+        "sha256": "508a76aeae1e3da3d4797f7b6399340845e038294f5ea20c0d41a0bae0370a21",
+        "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-45/readme/README.md",
+        "url": "https://datadryad.org/api/v2/files/4926142/download",
+        "fetchedAt": null,
+        "status": "not fetched",
+        "error": "DRYAD_TOKEN unset — no request was made"
+      },
+      "metadata": {
+        "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-45/readme/metadata.md",
+        "status": "skipped (already present)",
+        "sourceVersion": 4,
+        "sourceVersionStatus": "submitted",
+        "versionBasis": "versionNumber matches the deposit",
+        "fieldBytes": {
+          "abstract": 578,
+          "methods": 0,
+          "usageNotes": 0,
+          "keywords": 28
+        }
+      }
+    },
+    {
+      "position": 46,
+      "doi": "doi:10.5061/dryad.bzkh189qb",
+      "artefactType": "file",
+      "readmeCandidates": 1,
+      "readme": {
+        "filename": "README.md",
+        "size": 1663,
+        "sha256": "ff079604fcefda0bc17899a9458b678b17b93941fac9b36f2b9824f9a488b050",
+        "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-46/readme/README.md",
+        "url": "https://datadryad.org/api/v2/files/4929557/download",
+        "fetchedAt": null,
+        "status": "not fetched",
+        "error": "DRYAD_TOKEN unset — no request was made"
+      },
+      "metadata": {
+        "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-46/readme/metadata.md",
+        "status": "skipped (already present)",
+        "sourceVersion": 4,
+        "sourceVersionStatus": "submitted",
+        "versionBasis": "versionNumber matches the deposit",
+        "fieldBytes": {
+          "abstract": 798,
+          "methods": 0,
+          "usageNotes": 0,
+          "keywords": 50
+        }
+      }
+    },
+    {
+      "position": 47,
+      "doi": "doi:10.5061/dryad.cnp5hqcmx",
+      "artefactType": "file",
+      "readmeCandidates": 1,
+      "readme": {
+        "filename": "README.md",
+        "size": 3023,
+        "sha256": "a3dcf45d8ef23a4e2147205c077fff1b3aa744f37f99730dfd09abdcad501ba9",
+        "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-47/readme/README.md",
+        "url": "https://datadryad.org/api/v2/files/4929611/download",
+        "fetchedAt": null,
+        "status": "not fetched",
+        "error": "DRYAD_TOKEN unset — no request was made"
+      },
+      "metadata": {
+        "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-47/readme/metadata.md",
+        "status": "skipped (already present)",
+        "sourceVersion": 3,
+        "sourceVersionStatus": "submitted",
+        "versionBasis": "versionNumber matches the deposit",
+        "fieldBytes": {
+          "abstract": 837,
+          "methods": 0,
+          "usageNotes": 0,
+          "keywords": 34
+        }
+      }
+    },
+    {
+      "position": 49,
+      "doi": "doi:10.5061/dryad.3r2280gzk",
+      "artefactType": "file",
+      "readmeCandidates": 1,
+      "readme": {
+        "filename": "README.md",
+        "size": 2442,
+        "sha256": "7201d844e8deae3368203db7c9a37c79fd3d7498e8eb932024e289303f482d88",
+        "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-49/readme/README.md",
+        "url": "https://datadryad.org/api/v2/files/4930009/download",
+        "fetchedAt": null,
+        "status": "not fetched",
+        "error": "DRYAD_TOKEN unset — no request was made"
+      },
+      "metadata": {
+        "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-49/readme/metadata.md",
+        "status": "skipped (already present)",
+        "sourceVersion": 2,
+        "sourceVersionStatus": "submitted",
+        "versionBasis": "versionNumber matches the deposit",
+        "fieldBytes": {
+          "abstract": 2037,
+          "methods": 0,
+          "usageNotes": 0,
+          "keywords": 89
+        }
+      }
+    },
+    {
+      "position": 50,
+      "doi": "doi:10.5061/dryad.1rn8pk187",
+      "artefactType": "file",
+      "readmeCandidates": 1,
+      "readme": {
+        "filename": "README.md",
+        "size": 65021,
+        "sha256": "5edc12da7162296d537125db02bd6dc1c45e8c10c20aa15a41f644167dd453fb",
+        "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-50/readme/README.md",
+        "url": "https://datadryad.org/api/v2/files/4930118/download",
+        "fetchedAt": null,
+        "status": "not fetched",
+        "error": "DRYAD_TOKEN unset — no request was made"
+      },
+      "metadata": {
+        "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-50/readme/metadata.md",
+        "status": "skipped (already present)",
+        "sourceVersion": 11,
+        "sourceVersionStatus": "submitted",
+        "versionBasis": "versionNumber matches the deposit",
+        "fieldBytes": {
+          "abstract": 1889,
+          "methods": 0,
+          "usageNotes": 0,
+          "keywords": 33
+        }
+      }
+    },
+    {
+      "position": 51,
+      "doi": "doi:10.5061/dryad.v15dv42cj",
+      "artefactType": "file",
+      "readmeCandidates": 1,
+      "readme": {
+        "filename": "README.md",
+        "size": 7306,
+        "sha256": "0fe08ae97b1732ef98efa992dac7b4a336cbf64a23c24224415507d5de9d526d",
+        "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-51/readme/README.md",
+        "url": "https://datadryad.org/api/v2/files/4930000/download",
+        "fetchedAt": null,
+        "status": "not fetched",
+        "error": "DRYAD_TOKEN unset — no request was made"
+      },
+      "metadata": {
+        "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-51/readme/metadata.md",
+        "status": "skipped (already present)",
+        "sourceVersion": 3,
+        "sourceVersionStatus": "submitted",
+        "versionBasis": "versionNumber matches the deposit",
+        "fieldBytes": {
+          "abstract": 1798,
+          "methods": 0,
+          "usageNotes": 0,
+          "keywords": 51
+        }
+      }
+    }
+  ]
+}
