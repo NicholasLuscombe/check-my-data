@@ -1,0 +1,155 @@
+{
+  "generatedBy": "test/probes/build-s397-arma-manifest.mjs",
+  "source": "docs/shared/ROUND2-RUN-LOG.md §4; sheet cross-checked against docs/shared/round2-raw/round2-ranking.json",
+  "note": "Arm A. No gate answers: corpus-run.mjs hardcodes colRelationship 'replicates' and takes rowSemantics from suggestRowSemantics, so supplying either would stop this being the defaults arm. Run from the main checkout root — paths are relative and corpus-data/ is gitignored there.",
+  "counts": {
+    "s4Rows": 30,
+    "entries": 30,
+    "excelEntriesWithSheet": 8,
+    "armBEntries": 24,
+    "armBOmitsRefusals": 3,
+    "armBOmitsUnticked": 3
+  },
+  "alsoScoredHereButNotByArmB": {
+    "refusals": [
+      "pos-02",
+      "pos-44",
+      "pos-47"
+    ],
+    "unticked": [
+      "pos-08",
+      "pos-31",
+      "pos-40"
+    ]
+  },
+  "datasets": [
+    {
+      "label": "pos-01 micro_data_compiled.xlsx :: 1300-3",
+      "path": "corpus-data/round2/pos-01/micro_data_compiled.xlsx",
+      "sheet": "1300-3"
+    },
+    {
+      "label": "pos-02 os_cells_new.csv",
+      "path": "corpus-data/round2/pos-02/os_cells_new.csv"
+    },
+    {
+      "label": "pos-03 OpilionesChemicalCues_v2(data).csv",
+      "path": "corpus-data/round2/pos-03/OpilionesChemicalCues_v2(data).csv"
+    },
+    {
+      "label": "pos-07 data_complete.csv",
+      "path": "corpus-data/round2/pos-07/data_complete.csv"
+    },
+    {
+      "label": "pos-08 ECS-SA_(Affinity).xlsx :: Protein-Peptide Info",
+      "path": "corpus-data/round2/pos-08/ECS-SA_(Affinity).xlsx",
+      "sheet": "Protein-Peptide Info"
+    },
+    {
+      "label": "pos-12 Non-target_OUTs.csv",
+      "path": "corpus-data/round2/pos-12/Non-target_OUTs.csv"
+    },
+    {
+      "label": "pos-14 Rawdata_Figures_Tables_TSA.xlsx :: Figure 2",
+      "path": "corpus-data/round2/pos-14/Rawdata_Figures_Tables_TSA.xlsx",
+      "sheet": "Figure 2"
+    },
+    {
+      "label": "pos-18 Data_2022.xlsx :: Floral_M",
+      "path": "corpus-data/round2/pos-18/Data_2022.xlsx",
+      "sheet": "Floral_M"
+    },
+    {
+      "label": "pos-21 FEMS_dryad_v2_published.xlsx :: Data",
+      "path": "corpus-data/round2/pos-21/FEMS_dryad_v2_published.xlsx",
+      "sheet": "Data"
+    },
+    {
+      "label": "pos-22 pgls_all_genera.csv",
+      "path": "corpus-data/round2/pos-22/pgls_all_genera.csv"
+    },
+    {
+      "label": "pos-23 05_hydrodynamic_daily_outputs.csv",
+      "path": "corpus-data/round2/pos-23/05_hydrodynamic_daily_outputs.csv"
+    },
+    {
+      "label": "pos-27 radMS_table_1.xlsx :: Sheet1",
+      "path": "corpus-data/round2/pos-27/radMS_table_1.xlsx",
+      "sheet": "Sheet1"
+    },
+    {
+      "label": "pos-28 dominance_data.csv",
+      "path": "corpus-data/round2/pos-28/dominance_data.csv"
+    },
+    {
+      "label": "pos-30 ips_density_Goundar_et_al_2026_Where_are_they_now.csv",
+      "path": "corpus-data/round2/pos-30/ips_density_Goundar_et_al_2026_Where_are_they_now.csv"
+    },
+    {
+      "label": "pos-31 MC_Drosophila_hydei.xlsx :: Males",
+      "path": "corpus-data/round2/pos-31/MC_Drosophila_hydei.xlsx",
+      "sheet": "Males"
+    },
+    {
+      "label": "pos-32 XLarge_All_Pod_Inference_data.csv",
+      "path": "corpus-data/round2/pos-32/XLarge_All_Pod_Inference_data.csv"
+    },
+    {
+      "label": "pos-34 Sperm_morphological_data.csv",
+      "path": "corpus-data/round2/pos-34/Sperm_morphological_data.csv"
+    },
+    {
+      "label": "pos-35 AgeRelatedChangesInAcousticCues_data.csv",
+      "path": "corpus-data/round2/pos-35/AgeRelatedChangesInAcousticCues_data.csv"
+    },
+    {
+      "label": "pos-38 Nightly_Capture_Rates_Spp_Updated.csv",
+      "path": "corpus-data/round2/pos-38/Nightly_Capture_Rates_Spp_Updated.csv"
+    },
+    {
+      "label": "pos-39 FIG3.xlsx :: FIG3A",
+      "path": "corpus-data/round2/pos-39/FIG3.xlsx",
+      "sheet": "FIG3A"
+    },
+    {
+      "label": "pos-40 13._b_Planctomycetota_asv.csv",
+      "path": "corpus-data/round2/pos-40/13._b_Planctomycetota_asv.csv"
+    },
+    {
+      "label": "pos-41 SNPeffect_BSLMM_allvar.csv",
+      "path": "corpus-data/round2/pos-41/SNPeffect_BSLMM_allvar.csv"
+    },
+    {
+      "label": "pos-43 Isoodon_data_raw_only.csv",
+      "path": "corpus-data/round2/pos-43/Isoodon_data_raw_only.csv"
+    },
+    {
+      "label": "pos-44 subset_dets.csv",
+      "path": "corpus-data/round2/pos-44/subset_dets.csv"
+    },
+    {
+      "label": "pos-45 FF_blank.csv",
+      "path": "corpus-data/round2/pos-45/FF_blank.csv"
+    },
+    {
+      "label": "pos-46 full_chemistry_wMeta.csv",
+      "path": "corpus-data/round2/pos-46/full_chemistry_wMeta.csv"
+    },
+    {
+      "label": "pos-47 seed-density.csv",
+      "path": "corpus-data/round2/pos-47/seed-density.csv"
+    },
+    {
+      "label": "pos-49 data_R.csv",
+      "path": "corpus-data/round2/pos-49/data_R.csv"
+    },
+    {
+      "label": "pos-50 Assemblies_and_species.tsv",
+      "path": "corpus-data/round2/pos-50/Assemblies_and_species.tsv"
+    },
+    {
+      "label": "pos-51 Pieris_phenotype.csv",
+      "path": "corpus-data/round2/pos-51/Pieris_phenotype.csv"
+    }
+  ]
+}
