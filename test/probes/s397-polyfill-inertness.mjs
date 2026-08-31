@@ -37,6 +37,12 @@ export const EXCEL_EXT = ["xlsx", "xls"];
  * cannot see. Returns a note describing what it did, for the record. */
 let polyfillCalls = 0;
 export function installCountingPolyfill() {
+  /* IDEMPOTENT, and that is load-bearing. `assertPolyfillInert` calls this
+   * itself, so on a caller that already installed its own plain polyfill the
+   * wrapper goes on exactly once; installing twice would nest wrappers and
+   * count each call twice. */
+  if (Blob.prototype.arrayBuffer && Blob.prototype.arrayBuffer.__s397counting)
+    return "already counting";
   const had = typeof Blob.prototype.arrayBuffer === "function";
   const inner = had ? Blob.prototype.arrayBuffer : function () {
     return new Promise((resolve, reject) => {
@@ -46,9 +52,10 @@ export function installCountingPolyfill() {
       r.readAsArrayBuffer(this);
     });
   };
+  const counting = function (...a) { polyfillCalls++; return inner.apply(this, a); };
+  counting.__s397counting = true;
   Object.defineProperty(Blob.prototype, "arrayBuffer", {
-    configurable: true, writable: true,
-    value: function (...a) { polyfillCalls++; return inner.apply(this, a); },
+    configurable: true, writable: true, value: counting,
   });
   return had
     ? "counting wrapper over jsdom's own Blob.prototype.arrayBuffer"
@@ -83,6 +90,18 @@ export async function assertPolyfillInert({ path, sheet, name = null, _corrupt =
              reason: `not an Excel deposit (.${ext}); ImportView.jsx:301-323 routes it to ` +
                      `FileReader.readAsText and the polyfill is never invoked (ROUND2 §18)` };
   }
+
+  /* THE MODULE GUARANTEES ITS OWN PRECONDITION rather than trusting the caller.
+   *
+   * FOUND BY RUNNING. `runArm` installs its own plain `polyfillArrayBuffer()`
+   * before reaching this guard, so `Blob.prototype.arrayBuffer` was already a
+   * function, the counting wrapper was never installed, `polyfillCalls` stayed
+   * 0 and every arm-B run refused with UNPROVEN. The refusal was CORRECT — it
+   * is exactly the wrong-reason pass this counter exists to make impossible —
+   * but the assertion should not depend on a caller installing the right
+   * polyfill first. Installed here, idempotently, wrapping whatever is already
+   * in place. */
+  installCountingPolyfill();
 
   const bytes = readFileSync(path);
   const before = polyfillCalls;
