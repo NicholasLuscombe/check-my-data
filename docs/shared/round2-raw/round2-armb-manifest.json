@@ -1,0 +1,203 @@
+{
+  "generatedBy": "test/probes/build-s397-armb-manifest.mjs",
+  "source": "docs/shared/ROUND2-RUN-LOG.md §4",
+  "counts": {
+    "s4Rows": 30,
+    "refusals": 3,
+    "unticked": 3,
+    "answered": 27,
+    "entries": 24
+  },
+  "omitted": {
+    "refusals": [
+      "pos-02 os_cells_new.csv",
+      "pos-44 subset_dets.csv",
+      "pos-47 seed-density.csv"
+    ],
+    "unticked": [
+      "pos-08 ECS-SA_(Affinity).xlsx — confirmed with 2 unticked",
+      "pos-31 MC_Drosophila_hydei.xlsx — confirmed with 1 unticked",
+      "pos-40 13._b_Planctomycetota_asv.csv — confirmed with 3 unticked"
+    ]
+  },
+  "entries": [
+    {
+      "label": "pos-01 micro_data_compiled.xlsx :: 1300-3",
+      "file": "round2/pos-01/micro_data_compiled.xlsx",
+      "sheet": "1300-3",
+      "colRel": "replicates",
+      "rowSem": "arbitrary"
+    },
+    {
+      "label": "pos-03 OpilionesChemicalCues_v2(data).csv",
+      "file": "round2/pos-03/OpilionesChemicalCues_v2(data).csv",
+      "sheet": null,
+      "colRel": "replicates",
+      "rowSem": "arbitrary",
+      "confirm": "confirm"
+    },
+    {
+      "label": "pos-07 data_complete.csv",
+      "file": "round2/pos-07/data_complete.csv",
+      "sheet": null,
+      "colRel": "replicates",
+      "rowSem": "arbitrary",
+      "confirm": "confirm"
+    },
+    {
+      "label": "pos-12 Non-target_OUTs.csv",
+      "file": "round2/pos-12/Non-target_OUTs.csv",
+      "sheet": null,
+      "colRel": "replicates",
+      "rowSem": "arbitrary"
+    },
+    {
+      "label": "pos-14 Rawdata_Figures_Tables_TSA.xlsx :: Figure 2",
+      "file": "round2/pos-14/Rawdata_Figures_Tables_TSA.xlsx",
+      "sheet": "Figure 2",
+      "colRel": "replicates",
+      "rowSem": "arbitrary"
+    },
+    {
+      "label": "pos-18 Data_2022.xlsx :: Floral_M",
+      "file": "round2/pos-18/Data_2022.xlsx",
+      "sheet": "Floral_M",
+      "colRel": "replicates",
+      "rowSem": "arbitrary",
+      "confirm": "confirm"
+    },
+    {
+      "label": "pos-21 FEMS_dryad_v2_published.xlsx :: Data",
+      "file": "round2/pos-21/FEMS_dryad_v2_published.xlsx",
+      "sheet": "Data",
+      "colRel": "replicates",
+      "rowSem": "arbitrary"
+    },
+    {
+      "label": "pos-22 pgls_all_genera.csv",
+      "file": "round2/pos-22/pgls_all_genera.csv",
+      "sheet": null,
+      "colRel": "replicates",
+      "rowSem": "arbitrary"
+    },
+    {
+      "label": "pos-23 05_hydrodynamic_daily_outputs.csv",
+      "file": "round2/pos-23/05_hydrodynamic_daily_outputs.csv",
+      "sheet": null,
+      "colRel": "replicates",
+      "rowSem": "ordered"
+    },
+    {
+      "label": "pos-27 radMS_table_1.xlsx :: Sheet1",
+      "file": "round2/pos-27/radMS_table_1.xlsx",
+      "sheet": "Sheet1",
+      "colRel": "replicates",
+      "rowSem": "arbitrary",
+      "confirm": "confirm"
+    },
+    {
+      "label": "pos-28 dominance_data.csv",
+      "file": "round2/pos-28/dominance_data.csv",
+      "sheet": null,
+      "colRel": "replicates",
+      "rowSem": "arbitrary",
+      "confirm": "confirm"
+    },
+    {
+      "label": "pos-30 ips_density_Goundar_et_al_2026_Where_are_they_now.csv",
+      "file": "round2/pos-30/ips_density_Goundar_et_al_2026_Where_are_they_now.csv",
+      "sheet": null,
+      "colRel": "replicates",
+      "rowSem": "arbitrary"
+    },
+    {
+      "label": "pos-32 XLarge_All_Pod_Inference_data.csv",
+      "file": "round2/pos-32/XLarge_All_Pod_Inference_data.csv",
+      "sheet": null,
+      "colRel": "replicates",
+      "rowSem": "ordered"
+    },
+    {
+      "label": "pos-34 Sperm_morphological_data.csv",
+      "file": "round2/pos-34/Sperm_morphological_data.csv",
+      "sheet": null,
+      "colRel": "replicates",
+      "rowSem": "ordered",
+      "confirm": "confirm"
+    },
+    {
+      "label": "pos-35 AgeRelatedChangesInAcousticCues_data.csv",
+      "file": "round2/pos-35/AgeRelatedChangesInAcousticCues_data.csv",
+      "sheet": null,
+      "colRel": "replicates",
+      "rowSem": "arbitrary"
+    },
+    {
+      "label": "pos-38 Nightly_Capture_Rates_Spp_Updated.csv",
+      "file": "round2/pos-38/Nightly_Capture_Rates_Spp_Updated.csv",
+      "sheet": null,
+      "colRel": "replicates",
+      "rowSem": "ordered"
+    },
+    {
+      "label": "pos-39 FIG3.xlsx :: FIG3A",
+      "file": "round2/pos-39/FIG3.xlsx",
+      "sheet": "FIG3A",
+      "colRel": "replicates",
+      "rowSem": "ordered"
+    },
+    {
+      "label": "pos-41 SNPeffect_BSLMM_allvar.csv",
+      "file": "round2/pos-41/SNPeffect_BSLMM_allvar.csv",
+      "sheet": null,
+      "colRel": "replicates",
+      "rowSem": "arbitrary"
+    },
+    {
+      "label": "pos-43 Isoodon_data_raw_only.csv",
+      "file": "round2/pos-43/Isoodon_data_raw_only.csv",
+      "sheet": null,
+      "colRel": "replicates",
+      "rowSem": "arbitrary",
+      "confirm": "confirm"
+    },
+    {
+      "label": "pos-45 FF_blank.csv",
+      "file": "round2/pos-45/FF_blank.csv",
+      "sheet": null,
+      "colRel": "replicates",
+      "rowSem": "arbitrary"
+    },
+    {
+      "label": "pos-46 full_chemistry_wMeta.csv",
+      "file": "round2/pos-46/full_chemistry_wMeta.csv",
+      "sheet": null,
+      "colRel": "replicates",
+      "rowSem": "ordered",
+      "confirm": "confirm"
+    },
+    {
+      "label": "pos-49 data_R.csv",
+      "file": "round2/pos-49/data_R.csv",
+      "sheet": null,
+      "colRel": "replicates",
+      "rowSem": "ordered"
+    },
+    {
+      "label": "pos-50 Assemblies_and_species.tsv",
+      "file": "round2/pos-50/Assemblies_and_species.tsv",
+      "sheet": null,
+      "colRel": "replicates",
+      "rowSem": "arbitrary",
+      "confirm": "confirm"
+    },
+    {
+      "label": "pos-51 Pieris_phenotype.csv",
+      "file": "round2/pos-51/Pieris_phenotype.csv",
+      "sheet": null,
+      "colRel": "replicates",
+      "rowSem": "ordered",
+      "confirm": "confirm"
+    }
+  ]
+}
