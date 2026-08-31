@@ -361,6 +361,183 @@ does not rest on it.**
 **`75e5be6`'s committed row carries the original reason permanently.** That is history, not a live
 record.
 
+**C6 — pos-02, the structural reason. The identifier and what the columns are. Logged S400.**
+
+**The re-answer pass under §21 returns *adds detail*. The refusal and both gate cells are unaffected**
+(§21.4), and no answer moves.
+
+**`collection_no` is a database identifier, not a museum one.** The recorded reason reads *a museum
+collection identifier*; the README defines it as *unique PBDB identifier for the fossil collection
+containing the occurrence*. Paleobiology Database, not a museum register.
+
+**The column count is confirmed from the depositor's own list.** The README names all twenty-one
+variables of `os_cells_new.csv`, matching the recorded *21 columns infer to 1 Data / 1 Label / 7 Cond /
+12 Attr*. Rows are confirmed too: **26,532 fossil occurrences from 1,149 collections and 2,474 genera**,
+against the screen's `Rows 26532`, so nothing was lost at import.
+
+**Not one of the twenty-one columns is a measurement, and that is what §22 records.** Reading the
+depositor's list: an accession number; a genus name; a plate assignment; six coordinates, two of them
+model reconstructions; four stratigraphic labels; four interval boundary ages and a duration, all
+properties of the *bin* rather than of the occurrence; two spatial-grid identifiers; a 1-to-7 interval
+index; and a formation name. **Nothing is measured on the specimen.** That is §22's own list of numerics
+that are not comparable measurements, and this file holds nothing else.
+
+**This is §22.3's worked case and it is worth stating where it can be found later.** The applicability
+line reads *Unusual digits 2/5* — the Benford family considered applicable to a database accession
+number. Had §2.8 not held twelve columns out, the battery would have run over identifiers, coordinates
+and bin boundary ages, and any flag it raised would have said the product should not have analysed the
+file rather than that the statistics are miscalibrated. **The product does refuse it, for the
+arithmetic reason that one data column survived, not because anything recognised what the column is.**
+
+**No arm has run on pos-02.** §6.4's ordering holds.
+
+**C7 — pos-03, the structural reason. An open question closed, and the answer unchanged. Logged S400.**
+
+**The re-answer pass under §21 returns *adds detail*, and it discharges the question the cell was
+written to hold open.** No answer moves and the ticked set does not move.
+
+**`Choice` is the experiment's response variable, stated by the depositor.** The recorded cell reads
+*`Choice` is plausibly the response of a choice assay rather than a factor, and settling that needs the
+paper, which §8.2's decidable-from-a-header-list standard excludes.* The README settles it without the
+paper: *the substrate in which the individual chose to roost after 5 minutes of being placed in the
+experimental arena.* **It is the thing the study measures, and it sits on the confirm card as a factor.**
+
+**It stays ticked, because §13.3 is shape-only.** The rule removes a score, a free identifier or a
+measurement; `Choice` is a genuine two-level categorical and by shape it stands. **Whether §13.3 should
+move now that arm B reads documentation is a rule question and is not decided here** — moving it would
+alter ticked sets on deposits already answered, on the strength of documents read after the answers
+were made. §21.4 does not list §13.3 among the things §21 changes.
+
+**Both data columns are confirmed.** `Individual_ID` is *the unique identifier ID for each individual*;
+`Number_of_legs` is *the exact number of legs that each animal had when found*, values 4 to 8. The
+screen reads `Data cols 2`, `Values 300` over 150 rows. **Columns-as-variables stands and §16 does not
+apply.**
+
+**Recorded and drawn on for nothing.** The README states of `Number_of_individuals` that *for this data
+analysis, the value is always 5*; the screen shows a 4 on group 8. The methods describe 31 trials of
+five against 150 rows. **§21 says this pass is not an audit of whether a deposit's data matches its
+documentation**, so this is logged and nothing is inferred from it. The group count was not measured
+here, so the arithmetic is offered rather than checked, and it does not touch the row answer: every row
+is still one individual.
+
+**No arm has run on pos-03.** §6.4's ordering holds.
+
+**C8 — pos-07, the structural reason. The year axis is wrong by four columns. Logged S400.**
+
+**The re-answer pass under §21 returns *contradicts*.** The recorded reason states *columns 17–86 are
+the years 1950 to 2019 — seventy columns carrying one quantity across a year axis written into the
+header.* **The depositor's variable list runs the year columns 1950 to 2023, which is seventy-four.**
+
+**The arithmetic that should have caught it was never run.** Seventeen non-year variables plus seventy
+years is 87 against a recorded total of 91, leaving four columns unaccounted for. On the README's
+reading 17 + 74 = 91 exactly. **The screen corroborates independently at `Data cols 74`.**
+
+**The roles close on the same reading.** The README names seventeen non-year variables. Eight are the
+pre-ticked conditions — `Unit`, `Detrend_method`, `Country`, `Koppen-Geiger`, `Species`, `G_A`,
+`our_class_drought_resistance`, `niche_global`; one is the `REF` label; the remaining eight —
+`T_article`, `Prep_article`, `Climat_given_article`, `MAT`, `MAPv`, `MAP` and the two aridity indices —
+are the eight §2.8 holds out. **1 + 8 + 8 + 74 = 91.** The closure is multiply determined and is
+recorded as a reconciliation rather than a direct read of the role strip.
+
+**This is C2's shape repeating on the same deposit.** C2 corrected pos-07 because the S395 structure
+table held 25 of its 91 headers and the other 66 were a roll-up; the correction then asserted a range
+and a count over that same compressed region. **A correction made from a compression, made from a
+compression** — four years wrong, and not detectable without the depositor's list.
+
+**No answer moves.** §16.1 still rules `replicates`: the axis is longer, not different in kind, and
+`conditions` would fabricate seventy-four levels rather than seventy. §16.7's mixed classification
+stands. Row semantics is untouched — `REF` reads alphabetically by first author on screen, which is
+compilation order.
+
+**Two facts the recorded reason does not carry.** Every year column reads *value of growth in YYYY
+extracted from the growth series with webplotdigitizer*: **these are readings taken off other people's
+published figures, not measurements of trees**, so any digit-level test is measuring the digitiser, and
+`Precision mixed (0–9dp)` with 3% integers is what that looks like. And **`Unit` is either basal area
+increment or ring width, per row**, so a single year column holds two different physical quantities on
+different rows, further detrended by six different methods.
+
+**Recorded and acted on by nothing.** `Missing 3706` reconciles exactly — 210 × 74 = 15,540, less 3,706
+missing and 14 non-numeric gives the screen's 11,820 values. The README states the blanks mean *no
+values could be extracted for this specific year*, so **the missingness is the extent of each growth
+series rather than missing data**, the shape P233 records on pos-08. The 14 non-numeric cells are
+unexplained and unread.
+
+**No arm has run on pos-07.** §6.4's ordering holds.
+
+**C9 — pos-08, the structural reason. The documentation read at source. Logged S400.**
+
+**The re-answer pass under §21 returns *adds detail*, and this is the one deposit whose README had
+already been read** — at S398, producing §21.1, §21.5, §4.1's C4 and §4.2's row. **This entry exists
+because §21.3 requires all thirty, and because a compression already load-bearing is worth checking
+against its source.** No answer moves and §4.2 is unchanged.
+
+**The two-schema claim is confirmed and is stronger at source than §21.1 reports.** The README itemises
+**twenty blue protein-level fields and thirteen orange peptide-level fields** by name. §21.1's summary
+is accurate and understates its own evidence.
+
+**Both unticked columns are confirmed in the depositor's own words**, which matters because §20 has
+them unticked by name at the moment of the hand-run. `Score: Sequest HT PSM match score generated by
+the search algorithm` — a score. `Abundance Precursor: abundance detected in the specified sample
+(retained or non-retained fractions at each antivenom-to-venom ratio)` — a measurement read as a
+condition. **The screen corroborates the second independently:** eleven of the twenty condition levels
+rendered are numbers, from 22.29 up to 29272734897.0234, which are precursor abundances sitting on the
+confirm card as levels of a factor.
+
+**A scope note on §21.1, not a correction.** The README carries two file groups — files 1–3 the
+`(Affinity)` workbooks, files 4–6 the `(Whole_Venom_proteome)` ones — and **the hierarchy NOTE is the
+closing paragraph of the second group.** pos-08's file is `ECS-SA_(Affinity).xlsx`, file 3, in the
+first. The substance holds: the NOTE says *the Excel workbooks* generically and both groups carry an
+identically structured Sheet 1 with the same blue and orange schemas, so C4's and §21.5's use of it is
+sound. **§21.1 quoted it as pos-08's own documentation and it sits one file group away.** Recorded so a
+later reader does not find it and conclude nobody looked.
+
+**Not attempted: reconstructing the column mapping from the two lists.** §21.1's four shared columns
+were measured from the file at S398. The README's twenty and thirteen are consistent with column reuse
+and **do not by themselves say which field shares which column**; list order does not align them.
+Deriving the pairs from the lists would be the compression error on a deposit that has already produced
+one.
+
+**pos-08 is one of the eight deposits with a non-empty `methods` field, and it bears on nothing
+structural** — venom collection, HPLC gradients, trypsin digestion, Proteome Discoverer parameters.
+Worth recording as such: the field being non-empty does not make it informative about the matrix.
+
+**No arm has run on pos-08.** §6.4's ordering holds. The exposure at §21.7 is pos-01's and does not
+touch this deposit.
+
+**C10 — pos-12, the structural reason. The naming scheme, documented column by column. Logged S400.**
+
+**The re-answer pass under §21 returns *adds detail*, and this is the strongest documentary
+confirmation of §16 in the pass.** No answer moves.
+
+**The three stems are three leaf-processing treatments and the README names all fifteen columns.**
+`Y1B_01`–`Y1B_05` are **leaf-retained**, `Y1Q_01`–`Y1Q_05` **leaf-removed**, `Y3Q_01`–`Y3Q_05`
+**leaf-accumulated**; stem carries the treatment, suffix carries the replicate 01–05. **§16.5's *design
+written into the column names* is not an inference on this deposit — it is the depositor's own scheme,
+spelled out.**
+
+**`OUTs` is a transposition of OTUs and the depositor's own text corrects the filename.** The
+description reads *Non-target OTU read counts under three leaf-processing treatments* and the first
+variable is *OTUs: operational taxonomic units.*
+
+**Rows are features and columns are samples**, which is §16.5's member definition read straight off and
+the same shape as pos-40's ASV table. 3,420 OTUs by fifteen samples is 51,300, matching the screen's
+`Values 51300` with `Missing 0`.
+
+**§16.1's ruling is documented here rather than derived, and this is the case where `conditions` is
+nearest to right.** The three treatments are genuine experimental conditions. **The gate still cannot
+express three groups of five**, so `conditions` would fabricate fifteen levels where the file has
+three, and `replicates` stands: pooling three treatments costs power, fabricating fifteen levels
+changes what the tool believes it is analysing. **Within a stem the five columns are replicates in the
+strict sense** — same treatment, five samples — which is pos-01's finding on a second deposit.
+
+**Row semantics is untouched.** An OTU list carries no order the depositor assigns and the README gives
+none.
+
+**Recorded and acted on by nothing.** 43,293 of 51,300 values are zero, 84.4%, which is ordinary for an
+OTU table. **Nothing about either arm's outcome is forecast from it.**
+
+**No arm has run on pos-12.** §6.4's ordering holds.
+
 ### 4.2 — What the analysed matrix holds
 
 **§22's three fields, one row per deposit, filled before either arm runs on it.** Kept apart from §4's
@@ -375,11 +552,11 @@ not a table still being filled.
 | # | rows | columns | measurements | reason |
 |---|---|---|---|---|
 | 1 | mixed | mixed | measurements | **§22.1's own example, measured before either arm ran.** The analysed matrix is 16 × 15 = 240 values: fifteen element rows and a `TOTAL` row, last, which is their sum. **`rows` is `mixed`** because a derived total sits in the same matrix as the measurements it aggregates — the case §22.1 names. **`columns` is `mixed` on that same fact read down the column:** every column holds fifteen element wt% values and their own sum, so its last cell is a different quantity from the fifteen above it. **The three bands do not bear on `columns`** — 5 `Anhydrous MORB glass` at B:F, 6 `silicate part of the melt` at G:L and 4 `Metals` at M:P, confirmed at source — because that is a difference across columns and §22.1's test is per-column. **`measurements` is `measurements`:** electron microprobe wt% compositions are quantities. **Two caveats recorded and acted on by nothing:** the depositor states that initial, starting and silicate products have all cations as oxides while metals are elemental without any O, so the analysed set pools **eleven oxide-basis columns with four elemental** ones; and low totals are stated to reflect unmeasured volatile species, so `TOTAL` is informative rather than a checksum. §4.1 C5. |
-| 2 |  |  |  |  |
-| 3 |  |  |  |  |
-| 7 |  |  |  |  |
+| 2 | one population | one variable each | not measurements | **The first `not measurements` in the corpus, and §22.3's worked case.** Every row is one marine invertebrate fossil occurrence — the README states 26,532 occurrences from 1,149 collections and 2,474 genera, matching `Rows 26532` on screen. The single analysed column is `collection_no` throughout, a PBDB accession number at 307–219,900, integer, 0dp. **Not one of the twenty-one columns is a quantity measured on the specimen:** an accession number, a genus name, a plate assignment, six coordinates of which two are model reconstructions, four stratigraphic labels, four interval boundary ages and a duration that are properties of the bin rather than the occurrence, two spatial-grid identifiers, a 1-to-7 interval index and a formation name. **A flag here would say the product should not have analysed the file, not that the statistics are miscalibrated** — the applicability line reads *Unusual digits 2/5*, the Benford family considered applicable to a database accession number. §4.1 C6. |
+| 3 | one population | one variable each | mixed | **One of the two analysed columns is a free identifier.** Every row is one harvestman in a choice trial; `Individual_ID` is *the unique identifier ID for each individual* in the depositor's words, running to 160 over 150 rows. `Number_of_legs` is *the exact number of legs that each animal had when found*, values 4 to 8 — a genuine count measured on the individual. Neither column changes meaning down the rows, so `columns` is `one variable each`; **`measurements` is `mixed` because one of the two is an identifier and the other is a count**, and a flag driven by `Individual_ID` would be §22.3's first kind. `Data cols 2`, `Values 300` over 150 rows. §4.1 C7. |
+| 7 | one population | mixed | measurements | **`Unit` is either basal area increment or ring width, per row, so one year column holds two different physical quantities.** Every row is one growth series from one population; 210 populations from 62 studies, `Rows 210`. The analysed 74 columns are the years **1950 to 2023** — corrected from the recorded 1950–2019 at §4.1 C8 — each *value of growth in YYYY extracted from the growth series with webplotdigitizer*. **`columns` is `mixed` on the depositor's own statement about `Unit`**, and the values are further detrended by six different methods across rows. **`measurements` is `measurements`** — growth values are quantities — **with the provenance recorded: these are readings taken off other people's published figures rather than measurements of trees**, so any digit-level test measures the digitiser, and `Precision mixed (0–9dp)` with 3% integers is consistent with that. `Missing 3706` is the extent of each series, not missing data: 210 × 74 = 15,540 less 3,706 missing and 14 non-numeric gives the screen's 11,820. §4.1 C8. |
 | 8 | mixed | mixed | mixed | **§21.1, measured before either arm ran.** 102 protein rows, 102 identical literal sub-header rows and 1,563 peptide rows in one block; `extractAnalysisInputs` drops the 102 sub-headers, leaving 102 protein records stacked on 1,563 peptide records. Four columns are numeric in both populations and name different quantities in each — `Exp. q-value` over `# Proteins`, `# Unique Peptides` over `# PSMs`, and likewise `Sum PEP Score` and `Coverage [%]`. **The exact analysed set is not pinned:** 1,767 × 15 = 26,505 = 6,197 + 20,002 + 306 admits four column sets, **but all four contain `Exp. q-value` and `# Unique Peptides`**, so the `columns` answer holds on every one. `measurements` is `mixed` on the same footing — every candidate set mixes precursor abundances and modification counts with a q-value and a peptide count. The deposit's README states the hierarchy and that **the blanks are structural, not missing data.** |
-| 12 |  |  |  |  |
+| 12 | one population | one variable each | measurements | **Rows are features and columns are samples — §16.5's member definition read straight off, and documented.** Every row is one non-target OTU; the README's first variable is *OTUs: operational taxonomic units*, and the filename's `OUTs` is a transposition its own text corrects. The fifteen analysed columns are three leaf-processing treatments at five replicates each — `Y1B` leaf-retained, `Y1Q` leaf-removed, `Y3Q` leaf-accumulated — every one a read count for one sample, so no column changes meaning down the rows. **`measurements` is `measurements`:** sequencing read counts are quantities, integer 100% at 0dp. 3,420 × 15 = 51,300 matches `Values 51300` with `Missing 0`. **Recorded and acted on by nothing: 43,293 of 51,300 values are zero, 84.4%**, ordinary for an OTU table and forecasting nothing about either arm. §4.1 C10. |
 | 14 |  |  |  |  |
 | 18 |  |  |  |  |
 | 21 |  |  |  |  |
