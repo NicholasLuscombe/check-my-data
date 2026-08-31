@@ -1,12 +1,13 @@
 {
   "generatedBy": "scripts/fetch-round2-readmes.mjs",
-  "generatedAt": "2026-08-31T10:40:08.851Z",
+  "generatedAt": "2026-08-31T10:50:30.693Z",
   "source": "docs/shared/ROUND2-RUN-LOG.md §4 for the thirty; docs/shared/round2-raw/round2-manifest.json for sizes, sha-256 and download hrefs",
   "roots": {
     "corpus": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2",
     "manifest": "/Users/hedgehog/Projects/check-my-data/.claude/worktrees/s398-readme/docs/shared/round2-readme-manifest.json"
   },
   "complete": true,
+  "completeCondition": "every deposit with a README has it on disk at the manifest size and sha-256",
   "counts": {
     "rows": 30,
     "file": 30,
@@ -48,8 +49,10 @@
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-01/readme/README.md",
         "url": "https://datadryad.org/api/v2/files/4932658/download",
         "fetchedAt": null,
-        "status": "already present, verified",
-        "error": null
+        "status": "on disk, verified",
+        "error": null,
+        "writtenAt": "2026-08-31T10:19:18.551Z",
+        "writtenAtSource": "filesystem mtime"
       },
       "metadata": {
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-01/readme/metadata.md",
@@ -77,8 +80,10 @@
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-02/readme/README.md",
         "url": "https://datadryad.org/api/v2/files/4933091/download",
         "fetchedAt": null,
-        "status": "already present, verified",
-        "error": null
+        "status": "on disk, verified",
+        "error": null,
+        "writtenAt": "2026-08-31T10:19:21.067Z",
+        "writtenAtSource": "filesystem mtime"
       },
       "metadata": {
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-02/readme/metadata.md",
@@ -106,8 +111,10 @@
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-03/readme/README.md",
         "url": "https://datadryad.org/api/v2/files/4933025/download",
         "fetchedAt": null,
-        "status": "already present, verified",
-        "error": null
+        "status": "on disk, verified",
+        "error": null,
+        "writtenAt": "2026-08-31T10:19:23.631Z",
+        "writtenAtSource": "filesystem mtime"
       },
       "metadata": {
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-03/readme/metadata.md",
@@ -135,8 +142,10 @@
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-07/readme/README.md",
         "url": "https://datadryad.org/api/v2/files/4932992/download",
         "fetchedAt": null,
-        "status": "already present, verified",
-        "error": null
+        "status": "on disk, verified",
+        "error": null,
+        "writtenAt": "2026-08-31T10:19:26.270Z",
+        "writtenAtSource": "filesystem mtime"
       },
       "metadata": {
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-07/readme/metadata.md",
@@ -164,8 +173,10 @@
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-08/readme/README.md",
         "url": "https://datadryad.org/api/v2/files/4933277/download",
         "fetchedAt": null,
-        "status": "already present, verified",
-        "error": null
+        "status": "on disk, verified",
+        "error": null,
+        "writtenAt": "2026-08-31T10:19:28.807Z",
+        "writtenAtSource": "filesystem mtime"
       },
       "metadata": {
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-08/readme/metadata.md",
@@ -193,8 +204,10 @@
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-12/readme/README.md",
         "url": "https://datadryad.org/api/v2/files/4930548/download",
         "fetchedAt": null,
-        "status": "already present, verified",
-        "error": null
+        "status": "on disk, verified",
+        "error": null,
+        "writtenAt": "2026-08-31T10:19:31.300Z",
+        "writtenAtSource": "filesystem mtime"
       },
       "metadata": {
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-12/readme/metadata.md",
@@ -222,8 +235,10 @@
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-14/readme/README.md",
         "url": "https://datadryad.org/api/v2/files/4930866/download",
         "fetchedAt": null,
-        "status": "already present, verified",
-        "error": null
+        "status": "on disk, verified",
+        "error": null,
+        "writtenAt": "2026-08-31T10:19:33.898Z",
+        "writtenAtSource": "filesystem mtime"
       },
       "metadata": {
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-14/readme/metadata.md",
@@ -251,8 +266,10 @@
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-18/readme/README.md",
         "url": "https://datadryad.org/api/v2/files/4930531/download",
         "fetchedAt": null,
-        "status": "already present, verified",
-        "error": null
+        "status": "on disk, verified",
+        "error": null,
+        "writtenAt": "2026-08-31T10:38:15.059Z",
+        "writtenAtSource": "filesystem mtime"
       },
       "metadata": {
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-18/readme/metadata.md",
@@ -280,8 +297,10 @@
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-21/readme/README.md",
         "url": "https://datadryad.org/api/v2/files/4930888/download",
         "fetchedAt": null,
-        "status": "already present, verified",
-        "error": null
+        "status": "on disk, verified",
+        "error": null,
+        "writtenAt": "2026-08-31T10:38:15.723Z",
+        "writtenAtSource": "filesystem mtime"
       },
       "metadata": {
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-21/readme/metadata.md",
@@ -309,8 +328,10 @@
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-22/readme/README.md",
         "url": "https://datadryad.org/api/v2/files/4930914/download",
         "fetchedAt": null,
-        "status": "already present, verified",
-        "error": null
+        "status": "on disk, verified",
+        "error": null,
+        "writtenAt": "2026-08-31T10:38:16.415Z",
+        "writtenAtSource": "filesystem mtime"
       },
       "metadata": {
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-22/readme/metadata.md",
@@ -338,8 +359,10 @@
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-23/readme/README.md",
         "url": "https://datadryad.org/api/v2/files/4931378/download",
         "fetchedAt": null,
-        "status": "already present, verified",
-        "error": null
+        "status": "on disk, verified",
+        "error": null,
+        "writtenAt": "2026-08-31T10:38:17.052Z",
+        "writtenAtSource": "filesystem mtime"
       },
       "metadata": {
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-23/readme/metadata.md",
@@ -367,8 +390,10 @@
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-27/readme/README.md",
         "url": "https://datadryad.org/api/v2/files/4932014/download",
         "fetchedAt": null,
-        "status": "already present, verified",
-        "error": null
+        "status": "on disk, verified",
+        "error": null,
+        "writtenAt": "2026-08-31T10:38:17.774Z",
+        "writtenAtSource": "filesystem mtime"
       },
       "metadata": {
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-27/readme/metadata.md",
@@ -396,8 +421,10 @@
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-28/readme/README.md",
         "url": "https://datadryad.org/api/v2/files/4932089/download",
         "fetchedAt": null,
-        "status": "already present, verified",
-        "error": null
+        "status": "on disk, verified",
+        "error": null,
+        "writtenAt": "2026-08-31T10:38:18.963Z",
+        "writtenAtSource": "filesystem mtime"
       },
       "metadata": {
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-28/readme/metadata.md",
@@ -425,8 +452,10 @@
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-30/readme/README.md",
         "url": "https://datadryad.org/api/v2/files/4932021/download",
         "fetchedAt": null,
-        "status": "already present, verified",
-        "error": null
+        "status": "on disk, verified",
+        "error": null,
+        "writtenAt": "2026-08-31T10:38:19.659Z",
+        "writtenAtSource": "filesystem mtime"
       },
       "metadata": {
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-30/readme/metadata.md",
@@ -454,8 +483,10 @@
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-31/readme/README.md",
         "url": "https://datadryad.org/api/v2/files/4932006/download",
         "fetchedAt": null,
-        "status": "already present, verified",
-        "error": null
+        "status": "on disk, verified",
+        "error": null,
+        "writtenAt": "2026-08-31T10:38:20.360Z",
+        "writtenAtSource": "filesystem mtime"
       },
       "metadata": {
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-31/readme/metadata.md",
@@ -483,8 +514,10 @@
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-32/readme/README.md",
         "url": "https://datadryad.org/api/v2/files/4931868/download",
         "fetchedAt": null,
-        "status": "already present, verified",
-        "error": null
+        "status": "on disk, verified",
+        "error": null,
+        "writtenAt": "2026-08-31T10:38:20.942Z",
+        "writtenAtSource": "filesystem mtime"
       },
       "metadata": {
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-32/readme/metadata.md",
@@ -512,8 +545,10 @@
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-34/readme/README.md",
         "url": "https://datadryad.org/api/v2/files/4923672/download",
         "fetchedAt": null,
-        "status": "already present, verified",
-        "error": null
+        "status": "on disk, verified",
+        "error": null,
+        "writtenAt": "2026-08-31T10:38:21.504Z",
+        "writtenAtSource": "filesystem mtime"
       },
       "metadata": {
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-34/readme/metadata.md",
@@ -541,8 +576,10 @@
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-35/readme/README.md",
         "url": "https://datadryad.org/api/v2/files/4929278/download",
         "fetchedAt": null,
-        "status": "already present, verified",
-        "error": null
+        "status": "on disk, verified",
+        "error": null,
+        "writtenAt": "2026-08-31T10:38:22.084Z",
+        "writtenAtSource": "filesystem mtime"
       },
       "metadata": {
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-35/readme/metadata.md",
@@ -570,8 +607,10 @@
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-38/readme/README.md",
         "url": "https://datadryad.org/api/v2/files/4920999/download",
         "fetchedAt": null,
-        "status": "already present, verified",
-        "error": null
+        "status": "on disk, verified",
+        "error": null,
+        "writtenAt": "2026-08-31T10:38:22.667Z",
+        "writtenAtSource": "filesystem mtime"
       },
       "metadata": {
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-38/readme/metadata.md",
@@ -599,8 +638,10 @@
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-39/readme/README.md",
         "url": "https://datadryad.org/api/v2/files/4929285/download",
         "fetchedAt": null,
-        "status": "already present, verified",
-        "error": null
+        "status": "on disk, verified",
+        "error": null,
+        "writtenAt": "2026-08-31T10:38:23.275Z",
+        "writtenAtSource": "filesystem mtime"
       },
       "metadata": {
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-39/readme/metadata.md",
@@ -628,8 +669,10 @@
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-40/readme/README.md",
         "url": "https://datadryad.org/api/v2/files/4929480/download",
         "fetchedAt": null,
-        "status": "already present, verified",
-        "error": null
+        "status": "on disk, verified",
+        "error": null,
+        "writtenAt": "2026-08-31T10:38:23.795Z",
+        "writtenAtSource": "filesystem mtime"
       },
       "metadata": {
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-40/readme/metadata.md",
@@ -657,8 +700,10 @@
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-41/readme/README.md",
         "url": "https://datadryad.org/api/v2/files/4929343/download",
         "fetchedAt": null,
-        "status": "already present, verified",
-        "error": null
+        "status": "on disk, verified",
+        "error": null,
+        "writtenAt": "2026-08-31T10:38:24.399Z",
+        "writtenAtSource": "filesystem mtime"
       },
       "metadata": {
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-41/readme/metadata.md",
@@ -686,8 +731,10 @@
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-43/readme/README.md",
         "url": "https://datadryad.org/api/v2/files/4929406/download",
         "fetchedAt": null,
-        "status": "already present, verified",
-        "error": null
+        "status": "on disk, verified",
+        "error": null,
+        "writtenAt": "2026-08-31T10:38:24.949Z",
+        "writtenAtSource": "filesystem mtime"
       },
       "metadata": {
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-43/readme/metadata.md",
@@ -715,8 +762,10 @@
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-44/readme/README.md",
         "url": "https://datadryad.org/api/v2/files/4929371/download",
         "fetchedAt": null,
-        "status": "already present, verified",
-        "error": null
+        "status": "on disk, verified",
+        "error": null,
+        "writtenAt": "2026-08-31T10:38:25.748Z",
+        "writtenAtSource": "filesystem mtime"
       },
       "metadata": {
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-44/readme/metadata.md",
@@ -744,8 +793,10 @@
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-45/readme/README.md",
         "url": "https://datadryad.org/api/v2/files/4926142/download",
         "fetchedAt": null,
-        "status": "already present, verified",
-        "error": null
+        "status": "on disk, verified",
+        "error": null,
+        "writtenAt": "2026-08-31T10:38:26.412Z",
+        "writtenAtSource": "filesystem mtime"
       },
       "metadata": {
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-45/readme/metadata.md",
@@ -773,8 +824,10 @@
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-46/readme/README.md",
         "url": "https://datadryad.org/api/v2/files/4929557/download",
         "fetchedAt": null,
-        "status": "already present, verified",
-        "error": null
+        "status": "on disk, verified",
+        "error": null,
+        "writtenAt": "2026-08-31T10:38:27.057Z",
+        "writtenAtSource": "filesystem mtime"
       },
       "metadata": {
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-46/readme/metadata.md",
@@ -802,8 +855,10 @@
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-47/readme/README.md",
         "url": "https://datadryad.org/api/v2/files/4929611/download",
         "fetchedAt": null,
-        "status": "already present, verified",
-        "error": null
+        "status": "on disk, verified",
+        "error": null,
+        "writtenAt": "2026-08-31T10:38:27.800Z",
+        "writtenAtSource": "filesystem mtime"
       },
       "metadata": {
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-47/readme/metadata.md",
@@ -831,8 +886,10 @@
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-49/readme/README.md",
         "url": "https://datadryad.org/api/v2/files/4930009/download",
         "fetchedAt": null,
-        "status": "already present, verified",
-        "error": null
+        "status": "on disk, verified",
+        "error": null,
+        "writtenAt": "2026-08-31T10:38:28.301Z",
+        "writtenAtSource": "filesystem mtime"
       },
       "metadata": {
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-49/readme/metadata.md",
@@ -860,8 +917,10 @@
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-50/readme/README.md",
         "url": "https://datadryad.org/api/v2/files/4930118/download",
         "fetchedAt": null,
-        "status": "already present, verified",
-        "error": null
+        "status": "on disk, verified",
+        "error": null,
+        "writtenAt": "2026-08-31T10:38:29.265Z",
+        "writtenAtSource": "filesystem mtime"
       },
       "metadata": {
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-50/readme/metadata.md",
@@ -889,8 +948,10 @@
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-51/readme/README.md",
         "url": "https://datadryad.org/api/v2/files/4930000/download",
         "fetchedAt": null,
-        "status": "already present, verified",
-        "error": null
+        "status": "on disk, verified",
+        "error": null,
+        "writtenAt": "2026-08-31T10:38:30.044Z",
+        "writtenAtSource": "filesystem mtime"
       },
       "metadata": {
         "localPath": "/Users/hedgehog/Projects/check-my-data/corpus-data/round2/pos-51/readme/metadata.md",

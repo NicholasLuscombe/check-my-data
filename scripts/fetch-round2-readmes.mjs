@@ -200,10 +200,23 @@ for (const p of plan) {
   if (okS) sizeOk0++;
   if (okD) digestOk0++;
   const row = rows.find((r) => r.position === p.pos);
-  row.readme.status = okS && okD ? 'already present, verified' : 'already present, FAILS VERIFICATION';
+  /* ONE SPELLING PER OUTCOME. After a settling run the manifest can distinguish
+   * exactly one thing about a README — it is on disk and it verifies — because
+   * nothing on disk records whether THIS run fetched it. The old pair,
+   * `fetched and verified` against `already present, verified`, implied a split
+   * the field can no longer support, and the settling run relabelled all thirty
+   * to the second, which is how the provenance was lost. */
+  row.readme.status = okS && okD ? 'on disk, verified' : 'on disk, FAILS VERIFICATION';
   row.readme.error = okS && okD ? null
     : `on disk but ${!okS ? 'size' : 'digest'} does not match the manifest; left untouched`;
   if (!(okS && okD)) preFailures.push(`pos-${pad(p.pos)}: ${row.readme.error}`);
+  /* WRITE PROVENANCE, recovered from the filesystem and labelled as such.
+   * `writtenAt`, not `fetchedAt`: an mtime is when the file was WRITTEN, not
+   * when it was requested. On this corpus the two are the same act, but the
+   * field must not claim more than the measurement supports. `fetchedAt` stays
+   * null unless THIS run actually fetched — it is never restored or invented. */
+  row.readme.writtenAt = statSync(dest).mtime.toISOString();
+  row.readme.writtenAtSource = 'filesystem mtime';
 }
 console.log(`phase B0 — on disk: ${present} present, ${sizeOk0} size ok, ${digestOk0} digest ok`);
 
@@ -288,8 +301,12 @@ if (!token || tokenTooShort) {
       continue;
     }
     const st = writeNew(dest, buf, 'readme');
-    row.readme.status = st === 'written' ? 'fetched and verified' : st;
-    row.readme.fetchedAt = utc();
+    row.readme.status = 'on disk, verified';
+    row.readme.fetchedAt = utc();               // a real fetch, this run, by this process
+    if (st === 'written') {
+      row.readme.writtenAt = statSync(dest).mtime.toISOString();
+      row.readme.writtenAtSource = 'filesystem mtime';
+    }
     if (st === 'written') { kept++; corpusBytes += buf.length; }
     /* No throttle is derived from `ratelimit-remaining`. It is reported when
      * present and otherwise ignored; the local budget above is what governs.
@@ -305,7 +322,14 @@ const payload = {
   generatedAt: utc(),
   source: 'docs/shared/ROUND2-RUN-LOG.md §4 for the thirty; docs/shared/round2-raw/round2-manifest.json for sizes, sha-256 and download hrefs',
   roots: { corpus: CORPUS_ROOT, manifest: MANIFEST_OUT },
-  complete: rows.every((r) => !r.readme || r.readme.status === 'fetched and verified' || r.readme.status === 'already present, verified'),
+  /* Derived from the CHECKS, not from label strings. A status is a word; the
+   * condition is: every deposit that has a README has it on disk, at the
+   * manifest's size, at the manifest's sha-256. */
+  complete: rows.every((r) => !r.readme
+    || (existsSync(r.readme.localPath)
+        && statSync(r.readme.localPath).size === r.readme.size
+        && sha(readFileSync(r.readme.localPath)) === r.readme.sha256)),
+  completeCondition: 'every deposit with a README has it on disk at the manifest size and sha-256',
   counts: {
     rows: rows.length,
     file: rows.filter((r) => r.artefactType === 'file').length,
