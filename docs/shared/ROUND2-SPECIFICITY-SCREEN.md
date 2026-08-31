@@ -1260,3 +1260,49 @@ carry 3, 4 and 4 bands and render no picker; pos-43 carries 2 and is the splitte
 
 **pos-23 is measured the same way before it is scored**, and if its arms differ in rows, this section
 covers it as written.
+
+### 19.1 — §19's pos-43 figures are the picker's display metric, corrected S397 at `d9a758e` before either deposit was scored
+
+**§19 reads *452 of 892 data rows — arm A discards 440, or 49%* and *all 80 columns*. Both are wrong.**
+
+**Three row counts are in play on one block of one file and they are not interchangeable.**
+`blockSummary.dataRows` (`parser.js:80`) counts rows over 30% numeric — a display heuristic, and what
+the picker prints. `sum.nR` is every row after the headers. `validRows` is what
+`extractAnalysisInputs` returns, a row surviving if any data column is non-null. On pos-43 block 1
+they read 452, 873 and 709.
+
+**Corrected.** pos-43's four blocks are 873, 506, 32 and 182 rows at 70, 71, 71 and 69 data columns —
+**not a common width**. Arm A takes block 1: **873 of 1593, discarding 720, or 45.2%**, and analyses
+709 valid rows of it.
+
+**pos-23 splits two ways at 730 rows and 4 data columns each, both opening on the same header** —
+stacked tables of one schema. The three metrics coincide there because the file is dense. **Arm A
+scores exactly 50.0%.**
+
+**How the error was made.** The figures were taken from a prose summary rather than from the table
+beside it, without asking which of the three metrics they were. **§19's substance is untouched:** arm
+A scores block 1 and discards the rest without a word, on both deposits.
+
+**§19's detection claim is strengthened, not weakened.** pos-23 carries **zero** bands and splits;
+pos-01, 14 and 35 carry 3, 4 and 4 and do not. The band count predicts nothing in either direction.
+
+## 20 — the three hand-runs, ruled S397 before any of them was run
+
+**pos-08, pos-31 and pos-40 carry an untick — 2, 1 and 3 columns — and `runArm` reaches the confirm
+card's buttons but none of its checkboxes.** §8.1 routes them to a hand-run through the shipped
+surface, and this section fixes how.
+
+**The operator has not seen that deposit's arm-A verdict when the hand-run is made.** §6.4 stops an
+answer being a reaction to a verdict; a hand-run puts a human back in the loop and reopens the same
+channel one step later. **So on these three, arm B runs first.**
+
+**pos-40 is hand-run like the other two.** It exhausts the heap on arm A, and a predicted failure is
+not a recorded one. If the browser also fails, that is the recorded outcome and it is a measurement of
+the shipped surface rather than of Node.
+
+**Recorded per deposit:** the control operated, the columns unticked by name, both gate answers as
+given, the verdict, and that it was hand-run. **The untick set is read from §4 at the moment of the
+run**, not from memory or from this section.
+
+**This is a carve-out §8.1 already granted.** It is not a new exception, and it does not extend to any
+deposit the probe can drive.
