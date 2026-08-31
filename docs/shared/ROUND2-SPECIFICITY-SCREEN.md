@@ -271,6 +271,98 @@ stops and the deposit is not scored.** The risk is low and low is not measured.
 but nothing here says anything about what a reader sees. **Display defects remain outside this screen
 entirely** and a clean arm B must not be cited about them.
 
+### 8.5 — a probe's patience is not a resource limit, ruled S397 before any deposit was scored
+
+**No wait inside the arm-B probe may expire before §17.2's 24-hour run budget does.** A probe that
+gives up first manufactures a drivability finding out of a cost one.
+
+**This is not the thing §17.2 forbids.** §17.2 forbids raising a limit so that a run succeeds where
+the shipped surface would fail. A probe timeout has no counterpart on the shipped surface — a browser
+has no clock that abandons an import — so aligning it restores fidelity rather than buying success.
+
+**Why it is ruled now.** §8.1 routes *not drivable* to a hand-run. A wait expiring on a slow import
+would push a cost outcome into that branch and lose it. No deposit has been scored, so the rule
+cannot be fitted to which deposits it catches.
+
+**Measured at S397, `9c1f583`.** Eleven `waitFor` sites; eight take the 20 s default and none of the
+eight is overridable; three read `ARMB_TIMEOUT` at 600 s. The sheet-picker wait is one of ten, and it
+is not the worst: `:511` is a *run* wait at 20 s covering four tests, and `:568` puts the entire
+batch analysis under 20 s.
+
+**One exception, named rather than left implicit.** `:557` is a view switch, not an import or a run,
+and keeps a short explicit timeout. Left on the default it would hang for 24 hours on a broken button.
+
+**The budget is printed, not merely set.** It may be overridden for development, and the probe emits
+the value it is using in its run header, so no §7 figure can be taken from a run without its budget
+recorded beside it.
+
+#### 8.5.1 — the ceiling, and a timeout that lies
+
+**Node's `setTimeout` ceiling is 2,147,483,647 ms, 24.855 days.** Above it, vitest 2.1.9 fails in
+about 1 ms while reporting *Test timed out in 3110400000ms* — asserting a 36-day wait that never
+happened, with the overflow warning on stderr where a log grep never sees it.
+
+**That is a manufactured non-completion**, the exact outcome §17.3 records as real. Any block looping
+over deposits refuses at the top when `arms × budget` exceeds the ceiling, rather than running.
+
+#### 8.5.2 — one process per deposit
+
+**Vitest isolates per file, not per test**, so splitting into one `it` per deposit satisfies the
+ceiling and leaves the heap where S393 found it — 36 runs in a single process exhausted V8, and the
+nine sheets were run as nine processes.
+
+**Round 2's arm B is invoked once per deposit through `ARMB_MANIFEST`.** This satisfies the ceiling
+and the heap, needs no change to the probe, and isolates a deposit that dies from the deposits that
+follow it.
+
+#### 8.5.3 — §8.5's wait tally is wrong, corrected S397 before any deposit was scored
+
+**§8.5 reads eight sites at the 20 s default and three reading `ARMB_TIMEOUT`. That sums to eleven by
+dropping a site.** At source, at `9c1f583`: **8** sites at the 20 s default, **1** hardcoded at 30 s
+(`:465`), **2** reading `ARMB_TIMEOUT` across **3** invocations (`:495`, `:503`, `:526`).
+
+**Neither the rule nor the count of eleven moves.** The error is in the split, and it under-reports
+the unruled sites by one — the 30 s site was as unoverridable as the eight.
+
+**How it was made.** The figure was taken from a prose summary rather than from the table above it,
+where the 30 s site has its own row. **A count lifted from a compression and asserted as a census.**
+
+**Nothing downstream depends on it.** `10fb958` retired all eleven: three explicit, seven by the
+default, one named exception, zero hardcoded.
+
+#### 8.5.4 — a determinate refusal is detected on sight, ruled S397 at `10fb958` before any deposit was scored
+
+**§8.5 forbids a wait expiring before the budget. Waiting the budget out on a refusal the product has
+already rendered is the same error inverted** — the screen has decided, and the probe sits in front
+of the answer for 24 hours.
+
+**The import floor's sentence is matched on sight at both import waits.** It bites the CSV path
+hardest, which is where round 2 lives: on a workbook the picker resolves the first wait, but on a CSV
+the first wait is the one that hangs, and **§15.1's three refusals — pos-02, pos-44, pos-47 — are all
+CSVs.** Measured: four runs in 2.5 s, against roughly 30 s each by expiry and **four days** under the
+budget without it.
+
+**A refusal read on sight and a refusal read by expiry are the same outcome reached two ways, and only
+one of them is affordable.** The general form: **where the product has rendered a determinate answer,
+the probe reads it; the budget covers waiting, not deciding.**
+
+#### 8.5.5 — the untick set is three deposits, and confirm cannot express it, ruled S397 at `a5a5bac`
+
+**`runArm`'s `confirm` reaches two of the card's three buttons and none of its checkboxes**, so it can
+only confirm the pre-ticked set. `GroupingConfirmCard.jsx:163-165` renders one checkbox per condition
+column.
+
+**Three deposits carry an untick, per the run log's §4: pos-08 (2 unticked), pos-31 (1), pos-40 (3).**
+All three route to §8.1's hand-run. Ten of the thirteen rendering the gate are `confirmed as offered`
+and drivable today.
+
+**pos-40 is hand-run like the others.** It exhausts the heap on arm A, and a predicted failure is not
+a recorded one.
+
+**The field, if it is ever built, matches header names and not indices** — the card renders `col.name`
+with a 1-based `Col N` fallback, names are what §4 records, and an index would drift silently if
+`roles` moved. **Not built.**
+
 ## 9 — §6.1's ordering rule, corrected S390, still before any deposit was acquired
 
 **This supersedes two things in §6.1: the ordering rule, and the reason given for it. §6.1's text
@@ -1070,3 +1162,147 @@ written into one sentence, and the pronoun did work the measurements did not sup
 widening a true finding past its scope — the register's fourth signature — and it reached a
 committed pre-registration section before the source was read. **The read that caught it was
 prompted by the section itself**, which had recorded the mechanism as unread.
+
+### 17.8 — the early-exit candidate is eliminated, and §17.7's own artifact claim was wrong, logged S397 before any deposit was scored
+
+**§17.7 closes by saying the permutation counts sit in the artifacts already written. They do not.**
+All four artifacts are the 1,000-row run — §17.1's gate variants at one row count. There is no
+5,000-row artifact; that run was made without `--out`. The claim is corrected here rather than edited
+away, and it was made from memory about what the artifacts contained.
+
+**The counts are recoverable at 1,000 rows and they eliminate the candidate.** `N_PERM = 999` above
+500 rows, so 999 is the ceiling at both 1,000 and 5,000. At 1,000 rows all 999 executed: the BH family
+minimum reached exactly `ALPHA.NOTE` against a strict `>`, is monotone non-decreasing in the
+permutation index, and never exceeds it over all 1,275 reachable prefixes. **`EARLY_EXIT_BURN_IN`
+never fired.**
+
+**§17.7's mechanism required more permutations at 5,000 rows than at 1,000. The 5,000-row run
+executed 999 or fewer.** The candidate is eliminated in the direction it was posed.
+
+**What this does not settle.** The growth remains unexplained; eliminating one candidate is not
+evidence for another; and `C20 :: Microcosm soil A` against `soil B` is a separate case, untouched
+here. **§17.7's prohibition stands: no register row states a cause.**
+
+#### 17.8.1 — the lattice condition decides a cost path
+
+The early exit did not fire because the statistic landed *exactly* on the threshold. P100 was stated
+about verdicts; here the same exact landing decides whether a run pays for its permutations at all.
+**One instance, one test, one row count, and it is not widened beyond that.**
+
+#### 17.8.2 — §17.5's exposure extends by one line
+
+The artifact read surfaced Blocked Mahalanobis's flag and p-value on the 1,000-row truncation, finer
+than the severity and tier counts §17.5 already declared. **Same truncation, same non-deposit, and
+declared rather than left in a checkpoint.**
+
+### 17.9 — the arms may share a machine, ruled S397 before any deposit was scored
+
+**The arms run concurrently by default. A deposit at or above 20,000 valid rows runs alone.**
+
+The threshold is fixed here, on the S395 census's row counts, before any deposit has been scored. It
+names five: pos-02, pos-32, pos-40, pos-41 and pos-44. **A threshold set after seeing which deposits
+contend would be fitted to what it catches**, which is §3's hazard in a new place.
+
+**Why the five are different in kind.** On them the elapsed time and the peak memory are the recorded
+outcome (§17.2, §17.3). A figure taken while another arm held the CPU or the heap measures contention,
+and a deposit killed at the budget because of a neighbour is a non-completion the machine
+manufactured. On the other twenty-five, elapsed time is recorded in no §7 cell and nothing sits near a
+limit.
+
+**S397 measured the effect before ruling on it.** In a 16-arm single process a run took 246 s and in
+another 396 s, both at about 5% CPU with identical output; isolated, the same runs read 3.3 s and
+2.6 s. **Two orders of magnitude, entirely from sharing.**
+
+**Where the arms did share a machine, Notes says so.** One line per deposit, so no later reader takes
+a concurrent elapsed figure for a clean one.
+
+**This changes no rule in §17.2.** n stays 30, no resource limit rises, the budget is 24 hours per run,
+and non-completion stays a recorded outcome. It fixes only where a run may sit.
+
+## 18 — §8.3's premise is false on 22 of the 30, and its assertion is scoped, ruled S397 before any deposit was scored
+
+**§8.3 requires, per deposit, `parseExcel` through the polyfill against `parseExcel` on a buffer read
+from disk — identical, or the run stops and the deposit is not scored.**
+
+**Measured at `9c1f583`.** `ImportView.jsx:301-323` routes only `xlsx`/`xls` through `getSheetNames`,
+the sole `arrayBuffer` consumer; everything else goes to `FileReader.readAsText`. **The thirty are 8
+xlsx — pos-01, 08, 14, 18, 21, 27, 31, 39 — plus 21 csv and 1 tsv.**
+
+**So §8.3's premise sentence, *every byte arm B analyses arrives through it*, is false for 22
+deposits.** The polyfill is installed there and never invoked.
+
+**Scoped.** The assertion runs on the eight and blocks scoring there. **On the other 22 it is recorded
+inapplicable with its reason, not silently skipped** — a skipped check and an inapplicable one look
+identical in a log.
+
+**It does not exist yet**, neither when §8.3 was written nor at `10fb958`. It is built before any xlsx
+deposit is scored. **A CSV deposit may be scored before it exists**, because on a CSV there is nothing
+for it to assert.
+
+## 19 — pos-43 and pos-23 split into blocks, and the arms do not analyse the same rows, ruled S397 before either was scored
+
+**Measured at `a5a5bac`.** `ImportView.jsx:758` renders the block picker on `blocks.length > 1` and
+offers every block; `corpus-run.mjs:152-156` takes block 1 and offers nothing. **On pos-43 that is 452
+of 892 data rows — arm A discards 440, or 49%, without a word.** Four blocks: 452, 310, 20, 110 rows,
+all 80 columns. pos-23 is the only other splitter among the thirty.
+
+**So on a splitting deposit the arms analyse different data, and arm A minus arm B is not the cost of
+the two gate defaults.** It is that plus a row-set difference, and the two cannot be separated by the
+subtraction §2 defines.
+
+**Both are scored and both §7 rows stand.** Notes records the block counts and the discarded row
+count, and **the §7 difference on a splitting deposit is not cited as the cost of the default** — the
+quantity §2 names is not what that cell holds.
+
+**Detected before either ran.** `detectBlocks` splits on fully blank rows; a header band spans columns
+and raises nothing. **The two are unrelated and the band count predicts nothing** — pos-01, 14 and 35
+carry 3, 4 and 4 bands and render no picker; pos-43 carries 2 and is the splitter.
+
+**pos-23 is measured the same way before it is scored**, and if its arms differ in rows, this section
+covers it as written.
+
+### 19.1 — §19's pos-43 figures are the picker's display metric, corrected S397 at `d9a758e` before either deposit was scored
+
+**§19 reads *452 of 892 data rows — arm A discards 440, or 49%* and *all 80 columns*. Both are wrong.**
+
+**Three row counts are in play on one block of one file and they are not interchangeable.**
+`blockSummary.dataRows` (`parser.js:80`) counts rows over 30% numeric — a display heuristic, and what
+the picker prints. `sum.nR` is every row after the headers. `validRows` is what
+`extractAnalysisInputs` returns, a row surviving if any data column is non-null. On pos-43 block 1
+they read 452, 873 and 709.
+
+**Corrected.** pos-43's four blocks are 873, 506, 32 and 182 rows at 70, 71, 71 and 69 data columns —
+**not a common width**. Arm A takes block 1: **873 of 1593, discarding 720, or 45.2%**, and analyses
+709 valid rows of it.
+
+**pos-23 splits two ways at 730 rows and 4 data columns each, both opening on the same header** —
+stacked tables of one schema. The three metrics coincide there because the file is dense. **Arm A
+scores exactly 50.0%.**
+
+**How the error was made.** The figures were taken from a prose summary rather than from the table
+beside it, without asking which of the three metrics they were. **§19's substance is untouched:** arm
+A scores block 1 and discards the rest without a word, on both deposits.
+
+**§19's detection claim is strengthened, not weakened.** pos-23 carries **zero** bands and splits;
+pos-01, 14 and 35 carry 3, 4 and 4 and do not. The band count predicts nothing in either direction.
+
+## 20 — the three hand-runs, ruled S397 before any of them was run
+
+**pos-08, pos-31 and pos-40 carry an untick — 2, 1 and 3 columns — and `runArm` reaches the confirm
+card's buttons but none of its checkboxes.** §8.1 routes them to a hand-run through the shipped
+surface, and this section fixes how.
+
+**The operator has not seen that deposit's arm-A verdict when the hand-run is made.** §6.4 stops an
+answer being a reaction to a verdict; a hand-run puts a human back in the loop and reopens the same
+channel one step later. **So on these three, arm B runs first.**
+
+**pos-40 is hand-run like the other two.** It exhausts the heap on arm A, and a predicted failure is
+not a recorded one. If the browser also fails, that is the recorded outcome and it is a measurement of
+the shipped surface rather than of Node.
+
+**Recorded per deposit:** the control operated, the columns unticked by name, both gate answers as
+given, the verdict, and that it was hand-run. **The untick set is read from §4 at the moment of the
+run**, not from memory or from this section.
+
+**This is a carve-out §8.1 already granted.** It is not a new exception, and it does not extend to any
+deposit the probe can drive.
