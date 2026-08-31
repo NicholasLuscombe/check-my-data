@@ -1052,6 +1052,210 @@ zero fraction is the reason.
 
 **No arm has run on pos-40.** §6.4's ordering holds.
 
+**C26 — pos-41, the structural reason. The definitions are in a file the shape filter did not select. Logged S400.**
+
+**The re-answer pass under §21 returns *adds detail* on what the file is and *says nothing* about the
+columns.** No answer moves.
+
+**The variable definitions exist and are delegated a third way.** The README's first entry is *Legend
+with the complete list of trait and environmental variables with descriptions, symbols, and units
+(legend.csv)*, and its entry for the analysed file is one line — *SNP effects on traits and
+environmental variables derived from Bayesian sparse linear mixed model (BSLMM) analysis performed in
+GEMMA*. **No trait prefix is explained and no `ABA`/`ADA`/`mean` triple is defined.**
+
+**§21.8 does not cover this and named it in advance.** pos-18 and pos-21 delegate into a sheet of the
+analysed workbook and pos-39 into sheet 1 of the same workbook; **§21.8 rules all three in scope.
+pos-41 delegates into a separate CSV in the same deposit** — neither the README, nor the published
+metadata fields, nor the analysed data file. **§21.8.3 records this as unsettled and states that no
+deposit had raised it; one has now, and it is the last unread naming-scheme member.** A ruling is owed
+and the answers do not turn on it.
+
+**The recorded classification holds on the header text alone.** `e_ABA_um2`, `e_ADA_um2` and
+`e_mean_um2` are visible on the import screen — abaxial, adaxial and mean, in µm² — matching the
+recorded six trait families crossed with three surfaces, and `i_ABA_unitless` carries its unit in the
+name. **Confirmed by the headers rather than by documentation.**
+
+**The file is model output, stated.** SNP effects from a Bayesian sparse linear mixed model in GEMMA,
+which the screen shows as effect sizes around ±0.01 with the `i_` family at 10⁻⁷, `Precision mixed
+(0–9dp)`, `Integer values 7%`.
+
+**`arbitrary` is untouched.** The README says nothing about ordering, so the recorded reason stands as
+written: the rows are in coordinate order, and adjacent SNPs are in linkage disequilibrium, so serial
+structure along that axis is biological rather than forensic — METHODOLOGY's own canonical case.
+`Missing 0` beside 31,164 non-numeric is the README's *missing values were coded as NAs*, the fifth
+instance of that shape after pos-28, pos-31, pos-34 and pos-44.
+
+**No arm has run on pos-41.** §6.4's ordering holds.
+
+**C27 — pos-43, the structural reason. §19.1's block figures do not match the picker. Logged S400.**
+
+**The re-answer pass under §21 returns *adds detail* on the columns, and the block picker on the import
+screen does not agree with §19.1.** No answer moves.
+
+**The measurement scheme is documented in full.** The README defines every abbreviation in mm — `aIL`,
+`apl`, `bcl`, `ctl`, `jl`, `onl`, `zw` and the whole cranial and dental series. **Columns-as-variables
+is confirmed by the depositor**, and the recorded reading of `P1L` and `M2W` as different quantities on
+one specimen rather than one quantity on different samples is that scheme read straight off.
+
+**The blanks are explained and `arbitrary` is untouched.** *Any NAs and empty cells represent missing
+data.* So `Count` is blank on 436 of 873 rows because those specimens have no count, not because of any
+structure, and the recorded contradiction between an ascending `Count` and a taxon-grouped listing
+stands. `Missing 37,486` is real missingness, unlike pos-08's structural blanks.
+
+**The picker reads figures §19.1 does not carry.** §19.1 records four blocks at **873, 506, 32 and 182
+rows and 70, 71, 71, 69 data columns**, with arm A scoring 873 of 1,593. **The screen shows Block 1 at
+452 data rows, Block 2 at 310, Block 3 at 20 and Block 4 at 110, all at 80 cols** — and the summary for
+the selected Block 1 reads **`Rows 873`, `Data cols 70`**, with a banner recording *trimmed 49 trailing
+rows*.
+
+**Two row counts for one block appear on one screen, which is the family §19.1 was written to
+correct** — *the picker's display heuristic read as the analysed count, where three different row
+counts were in play on one block of one file.* **Nothing is adjudicated here.** Which of 873 and 452 is
+the analysed count, and whether 1,593 is the right denominator when the four picker figures sum to 892
+before the 49 trimmed rows, are questions for a read of the picker rather than for this entry. **This
+is a check owed before scoring, alongside pos-23's block count (§4.1 C15), and the two are the same
+shape.** 80 cols against 70 data columns is the ordinary post-inference difference and is not in
+question.
+
+**Recorded and acted on by nothing.** The confirm card carries both `Skull only` and `skull only`, and
+both `Skin present` and `skin only` — variant spellings of one answer standing as separate levels, in
+the deposit rather than in this record.
+
+**No arm has run on pos-43.** §6.4's ordering holds.
+
+**C28 — pos-44, the deposited file is synthetic and the depositor says so twice. Logged S400.**
+
+**The re-answer pass under §21 returns *contradicts*, and what it contradicts is not a cell but an
+assumption the screen rests on.** No answer moves and the refusal is untouched.
+
+**The README states it in two places.** *A synthetic but structurally representative subset of the
+cleaned acoustic telemetry detection data.* And: *the subset is synthetic and does not represent actual
+permit detections. Coordinates are constrained to the real WDR receiver array footprint… and detection
+intensities are designed to satisfy all data sufficiency thresholds used in the manuscript (≥ 50 total
+detections per fish; ≥ 24 hourly COAs per fish-month; ≥ 3 unique days per fish-month).* **The real data
+is withheld** — *due to the sensitive nature of the original data and ongoing conservation efforts, the
+full dataset is not publicly archived.*
+
+**Why this reaches the screen rather than only this deposit.** §3 samples deposits without reference to
+any allegation so that the screen measures how often the battery flags honest data. **pos-44 is
+generated data built to clear stated numeric thresholds** — eight simulated fish, all twelve calendar
+months, detection intensities designed to satisfy three inequalities. A battery run on such a file
+returns a statement about a generator.
+
+**Nothing is compromised today.** pos-44 is one of the three §2.8 refusals — twelve columns to one data
+column, `timediff` surviving — so **no verdict will be produced on either arm.** That is fortune rather
+than design. **n stays 30 regardless:** §22.2 forbids dropping it and §21.3 forbids re-selecting, and a
+deposit is not excluded for what its documentation says. **What is owed is a ruling on whether
+*deposited data is synthetic* should be recorded as a property, and whether any other deposit in the
+thirty carries it.** Neither is decided here.
+
+**Two confirmations.** `timediff` is *minutes elapsed since the previous detection for the same fish
+(NA for first detection)*, and the eight non-numeric cells are exactly the eight simulated fish's first
+detections. And **§2.8's cause is confirmed in the depositor's own words** — `Date` holds `month` and
+`year`; `station` is a *unique receiver station identifier*, so `lon` and `lat` are constant within it
+by construction. The hold-out is correct against its specification, as P218 records.
+
+**No arm has run on pos-44.** §6.4's ordering holds.
+
+**C29 — pos-45, the structural reason. Both axes are wrong and the answer stands anyway. Logged S400.**
+
+**The re-answer pass under §21 returns *contradicts*, and this is the first entry where a documented
+fact bears on an answer rather than only on its reason.** The answer does not move.
+
+**The depositor states the file's geometry.** *The first row contains the excitation wavelength [nm].
+The first column contains the emission wavelength [nm]. The second to last rows and columns contain the
+fluorescence intensity (arbitrary units) for each combination of excitation and emission wavelength.*
+The instrument parameters give the ranges: **excitation 200 to 500 nm and emission 200 to 700 nm, both
+at 5 nm intervals.**
+
+**The recorded reason has both axes wrong.** It reads *the headers are a wavelength sweep, `200`
+through `700`* — the column headers are excitation, which stops at 500 — and *rows are 101 spectra with
+nothing naming or ordering them*. **The rows are emission wavelengths and column A is the emission
+axis**, ascending 200, 205, 210, 215 on screen, scored `Data` and named `Col 1`. So **the analysed 102
+columns are the emission coordinate plus 101 excitation channels**, and the file is one two-dimensional
+grid rather than 101 spectra.
+
+**`arbitrary` does not move, and its ground is restated rather than repaired.** The recorded ground —
+*nothing names or orders the rows* — is false. **Three things hold the answer in place.** §16.2 records
+an answer when it is made and corrects it with its reason rather than revising it; **§6.4 constrains
+exactly this, an answer changed on documentation read after the fact**; and an emission-wavelength axis
+is an ordered physical scale rather than a sequence anything was measured along in time, which is
+METHODOLOGY's canonical arbitrary case beside gene lists and genomic coordinates. **So the answer is
+plausibly right for a better reason than the one recorded, and this entry states the better reason
+without claiming the old one.**
+
+**A saturation sentinel occupies a diagonal band of the matrix.** The screen shows `9999.9` wherever
+emission approaches excitation — where scattered excitation light swamps the detector — against `Range
+2.959 – 1.000e+4` and `Integer values 13%`. **It is an out-of-range code rather than a measurement and
+the README does not document it as one.** Recorded, not predicted: what a duplicate or terminal-digit
+test makes of thousands of identical `9999.9` values is for the arms to say.
+
+**The file is the experiment's control, documented.** *FF of barium sulfate powder*, against five
+eggshell files described as *FF of eggshell embedded in barium sulfate powder*. §6.2's six-way
+tie-break landed on it and §21.3 holds the choice; **what changes is that the tie-break's outcome is
+now documented rather than inferred from the filename.**
+
+**No arm has run on pos-45.** §6.4's ordering holds.
+
+**C30 — pos-46, the structural reason. Three documented derivation chains inside the matrix. Logged S400.**
+
+**The re-answer pass under §21 returns *adds detail*.** No answer moves.
+
+**The depositor states two derivation rules that reach the analysed columns.** `pdw.total.22` is
+*percent dry weight total SPGs from 2022* and salicin, salicortin and tremulacin are its named
+constituents — **all five are `Data`.** The visible rows agree to the rounding: 1.011 + 6.043 + 5.449 =
+12.504 against a recorded 12.505, and 0.963 + 6.624 + 6.784 = 14.371 against 14.372. **Checked on two
+rows of 264 and recorded as that.** The same structure repeats for 2023. **And the five `d.` columns
+are stated differences** — *change in percent dry weight* of CTs, total SPGs, salicortin, salicin and
+tremulacin from 2022 to 2023, each one column minus its partner, **with all of them in the matrix
+together.**
+
+**So the fifteen analysed columns are ten measurements, two totals derived from six of them, and five
+differences derived from pairs of them**, and the product reads all fifteen as replicates of one
+measurand. `Range -35.81 – 44.34`, the negatives being the differences. **Third relation-carrying
+deposit found in this pass after pos-30 and pos-38, and the only one where the depositor states the
+rule** (§4.1 C18, C23).
+
+**§16.5's mixed classification is confirmed.** Five phenolic compounds crossed with two years —
+`pdw.{cts,salicin,salicortin,tremulacin,total}.{22,23}` — sitting beside `population`,
+`treatment.y1`, `treatment.y2` and `group` as genuine condition columns, which is the recorded reason's
+*the header carries a grouping the gate cannot express while genuine factors sit next to it*.
+**`group` is itself derived:** *three year treatment pattern (CCC, CDD, DCD, DDD)*, a deterministic
+function of the yearly treatment columns. §13.3 reads shape and all four stand.
+
+**The row reading is corroborated and the auto-answer is untouched.** `sample.id` is *individual tree
+identifier*, 259 distinct over 264 rows, with no date, run number or index. **The `qpcr` detection on a
+plant-chemistry sheet remains wrong and `ordered (assumed)` remains the product's answer rather than
+arm B's**, on §16.2's rule, as on pos-32 and pos-39.
+
+**No arm has run on pos-46.** §6.4's ordering holds.
+
+**C31 — pos-47, the structural reason. P217 confirmed, and the refusal has two causes not one. Logged S400.**
+
+**The re-answer pass under §21 returns *contradicts*, on the count in the recorded reason.** No answer
+moves and the refusal is untouched.
+
+**P217 is confirmed in the depositor's own words.** `length_cm_1`–`length_cm_5` are *heights (cm) of up
+to five randomly selected shoots*, and **the screen shows all five scored `Cond` with `2.3`, `1.9`,
+`2.8`, `4.7` and `3.7` standing as condition levels** — shoot heights in centimetres read as levels of
+a factor. **And the README explains why the 40-row window is 200 cells of `NA`:** *for the shoot height
+variables, `NA` indicates that fewer than five shoots were present in the plot during that sampling
+event.* The first four surveys have `shoot_count` 0, so **the early rows are structurally `NA` and the
+window lands entirely inside them.** P217's misreading is produced here by the study's own timeline.
+
+**The recorded count of surviving data columns is wrong.** The cell reads *§2.8 is the sole cause:
+without the hold-out the sheet carries 3 data columns*. **§2.8's half is confirmed** — `seed_density`
+and `burial_treatment` are `Attr`, held out as constant within `plot_id`, and the README's *fully
+factorial design… each treatment combination replicated four times, resulting in 80 experimental plots*
+monitored fortnightly is why a plot's treatment is fixed. **But the five `length_cm` columns are absent
+from that count and they are the deposit's actual measurements.** With P217 corrected as well the sheet
+carries eight. **The refusal has two independent causes and the cell names one as sole.**
+
+**The row reading is confirmed.** *Each row represents one plot surveyed on one sampling date* — 80
+plots across fortnightly surveys from November 2025 to April 2026, giving the screen's 760 rows.
+
+**No arm has run on pos-47.** §6.4's ordering holds.
+
 ### 4.2 — What the analysed matrix holds
 
 **§22's three fields, one row per deposit, filled before either arm runs on it.** Kept apart from §4's
@@ -1086,12 +1290,12 @@ not a table still being filled.
 | 38 | one population | one variable each | mixed | **Twelve deterministic relations sharing one divisor, all inside the analysed matrix.** Every row is one site-night survey. No column changes meaning down the rows. **The depositor states the relation:** *`XXXX_rate` = Nightly capture rate, calculated as `XXXX_c / Total.Capture.Effort`* — and twelve counts, twelve rates and the effort divisor are all scored `Data` across 28 columns. Instance on screen: effort 78.00, `COTO_c` 1.00, `COTO_rate` 0.01. **`measurements` is `mixed`:** twelve counts, twelve rates in individuals per m²h, an effort in m²h, and **`Year`, a calendar year**, giving `Range 0.000 – 2024`. §16.8's ruling that `_c` and `_rate` are a count and a rate rather than one quantity on two samples is corroborated by the README. 311 × 28 = 8,708 with `Missing 0`; 7,095 zeros, 81.5%, twelve species mostly absent on any given night. §4.1 C23. |
 | 39 | one population |  |  | **Two fields filled and one left open, pending the workbook's own documentation sheet.** Every row is one sampling point — `Point ID` runs `CB126`, `CB128`, `CB129`, 146 non-contiguous points with `SITE` at four levels — so `rows` is `one population`. **`columns` and `measurements` are blank because `FIG3_metadata`, sheet 1 of the same workbook, has not been read**, and §21.8 puts it in arm B's information set. The README states that sheet records *a description of the variables, their units, and any transformations applied (e.g., log transformation) prior to analysis*; **the fourteen analysed columns would read `measurements` on their headers alone — biomass, cover proportions, vegetation height, sand texture, `pH`, metal concentrations to 8.7 × 10⁴ — and filling the field from headers is what the unread sheet forbids.** A blank records not yet classified; `undetermined` would claim a classification nobody made. 146 × 14 = 2,044 with `Missing 0`. §4.1 C24. |
 | 40 | one population | one variable each | measurements | **The corpus's sparsest matrix, and its column scheme is documented nowhere.** Every row is one amplicon sequence variant; `ASV_ID` labels 33,678 of them. Every column is a read count for one soil sample, so no column changes meaning down the rows. **`measurements` is `measurements`:** sequencing counts, integer 100% at 0dp, `Range 0.000 – 1442`. **The 416 column headers are a three-letter island code with a two-digit plot number — `BAD_01` onward — and the README gives the ten ASV tables half a line between them** (§4.1 C25), so §16.1's ruling rests on the file's structure alone. The sampling text implies the scheme without stating it: samples per island run 13 to 41 and island names are withheld under national security regulations. 33,678 × 416 = 14,010,048 with `Missing 0`; **13,852,754 zeros, 98.87%**, and the heap exhausts before the battery. §4.1 C25. |
-| 41 |  |  |  |  |
-| 43 |  |  |  |  |
-| 44 |  |  |  |  |
-| 45 |  |  |  |  |
-| 46 |  |  |  |  |
-| 47 |  |  |  |  |
+| 41 | one population | mixed | mixed | **Genomic coordinates sit among model-derived effect sizes.** Every row is one SNP; `rs` labels 109,228 of them with `chr` at 1 and `ps` ascending. **`columns` is `mixed` and `measurements` is `mixed` for the same two columns:** `chr` is a chromosome number and `ps` a base-pair position — coordinates, not effects — inside the same 27-column matrix as twenty-five BSLMM effect sizes, giving `Range -54.95 – 3.041e+7`. The README states the file is *SNP effects on traits and environmental variables derived from Bayesian sparse linear mixed model (BSLMM) analysis performed in GEMMA*, so **the twenty-five are model output rather than measurement**, visible on screen at ±0.01 with the `i_` family at 10⁻⁷. **The column definitions are in `legend.csv`, a separate file the shape filter did not select** — a third delegation pattern §21.8 does not cover, recorded at §4.1 C26. `Missing 0` beside 31,164 non-numeric is the README's *missing values were coded as NAs*. 109,228 × 27 = 2,949,156 less 31,164 gives the screen's 2,917,992. §4.1 C26. |
+| 43 | one population | one variable each | measurements | **Seventy cranial and dental measurements, every abbreviation defined in mm.** Every row is one bandicoot specimen. No column changes meaning down the rows: the README defines `aIL`, `apl`, `bcl`, `ctl`, `jl`, `onl`, `zw` and the rest as distinct quantities on one skull, which is the recorded reading of `P1L` and `M2W` as different quantities rather than one quantity on different samples. **`measurements` is `measurements`:** all in mm, `Range 0.000 – 186.0`, `Precision mixed (0–2dp)`. **`Missing 37,486` is real missingness, not structure** — *any NAs and empty cells represent missing data* — which is why `Count` is blank on 436 of 873 rows and `arbitrary` stands. **The block figures are contested and the count is owed before scoring** (§4.1 C27): §19.1 records four blocks at 873 / 506 / 32 / 182 rows while the picker shows 452 / 310 / 20 / 110 at 80 cols, with the selected block summarised as 873 rows and 49 trailing rows trimmed. 873 × 70 = 61,110; the screen reads `Values 23308` against `Missing 37486` and 316 non-numeric. §4.1 C27. |
+| 44 | one population | one variable each | measurements | **The deposited file is synthetic and the depositor states it twice** (§4.1 C28) — *a synthetic but structurally representative subset*, and *the subset is synthetic and does not represent actual permit detections*, with detection intensities *designed to satisfy all data sufficiency thresholds used in the manuscript*. Every row is one acoustic detection of one of eight simulated fish. The single analysed column is `timediff` throughout — *minutes elapsed since the previous detection for the same fish (NA for first detection)* — so `columns` is `one variable each` and **`measurements` is `measurements`, minutes elapsed being a quantity, with the reason recording that the values are generated rather than observed.** The eight non-numeric cells are the eight fish's first detections. **§2.8's cause is confirmed in the depositor's words:** `Date` holds `month` and `year`, and `station` is a *unique receiver station identifier* so `lon` and `lat` are constant within it. 52,948 rows, `Values 52940`, `Missing 0`. §4.1 C28. |
+| 45 | one population | mixed | mixed | **The file is a two-dimensional grid and `Col 1` is one of its axes.** The depositor states the geometry: *the first row contains the excitation wavelength [nm]. The first column contains the emission wavelength [nm]. The second to last rows and columns contain the fluorescence intensity (arbitrary units).* So every row is one emission wavelength, 200 to 700 nm at 5 nm steps, and **`Col 1` — scored `Data` and ascending 200, 205, 210, 215 on screen — is the emission axis**, while the other 101 analysed columns are excitation channels from 200 to 500 nm. **`columns` and `measurements` are both `mixed`: one ordered wavelength coordinate beside 101 columns of fluorescence intensity in arbitrary units.** **A saturation sentinel occupies a diagonal band** — `9999.9` wherever emission approaches excitation and scattered light swamps the detector, against `Range 2.959 – 1.000e+4` and `Integer values 13%` — undocumented as a code and not a measurement. The file is the experiment's control, *FF of barium sulfate powder*. **The recorded reason has both axes wrong and §4.1 C29 restates the ground without moving the answer.** 101 × 102 = 10,302 with `Missing 0`. §4.1 C29. |
+| 46 | one population | one variable each | measurements | **Three documented derivation chains, all inside the analysed matrix.** Every row is one aspen tree; `sample.id` is *individual tree identifier*, 259 distinct over 264 rows. No column changes meaning down the rows, and **`measurements` is `measurements`** — all fifteen are percent dry weight or a change in it. **The derivations are the depositor's own:** `pdw.total.22` is *total SPGs* over salicin, salicortin and tremulacin, checked on two visible rows to the rounding — 1.011 + 6.043 + 5.449 = 12.504 against 12.505 — with the same structure for 2023; and the five `d.` columns are *change in percent dry weight* from 2022 to 2023, each one column minus its partner. **So ten measurements, two derived totals and five derived differences are read as replicates of one measurand**, giving `Range -35.81 – 44.34`. `group` is also derived — *three year treatment pattern (CCC, CDD, DCD, DDD)* — but is a condition column, not analysed. 264 × 15 = 3,960 with `Missing 0`. §4.1 C30. |
+| 47 | one population | one variable each | measurements | **The deposit's five measurement columns are scored as conditions and the analysed matrix is what is left.** *Each row represents one plot surveyed on one sampling date* — 80 plots monitored fortnightly from November 2025 to April 2026, giving 760 rows. The single analysed column is `shoot_count`, *number of live eelgrass shoots observed within the plot*, so `columns` is `one variable each` and **`measurements` is `measurements`:** a count, integer 100% at 0dp, `Range 0.000 – 27.00`, with **484 of 760 values zero** across the early surveys before germination. **P217 is confirmed by the depositor:** `length_cm_1`–`_5` are *heights (cm) of up to five randomly selected shoots* and all five are scored `Cond`, with 2.3, 1.9, 2.8, 4.7 and 3.7 standing as condition levels; *`NA` indicates that fewer than five shoots were present*, which is why the 40-row window is all `NA`. **§4.1 C31 records that the refusal has two causes and the §4 cell names one as sole.** 760 × 1 = 760 with `Missing 0`. §4.1 C31. |
 | 49 |  |  |  |  |
 | 50 |  |  |  |  |
 | 51 |  |  |  |  |
