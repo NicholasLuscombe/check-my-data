@@ -713,6 +713,179 @@ still quantities; the provenance is recorded because a battery reading them cann
 
 **No arm has run on pos-23.** §6.4's ordering holds.
 
+**C16 — pos-27, the structural reason. The analysed file is the deposit's metadata table. Logged S400.**
+
+**The re-answer pass under §21 returns *adds detail*.** No answer moves.
+
+**The depositor calls the analysed file a metadata file.** *This is a metadata file containing the 128
+individual* T. aedon *included in the manuscript.* The deposit's data is
+`howr_ddrad_raw_variants.vcf.gz`, 128 ddRAD sequences; **§6.2 selected the specimen table because a VCF
+is not a tabular file the shape filter considers**, and §21.3 holds the sheet choice.
+
+**So the recorded reason's closing sentence is confirmed by the depositor's own framing** — the
+analysed matrix is 127 × 3 and all three columns are geographic. The README pins the unit too:
+*elevation is presented in Feet above sea level.* **`Range -121.6 – 9894` is a longitude in degrees
+west pooled with an altitude in feet.**
+
+**`MtDNA Type` is settled and does not move, on the same footing as pos-03's `Choice`.** The cell flags
+it as *plausibly an observed outcome rather than a factor*; the README says *mitochondrial type follows
+the patterns found in Klicka et al. 2023*, a lineage assignment taken from a prior publication and one
+of the two things the study is about. **It stays ticked because §13.3 is shape-only** (§4.1 C7) and it
+is a three-level categorical. **These are the two columns §13.3 was recorded as the rule deciding, and
+both now have documentation behind them and neither moves.**
+
+**Recorded and acted on by nothing.** The deposit's own two documents disagree on n: the README says
+128 twice, the abstract says *sequenced 127 northern house wrens, including 109 individuals from across
+Colorado and Wyoming, as well as 9 individuals each from eastern and western allopatric regions* —
+which sums to 127 — and the file carries 127 rows. **§21 is explicit that this pass is not an audit of
+whether a deposit's data matches its documentation.** Separately, the confirm card carries `-` and
+`Not.Typed` as condition levels; both are low-cardinality and stand under shape-only.
+
+**No arm has run on pos-27.** §6.4's ordering holds.
+
+**C17 — pos-28, the structural reason. Four derived columns, and one is another column's standard error. Logged S400.**
+
+**The re-answer pass under §21 returns *adds detail*.** No answer moves.
+
+**The README defines all four analysed columns and none is measured on a bird.** `elo` is *the
+randomized Elo-Rating, representing dominance rank*, computed from aggressive-displacement sequences
+via Beltrão et al. 2021. `BT_scores` is *Bradley-Terry dominance scores*, a model fit to the same
+displacements. `BT_se` is *Bradley-Terry dominance scores standard error*. `years_to_death` is *number
+of years from observation to death year*, arithmetic on two dates. **All four are computed from an RFID
+displacement record that is not in the deposit.**
+
+**Two consequences the recorded reason does not carry.** `elo` and `BT_scores` are two estimators of
+one quantity and **the depositor knows they are correlated** — the script index lists *Spearman
+correlations between Randomised Elo-ratings and Bradly-Terry scores* as a supplementary analysis. So
+the product reads as replicates of one measurand two things that are, on the depositor's own account,
+nearly that. **This is the first deposit in the pass where `replicates` is arguably too weak rather
+than too strong.** And **`BT_se` is the standard error of `BT_scores`, in the same matrix** — a
+quantity about the precision of a neighbouring column rather than about any bird, which is what puts
+`measurements` at `mixed`.
+
+**The recorded `year`/`year_st` note is confirmed as the depositor's own construction.** *`year_st`:
+the standardized year, ranging from 1 to 5, used for analysis* — a deterministic recoding of `year`,
+which is why §2.8 holds each out as constant within the other. Both sit outside the analysed matrix, so
+it does not reach §4.2.
+
+**Recorded and acted on by nothing.** `Missing 0` beside 160 non-numeric: the 160 are `years_to_death`
+reading `NA` for birds still alive, the README's *(if applicable)* on `death_year` saying so. `NA`
+counted as non-numeric rather than missing is pos-44's shape.
+
+**No arm has run on pos-28.** §6.4's ordering holds.
+
+**C18 — pos-30, the structural reason. The recorded deterministic relation is the wrong one. Logged S400.**
+
+**The re-answer pass under §21 returns *contradicts*, and what it contradicts is a fact this cell
+records as established before any arm ran.** No answer moves.
+
+**The cell states that `billet_circumference_cm` and `billet_diameter_cm` are geometrically related,
+*one being π times the other*. They are not.** Checked against the ten rows visible on the import
+screen: 45.36 against 14.21 where circumference ÷ π is 14.44; 44.14 against 13.63 where it is 14.05;
+52.71 against 16.88 where it is 16.78; 60.72 against 18.59 where it is 19.33. **Off by 0.6% to 3.8%,
+and in both directions** — two separate measurements of an irregular billet rather than one computed
+from the other. **The README supports that reading:** *bark surface area was calculated from billet
+length and circumference measurements*, so circumference is what the derivation uses and diameter is
+measured beside it.
+
+**And a relation that does hold was missed.** `brood_total` equals
+`total_ips_count_per_billet` + `total_parasitoids_per_billet` on all ten visible rows — 190 + 0 = 190,
+13 + 3 = 16, 33 + 6 = 39, 105 + 0 = 105. **A column that is the sum of two others, in the same
+six-column analysed matrix, read as a replicate of both.**
+
+**Scope, stated because the evidence is a sample.** The sum is measured on **ten of forty-six rows**,
+which establishes the relation on those rows and not on the file. **The circumference-to-diameter claim
+is refuted on those same ten**, and refuting a claimed identity needs one counterexample where there
+are four.
+
+**Why this matters beyond one cell.** Nine deposits are recorded as carrying a deterministic relation
+between columns inside the analysed matrix, in §7's Notes and before any run, on the principle that a
+structural fact recorded afterwards is an excuse. **pos-30 is in that class for the wrong reason.** The
+membership stands and the relation named does not.
+
+**Two things the README adds.** The design is nested and the product reads both levels — *pine billets
+were obtained from two trees at each of four study sites*, so `tree_ID` determines `site` and the twelve
+condition levels on screen are four sites plus eight trees. And the sibling file is the same
+observations restructured: *the density and parasitism datasets contain largely the same underlying
+observations; however, the parasitism dataset was structured to account for the two parasitoid
+species.* §6.2 selected the density file and that does not move.
+
+**No arm has run on pos-30.** §6.4's ordering holds.
+
+**C19 — pos-31, the structural reason. The documentation sheet, the untick, and what fragments the partition. Logged S400.**
+
+**The re-answer pass under §21 returns *adds detail*, and this is the first deposit to resolve §21.8's
+check.** No answer moves.
+
+**The documentation sheet exists and the README duplicates it.** *There are three worksheets. One for
+the experiments with females, one for the males, and one with the explanation of the variables.* The
+third sheet is the documentation sheet §21.8 rules part of arm B's information set — **and its content
+is reproduced in the README's own fifteen-row variable table with levels.** So the check resolves and
+costs nothing here: the information set gains no content the README did not already carry. **Recorded
+under §21.8.2's rule that a deposit records what its workbook holds rather than leaving it implicit.**
+
+**The untick is confirmed and refined.** `Experimentor` is a genuine two-level factor in the design —
+*SN (Sabine Nöbel) / TEK (Tim Erik Kaufmann)* — and the recorded reason removes it because it holds one
+distinct value on the `Males` sheet, which the screen confirms. **Both are true: two levels across the
+workbook, one on the analysed sheet.** §13.3 reads shape and a column that partitions nothing comes
+off, so **the untick stands and §20's hand-run removes a real factor that happens to be constant
+here.** `CS1` is confirmed sheet-specific — *first-courtship score (only shown in experiments with
+males)*.
+
+**§15.3's fragmentation has a documented cause.** The recorded reason says confirming cannot rescue
+this deposit because `TimeDemo` at 52 levels and `Date` at 20 are genuine categoricals that shape-only
+keeps; the README confirms them as *date of the experiment* and *beginning of the experiment*. **So the
+486 singleton groups are produced by keeping two coordinate columns as conditions, which shape-only
+mandates.** That is the third §13.3 tension after pos-03's `Choice` and pos-27's `MtDNA Type` and the
+sharpest of them — the first two are outcomes, this is a clock time, and it is what fragments the
+partition. **§13.3 stays shape-only (§4.1 C7) and the answer does not move**; §15.3 already records
+pos-31's disposition as owed before the sitting.
+
+**The six analysed columns are not one kind of thing**, and the README names each: `Device` is *number
+of the set-up*, an apparatus identifier scored `Data`; `Temp` and `Humidity` are room temperature in °C
+and humidity in %; `MCS`, `CS1` and `DC` are coded behavioural outcomes at 0/1 and 0/1/2. **`Range
+0.000 – 69.00` pools a binary score with a humidity percentage.**
+
+**`ordered` is corroborated by the depositor** — a dated, timed trial log — the second after pos-23.
+`Missing 0` beside 371 non-numeric is `NA` counted as non-numeric, the third instance after pos-28 and
+pos-44.
+
+**No arm has run on pos-31.** §6.4's ordering holds.
+
+**C20 — pos-32, the structural reason. The analysed matrix is a detection log in image space. Logged S400.**
+
+**The re-answer pass under §21 returns *adds detail*, and it confirms the one `(assumed)` answer in
+the batch without moving it.** No answer moves.
+
+**`Col 1` is confirmed in the depositor's own words: `[No label]: Row Index`.** The recorded reason
+inferred an R rownames export from 52,588 distinct values and the inference was right.
+
+**The answer stays `ordered (assumed)` and the provenance word does not change.** The reasoning is
+unchanged — row semantics turns on whether the delivered order is a candidate column's order, and a
+row index is the delivery order by construction rather than a measured sequence. **§16.2's rule
+governs the word: the provenance records who answered, not whether the answer was good.** The README
+does not make arm B the answerer, so `(assumed)` stands.
+
+**Every one of the ten analysed columns is model output, and the README names them.**
+*A full list of the detected pods when run on all image slices.* `Year` a calendar year; `Plot` a plot
+identifier; `Slice_X` and `Slice_Y` *horizontal and vertical slice index of image with respect to full
+plot image*; `X` and `Y` *horizontal and vertical pixel position of detection within the slice*;
+`Width` and `Height` *pixel width and height of pod*; `Confidence` *detection confidence*; and
+`Pod_Class`. **Not one is a measurement of a plant** — four image coordinates, two indices, a year, a
+plot ID, two bounding-box dimensions and a neural network's confidence score. **`Range 0.000 – 2024` is
+a pixel coordinate pooled with a calendar year.**
+
+**The deposit's real measurements are in files the shape filter did not select** —
+`cowpea_biomass.csv`, `cowpea_leaf_nitrogen_vs_CCI.csv` and `cowpea_architecture.csv` carry dry masses,
+leaf areas and branch counts. §6.2 selected this file on cell count and §21.3 holds it.
+
+**Recorded and acted on by nothing.** `Pod_Class` is in the file and not in the README's variable list:
+thirteen variables are documented and the screen shows a fourteenth column scored `Data`, holding 0 and
+1. **The documentation is incomplete for the analysed sheet.**
+
+**No arm has run on pos-32.** §6.4's ordering holds. Its runtime is unmeasured and it is one of the
+five deposits §17.9 runs alone.
+
 ### 4.2 — What the analysed matrix holds
 
 **§22's three fields, one row per deposit, filled before either arm runs on it.** Kept apart from §4's
@@ -737,11 +910,11 @@ not a table still being filled.
 | 21 | one population | one variable each | mixed | **The design's second factor sits in the analysed matrix as a measurement.** Every row is one site-microsite record, 16 sites crossed with 2 microsites giving the screen's 32 rows. No column changes meaning down the rows. **`measurements` is `mixed`, and the 23 analysed columns hold at least four kinds:** `Microsite`, a two-level code for the bare and vegetated microsites the deposit's own abstract names, scored `Data`; `Latitude` and `Longitude`, coordinates; `Aridity` and `Abiotic_ax1`, derived indices, the second a named axis score; and genuine soil, enzyme and amoA/amoB gene-abundance measurements. **`Mag. span 8.1 orders` across the matrix is what pooling a latitude with a gene copy number looks like.** Not an inversion instance — §2.8 returned at the 50-row floor and the window is the whole column, so this is plain role inference on a two-level numeric code. 32 × 23 = 736 with `Missing 0`. §4.1 C13. |
 | 22 | one population | one variable each | measurements | **Two quantities from two studies, read as replicates of one measurand.** Every row is one taxon; `Genus` 31 distinct over 31 rows. Neither column changes meaning down the rows. **`measurements` is `measurements` — a percentage occurrence and a cranial angle are both quantities — and the provenance is the finding rather than the field:** `%occur` is derived here, *observed occurrence/total surveyed* over 114 human and 1,468 non-human primate crania, while **`CBA` was not measured in this study at all**, being a per-genus average *gathered from the literature (Ross and Ravosa, 1993; Strait, 1999)*. `%occur` runs 0 to 0.39 at 4dp against `CBA` at 161 to 187 and 0–1dp, on a two-column matrix reading `Range 0.000 – 187.0`. **Smallest sheet of the thirty, and the only one where `nPairs < 2` is reachable** (P141, P138). 31 × 2 = 62 with `Missing 0`. §4.1 C14. |
 | 23 | one population | one variable each | measurements | **Recorded on the analysed block, and the block count is owed** (§4.1 C15). The README documents three vertically stacked blocks — water level, flow velocity, discharge, 730 daily observations each, separated by blank rows — against §19's recorded two. On the analysed block every row is one day's modelled water level, `date` running 2022/1/1 through 2023/12/31, and `L1`, `H1`, `R1`, `R2` are four sites carrying one water level each, so no column changes meaning down the rows. **If the discharge block reaches the matrix `rows` becomes `mixed`**, discharge being a different quantity on a two-column header rather than five. **`measurements` is `measurements`, with the provenance recorded: these are modelled outputs, not observations** — the deposit keeps observed water levels in `07_hydrodynamic_calibration_data.csv` for model evaluation. 730 × 4 = 2,920 with `Missing 0`; `Mag. span 0.0 orders`. §4.1 C15. |
-| 27 |  |  |  |  |
-| 28 |  |  |  |  |
-| 30 |  |  |  |  |
-| 31 |  |  |  |  |
-| 32 |  |  |  |  |
+| 27 | one population | one variable each | not measurements | **Second `not measurements` in the corpus, and the same shape as pos-02.** Every row is one specimen; `IndID` and `Museum_ID/USGS_ID` are each 127 distinct over 127 rows. The three analysed columns are `Elevation`, `Latitude` and `Longitude` — an altitude and two coordinates, all properties of where a bird was caught rather than of the bird. **The depositor calls the analysed file a metadata file** — *this is a metadata file containing the 128 individual* T. aedon *included in the manuscript* — and pins the unit, *elevation is presented in Feet above sea level*. **The deposit's data is `howr_ddrad_raw_variants.vcf.gz`, which the shape filter does not consider**, so the measurements live in a file §6.2 could not select. `Range -121.6 – 9894` is a longitude in degrees west pooled with an altitude in feet. 127 × 3 = 381 less one non-numeric gives the screen's 380. §4.1 C16. |
+| 28 | one population | one variable each | mixed | **One analysed column is the standard error of another.** Every row is one individual-season record, 435 over 54 individuals. No column changes meaning down the rows. **All four analysed columns are derived and the README says from what:** `elo` is *the randomized Elo-Rating, representing dominance rank*; `BT_scores` is *Bradley-Terry dominance scores*, a model fit to the same aggressive-displacement record; `years_to_death` is arithmetic on two dates; and **`BT_se` is *Bradley-Terry dominance scores standard error*, a quantity about the precision of a neighbouring column rather than about any bird** — which is what makes `measurements` `mixed` rather than clean. The displacement record the first three are computed from is not in the deposit. **`elo` and `BT_scores` are two estimators of one quantity and the depositor correlates them** in the supplementary analyses. `Missing 0` beside 160 non-numeric: `years_to_death` reads `NA` for birds still alive. 435 × 4 = 1,740 less 160 gives the screen's 1,580. §4.1 C17. |
+| 30 | one population | one variable each | measurements | **A column that is the sum of two others sits in the analysed matrix.** Every row is one billet; `billet_ID` 46 distinct over 46 rows. No column changes meaning down the rows. The six analysed columns are three billet dimensions in cm and three insect counts, all quantities about the billet. **`brood_total` = `total_ips_count_per_billet` + `total_parasitoids_per_billet` on all ten rows visible at import** — 190 + 0 = 190, 13 + 3 = 16, 33 + 6 = 39 — **measured on ten of forty-six and not on the file.** **This replaces the circumference-to-diameter relation the §4 cell recorded, which is refuted on those same ten rows** (§4.1 C18): circumference ÷ π gives 14.44, 14.05, 16.78 and 19.33 against recorded diameters of 14.21, 13.63, 16.88 and 18.59. The grouping sits in `site` and `tree_ID`, which the product reads, and the README confirms the nesting — *pine billets were obtained from two trees at each of four study sites*. 46 × 6 = 276 with `Missing 0`. §4.1 C18. |
+| 31 | one population | one variable each | mixed | **An apparatus identifier, two room readings and three coded outcomes in one matrix.** Every row is one courtship trial, 486 of them. No column changes meaning down the rows. **The README names all six analysed columns:** `Device` is *number of the set-up*, an apparatus identifier scored `Data`; `Temp` and `Humidity` are room temperature in °C and humidity in %, measured on the room rather than the flies; `MCS`, `CS1` and `DC` are coded behavioural outcomes at 0/1 and 0/1/2. **`Range 0.000 – 69.00` pools a binary score with a humidity percentage.** `Missing 0` beside 371 non-numeric is `NA` counted as non-numeric, the third instance after pos-28 and pos-44. The workbook's third sheet is a documentation sheet under §21.8 and its content is duplicated in the README, so the information set gains nothing new here. 486 × 6 = 2,916 less 371 gives the screen's 2,545. §4.1 C19. |
+| 32 | one population | one variable each | not measurements | **Third `not measurements`, and the clearest: a detection log in image space.** Every row is one pod detected by a YOLOv11 model — *a full list of the detected pods when run on all image slices*. No column changes meaning down the rows. **Not one of the ten analysed columns is a measurement of a plant:** `Slice_X` and `Slice_Y` are *slice index of image with respect to full plot image*; `X` and `Y` are *pixel position of detection within the slice*; `Width` and `Height` are *pixel width and height of pod*; `Confidence` is *detection confidence*; `Year` is a calendar year; `Plot` is a plot identifier; and `Pod_Class` is undocumented in the README's variable list. **`Range 0.000 – 2024` is a pixel coordinate pooled with a calendar year.** **The deposit's real measurements are in files the shape filter did not select** — `cowpea_biomass.csv`, `cowpea_leaf_nitrogen_vs_CCI.csv` and `cowpea_architecture.csv` carry dry masses, leaf areas and branch counts. Largest analysed matrix of the thirty: 52,588 × 10 = 525,880 with `Missing 0`. §4.1 C20. |
 | 34 |  |  |  |  |
 | 35 |  |  |  |  |
 | 38 |  |  |  |  |
