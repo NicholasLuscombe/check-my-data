@@ -271,6 +271,50 @@ stops and the deposit is not scored.** The risk is low and low is not measured.
 but nothing here says anything about what a reader sees. **Display defects remain outside this screen
 entirely** and a clean arm B must not be cited about them.
 
+### 8.5 — a probe's patience is not a resource limit, ruled S397 before any deposit was scored
+
+**No wait inside the arm-B probe may expire before §17.2's 24-hour run budget does.** A probe that
+gives up first manufactures a drivability finding out of a cost one.
+
+**This is not the thing §17.2 forbids.** §17.2 forbids raising a limit so that a run succeeds where
+the shipped surface would fail. A probe timeout has no counterpart on the shipped surface — a browser
+has no clock that abandons an import — so aligning it restores fidelity rather than buying success.
+
+**Why it is ruled now.** §8.1 routes *not drivable* to a hand-run. A wait expiring on a slow import
+would push a cost outcome into that branch and lose it. No deposit has been scored, so the rule
+cannot be fitted to which deposits it catches.
+
+**Measured at S397, `9c1f583`.** Eleven `waitFor` sites; eight take the 20 s default and none of the
+eight is overridable; three read `ARMB_TIMEOUT` at 600 s. The sheet-picker wait is one of ten, and it
+is not the worst: `:511` is a *run* wait at 20 s covering four tests, and `:568` puts the entire
+batch analysis under 20 s.
+
+**One exception, named rather than left implicit.** `:557` is a view switch, not an import or a run,
+and keeps a short explicit timeout. Left on the default it would hang for 24 hours on a broken button.
+
+**The budget is printed, not merely set.** It may be overridden for development, and the probe emits
+the value it is using in its run header, so no §7 figure can be taken from a run without its budget
+recorded beside it.
+
+#### 8.5.1 — the ceiling, and a timeout that lies
+
+**Node's `setTimeout` ceiling is 2,147,483,647 ms, 24.855 days.** Above it, vitest 2.1.9 fails in
+about 1 ms while reporting *Test timed out in 3110400000ms* — asserting a 36-day wait that never
+happened, with the overflow warning on stderr where a log grep never sees it.
+
+**That is a manufactured non-completion**, the exact outcome §17.3 records as real. Any block looping
+over deposits refuses at the top when `arms × budget` exceeds the ceiling, rather than running.
+
+#### 8.5.2 — one process per deposit
+
+**Vitest isolates per file, not per test**, so splitting into one `it` per deposit satisfies the
+ceiling and leaves the heap where S393 found it — 36 runs in a single process exhausted V8, and the
+nine sheets were run as nine processes.
+
+**Round 2's arm B is invoked once per deposit through `ARMB_MANIFEST`.** This satisfies the ceiling
+and the heap, needs no change to the probe, and isolates a deposit that dies from the deposits that
+follow it.
+
 ## 9 — §6.1's ordering rule, corrected S390, still before any deposit was acquired
 
 **This supersedes two things in §6.1: the ordering rule, and the reason given for it. §6.1's text
@@ -1070,3 +1114,35 @@ written into one sentence, and the pronoun did work the measurements did not sup
 widening a true finding past its scope — the register's fourth signature — and it reached a
 committed pre-registration section before the source was read. **The read that caught it was
 prompted by the section itself**, which had recorded the mechanism as unread.
+
+### 17.8 — the early-exit candidate is eliminated, and §17.7's own artifact claim was wrong, logged S397 before any deposit was scored
+
+**§17.7 closes by saying the permutation counts sit in the artifacts already written. They do not.**
+All four artifacts are the 1,000-row run — §17.1's gate variants at one row count. There is no
+5,000-row artifact; that run was made without `--out`. The claim is corrected here rather than edited
+away, and it was made from memory about what the artifacts contained.
+
+**The counts are recoverable at 1,000 rows and they eliminate the candidate.** `N_PERM = 999` above
+500 rows, so 999 is the ceiling at both 1,000 and 5,000. At 1,000 rows all 999 executed: the BH family
+minimum reached exactly `ALPHA.NOTE` against a strict `>`, is monotone non-decreasing in the
+permutation index, and never exceeds it over all 1,275 reachable prefixes. **`EARLY_EXIT_BURN_IN`
+never fired.**
+
+**§17.7's mechanism required more permutations at 5,000 rows than at 1,000. The 5,000-row run
+executed 999 or fewer.** The candidate is eliminated in the direction it was posed.
+
+**What this does not settle.** The growth remains unexplained; eliminating one candidate is not
+evidence for another; and `C20 :: Microcosm soil A` against `soil B` is a separate case, untouched
+here. **§17.7's prohibition stands: no register row states a cause.**
+
+#### 17.8.1 — the lattice condition decides a cost path
+
+The early exit did not fire because the statistic landed *exactly* on the threshold. P100 was stated
+about verdicts; here the same exact landing decides whether a run pays for its permutations at all.
+**One instance, one test, one row count, and it is not widened beyond that.**
+
+#### 17.8.2 — §17.5's exposure extends by one line
+
+The artifact read surfaced Blocked Mahalanobis's flag and p-value on the 1,000-row truncation, finer
+than the severity and tier counts §17.5 already declared. **Same truncation, same non-deposit, and
+declared rather than left in a checkpoint.**
