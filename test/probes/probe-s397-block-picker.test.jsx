@@ -44,9 +44,24 @@ const CASES = [
   { pos: "pos-14", file: "Rawdata_Figures_Tables_TSA.xlsx",          sheet: "Figure 2", bands: 4, harnessSplit: false },
   { pos: "pos-35", file: "AgeRelatedChangesInAcousticCues_data.csv", sheet: null,       bands: 4, harnessSplit: false },
   { pos: "pos-43", file: "Isoodon_data_raw_only.csv",                sheet: null,       bands: 2, harnessSplit: true  },
+  /* S397 part 5 — pos-23, the only other splitter among the thirty, added
+   * before it is scored (ROUND2 §19). It carries ZERO bands and splits, which
+   * is the cleanest form of the refutation: the band count and the block count
+   * are not weakly related, they are unrelated. */
+  { pos: "pos-23", file: "05_hydrodynamic_daily_outputs.csv",         sheet: null,       bands: 0, harnessSplit: true  },
 ];
 
 const PICKER = "Multiple data blocks detected";   // ImportView.jsx:760
+
+/* Zone 4's stat grid: <div><span>LABEL </span><span>VALUE</span></div>
+ * (ImportView.jsx:1163-1167). Same anchor probe-s397-pos02-floor uses. */
+function stat(container, label) {
+  for (const d of container.querySelectorAll("div")) {
+    const sp = d.querySelectorAll(":scope > span");
+    if (sp.length === 2 && (sp[0].textContent || "").trim() === label) return (sp[1].textContent || "").trim();
+  }
+  return null;
+}
 const tick = (ms = 0) => new Promise((r) => setTimeout(r, ms));
 const buttons = (c) => [...c.querySelectorAll("button")];
 
@@ -117,7 +132,26 @@ describe("S397 Part B — the block picker, driven", () => {
       const blockBtns = buttons(container)
         .map((b) => (b.textContent || "").trim())
         .filter((t) => /^Block \d+/.test(t));
-      out.push({ ...c, shown, nBlocks: blockBtns.length, blockBtns });
+      /* S397 part 5 — the picker's own "N data rows" is `blockSummary.dataRows`
+       * (parser.js:80), a DISPLAY heuristic counting rows over 30% numeric. It
+       * is NOT what gets analysed: `extractAnalysisInputs` keeps a row if ANY
+       * data column is non-null, so on pos-43 arm A's validRows is 709 while
+       * the block-1 label says 452. The two cannot be subtracted. So each block
+       * is selected in turn and Zone 4's own Rows / Data cols read off — the
+       * product's figure for the block a user would actually analyse.
+       * Clicking a block button is not answering a gate and runs nothing. */
+      const perBlock = [];
+      if (shown) {
+        for (let bi = 0; bi < blockBtns.length; bi++) {
+          const btn = buttons(container).find((x) => /^Block \d+/.test((x.textContent || "").trim()) &&
+            (x.textContent || "").trim().startsWith(`Block ${bi + 1}`));
+          fireEvent.click(btn);
+          await tick(150);
+          perBlock.push({ block: bi + 1, rows: stat(container, "Rows"), dcols: stat(container, "Data cols"),
+                          values: stat(container, "Values") });
+        }
+      }
+      out.push({ ...c, shown, nBlocks: blockBtns.length, blockBtns, perBlock });
       cleanup();
     }
 
@@ -130,6 +164,14 @@ describe("S397 Part B — the block picker, driven", () => {
     for (const r of out) if (r.blockBtns.length)
       console.log(`   ${r.pos} blocks, as the picker labels them:\n      ` +
         r.blockBtns.map((t) => t.replace(/\s+/g, " ")).join("\n      "));
+    for (const r of out) if (r.perBlock?.length) {
+      const tot = r.perBlock.reduce((a, x) => a + (+x.rows || 0), 0);
+      console.log(`   ${r.pos} — what each block yields, read off Zone 4 after selecting it:`);
+      for (const x of r.perBlock)
+        console.log(`      Block ${x.block}: Rows ${String(x.rows).padStart(5)}  Data cols ${String(x.dcols).padStart(3)}  Values ${x.values}`);
+      console.log(`      arm A takes block 1 -> ${r.perBlock[0].rows} of ${tot} rows across the blocks ` +
+                  `(${(100 * (+r.perBlock[0].rows) / tot).toFixed(1)}%)`);
+    }
     const byBands = [...out].sort((a, b) => b.bands - a.bands);
     console.log("\n   bands descending:", byBands.map((r) => `${r.pos}(${r.bands} bands, picker=${r.shown})`).join("  "));
     console.log("   => a band is what triggers the picker:",
