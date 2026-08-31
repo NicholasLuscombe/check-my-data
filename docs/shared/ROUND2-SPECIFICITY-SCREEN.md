@@ -1483,6 +1483,63 @@ elements below the detection limit reported as `0` — is the kind of finding th
 produce. **It must come from an arm before it counts as one**, and the full sheet's zero count is not
 this band's, so nothing here forecasts what either arm will return.
 
+### 21.8 — a documentation sheet inside the data file is part of the information set, ruled S400 during the re-answer pass and before any deposit was scored
+
+**Two deposits delegate their variable documentation into the workbook rather than carrying it in the
+README.** pos-18's README says *the first sheet in the document, "Metadata," includes a list of the
+subsequent sheets, their column names, and the information contained within.* pos-21's says *all the
+units and information about the variables are included in the "Metadata" spreadsheet.* **On the README
+alone both are no-change rows, and on both the documentation exists and says what the columns are.**
+
+**Ruled: where the data file carries a documentation sheet, it is part of arm B's information set.**
+
+Three reasons.
+
+- **§21.2 already covers it.** The information set is *the deposit as published: the data file, the
+  deposit's README, and the published metadata fields.* A sheet inside the data file is in the data
+  file. Excluding it would need a rule §21.2 does not carry.
+- **The shipped surface opens it.** §7 records that the product opens `SheetNames[0]` and discards the
+  name. On pos-18 the Metadata sheet **is** sheet 1. **Arm B declining to read what the product puts on
+  screen first is arm B pretending not to see.**
+- **The audience holds it.** §21's binding argument is that the integrity officer and the editor hold
+  the deposit and its documentation. A depositor who writes the variable list into sheet 1 has
+  documented the deposit; where the text sits is a formatting choice.
+
+#### 21.8.1 — what it does not license
+
+**It does not move which sheet is analysed.** §6.2 fixed file and sheet on cell count before any
+deposit was answered, and §21.3 and §22.2 both say the choice does not move. **The temptation arrives
+with the documentation** — pos-18's Metadata sheet describes `Raw_Floral` at length and the analysed
+`Floral_M` in one line — and it is refused for the reason it has always been refused: a sheet re-chosen
+after reading is a selection rule applied having seen what it catches.
+
+**It does not extend to a sheet's data.** The documentation sheet is read as documentation. Reading a
+second sheet's *values* to infer the analysed sheet's structure is a different act and is not licensed
+here.
+
+**It does not reopen §13.3, which stays shape-only** (§4.1 C7). A documentation sheet can say what a
+column means; the confirm-card rule still reads shape.
+
+#### 21.8.2 — the cost, and it is paid rather than deferred
+
+**Seven of the thirty are multi-sheet: pos-01, 08, 14, 18, 21, 31, 39.** pos-01's and pos-08's READMEs
+document every sheet in the workbook themselves, so neither is likely to hold documentation the pass
+has not seen. **pos-14 was re-answered before this rule and its workbook was not checked for a
+documentation sheet**, so it carries an owed check, recorded in run log §4.1 rather than left implicit.
+pos-31 and pos-39 are unread and the check is part of reading them.
+
+**A deposit whose workbook has no documentation sheet records that it has none**, on §14.3's principle:
+a blank cannot be told from a check nobody ran.
+
+#### 21.8.3 — what this section does not settle
+
+**Whether any deposit's documentation sheet contradicts a recorded answer.** Two have been read and
+neither did. **The rule is fixed here so that it cannot be chosen to fit a result**, which makes it
+auditable rather than correct.
+
+**Whether the same applies to a documentation file that is neither the README nor the data file** — a
+separate `variables.txt`, say. No deposit in the thirty has raised it and nothing is ruled about it.
+
 ## 22 — what the analysed matrix holds, recorded S399 before the re-answer pass and before any deposit was scored
 
 **§3's shape filter asks whether a sheet has a numeric matrix. It does not ask whether the numbers are
