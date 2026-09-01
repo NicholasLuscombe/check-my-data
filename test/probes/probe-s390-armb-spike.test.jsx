@@ -539,6 +539,7 @@ async function runArm({ path, sheet, colRel, rowSem, confirm = "none", inspect =
     () => (container.textContent.includes("Select sheet") ? "picker"
         : container.textContent.includes("Run analyses") ? "loaded"
         : container.textContent.includes("Select column relationship") ? "loaded"
+        : container.textContent.includes("Select row order above to proceed") ? "loaded"
         : container.textContent.includes("import error") ? "error"
         : container.textContent.includes(FLOOR_REFUSAL) ? "refused" : null),
     { label: "sheet picker or loaded data" });

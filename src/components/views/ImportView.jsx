@@ -810,7 +810,7 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
             {assayOpen&&(
               <div style={{position:"absolute",top:"100%",left:0,right:0,marginTop:"3px",zIndex:50,background:C.WHITE,border:`1px solid ${C.BORDER}`,borderRadius:CR.LG,boxShadow:"0 8px 24px rgba(0,0,0,.1)",maxHeight:"260px",overflowY:"auto"}}>
                 {ASSAYS.map(a=>(
-                  <button key={a.v} onClick={()=>{setAssay(a.v);setAssayProvenance("user-set");setAssayDetectedFromHeaders(false);setAssaySuggestion(null);setAssayOpen(false);const _dt=ASSAY_DATATYPE_MAP[a.v]||'continuous';setDataType(_dt);setVstProposal(null);setVstDecision(null);setVstAutoSet(false);}}
+                  <button key={a.v} onClick={()=>{setAssay(a.v);if(a.v!==assay){setAssayProvenance("user-set");setAssayDetectedFromHeaders(false);setAssaySuggestion(null);}setAssayOpen(false);const _dt=ASSAY_DATATYPE_MAP[a.v]||'continuous';setDataType(_dt);setVstProposal(null);setVstDecision(null);setVstAutoSet(false);}}
                     style={{display:"block",width:"100%",textAlign:"left",padding:"10px 12px",border:"none",background:a.v===assay?C.BG:C.WHITE,cursor:"pointer",borderBottom:`1px solid ${C.BORDER_L}`}}>
                     <div style={{fontSize:FS.base,fontWeight:FW.MED,color:C.TEXT}}>{a.l}</div>
                     <div style={{fontSize:FS.sm,color:C.TEXT_3,marginTop:"2px"}}>{a.d}</div>
@@ -981,7 +981,7 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
               {isRequired&&<span style={{display:"inline-block",fontSize:FS.xs,background:BADGE.REQUIRED.bg,color:BADGE.REQUIRED.text,borderRadius:CR.S2,padding:"2px 6px",fontWeight:FW.MED,userSelect:"none"}}>REQUIRED</span>}
             </div>
             <div style={{display:"flex",gap:"8px",flexWrap:"wrap",marginBottom:"6px"}}>
-              <button onClick={()=>{setColRelationship('replicates');setColRelAutoSet(false);}}
+              <button onClick={()=>{setColRelationship('replicates');if(colRelationship!=='replicates')setColRelAutoSet(false);}}
                 style={{flex:"1 1 180px",padding:"10px 14px",borderRadius:CR.MD,cursor:"pointer",textAlign:"left",
                   background:colRelationship==='replicates'?ACCENT.BLUE.bg:C.WHITE,
                   border:`1.5px solid ${colRelationship==='replicates'?CC.OBS:C.BORDER}`,
@@ -992,7 +992,7 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
                 </div>
                 <div style={{fontSize:FS.base,color:C.TEXT_3,lineHeight:"1.4"}}>Columns measure the same thing</div>
               </button>
-              <button onClick={()=>{setColRelationship('conditions');setColRelAutoSet(false);}}
+              <button onClick={()=>{setColRelationship('conditions');if(colRelationship!=='conditions')setColRelAutoSet(false);}}
                 style={{flex:"1 1 180px",padding:"10px 14px",borderRadius:CR.MD,cursor:"pointer",textAlign:"left",
                   background:colRelationship==='conditions'?ACCENT.BLUE.bg:C.WHITE,
                   border:`1.5px solid ${colRelationship==='conditions'?CC.OBS:C.BORDER}`,
@@ -1040,7 +1040,7 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
             </div>
             {autoSubText&&<div style={{fontSize:FS.xs,color:C.TEXT_3,marginBottom:"10px",lineHeight:"1.4"}}>{autoSubText}</div>}
             <div style={{display:"flex",gap:"8px",flexWrap:"wrap",marginBottom:"6px"}}>
-              <button onClick={()=>{setRowSemantics('ordered');setRowSemAutoSet(false);}}
+              <button onClick={()=>{setRowSemantics('ordered');if(rowSemantics!=='ordered')setRowSemAutoSet(false);}}
                 style={{flex:"1 1 180px",padding:"10px 14px",borderRadius:CR.MD,cursor:"pointer",textAlign:"left",
                   background:rowSemantics==='ordered'?ACCENT.BLUE.bg:C.WHITE,
                   border:`1.5px solid ${rowSemantics==='ordered'?CC.OBS:C.BORDER}`,
@@ -1051,7 +1051,7 @@ export function ImportView({ onProceed, onBatch, initialConfig, pendingFile, onP
                 </div>
                 <div style={{fontSize:FS.base,color:C.TEXT_3,lineHeight:"1.4"}}>Row order carries forensic meaning</div>
               </button>
-              <button onClick={()=>{setRowSemantics('arbitrary');setRowSemAutoSet(false);}}
+              <button onClick={()=>{setRowSemantics('arbitrary');if(rowSemantics!=='arbitrary')setRowSemAutoSet(false);}}
                 style={{flex:"1 1 180px",padding:"10px 14px",borderRadius:CR.MD,cursor:"pointer",textAlign:"left",
                   background:rowSemantics==='arbitrary'?ACCENT.BLUE.bg:C.WHITE,
                   border:`1.5px solid ${rowSemantics==='arbitrary'?CC.OBS:C.BORDER}`,
