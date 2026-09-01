@@ -1510,6 +1510,50 @@ display metric read as an analysed count and then made a neighbouring version of
 
 **No arm has run on pos-43.** §6.4's ordering holds.
 
+**C40 — pos-08, the confirm card renders eleven condition columns and §4 records ten. Logged S402.**
+
+§4's cell reads `confirmed with 2 unticked — 8 of 10 (user-set)`. **The card as rendered lists eleven:**
+`Description`, `Score Sequest HT: Sequest HT`, `Marked as`, `Abundance: 20:1 NR : Sample`, and seven
+`Found in Sample Group` columns — S1, S2, S4, S6, S8, S10, S12. **The cell becomes
+`confirmed with 2 unticked — 9 of 11 (user-set)`.**
+
+**No answer moves.** The two unticked columns are unchanged and named exactly as §4 names them; this is
+a denominator correction, logged rather than overwritten per §6.4.
+
+**The ten came from arm A, not from the product.** `corpus-out/round2-arma-pos-08.json` reports
+`nCondCols: 10` and assigns `Description` the role `label`. §4's cell was recording the headless path's
+count. **The divergence is not cosmetic:** `Description` is free text with many distinct values, so
+including it shatters the partition — **arm A 107 groups, largest 1,338 rows; arm B 1,151 as offered
+and 1,116 after the untick.** **This is why pos-08's §7 arm difference may not be cited as the cost of
+the default** — §2's subtraction carries a role divergence as well as the gate answers. Recorded as a
+register item; the source read on why the two paths infer differently is owed and is not a run.
+
+**C41 — pos-18, the analysed matrix is 147 columns, closing a §4.1 check. Logged S402.**
+
+The README describes **200 species columns**; §7's counts recorded **147**. The arm-A artifact
+`corpus-out/round2-arma-pos-18.json` reports `nRows: 144, nCols: 147`. **The README's 200 do not all
+reach the analysed matrix and §7's count stands.**
+
+**Read off the artifact rather than the workbook, and after the run rather than before it.** Permissible
+because it corrects a count and moves no answer; §6.4 governs answers, and the check was owed as a
+reconciliation rather than as an input to one.
+
+**A cost fact belongs beside it.** The run took **2,244 s** against 105 s for the other eighteen
+deposits in the same loop combined, and `Inter-Replicate Correlation` threw inside it, so severity 3 was
+computed over 28 tests. §7 carries both.
+
+**C42 — pos-40, the confirm-gate answer was never exercised on arm B. Logged S402.**
+
+§4's cell reads `confirmed with 3 unticked — 3 of 6 (user-set)`. **The browser run crashed inside the
+battery, upstream of the card, so the gate never rendered and the three unticks were never applied.**
+
+**§4's cell stands as the pre-run answer, unrevised.** §13.3 requires a non-rendering gate recorded
+rather than left blank; it is recorded in §7's Notes with the failure that caused it.
+
+**A note on the run order.** §20 fixed pos-08, pos-31 and pos-40 as hand-runs with arm B first, and all
+three were taken in that order before any arm-A verdict on them was seen. pos-40 is the one where arm B
+produced no verdict to compare.
+
 ### 4.2 — What the analysed matrix holds
 
 **§22's three fields, one row per deposit, filled before either arm runs on it.** Kept apart from §4's
@@ -1763,8 +1807,6 @@ or not a fetch can run.
 ## 7 — Results
 
 **One row per deposit. The measured cells are filled after both arms have run on it; the Notes cell may be filled earlier with structural facts known before the run.** §4 is the pre-run record by its own instruction and this is the post-run record. Keeping them apart is what stops a later reader asking whether an answer was written after a verdict was seen. **A structural fact written down before the run cannot be offered as an explanation after something fires**, which is why Notes is exempt and the severity, coverage and row-fraction cells are not. **§6.4 holds across both:** an answer is
-instruction and this is the post-run record. Keeping them apart is what stops a later reader asking
-whether an answer was written after a verdict was seen. **§6.4 holds across both:** an answer is
 never revised after a run, and a correction is logged with its reason rather than overwritten.
 
 **Rows are keyed on position and carry no DOI, deliberately.** §5's counting commands anchor on
@@ -1774,37 +1816,36 @@ here** — §4 maps position to DOI and the position is the key throughout.
 
 | # | Sev A | Sev B | Differs | cov.ran A | cov.ran B | Row frac A | Row frac B | Notes |
 |---|---|---|---|---|---|---|---|---|
-
-| 1 |  |  |  |  |  |  |  | **`structure inexpressible`** — 3 bands (5/6/4) lost at `detectHeaderRows`. **`TOTAL` row sits inside the analysed 16 × 15 matrix**, largest residual 2.91e-4 against the sum of the 15 rows above it; derived-or-reported undecided, unpriced. One blank raw row survives into `data` as index 0 and is dropped by `extractAnalysisInputs`. A methods caption in `A1` was stripped with the 3-row preamble. All recorded before either arm ran. |
-| 2 |  | refused | arm B refused |  | no run |  | no run |  |
-| 3 |  |  |  |  |  |  |  |  |
-| 7 |  |  |  |  |  |  |  | **`structure inexpressible`** — mixed: sixteen real variables beside a seventy-column year axis, 1950–2019. §16.7. Recorded before either arm ran. |
-| 8 |  |  |  |  |  |  |  | **`structure inexpressible`** — naming scheme, nine `Abundance:` sample columns. Recorded before either arm ran. |
-| 12 |  |  |  |  |  |  |  | **`structure inexpressible`** — naming scheme, `Y1B`/`Y1Q`/`Y3Q`, five columns each. Recorded before either arm ran. |
-| 14 |  |  |  |  |  |  |  | **`structure inexpressible`** — merged header cells, four panels of widths 4/3/3/3. Recorded before either arm ran. |
-| 18 |  |  |  |  |  |  |  |  |
-| 21 |  |  |  |  |  |  |  | **Derived column pair, recorded before either arm ran.** `Log_AOB_paper` and `Log_AOA_paper` are log transforms of `AOB_raw` and `AOA_raw`, both in the analysed matrix — a deterministic relation between column pairs, which is what Constant-Offset Blocks scans for. |
-| 22 |  |  |  |  |  |  |  |  |
-| 23 |  |  |  |  |  |  |  | **Row-count gap, recorded before either arm ran.** 2,199 raw rows less 1 skipped, 1 header and 734 trimmed leaves 1,463 against 730 surviving; the residue is close to a second block of the same height. `detectBlocksSplit` settles whether §6.2 ranked this sheet on one block of several. Unread. |
-| 27 |  |  |  |  |  |  |  | **The analysed matrix is three geographic coordinates** — `Elevation`, `Latitude`, `Longitude`, 127 × 3. Spatial coordinates carry intrinsic between-column structure. Recorded before either arm ran. |
-| 28 |  |  |  |  |  |  |  | **Two derived relations, recorded before either arm ran.** `BT_se` is the standard error of `BT_scores`, and `years_to_death` follows from `death_year` and `year`. `BT_scores` and `BT_se` are both in the analysed matrix. |
-| 30 |  |  |  |  |  |  |  | **Geometric relation, recorded before either arm ran.** `billet_circumference_cm` is π times `billet_diameter_cm`; both are in the analysed matrix, and a deterministic linear relation between two columns is what Constant-Offset Blocks scans for. |
-| 31 |  |  |  |  |  |  |  | **§15.3 — zero surviving groups.** 486 rows partition into 486 singletons and `slices()` returns none, so no group-based test can run. The deposit runs and is recorded normally; `cov.ran` and the row fraction carry it. Confirming the gate does not move the partition. Recorded before either arm ran. |
-| 32 |  |  |  |  |  |  |  | **Largest sheet of the thirty answered so far** — 52,588 × 10, runtime unmeasured, and cost is data-dependent rather than shape-dependent. **`Year` holds one distinct value** and enters the matrix as a zero-variance column. Recorded before either arm ran. |
-| 34 |  |  |  |  |  |  |  | **Grouped order, recorded before either arm ran.** Rows are ordered by measurement number `No` and also blocked by `IndID` into 74 individuals, so a whole-axis scan crosses individuals — the CORPUS-01 case, where the binary gate cannot express *order within block*. **Candidate derived relation:** `SpermLength` may be the sum of `HeadLength`, `MPLength` and `FlagellaLength`; not verified. |
-| 35 |  |  |  |  |  |  |  | **`structure inexpressible`** — merged header cells, four test batteries of widths 6/14/3/3. `AgeGroup` is derived from `Age` and both are read. Recorded before either arm ran. |
-| 38 |  |  |  |  |  |  |  | **§16.5 disagreement, recorded before either arm ran.** This sheet and pos-18 have the same shape — per-species measurements over sampling events — and §16.5 classifies pos-38 as columns-as-samples and pos-18 as variables. The answer is `replicates` either way; §16.3's count of eight is what turns on it. **Candidate derived relation:** thirteen `_rate` columns may be their `_c` counterparts over `Total.Capture.Effort`, but every `_rate` has FEWER distinct values than its count, which the simple per-row ratio does not predict. Unresolved. |
-| 39 |  |  |  |  |  |  |  | **The auto-answered row semantics looks wrong.** `physiological` was detected on a soil-chemistry sheet and carried `ordered` to the row gate without asking. Rows are 146 sampling points with no sequence column. Mirror of pos-32, where the same default is plausibly right. Recorded before either arm ran. |
-| 40 |  |  |  |  |  |  |  | **`structure inexpressible`** — naming scheme, 416 sample columns on a site-plus-replicate code. **Largest sheet of the thirty, 33,678 × 416, battery runtime unmeasured** and cost is data-dependent rather than shape-dependent. **The assay detector returned `general` on an ASV table**, so METHODOLOGY's genomics auto-route to `arbitrary` did not fire. Recorded before either arm ran. |
-| 41 |  |  |  |  |  |  |  | **`structure inexpressible`** — mixed, six trait families crossed with abaxial/adaxial/mean beside seven climate variables. **Six columns are derived from their neighbours** — `e_mean_um2`, `i_mean_unitless`, `s_mean_um2`, `d_total_sto.mm.2`, `f_mean`, `gmax_total` — and all sit in the analysed matrix. **The assay detector returned `general` on a SNP table**, second missed genomics file. 109,228 rows. Recorded before either arm ran. |
-| 43 |  |  |  |  |  |  |  | **Alternating blank rows, recorded before either arm ran.** The identifier columns are filled on every other row — `Count`, `Species name` and `Specimen #` each hold 437 values against 436 missing of 873 — so half the analysed rows carry no specimen identity and the condition partition is built on a column blank half the time. **The row count does not close either:** 1,650 raw less 1 header and 50 trimmed leaves 1,599 against 873 surviving. Same shape as pos-23's gap; `detectBlocksSplit` unread on both. |
-| 44 |  | refused | arm B refused |  | no run |  | no run |  |
-| 45 |  |  |  |  |  |  |  | **`structure inexpressible`** — wavelength sweep, `200`–`700`. The only sheet of the thirty with no label and no condition column; the analysed matrix is the entire file at 101 × 102. Recorded before either arm ran. |
-| 46 |  |  |  |  |  |  |  | **`structure inexpressible`** — mixed: five compounds crossed with two years beside four real condition columns. **`d.cts` and `d.pgs` are derived from their neighbours**, and `pdw.total.22` and `pdw.total.23` are plausibly the sums of the compounds beside them; all are in the analysed matrix. **The auto-answered row semantics looks wrong** — `qpcr` detected on plant chemistry. Recorded before either arm ran. |
-| 47 |  | refused | arm B refused |  | no run |  | no run |  |
-| 49 |  |  |  |  |  |  |  | **Derived relation, recorded before either arm ran.** `dry_wetratio` is `DryWeight` over `WetWeight` and all three are in the analysed matrix — a deterministic relation among three of the five data columns. The auto-answered `ordered` is plausibly right here, unlike pos-39 and pos-46. |
-| 50 |  |  |  |  |  |  |  | **Only arm-2-without-arm-1 confirm gate of the thirty.** **Candidate compositional relation:** the three TOGA counts — intact, inactivating, missing — may sum to a fixed gene total per assembly, which would make one column a function of the other two. Not verified. Recorded before either arm ran. |
-| 51 |  |  |  |  |  |  |  | **Derived relations, recorded before either arm ran.** `wing_loading` follows from mass over wing area and `aspect_ratio` from wing length and area, so two of the nine data columns are functions of three others in the same matrix. **Six `*_nir` columns are scored `label`** at a numeric fraction near 0.47 and therefore never reach the battery. |
+| 1 | 3 | 3 | no | 12 |  |  |  | **`structure inexpressible`** — 3 bands (5/6/4) lost at `detectHeaderRows`. **`TOTAL` row sits inside the analysed 16 × 15 matrix**, largest residual 2.91e-4 against the sum of the 15 rows above it; derived-or-reported undecided, unpriced. One blank raw row survives into `data` as index 0 and is dropped by `extractAnalysisInputs`. A methods caption in `A1` was stripped with the 3-row preamble. All recorded before either arm ran. **S402 — both arms, zero difference on every field, despite differing at the row gate:** arm A `ordered`, arm B `arbitrary`. Arm B via probe, 1.3 s. |
+| 2 | 3 | refused | arm B refused | 5 | no run |  | no run | **S402 — arm A scored `26,532 × 1`.** §2.8 held out twelve columns, all geographic or stratigraphic and all constant within `collection_no`, leaving that museum collection identifier as the sole surviving data column. **Arm A returned severity 3 on an accession number**; arm B refuses at `ImportView.jsx:974`. 57 s isolated. |
+| 3 | 3 |  |  | 9 |  |  |  |  |
+| 7 | 3 |  |  | 19 |  |  |  | **`structure inexpressible`** — mixed: sixteen real variables beside a seventy-column year axis, 1950–2019. §16.7. Recorded before either arm ran. |
+| 8 | 3 | 3 | **yes, not in severity** | 18 | 16 |  |  | **`structure inexpressible`** — naming scheme, nine `Abundance:` sample columns. Recorded before either arm ran. **S402 — same severity, same ten HIGH results, disjoint moderate sets.** Arm A: Runs Test MODERATE, Cross-Condition Consistency MODERATE, Cross-Condition Rank Correlation N/A. Arm B: Runs Test N/A under `arbitrary`, Cross-Condition Consistency CLEAR, Cross-Condition Rank Correlation NOTED. Two mechanisms, separable — Runs Test is the row gate; the cross-condition pair is the partition, arm A's 107 groups against arm B's 1,116. **This difference may not be cited as the cost of the default**: `Description` infers as `label` on arm A and `condition` in the browser (§4.1 C40), so a role divergence is mixed in. Arm B hand-run; artifact `corpus-out/round2-armb-pos-08.txt`. |
+| 12 | 3 |  |  | 4 |  |  |  | **`structure inexpressible`** — naming scheme, `Y1B`/`Y1Q`/`Y3Q`, five columns each. Recorded before either arm ran. |
+| 14 | 3 |  |  | 23 |  |  |  | **`structure inexpressible`** — merged header cells, four panels of widths 4/3/3/3. Recorded before either arm ran. |
+| 18 | 3 |  |  | 16 of 28 |  |  |  | **S402 — a test crashed and the run continued.** `Inter-Replicate Correlation` threw `RangeError: Maximum call stack size exceeded` at `interReplicateCorrelation.js:331`, in `testPearsonUniformity`. **Severity 3 computed over 28 tests, not 29**, and nothing on the shipped surface says so. §2.8 held out **54 columns**. **2,244 s at 144 × 147**, against 105 s for the other eighteen deposits in the same loop combined. **The cause is unmeasured and is not width** — pos-45 at 101 × 102 took 24 s. §17.9's threshold is on rows and does not see this deposit. Closes §4.1's 200-versus-147 check at 147 (C41). |
+| 21 | 3 |  |  | 18 |  |  |  | **Derived column pair, recorded before either arm ran.** `Log_AOB_paper` and `Log_AOA_paper` are log transforms of `AOB_raw` and `AOA_raw`, both in the analysed matrix — a deterministic relation between column pairs, which is what Constant-Offset Blocks scans for. |
+| 22 | **1** |  |  | 12 |  |  |  | **S402 — the only deposit below severity 3 on arm A.** Severity 1, no HIGH, one MODERATE, 12 of 29 tests run, 1 s. |
+| 23 | 3 |  |  | 20 |  |  |  | **Row-count gap, recorded before either arm ran.** 2,199 raw rows less 1 skipped, 1 header and 734 trimmed leaves 1,463 against 730 surviving; the residue is close to a second block of the same height. `detectBlocksSplit` settles whether §6.2 ranked this sheet on one block of several. Unread. |
+| 27 | 3 |  |  | 20 |  |  |  | **The analysed matrix is three geographic coordinates** — `Elevation`, `Latitude`, `Longitude`, 127 × 3. Spatial coordinates carry intrinsic between-column structure. Recorded before either arm ran. |
+| 28 | 3 |  |  | 16 |  |  |  | **Two derived relations, recorded before either arm ran.** `BT_se` is the standard error of `BT_scores`, and `years_to_death` follows from `death_year` and `year`. `BT_scores` and `BT_se` are both in the analysed matrix. |
+| 30 | 3 |  |  | 17 |  |  |  | **Geometric relation, recorded before either arm ran.** `billet_circumference_cm` is π times `billet_diameter_cm`; both are in the analysed matrix, and a deterministic linear relation between two columns is what Constant-Offset Blocks scans for. |
+| 31 | 3 | 3 | no | 17 | 17 |  |  | **§15.3 — zero surviving groups.** 486 rows partition into 486 singletons and `slices()` returns none, so no group-based test can run. The deposit runs and is recorded normally; `cov.ran` and the row fraction carry it. Confirming the gate does not move the partition. Recorded before either arm ran. **S402 — zero arm difference on every field.** Both arms `ordered`, both 17 of 29, both 9 high and 4 moderate. The untick removed `Experimentor`, which holds one distinct value; the partition stayed at 486 singletons and confirming moved neither the banner nor a chip. §13.2's shared-root finding on a second round-2 deposit, again with both trigger arms present. Arm B hand-run; artifact `corpus-out/round2-armb-pos-31.txt`. |
+| 32 | 3 |  |  | 23 of 28 |  |  |  | **Largest sheet of the thirty answered so far** — 52,588 × 10, runtime unmeasured, and cost is data-dependent rather than shape-dependent. **`Year` holds one distinct value** and enters the matrix as a zero-variance column. Recorded before either arm ran. **S402 — a test crashed and the run continued.** `Duplicate Detection` threw `RangeError: Map maximum size exceeded` at `duplicateDetection.js:759` — **the same line §4 predicts for pos-41, now fired at 52,588 rows.** **Severity 3 computed over 28 tests, not 29.** **4,485 s isolated**, the first cost figure this deposit has had; §4 recorded it unmeasured. |
+| 34 | 3 |  |  | 23 |  |  |  | **Grouped order, recorded before either arm ran.** Rows are ordered by measurement number `No` and also blocked by `IndID` into 74 individuals, so a whole-axis scan crosses individuals — the CORPUS-01 case, where the binary gate cannot express *order within block*. **Candidate derived relation:** `SpermLength` may be the sum of `HeadLength`, `MPLength` and `FlagellaLength`; not verified. |
+| 35 | 3 |  |  | 23 |  |  |  | **`structure inexpressible`** — merged header cells, four test batteries of widths 6/14/3/3. `AgeGroup` is derived from `Age` and both are read. Recorded before either arm ran. |
+| 38 | 3 |  |  | 24 |  |  |  | **§16.5 disagreement, recorded before either arm ran.** This sheet and pos-18 have the same shape — per-species measurements over sampling events — and §16.5 classifies pos-38 as columns-as-samples and pos-18 as variables. The answer is `replicates` either way; §16.3's count of eight is what turns on it. **Candidate derived relation:** thirteen `_rate` columns may be their `_c` counterparts over `Total.Capture.Effort`, but every `_rate` has FEWER distinct values than its count, which the simple per-row ratio does not predict. Unresolved. |
+| 39 | 3 |  |  | 24 |  |  |  | **The auto-answered row semantics looks wrong.** `physiological` was detected on a soil-chemistry sheet and carried `ordered` to the row gate without asking. Rows are 146 sampling points with no sequence column. Mirror of pos-32, where the same default is plausibly right. Recorded before either arm ran. |
+| 40 | **did not complete** | **did not complete** | both arms fail | no run | no run |  |  | **`structure inexpressible`** — naming scheme, 416 sample columns on a site-plus-replicate code. **Largest sheet of the thirty, 33,678 × 416, battery runtime unmeasured** and cost is data-dependent rather than shape-dependent. **The assay detector returned `general` on an ASV table**, so METHODOLOGY's genomics auto-route to `arbitrary` did not fire. Recorded before either arm ran. **S402 — neither arm completes, and they fail at different points.** Arm A: heap exhausted, **3,479 MB, aborted at 21.8 s, before the battery** — reproducing §4's 3,472 MB at 17.6 s from an independent run. Arm B in the browser: parsed the file, cleared both gates, entered the battery and crashed the tab at ~40 s, **twice — test 5 of 29 on the first run and test 6 of 29 on the second**. Chrome "Aw, Snap!", error code 5. **The position varies, so the wall is time and memory rather than a named test**; neither Value-Frequency Spike nor Inter-Replicate Correlation may be cited as a cause. **The confirm gate never rendered** (§4.1 C42). No resource limit was raised on either arm. |
+| 41 | **not attempted** |  |  | no run |  |  |  | **`structure inexpressible`** — mixed, six trait families crossed with abaxial/adaxial/mean beside seven climate variables. **Six columns are derived from their neighbours** — `e_mean_um2`, `i_mean_unitless`, `s_mean_um2`, `d_total_sto.mm.2`, `f_mean`, `gmax_total` — and all sit in the analysed matrix. **The assay detector returned `general` on a SNP table**, second missed genomics file. 109,228 rows. Recorded before either arm ran. **S402 — not attempted on arm A.** A run of the projected length was not available on the operator's machine on battery power — an operator resource fact, not a property of the tool. **The 83-to-100-hour figure is a projection and not a measurement**; it was fitted to row count, and pos-18 shows that fit does not generalise. Recoverable in one command. |
+| 43 | 3 |  |  | 19 |  |  |  | **Alternating blank rows, recorded before either arm ran.** The identifier columns are filled on every other row — `Count`, `Species name` and `Specimen #` each hold 437 values against 436 missing of 873 — so half the analysed rows carry no specimen identity and the condition partition is built on a column blank half the time. **The row count does not close either:** 1,650 raw less 1 header and 50 trimmed leaves 1,599 against 873 surviving. Same shape as pos-23's gap; `detectBlocksSplit` unread on both. **S402 — arm A scored `709 × 70` in 23 s**, §2.8 holding out `Head-body`. §19 and §19.1 stand: this deposit's §7 difference may not be cited as the cost of the default. |
+| 44 | **did not complete** |  |  | no run |  |  | no run | **S402 — arm A does not complete and this was not predicted.** Heap exhausted, **4,034 MB, aborted at 33.8 s, before the battery**. §4 and §17 name pos-40 as the deposit that dies; pos-44 was expected to be expensive. `--max-old-space-size` was not used, per §17.2. |
+| 45 | 3 |  |  | 20 |  |  |  | **`structure inexpressible`** — wavelength sweep, `200`–`700`. The only sheet of the thirty with no label and no condition column; the analysed matrix is the entire file at 101 × 102. Recorded before either arm ran. |
+| 46 | 3 |  |  | 20 |  |  |  | **`structure inexpressible`** — mixed: five compounds crossed with two years beside four real condition columns. **`d.cts` and `d.pgs` are derived from their neighbours**, and `pdw.total.22` and `pdw.total.23` are plausibly the sums of the compounds beside them; all are in the analysed matrix. **The auto-answered row semantics looks wrong** — `qpcr` detected on plant chemistry. Recorded before either arm ran. |
+| 47 | 3 |  |  | 5 |  |  | no run | **S402 — arm A scored `760 × 1`**, a single data column, on a file the shipped surface refuses. §2.8 held out `seed_density` and `burial_treatment`, both constant within `plot_id`. |
+| 49 | 3 |  |  | 23 |  |  |  | **Derived relation, recorded before either arm ran.** `dry_wetratio` is `DryWeight` over `WetWeight` and all three are in the analysed matrix — a deterministic relation among three of the five data columns. The auto-answered `ordered` is plausibly right here, unlike pos-39 and pos-46. |
+| 50 | 3 |  |  | 16 |  |  |  | **Only arm-2-without-arm-1 confirm gate of the thirty.** **Candidate compositional relation:** the three TOGA counts — intact, inactivating, missing — may sum to a fixed gene total per assembly, which would make one column a function of the other two. Not verified. Recorded before either arm ran. |
+| 51 | 3 |  |  | 22 |  |  |  | **Derived relations, recorded before either arm ran.** `wing_loading` follows from mass over wing area and `aspect_ratio` from wing length and area, so two of the nine data columns are functions of three others in the same matrix. **Six `*_nir` columns are scored `label`** at a numeric fraction near 0.47 and therefore never reach the battery. |
 
 - **Sev A** and **Sev B** are the file verdict severities, 0 to 3. **On a refusal Sev B reads
   `refused`** (§14.3): arm A scores the sheet, arm B has no run, and the cost of the default on that
