@@ -28,7 +28,8 @@
  */
 import { describe, it, expect } from "vitest";
 import { render, fireEvent } from "@testing-library/react";
-import { writeFileSync } from "fs";
+import { writeFileSync, mkdirSync } from "fs";
+import { dirname } from "path";
 import React from "react";
 
 import { ReportView } from "../../src/components/views/ReportView.jsx";
@@ -38,7 +39,10 @@ import { renderPromptBody } from "../../src/analysis/promptBodyRenderer.js";
 import { EXPECTED } from "../batch-fixtures.mjs";
 import { buildFixture } from "./s388b-harness.mjs";
 
-const OUT = process.env.OUT || "out-s388b-exports.txt";
+// S403: default under corpus-out/, which is gitignored. It used to land in the
+// checkout root, where every suite run recreated it and `promote.sh`'s
+// `git add -A` would sweep 4 MB into a merge. Nothing reads the path.
+const OUT = process.env.OUT || "corpus-out/out-s388b-exports.txt";
 const ONLY = process.env.ONLY || null;
 
 function emit(lines, file, surface, text) {
@@ -134,6 +138,7 @@ describe("S388 part 2 — export-surface dump", () => {
       emit(lines, file, "XLSX", sheetDump);
     }
 
+    mkdirSync(dirname(OUT), { recursive: true });
     writeFileSync(OUT, lines.join("\n") + "\n");
     expect(lines.length).toBeGreaterThan(0);
   }, 1800000);
