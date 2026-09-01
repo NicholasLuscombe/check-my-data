@@ -224,6 +224,7 @@ function stubResizeObserver() {
  * dynamic import of SheetJS, the analysis itself). No fake timers: the engine's
  * Blocked-Mahalanobis loop yields on real setTimeout. */
 async function waitFor(fn, { timeout = RUN_BUDGET_MS, interval = 25, label = "condition" } = {}) {
+  console.log(`[wait] begin: ${label}`);   // S403 diagnostic — entry log only
   const t0 = Date.now();
   for (;;) {
     let v;
