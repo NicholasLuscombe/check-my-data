@@ -73,6 +73,12 @@ export const DISTS = {
   counts:      (rnd, p) => poisson(rnd, p.lambda),
   proportion:  (rnd, p) => rnd(),                     // bounded [0,1)
   uniform:     (rnd, p) => p.lo + (p.hi - p.lo) * rnd(),
+  /* S404 Part 9 — integers over a SMALL range. The continuous families above
+   * essentially never repeat a value, which is not what real deposits look
+   * like: counts, scores, presence/absence and category codes make two equal
+   * values an arithmetic near-certainty rather than evidence of copying. The
+   * range is the factor; nothing else about the draw changes. */
+  lowint:      (rnd, p) => p.lo + Math.floor(rnd() * (p.hi - p.lo + 1)),
 };
 
 /**
@@ -93,6 +99,7 @@ export function generate(o) {
   const headers = [];
   if (idCol) headers.push('SampleID');
   if (groupCol) headers.push('Site');
+  if (o.dateCol) headers.push('SurveyDate');
   for (const c of cols) headers.push(c.name);
 
   const rows = [];
@@ -100,11 +107,37 @@ export function generate(o) {
     const row = [];
     if (idCol) row.push('S' + String(r + 1).padStart(5, '0'));
     if (groupCol) row.push('Site_' + String.fromCharCode(65 + (r % nGroups)));
+    /* A date-like column drawn independently of everything else, so sorting on
+     * it is a pure re-ordering rather than a proxy for any measured value. */
+    if (o.dateCol) {
+      const day = 1 + Math.floor(rnd() * 365);
+      const d = new Date(Date.UTC(2024, 0, day));
+      row.push(d.toISOString().slice(0, 10));
+    }
     for (const c of cols) {
       const v = DISTS[c.dist](rnd, c.params || {});
       row.push(c.dp === 0 ? Math.round(v) : Number(v.toFixed(c.dp ?? 3)));
     }
     rows.push(row);
+  }
+
+  /* S404 Part 9 — ROW ORDER. Real deposits arrive sorted by site, date or
+   * individual; rows above are iid. Sorting introduces NO relationship between
+   * columns and fabricates nothing, so the file stays honest — but it does
+   * create genuine serial structure down the rows, which is what the
+   * sequential tests look for. A fire under sorting is the test reading order
+   * the depositor imposed, which is not the same as an invented signal.
+   * `sortBy` names a header; ties keep their draw order (Array.sort is stable
+   * in V8), so the factor is the ordering and nothing else. */
+  if (o.sortBy) {
+    const ci = headers.indexOf(o.sortBy);
+    if (ci < 0) throw new Error(`sortBy: no column named "${o.sortBy}" in [${headers.join(', ')}]`);
+    rows.sort((a, b) => {
+      const x = a[ci], y = b[ci];
+      return (typeof x === 'number' && typeof y === 'number')
+        ? x - y
+        : String(x).localeCompare(String(y));
+    });
   }
   return { headers, rows };
 }
@@ -152,6 +185,22 @@ export function baseCols(k, { dp = 3, dist = null, scaleSpread = false } = {}) {
   return out;
 }
 
+/* S404 Part 9 — k columns of integers over [0, hi], the low-cardinality shape.
+ * Every column is drawn independently, so repeated values arise from the range
+ * alone. With nRows rows and hi+1 possible values, the expected number of
+ * equal pairs within a column is C(nRows,2)/(hi+1) — at 200 rows and hi=5 that
+ * is about 3,300 by arithmetic, with nothing copied. */
+export function lowIntCols(k, hi) {
+  const NAMES = ['count_a', 'count_b', 'score_1', 'score_2', 'presence', 'stage',
+                 'brood_n', 'rank_ord', 'visits', 'cohort', 'band_n', 'plot_n'];
+  return Array.from({ length: k }, (_, i) => ({
+    name: i < NAMES.length ? NAMES[i] : `int_${i + 1}`,
+    dist: 'lowint',
+    params: { lo: 0, hi },
+    dp: 0,
+  }));
+}
+
 export const DIST_DEFAULTS = {
   normal:     { mu: 50, sd: 10 },
   lognormal:  { mu: 3, sd: 0.5 },
@@ -176,16 +225,19 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     console.log(`${label.padEnd(34)} ${spec.nRows} x ${spec.cols.length}`);
   };
 
+  const PART9 = argv.includes('--part9');
+
   /* PART 2 — the base set. Five seeds at one fixed shape, so "does it fire" is
    * not read off a single draw. Shape chosen to sit in the middle of the real
    * deposits' range (Part 6 measured 21 to 52,589 rows, 5 to 204 columns). */
   const BASE = { nRows: 200, seed: 0, idCol: true, groupCol: true };
-  for (let s = 0; s < 5; s++) {
+  if (!PART9) for (let s = 0; s < 5; s++) {
     emit(`base-seed${s}`, { ...BASE, seed: 41000 + s, cols: baseCols(8) });
   }
 
   /* PART 3 — one factor at a time, all against base-seed0's settings. */
   const F = { ...BASE, seed: 41000 };
+  if (!PART9) {
   for (const k of [3, 5, 8, 12, 24])
     emit(`ncols-${String(k).padStart(2, '0')}`, { ...F, cols: baseCols(k) });
   for (const n of [50, 100, 200, 500, 2000])
@@ -201,6 +253,48 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   emit('group-none', { ...F, groupCol: false, cols: baseCols(8) });
   emit('id-none-group-none', { ...F, idCol: false, groupCol: false, cols: baseCols(8) });
   emit('scale-spread', { ...F, cols: baseCols(8, { scaleSpread: true }) });
+  }
+
+  /* ── S404 Part 9 — repeats and row order, ONE FACTOR PER FILE ──────────
+   * Emitted under --part9 so Part 8's set stays exactly as it was and the two
+   * are never mixed in one directory. */
+  if (argv.includes('--part9')) {
+    /* Part 1 — low-cardinality integers, rows left iid. Range is the factor;
+     * row count, column count and seed are held fixed. */
+    for (const hi of [5, 20, 100])
+      emit(`p9-lowint-hi${String(hi).padStart(3, '0')}`, { ...F, cols: lowIntCols(8, hi) });
+    /* A continuous control at the same shape, so "integers" is the difference
+     * and not "eight columns at seed 41000". */
+    emit('p9-lowint-control-continuous', { ...F, cols: baseCols(8) });
+
+    /* Part 2 — sorting, on its own, over the base mixed-continuous file. The
+     * first is Part 8's run repeated verbatim: an instrument just extended is
+     * not a witness until it reproduces something already measured. */
+    const S = { ...F, dateCol: true, cols: baseCols(8) };
+    emit('p9-sort-none', S);
+    emit('p9-sort-by-measured', { ...S, sortBy: 'body_mass_g' });
+    emit('p9-sort-by-id', { ...S, sortBy: 'SampleID' });
+    emit('p9-sort-by-date', { ...S, sortBy: 'SurveyDate' });
+    emit('p9-sort-by-group', { ...S, sortBy: 'Site' });
+
+    /* Part 3 — both at once, the ordinary ecological/survey shape. */
+    for (const hi of [5, 20])
+      emit(`p9-both-hi${String(hi).padStart(3, '0')}`,
+           { ...F, dateCol: true, cols: lowIntCols(8, hi), sortBy: 'count_a' });
+
+    /* Byte-identical reproduction of Part 8's `sorted-by-col`: no date column,
+     * so the PRNG draw order matches. `dateCol` consumes one draw per row, so
+     * the arms above are mutually comparable but are NOT the same data Part 8
+     * saw — this arm is, and it is what the reproduction claim rests on. */
+    emit('p9-repro-part8-sorted', { ...F, cols: baseCols(8), sortBy: 'body_mass_g' });
+
+    /* Held-out Part 3 configuration, added AFTER the first three arms had been
+     * read, so the prediction recorded against it is a genuine pre-registration
+     * rather than a description. Different cardinality and a different sort
+     * column from the arms above. */
+    emit('p9-heldout-both-hi050',
+         { ...F, dateCol: true, cols: lowIntCols(8, 50), sortBy: 'score_1' });
+  }
 
   writeFileSync(join(outDir, 'manifest.json'),
     JSON.stringify(written.map(w => ({ label: w.label, path: w.path })), null, 1));
