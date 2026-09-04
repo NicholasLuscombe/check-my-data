@@ -2034,3 +2034,58 @@ read as a field naming a fact.
 **Whether the review paper should report a figure over the deposits that declare nothing.** §7's
 counts are not recomputed over a subset and that does not move. Whether a second figure is worth
 printing beside them is a writing decision and is not pre-registered here.
+
+## 24 — `cov.ran` on arm B is recorded inapplicable with its reason, ruled S404 after twenty-five deposits were scored
+
+§7 requires `cov.ran` per deposit per arm. On arm B the quantity cannot be obtained by any run that is
+also a valid arm B, and this section states how the column is recorded. **Nothing in §7, §17.9 or any
+earlier section is amended.**
+
+### 24.1 — why it cannot be obtained
+
+`covRan` is assigned once, at `probe-s390-armb-spike.test.jsx:623`, inside `if (inspect)` and after
+`expandAll`. Setting `inspect` opens the `:604` block: it clicks the Forensics tab, expands every
+result row, and re-reads the verdict afterwards.
+
+**Those are operator actions on the surface under test.** An arm-B run is defined by answering the
+gates from §4 and reading the verdict. A run that also expands every row and re-reads is a different
+sequence of interactions with the product, and its verdict is read from a different state. It is not
+the run §3 pre-registered.
+
+### 24.2 — the ruling
+
+**The cell reads `inapplicable — assigned only under inspect, which changes the arm`. It does not read
+blank.**
+
+This follows §18. When §8.3's polyfill assertion had no subject on a hand-run, the answer was to record
+it inapplicable with its reason rather than to skip it silently. The shape is the same: the requirement
+stands, the quantity is unobtainable on this arm by construction, and the record says which.
+
+**A blank cell means nobody looked** (§4.2). That would be false here. We looked, the quantity was
+found to be unobtainable without changing what is measured, and the reason is stated.
+
+### 24.3 — the hand-runs keep their figures, and there are two of them
+
+pos-08 reads 16 and pos-31 reads 17. Those were obtained by a human driving the product, not by the
+probe, and `inspect` does not arise.
+
+**§20 routes three deposits to a hand-run and two produced a coverage figure.** pos-40 crashed the tab
+and §7 records `no run` on both its arms. **The set designated for hand-running and the set carrying
+coverage figures are different sets**, and a sentence naming three is wrong.
+
+### 24.4 — what is not being done
+
+**The pre-registration is not amended.** §7's requirement stands as written. This section states how an
+unfillable column is recorded; it does not remove the column, relax the requirement, or change what
+`cov.ran` means.
+
+**No third arm is invented.** Ruling that an `inspect` run is a separate arm would create a new arm
+after seeing results, which is the free choice §3 exists to prevent.
+
+### 24.5 — what this costs the screen
+
+`cov.ran` was to have supported the coverage comparison in §7. On arm B that comparison now rests on
+two deposits.
+
+**It is not a coverage result and may not be written up as one.** Where the arms' coverage is
+discussed, the sample is pos-08 and pos-31, and the sentence that reports it names them.
